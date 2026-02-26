@@ -63,9 +63,22 @@ const CreateNewIndividualModal = ({
   };
 
   return (
-    <Modal show={show} onHide={onHide} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>
+    <Modal
+      show={show}
+      onHide={onHide}
+      centered
+      id="create-new-individual-modal"
+      data-testid="create-new-individual-modal"
+    >
+      <Modal.Header
+        closeButton
+        id="create-new-individual-modal-header"
+        data-testid="create-new-individual-modal-header"
+      >
+        <Modal.Title
+          id="create-new-individual-modal-title"
+          data-testid="create-new-individual-modal-title"
+        >
           <FormattedMessage
             id="CREATE_NEW_INDIVIDUAL"
             defaultMessage="Create New Individual"
@@ -73,13 +86,22 @@ const CreateNewIndividualModal = ({
         </Modal.Title>
       </Modal.Header>
 
-      <Modal.Body>
-        <p className="mb-3">
+      <Modal.Body
+        id="create-new-individual-modal-body"
+        data-testid="create-new-individual-modal-body"
+      >
+        <p
+          className="mb-3"
+          id="create-new-individual-description"
+          data-testid="create-new-individual-description"
+        >
           <FormattedMessage
             id="CREATE_NEW_INDIVIDUAL_DESCRIPTION"
             defaultMessage="Create a new individual and assign a new name for Encounter"
           />{" "}
           <a
+            id="create-new-individual-encounter-link"
+            data-testid="create-new-individual-encounter-link"
             href={`/react/encounter?number=${encodeURIComponent(encounterId)}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -88,12 +110,25 @@ const CreateNewIndividualModal = ({
           </a>
         </p>
 
-        <Form>
-          <Form.Group className="mb-3">
-            <Form.Label>
+        <Form
+          id="create-new-individual-form"
+          data-testid="create-new-individual-form"
+        >
+          <Form.Group
+            className="mb-3"
+            id="create-new-individual-remark-group"
+            data-testid="create-new-individual-remark-group"
+          >
+            <Form.Label
+              id="create-new-individual-remark-label"
+              data-testid="create-new-individual-remark-label"
+            >
               <FormattedMessage id="MATCHED_BY" defaultMessage="Matched by" />
             </Form.Label>
+
             <Form.Select
+              id="create-new-individual-remark-select"
+              data-testid="create-new-individual-remark-select"
               value={selectedRemark}
               onChange={(e) => setSelectedRemark(e.target.value)}
             >
@@ -104,21 +139,35 @@ const CreateNewIndividualModal = ({
                 />
               </option>
               {identificationRemarks.map((remark, index) => (
-                <option key={index} value={remark}>
+                <option
+                  key={index}
+                  value={remark}
+                  data-testid={`create-new-individual-remark-option-${index}`}
+                >
                   {remark}
                 </option>
               ))}
             </Form.Select>
           </Form.Group>
 
-          <Form.Group className="mb-3">
-            <Form.Label>
+          <Form.Group
+            className="mb-3"
+            id="create-new-individual-id-group"
+            data-testid="create-new-individual-id-group"
+          >
+            <Form.Label
+              id="create-new-individual-id-label"
+              data-testid="create-new-individual-id-label"
+            >
               <FormattedMessage
                 id="NEW_INDIVIDUAL_ID"
                 defaultMessage="New Individual ID"
               />
             </Form.Label>
+
             <Form.Control
+              id="create-new-individual-id-input"
+              data-testid="create-new-individual-id-input"
               type="text"
               value={newIndividualName}
               onChange={(e) => onNameChange(e.target.value)}
@@ -127,10 +176,23 @@ const CreateNewIndividualModal = ({
           </Form.Group>
 
           {locationId && (
-            <div className="mb-3">
+            <div
+              className="mb-3"
+              id="create-new-individual-suggested-id"
+              data-testid="create-new-individual-suggested-id"
+            >
               {loadingSuggestedId ? (
-                <span className="text-muted">
-                  <Spinner animation="border" size="sm" className="me-2" />
+                <span
+                  className="text-muted"
+                  id="create-new-individual-suggested-id-loading"
+                  data-testid="create-new-individual-suggested-id-loading"
+                >
+                  <Spinner
+                    animation="border"
+                    size="sm"
+                    className="me-2"
+                    data-testid="create-new-individual-suggested-id-spinner"
+                  />
                   <FormattedMessage
                     id="LOADING_SUGGESTED_ID"
                     defaultMessage="Loading suggested ID..."
@@ -138,7 +200,11 @@ const CreateNewIndividualModal = ({
                 </span>
               ) : suggestedId ? (
                 <>
-                  <span className="text-muted">
+                  <span
+                    className="text-muted"
+                    id="create-new-individual-suggested-id-value"
+                    data-testid="create-new-individual-suggested-id-value"
+                  >
                     <FormattedMessage
                       id="SUGGESTED_ID"
                       defaultMessage="Suggested ID"
@@ -146,6 +212,8 @@ const CreateNewIndividualModal = ({
                     : {suggestedId}
                   </span>{" "}
                   <Button
+                    id="create-new-individual-use-suggested-id"
+                    data-testid="create-new-individual-use-suggested-id"
                     variant="link"
                     size="sm"
                     style={{ color: themeColor.primaryColors.primary500 }}
@@ -160,8 +228,13 @@ const CreateNewIndividualModal = ({
         </Form>
       </Modal.Body>
 
-      <Modal.Footer>
+      <Modal.Footer
+        id="create-new-individual-modal-footer"
+        data-testid="create-new-individual-modal-footer"
+      >
         <Button
+          id="create-new-individual-confirm"
+          data-testid="create-new-individual-confirm"
           style={{
             backgroundColor: themeColor.primaryColors.primary500,
             border: "none",
@@ -175,7 +248,10 @@ const CreateNewIndividualModal = ({
             defaultMessage="Create New Individual"
           />
         </Button>
+
         <Button
+          id="create-new-individual-cancel"
+          data-testid="create-new-individual-cancel"
           variant="outline-primary"
           style={{
             color: themeColor.primaryColors.primary500,

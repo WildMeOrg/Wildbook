@@ -17,9 +17,22 @@ const MatchConfirmedModal = ({
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>
+    <Modal
+      show={show}
+      onHide={handleClose}
+      centered
+      id="match-confirmed-modal"
+      data-testid="match-confirmed-modal"
+    >
+      <Modal.Header
+        closeButton
+        id="match-confirmed-modal-header"
+        data-testid="match-confirmed-modal-header"
+      >
+        <Modal.Title
+          id="match-confirmed-modal-title"
+          data-testid="match-confirmed-modal-title"
+        >
           <FormattedMessage
             id="MATCH_CONFIRMED"
             defaultMessage="Match Confirmed!"
@@ -27,8 +40,11 @@ const MatchConfirmedModal = ({
         </Modal.Title>
       </Modal.Header>
 
-      <Modal.Body>
-        <p>
+      <Modal.Body
+        id="match-confirmed-modal-body"
+        data-testid="match-confirmed-modal-body"
+      >
+        <p id="match-confirmed-message" data-testid="match-confirmed-message">
           {encounterCount > 0 ? (
             <>
               <FormattedMessage
@@ -44,6 +60,8 @@ const MatchConfirmedModal = ({
                 defaultMessage="You matched Encounter"
               />{" "}
               <a
+                id="match-confirmed-encounter-link"
+                data-testid="match-confirmed-encounter-link"
                 href={`/react/encounter?number=${encodeURIComponent(encounterId)}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -57,6 +75,8 @@ const MatchConfirmedModal = ({
             </>
           )}
           <a
+            id="match-confirmed-individual-link"
+            data-testid="match-confirmed-individual-link"
             href={`/individuals.jsp?id=${encodeURIComponent(individualId)}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -66,8 +86,13 @@ const MatchConfirmedModal = ({
         </p>
       </Modal.Body>
 
-      <Modal.Footer>
+      <Modal.Footer
+        id="match-confirmed-modal-footer"
+        data-testid="match-confirmed-modal-footer"
+      >
         <Button
+          id="match-confirmed-close"
+          data-testid="match-confirmed-close"
           variant="outline-primary"
           style={{
             color: themeColor.primaryColors.primary500,

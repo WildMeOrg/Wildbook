@@ -277,31 +277,49 @@ const MatchProspectTable = ({
   }
 
   return (
-    <div className="mb-4" id={sectionId}>
-      <div className="d-flex justify-content-between align-items-center mb-2">
+    <div
+      className="mb-4"
+      id={sectionId}
+      data-testid={`match-prospect-table-${sectionId}`}
+    >
+      <div
+        className="d-flex justify-content-between align-items-center mb-2"
+        data-testid={`match-prospect-header-${sectionId}`}
+      >
         <div className="d-flex w-100">
-          <div style={{ fontWeight: "500" }}>
+          <div
+            style={{ fontWeight: "500" }}
+            data-testid={`match-prospect-method-${sectionId}`}
+          >
             {methodName
               ? `${matchesBasedOnText}${" "} ${methodName}`
               : `${matchesBasedOnText}${" "} ${algorithm}`}
           </div>
-          <div className="d-flex flex-row gap-3" style={{ marginLeft: "auto" }}>
+
+          <div
+            className="d-flex flex-row gap-3"
+            style={{ marginLeft: "auto" }}
+            data-testid={`match-prospect-meta-${sectionId}`}
+          >
             <div
               style={{
                 backgroundColor: themeColor.primaryColors.primary50,
                 borderRadius: "4px",
                 padding: "4px",
               }}
+              data-testid={`match-prospect-candidates-${sectionId}`}
             >
               <FormattedMessage id="AGAINST" /> {numCandidates}{" "}
               <FormattedMessage id="CANDIDATES" />{" "}
             </div>
+
             <div
               style={{
                 backgroundColor: themeColor.primaryColors.primary50,
                 borderRadius: "4px",
                 padding: "4px",
               }}
+              data-testid={`match-prospect-date-${sectionId}`}
             >
               <span>{date?.slice(0, 16).replace("T", " ")}</span>
             </div>
@@ -309,10 +327,20 @@ const MatchProspectTable = ({
         </div>
       </div>
 
-      <div style={styles.matchListScrollContainer}>
-        <div style={styles.matchListGrid}>
+      <div
+        style={styles.matchListScrollContainer}
+        data-testid={`match-prospect-list-scroll-${sectionId}`}
+      >
+        <div
+          style={styles.matchListGrid}
+          data-testid={`match-prospect-list-${sectionId}`}
+        >
           {columns.map((columnData, columnIndex) => (
-            <div key={columnIndex} style={styles.matchColumn}>
+            <div
+              key={columnIndex}
+              style={styles.matchColumn}
+              data-testid={`match-prospect-column-${sectionId}-${columnIndex}`}
+            >
               {columnData.map((candidate) => {
                 const candidateEncounterId =
                   candidate.annotation?.encounter?.id;
@@ -332,6 +360,8 @@ const MatchProspectTable = ({
                 return (
                   <div
                     key={rowKey}
+                    id={`match-prospect-row-${sectionId}-${rowKey}`}
+                    data-testid={`match-prospect-row-${sectionId}-${rowKey}`}
                     onClick={() => handleRowClick(candidate, rowKey)}
                     style={{
                       ...styles.matchRow(isRowSelected, themeColor),
@@ -344,11 +374,16 @@ const MatchProspectTable = ({
                     onMouseEnter={() => setHoveredRow(rowKey)}
                     onMouseLeave={() => setHoveredRow(null)}
                   >
-                    <span style={styles.matchRank}>
+                    <span
+                      style={styles.matchRank}
+                      data-testid={`match-prospect-rank-${sectionId}-${rowKey}`}
+                    >
                       {candidate.displayIndex}.
                     </span>
 
                     <a
+                      id={`match-prospect-score-link-${sectionId}-${rowKey}`}
+                      data-testid={`match-prospect-score-link-${sectionId}-${rowKey}`}
                       href={
                         canOpenEncounter
                           ? `/react/encounter?number=${encodeURIComponent(candidateEncounterId)}`
@@ -370,15 +405,15 @@ const MatchProspectTable = ({
                       {Number.isFinite(candidate?.score)
                         ? Math.max(candidate.score, 0).toLocaleString(
                             undefined,
-                            {
-                              maximumFractionDigits: 4,
-                            },
+                            { maximumFractionDigits: 4 },
                           )
                         : "—"}
                     </a>
 
                     <button
                       type="button"
+                      id={`match-prospect-individual-${sectionId}-${rowKey}`}
+                      data-testid={`match-prospect-individual-${sectionId}-${rowKey}`}
                       style={styles.idPill(themeColor)}
                       className="btn btn-sm p-0 px-2"
                       onClick={(e) => {
@@ -395,6 +430,8 @@ const MatchProspectTable = ({
                       <button
                         type="button"
                         title="Open Encounter Page"
+                        id={`match-prospect-encounter-btn-${sectionId}-${rowKey}`}
+                        data-testid={`match-prospect-encounter-btn-${sectionId}-${rowKey}`}
                         style={styles.encounterButton(themeColor)}
                         className="btn btn-sm p-0 px-2"
                         onClick={(e) => {
@@ -417,9 +454,12 @@ const MatchProspectTable = ({
                         gap: "20px",
                       }}
                       onClick={(e) => e.stopPropagation()}
+                      data-testid={`match-prospect-actions-${sectionId}-${rowKey}`}
                     >
                       <Form.Check
                         type="checkbox"
+                        id={`match-prospect-select-${sectionId}-${rowKey}`}
+                        data-testid={`match-prospect-select-${sectionId}-${rowKey}`}
                         checked={isRowSelected}
                         onChange={(e) =>
                           onToggleSelected(
@@ -440,13 +480,27 @@ const MatchProspectTable = ({
         </div>
       </div>
 
-      <Row>
-        <Col md={6} className="mb-3 mb-md-0" style={{ position: "relative" }}>
-          <div style={styles.matchImageCard}>
-            <div style={styles.cornerLabel(themeColor)}>
+      <Row data-testid={`match-prospect-images-${sectionId}`}>
+        <Col
+          md={6}
+          className="mb-3 mb-md-0"
+          style={{ position: "relative" }}
+          data-testid={`match-prospect-left-col-${sectionId}`}
+        >
+          <div
+            style={styles.matchImageCard}
+            data-testid={`match-prospect-left-card-${sectionId}`}
+          >
+            <div
+              style={styles.cornerLabel(themeColor)}
+              data-testid={`match-prospect-left-label-${sectionId}`}
+            >
               <FormattedMessage id="THIS_ENCOUNTER" />
             </div>
-            <div style={styles.imageContainer}>
+            <div
+              style={styles.imageContainer}
+              data-testid={`match-prospect-left-overlay-wrap-${sectionId}`}
+            >
               <InteractiveAnnotationOverlay
                 ref={leftOverlayRef}
                 imageUrl={leftImageUrl}
@@ -458,30 +512,65 @@ const MatchProspectTable = ({
             </div>
           </div>
 
-          <div style={styles.toolsBarLeft}>
+          <div
+            style={styles.toolsBarLeft}
+            data-testid={`match-prospect-left-toolbar-${sectionId}`}
+          >
             <div
               onClick={() => leftOverlayRef.current?.zoomIn?.()}
               style={styles.iconButton}
               title="Zoom In"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  leftOverlayRef.current?.zoomIn?.();
+                }
+              }}
+              id={`match-prospect-left-zoom-in-${sectionId}`}
+              data-testid={`match-prospect-left-zoom-in-${sectionId}`}
             >
               <ZoomInIcon />
             </div>
+
             <div
               onClick={() => leftOverlayRef.current?.zoomOut?.()}
               style={styles.iconButton}
               title="Zoom Out"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  leftOverlayRef.current?.zoomOut?.();
+                }
+              }}
+              id={`match-prospect-left-zoom-out-${sectionId}`}
+              data-testid={`match-prospect-left-zoom-out-${sectionId}`}
             >
               <ZoomOutIcon />
             </div>
           </div>
         </Col>
 
-        <Col md={6} style={{ position: "relative" }}>
-          <div style={styles.matchImageCard}>
-            <div style={{ ...styles.cornerLabel(themeColor) }}>
+        <Col
+          md={6}
+          style={{ position: "relative" }}
+          data-testid={`match-prospect-right-col-${sectionId}`}
+        >
+          <div
+            style={styles.matchImageCard}
+            data-testid={`match-prospect-right-card-${sectionId}`}
+          >
+            <div
+              style={{ ...styles.cornerLabel(themeColor) }}
+              data-testid={`match-prospect-right-label-${sectionId}`}
+            >
               <FormattedMessage id="POSSIBLE_MATCH" />
             </div>
-            <div style={styles.imageContainer}>
+            <div
+              style={styles.imageContainer}
+              data-testid={`match-prospect-right-overlay-wrap-${sectionId}`}
+            >
               <InteractiveAnnotationOverlay
                 ref={rightOverlayRef}
                 imageUrl={rightImageUrl}
@@ -495,21 +584,44 @@ const MatchProspectTable = ({
             </div>
           </div>
 
-          <div style={styles.toolsBarRight}>
+          <div
+            style={styles.toolsBarRight}
+            data-testid={`match-prospect-right-toolbar-${sectionId}`}
+          >
             <div
               onClick={() => rightOverlayRef.current?.zoomIn?.()}
               style={styles.iconButton}
               title="Zoom In"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  rightOverlayRef.current?.zoomIn?.();
+                }
+              }}
+              id={`match-prospect-right-zoom-in-${sectionId}`}
+              data-testid={`match-prospect-right-zoom-in-${sectionId}`}
             >
               <ZoomInIcon />
             </div>
+
             <div
               onClick={() => rightOverlayRef.current?.zoomOut?.()}
               style={styles.iconButton}
               title="Zoom Out"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  rightOverlayRef.current?.zoomOut?.();
+                }
+              }}
+              id={`match-prospect-right-zoom-out-${sectionId}`}
+              data-testid={`match-prospect-right-zoom-out-${sectionId}`}
             >
               <ZoomOutIcon />
             </div>
+
             <div
               style={
                 inspectorUrl ? styles.iconButton : styles.iconButtonDisabled
@@ -519,11 +631,18 @@ const MatchProspectTable = ({
                   ? "View Hotspotter Visualization"
                   : "No visualization available"
               }
-              onClick={() => {
-                if (inspectorUrl) {
-                  setInspectorOpen(true);
-                }
+              role="button"
+              tabIndex={inspectorUrl ? 0 : -1}
+              onKeyDown={(e) => {
+                if (!inspectorUrl) return;
+                if (e.key === "Enter" || e.key === " ") setInspectorOpen(true);
               }}
+              onClick={() => {
+                if (inspectorUrl) setInspectorOpen(true);
+              }}
+              id={`match-prospect-inspector-open-${sectionId}`}
+              data-testid={`match-prospect-inspector-open-${sectionId}`}
+              aria-disabled={!inspectorUrl}
             >
               <HatchMarkIcon />
             </div>
@@ -531,10 +650,20 @@ const MatchProspectTable = ({
             <div
               style={styles.iconButton}
               title="View Annotations"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  rightOverlayRef.current?.toggleAnnotations?.();
+                  leftOverlayRef.current?.toggleAnnotations?.();
+                }
+              }}
               onClick={() => {
                 rightOverlayRef.current?.toggleAnnotations?.();
                 leftOverlayRef.current?.toggleAnnotations?.();
               }}
+              id={`match-prospect-toggle-annotations-${sectionId}`}
+              data-testid={`match-prospect-toggle-annotations-${sectionId}`}
             >
               <ToggoleAnnotationIcon />
             </div>
@@ -542,17 +671,28 @@ const MatchProspectTable = ({
             <div
               style={styles.iconButton}
               title="Fullscreen"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  if (!previewedRow) return;
+                  openFullscreen();
+                }
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 if (!previewedRow) return;
                 openFullscreen();
               }}
+              id={`match-prospect-fullscreen-open-${sectionId}`}
+              data-testid={`match-prospect-fullscreen-open-${sectionId}`}
             >
               <FullScreenIcon />
             </div>
           </div>
         </Col>
       </Row>
+
       <Modal
         show={fullscreenOpen}
         onHide={() => setFullscreenOpen(false)}
@@ -560,27 +700,64 @@ const MatchProspectTable = ({
         centered={false}
         keyboard
         contentClassName="border-0 rounded-0"
+        data-testid={`match-prospect-fullscreen-modal-${sectionId}`}
       >
-        <div style={styles.fullscreenBody}>
-          <div style={styles.fullscreenGrid}>
-            <div style={styles.fullscreenPanel}>
-              <div style={styles.fullscreenImageWrap}>
-                <div style={styles.fullscreenLabel}>
+        <div
+          style={styles.fullscreenBody}
+          data-testid={`match-prospect-fullscreen-body-${sectionId}`}
+        >
+          <div
+            style={styles.fullscreenGrid}
+            data-testid={`match-prospect-fullscreen-grid-${sectionId}`}
+          >
+            <div
+              style={styles.fullscreenPanel}
+              data-testid={`match-prospect-fullscreen-left-panel-${sectionId}`}
+            >
+              <div
+                style={styles.fullscreenImageWrap}
+                data-testid={`match-prospect-fullscreen-left-wrap-${sectionId}`}
+              >
+                <div
+                  style={styles.fullscreenLabel}
+                  data-testid={`match-prospect-fullscreen-left-label-${sectionId}`}
+                >
                   <FormattedMessage id="THIS_ENCOUNTER" />
                 </div>
 
-                <div style={styles.fullscreenTopRight}>
+                <div
+                  style={styles.fullscreenTopRight}
+                  data-testid={`match-prospect-fullscreen-left-toolbar-${sectionId}`}
+                >
                   <div
                     style={styles.iconButton}
                     title="Zoom In"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        fsLeftRef.current?.zoomIn?.();
+                      }
+                    }}
                     onClick={() => fsLeftRef.current?.zoomIn?.()}
+                    id={`match-prospect-fullscreen-left-zoom-in-${sectionId}`}
+                    data-testid={`match-prospect-fullscreen-left-zoom-in-${sectionId}`}
                   >
                     <ZoomInIcon />
                   </div>
                   <div
                     style={styles.iconButton}
                     title="Zoom Out"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        fsLeftRef.current?.zoomOut?.();
+                      }
+                    }}
                     onClick={() => fsLeftRef.current?.zoomOut?.()}
+                    id={`match-prospect-fullscreen-left-zoom-out-${sectionId}`}
+                    data-testid={`match-prospect-fullscreen-left-zoom-out-${sectionId}`}
                   >
                     <ZoomOutIcon />
                   </div>
@@ -597,27 +774,58 @@ const MatchProspectTable = ({
               </div>
             </div>
 
-            <div style={styles.fullscreenPanel}>
-              <div style={styles.fullscreenImageWrap}>
-                <div style={styles.fullscreenLabel}>
+            <div
+              style={styles.fullscreenPanel}
+              data-testid={`match-prospect-fullscreen-right-panel-${sectionId}`}
+            >
+              <div
+                style={styles.fullscreenImageWrap}
+                data-testid={`match-prospect-fullscreen-right-wrap-${sectionId}`}
+              >
+                <div
+                  style={styles.fullscreenLabel}
+                  data-testid={`match-prospect-fullscreen-right-label-${sectionId}`}
+                >
                   <FormattedMessage id="POSSIBLE_MATCH" />
                 </div>
 
-                <div style={styles.fullscreenTopRight}>
+                <div
+                  style={styles.fullscreenTopRight}
+                  data-testid={`match-prospect-fullscreen-right-toolbar-${sectionId}`}
+                >
                   <div
                     style={styles.iconButton}
                     title="Zoom In"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        fsRightRef.current?.zoomIn?.();
+                      }
+                    }}
                     onClick={() => fsRightRef.current?.zoomIn?.()}
+                    id={`match-prospect-fullscreen-right-zoom-in-${sectionId}`}
+                    data-testid={`match-prospect-fullscreen-right-zoom-in-${sectionId}`}
                   >
                     <ZoomInIcon />
                   </div>
                   <div
                     style={styles.iconButton}
                     title="Zoom Out"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        fsRightRef.current?.zoomOut?.();
+                      }
+                    }}
                     onClick={() => fsRightRef.current?.zoomOut?.()}
+                    id={`match-prospect-fullscreen-right-zoom-out-${sectionId}`}
+                    data-testid={`match-prospect-fullscreen-right-zoom-out-${sectionId}`}
                   >
                     <ZoomOutIcon />
                   </div>
+
                   <div
                     style={
                       inspectorUrl
@@ -629,32 +837,62 @@ const MatchProspectTable = ({
                         ? "View Hotspotter Visualization"
                         : "No visualization available"
                     }
-                    onClick={() => {
-                      if (inspectorUrl) {
+                    role="button"
+                    tabIndex={inspectorUrl ? 0 : -1}
+                    onKeyDown={(e) => {
+                      if (!inspectorUrl) return;
+                      if (e.key === "Enter" || e.key === " ")
                         setInspectorOpen(true);
-                      }
                     }}
+                    onClick={() => {
+                      if (inspectorUrl) setInspectorOpen(true);
+                    }}
+                    id={`match-prospect-fullscreen-inspector-open-${sectionId}`}
+                    data-testid={`match-prospect-fullscreen-inspector-open-${sectionId}`}
+                    aria-disabled={!inspectorUrl}
                   >
                     <HatchMarkIcon />
                   </div>
+
                   <div
                     style={styles.iconButton}
                     title="View Annotations"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        fsRightRef.current?.toggleAnnotations?.();
+                        fsLeftRef.current?.toggleAnnotations?.();
+                      }
+                    }}
                     onClick={() => {
                       fsRightRef.current?.toggleAnnotations?.();
                       fsLeftRef.current?.toggleAnnotations?.();
                     }}
+                    id={`match-prospect-fullscreen-toggle-annotations-${sectionId}`}
+                    data-testid={`match-prospect-fullscreen-toggle-annotations-${sectionId}`}
                   >
                     <ToggoleAnnotationIcon />
                   </div>
+
                   <div
                     style={styles.iconButton}
                     title="Exit fullscreen"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        setFullscreenOpen(false);
+                      }
+                    }}
                     onClick={() => setFullscreenOpen(false)}
+                    id={`match-prospect-fullscreen-exit-${sectionId}`}
+                    data-testid={`match-prospect-fullscreen-exit-${sectionId}`}
                   >
                     <ExitFullScreenIcon />
                   </div>
                 </div>
+
                 <InteractiveAnnotationOverlay
                   ref={fsRightRef}
                   imageUrl={rightImageUrl}
@@ -670,6 +908,7 @@ const MatchProspectTable = ({
           </div>
         </div>
       </Modal>
+
       <InspectorModal
         show={inspectorOpen}
         onHide={() => setInspectorOpen(false)}

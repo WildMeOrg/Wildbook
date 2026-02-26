@@ -85,10 +85,17 @@ const MatchResultsBottomBar = observer(
           const shortEncId = encId.slice(0, 5);
 
           const left = (
-            <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
+            <div
+              className="text-truncate"
+              style={{ whiteSpace: "nowrap" }}
+              id="match-bottombar-left-no-individuals"
+              data-testid="match-bottombar-left-no-individuals"
+            >
               <FormattedMessage id="SET_MATCH_FOR" />{" "}
               {store.individualDisplayName ? (
                 <a
+                  id="match-bottombar-individual-link"
+                  data-testid="match-bottombar-individual-link"
                   href={`/individuals.jsp?id=${encodeURIComponent(
                     store.individualId,
                   )}`}
@@ -103,6 +110,8 @@ const MatchResultsBottomBar = observer(
                 </a>
               ) : (
                 <a
+                  id="match-bottombar-encounter-link"
+                  data-testid="match-bottombar-encounter-link"
                   href={`/react/encounter?number=${encodeURIComponent(encId)}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -119,27 +128,28 @@ const MatchResultsBottomBar = observer(
           );
 
           const right = (
-            <>
-              <MainButton
-                noArrow
-                backgroundColor={themeColor.primaryColors.primary500}
-                color="white"
-                onClick={() => setShowCreateModal(true)}
-                disabled={store.matchRequestLoading}
-                style={{ marginTop: 0, marginBottom: 0 }}
-              >
-                <FormattedMessage id="MARK_AS_NEW_INDIVIDUAL" />
-                {store.matchRequestLoading && (
-                  <Spinner
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                    className="ms-2"
-                  />
-                )}
-              </MainButton>
-            </>
+            <MainButton
+              noArrow
+              backgroundColor={themeColor.primaryColors.primary500}
+              color="white"
+              onClick={() => setShowCreateModal(true)}
+              disabled={store.matchRequestLoading}
+              style={{ marginTop: 0, marginBottom: 0 }}
+              id="match-bottombar-mark-new"
+              data-testid="match-bottombar-mark-new"
+            >
+              <FormattedMessage id="MARK_AS_NEW_INDIVIDUAL" />
+              {store.matchRequestLoading && (
+                <Spinner
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="ms-2"
+                  data-testid="match-bottombar-mark-new-spinner"
+                />
+              )}
+            </MainButton>
           );
 
           return { left, right };
@@ -163,9 +173,16 @@ const MatchResultsBottomBar = observer(
 
           return {
             left: (
-              <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
+              <div
+                className="text-truncate"
+                style={{ whiteSpace: "nowrap" }}
+                id="match-bottombar-left-single-individual"
+                data-testid="match-bottombar-left-single-individual"
+              >
                 <FormattedMessage id="MERGE_INDIVIDUAL" />{" "}
                 <a
+                  id="match-bottombar-single-individual-link"
+                  data-testid="match-bottombar-single-individual-link"
                   href={`/individuals.jsp?id=${encodeURIComponent(
                     individualItem?.individualId,
                   )}`}
@@ -197,6 +214,8 @@ const MatchResultsBottomBar = observer(
                 onClick={handleMatch}
                 disabled={store.matchRequestLoading}
                 style={{ marginTop: 0, marginBottom: 0 }}
+                id="match-bottombar-confirm-match"
+                data-testid="match-bottombar-confirm-match"
               >
                 <FormattedMessage id="CONFIRM_MATCH" />
                 {store.matchRequestLoading && (
@@ -206,6 +225,7 @@ const MatchResultsBottomBar = observer(
                     role="status"
                     aria-hidden="true"
                     className="ms-2"
+                    data-testid="match-bottombar-confirm-match-spinner"
                   />
                 )}
               </MainButton>
@@ -245,9 +265,16 @@ const MatchResultsBottomBar = observer(
 
           return {
             left: (
-              <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
+              <div
+                className="text-truncate"
+                style={{ whiteSpace: "nowrap" }}
+                id="match-bottombar-left-two-individuals"
+                data-testid="match-bottombar-left-two-individuals"
+              >
                 <FormattedMessage id="MERGE" />{" "}
                 <a
+                  id="match-bottombar-two-individual-a-link"
+                  data-testid="match-bottombar-two-individual-a-link"
                   href={`/individuals.jsp?id=${encodeURIComponent(
                     a?.individualId,
                   )}`}
@@ -262,6 +289,8 @@ const MatchResultsBottomBar = observer(
                 </a>{" "}
                 <FormattedMessage id="AND" />{" "}
                 <a
+                  id="match-bottombar-two-individual-b-link"
+                  data-testid="match-bottombar-two-individual-b-link"
                   href={`/individuals.jsp?id=${encodeURIComponent(
                     b?.individualId,
                   )}`}
@@ -293,6 +322,8 @@ const MatchResultsBottomBar = observer(
                 onClick={store.handleMerge}
                 disabled={store.matchRequestLoading}
                 style={{ marginTop: 0, marginBottom: 0 }}
+                id="match-bottombar-merge-individuals"
+                data-testid="match-bottombar-merge-individuals"
               >
                 <FormattedMessage id="MERGE_INDIVIDUALS" />
                 {store.matchRequestLoading && (
@@ -302,6 +333,7 @@ const MatchResultsBottomBar = observer(
                     role="status"
                     aria-hidden="true"
                     className="ms-2"
+                    data-testid="match-bottombar-merge-individuals-spinner"
                   />
                 )}
               </MainButton>
@@ -321,6 +353,8 @@ const MatchResultsBottomBar = observer(
                   alignItems: "center",
                   padding: "0 12px",
                 }}
+                id="match-bottombar-too-many-individuals"
+                data-testid="match-bottombar-too-many-individuals"
               >
                 <FormattedMessage id="CANNOT_MERGE_MORE_THAN_TWO" />
               </div>
@@ -335,10 +369,17 @@ const MatchResultsBottomBar = observer(
 
             return {
               left: (
-                <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
+                <div
+                  className="text-truncate"
+                  style={{ whiteSpace: "nowrap" }}
+                  id="match-bottombar-left-no-action-empty-selection"
+                  data-testid="match-bottombar-left-no-action-empty-selection"
+                >
                   <FormattedMessage id="SET_MATCH_FOR" />{" "}
                   {store.individualDisplayName ? (
                     <a
+                      id="match-bottombar-no-action-individual-link"
+                      data-testid="match-bottombar-no-action-individual-link"
                       href={`/individuals.jsp?id=${encodeURIComponent(
                         store.individualId,
                       )}`}
@@ -353,6 +394,8 @@ const MatchResultsBottomBar = observer(
                     </a>
                   ) : (
                     <a
+                      id="match-bottombar-no-action-encounter-link"
+                      data-testid="match-bottombar-no-action-encounter-link"
                       href={`/react/encounter?number=${encodeURIComponent(encId)}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -372,7 +415,12 @@ const MatchResultsBottomBar = observer(
 
           return {
             left: (
-              <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
+              <div
+                className="text-truncate"
+                style={{ whiteSpace: "nowrap" }}
+                id="match-bottombar-left-no-action-needed"
+                data-testid="match-bottombar-left-no-action-needed"
+              >
                 <FormattedMessage id="NO_FURTHER_ACTION_NEEDED" />
               </div>
             ),
@@ -388,10 +436,16 @@ const MatchResultsBottomBar = observer(
 
     return (
       <>
-        <div style={styles.bottomBar(themeColor)}>
+        <div
+          style={styles.bottomBar(themeColor)}
+          id="match-results-bottom-bar"
+          data-testid="match-results-bottom-bar"
+        >
           <div
             className="d-flex align-items-center w-100"
             style={{ marginLeft: 20, marginRight: 20 }}
+            id="match-results-bottom-bar-inner"
+            data-testid="match-results-bottom-bar-inner"
           >
             <div
               className="me-3 flex-grow-1 text-truncate"
@@ -400,6 +454,8 @@ const MatchResultsBottomBar = observer(
                 whiteSpace: "nowrap",
                 minWidth: 0,
               }}
+              id="match-results-bottom-bar-left"
+              data-testid="match-results-bottom-bar-left"
             >
               {left}
             </div>
@@ -407,8 +463,11 @@ const MatchResultsBottomBar = observer(
             <div
               className="ms-auto d-flex align-items-center flex-nowrap"
               style={{ gap: 12 }}
+              id="match-results-bottom-bar-right"
+              data-testid="match-results-bottom-bar-right"
             >
               {right}
+
               <MainButton
                 noArrow
                 backgroundColor="white"
@@ -416,6 +475,8 @@ const MatchResultsBottomBar = observer(
                 color={themeColor.primaryColors.primary500}
                 onClick={() => window.close()}
                 style={{ marginTop: 0, marginBottom: 0 }}
+                id="match-results-bottom-bar-cancel"
+                data-testid="match-results-bottom-bar-cancel"
               >
                 <FormattedMessage id="CANCEL" />
               </MainButton>

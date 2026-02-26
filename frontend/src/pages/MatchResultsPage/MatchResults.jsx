@@ -13,7 +13,6 @@ import InstructionsModal from "./components/InstructionsModal";
 import InfoIcon from "./icons/InfoIcon";
 import FilterIcon from "./icons/FilterIcon";
 import MatchCriteriaDrawer from "./components/MatchCriteriaDrawer";
-
 import MultiSelectWithCheckbox from "../../components/MultiSelectWithCheckbox";
 
 const MatchResults = observer(() => {
@@ -58,11 +57,15 @@ const MatchResults = observer(() => {
   }, [taskId, store]);
 
   if (store.loading) {
-    return <FullScreenLoader />;
+    return <FullScreenLoader data-testid="match-results-loader" />;
   }
 
   return (
-    <Container className="mt-2 mb-5">
+    <Container
+      className="mt-2 mb-5"
+      id="match-results-page"
+      data-testid="match-results-page"
+    >
       <InstructionsModal
         show={instructionsVisible}
         onHide={() => setInstructionsVisible(false)}
@@ -77,36 +80,63 @@ const MatchResults = observer(() => {
       />
 
       {store.hasResults && (
-        <MatchResultsBottomBar
-          store={store}
-          themeColor={themeColor}
-          identificationRemarks={identificationRemarks}
+        <div data-testid="match-results-bottom-bar">
+          <MatchResultsBottomBar
+            store={store}
+            themeColor={themeColor}
+            identificationRemarks={identificationRemarks}
+          />
+        </div>
+      )}
+
+      {store.hasResults && (
+        <div
+          style={{ height: "70px" }}
+          data-testid="match-results-bottom-bar-spacer"
         />
       )}
 
-      {store.hasResults && <div style={{ height: "70px" }} />}
-
-      <div className="d-flex flex-row justify-content-between align-items-center mb-3">
+      <div
+        className="d-flex flex-row justify-content-between align-items-center mb-3"
+        id="match-results-header"
+        data-testid="match-results-header"
+      >
         <div className="d-flex flex-row align-items-center">
-          <h2>
+          <h2 id="match-results-title" data-testid="match-results-title">
             <FormattedMessage id="MATCH_RESULT" />
           </h2>
         </div>
+
         <span>
           <div
             title="Match Page Instructions"
             style={{ display: "inline-flex", cursor: "pointer" }}
+            id="match-results-instructions-trigger"
+            data-testid="match-results-instructions-trigger"
           >
-            <InfoIcon onClick={() => setInstructionsVisible(true)} />
+            <InfoIcon
+              onClick={() => setInstructionsVisible(true)}
+              data-testid="match-results-instructions-icon"
+            />
           </div>
         </span>
       </div>
 
-      <div className="d-flex align-items-center flex-wrap mb-3">
-        <div className="d-flex align-items-center">
+      <div
+        className="d-flex align-items-center flex-wrap mb-3"
+        id="match-results-toolbar"
+        data-testid="match-results-toolbar"
+      >
+        <div
+          className="d-flex align-items-center"
+          id="match-results-viewmode"
+          data-testid="match-results-viewmode"
+        >
           <button
             className="me-2"
             type="button"
+            id="match-results-viewmode-individual"
+            data-testid="match-results-viewmode-individual"
             style={{
               borderRadius: "35px",
               backgroundColor:
@@ -130,6 +160,8 @@ const MatchResults = observer(() => {
 
           <button
             type="button"
+            id="match-results-viewmode-image"
+            data-testid="match-results-viewmode-image"
             style={{
               borderRadius: "35px",
               backgroundColor:
@@ -152,13 +184,28 @@ const MatchResults = observer(() => {
           </button>
         </div>
 
-        <div className="ms-auto d-flex align-items-center flex-wrap">
-          <Form.Group className="d-flex align-items-center me-3 mb-2 mb-sm-0">
+        <div
+          className="ms-auto d-flex align-items-center flex-wrap"
+          id="match-results-controls"
+          data-testid="match-results-controls"
+        >
+          <Form.Group
+            className="d-flex align-items-center me-3 mb-2 mb-sm-0"
+            id="match-results-num-results-group"
+            data-testid="match-results-num-results-group"
+          >
             <Form.Label className="me-2 mb-0 small">
               <FormattedMessage id="NUMBER_OF_RESULTS" />
             </Form.Label>
-            <div style={{ position: "relative", width: "80px" }}>
+
+            <div
+              style={{ position: "relative", width: "80px" }}
+              id="match-results-num-results-wrapper"
+              data-testid="match-results-num-results-wrapper"
+            >
               <Form.Control
+                id="match-results-num-results-input"
+                data-testid="match-results-num-results-input"
                 type="text"
                 size="sm"
                 value={store.numResults}
@@ -180,8 +227,11 @@ const MatchResults = observer(() => {
                   paddingRight: "30px",
                 }}
               />
+
               {isInputFocused && (
                 <button
+                  id="match-results-num-results-apply"
+                  data-testid="match-results-num-results-apply"
                   type="button"
                   onClick={() => store.fetchMatchResults()}
                   onMouseDown={(e) => e.preventDefault()}
@@ -199,6 +249,7 @@ const MatchResults = observer(() => {
                     lineHeight: "1",
                   }}
                   title="Apply changes"
+                  aria-label="Apply number of results"
                 >
                   ✓
                 </button>
@@ -206,12 +257,20 @@ const MatchResults = observer(() => {
             </div>
           </Form.Group>
 
-          <Form.Group className="d-flex align-items-center me-3 mb-2 mb-sm-0">
+          <Form.Group
+            className="d-flex align-items-center me-3 mb-2 mb-sm-0"
+            id="match-results-project-group"
+            data-testid="match-results-project-group"
+          >
             <Form.Label className="me-2 mb-0 small">
               <FormattedMessage id="PROJECT" defaultMessage="Project" />
             </Form.Label>
 
-            <div style={{ minWidth: "220px", maxWidth: "400px" }}>
+            <div
+              style={{ minWidth: "220px", maxWidth: "400px" }}
+              id="match-results-project-select-wrapper"
+              data-testid="match-results-project-select-wrapper"
+            >
               <MultiSelectWithCheckbox
                 options={projectOptions}
                 value={store.projectNames || []}
@@ -242,53 +301,79 @@ const MatchResults = observer(() => {
               cursor: "pointer",
               marginRight: "10px",
             }}
+            id="match-results-filter-trigger"
+            data-testid="match-results-filter-trigger"
             onClick={() => setFilterVisible(true)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") setFilterVisible(true);
+            }}
+            aria-label="Open match criteria"
           >
-            <FilterIcon />
+            <FilterIcon data-testid="match-results-filter-icon" />
           </div>
         </div>
       </div>
 
-      {!store.hasResults || store.currentViewData.length === 0 ? (
-        <p className="mt-3">No match results available.</p>
-      ) : (
-        (store.currentViewData || []).map(({ taskId, columns, metadata }) => (
-          <div key={`${store.viewMode}-${taskId}`}>
-            <MatchProspectTable
-              sectionId={`${store.viewMode}-${taskId}`}
-              taskId={taskId}
-              algorithm={metadata?.algorithm}
-              numCandidates={metadata?.numCandidates}
-              date={metadata?.date}
-              thisEncounterImageUrl={metadata?.queryImageUrl}
-              thisEncounterAnnotations={[metadata?.queryEncounterAnnotation]}
-              thisEncounterImageAsset={metadata?.queryEncounterImageAsset}
-              methodName={metadata?.methodName}
-              methodDescription={metadata?.methodDescription}
-              taskStatus={metadata?.taskStatus}
-              taskStatusOverall={metadata?.taskStatusOverall}
-              themeColor={themeColor}
-              columns={columns}
-              selectedMatch={store.selectedMatch}
-              onToggleSelected={(
-                checked,
-                key,
-                encounterId,
-                individualId,
-                individualDisplayName,
-              ) => {
-                store.setSelectedMatch(
-                  checked,
-                  key,
-                  encounterId,
-                  individualId,
-                  individualDisplayName,
-                );
-              }}
-            />
+      <div id="match-results-content" data-testid="match-results-content">
+        {!store.hasResults || store.currentViewData.length === 0 ? (
+          <p
+            className="mt-3"
+            id="match-results-empty"
+            data-testid="match-results-empty"
+          >
+            No match results available.
+          </p>
+        ) : (
+          <div id="match-results-sections" data-testid="match-results-sections">
+            {(store.currentViewData || []).map(
+              ({ taskId, columns, metadata }) => (
+                <div
+                  key={`${store.viewMode}-${taskId}`}
+                  id={`match-results-section-${store.viewMode}-${taskId}`}
+                  data-testid={`match-results-section-${store.viewMode}-${taskId}`}
+                >
+                  <MatchProspectTable
+                    sectionId={`${store.viewMode}-${taskId}`}
+                    taskId={taskId}
+                    algorithm={metadata?.algorithm}
+                    numCandidates={metadata?.numCandidates}
+                    date={metadata?.date}
+                    thisEncounterImageUrl={metadata?.queryImageUrl}
+                    thisEncounterAnnotations={[
+                      metadata?.queryEncounterAnnotation,
+                    ]}
+                    thisEncounterImageAsset={metadata?.queryEncounterImageAsset}
+                    methodName={metadata?.methodName}
+                    methodDescription={metadata?.methodDescription}
+                    taskStatus={metadata?.taskStatus}
+                    taskStatusOverall={metadata?.taskStatusOverall}
+                    themeColor={themeColor}
+                    columns={columns}
+                    selectedMatch={store.selectedMatch}
+                    onToggleSelected={(
+                      checked,
+                      key,
+                      encounterId,
+                      individualId,
+                      individualDisplayName,
+                    ) => {
+                      store.setSelectedMatch(
+                        checked,
+                        key,
+                        encounterId,
+                        individualId,
+                        individualDisplayName,
+                      );
+                    }}
+                  />
+                </div>
+              ),
+            )}
           </div>
-        ))
-      )}
+        )}
+      </div>
     </Container>
   );
 });

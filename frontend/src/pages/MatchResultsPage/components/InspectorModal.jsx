@@ -95,32 +95,70 @@ export default function InspectorModal({
       centered={false}
       keyboard
       contentClassName="border-0 rounded-0"
+      id="inspector-modal"
+      data-testid="inspector-modal"
     >
-      <div style={styles.body}>
-        <div style={styles.grid}>
-          <div style={styles.panel}>
-            <div style={styles.imageWrap}>
-              <div style={styles.topRight}>
+      <div
+        style={styles.body}
+        id="inspector-modal-body"
+        data-testid="inspector-modal-body"
+      >
+        <div
+          style={styles.grid}
+          id="inspector-modal-grid"
+          data-testid="inspector-modal-grid"
+        >
+          <div
+            style={styles.panel}
+            id="inspector-modal-panel"
+            data-testid="inspector-modal-panel"
+          >
+            <div
+              style={styles.imageWrap}
+              id="inspector-modal-image-wrap"
+              data-testid="inspector-modal-image-wrap"
+            >
+              <div
+                style={styles.topRight}
+                id="inspector-modal-toolbar"
+                data-testid="inspector-modal-toolbar"
+              >
                 <div
                   style={styles.iconBtn}
                   title="Zoom In"
                   onClick={() => overlayRef.current?.zoomIn?.()}
+                  id="inspector-modal-zoom-in"
+                  data-testid="inspector-modal-zoom-in"
                 >
                   <ZoomInIcon />
                 </div>
+
                 <div
                   style={styles.iconBtn}
                   title="Zoom Out"
                   onClick={() => overlayRef.current?.zoomOut?.()}
+                  id="inspector-modal-zoom-out"
+                  data-testid="inspector-modal-zoom-out"
                 >
                   <ZoomOutIcon />
                 </div>
-                <div style={styles.iconBtn} title="Close" onClick={onHide}>
+
+                <div
+                  style={styles.iconBtn}
+                  title="Close"
+                  onClick={onHide}
+                  id="inspector-modal-close"
+                  data-testid="inspector-modal-close"
+                >
                   <CloseIcon />
                 </div>
               </div>
 
-              <div style={{ overflow: "auto", width: "100%", height: "100%" }}>
+              <div
+                style={{ overflow: "auto", width: "100%", height: "100%" }}
+                id="inspector-modal-overlay-scroll"
+                data-testid="inspector-modal-overlay-scroll"
+              >
                 <InteractiveAnnotationOverlay
                   ref={overlayRef}
                   imageUrl={imageUrl}
