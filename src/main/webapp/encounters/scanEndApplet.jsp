@@ -6,10 +6,11 @@
 org.ecocean.grid.ScanTask,
 java.util.ArrayList,
 org.json.JSONArray,
+java.text.MessageFormat,
+java.util.Properties,
 java.util.Vector" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <%
 
@@ -79,9 +80,8 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   // Determine the language for i18n
   String langCode = "en";
   if (session.getAttribute("langCode") != null) langCode = (String) session.getAttribute("langCode");
+  Properties i18n = ShepherdProperties.getProperties("commonConfigurationLabels.properties", langCode, context);
 %>
-<fmt:setLocale value="<%=langCode%>" />
-<fmt:setBundle basename="bundles.commonConfigurationLabels" />
 <jsp:include page="../header.jsp" flush="true"/>
 
 <style type="text/css">
@@ -338,20 +338,15 @@ if (scanInProgress) {
 
 <div class="scan-waiting">
     <div class="spinner"></div>
-    <h2><fmt:message key="scanInProgress.title">
-        <fmt:param value="<%=num%>" />
-    </fmt:message></h2>
-    <p><fmt:message key="scanInProgress.message" /></p>
+    <h2><%=MessageFormat.format(i18n.getProperty("scanInProgress.title", "Scan in progress for encounter {0}"), num)%></h2>
+    <p><%=i18n.getProperty("scanInProgress.message", "The pattern matching scan is running. Results will appear here when complete.")%></p>
 
     <%
     if (numTotal > 0) {
         int pct = (int) ((numComplete * 100.0) / numTotal);
     %>
     <div class="scan-progress">
-        <fmt:message key="scanInProgress.progress">
-            <fmt:param value="<%=String.valueOf(numComplete)%>" />
-            <fmt:param value="<%=String.valueOf(numTotal)%>" />
-        </fmt:message>
+        <%=MessageFormat.format(i18n.getProperty("scanInProgress.progress", "{0} of {1} comparisons complete"), String.valueOf(numComplete), String.valueOf(numTotal))%>
         <div class="scan-progress-bar">
             <div class="scan-progress-fill" style="width: <%=pct%>%"></div>
         </div>
@@ -359,11 +354,11 @@ if (scanInProgress) {
     <%
     } else {
     %>
-    <p><fmt:message key="scanInProgress.queuing" /></p>
+    <p><%=i18n.getProperty("scanInProgress.queuing", "Preparing comparisons...")%></p>
     <%
     }
     %>
-    <p style="color: #888; font-size: 0.9em;"><fmt:message key="scanInProgress.autoRefresh" /></p>
+    <p style="color: #888; font-size: 0.9em;"><%=i18n.getProperty("scanInProgress.autoRefresh", "This page will automatically refresh every 15 seconds.")%></p>
 </div>
 
 <%
@@ -423,14 +418,14 @@ if (scanInProgress) {
   if (!xmlOK && !scanTaskExists) {
     // No scan has ever been run and no XML exists
 %>
-<h2><fmt:message key="scanResults.noResults.title" /></h2>
-<p><fmt:message key="scanResults.noResults.message" /></p>
+<h2><%=i18n.getProperty("scanResults.noResults.title", "No Scan Results")%></h2>
+<p><%=i18n.getProperty("scanResults.noResults.message", "No pattern matching scan has been run for this encounter yet.")%></p>
 <%
   } else if (!xmlOK && scanTaskExists) {
     // Scan task finished but XML was not written (failed or partial write)
 %>
-<h2><fmt:message key="scanResults.failed.title" /></h2>
-<p><fmt:message key="scanResults.failed.message" /></p>
+<h2><%=i18n.getProperty("scanResults.failed.title", "Scan Failed")%></h2>
+<p><%=i18n.getProperty("scanResults.failed.message", "The scan task completed but results could not be written. Please try running the scan again.")%></p>
 <%
   } else if (xmlOK) {
     // We have results to display
