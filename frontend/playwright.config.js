@@ -13,6 +13,7 @@ import { defineConfig, devices } from "@playwright/test";
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
+  globalSetup: "./global-setup.js",
   testDir: "./tests",
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -26,10 +27,8 @@ export default defineConfig({
   reporter: "html",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
-
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    baseURL: process.env.TEST_URL || "https://qa.wildme.org/react",
+    storageState: ".auth/state.json",
     trace: "on-first-retry",
   },
 
