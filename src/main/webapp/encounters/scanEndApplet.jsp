@@ -179,8 +179,10 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     height: 400px;
 }
 .match-side-info {
-    height: 9.1em;
+    min-height: 9.1em;
     background-color: #DDD;
+    padding: 4px 0;
+    overflow-wrap: break-word;
 }
 
 #match-controls {
@@ -598,17 +600,31 @@ function fitRightImage() {
         </thead>
         <tbody>
         <%
+          Shepherd indShepherd = new Shepherd(context);
+          indShepherd.setAction("scanEndApplet.jsp_displayNames");
+          indShepherd.beginDBTransaction();
+          java.util.HashMap<String, String> displayNameCache = new java.util.HashMap<>();
+
           if (!xmlOK) {
 
             MatchObject[] results = new MatchObject[1];
             results = matches;
             Arrays.sort(results, new MatchComparator());
             for (int p = 0; p < results.length; p++) {
-              if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
+              if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {
+                String indId_mo = results[p].getIndividualName();
+                String displayName_mo = displayNameCache.get(indId_mo);
+                if (displayName_mo == null && indId_mo != null) {
+                    MarkedIndividual ind_mo = indShepherd.getMarkedIndividual(indId_mo);
+                    displayName_mo = (ind_mo != null) ? ind_mo.getDisplayName() : indId_mo;
+                    displayNameCache.put(indId_mo, displayName_mo);
+                }
+                if (displayName_mo == null) displayName_mo = "Unknown";
+              %>
         <tr>
           <td>
             <a
-                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indId_mo%>"><%=displayName_mo%>
                 </a>
           </td>
           <%if (results[p].encounterNumber.equals("N/A")) {%>
@@ -662,14 +678,22 @@ function fitRightImage() {
             List encounters = match.elements("encounter");
             Element enc1 = (Element) encounters.get(0);
             Element enc2 = (Element) encounters.get(1);
+            String indId_xml = enc1.attributeValue("assignedToShark");
+            String displayName_xml = displayNameCache.get(indId_xml);
+            if (displayName_xml == null && indId_xml != null) {
+                MarkedIndividual ind_xml = indShepherd.getMarkedIndividual(indId_xml);
+                displayName_xml = (ind_xml != null) ? ind_xml.getDisplayName() : indId_xml;
+                displayNameCache.put(indId_xml, displayName_xml);
+            }
+            if (displayName_xml == null) displayName_xml = "Unknown";
         %>
 
         <tr id="table-row-<%=ct%>" align="left" valign="top"
 class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
  style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
           <td>
-            <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
-            	<%=enc1.attributeValue("assignedToShark")%>
+            <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indId_xml%>">
+            	<%=displayName_xml%>
             </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
@@ -758,6 +782,8 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
 
 
   <%
+          indShepherd.rollbackDBTransaction();
+          indShepherd.closeDBTransaction();
 
 
 
