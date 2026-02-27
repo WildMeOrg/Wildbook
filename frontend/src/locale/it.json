@@ -769,5 +769,6 @@
   "LOCATION_IDS": "ID località",
   "OR_CHOOSE_FROM_RESULTS_BELOW": "o scegli dai risultati qui sotto",
   "NO_MATCH_RESULT": "Nessun risultato di corrispondenza",
-  "NO_MATCH_RESULTS_AVAILABLE": "Nessun risultato di corrispondenza disponibile al momento. Il lavoro potrebbe essere ancora in elaborazione, oppure potrebbero non esserci dati. Aggiorna la pagina per controllare di nuovo."
+  "NO_MATCH_RESULTS_AVAILABLE": "Nessun risultato di corrispondenza disponibile al momento. Il lavoro potrebbe essere ancora in elaborazione, oppure potrebbero non esserci dati. Aggiorna la pagina per controllare di nuovo.",
+  "RESULTS_PER_PAGE": "Risultati per pagina"
 }

@@ -4,7 +4,6 @@ import { ReportEncounterSpeciesSection } from "../../../pages/ReportsAndManagame
 import useGetSiteSettings from "../../../models/useGetSiteSettings";
 import { renderWithProviders } from "../../../utils/utils";
 
-// Mock useGetSiteSettings hook
 jest.mock("../../../models/useGetSiteSettings", () => jest.fn());
 
 const mockStore = {

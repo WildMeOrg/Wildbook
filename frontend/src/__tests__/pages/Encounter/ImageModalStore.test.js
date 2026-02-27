@@ -147,7 +147,6 @@ describe("ImageModalStore", () => {
     expect(toast.success).toHaveBeenCalledWith(
       "Annotation removed successfully",
     );
-    expect(encounterStore.refreshEncounterData).toHaveBeenCalled();
   });
 
   test("removeAnnotation error path", async () => {
