@@ -221,7 +221,7 @@ const MyDataTable = observer(
       }
     }, [store.selectedRows.length, store.projectBannerStatusCode]);
 
-    const { data: siteSettingsData, loading: siteSettingsLoading } =
+    const { data: siteSettingsData, isLoading: siteSettingsLoading } =
       useSiteSettings();
     useEffect(() => {
       if (siteSettingsData) {

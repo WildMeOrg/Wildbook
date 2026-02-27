@@ -41,7 +41,7 @@ import Alert from "react-bootstrap/Alert";
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
-  const { data: siteSettings, loading: siteSettingsLoading } =
+  const { data: siteSettings, isLoading: siteSettingsLoading } =
     useSiteSettings();
   const [encounterValid, setEncounterValid] = useState(true);
   const [encounterDeleted, setEncounterDeleted] = useState(false);

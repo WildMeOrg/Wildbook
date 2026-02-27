@@ -14,6 +14,7 @@ import InfoIcon from "./icons/InfoIcon";
 import FilterIcon from "./icons/FilterIcon";
 import MatchCriteriaDrawer from "./components/MatchCriteriaDrawer";
 import MultiSelectWithCheckbox from "../../components/MultiSelectWithCheckbox";
+import ContainerWithSpinner from "../../components/ContainerWithSpinner";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
@@ -22,8 +23,8 @@ const MatchResults = observer(() => {
   const [params, setParams] = useSearchParams();
   const taskId = params.get("taskId");
   const projectIdPrefix = params.get("projectIdPrefix");
-  const { data: { projectsForUser = {}, identificationRemarks = [] } = {} } =
-    useSiteSettings();
+  const { data, isLoading: siteSettingsLoading } = useSiteSettings();
+  const { projectsForUser = {}, identificationRemarks = [] } = data || {};
   const [filterVisible, setFilterVisible] = React.useState(false);
   const [isInputFocused, setIsInputFocused] = React.useState(false);
 
@@ -271,26 +272,28 @@ const MatchResults = observer(() => {
               id="match-results-project-select-wrapper"
               data-testid="match-results-project-select-wrapper"
             >
-              <MultiSelectWithCheckbox
-                options={projectOptions}
-                value={store.projectNames || []}
-                placeholder={
-                  <FormattedMessage
-                    id="SELECT_PROJECTS"
-                    defaultMessage="Select projects"
-                  />
-                }
-                onChangeCommitted={(projectIds) => {
-                  store.setProjectNames(projectIds);
-
-                  if (!projectIds || projectIds.length === 0) {
-                    const next = new URLSearchParams(params);
-                    next.delete("projectIdPrefix");
-                    setParams(next, { replace: true });
+              <ContainerWithSpinner loading={siteSettingsLoading}>
+                <MultiSelectWithCheckbox
+                  options={projectOptions}
+                  value={store.projectNames || []}
+                  placeholder={
+                    <FormattedMessage
+                      id="SELECT_PROJECTS"
+                      defaultMessage="Select projects"
+                    />
                   }
-                }}
-                style={{ width: "100%" }}
-              />
+                  onChangeCommitted={(projectIds) => {
+                    store.setProjectNames(projectIds);
+
+                    if (!projectIds || projectIds.length === 0) {
+                      const next = new URLSearchParams(params);
+                      next.delete("projectIdPrefix");
+                      setParams(next, { replace: true });
+                    }
+                  }}
+                  style={{ width: "100%" }}
+                />
+              </ContainerWithSpinner>
             </div>
           </Form.Group>
 
