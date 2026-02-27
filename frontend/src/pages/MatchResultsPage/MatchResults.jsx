@@ -46,7 +46,7 @@ const MatchResults = observer(() => {
     const [projectId] = match;
 
     store.setProjectNames([projectId]);
-  }, [projectIdPrefix, projectsForUser, store]);
+  }, [projectIdPrefix, projectsForUser]);
 
   useEffect(() => {
     if (taskId) {
@@ -55,7 +55,7 @@ const MatchResults = observer(() => {
     } else {
       store.clearResults();
     }
-  }, [taskId, store]);
+  }, [taskId]);
 
   if (store.loading) {
     return <FullScreenLoader data-testid="match-results-loader" />;
