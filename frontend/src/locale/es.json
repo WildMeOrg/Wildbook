@@ -768,5 +768,6 @@
   "FILTER_SET_FOR_TASK": "A continuación se muestran los filtros aplicados a esta tarea",
   "LOCATION_IDS": "IDs de ubicación",
   "OR_CHOOSE_FROM_RESULTS_BELOW": "o elija de los resultados a continuación",
-  "NO_MATCH_RESULT": "No hay resultados de coincidencia"
+  "NO_MATCH_RESULT": "No hay resultados de coincidencia",
+  "NO_MATCH_RESULTS_AVAILABLE": "No hay resultados de coincidencias disponibles aún. El trabajo puede estar todavía en proceso, o puede que no haya datos. Por favor, actualice la página para comprobar de nuevo."
 }

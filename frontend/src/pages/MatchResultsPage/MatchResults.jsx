@@ -323,7 +323,10 @@ const MatchResults = observer(() => {
             id="match-results-empty"
             data-testid="match-results-empty"
           >
-            No match results available.
+            <FormattedMessage
+              id="NO_MATCH_RESULTS_AVAILABLE"
+              defaultMessage="No match results available."
+            />
           </p>
         ) : (
           <div id="match-results-sections" data-testid="match-results-sections">

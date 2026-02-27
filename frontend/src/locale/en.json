@@ -768,5 +768,6 @@
     "FILTER_SET_FOR_TASK": "Below are filters applied to this task",
     "LOCATION_IDS": "Location IDs",
     "OR_CHOOSE_FROM_RESULTS_BELOW": "or choose from results below",
-    "NO_MATCH_RESULT": "No match results"
+    "NO_MATCH_RESULT": "No match results",
+    "NO_MATCH_RESULTS_AVAILABLE": "No match results available yet. The job may still be processing, or there may be no data. Please refresh the page to check again."
 }
