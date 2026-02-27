@@ -7,17 +7,16 @@ export default function useGetBulkImportTask(taskId) {
     return data;
   };
 
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery(["bulkImportTask", taskId], fetchTask, {
-    enabled: Boolean(taskId),
-    refetchOnWindowFocus: false,
-    retry: false,
-    select: (d) => d ?? [],
-  });
+  const { data, isLoading, error, refetch } = useQuery(
+    ["bulkImportTask", taskId],
+    fetchTask,
+    {
+      enabled: Boolean(taskId),
+      refetchOnWindowFocus: false,
+      retry: false,
+      select: (d) => d ?? [],
+    },
+  );
 
   const task = data?.task || {};
 

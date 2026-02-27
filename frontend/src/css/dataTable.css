@@ -1,7 +1,7 @@
 .pagination .active-page a {
-    background-color: #007599 ;
-    border-color: #007599 ;
-    color: white ;
+    background-color: #007599;
+    border-color: #007599;
+    color: white;
 }
 
 .go-button {
@@ -16,7 +16,26 @@
 
 .custom-placeholder::placeholder {
     color: white;
-  }
+}
+
+.nav-pills .nav-link.active {
+    background-color: #007599 !important;
+    color: #fff !important;
+}
+
+.nav-pills .nav-link:hover {
+    background-color: #e9f2ff;
+}
+
+.btn-outline-primary {
+    color: #007599;
+    border-color: #007599;
+}
+
+.btn-outline-primary:hover {
+    background-color: #007599;
+    color: white;
+}
 
 @media (min-width: 992px) {
     .search-bar {
@@ -31,7 +50,7 @@
 @media (max-width: 456px) {
     .search-bar {
         /* background-color: white; */
-       width: 40%
+        width: 40%
     }
 
     .tabs {

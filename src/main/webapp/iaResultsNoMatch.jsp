@@ -103,6 +103,10 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 		if (mark==null) {
 			mark = new MarkedIndividual(enc);
 			myShepherd.getPM().makePersistent(mark);
+			
+			mark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added encounter " + enc.getCatalogNumber() + ".</p>");
+			enc.setMatchedBy("Unmatched first encounter");
+			
 			myShepherd.updateDBTransaction();
 			IndividualAddEncounter.executeEmails(myShepherd, request,mark,true, enc, context, langCode);
 		}
@@ -112,15 +116,19 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			System.out.println("trying to set next PROJECT automatic name.......");
 			Project projectForAutoNaming = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
 			mark.addIncrementalProjectId(projectForAutoNaming);
+			enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + mark.getDisplayName() + ".</p>");
+			
 
 		} else if (nextNameInput != null) {
 			System.out.println("setting manually named nextNameInput=" + nextNameInput + " onto " + mark);
 			mark.addName(nextNameInput);
+			enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + mark.getDisplayName() + ".</p>");
 
 		} else {
 			System.out.println("trying to set USER BASED automatic name.......");
 			// old user based id
 			mark.addName(nextNameKey, nextName);
+			enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + mark.getDisplayName() + ".</p>");
 		}
 		System.out.println("RTN for no match naming: "+rtn.toString());
 

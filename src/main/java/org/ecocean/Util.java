@@ -229,12 +229,13 @@ public class Util {
         return CommonConfiguration.getIndexedPropertyValues(SATELLITE_TAG_NAME, context);
     }
 
-    private static String findLabel(String key, String langCode, String context) {
+    public static String findLabel(String key, String langCode, String context) {
         // System.out.println("Trying to find key: "+key+" with langCode "+langCode);
 
         Properties myProps = ShepherdProperties.getProperties(
             "commonConfigurationLabels.properties", langCode, context);
 
+        if (myProps == null) return null;
         return myProps.getProperty(key + ".label");
     }
 
@@ -1168,6 +1169,20 @@ public class Util {
         return new JSONObject(original, JSONObject.getNames(original));
     }
 
+    // changes original in-place by folding source into original
+    // overwrite means source will squash like-keyed values in original
+    public static void merge(JSONObject original, JSONObject source, boolean overwrite) {
+        if ((original == null) || (source == null)) return;
+        for (String key : source.keySet()) {
+            if (original.has(key) && !overwrite) continue;
+            original.put(key, source.get(key));
+        }
+    }
+
+    public static void merge(JSONObject original, JSONObject source) {
+        merge(original, source, true);
+    }
+
     /**
      * Generates and returns version long value using 'modified', returns 0 for now if the 'modified' property
      * does not have any value or can't be converted to Long.
@@ -1232,4 +1247,23 @@ public class Util {
         Collections.sort(cnames);
         return cnames;
     }
+
+    // TODO could be read from config in future, if desired
+    public static List<String> getIdentificationRemarksValues() {
+        return Arrays.asList("Unmatched first encounter", "Visual inspection", "Pattern match");
+    }
+
+    // this is meant to be a temporary replacement for an old library which we are dropping.
+    // it is only used in a couple ancient jsps related to spotmapping
+    // for details: https://github.com/WildMeOrg/Wildbook/issues/1346#issuecomment-3712415060
+    // TODO this can be dropped when those jsps are no longer needed
+    public static java.awt.Dimension hackSanselanGetImageSize(File file, String filename)
+    throws IOException {
+        java.awt.Dimension dim = new java.awt.Dimension();
+        JSONObject attr = org.ecocean.media.AssetStore.extractMetadataAttributes(file);
+        // optInt will truncate values that are floats
+        dim.setSize(attr.optInt("width"), attr.optInt("height"));
+        return dim;
+    }
+
 }

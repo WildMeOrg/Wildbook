@@ -13,6 +13,8 @@ import {
   latlongRule,
   parseEncounterDateString,
 } from "./BulkImportConstants";
+import { defaultMaxMediaSize } from "../../constants/photoUpload.js";
+import { toast } from "react-toastify";
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
@@ -38,6 +40,9 @@ export class BulkImportStore {
   _columnsDef = [];
   _rawColumns = [];
   _maxImageCount = 200;
+  _maxImageSizeMB = defaultMaxMediaSize;
+  _rejectedTooLarge = [];
+  _rejectedToastTimer = null;
   _pageSize = 10;
   _locationID = [];
   _locationIDOptions = [];
@@ -116,14 +121,43 @@ export class BulkImportStore {
     "Encounter.year": {
       required: true,
       validate: (val) => {
-        const FORMATS = [
-          "YYYY",
-          "YYYY-MM",
-          "YYYY-MM-DD",
-          "YYYY-MM-DDTHH",
-          "YYYY-MM-DDTHH:mm",
-        ];
-        const parsed = dayjs(val, FORMATS, true);
+        if (val == null) return false;
+        const FLEXIBLE_DATE_RE =
+          /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2})(?:T(\d{1,2})(?::(\d{1,2}))?)?)?)?$/;
+
+        const str = String(val).trim();
+        if (!str) return false;
+
+        const m = str.match(FLEXIBLE_DATE_RE);
+        if (!m) {
+          return false;
+        }
+
+        const [, year, month, day, hour, minute] = m;
+
+        let normalized = year;
+        let format = "YYYY";
+
+        if (month !== undefined) {
+          normalized += "-" + month.padStart(2, "0");
+          format += "-MM";
+        }
+
+        if (day !== undefined) {
+          normalized += "-" + day.padStart(2, "0");
+          format += "-DD";
+        }
+
+        if (hour !== undefined) {
+          normalized += "T" + hour.padStart(2, "0");
+          format += "[T]HH";
+        }
+
+        if (minute !== undefined) {
+          normalized += ":" + minute.padStart(2, "0");
+          format += ":mm";
+        }
+        const parsed = dayjs(normalized, format, true);
         return parsed.isValid() && !parsed.isAfter(dayjs());
       },
       message: "BULKIMPORT_ERROR_INVALID_DATEFORMAT",
@@ -395,6 +429,10 @@ export class BulkImportStore {
     return this._maxImageCount;
   }
 
+  get maxImageSizeMB() {
+    return this._maxImageSizeMB;
+  }
+
   get worksheetInfo() {
     return this._worksheetInfo;
   }
@@ -625,6 +663,10 @@ export class BulkImportStore {
 
   setMaxImageCount(maxImageCount) {
     this._maxImageCount = maxImageCount;
+  }
+
+  setMaxImageSizeMB(mb) {
+    this._maxImageSizeMB = Number(mb) || defaultMaxMediaSize;
   }
 
   setLocationIDOptions(options) {
@@ -961,7 +1003,7 @@ export class BulkImportStore {
     this._submissionId = submissionId;
   }
 
-  initializeFlow(fileInputRef, maxSize) {
+  initializeFlow(fileInputRef) {
     const submissionId = this._submissionId || uuidv4();
     this._submissionId = submissionId;
     const flowInstance = new Flow({
@@ -980,16 +1022,15 @@ export class BulkImportStore {
       `${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2)}`;
 
     flowInstance.assignBrowse(fileInputRef);
-    let rejectedFiles = [];
     let hasShownImageLimitAlert = false;
     flowInstance.on("fileAdded", (file) => {
       const currentCount = this._imagePreview.length;
       const totalCount = currentCount + 1;
-      const isTooLarge = file.size > maxSize * 1024 * 1024;
+      const maxSizeMB = this._maxImageSizeMB;
+      const isTooLarge = file.size > maxSizeMB * 1024 * 1024;
 
       if (isTooLarge) {
-        const reason = "too large";
-        rejectedFiles.push(`${file.name} (${reason})`);
+        this._notifyTooLarge(file);
         return false;
       }
 
@@ -1086,10 +1127,6 @@ export class BulkImportStore {
     });
 
     flowInstance.on("fileError", (file, chunk) => {
-      // if (!navigator.onLine) {
-      //   console.log(`Chunk uploading failed due to no internet connection`, file.name, chunk.offset);
-      //   return;
-      // }
       console.error(`Upload failed: ${file.name}, chunk: ${chunk.offset}`);
       this._imagePreview = this._imagePreview.map((f) =>
         f.fileName === file.name ? { ...f, error: true, progress: 0 } : f,
@@ -1099,6 +1136,27 @@ export class BulkImportStore {
     });
 
     this._flow = flowInstance;
+  }
+
+  _notifyTooLarge(file) {
+    const maxSizeMB = this._maxImageSizeMB;
+    this._rejectedTooLarge.push(file.name);
+
+    if (this._rejectedToastTimer) return;
+
+    this._rejectedToastTimer = setTimeout(() => {
+      const names = this._rejectedTooLarge;
+      this._rejectedTooLarge = [];
+      this._rejectedToastTimer = null;
+
+      const firstFew = names.slice(0, 5).join(", ");
+      const more = names.length > 5 ? ` (+${names.length - 5} more)` : "";
+
+      toast.error(
+        `Some files exceed the ${maxSizeMB}MB limit: ${firstFew}${more}`,
+        { autoClose: 6000 },
+      );
+    }, 3000);
   }
 
   generateThumbnailsForFirst50() {
@@ -1170,34 +1228,16 @@ export class BulkImportStore {
     });
   }
 
-  uploadFilteredFiles(maxSize) {
+  uploadFilteredFiles() {
     if (!this._flow) {
       console.warn("Flow instance not initialized.");
       return;
     }
+    const maxSize = this._maxImageSizeMB;
 
     const validFiles = this._flow.files.filter(
       (file) => file.size <= maxSize * 1024 * 1024,
     );
-
-    const invalidFiles = this._flow.files.filter(
-      (file) => file.size > maxSize * 1024 * 1024,
-    );
-
-    if (invalidFiles.length > 0) {
-      console.warn(
-        `The following files are too large (> ${maxSize} MB) and will not be uploaded:`,
-        invalidFiles.map(
-          (f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`,
-        ),
-      );
-      alert(
-        `The following files are too large (> ${maxSize} MB) and will not be uploaded:\n` +
-          invalidFiles
-            .map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`)
-            .join("\n"),
-      );
-    }
 
     if (validFiles.length === 0) {
       return;
@@ -1300,13 +1340,13 @@ export class BulkImportStore {
     });
   }
 
-  traverseFileTree(entry, maxSize) {
+  traverseFileTree(entry) {
     this._incrementPending();
 
     if (entry.isDirectory) {
       const reader = entry.createReader();
       reader.readEntries((entries) => {
-        entries.forEach((ent) => this.traverseFileTree(ent, maxSize));
+        entries.forEach((ent) => this.traverseFileTree(ent));
         this._decrementPending();
       });
     } else if (entry.isFile) {
@@ -1318,7 +1358,15 @@ export class BulkImportStore {
           // "image/bmp",
         ];
         const isValid = supportedTypes.includes(file.type);
-        // && file.size <= maxSize * 1024 * 1024;
+
+        const maxSizeMB = this._maxImageSizeMB;
+        const isTooLarge = file.size > maxSizeMB * 1024 * 1024;
+
+        if (isTooLarge) {
+          this._notifyTooLarge({ name: file.name, size: file.size });
+          this._decrementPending();
+          return;
+        }
 
         if (isValid && !this._imageSectionFileNames.includes(file.name)) {
           this._collectedValidFiles.push(file);

@@ -1,4 +1,4 @@
-const helperFunction = (
+const helperFunction = async (
   searchParams,
   store,
   setFilterPanel,
@@ -8,7 +8,8 @@ const helperFunction = (
   if (Object.keys(params).length === 0) {
     return;
   }
-  Object.entries(params).forEach(([key, _]) => {
+
+  for (const [key, _] of Object.entries(params)) {
     if (key === "username") {
       store.addFilter(
         "assignedUsername",
@@ -36,9 +37,22 @@ const helperFunction = (
     if (key === "searchQueryId") {
       store.formFilters = JSON.parse(sessionStorage.getItem("formData")) || [];
     }
-    setTempFormFilters([...store.formFilters]);
-  });
+    if (key === "individualIDExact") {
+      store.addFilter(
+        "individualId",
+        "filter",
+        {
+          terms: {
+            individualId: [params.individualIDExact],
+          },
+        },
+        "Individual ID",
+      );
+    }
+  }
+  setTempFormFilters([...store.formFilters]);
   setFilterPanel(false);
+  return;
 };
 
 export { helperFunction };

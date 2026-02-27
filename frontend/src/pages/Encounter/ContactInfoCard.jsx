@@ -1,0 +1,95 @@
+import React from "react";
+import TrashCanIcon from "../../components/icons/TrashCanIcon";
+import { observer } from "mobx-react-lite";
+import { FormattedMessage, useIntl } from "react-intl";
+
+export const ContactInfoCard = observer(
+  ({
+    title = "Contact Information",
+    type = "submitter",
+    data = [],
+    store = {},
+  }) => {
+    const Intl = useIntl();
+    const confirmMsg = Intl.formatMessage({
+      id: "CONFIRM_DELETE_CONTACT",
+      defaultMessage: "Are you sure you want to remove this contact?",
+    });
+    return (
+      <div
+        id={title}
+        style={{
+          padding: "20px",
+          borderRadius: "5px",
+          marginBottom: "10px",
+          boxShadow: "0 4px 4px rgba(0,0,0,0.1)",
+          position: "relative",
+        }}
+      >
+        <h6>{<FormattedMessage id={title} />}</h6>
+        <div className="mt-3 mb-3">
+          {data?.map((item, index) => {
+            return (
+              <div
+                key={index}
+                className="d-flex flex-row align-items-center mb-2"
+              >
+                <span className="avatar">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt="Avatar"
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        marginRight: "10px",
+                      }}
+                    />
+                  ) : (
+                    <i
+                      className="bi bi-person-circle"
+                      style={{
+                        fontSize: "1.5rem",
+                        color: "#6c757d",
+                        marginRight: "10px",
+                      }}
+                    ></i>
+                  )}
+                </span>
+                <div>
+                  {" "}
+                  {store.access === "write" &&
+                    (item?.username || item?.email || item?.displayName)}
+                </div>
+                <div>
+                  {" "}
+                  {store.access === "read" &&
+                    (item?.username || item?.displayName)}
+                </div>
+                {store.access === "write" && type !== "submitterID" && (
+                  <div
+                    style={{
+                      marginLeft: "auto",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      if (window.confirm(confirmMsg)) {
+                        store.removeContact(type, item.id);
+                        store.refreshEncounterData();
+                      }
+                    }}
+                  >
+                    <TrashCanIcon />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  },
+);
+
+export default ContactInfoCard;

@@ -4,20 +4,27 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>10.8.1.2</version>
+  <version>10.9.5</version>
   <packaging>war</packaging>
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
+    <java.version>17</java.version>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <datanucleus.version>4.2.0-release</datanucleus.version>
+
+    <datanucleus.version>5.2.7</datanucleus.version>
+    <datanucleus.jdo.version>5.2.7</datanucleus.jdo.version>
+    <datanucleus.jpa.version>5.2.7</datanucleus.jpa.version>
+    <javax.jdo.version>3.2.0-release</javax.jdo.version>
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
+
     <geotools.version>23.0</geotools.version>
     <slf4j.version>1.7.12</slf4j.version>
     <junit.version>5.11.0</junit.version>
     <mockito.version>4.11.0</mockito.version>
+    <testcontainers.version>2.0.3</testcontainers.version>
+    <rest-assured.version>5.4.0</rest-assured.version>
+    <wiremock.version>3.3.1</wiremock.version>
   </properties>
 
   <repositories>
@@ -50,13 +57,19 @@
     </repository>
   </repositories>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.rabbitmq</groupId>
-      <artifactId>amqp-client</artifactId>
-      <version>5.21.0</version>
-    </dependency>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>${testcontainers.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
+  <dependencies>
 	<dependency>
 	    <groupId>org.apache.tika</groupId>
 	    <artifactId>tika-core</artifactId>
@@ -109,19 +122,27 @@
     </dependency>
 
     <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>7.0</version>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>4.0.1</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
+      <groupId>javax.servlet.jsp</groupId>
+      <artifactId>javax.servlet.jsp-api</artifactId>
+      <version>2.3.3</version>
       <scope>provided</scope>
     </dependency>
 
+    <dependency>
+      <groupId>javax</groupId>
+      <artifactId>javaee-api</artifactId>
+      <version>8.0.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- todo:  align versions of shiro. -->
     <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-core</artifactId>
@@ -132,12 +153,6 @@
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-web</artifactId>
       <version>1.13.0</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.scribe</groupId>
-      <artifactId>scribe</artifactId>
-      <version>1.3.7</version>
     </dependency>
 
     <dependency>
@@ -167,7 +182,7 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.4</version>
+      <version>1.16.1</version>
     </dependency>
 
     <dependency>
@@ -227,7 +242,7 @@
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>
-      <version>1.3.3</version>
+      <version>1.5</version>
     </dependency>
 
     <dependency>
@@ -246,12 +261,6 @@
       <groupId>rome</groupId>
       <artifactId>rome</artifactId>
       <version>0.9</version>
-    </dependency>
-
-    <dependency>
-      <groupId>javax.sql</groupId>
-      <artifactId>jdbc-stdext</artifactId>
-      <version>2.0</version>
     </dependency>
 
     <dependency>
@@ -281,57 +290,69 @@
 
     <!--Start
     JDO and DataNucleus dependencies -->
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>javax.jdo</artifactId>
-      <version>3.2.0-m3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-core</artifactId>
-      <version>4.1.7</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-api-jdo</artifactId>
-      <version>${datanucleus.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-jdo-query</artifactId>
-      <version>4.2.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-rdbms</artifactId>
-      <version>4.1.11</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-jodatime</artifactId>
-      <version>4.1.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-api-rest</artifactId>
-      <version>4.2.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-geospatial</artifactId>
-      <version>4.1.0-release</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-api-jpa</artifactId>
-      <version>4.1.7</version>
-    </dependency>
+      <!-- JDO API (update from 3.2.0-m3 to release) -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>javax.jdo</artifactId>
+        <version>${javax.jdo.version}</version>
+      </dependency>
 
-    <dependency>
-      <groupId>org.apache.sanselan</groupId>
-      <artifactId>sanselan</artifactId>
-      <version>0.97-incubator</version>
-    </dependency>
+      <!-- Core DataNucleus -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-core</artifactId>
+        <version>${datanucleus.version}</version>
+      </dependency>
+
+      <!-- JDO API implementation -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-api-jdo</artifactId>
+        <version>${datanucleus.jdo.version}</version>
+      </dependency>
+
+      <!-- JDO Query -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-jdo-query</artifactId>
+        <version>5.0.3</version>
+      </dependency>
+
+      <!-- RDBMS Support -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-rdbms</artifactId>
+        <version>${datanucleus.version}</version>
+      </dependency>
+
+      <!-- JodaTime Support -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-jodatime</artifactId>
+        <version>5.2.0-release</version>
+      </dependency>
+
+      <!-- REST API -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-api-rest</artifactId>
+        <version>5.2.0-release</version>
+      </dependency>
+
+    <!-- Deprecated -->
+<!--      &lt;!&ndash; Geospatial &ndash;&gt;-->
+<!--      <dependency>-->
+<!--        <groupId>org.datanucleus</groupId>-->
+<!--        <artifactId>datanucleus-geospatial</artifactId>-->
+<!--        <version>5.2.0-release</version>-->
+<!--      </dependency>-->
+
+      <!-- JPA API (if needed) -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-api-jpa</artifactId>
+        <version>${datanucleus.jpa.version}</version>
+      </dependency>
 
     <dependency>
       <groupId>com.drewnoakes</groupId>
@@ -340,6 +361,7 @@
     </dependency>
 
     <!-- Amazon support for sharkGrid -->
+    <!-- todo:  deprecate EC2RequestThread and any other AWS uses -->
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-ec2</artifactId>
@@ -366,6 +388,9 @@
     </dependency>
 
     <!-- wildbook local jars, not in public maven repos -->
+<!--    di is still used in spot matching ... check these depends before removing -->
+<!--    src/main/webapp/encounters/encounterSpotVisualizer.jsp:<%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>-->
+<!--    src/main/webapp/encounters/spotMatchingAlgorithm.jsp:<%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>-->
     <dependency>
       <groupId>dilib</groupId>
       <artifactId>dilib</artifactId>
@@ -402,6 +427,54 @@
       <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- Testcontainers for integration testing -->
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers</artifactId>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-postgresql</artifactId>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-junit-jupiter</artifactId>
+        <scope>test</scope>
+      </dependency>
+
+    <!-- REST Assured for API testing -->
+    <dependency>
+      <groupId>io.rest-assured</groupId>
+      <artifactId>rest-assured</artifactId>
+      <version>${rest-assured.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+      <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-server</artifactId>
+          <version>9.4.58.v20250814</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-servlet</artifactId>
+          <version>9.4.58.v20250814</version>
+          <scope>test</scope>
+      </dependency>
+
+    <!-- Apache Commons CSV for CSV parsing -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-csv</artifactId>
+      <version>1.11.0</version>
+    </dependency>
+
 
     <dependency>
       <groupId>org.geotools</groupId>
@@ -441,33 +514,8 @@
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
 
-    <dependency>
-      <groupId>org.twitter4j</groupId>
-      <artifactId>twitter4j-core</artifactId>
-      <version>4.0.7</version>
-    </dependency>
-
-
-    <!-- START QR code generating dependencies-->
-    <dependency>
-      <groupId>com.google.zxing</groupId>
-      <artifactId>core</artifactId>
-      <version>2.2</version>
-    </dependency>
-    <dependency>
-      <groupId>net.glxn</groupId>
-      <artifactId>qrgen</artifactId>
-      <version>1.3</version>
-    </dependency>
-
-    <!-- END QR code generating dependencies -->
-
+    <!-- todo:  deprecate and remove TwitterBot, TwitterUtils, etc -->
     <dependency>
       <groupId>com.mchange</groupId>
       <artifactId>c3p0</artifactId>
@@ -484,18 +532,6 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-dbcp2</artifactId>
       <version>2.5.0</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.tuckey</groupId>
-      <artifactId>urlrewritefilter</artifactId>
-      <version>4.0.3</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.stripe</groupId>
-      <artifactId>stripe-java</artifactId>
-      <version>3.1.0</version>
     </dependency>
 
     <dependency>
@@ -522,32 +558,6 @@
       <version>0.32</version>
     </dependency>
 
-    <!-- dependencies for Google Vision/OCR -->
-    <dependency>
-      <groupId>com.google.cloud</groupId>
-      <artifactId>google-cloud-vision</artifactId>
-      <version>1.15.0</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.auth</groupId>
-      <artifactId>google-auth-library-oauth2-http</artifactId>
-      <version>0.6.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.auth</groupId>
-      <artifactId>google-auth-library-credentials</artifactId>
-      <version>0.6.1</version>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/weka-stable -->
-    <dependency>
-      <groupId>nz.ac.waikato.cms.weka</groupId>
-      <artifactId>weka-stable</artifactId>
-      <version>3.8.2</version>
-    </dependency>
-
     <dependency>
       <groupId>javax.xml.bind</groupId>
       <artifactId>jaxb-api</artifactId>
@@ -567,7 +577,6 @@
       <artifactId>jaxb-impl</artifactId>
       <version>2.3.0.1</version>
     </dependency>
-
   </dependencies>
 
   <scm>
@@ -588,7 +597,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
-        <version>${maven-release-plugin.version}</version>
+        <version>3.2.0</version>
         <configuration>
           <scmCommentPrefix>[ci skip]</scmCommentPrefix>
         </configuration>
@@ -597,54 +606,42 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.1</version>
+        <version>3.11.0</version>
+        <configuration>
+          <source>17</source>      <!-- Use Java 17 language features -->
+          <target>11</target>      <!-- Generate Java 11 bytecode - datanucleus 5.0 enhancer limitation -->
+          <release>11</release>    <!-- Ensure Java 11 compatibility -->
+          <encoding>UTF-8</encoding>
+        </configuration>
       </plugin>
 
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.19</version>
-        <dependencies>
-            <dependency>
-                <groupId>org.junit.platform</groupId>
-                <artifactId>junit-platform-surefire-provider</artifactId>
-                <version>1.0.0</version>
-            </dependency>
-        </dependencies>
+        <version>3.2.5</version>
+        <configuration>
+          <!-- Java 17 module system compatibility -->
+          <argLine>
+            --add-opens java.base/java.lang=ALL-UNNAMED
+            --add-opens java.base/java.util=ALL-UNNAMED
+            --add-opens java.base/java.time=ALL-UNNAMED
+            --add-opens java.base/java.io=ALL-UNNAMED
+          </argLine>
+          <!-- Optional: Configure test execution -->
+          <includes>
+            <include>**/*Test.java</include>
+            <include>**/*Tests.java</include>
+          </includes>
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
+        </configuration>
       </plugin>
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.2</version>
-        <configuration>
-          <executable>java</executable>
-          <arguments>
-            <argument>-classpath</argument>
-            <classpath />
-            <argument>org.datanucleus.enhancer.DataNucleusEnhancer</argument>
-            <argument>-v</argument>
-            <argument>target/classes/org/ecocean/package.jdo</argument>
-            <argument>target/classes/org/ecocean/genetics/package.jdo</argument>
-            <argument>target/classes/org/ecocean/grid/package.jdo</argument>
-            <argument>target/classes/org/ecocean/cache/package.jdo</argument>
-            <argument>target/classes/org/ecocean/tag/package.jdo</argument>
-            <argument>target/classes/org/ecocean/media/package.jdo</argument>
-            <argument>target/classes/org/ecocean/identity/package.jdo</argument>
-            <argument>target/classes/org/ecocean/ia/package.jdo</argument>
-            <argument>target/classes/org/ecocean/servlet/importer/package.jdo</argument>
-            <argument>target/classes/org/ecocean/scheduled/package.jdo</argument>
-            <argument>target/classes/org/ecocean/social/package.jdo</argument>
-            <argument>target/classes/org/ecocean/movement/package.jdo</argument>
-          </arguments>
-        </configuration>
         <executions>
-          <execution>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-
           <execution>
             <id>Git Version Stamper</id>
             <phase>clean</phase>
@@ -671,6 +668,49 @@
       </plugin>
 
       <plugin>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-maven-plugin</artifactId>
+        <version>5.2.1</version>
+        <configuration>
+          <api>JDO</api>
+          <verbose>true</verbose>
+          <fork>true</fork>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>8.0.1</version>
+          </dependency>
+          <!-- Plugin needs same versions as runtime -->
+          <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-core</artifactId>
+            <version>${datanucleus.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-api-jdo</artifactId>
+            <version>${datanucleus.jdo.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-rdbms</artifactId>
+            <version>${datanucleus.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>enhance-classes</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>enhance</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.8</version>
@@ -691,15 +731,30 @@
       </plugin>
 
       <plugin>
-        <groupId>org.apache.tomcat.maven</groupId>
-        <artifactId>tomcat7-maven-plugin</artifactId>
-        <version>2.2</version>
+        <groupId>org.codehaus.cargo</groupId>
+        <artifactId>cargo-maven3-plugin</artifactId>
+        <version>1.10.25</version> <configuration>
+        <container>
+          <containerId>tomcat9x</containerId>
+          <artifactInstaller>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat</artifactId>
+            <version>9.0.83</version> </artifactInstaller>
+        </container>
         <configuration>
-          <url>http://localhost:8080/manager/text</url>
-          <server>TomcatServer</server>
-          <username>admin</username>
-          <password></password>
+          <properties>
+            <cargo.servlet.port>8080</cargo.servlet.port>
+            <cargo.start.jvmargs>
+              -Xmx4g
+              -Djava.awt.headless=true
+              --add-opens java.base/java.lang=ALL-UNNAMED
+              --add-opens java.base/java.util=ALL-UNNAMED
+              --add-opens java.base/java.io=ALL-UNNAMED
+              --add-opens java.base/java.time=ALL-UNNAMED
+            </cargo.start.jvmargs>
+          </properties>
         </configuration>
+      </configuration>
       </plugin>
 
       <plugin>
@@ -723,9 +778,10 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <artifactId>maven-war-plugin</artifactId>
-        <version>3.3.2</version>
+        <version>3.4.0</version>
         <configuration>
           <packagingExcludes>WEB-INF/web.xml</packagingExcludes>
         </configuration>

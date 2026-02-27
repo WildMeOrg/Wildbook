@@ -8,6 +8,7 @@
          org.datanucleus.api.jdo.JDOPersistenceManagerFactory" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+<%@ page import="org.ecocean.security.Collaboration" %>
 
 
 <style type="text/css">
@@ -742,13 +743,67 @@ try {
     </td>
     </form>
     </tr>
-    </table>
 
-    </p>
 
     <%
+  // Show collaborations for this user (admin/orgAdmin only)
+  if(request.getParameter("isEdit")!=null && request.getParameter("uuid")!=null){
+      User editUser = myShepherd.getUserByUUID(request.getParameter("uuid"));
+      if(editUser != null && editUser.getUsername() != null){
+		  %>
+		  <tr><td colspan="5">
+		  <%
+          List<Collaboration> userCollabs = Collaboration.collaborationsForUser(myShepherd, editUser.getUsername());
+          if(userCollabs != null && userCollabs.size() > 0){
+  %>
+    <h4><%=props.getProperty("collaborations") != null ? props.getProperty("collaborations") : "Collaborations"%></h4>
+    <table class="tissueSample" width="100%">
+      <tr>
+        <th><%=props.getProperty("collaborator") != null ? props.getProperty("collaborator") : "Collaborator"%></th>
+        <th><%=props.getProperty("type") != null ? props.getProperty("type") : "Type"%></th>
+        <th><%=props.getProperty("state") != null ? props.getProperty("state") : "State"%></th>
+        <th><%=props.getProperty("dateCreated") != null ? props.getProperty("dateCreated") : "Date Created"%></th>
+      </tr>
+      <%
+      String collabTypeEdit = props.getProperty("collabTypeEdit") != null ? props.getProperty("collabTypeEdit") : "Edit";
+      String collabTypeView = props.getProperty("collabTypeView") != null ? props.getProperty("collabTypeView") : "View";
+      for(Collaboration collab : userCollabs){
+          String otherUsername = collab.getOtherUsername(editUser.getUsername());
+          String state = collab.getState() != null ? collab.getState() : "unknown";
+          String collabType = (Collaboration.STATE_EDIT_PRIV.equals(state) || Collaboration.STATE_EDIT_PENDING_PRIV.equals(state)) ? collabTypeEdit : collabTypeView;
+          String dateCreated = collab.getDateStringCreated();
+      %>
+      <tr>
+        <td><%=otherUsername%></td>
+        <td><%=collabType%></td>
+        <td><%=state%></td>
+        <td><%=dateCreated%></td>
+      </tr>
+      <%
+      }
+      %>
+    </table>
+  <%
+          } else {
+  %>
+    <h4><%=props.getProperty("collaborations") != null ? props.getProperty("collaborations") : "Collaborations"%></h4>
+    <p><em><%=props.getProperty("noCollaborations") != null ? props.getProperty("noCollaborations") : "No collaborations found for this user."%></em></p>
+  <%
+          }
+		  %>
+	  </td></tr>
+	  <%
+      }
+  }
+  %>
+  
+      </table>
 
-    if(		request.getParameter("isEdit")!=null
+    </p>
+	
+	<%
+    
+	if(		request.getParameter("isEdit")!=null
     		&& request.getParameter("uuid") != null
     		&& myShepherd.getUserByUUID(request.getParameter("uuid"))!=null
     	    && request.getUserPrincipal().getName()!=null
@@ -774,6 +829,8 @@ try {
 		</table>
   <%
   }
+
+
 } catch(Exception e){
 	e.printStackTrace();
 	%>

@@ -15,6 +15,7 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
@@ -59,6 +60,20 @@ public class UploadedFiles {
         return files;
     }
 
+    public static File getFile(String subdir, String filename)
+    throws IOException {
+        File dir = getUploadDir(subdir);
+
+        if (dir == null) throw new IOException("invalid subdirectory: " + subdir);
+        if (Util.stringIsEmptyOrNull(filename) || filename.startsWith("."))
+            throw new IOException("invalid filename: " + filename);
+        File file = new File(dir, filename);
+        System.out.println("[DEBUG] UploadedFiles.getFile() looking for " + file);
+        if (!file.exists())
+            throw new IOException("file does not exist: " + subdir + "/" + filename);
+        return file;
+    }
+
     // this default behavior WILL CREATE the dir if it does not exist
     // use skipCreation=true below, otherwise
     public static File getUploadDir(HttpServletRequest request, String submissionId)
@@ -74,6 +89,15 @@ public class UploadedFiles {
         values.put("submissionId", submissionId);
         values.put("skipCreation", Boolean.toString(skipCreation));
         return new File(UploadServlet.getUploadDir(request, values));
+    }
+
+    // note: this is a lite version: it does not create the dir, it only returns the path it should be at
+    // see getUploadDir() above for full-featured version. (this is loosely based on UploadServlet.getUploadDir())
+    public static File getUploadDir(String subdir) {
+        if (!Util.isUUID(subdir)) return null;
+        String fullDir = CommonConfiguration.getUploadTmpDir("context0") +
+            "/_anonymous/submission/" + subdir;
+        return new File(fullDir);
     }
 
 /*

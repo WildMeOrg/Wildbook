@@ -117,6 +117,10 @@ public class OpenSearch {
 
         /////final OpenSearchTransport transport = builder.build();
         ///final RestClient restClient = RestClient.builder(host).build();
+        initializeClient(host);
+    }
+
+    public static void initializeClient(HttpHost host) {
         restClient = RestClient.builder(host).build();
         final OpenSearchTransport transport = new RestClientTransport(restClient,
             new JacksonJsonpMapper());
@@ -140,28 +144,7 @@ public class OpenSearch {
         final ScheduledFuture schedFutureIndexing = schedExec.scheduleWithFixedDelay(
             new Runnable() {
                 public void run() {
-                    Shepherd myShepherd = new Shepherd(context);
-                    myShepherd.setAction("OpenSearch.backgroundIndexing");
-                    try {
-                        myShepherd.beginDBTransaction();
-                        System.out.println("OpenSearch background indexing running...");
-                        Base.opensearchSyncIndex(myShepherd, Encounter.class,
-                        BACKGROUND_SLICE_SIZE);
-                        Base.opensearchSyncIndex(myShepherd, Annotation.class,
-                        BACKGROUND_SLICE_SIZE);
-                        Base.opensearchSyncIndex(myShepherd, MarkedIndividual.class,
-                        BACKGROUND_SLICE_SIZE);
-                        Base.opensearchSyncIndex(myShepherd, Occurrence.class,
-                        BACKGROUND_SLICE_SIZE);
-                        Base.opensearchSyncIndex(myShepherd, MediaAsset.class,
-                        BACKGROUND_SLICE_SIZE);
-                        System.out.println("OpenSearch background indexing finished.");
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    } finally {
-                        myShepherd.rollbackAndClose();
-                        unsetActiveIndexingBackground();
-                    }
+                    updateEncounterIndexes(context);
                 }
             }, 2, // initial delay
             BACKGROUND_DELAY_MINUTES, // period delay *after* execution finishes
@@ -169,19 +152,7 @@ public class OpenSearch {
         final ScheduledFuture schedFuturePermissions = schedExec.scheduleWithFixedDelay(
             new Runnable() {
                 public void run() {
-                    Shepherd myShepherd = new Shepherd(context);
-                    myShepherd.setAction("OpenSearch.backgroundPermissions");
-                    try {
-                        myShepherd.beginDBTransaction();
-                        System.out.println("OpenSearch background permissions running...");
-                        Encounter.opensearchIndexPermissionsBackground(myShepherd);
-                        System.out.println("OpenSearch background permissions finished.");
-                        myShepherd.commitDBTransaction(); // need commit since we might have changed SystemValues
-                        myShepherd.closeDBTransaction();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        myShepherd.rollbackAndClose();
-                    }
+                    updatePermissionsIndex(context);
                 }
             }, 8, // initial delay
             BACKGROUND_PERMISSIONS_MINUTES, TimeUnit.MINUTES); // unit of delays above
@@ -193,6 +164,44 @@ public class OpenSearch {
                 ") interrupted: " + ex.toString());
         }
         System.out.println("OpenSearch.backgroundStartup(" + context + ") backgrounded");
+    }
+
+    private static void updatePermissionsIndex(String context) {
+        Shepherd myShepherd = new Shepherd(context);
+
+        myShepherd.setAction("OpenSearch.backgroundPermissions");
+        try {
+            myShepherd.beginDBTransaction();
+            System.out.println("OpenSearch background permissions running...");
+            Encounter.opensearchIndexPermissionsBackground(myShepherd);
+            System.out.println("OpenSearch background permissions finished.");
+            myShepherd.commitDBTransaction(); // need commit since we might have changed SystemValues
+            myShepherd.closeDBTransaction();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    public static void updateEncounterIndexes(String context) {
+        Shepherd myShepherd = new Shepherd(context);
+
+        myShepherd.setAction("OpenSearch.backgroundIndexing");
+        try {
+            myShepherd.beginDBTransaction();
+            System.out.println("OpenSearch background indexing running...");
+            Base.opensearchSyncIndex(myShepherd, Encounter.class, BACKGROUND_SLICE_SIZE);
+            Base.opensearchSyncIndex(myShepherd, Annotation.class, BACKGROUND_SLICE_SIZE);
+            Base.opensearchSyncIndex(myShepherd, MarkedIndividual.class, BACKGROUND_SLICE_SIZE);
+            Base.opensearchSyncIndex(myShepherd, Occurrence.class, BACKGROUND_SLICE_SIZE);
+            Base.opensearchSyncIndex(myShepherd, MediaAsset.class, BACKGROUND_SLICE_SIZE);
+            System.out.println("OpenSearch background indexing finished.");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            myShepherd.rollbackAndClose();
+            unsetActiveIndexingBackground();
+        }
     }
 
     public void createIndex(String indexName, JSONObject mapping)
@@ -687,28 +696,61 @@ public class OpenSearch {
         Shepherd myShepherd, User user)
     throws IOException {
         if ((user == null) || (sourceDoc == null)) throw new IOException("null user or sourceDoc");
-        JSONObject clean = new JSONObject();
         // these classes we let anyone see as-is
         if ("annotation".equals(indexName) || "individual".equals(indexName)) return sourceDoc;
-        // this is just punting future classes to later development
-        if (!"encounter".equals(indexName)) return clean;
-        boolean hasAccess = Encounter.opensearchAccess(sourceDoc, user, myShepherd);
-        if (hasAccess) {
-            clean = new JSONObject(sourceDoc.toString());
-            clean.remove("viewUsers");
-            clean.put("access", "full");
-            return clean;
+        // these we return some kinda cleaned value
+        JSONObject clean = new JSONObject();
+        if ("encounter".equals(indexName)) {
+            boolean hasAccess = Encounter.opensearchAccess(sourceDoc, user, myShepherd);
+            if (hasAccess) {
+                clean = new JSONObject(sourceDoc.toString());
+                clean.remove("viewUsers");
+                clean.put("access", "full");
+                return clean;
+            }
+            clean.put("access", "none");
+            String[] okFields = new String[] {
+                "id", "version", "indexTimestamp", "version", "individualId",
+                    "individualDisplayName", "occurrenceId", "otherCatalogNumbers", "dateSubmitted",
+                    "date", "locationId", "locationName", "taxonomy", "assignedUsername",
+                    "numberAnnotations"
+            };
+            for (String fieldName : okFields) {
+                if (sourceDoc.has(fieldName)) clean.put(fieldName, sourceDoc.get(fieldName));
+            }
+        } else if ("occurrence".equals(indexName)) {
+            // right now, we only search occurrences for finding based on name, so we punt on
+            // this quite a bit. we basically only show as access=full when the user can
+            // (in theory) edit the occurrence
+            boolean hasAccess = user.isAdmin(myShepherd) || hasAccessOccurrence(user, sourceDoc);
+            if (hasAccess) {
+                clean = new JSONObject(sourceDoc.toString());
+                clean.put("access", "full");
+            } else {
+                clean = new JSONObject();
+                clean.put("id", sourceDoc.optString("id", "unknown"));
+                clean.put("access", "none");
+            }
+            // clean.remove("viewUsers");
+            // clean.remove("editUsers");
         }
-        clean.put("access", "none");
-        String[] okFields = new String[] {
-            "id", "version", "indexTimestamp", "version", "individualId", "individualDisplayName",
-                "occurrenceId", "otherCatalogNumbers", "dateSubmitted", "date", "locationId",
-                "locationName", "taxonomy", "assignedUsername", "numberAnnotations"
-        };
-        for (String fieldName : okFields) {
-            if (sourceDoc.has(fieldName)) clean.put(fieldName, sourceDoc.get(fieldName));
-        }
+        // if we fall through (e.g. future classes) clean will just be empty
         return clean;
+    }
+
+    private static boolean hasAccessOccurrence(User user, JSONObject doc) {
+        if ((user == null) || (doc == null)) return false;
+        String username = user.getUsername();
+        if (username == null) return false;
+        if (username.equals(doc.optString("submitterId", "__FAIL__"))) return true;
+        JSONArray earr = doc.optJSONArray("encounters");
+        if ((earr == null) || (earr.length() < 1)) return false;
+        for (int i = 0; i < earr.length(); i++) {
+            JSONObject enc = earr.optJSONObject(i);
+            if (enc == null) continue;
+            if (username.equals(enc.optString("submitterId", "__FAIL__"))) return true;
+        }
+        return false;
     }
 
     public static boolean indexingActive() {

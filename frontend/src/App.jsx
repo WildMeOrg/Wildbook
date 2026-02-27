@@ -14,6 +14,7 @@ import LocaleContext from "./IntlProvider";
 import FooterVisibilityContext from "./FooterVisibilityContext";
 import Cookies from "js-cookie";
 import FilterContext from "./FilterContextProvider";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   const messageMap = {
@@ -51,9 +52,11 @@ function App() {
     setFilters({});
   };
 
-  const publicUrl = process.env.PUBLIC_URL 
-  ? (process.env.PUBLIC_URL.startsWith('http') ? new URL(process.env.PUBLIC_URL).pathname : process.env.PUBLIC_URL)
-  : "/";
+  const publicUrl = process.env.PUBLIC_URL
+    ? process.env.PUBLIC_URL.startsWith("http")
+      ? new URL(process.env.PUBLIC_URL).pathname
+      : process.env.PUBLIC_URL
+    : "/";
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -77,6 +80,17 @@ function App() {
                   <FrontDesk
                     adminUserInitialized={true}
                     setLocale={setLocale}
+                  />
+                  <ToastContainer
+                    position="top-right"
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
                   />
                 </FilterContext.Provider>
               </FooterVisibilityContext.Provider>

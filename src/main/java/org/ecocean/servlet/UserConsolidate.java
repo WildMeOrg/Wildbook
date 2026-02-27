@@ -846,9 +846,11 @@ public class UserConsolidate extends HttpServlet {
             returnJson.put("conslidatedUsers", consolidatedIncompleteUsers);
         } else {
             System.out.println("dedupe ack there were no users in this list");
+            query.closeAll();
             returnJson.put("success", true);
             return returnJson;
         }
+        query.closeAll();
         returnJson.put("success", true);
         return returnJson;
     }
@@ -1032,10 +1034,13 @@ public class UserConsolidate extends HttpServlet {
         List<User> users = new ArrayList<User>();
         String filter = "SELECT FROM org.ecocean.User WHERE username == \"" + username + "\"";
         Query query = persistenceManager.newQuery(filter);
-        Collection c = (Collection)(query.execute());
-
-        if (c != null) {
-            users = new ArrayList<User>(c);
+        try {
+            Collection c = (Collection)(query.execute());
+            if (c != null) {
+                users = new ArrayList<User>(c);
+            }
+        } finally {
+            query.closeAll();
         }
         return users;
     }
@@ -1045,10 +1050,12 @@ public class UserConsolidate extends HttpServlet {
         List<User> users = new ArrayList<User>();
         String filter = "SELECT FROM org.ecocean.User WHERE fullName == \"" + fullname + "\"";
         Query query = persistenceManager.newQuery(filter);
-        Collection c = (Collection)(query.execute());
-
-        if (c != null) {
-            users = new ArrayList<User>(c);
+        try {
+            Collection c = (Collection)(query.execute());
+            if (c != null) {
+                users = new ArrayList<User>(c);
+            }
+        } finally {
             query.closeAll();
         }
         return users;
@@ -1060,10 +1067,12 @@ public class UserConsolidate extends HttpServlet {
         String filter = "SELECT FROM org.ecocean.User WHERE hashedEmailAddress == \"" +
             hashedEmail + "\"";
         Query query = persistenceManager.newQuery(filter);
-        Collection c = (Collection)(query.execute());
-
-        if (c != null) {
-            users = new ArrayList<User>(c);
+        try {
+            Collection c = (Collection)(query.execute());
+            if (c != null) {
+                users = new ArrayList<User>(c);
+            }
+        } finally {
             query.closeAll();
         }
         return users;
@@ -1072,23 +1081,26 @@ public class UserConsolidate extends HttpServlet {
     public static List<User> getUsersWithEmailAddress(PersistenceManager persistenceManager,
         String emailAddress) {
         System.out.println("dedupe getUsersWithEmailAddress entered");
-        if (emailAddress != null) {
-            List<User> users = new ArrayList<User>();
-            String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \"" + emailAddress +
-                "\"";
-            Query query = persistenceManager.newQuery(filter);
+        if (emailAddress == null) {
+            System.out.println("dedupe current email address was invalid. Skipping...");
+            return null;
+        }
+        List<User> users = new ArrayList<User>();
+        String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \"" + emailAddress +
+            "\"";
+        Query query = persistenceManager.newQuery(filter);
+        try {
             Collection c = (Collection)(query.execute());
             if (c != null) {
                 users = new ArrayList<User>(c);
             }
-            if (users.size() > 0) {
-                return users;
-            } else {
-                System.out.println("dedupe ack there were no users");
-                return null;
-            }
+        } finally {
+            query.closeAll();
+        }
+        if (users.size() > 0) {
+            return users;
         } else {
-            System.out.println("dedupe current email address was invalid. Skipping...");
+            System.out.println("dedupe ack there were no users");
             return null;
         }
     }
@@ -1096,24 +1108,27 @@ public class UserConsolidate extends HttpServlet {
     public static User getFirstUserWithEmailAddress(PersistenceManager persistenceManager,
         String emailAddress) {
         System.out.println("dedupe getFirstUserWithEmailAddress entered");
-        if (emailAddress != null) {
-            // emailAddress = emailAddress.toLowerCase().trim();
-            List<User> users = new ArrayList<User>();
-            String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \"" + emailAddress +
-                "\"";
-            Query query = persistenceManager.newQuery(filter);
+        if (emailAddress == null) {
+            System.out.println("dedupe current email address was invalid. Skipping...");
+            return null;
+        }
+        // emailAddress = emailAddress.toLowerCase().trim();
+        List<User> users = new ArrayList<User>();
+        String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \"" + emailAddress +
+            "\"";
+        Query query = persistenceManager.newQuery(filter);
+        try {
             Collection c = (Collection)(query.execute());
             if (c != null) {
                 users = new ArrayList<User>(c);
             }
-            if (users.size() > 0) {
-                return users.get(0);
-            } else {
-                System.out.println("dedupe ack there were no users");
-                return null;
-            }
+        } finally {
+            query.closeAll();
+        }
+        if (users.size() > 0) {
+            return users.get(0);
         } else {
-            System.out.println("dedupe current email address was invalid. Skipping...");
+            System.out.println("dedupe ack there were no users");
             return null;
         }
     }

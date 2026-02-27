@@ -280,7 +280,7 @@ if (allSpotMAs != null) {
 
 		 				//System.out.println("     uploadedFile exists!");
 		 				
-		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
+		 				Dimension imageDimensions = Util.hackSanselanGetImageSize(uploadedFile, null);
 		 				
 
 		 				//iInfo.setInput(new FileInputStream(uploadedFile));
@@ -317,7 +317,7 @@ if (allSpotMAs != null) {
 						if((uploadedRightFile.exists())&&uploadedRightFile.isFile()&&(uploadedRightFile.length()>0)&&(enc.getNumRightSpots()>0)) {
 									
 									//iInfo=new ImageInfo();
-									Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedRightFile);
+									Dimension imageDimensions = Util.hackSanselanGetImageSize(uploadedRightFile, null);
 		 				
 
 									//iInfo.setInput(new FileInputStream(uploadedRightFile));
