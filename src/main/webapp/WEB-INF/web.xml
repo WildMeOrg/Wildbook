@@ -2879,5 +2879,16 @@
     <servlet-name>EncounterRemoveAnnotation</servlet-name>
     <url-pattern>/EncounterRemoveAnnotation</url-pattern>
   </servlet-mapping>
+  
+   <servlet>
+    <servlet-name>GrothMatchServlet</servlet-name>
+    <servlet-class>org.ecocean.servlet.GrothMatchServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>GrothMatchServlet</servlet-name>
+    <url-pattern>/GrothMatch</url-pattern>
+  </servlet-mapping>
+  
 
 </web-app>
