@@ -136,6 +136,7 @@ function LoginPage() {
                     setUsername(e.target.value);
                     setError(null);
                   }}
+                  data-testid="login-username"
                 />
               </Form.Group>
 
@@ -154,6 +155,7 @@ function LoginPage() {
                     onChange={(e) => {
                       setPassword(e.target.value);
                     }}
+                    data-testid="login-password"
                   />
                   <InputGroup.Text
                     onClick={togglePasswordVisibility}
@@ -198,6 +200,7 @@ function LoginPage() {
                 color={theme.primaryColors.primary500}
                 borderColor={theme.primaryColors.primary500}
                 disabled={actionDisabled}
+                data-testid="login-submit"
               >
                 {intl.formatMessage({
                   id: "LOGIN_SIGN_IN",
@@ -221,6 +224,7 @@ function LoginPage() {
                   onClose={() => setShow(false)}
                   dismissible
                   style={{ marginTop: "20px" }}
+                  data-testid="login-error"
                 >
                   <i className="bi bi-exclamation-circle"></i> {error}
                 </Alert>

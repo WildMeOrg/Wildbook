@@ -7,7 +7,7 @@ import { FormattedMessage } from "react-intl";
 export default function LatestData({ data, username, loading = true }) {
   return (
     <div className="d-flex flex-column align-items-center justify-content-center p-3 mt-5">
-      <h1 style={{ fontSize: 48 }}>
+      <h1 style={{ fontSize: 48 }} data-testid="home-latest-data">
         <FormattedMessage id="HOME_LATEST_DATA" />
       </h1>
       <div className="d-flex flex-row justify-content align-items-center">
