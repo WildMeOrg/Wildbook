@@ -23,7 +23,14 @@ const EditableCell = observer(
       return store.getOptionsForSelectCell(columnId);
     }, [columnId, store]);
     const selectValue = useMemo(() => {
-      return value ? { value, label: value } : null;
+      if (
+        value === null ||
+        value === undefined ||
+        String(value).trim() === ""
+      ) {
+        return null;
+      }
+      return { value, label: String(value) };
     }, [value]);
 
     const [showDetail, setShowDetail] = useState(false);
@@ -62,7 +69,7 @@ const EditableCell = observer(
           <input
             type="text"
             className={`form-control form-control-sm rounded ${store.validationErrors?.[rowIndex]?.[columnId] ? "is-invalid" : ""}`}
-            value={store.spreadsheetData?.[rowIndex]?.[columnId] || ""}
+            value={store.spreadsheetData?.[rowIndex]?.[columnId] ?? ""}
             title={value}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
