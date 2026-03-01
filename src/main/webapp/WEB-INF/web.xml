@@ -450,6 +450,16 @@
 	</servlet-mapping>
 
 	<servlet>
+		<servlet-name>MarkedIndividualInfo</servlet-name>
+		<servlet-class>org.ecocean.api.MarkedIndividualInfo</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>MarkedIndividualInfo</servlet-name>
+		<url-pattern>/api/v3/individuals/info/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
 		<servlet-name>ApiProjects</servlet-name>
 		<servlet-class>org.ecocean.api.Projects</servlet-class>
 	</servlet>
