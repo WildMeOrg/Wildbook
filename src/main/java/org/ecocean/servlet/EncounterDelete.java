@@ -21,12 +21,11 @@ import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.ecocean.shepherd.core.Shepherd;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class EncounterDelete extends HttpServlet {
-    /** SLF4J logger instance for writing log entries. */
-    public static Logger log = LoggerFactory.getLogger(EncounterDelete.class);
+    private static final Logger log = LogManager.getLogger(EncounterDelete.class);
 
     public void init(ServletConfig config)
     throws ServletException {
@@ -187,7 +186,6 @@ public class EncounterDelete extends HttpServlet {
                     myShepherd.commitDBTransaction();
 
                     // log it
-                    Logger log = LoggerFactory.getLogger(EncounterDelete.class);
                     log.info("Click to restore deleted encounter: <a href=\"" +
                         request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) +
                         "/ResurrectDeletedEncounter?number=" + request.getParameter("number") +

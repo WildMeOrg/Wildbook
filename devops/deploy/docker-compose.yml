@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:13.4
+    container_name: db
     healthcheck:
       # More robust check: verify PostgreSQL can actually execute a query
       # pg_isready only checks if accepting connections, not if responsive
@@ -10,14 +11,26 @@ services:
       retries: 3
       start_period: 60s
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
-      - autoheal=true
+      logging: "alloy"
+      service: "postgresql"
+      environment: "${ENVIRONMENT:-production}"
+      domain: "${DOMAIN_NAME:-unknown}"
+      log_type: "database"
+      autoheal: "true"
     user: postgres
     volumes:
       - db-pgdata-var:/var/lib/postgresql/data
       # DB initialization scripts
       - .dockerfiles/db/initdb.d/:/docker-entrypoint-initdb.d/
       - .dockerfiles/db/postgresql.conf:/etc/postgresql/postgresql.conf
+      # Shared with Alloy:
+      - postgresql-logs:/var/log/postgresql
     networks:
       - intranet
     ports:
@@ -36,16 +49,27 @@ services:
 
   wildbook:
     image: tomcat:9.0.113-jre17-temurin-jammy
+    container_name: wildbook
     depends_on:
       db:
         condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
-      - autoheal=true
+      logging: "alloy"
+      service: "wildbook"
+      environment: "${ENVIRONMENT:-production}"
+      domain: "${DOMAIN_NAME:-unknown}"
+      log_type: "application"
+      autoheal: "true"
     entrypoint: /docker-entrypoint.sh
     volumes:
       - "$WILDBOOK_BASE_DIR/wb-docker-deploy/wildbook_docker_webapps/:/usr/local/tomcat/webapps/"
       - "$WILDBOOK_BASE_DIR/wildbook_data_dir/:/usr/local/tomcat/webapps/wildbook_data_dir/"
-      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/:/usr/local/tomcat/logs/"
+      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/wildbook:/usr/local/tomcat/logs/"
       - /var/run/docker.sock:/var/run/docker.sock
       - .dockerfiles/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
       - .dockerfiles/docker-entrypoint.sh:/docker-entrypoint.sh
@@ -74,9 +98,15 @@ services:
       ADMIN_PASSWORD: "${EDM_AUTHENTICATIONS_PASSWORD__DEFAULT}"
       # JAVA_OPTS from old-world wildbook, which gives us 16G heap memory
       JAVA_OPTS: "-Djava.awt.headless=true -Xms16g -Xmx16g"
+      SERVICE_NAME: "${SERVICE_NAME:-wildbook}"
+      ENVIRONMENT: "${ENVIRONMENT:-production}"
+      DOMAIN_NAME: "${DOMAIN_NAME:-unknown}"
+      HOSTNAME: "${HOSTNAME:-localhost}"
+      WILDBOOK_LOG_LEVEL: "${WILDBOOK_LOG_LEVEL:-INFO}"
 
   opensearch:
     image: opensearchproject/opensearch:2.15.0
+    container_name: opensearch
     healthcheck:
       # Check cluster health and verify status is not "red"
       # Green = all shards allocated, Yellow = primary shards ok, Red = cluster down
@@ -86,10 +116,21 @@ services:
       retries: 3
       start_period: 120s
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
-      - autoheal=true
+      logging: "alloy"
+      service: "opensearch"
+      environment: "${ENVIRONMENT:-production}"
+      domain: "${DOMAIN_NAME:-unknown}"
+      log_type: "search"
+      autoheal: "true"
     volumes:
       - opensearch-var1:/usr/share/opensearch/data
+      - .dockerfiles/opensearch/log4j2.properties:/usr/share/opensearch/config/log4j2.properties
     ulimits:
       memlock:
         soft: -1
@@ -116,6 +157,7 @@ services:
   #  TODO dkim and spf needs to be added/supported
   smtp:
     image: boky/postfix
+    container_name: smtp
     healthcheck:
       # Check if postfix master process is running
       test: [ "CMD-SHELL", "pgrep -x master || exit 1" ]
@@ -124,8 +166,18 @@ services:
       retries: 3
       start_period: 30s
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
-      - autoheal=true
+      logging: "alloy"
+      service: "smtp"
+      environment: "${ENVIRONMENT:-production}"
+      domain: "${DOMAIN_NAME:-unknown}"
+      log_type: "infrastructure"
+      autoheal: "true"
     networks:
       - intranet
     ports:
@@ -138,9 +190,11 @@ services:
       - "RELAYHOST=${MAIL_RELAYHOST}"
       - "RELAYHOST_USERNAME=${MAIL_RELAYHOST_USERNAME}"
       - "RELAYHOST_PASSWORD=${MAIL_RELAYHOST_PASSWORD}"
+      - "LOG_FORMAT=json"
 
   nginx:
     image: nginx:1.23.4
+    container_name: nginx
     depends_on:
       - wildbook
     healthcheck:
@@ -152,17 +206,75 @@ services:
       retries: 3
       start_period: 30s
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
-      - autoheal=true
+      logging: "alloy"
+      service: "nginx"
+      environment: "${ENVIRONMENT:-production}"
+      domain: "${DOMAIN_NAME:-unknown}"
+      log_type: "proxy"
+      autoheal: "true"
     volumes:
       - .dockerfiles/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
       - /etc/letsencrypt:/etc/letsencrypt
+      # Shared log volume: Alloy reads from /logs/nginx/
+      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/nginx:/var/log/nginx"
     networks:
       - intranet
     ports:
       # BBB deprecated in favor or port 80, remains for backward compat
       - "80:80"
       - "443:443"
+
+  alloy:
+    image: grafana/alloy:v1.12.2
+    container_name: alloy
+    # Run with elevated permissions to access Docker socket
+    user: root
+    labels:
+      logging: "alloy"
+      service: "alloy"
+      environment: "${ENVIRONMENT:-production}"
+      domain: "${DOMAIN_NAME:-unknown}"
+      log_type: "infrastructure"
+      autoheal: "true"
+    volumes:
+      - .dockerfiles/alloy/config.alloy:/etc/alloy/config.alloy
+      - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock:ro
+      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/wildbook:/logs/wildbook:ro"
+      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/nginx:/logs/nginx:ro"
+      - postgresql-logs:/logs/postgresql:ro
+      - alloy-data:/var/lib/alloy
+      # This volume mount will fail gracefully on macOS/Windows
+      - type: bind
+        source: ${DOCKER_CONTAINERS_PATH:-/var/lib/docker/containers}
+        target: /var/lib/docker/containers
+        read_only: true
+        # Note: This mount will fail on macOS/Windows but won't stop the container
+        # Alloy will fall back to using Docker API instead
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    ports:
+      - "12345:12345"  # Alloy UI for debugging
+    environment:
+      - HOSTNAME=${HOSTNAME:-localhost}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DOMAIN_NAME=${DOMAIN_NAME:-unknown}
+      - LOKI_URL=${LOKI_URL:-http://host.docker.internal:3100/loki/api/v1/push}
+      - LOKI_USERNAME=${LOKI_USERNAME}
+      - LOKI_PASSWORD=${LOKI_PASSWORD}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - intranet
+    restart: unless-stopped
 
   autoheal:
     image: willfarrell/autoheal
@@ -181,3 +293,5 @@ networks:
 volumes:
   db-pgdata-var:
   opensearch-var1:
+  alloy-data:
+  postgresql-logs:

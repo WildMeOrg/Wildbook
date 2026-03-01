@@ -33,8 +33,8 @@ import javax.mail.SendFailedException;
 import javax.mail.Session;
 import javax.mail.Transport;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * <p>Convenience template mechanism for sending emails using JavaMail. It provides support for both plain text and HTML emails, although HTML emails
@@ -49,8 +49,7 @@ import org.slf4j.LoggerFactory;
  * @see <a href="https://javamail.java.net/">JavaMail API project on Java.net</a>
  */
 public final class EmailTemplate {
-    /** SLF4J logger instance for writing log entries. */
-    private static final Logger log = LoggerFactory.getLogger(EmailTemplate.class);
+    private static final Logger log = LogManager.getLogger(EmailTemplate.class);
     /** Default character set encoding for email body texts. */
     private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
     /** Template for message subject. */
