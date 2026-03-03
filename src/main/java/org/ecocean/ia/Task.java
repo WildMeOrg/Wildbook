@@ -699,9 +699,6 @@ public class Task implements java.io.Serializable {
         if (methodInfo != null) {
             rtn.put("method", methodInfo);
             rtn.put("matchingSetFilter", getMatchingSetFilter());
-            // unsure which of these two things is more accurate or useful; thus including both
-            rtn.put("status", getStatus(myShepherd));
-            rtn.put("statusOverall", getOverallStatus(myShepherd));
             // we only care about (and importantly try to generate) MatchResults for ident type too
             MatchResult mr = getLatestMatchResult(myShepherd);
             if (mr == null) {
@@ -729,6 +726,11 @@ public class Task implements java.io.Serializable {
                 charr.put(childJson);
             }
             rtn.put("children", charr);
+        // if we dont have children (leaf nodes) we get the status
+        } else {
+            // unsure which of these two things is more accurate or useful; thus including both
+            rtn.put("status", getStatus(myShepherd));
+            rtn.put("statusOverall", getOverallStatus(myShepherd));
         }
         return rtn;
     }
