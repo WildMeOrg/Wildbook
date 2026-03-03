@@ -1,2 +1,0 @@
-#!/bin/bash
-java -cp .:/opt/tomcat7/webapps/wildbook/WEB-INF/classes:/home/webadmin/wildbook/jexcelapi/jxl.jar:/opt/tomcat7/webapps/wildbook/WEB-INF/lib/*:/opt/tomcat7/webapps/wildbook/WEB-INF/classes:/opt/tomcat7/webapps/wildbook/WEB-INF/classes/bundles com.jholmberg.wildbookMigratorApp

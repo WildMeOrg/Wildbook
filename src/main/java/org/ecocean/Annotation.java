@@ -5,14 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -651,7 +644,9 @@ public class Annotation extends Base implements java.io.Serializable {
 
     // if this cannot determine a bounding box, then we return null
     public int[] getBbox() {
-        if (getMediaAsset() == null) return null;
+        MediaAsset ma = getMediaAsset();
+
+        if (ma == null) return null;
         Feature found = null;
         for (Feature ft : getFeatures()) {
             if (ft.isUnity() || ft.isType("org.ecocean.boundingBox")) {
@@ -664,8 +659,8 @@ public class Annotation extends Base implements java.io.Serializable {
         if (found.isUnity()) {
             bbox[0] = 0;
             bbox[1] = 0;
-            bbox[2] = (int)getMediaAsset().getWidth();
-            bbox[3] = (int)getMediaAsset().getHeight();
+            bbox[2] = (int)ma.getWidth();
+            bbox[3] = (int)ma.getHeight();
         } else {
             // guess we derive from feature!
             if (found.getParameters() == null) return null;
@@ -1090,10 +1085,6 @@ public class Annotation extends Base implements java.io.Serializable {
                 enc.setState(CommonConfiguration.getProperty("encounterState0",
                     myShepherd.getContext()));
             }
-            // this taxonomy only works when its twitter-sourced data cuz otherwise this is just null
-            enc.setTaxonomy(IBEISIA.taxonomyFromMediaAsset(myShepherd,
-                TwitterUtil.parentTweet(myShepherd, this.getMediaAsset())));
-
             return enc;
         }
         /* TODO: evaluate what of these notes are necessary
@@ -1350,6 +1341,24 @@ public class Annotation extends Base implements java.io.Serializable {
                     if (eann.isTrivial()) continue;
                     System.out.println(
                         "DEBUG Annotation.createFromApi(): cloneEncounter [5] forcing cloneEncounter due to "
+                        + eann);
+                    cloneEncounter = true;
+                }
+            }
+            //handle multiple parts case, such as a pre-existing elphant+head 
+            // and a new elephant+head added in a single image
+            else{
+                List<Annotation> encAnnots = enc.getAnnotations(ma);
+                System.out.println("DEBUG Annotation.createFromApi(): encAnnots = " + encAnnots);
+                // we see if we have a non-part annot, which would force us to clone (parts we ignore)
+                for (Annotation eann : encAnnots) {
+                    if (!eann.isPart()) continue;
+                    // trivial *should* be replaced below (see foundTrivial) ... i guess there is a weird
+                    // chance of more than one trivial being on this asset, but thats probably bad news anyway
+                    // we dont clone encounter since we will drop this trivial annot (then add new one to enc)
+                    if (eann.isTrivial()) continue;
+                    System.out.println(
+                        "DEBUG Annotation.createFromApi(): cloneEncounter [5] forcing multiple partscloneEncounter due to "
                         + eann);
                     cloneEncounter = true;
                 }
