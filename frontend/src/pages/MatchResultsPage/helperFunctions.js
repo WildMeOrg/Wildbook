@@ -62,3 +62,62 @@ export const getAllIndiv = (node, result = []) =>
   collectProspects(node, "indiv", result);
 export const getAllAnnot = (node, result = []) =>
   collectProspects(node, "annot", result);
+
+const isLeafNode = (node) => {
+  if (!node || typeof node !== "object") return false;
+  return !Array.isArray(node.children) || node.children.length === 0;
+};
+
+const hasAnyMatchResults = (node) => {
+  if (!node?.matchResults?.prospects) return false;
+
+  const annot = node.matchResults.prospects.annot;
+  const indiv = node.matchResults.prospects.indiv;
+
+  return (
+    (Array.isArray(annot) && annot.length > 0) ||
+    (Array.isArray(indiv) && indiv.length > 0)
+  );
+};
+
+const collectLeafNodes = (node, result = []) => {
+  if (!node || typeof node !== "object") return result;
+
+  if (isLeafNode(node)) {
+    result.push(node);
+    return result;
+  }
+
+  if (Array.isArray(node.children)) {
+    node.children.forEach((child) => collectLeafNodes(child, result));
+  }
+
+  return result;
+};
+
+export const isMatchTaskStillRunning = (root) => {
+  if (!root || typeof root !== "object") return false;
+
+  // case 1:
+  // root itself is a leaf node, has no children and no matchResults,
+  // and is not completed => task still running
+  if (
+    isLeafNode(root) &&
+    !hasAnyMatchResults(root) &&
+    root.statusOverall !== "completed"
+  ) {
+    return true;
+  }
+
+  // case 2:
+  // any leaf node is not completed AND there are still no results anywhere
+  const leafNodes = collectLeafNodes(root);
+  const hasIncompleteLeaf = leafNodes.some(
+    (leaf) => leaf?.statusOverall !== "completed",
+  );
+
+  const hasAnyResultsAnywhere =
+    getAllAnnot(root).length > 0 || getAllIndiv(root).length > 0;
+
+  return hasIncompleteLeaf && !hasAnyResultsAnywhere;
+};

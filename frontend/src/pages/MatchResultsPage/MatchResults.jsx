@@ -61,6 +61,9 @@ const MatchResults = observer(() => {
     return <FullScreenLoader data-testid="match-results-loader" />;
   }
 
+  const showRunningState = !store.hasResults && store.taskStillRunning;
+  const showEmptyState = !store.hasResults && !store.taskStillRunning;
+
   return (
     <Container
       className="mt-2 mb-5"
@@ -320,7 +323,18 @@ const MatchResults = observer(() => {
       </div>
 
       <div id="match-results-content" data-testid="match-results-content">
-        {!store.hasResults || store.currentViewData.length === 0 ? (
+        {showRunningState ? (
+          <p
+            className="mt-3"
+            id="match-results-running"
+            data-testid="match-results-running"
+          >
+            <FormattedMessage
+              id="MATCH_RESULTS_STILL_PROCESSING"
+              defaultMessage="Match results are still being processed."
+            />
+          </p>
+        ) : showEmptyState ? (
           <p
             className="mt-3"
             id="match-results-empty"
@@ -329,6 +343,17 @@ const MatchResults = observer(() => {
             <FormattedMessage
               id="NO_MATCH_RESULTS_AVAILABLE"
               defaultMessage="No match results available."
+            />
+          </p>
+        ) : store.currentViewData.length === 0 ? (
+          <p
+            className="mt-3"
+            id="match-results-viewmode-empty"
+            data-testid="match-results-viewmode-empty"
+          >
+            <FormattedMessage
+              id="NO_RESULTS_FOR_SELECTED_VIEW"
+              defaultMessage="No results available for this view."
             />
           </p>
         ) : (

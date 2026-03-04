@@ -1,7 +1,11 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
 import { MAX_ROWS_PER_COLUMN } from "../constants";
-import { getAllAnnot, getAllIndiv } from "../helperFunctions";
+import {
+  getAllAnnot,
+  getAllIndiv,
+  isMatchTaskStillRunning,
+} from "../helperFunctions";
 
 export default class MatchResultsStore {
   _viewMode = "individual"; // "individual" | "image"
@@ -29,19 +33,24 @@ export default class MatchResultsStore {
   _matchRequestError = null;
   _hasResults = false;
   _fetchSeq = 0;
+  _taskStillRunning = false;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
   }
 
   loadData(results) {
-    this._annotResults = getAllAnnot(results?.matchResultsRoot);
-    this._indivResults = getAllIndiv(results?.matchResultsRoot);
+    const root = results?.matchResultsRoot;
 
-    if (
-      (!this._annotResults || this._annotResults.length === 0) &&
-      (!this._indivResults || this._indivResults.length === 0)
-    ) {
+    this._annotResults = getAllAnnot(root);
+    this._indivResults = getAllIndiv(root);
+    this._taskStillRunning = isMatchTaskStillRunning(root);
+
+    const hasAnyResults =
+      (Array.isArray(this._annotResults) && this._annotResults.length > 0) ||
+      (Array.isArray(this._indivResults) && this._indivResults.length > 0);
+
+    if (!hasAnyResults) {
       this._rawAnnots = [];
       this._rawIndivs = [];
       this._encounterId = null;
@@ -50,6 +59,7 @@ export default class MatchResultsStore {
       this._individualDisplayName = null;
       this._hasResults = false;
       this._encounterLocationId = "";
+      this._statusOverall = root?.statusOverall || "";
       return;
     }
 
@@ -74,7 +84,7 @@ export default class MatchResultsStore {
     this._matchingSetFilter = first.matchingSetFilter;
     this._individualId = first.queryIndividualId;
     this._individualDisplayName = first.queryIndividualDisplayName;
-    this._statusOverall = first.statusOverall;
+    this._statusOverall = first.taskStatusOverall;
 
     this._rawAnnots = Array.isArray(this._annotResults)
       ? this._annotResults
@@ -151,6 +161,7 @@ export default class MatchResultsStore {
     this._viewMode = "individual";
     this._newIndividualName = "";
     this._hasResults = false;
+    this._taskStillRunning = false;
 
     this.resetSelectionToQuery();
   }
@@ -173,6 +184,10 @@ export default class MatchResultsStore {
 
   get viewMode() {
     return this._viewMode;
+  }
+
+  get taskStillRunning() {
+    return this._taskStillRunning;
   }
 
   get encounterId() {
