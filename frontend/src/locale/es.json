@@ -764,6 +764,8 @@
   "YOU_MERGED_N_ENCOUNTERS": "Fusionó {count} encuentro(s) con el Individual",
   "YOU_MATCHED_ENCOUNTER": "Coincidió el Encuentro",
   "WITH_INDIVIDUAL": "con el Individual",
+  "MATCH_RESULTS_STILL_PROCESSING": "Los resultados de coincidencia aún se están procesando. Por favor, vuelve más tarde.",
+  "NO_RESULTS_FOR_SELECTED_VIEW": "No hay resultados para la vista seleccionada",
   "NO_FILTER_SET_FOR_TASK": "No se aplicaron filtros a esta tarea",
   "FILTER_SET_FOR_TASK": "A continuación se muestran los filtros aplicados a esta tarea",
   "LOCATION_IDS": "IDs de ubicación",

@@ -764,6 +764,8 @@
   "YOU_MERGED_N_ENCOUNTERS": "Vous avez fusionné {count} observation(s) avec l'Individu",
   "YOU_MATCHED_ENCOUNTER": "Vous avez apparié l'Observation",
   "WITH_INDIVIDUAL": "avec l'Individu",
+  "MATCH_RESULTS_STILL_PROCESSING": "Les résultats de correspondance sont encore en cours de traitement. Veuillez revenir plus tard.",
+  "NO_RESULTS_FOR_SELECTED_VIEW": "Aucun résultat pour la vue sélectionnée",
   "NO_FILTER_SET_FOR_TASK": "Aucun filtre n'a été appliqué à cette tâche",
   "FILTER_SET_FOR_TASK": "Ci-dessous les filtres appliqués à cette tâche",
   "LOCATION_IDS": "IDs de localisation",

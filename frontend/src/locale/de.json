@@ -765,6 +765,8 @@
   "YOU_MERGED_N_ENCOUNTERS": "Sie haben {count} Begegnung(en) mit dem Individuum zusammengeführt",
   "YOU_MATCHED_ENCOUNTER": "Sie haben die Begegnung abgeglichen",
   "WITH_INDIVIDUAL": "mit dem Individuum",
+  "MATCH_RESULTS_STILL_PROCESSING": "Die Übereinstimmungsergebnisse werden noch verarbeitet. Bitte versuchen Sie es später erneut.",
+  "NO_RESULTS_FOR_SELECTED_VIEW": "Keine Ergebnisse für die ausgewählte Ansicht",
   "NO_FILTER_SET_FOR_TASK": "Keine Filter wurden auf diese Aufgabe angewendet",
   "FILTER_SET_FOR_TASK": "Unten sind die auf diese Aufgabe angewendeten Filter",
   "LOCATION_IDS": "Standort-IDs",
