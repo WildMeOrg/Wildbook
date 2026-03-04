@@ -183,6 +183,7 @@ const MatchProspectTable = ({
   columns = [],
   algorithm,
   methodName,
+  methodDescription,
 }) => {
   const intl = useIntl();
   const matchesBasedOnText = intl.formatMessage({ id: "MATCHED_BASED_ON" });
@@ -291,9 +292,11 @@ const MatchProspectTable = ({
             style={{ fontWeight: "500" }}
             data-testid={`match-prospect-method-${sectionId}`}
           >
-            {methodName
-              ? `${matchesBasedOnText}${" "} ${methodName}`
-              : `${matchesBasedOnText}${" "} ${algorithm}`}
+            {methodDescription
+              ? `${matchesBasedOnText}${" "} ${methodDescription}`
+              : methodName
+                ? `${matchesBasedOnText}${" "} ${methodName}`
+                : algorithm}
           </div>
 
           <div
