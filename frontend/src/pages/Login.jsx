@@ -15,9 +15,11 @@ function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [agree, setAgree] = useState(false);
   const intl = useIntl();
   const { authenticate, error, setError, loading } = useLogin();
-  const actionDisabled = loading;
+  const actionDisabled =
+    loading || !agree || !username.trim() || !password.trim();
   const [show, setShow] = useState(false);
   const theme = useContext(ThemeColorContext);
 
@@ -170,26 +172,52 @@ function LoginPage() {
               </Form.Group>
 
               <Form.Group controlId="formBasicCheckbox" className="mb-3 mt-3">
-                <Row>
-                  <Col xs={6}>
-                    {/* <style>
-                      {`
-                        input[type="checkbox"] {
-                          accent-color: #00ACCE;
-                        }
-                      `}
-                    </style>
-                   
-                    <label>
-                      <input
-                        type="checkbox"
-                        id="customCheckbox"
-                        name="rememberMe"
+                <Form.Check
+                  type="checkbox"
+                  id="agree-terms"
+                  checked={agree}
+                  onChange={(e) => setAgree(e.target.checked)}
+                  label={
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: 4,
+                      }}
+                    >
+                      <FormattedMessage
+                        id="LOGIN_AGREE_TO"
+                        defaultMessage="I agree to"
                       />
-                      <span class="label-text"><FormattedMessage id='REMEMBER_ME'/></span>
-                    </label> */}
-                  </Col>
-                </Row>
+                      <a
+                        href={`${process.env.PUBLIC_URL}/policies-and-data?section=terms_of_use`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ whiteSpace: "nowrap" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <FormattedMessage
+                          id="MENU_LEARN_TERMSOFUSE"
+                          defaultMessage="Terms of Use"
+                        />
+                      </a>
+                      <FormattedMessage id="AND" defaultMessage="and" />
+                      <a
+                        href={`${process.env.PUBLIC_URL}/policies-and-data?section=privacy_policy`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ whiteSpace: "nowrap" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <FormattedMessage
+                          id="MENU_LEARN_PRIVACYPOLICY"
+                          defaultMessage="Privacy Policy"
+                        />
+                      </a>
+                    </span>
+                  }
+                />
               </Form.Group>
 
               <BrutalismButton
