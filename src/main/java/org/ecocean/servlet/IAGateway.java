@@ -474,6 +474,8 @@ public class IAGateway extends HttpServlet {
                 sent.put("_action", "error");
                 IBEISIA.log(annTaskId, ann.getId(), jobId, sent, context);
                 taskRes.put("error", sent.optJSONObject("error"));
+                task.setStatus("error");
+                task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
             }
         } catch (Exception ex) {
             success = false;
