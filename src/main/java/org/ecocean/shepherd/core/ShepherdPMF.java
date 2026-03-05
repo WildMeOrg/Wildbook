@@ -26,6 +26,11 @@ public class ShepherdPMF {
         PersistenceManagerFactory>();
 
     public synchronized static PersistenceManagerFactory getPMF(String context) {
+        return getPMF(context, null);
+    }
+
+    public synchronized static PersistenceManagerFactory getPMF(String context,
+        Properties overrideProps) {
         // public static PersistenceManagerFactory getPMF(String dbLocation) {
         if (pmfs == null) { pmfs = new TreeMap<String, PersistenceManagerFactory>(); }
         try {
@@ -44,7 +49,9 @@ public class ShepherdPMF {
                     shepherdDataDir = ContextConfiguration.getDataDirForContext(context);
                 }
                 // System.out.println("ShepherdPMF: Data directory for context "+context+" is: "+shepherdDataDir);
-                Properties overrideProps = loadOverrideProps(shepherdDataDir);
+                if (overrideProps == null) {
+                    overrideProps = loadOverrideProps(shepherdDataDir);
+                }
                 // System.out.println(overrideProps);
                 if (overrideProps.size() > 0) { props = overrideProps; } else {
                     // otherwise load the embedded commonConfig
