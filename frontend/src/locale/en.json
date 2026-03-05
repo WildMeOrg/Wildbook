@@ -764,7 +764,7 @@
     "YOU_MERGED_N_ENCOUNTERS": "You merged {count} encounter(s) to Individual",
     "YOU_MATCHED_ENCOUNTER": "You matched Encounter",
     "WITH_INDIVIDUAL": "with Individual",
-    "MATCH_RESULTS_STILL_PROCESSING": "Match results are still processing. Please check back later.",
+    "MATCH_RESULTS_STILL_PROCESSING": "Match results are still processing.",
     "NO_RESULTS_FOR_SELECTED_VIEW": "No results for selected view",
     "NO_FILTER_SET_FOR_TASK": "No filters were applied to this task",
     "FILTER_SET_FOR_TASK": "Below are filters applied to this task",

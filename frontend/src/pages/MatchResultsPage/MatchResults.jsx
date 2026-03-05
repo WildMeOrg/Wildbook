@@ -15,6 +15,7 @@ import FilterIcon from "./icons/FilterIcon";
 import MatchCriteriaDrawer from "./components/MatchCriteriaDrawer";
 import MultiSelectWithCheckbox from "../../components/MultiSelectWithCheckbox";
 import ContainerWithSpinner from "../../components/ContainerWithSpinner";
+import { Spinner } from "react-bootstrap";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
@@ -45,24 +46,40 @@ const MatchResults = observer(() => {
 
     const [projectId] = match;
 
-    store.setProjectNames([projectId]);
-  }, [projectIdPrefix, projectsForUser]);
+    store.setProjectNames([projectId], { fetch: false });
+  }, [projectIdPrefix, projectsForUser, store]);
 
   useEffect(() => {
     if (taskId) {
       store.setTaskId(taskId);
       store.fetchMatchResults();
     } else {
+      store.setTaskId(null);
       store.clearResults();
     }
-  }, [taskId]);
+  }, [taskId, store]);
+
+  useEffect(() => {
+    if (!taskId || !store.shouldPoll) return;
+
+    const intervalId = window.setInterval(() => {
+      store.fetchMatchResults({ silent: true });
+    }, 2000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [taskId, store, store.shouldPoll]);
 
   if (store.loading) {
     return <FullScreenLoader data-testid="match-results-loader" />;
   }
 
-  const showRunningState = !store.hasResults && store.taskStillRunning;
-  const showEmptyState = !store.hasResults && !store.taskStillRunning;
+  const showErrorState = !store.hasResults && store.taskHasError;
+  const showRunningState =
+    !store.hasResults && !store.taskHasError && store.taskStillRunning;
+  const showEmptyState =
+    !store.hasResults && !store.taskHasError && !store.taskStillRunning;
 
   return (
     <Container
@@ -323,17 +340,37 @@ const MatchResults = observer(() => {
       </div>
 
       <div id="match-results-content" data-testid="match-results-content">
-        {showRunningState ? (
+        {showErrorState ? (
           <p
+            className="mt-3 text-danger"
+            id="match-results-error"
+            data-testid="match-results-error"
+          >
+            <FormattedMessage
+              id="MATCH_RESULTS_PROCESSING_FAILED"
+              defaultMessage="Match results processing failed."
+            />
+          </p>
+        ) : showRunningState ? (
+          <div
             className="mt-3"
-            id="match-results-running"
-            data-testid="match-results-running"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
           >
             <FormattedMessage
               id="MATCH_RESULTS_STILL_PROCESSING"
               defaultMessage="Match results are still being processed."
             />
-          </p>
+            <Spinner
+              animation="border"
+              size="sm"
+              role="status"
+              aria-label="Loading match results"
+            />
+          </div>
         ) : showEmptyState ? (
           <p
             className="mt-3"
@@ -341,7 +378,7 @@ const MatchResults = observer(() => {
             data-testid="match-results-empty"
           >
             <FormattedMessage
-              id="NO_MATCH_RESULTS_AVAILABLE"
+              id="NO_MATCH_RESULT"
               defaultMessage="No match results available."
             />
           </p>

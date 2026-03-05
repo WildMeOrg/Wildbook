@@ -764,7 +764,7 @@
   "YOU_MERGED_N_ENCOUNTERS": "Hai unito {count} avvistamento/i all'Individuo",
   "YOU_MATCHED_ENCOUNTER": "Hai abbinato l'Avvistamento",
   "WITH_INDIVIDUAL": "con l'Individuo",
-  "MATCH_RESULTS_STILL_PROCESSING": "I risultati della corrispondenza sono ancora in fase di elaborazione. Per favore, riprova più tardi.",
+  "MATCH_RESULTS_STILL_PROCESSING": "I risultati della corrispondenza sono ancora in fase di elaborazione.",
   "NO_RESULTS_FOR_SELECTED_VIEW": "Nessun risultato per la vista selezionata",
   "NO_FILTER_SET_FOR_TASK": "Nessun filtro è stato applicato a questa attività",
   "FILTER_SET_FOR_TASK": "Di seguito sono riportati i filtri applicati a questa attività",

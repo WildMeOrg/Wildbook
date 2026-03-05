@@ -5,6 +5,8 @@ import {
   getAllAnnot,
   getAllIndiv,
   isMatchTaskStillRunning,
+  hasMatchTaskError,
+  isMatchTaskTerminal,
 } from "../helperFunctions";
 
 export default class MatchResultsStore {
@@ -32,8 +34,9 @@ export default class MatchResultsStore {
   _matchRequestLoading = false;
   _matchRequestError = null;
   _hasResults = false;
-  _fetchSeq = 0;
   _taskStillRunning = false;
+  _taskHasError = false;
+  _taskIsTerminal = false;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -45,6 +48,8 @@ export default class MatchResultsStore {
     this._annotResults = getAllAnnot(root);
     this._indivResults = getAllIndiv(root);
     this._taskStillRunning = isMatchTaskStillRunning(root);
+    this._taskHasError = hasMatchTaskError(root);
+    this._taskIsTerminal = isMatchTaskTerminal(root);
 
     const hasAnyResults =
       (Array.isArray(this._annotResults) && this._annotResults.length > 0) ||
@@ -60,6 +65,7 @@ export default class MatchResultsStore {
       this._hasResults = false;
       this._encounterLocationId = "";
       this._statusOverall = root?.statusOverall || "";
+      this.resetSelectionToQuery();
       return;
     }
 
@@ -162,6 +168,8 @@ export default class MatchResultsStore {
     this._newIndividualName = "";
     this._hasResults = false;
     this._taskStillRunning = false;
+    this._taskHasError = false;
+    this._taskIsTerminal = false;
 
     this.resetSelectionToQuery();
   }
@@ -188,6 +196,18 @@ export default class MatchResultsStore {
 
   get taskStillRunning() {
     return this._taskStillRunning;
+  }
+
+  get taskHasError() {
+    return this._taskHasError;
+  }
+
+  get taskIsTerminal() {
+    return this._taskIsTerminal;
+  }
+
+  get shouldPoll() {
+    return !!this._taskId && !this._taskIsTerminal;
   }
 
   get encounterId() {
@@ -285,37 +305,41 @@ export default class MatchResultsStore {
     return [q, ...withoutQueryDup];
   }
 
-  // actions
-  async fetchMatchResults() {
+  async fetchMatchResults({ silent = false } = {}) {
     if (!this._taskId) return;
-    const seq = ++this._fetchSeq;
 
-    this.setLoading(true);
-    this.clearResults();
+    const params = new URLSearchParams();
+    params.set("prospectsSize", String(this.numResults));
 
-    try {
-      const params = new URLSearchParams();
-      params.set("prospectsSize", String(this.numResults));
-
-      if (Array.isArray(this._projectNames) && this._projectNames.length > 0) {
-        this._projectNames.forEach((projectId) =>
-          params.append("projectId", projectId),
-        );
-      }
-
-      const result = await axios.get(
-        `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
+    if (Array.isArray(this._projectNames) && this._projectNames.length > 0) {
+      this._projectNames.forEach((projectId) =>
+        params.append("projectId", projectId),
       );
-      if (seq !== this._fetchSeq) return;
+    }
 
-      this.loadData(result?.data);
-    } catch (e) {
-      if (seq !== this._fetchSeq) return;
-      console.error(e);
+    if (!silent) {
+      this.setLoading(true);
       this.clearResults();
-    } finally {
-      if (seq === this._fetchSeq) {
+
+      try {
+        const result = await axios.get(
+          `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
+        );
+        this.loadData(result?.data);
+      } catch (e) {
+        console.error(e);
+        this.clearResults();
+      } finally {
         this.setLoading(false);
+      }
+    } else {
+      try {
+        const result = await axios.get(
+          `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
+        );
+        this.loadData(result?.data);
+      } catch (e) {
+        console.error(e);
       }
     }
   }

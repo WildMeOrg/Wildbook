@@ -31,14 +31,12 @@ const collectProspects = (node, type, result = []) => {
         height: node.matchResults?.queryAnnotation?.height,
         theta: node.matchResults?.queryAnnotation?.theta,
       },
-
       methodName,
       methodDescription,
       method: node.method || null,
       taskId: node.id ?? null,
       taskStatus: node.status ?? null,
       taskStatusOverall: node.statusOverall ?? null,
-
       hasResults: true,
     };
 
@@ -68,18 +66,6 @@ const isLeafNode = (node) => {
   return !Array.isArray(node.children) || node.children.length === 0;
 };
 
-const hasAnyMatchResults = (node) => {
-  if (!node?.matchResults?.prospects) return false;
-
-  const annot = node.matchResults.prospects.annot;
-  const indiv = node.matchResults.prospects.indiv;
-
-  return (
-    (Array.isArray(annot) && annot.length > 0) ||
-    (Array.isArray(indiv) && indiv.length > 0)
-  );
-};
-
 const collectLeafNodes = (node, result = []) => {
   if (!node || typeof node !== "object") return result;
 
@@ -95,29 +81,41 @@ const collectLeafNodes = (node, result = []) => {
   return result;
 };
 
+const hasOwnStatusOverall = (node) =>
+  !!node &&
+  typeof node === "object" &&
+  Object.prototype.hasOwnProperty.call(node, "statusOverall");
+
+const isTerminalStatus = (status) =>
+  status === "completed" || status === "error";
+
 export const isMatchTaskStillRunning = (root) => {
   if (!root || typeof root !== "object") return false;
 
-  // case 1:
-  // root itself is a leaf node, has no children and no matchResults,
-  // and is not completed => task still running
-  if (
-    isLeafNode(root) &&
-    !hasAnyMatchResults(root) &&
-    root.statusOverall !== "completed"
-  ) {
-    return true;
-  }
-
-  // case 2:
-  // any leaf node is not completed AND there are still no results anywhere
   const leafNodes = collectLeafNodes(root);
-  const hasIncompleteLeaf = leafNodes.some(
-    (leaf) => leaf?.statusOverall !== "completed",
-  );
+  const nodesToCheck = [root, ...leafNodes].filter(hasOwnStatusOverall);
 
-  const hasAnyResultsAnywhere =
-    getAllAnnot(root).length > 0 || getAllIndiv(root).length > 0;
+  if (nodesToCheck.length === 0) return false;
 
-  return hasIncompleteLeaf && !hasAnyResultsAnywhere;
+  return nodesToCheck.some((node) => !isTerminalStatus(node.statusOverall));
+};
+
+export const hasMatchTaskError = (root) => {
+  if (!root || typeof root !== "object") return false;
+
+  const leafNodes = collectLeafNodes(root);
+  const nodesToCheck = [root, ...leafNodes].filter(hasOwnStatusOverall);
+
+  return nodesToCheck.some((node) => node.statusOverall === "error");
+};
+
+export const isMatchTaskTerminal = (root) => {
+  if (!root || typeof root !== "object") return true;
+
+  const leafNodes = collectLeafNodes(root);
+  const nodesToCheck = [root, ...leafNodes].filter(hasOwnStatusOverall);
+
+  if (nodesToCheck.length === 0) return true;
+
+  return nodesToCheck.every((node) => isTerminalStatus(node.statusOverall));
 };
