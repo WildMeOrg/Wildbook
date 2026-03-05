@@ -131,24 +131,33 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        myShepherd.getPM().makePersistent(ann);
 	        System.out.println("    + saved annotation");
 	
-	        // we need to intake mediaassets so they get acmIds and are matchable
-	        ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
+	        // Send to IA in background — don't block the user on slow WBIA calls
+	        final String iaContext = context;
+	        final ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
 	        maList.add(crMa);
-	        ArrayList<Annotation> annList = new ArrayList<Annotation>();
+	        final ArrayList<Annotation> annList = new ArrayList<Annotation>();
 	        annList.add(ann);
-	        try {
-	            System.out.println("    + sending asset to IA");
-	            IBEISIA.sendMediaAssetsNew(maList, context);
-	            myShepherd.updateDBTransaction();
-	            System.out.println("    + asset sent, sending annot");
-	            IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
-	            myShepherd.updateDBTransaction();
-	            System.out.println("    + annot sent.");
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	            System.out.println("hit above exception while trying to send CR ma & annot to IA");
-	        }
-	        System.out.println("    + done processing new CR annot");
+	        new Thread(() -> {
+	            Shepherd iaShepherd = new Shepherd(iaContext);
+	            iaShepherd.setAction("SubmitSpotsAndImage_IA");
+	            iaShepherd.beginDBTransaction();
+	            try {
+	                System.out.println("    + sending asset to IA (background)");
+	                IBEISIA.sendMediaAssetsNew(maList, iaContext);
+	                iaShepherd.updateDBTransaction();
+	                System.out.println("    + asset sent, sending annot");
+	                IBEISIA.sendAnnotationsNew(annList, iaContext, iaShepherd);
+	                iaShepherd.commitDBTransaction();
+	                System.out.println("    + annot sent (background).");
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	                System.out.println("hit above exception while trying to send CR ma & annot to IA");
+	                iaShepherd.rollbackDBTransaction();
+	            } finally {
+	                iaShepherd.closeDBTransaction();
+	            }
+	        }, "IA-register-" + encId).start();
+	        System.out.println("    + IA registration queued in background");
 	        if (rightSide) {
 	            enc.setRightSpots(spots);
 	            enc.setRightReferenceSpots(refSpots);
