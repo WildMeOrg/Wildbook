@@ -29,7 +29,16 @@
         {"name": "Archipelago Sea", "id": "Archipelago Sea", "locationID":[]},
         {"name": "Baltic Sea", "id": "Baltic Sea", "locationID":[]},
         {"name": "Bothnian Sea", "id": "Bothnian Sea", "locationID":[]},
-        {"name": "Canary Islands", "id": "Canary Islands", "locationID":[]},
+        {"name": "Canary Islands", "id": "Canary Islands", "locationID":[
+          {"name": "El Hierro", "id": "El Hierro", "prefix": "EH", "prefixDigitPadding": 4, "geospatialInfo": {"lat": 27.740000, "long": -18.030000}, "locationID":[]},
+          {"name": "Fuerteventura", "id": "Fuerteventura", "prefix": "FV", "prefixDigitPadding": 4, "geospatialInfo": {"lat": 28.413000, "long": -14.128000}, "locationID": []},
+          {"name": "Gran Canaria", "id": "Gran Canaria", "prefix": "GC", "prefixDigitPadding": 4, "geospatialInfo": {"lat": 27.958200, "long": -15.596500},"locationID":[]},
+          {"name": "La Gomera", "id": "La Gomera", "prefix": "LG", "prefixDigitPadding": 4, "geospatialInfo": {"lat": 28.117000, "long": -17.233000}, "locationID":[]},
+          {"name": "La Graciosa", "id": "La Graciosa", "prefix": "LGR", "prefixDigitPadding": 4, "geospatialInfo": {"lat": 29.224167, "long": -13.501667}, "locationiD":[]},
+          {"name": "La Palma", "id": "La Palma", "prefix": "LP", "prefixDigitPadding": 4, "geospatialInfo": {"lat": 28.667000, "long": -17.867000}, "locationID":[]},
+          {"name": "Lanzarote", "id": "Lanzarote", "prefix": "LZ", "prefixDigitPadding": 4, "geospatialInfo": {"lat": 29.069000, "long": -13.625000}, "locationID":[]},
+          {"name": "Tenerife", "id": "Tenerife", "prefix": "TC", "prefixDigitPadding": 4, "geospatialInfo":{"lat": 28.320000, "long": -16.570000}, "locationID":[]}
+		]},
         {"name": "Cape Verde", "id": "Cape Verde", "locationID":[]},
         {"name": "Central Baltic Sea", "id": "Central Baltic Sea", "locationID":[]},
         {"name":"Estuary of Saint-Lawrence", "id":"Estuary of Saint-Lawrence", "locationID":[]},
