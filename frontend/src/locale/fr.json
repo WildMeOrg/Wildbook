@@ -770,7 +770,7 @@
   "FILTER_SET_FOR_TASK": "Ci-dessous les filtres appliqués à cette tâche",
   "LOCATION_IDS": "IDs de localisation",
   "OR_CHOOSE_FROM_RESULTS_BELOW": "ou choisissez parmi les résultats ci-dessous",
-  "NO_MATCH_RESULT": "Aucun résultat de correspondance",
+  "NO_MATCH_RESULT": "L’analyse d’image est terminée et aucune correspondance n’a été trouvée.",
   "NO_MATCH_RESULTS_AVAILABLE": "Aucun résultat de correspondance disponible pour le moment. Le travail peut encore être en cours, ou il se peut qu'il n'y ait pas de données. Veuillez actualiser la page pour vérifier à nouveau.",
   "RESULTS_PER_PAGE": "Résultats par page"
 }

@@ -771,7 +771,7 @@
   "FILTER_SET_FOR_TASK": "Unten sind die auf diese Aufgabe angewendeten Filter",
   "LOCATION_IDS": "Standort-IDs",
   "OR_CHOOSE_FROM_RESULTS_BELOW": "oder wählen Sie aus den Ergebnissen unten",
-  "NO_MATCH_RESULT": "Keine Übereinstimmungsergebnisse",
+  "NO_MATCH_RESULT": "Die Bildanalyse ist abgeschlossen und es wurde keine Übereinstimmung gefunden.",
   "NO_MATCH_RESULTS_AVAILABLE": "Noch keine Übereinstimmungsergebnisse verfügbar. Der Job wird möglicherweise noch verarbeitet, oder es liegen keine Daten vor. Bitte aktualisieren Sie die Seite, um es erneut zu überprüfen.",
   "RESULTS_PER_PAGE": "Ergebnisse pro Seite"
 }
