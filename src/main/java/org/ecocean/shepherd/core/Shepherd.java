@@ -2772,6 +2772,7 @@ public class Shepherd {
     }
 
     public Task getTask(String id) {
+        if (id == null) return null; // save us some trouble
         Task theTask = null;
 
         try {
