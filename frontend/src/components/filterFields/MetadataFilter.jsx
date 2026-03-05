@@ -5,8 +5,9 @@ import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import SubmitterFilter from "./SubmitterFilter";
 import useGetAllBulkImportTasks from "../../models/bulkImport/useGetAllBulkImportTasks";
 import ContainerWithSpinner from "../ContainerWithSpinner";
+import { observer } from "mobx-react-lite";
 
-export default function MetadataFilter({ data, store }) {
+const MetadataFilter = observer(({ data, store }) => {
   const encounterStatusOptions =
     data?.encounterState?.map((item) => {
       return {
@@ -27,7 +28,7 @@ export default function MetadataFilter({ data, store }) {
     Object.entries(data?.projectsForUser || {})?.map((item) => {
       return {
         value: item[0],
-        label: item[1],
+        label: item[1]?.name,
       };
     }) || [];
 
@@ -131,4 +132,6 @@ export default function MetadataFilter({ data, store }) {
       </ContainerWithSpinner>
     </div>
   );
-}
+});
+
+export default MetadataFilter;

@@ -212,7 +212,7 @@ describe("MatchCriteriaModal", () => {
     await waitFor(() => {
       expect(store.newMatch.buildNewMatchPayload).toHaveBeenCalledTimes(1);
       expect(global.open).toHaveBeenCalledWith(
-        "/iaResults.jsp?taskId=t123",
+        "/react/match-results?taskId=t123",
         "_blank",
       );
       expect(store.modals.setOpenMatchCriteriaModal).toHaveBeenCalledWith(

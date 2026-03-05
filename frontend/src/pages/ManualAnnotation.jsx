@@ -6,7 +6,7 @@ import Container from "react-bootstrap/Container";
 import MainButton from "../components/MainButton";
 import ThemeColorContext from "../ThemeColorProvider";
 import ResizableRotatableRect from "../components/ResizableRotatableRect";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import { useSiteSettings } from "../SiteSettingsContext";
 import { useSearchParams } from "react-router-dom";
 import AnnotationSuccessful from "../components/AnnotationSuccessful";
 import useCreateAnnotation from "../models/encounters/useCreateAnnotation";
@@ -49,7 +49,7 @@ export default function ManualAnnotation() {
     height: 0,
     rotation: 0,
   });
-  const { data: siteData } = useGetSiteSettings();
+  const { data: siteData } = useSiteSettings();
   const [rotationInfo, setRotationInfo] = useState(null);
 
   const iaClassesForTaxonomy = siteData?.iaClassesForTaxonomy || {};

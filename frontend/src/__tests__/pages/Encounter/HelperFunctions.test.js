@@ -205,7 +205,9 @@ describe("parseYMDHM", () => {
 
 describe("expandOperations", () => {
   test("expands date operation to year/month/day/hour/minutes", () => {
-    const ops = [{ op: "replace", path: "dateValues", value: "2025-10-31T14:20" }];
+    const ops = [
+      { op: "replace", path: "dateValues", value: "2025-10-31T14:20" },
+    ];
 
     const out = expandOperations(ops);
     expect(out).toEqual([
