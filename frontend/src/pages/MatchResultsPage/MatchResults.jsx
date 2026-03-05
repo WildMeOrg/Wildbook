@@ -62,12 +62,22 @@ const MatchResults = observer(() => {
   useEffect(() => {
     if (!taskId || !store.shouldPoll) return;
 
-    const intervalId = window.setInterval(() => {
-      store.fetchMatchResults({ silent: true });
-    }, 2000);
+    let cancelled = false;
+
+    const scheduleNext = async () => {
+      if (cancelled) return;
+
+      await store.fetchMatchResults({ silent: true });
+
+      if (!cancelled && store.shouldPoll) {
+        setTimeout(scheduleNext, 5000);
+      }
+    };
+
+    scheduleNext();
 
     return () => {
-      window.clearInterval(intervalId);
+      cancelled = true;
     };
   }, [taskId, store, store.shouldPoll]);
 
