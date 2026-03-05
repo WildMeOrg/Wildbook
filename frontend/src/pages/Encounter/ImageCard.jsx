@@ -27,11 +27,16 @@ const ImageCard = observer(({ store = {} }) => {
   const [tip, setTip] = React.useState({ show: false, x: 0, y: 0, text: "" });
   const [clickedAnnotation, setClickedAnnotation] = useState(null);
   const [editAnnotationParams, setEditAnnotationParams] = useState({});
+  const [imageReady, setImageReady] = useState(false);
   const intl = useIntl();
 
   useEffect(() => {
     store.setIntl(intl);
   }, [store, intl]);
+
+  useEffect(() => {
+    setImageReady(false);
+  }, [store.selectedImageIndex]);
 
   const currentAnnotation =
     store.encounterAnnotations.filter(
@@ -98,8 +103,12 @@ const ImageCard = observer(({ store = {} }) => {
         const anns = selectedImage?.annotations || [];
         setRects(
           anns
-            .filter((data) => !data.isTrivial)
-            ?.map((a) => ({
+            .filter((a) => {
+              const width = a.boundingBox?.[2] || 0;
+              const height = a.boundingBox?.[3] || 0;
+              return !a.isTrivial && width > 0 && height > 0;
+            })
+            .map((a) => ({
               x: a.boundingBox[0],
               y: a.boundingBox[1],
               width: a.boundingBox[2],
@@ -121,6 +130,7 @@ const ImageCard = observer(({ store = {} }) => {
 
   useEffect(() => {
     if (!imgRef.current) return;
+
     const handleImageLoad = () => {
       if (imgRef.current) {
         const naturalWidth =
@@ -130,8 +140,18 @@ const ImageCard = observer(({ store = {} }) => {
         const displayWidth = imgRef.current.clientWidth;
         const displayHeight = imgRef.current.clientHeight;
 
+        if (
+          !naturalWidth ||
+          !naturalHeight ||
+          !displayWidth ||
+          !displayHeight
+        ) {
+          return;
+        }
+
         setScaleX(naturalWidth / displayWidth);
         setScaleY(naturalHeight / displayHeight);
+        setImageReady(true);
       }
     };
 
@@ -245,7 +265,8 @@ const ImageCard = observer(({ store = {} }) => {
         }}
         onClick={() => setOpenImageModal(true)}
       >
-        {rects.length > 0 &&
+        {imageReady &&
+          rects.length > 0 &&
           rects.map((rect, index) => {
             let newRect = { ...rect };
             if (
