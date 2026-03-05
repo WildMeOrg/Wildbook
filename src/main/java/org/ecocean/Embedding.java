@@ -15,7 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import org.ecocean.ia.IAException;
-// import org.ecocean.ia.MatchResult;
+import org.ecocean.ia.MatchResult;
 import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.shepherd.core.Shepherd;
@@ -291,7 +291,6 @@ public class Embedding implements java.io.Serializable {
             System.out.println("findMatchProspects() on " + ann + " found " +
                 Util.collectionSize(prospects) + " prospects (in " + numberCandidates +
                 " candidates) for " + subTask);
-/*  FOR FUTURE EXPANSION when merged with MatchResults branch FIXME (also uncomment import at top)
             try {
                 // we build this even if empty, cuz that means we got results; just not nice ones
                 MatchResult mr = new MatchResult(subTask, prospects, numberCandidates, myShepherd);
@@ -301,7 +300,6 @@ public class Embedding implements java.io.Serializable {
                 System.out.println("findMatchProspects() MatchResult creation failed on " + subTask + ": " + ex);
                 ex.printStackTrace();
             }
- */
             myShepherd.getPM().makePersistent(subTask);
         }
         return true;
