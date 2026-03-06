@@ -664,12 +664,12 @@ public class Task implements java.io.Serializable {
                 try {
                     MatchResult mr = new MatchResult(log, myShepherd);
                     System.out.println("[INFO] generateMatchResults() [log t=" +
-                        log.getTimestamp() + "] on " + this + " generated: " + mr);
+                        log.getTimestamp() + "] on Task " + this.getId() + " generated: " + mr);
                     myShepherd.getPM().makePersistent(mr);
                     mrs.add(mr);
                 } catch (java.io.IOException ex) {
                     System.out.println("[ERROR] generateMatchResults() [log t=" +
-                        log.getTimestamp() + "] on " + this + " failed: " + ex);
+                        log.getTimestamp() + "] on Task " + this.getId() + " failed: " + ex);
                     ex.printStackTrace();
                 }
             }
@@ -703,7 +703,7 @@ public class Task implements java.io.Serializable {
             MatchResult mr = getLatestMatchResult(myShepherd);
             if (mr == null) {
                 System.out.println(
-                    "[DEBUG] matchResultsJson() found no MatchResults; generating on " + this);
+                    "[DEBUG] matchResultsJson() found no MatchResults; generating on Task " + this.getId());
                 List<MatchResult> mrs = generateMatchResults(myShepherd);
                 rtn.put("_generatedMatchResultsSize", mrs.size()); // leave a clue that we did the work!
                 if (mrs.size() > 0) {
