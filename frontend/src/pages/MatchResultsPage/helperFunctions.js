@@ -4,7 +4,7 @@ const collectProspects = (node, type, result = []) => {
   const methodName = node.method?.name ?? node.method?.description;
   const methodDescription = node.method?.description ?? null;
   const prospects = node.matchResults?.prospects?.[type];
-  const hasResults = Array.isArray(prospects) && prospects.length > 0;
+  const hasResults = !!node.matchResults;
 
   if (hasResults && hasMethod) {
     const common = {
@@ -37,16 +37,23 @@ const collectProspects = (node, type, result = []) => {
       taskId: node.id ?? null,
       taskStatus: node.status ?? null,
       taskStatusOverall: node.statusOverall ?? null,
-      hasResults: true,
+      hasResults: Array.isArray(prospects) && prospects.length > 0,
     };
 
-    const safeProspects = prospects.filter((p) => p && typeof p === "object");
-    result.push(
-      ...safeProspects.map((item) => ({
-        ...item,
-        ...common,
-      })),
-    );
+    const safeProspects = Array.isArray(prospects)
+      ? prospects.filter((p) => p && typeof p === "object")
+      : [];
+
+    if (safeProspects.length > 0) {
+      result.push(
+        ...safeProspects.map((item) => ({
+          ...item,
+          ...common,
+        })),
+      );
+    } else {
+      result.push(common);
+    }
   }
 
   if (Array.isArray(node.children)) {

@@ -37,6 +37,8 @@ export default class MatchResultsStore {
   _taskStillRunning = false;
   _taskHasError = false;
   _taskIsTerminal = false;
+  _rootStillRunning = false;
+  _rootHasError = false;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -50,6 +52,21 @@ export default class MatchResultsStore {
     this._taskStillRunning = isMatchTaskStillRunning(root);
     this._taskHasError = hasMatchTaskError(root);
     this._taskIsTerminal = isMatchTaskTerminal(root);
+    const rootHasChildren =
+      Array.isArray(root?.children) && root.children.length > 0;
+    const rootHasMatchResults = !!root?.matchResults;
+
+    this._rootStillRunning =
+      !rootHasChildren &&
+      !rootHasMatchResults &&
+      !!root?.statusOverall &&
+      root.statusOverall !== "completed" &&
+      root.statusOverall !== "error";
+
+    this._rootHasError =
+      !rootHasChildren &&
+      !rootHasMatchResults &&
+      root?.statusOverall === "error";
 
     const hasAnyResults =
       (Array.isArray(this._annotResults) && this._annotResults.length > 0) ||
@@ -170,6 +187,8 @@ export default class MatchResultsStore {
     this._taskStillRunning = false;
     this._taskHasError = false;
     this._taskIsTerminal = false;
+    this._rootStillRunning = false;
+    this._rootHasError = false;
 
     this.resetSelectionToQuery();
   }
@@ -206,8 +225,16 @@ export default class MatchResultsStore {
     return this._taskIsTerminal;
   }
 
+  get rootStillRunning() {
+    return this._rootStillRunning;
+  }
+
+  get rootHasError() {
+    return this._rootHasError;
+  }
+
   get shouldPoll() {
-    return !!this._taskId && !this._taskIsTerminal;
+    return !!this._taskId && this._taskStillRunning;
   }
 
   get encounterId() {
