@@ -281,11 +281,11 @@ public class Embedding implements java.io.Serializable {
                 return true;
             }
             OpenSearch os = new OpenSearch();
-            int numberCandidates = -1;
+            int numberCandidates = -2;
             try {
                 numberCandidates = os.queryCount("annotation", matchingSetQuery);
             } catch (IOException ex) {
-                System.out.println("findMatchProspects() numCandidates query failed with " + ex + " for matchingSetQuery=" + matchingSetQuery);
+                System.out.println("findMatchProspects() numCandidates query failed with " + ex);
             }
             List<Annotation> prospects = ann.getMatches(myShepherd, matchQuery);
             Task subTask = new Task(task);
