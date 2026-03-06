@@ -307,7 +307,6 @@ export default class MatchResultsStore {
 
   async fetchMatchResults({ silent = false } = {}) {
     if (!this._taskId) return;
-
     const params = new URLSearchParams();
     params.set("prospectsSize", String(this.numResults));
 
@@ -337,6 +336,17 @@ export default class MatchResultsStore {
         const result = await axios.get(
           `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
         );
+        const root = result?.data?.matchResultsRoot;
+
+        const stillRunning = isMatchTaskStillRunning(root);
+
+        const annLen = (getAllAnnot(root) || []).length;
+        const indLen = (getAllIndiv(root) || []).length;
+        const hasAnyResults = annLen > 0 || indLen > 0;
+
+        if (stillRunning && !hasAnyResults) {
+          return;
+        }
         this.loadData(result?.data);
       } catch (e) {
         console.error(e);
