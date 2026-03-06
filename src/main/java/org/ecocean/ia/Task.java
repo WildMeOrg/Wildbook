@@ -132,6 +132,14 @@ public class Task implements java.io.Serializable {
         return objectAnnotations;
     }
 
+    public int numberMediaAssets() {
+        return Util.collectionSize(objectMediaAssets);
+    }
+
+    public int numberAnnotations() {
+        return Util.collectionSize(objectAnnotations);
+    }
+
     // kinda for convenience?
     public boolean addObject(MediaAsset ma) {
         if (ma == null) return false;
@@ -582,9 +590,12 @@ public class Task implements java.io.Serializable {
 
     // this will set all date stuff based on ms since epoch
     public void setCompletionDateInMilliseconds(Long ms) {
-        if (ms == null) { this.completionDateInMilliseconds = null; } else {
-            this.completionDateInMilliseconds = ms;
-        }
+        this.completionDateInMilliseconds = ms;
+    }
+
+    // no arg = set to now
+    public void setCompletionDateInMilliseconds() {
+        this.completionDateInMilliseconds = Long.valueOf(System.currentTimeMillis());
     }
 
     // capture original queue message to make this Task more easily resumeable
