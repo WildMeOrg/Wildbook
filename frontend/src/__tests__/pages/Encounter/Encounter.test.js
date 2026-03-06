@@ -1,6 +1,6 @@
 /* eslint-disable react/display-name */
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { IntlProvider } from "react-intl";
 import axios from "axios";
@@ -276,9 +276,9 @@ describe("Encounter page – stable behavior tests", () => {
     const user = userEvent.setup();
     await user.click(await screen.findByTestId("pill-select-identified"));
 
-    expect(global.__LAST_ENCOUNTER_STORE__.changeEncounterState).toHaveBeenCalledWith(
-      "identified",
-    );
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.changeEncounterState,
+    ).toHaveBeenCalledWith("identified");
   });
 
   test("clicking contact/history icons opens modals via store setters", async () => {
@@ -320,20 +320,26 @@ describe("Encounter page – stable behavior tests", () => {
       "date",
       "E-400",
     );
-    expect(global.__LAST_ENCOUNTER_STORE__.setEditDateCard).toHaveBeenCalledWith(false);
-    expect(global.__LAST_ENCOUNTER_STORE__.refreshEncounterData).toHaveBeenCalled();
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.setEditDateCard,
+    ).toHaveBeenCalledWith(false);
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.refreshEncounterData,
+    ).toHaveBeenCalled();
 
     await user.click(screen.getByTestId("btn-cancel-DATE"));
 
-    expect(global.__LAST_ENCOUNTER_STORE__.resetSectionDraft).toHaveBeenCalledWith("date");
-    expect(global.__LAST_ENCOUNTER_STORE__.setEditDateCard).toHaveBeenCalledWith(false);
-    expect(global.__LAST_ENCOUNTER_STORE__.errors.setFieldError).toHaveBeenCalledWith(
-      "date",
-      "date",
-      null,
-    );
-    expect(global.__LAST_ENCOUNTER_STORE__.errors.clearSectionErrors).toHaveBeenCalledWith(
-      "date",
-    );
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.resetSectionDraft,
+    ).toHaveBeenCalledWith("date");
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.setEditDateCard,
+    ).toHaveBeenCalledWith(false);
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.errors.setFieldError,
+    ).toHaveBeenCalledWith("date", "date", null);
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.errors.clearSectionErrors,
+    ).toHaveBeenCalledWith("date");
   });
 });

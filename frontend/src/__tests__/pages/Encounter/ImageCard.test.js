@@ -301,9 +301,8 @@ describe("ImageCard", () => {
     await user.click(screen.getByText("MATCH_RESULTS"));
 
     expect(window.open).toHaveBeenCalledTimes(1);
-    expect(window.open.mock.calls[0][0]).toContain(
-      "/iaResults.jsp?taskId=TASK-99",
-    );
+    const url = window.open.mock.calls[0][0];
+    expect(url).toContain("/react/match-results?taskId=TASK-99");
   });
 
   test("MATCH_RESULTS for foreign annotation fetches encounter and opens iaResults if available", async () => {
@@ -371,10 +370,8 @@ describe("ImageCard", () => {
     await waitFor(() => {
       expect(window.open).toHaveBeenCalledTimes(1);
     });
-
-    expect(window.open.mock.calls[0][0]).toContain(
-      "/iaResults.jsp?taskId=TASK-FR-1",
-    );
+    const url = window.open.mock.calls[0][0];
+    expect(url).toContain("/react/match-results?taskId=TASK-FR-1");
   });
 
   test("clicking MATCH_RESULTS without annotation shows alert", async () => {

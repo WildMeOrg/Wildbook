@@ -13,7 +13,7 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import { observer } from "mobx-react-lite";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import SelectCell from "../../components/SelectCell";
 import BulkImportApplyToAllRowsModal from "./BulkImportApplyToAllRowsModal";
 
@@ -168,7 +168,7 @@ const EditableCell = observer(
 export const DataTable = observer(({ store }) => {
   const data = store.spreadsheetData || [];
   const columnsDef = store.columnsDef || [];
-  const { data: siteData } = useGetSiteSettings();
+  const { data: siteData } = useSiteSettings();
   const minimalFields = siteData?.bulkImportMinimalFields || {};
   const validLocationIDs = siteData?.locationData.locationID || [];
   const validSubmitterIDs = siteData?.users?.map((user) => user.username) || [];

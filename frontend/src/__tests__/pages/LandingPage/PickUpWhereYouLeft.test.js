@@ -76,7 +76,7 @@ describe("PickUp Component", () => {
     expect(latestMatchItem).toHaveTextContent(
       formatDate(mockData.latestMatchTask.dateTimeCreated, true),
     );
-    expect(latestMatchItem).toHaveTextContent("/iaResults.jsp?taskId=123");
+    expect(latestMatchItem).toHaveTextContent("/react/match-results?taskId=123");
   });
 
   test("generates the correct matchActionButtonUrl based on date", () => {
