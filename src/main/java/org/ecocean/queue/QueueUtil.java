@@ -16,18 +16,12 @@ public class QueueUtil {
 
     public static Queue getBest(String context, String name)
     throws IOException {
-        if (RabbitMQQueue.isAvailable(context)) {
-            RabbitMQQueue.init(context);
-            return new RabbitMQQueue(name);
-        }
-        // fallback to FileQueue
         if (!FileQueue.isAvailable(context)) return null;
         FileQueue.init(context);
         return new FileQueue(name);
     }
 
     // helper method for backgrounding queue consumers who dont background themselves
-    // unnecessary for RabbitMQQueue (consumer goes into background automatically)
     public static void background(final Queue queue)
     throws IOException {
         final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(2);

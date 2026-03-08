@@ -27,37 +27,30 @@
 # The following lines can be used for PostgreSQL data storage.
 # You will also need to add the JDBC JAR file for your PostgreSQL version to /WEB-INF/lib.
 datanucleus.ConnectionDriverName=org.postgresql.Driver
-datanucleus.ConnectionURL = jdbc:postgresql://localhost:5432/wildbook
-
+datanucleus.ConnectionURL = jdbc:postgresql://project_app-db_1:5432/wildbook
 
 javax.jdo.PersistenceManagerFactoryClass = org.datanucleus.api.jdo.JDOPersistenceManagerFactory
 datanucleus.ConnectionUserName = wildbook              
 datanucleus.ConnectionPassword = wildbook
 datanucleus.schema.autoCreateAll = true
 #datanucleus.generateSchema.database.mode = create
-
-# deprecated:
-#datanucleus.NontransactionalRead = true
-#datanucleus.storeManagerType = rdbms
-
+datanucleus.NontransactionalRead = true
 datanucleus.Multithreaded = true
 datanucleus.RestoreValues = true
+datanucleus.storeManagerType = rdbms
 datanucleus.maxFetchDepth = -1
 datanucleus.cache.collections.lazy = false
 
-# Connection pooling
+#connection pooling
 datanucleus.connectionPoolingType = dbcp2
+
+# Pooling of Connections
 datanucleus.connectionPool.maxIdle=10
 datanucleus.connectionPool.minIdle=5
-datanucleus.connectionPool.timeBetweenEvictionRunsMillis=240000
-# Standard DataNucleus keys (that map internally to DBCP2)
-datanucleus.connectionPool.maxPoolSize = 300
-datanucleus.connectionPool.maxWait = -1
-datanucleus.connectionPool.testSQL = SELECT 1
+datanucleus.connectionPool.maxTotal=30
+datanucleus.connectionPool.maxWaitMillis=-1
 
-# HikariCP Pooling of Connections
-#datanucleus.connectionPool.maxPoolSize=30
-#datanucleus.connectionPool.maxIdle=10
-#datanucleus.connectionPool.leakThreshold=1
-#datanucleus.connectionPool.maxLifetime=1800000
+datanucleus.connectionPool.validationQuery=SELECT 1
+
+datanucleus.connectionPool.timeBetweenEvictionRunsMillis=240000
 

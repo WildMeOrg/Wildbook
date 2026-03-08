@@ -285,8 +285,6 @@ public class IdentityServiceLog implements java.io.Serializable {
         return null;
     }
 
-// S3AssetStore s3as = ((S3AssetStore) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(S3AssetStore.class, 3), true)));
-
     public void save(Shepherd myShepherd) {
         myShepherd.getPM().makePersistent(this);
     }
