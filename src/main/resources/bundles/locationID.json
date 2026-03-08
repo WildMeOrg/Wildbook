@@ -1327,6 +1327,25 @@
 					"locationID":[]
 				},
 				{
+					"name": "Greater Kruger",
+					"id": "Greater Kruger",
+					"locationID":[
+						{
+							"name": "Balule Nature Reserve",
+							"id": "Balule Nature Reserve",
+							"locationID":[]
+						},
+						{
+							"name": "Kruger National Park",
+							"id": "Kruger National Park",
+							"prefix": "knp",
+							"prefixDigitPadding": 4,
+							"description": "Kruger National Park",
+							"locationID":[]
+						}
+					]
+				},
+				{
 					"name": "Greater Makalali Nature Reserve",
 					"id": "Greater Makalali Nature Reserve",
 					"description": "Greater Makalali Nature Reserve",
@@ -1366,14 +1385,6 @@
 					"name": "Kariega Game Reserve",
 					"id": "Kariega Game Reserve",
 					"description": "Kariega Game Reserve",
-					"locationID":[]
-				},
-				{
-					"name": "Kruger National Park",
-					"id": "Kruger National Park",
-					"prefix": "knp",
-					"prefixDigitPadding": 4,
-					"description": "Kruger National Park",
 					"locationID":[]
 				},
 				{
