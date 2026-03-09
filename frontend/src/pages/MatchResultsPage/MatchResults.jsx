@@ -84,11 +84,10 @@ const MatchResults = observer(() => {
   if (store.loading) {
     return <FullScreenLoader data-testid="match-results-loader" />;
   }
-
-  const showErrorState = !store.hasResults && store.rootHasError;
-  const showRunningState = !store.hasResults && store.rootStillRunning;
+  const showErrorState = !store.hasResults && store.taskHasError;
+  const showRunningState = !store.hasResults && store.taskStillRunning;
   const showEmptyState =
-    !store.hasResults && !store.rootHasError && !store.rootStillRunning;
+    !store.hasResults && !store.taskHasError && !store.taskStillRunning;
 
   return (
     <Container

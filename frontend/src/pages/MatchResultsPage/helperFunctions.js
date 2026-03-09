@@ -1,17 +1,28 @@
 const collectProspects = (node, type, result = []) => {
   if (!node) return result;
+
   const hasMethod = !!node.method;
   const methodName = node.method?.name ?? node.method?.description;
   const methodDescription = node.method?.description ?? null;
-  const prospects = node.matchResults?.prospects?.[type];
+
   const hasMatchResults = !!node.matchResults;
+  const prospects = node.matchResults?.prospects?.[type];
+
+  const safeProspects = Array.isArray(prospects)
+    ? prospects.filter((p) => p && typeof p === "object")
+    : [];
+
   const hasAnyProspects =
     (Array.isArray(node.matchResults?.prospects?.annot) &&
       node.matchResults.prospects.annot.length > 0) ||
     (Array.isArray(node.matchResults?.prospects?.indiv) &&
       node.matchResults.prospects.indiv.length > 0);
 
-  if (hasMatchResults && hasMethod) {
+  const taskStatusOverall = node.statusOverall ?? null;
+  const nodeIsTerminal = isTerminalStatus(taskStatusOverall);
+  const nodeIsStillRunning = !!taskStatusOverall && !nodeIsTerminal;
+
+  if (hasMethod) {
     const common = {
       algorithm: methodName,
       date: node.dateCreated,
@@ -29,25 +40,27 @@ const collectProspects = (node, type, result = []) => {
         node.matchResults?.queryAnnotation?.asset || null,
       queryEncounterImageUrl:
         node.matchResults?.queryAnnotation?.asset?.url || null,
-      queryEncounterAnnotation: {
-        x: node.matchResults?.queryAnnotation?.x,
-        y: node.matchResults?.queryAnnotation?.y,
-        width: node.matchResults?.queryAnnotation?.width,
-        height: node.matchResults?.queryAnnotation?.height,
-        theta: node.matchResults?.queryAnnotation?.theta,
-      },
+      queryEncounterAnnotation: node.matchResults?.queryAnnotation
+        ? {
+            id: node.matchResults.queryAnnotation?.id,
+            x: node.matchResults.queryAnnotation?.x,
+            y: node.matchResults.queryAnnotation?.y,
+            width: node.matchResults.queryAnnotation?.width,
+            height: node.matchResults.queryAnnotation?.height,
+            theta: node.matchResults.queryAnnotation?.theta,
+            boundingBox: node.matchResults.queryAnnotation?.boundingBox,
+            isTrivial: node.matchResults.queryAnnotation?.isTrivial,
+            trivial: node.matchResults.queryAnnotation?.trivial,
+          }
+        : null,
       methodName,
       methodDescription,
       method: node.method || null,
       taskId: node.id ?? null,
       taskStatus: node.status ?? null,
-      taskStatusOverall: node.statusOverall ?? null,
-      hasResults: Array.isArray(prospects) && prospects.length > 0,
+      taskStatusOverall,
+      hasResults: safeProspects.length > 0,
     };
-
-    const safeProspects = Array.isArray(prospects)
-      ? prospects.filter((p) => p && typeof p === "object")
-      : [];
 
     if (safeProspects.length > 0) {
       result.push(
@@ -56,7 +69,10 @@ const collectProspects = (node, type, result = []) => {
           ...common,
         })),
       );
-    } else if (!hasAnyProspects) {
+    } else if (
+      nodeIsStillRunning ||
+      (hasMatchResults && !hasAnyProspects && nodeIsTerminal)
+    ) {
       result.push(common);
     }
   }
