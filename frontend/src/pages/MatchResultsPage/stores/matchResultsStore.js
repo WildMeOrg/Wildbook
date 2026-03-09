@@ -44,6 +44,35 @@ export default class MatchResultsStore {
     makeAutoObservable(this, {}, { autoBind: true });
   }
 
+  _findBestQuerySource() {
+    const candidates = [
+      ...(Array.isArray(this._indivResults) ? this._indivResults : []),
+      ...(Array.isArray(this._annotResults) ? this._annotResults : []),
+    ];
+
+    if (candidates.length === 0) return null;
+
+    const withEncounterId = candidates.find((item) => item?.queryEncounterId);
+    if (withEncounterId) return withEncounterId;
+
+    const withQueryAnnotationEncounter = candidates.find(
+      (item) => item?.queryEncounterAnnotation?.encounter?.id,
+    );
+    if (withQueryAnnotationEncounter) return withQueryAnnotationEncounter;
+
+    const withSomeQueryContext = candidates.find(
+      (item) =>
+        item?.queryEncounterImageAsset ||
+        item?.queryEncounterImageUrl ||
+        item?.queryEncounterAnnotation ||
+        item?.matchingSetFilter ||
+        item?.queryIndividualId,
+    );
+    if (withSomeQueryContext) return withSomeQueryContext;
+
+    return candidates[0];
+  }
+
   loadData(results) {
     const root = results?.matchResultsRoot;
 
@@ -93,21 +122,20 @@ export default class MatchResultsStore {
       this._viewMode = "image";
     }
 
-    const first =
-      (this._viewMode === "image"
-        ? this._annotResults[0]
-        : this._indivResults[0]) ||
-      this._indivResults[0] ||
-      this._annotResults[0];
+    const querySource = this._findBestQuerySource();
+    if (!querySource) return;
 
-    if (!first) return;
+    this._encounterId =
+      querySource.queryEncounterId ||
+      querySource.queryEncounterAnnotation?.encounter?.id ||
+      null;
 
-    this._encounterId = first.queryEncounterId;
-    this._encounterLocationId = first.encounterLocationId;
-    this._matchingSetFilter = first.matchingSetFilter;
-    this._individualId = first.queryIndividualId;
-    this._individualDisplayName = first.queryIndividualDisplayName;
-    this._statusOverall = first.taskStatusOverall;
+    this._encounterLocationId = querySource.encounterLocationId || "";
+    this._matchingSetFilter = querySource.matchingSetFilter || {};
+    this._individualId = querySource.queryIndividualId || null;
+    this._individualDisplayName =
+      querySource.queryIndividualDisplayName || null;
+    this._statusOverall = querySource.taskStatusOverall || "";
 
     this._rawAnnots = Array.isArray(this._annotResults)
       ? this._annotResults
@@ -146,7 +174,19 @@ export default class MatchResultsStore {
         columns.push(columnData);
       }
 
-      const first = sorted[0] || {};
+      const first =
+        sorted.find(
+          (item) =>
+            item?.queryEncounterId ||
+            item?.queryEncounterImageAsset ||
+            item?.queryEncounterImageUrl ||
+            item?.queryEncounterAnnotation ||
+            item?.methodName ||
+            item?.methodDescription ||
+            item?.algorithm,
+        ) ||
+        sorted[0] ||
+        {};
       sections.push({
         taskId,
         columns,
