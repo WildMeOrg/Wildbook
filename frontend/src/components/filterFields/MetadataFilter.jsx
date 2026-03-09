@@ -4,6 +4,7 @@ import { FormattedMessage } from "react-intl";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import SubmitterFilter from "./SubmitterFilter";
 import useGetAllBulkImportTasks from "../../models/bulkImport/useGetAllBulkImportTasks";
+import ContainerWithSpinner from "../ContainerWithSpinner";
 
 export default function MetadataFilter({ data, store }) {
   const encounterStatusOptions =
@@ -57,64 +58,77 @@ export default function MetadataFilter({ data, store }) {
       <Description>
         <FormattedMessage id="FILTER_METADATA_DESC" />
       </Description>
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        noDesc={true}
-        label="FILTER_ENCOUNTERS_STATE"
-        options={encounterStatusOptions}
-        term="terms"
-        field="state"
-        filterKey={"Encounter State"}
-        store={store}
-      />
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          noDesc={true}
+          label="FILTER_ENCOUNTERS_STATE"
+          options={encounterStatusOptions}
+          term="terms"
+          field="state"
+          filterKey={"Encounter State"}
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
 
       <SubmitterFilter store={store} />
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        noDesc={true}
-        label="FILTER_ORGANIZATION_ID"
-        options={organizationOptions}
-        term="terms"
-        field="organizations"
-        filterId="organizations"
-        filterKey={"Organization"}
-        store={store}
-      />
-      <FormGroupMultiSelect
-        isMulti={true}
-        noDesc={true}
-        label="FILTER_PROJECT_NAME"
-        options={projectOptions}
-        term="terms"
-        field="projects"
-        filterId="projects"
-        filterKey={"Project Name"}
-        store={store}
-      />
-      <FormGroupMultiSelect
-        isMulti={true}
-        noDesc={true}
-        label="FILTER_BULK_IMPORT_FILE_NAMES"
-        options={bulkImportTaskOptions}
-        term="terms"
-        field="importTaskSourceName"
-        filterId="importTaskSourceName"
-        filterKey={"Bulk Import Task"}
-        store={store}
-      />
-      <FormGroupMultiSelect
-        isMulti={true}
-        noDesc={true}
-        label="FILTER_ASSIGNED_USER"
-        options={assignedUserOptions}
-        term="terms"
-        field="assignedUsername"
-        filterId="assignedUsername"
-        filterKey={"Assigned User"}
-        store={store}
-      />
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          noDesc={true}
+          label="FILTER_ORGANIZATION_ID"
+          options={organizationOptions}
+          term="terms"
+          field="organizations"
+          filterId="organizations"
+          filterKey={"Organization"}
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          noDesc={true}
+          label="FILTER_PROJECT_NAME"
+          options={projectOptions}
+          term="terms"
+          field="projects"
+          filterId="projects"
+          filterKey={"Project Name"}
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          noDesc={true}
+          label="FILTER_BULK_IMPORT_FILE_NAMES"
+          options={bulkImportTaskOptions}
+          term="terms"
+          field="importTaskSourceName"
+          filterId="importTaskSourceName"
+          filterKey={"Bulk Import Task"}
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          noDesc={true}
+          label="FILTER_ASSIGNED_USER"
+          options={assignedUserOptions}
+          term="terms"
+          field="assignedUsername"
+          filterId="assignedUsername"
+          filterKey={"Assigned User"}
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
     </div>
   );
 }

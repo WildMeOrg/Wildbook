@@ -1,6 +1,6 @@
 /* eslint-disable react/display-name */
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 jest.mock("mobx-react-lite", () => ({
   observer: (Comp) => Comp,
@@ -16,7 +16,7 @@ jest.mock(
       Swiper: ({ children, onSwiper }) => {
         React.useEffect(() => {
           if (typeof onSwiper === "function") {
-            onSwiper({ slideTo: () => {}, destroyed: false });
+            onSwiper({ slideTo: jest.fn(), destroyed: false });
           }
         }, [onSwiper]);
         return <div data-testid="swiper">{children}</div>;
@@ -56,6 +56,13 @@ jest.mock(
     ) : null,
 );
 
+jest.mock("../../../components/PillWithButton", () => (props) => (
+  <div>
+    <span>{props.text}</span>
+    <button onClick={props.onClose}>x</button>
+  </div>
+));
+
 jest.mock("../../../utils/keywordsFunctions", () => ({
   addExistingKeyword: jest.fn(async () => ({ success: true })),
   addNewKeywordText: jest.fn(async () => ({ success: true })),
@@ -68,12 +75,8 @@ jest.mock("../../../ThemeColorProvider", () => {
   return {
     __esModule: true,
     default: React.createContext({
-      wildMeColors: {
-        cyan700: "#00abc2",
-      },
-      statusColors: {
-        red500: "#ff0000",
-      },
+      wildMeColors: { cyan700: "#00abc2" },
+      statusColors: { red500: "#ff0000" },
     }),
   };
 });
@@ -81,6 +84,7 @@ jest.mock("../../../ThemeColorProvider", () => {
 import ImageModal from "../../../components/ImageModal";
 
 const makeImageStore = (overrides = {}) => ({
+  access: "write",
   showAnnotations: true,
   setShowAnnotations: jest.fn(),
   encounterData: {
@@ -95,16 +99,21 @@ const makeImageStore = (overrides = {}) => ({
   selectedImageIndex: 0,
   setOpenMatchCriteriaModal: jest.fn(),
   setSelectedAnnotationId: jest.fn(),
+  selectedAnnotationId: null,
   matchResultClickable: true,
-  encounterAnnotations: [
-    {
-      id: "ann-1",
-      iaTaskId: "task-123",
-    },
-  ],
+  encounterAnnotations: [{ id: "ann-1", iaTaskId: "task-123" }],
+  tags: [],
+  addTagsFieldOpen: false,
+  selectedKeyword: null,
+  selectedLabeledKeyword: null,
+  selectedAllowedValues: null,
+  availableKeywords: [],
+  availableKeywordsId: [],
+  availabelLabeledKeywords: [],
+  labeledKeywordAllowedValues: [],
   deleteImage: jest.fn(async () => {}),
   removeAnnotation: jest.fn(async () => {}),
-  refreshEncounterData: jest.fn(),
+  refreshEncounterData: jest.fn(async () => {}),
   setAddTagsFieldOpen: jest.fn(),
   setSelectedKeyword: jest.fn(),
   setSelectedLabeledKeyword: jest.fn(),
@@ -131,152 +140,133 @@ const rects = [
   },
 ];
 
+const renderModal = (props = {}) => {
+  const defaultStore = makeImageStore();
+  return render(
+    <ImageModal
+      onClose={jest.fn()}
+      assets={assets}
+      index={0}
+      setIndex={jest.fn()}
+      rects={rects}
+      imageStore={defaultStore}
+      {...props}
+    />,
+  );
+};
+
 describe("ImageModal", () => {
+  let openSpy;
+  let confirmSpy;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    global.open = jest.fn();
+    openSpy = jest.spyOn(window, "open").mockImplementation(() => null);
+    confirmSpy = jest.spyOn(window, "confirm").mockReturnValue(true);
   });
 
-  test("renders modal with image and sidebar", () => {
-    const store = makeImageStore();
-    render(
-      <ImageModal
-        onClose={jest.fn()}
-        assets={assets}
-        index={0}
-        setIndex={jest.fn()}
-        rects={rects}
-        imageStore={store}
-      />,
-    );
+  afterEach(() => {
+    openSpy.mockRestore();
+    confirmSpy.mockRestore();
+  });
+
+  test("renders modal, main image, thumbnails, and danger button", () => {
+    renderModal();
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByAltText("asset-ma-1")).toBeInTheDocument();
-    expect(screen.getAllByTestId("swiper-slide").length).toBe(2);
+    expect(screen.getAllByTestId("swiper-slide")).toHaveLength(2);
     expect(screen.getByText("DELETE_IMAGE")).toBeInTheDocument();
   });
 
-  test("click close button calls onClose", () => {
+  test("close button calls onClose", () => {
     const onClose = jest.fn();
-    const store = makeImageStore();
-    render(
-      <ImageModal
-        onClose={onClose}
-        assets={assets}
-        index={0}
-        setIndex={jest.fn()}
-        rects={rects}
-        imageStore={store}
-      />,
-    );
+    renderModal({ onClose });
 
-    const closeBtn = screen.getByLabelText("Close");
-    fireEvent.click(closeBtn);
-    expect(onClose).toHaveBeenCalled();
+    fireEvent.click(screen.getByLabelText("Close"));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  test("next/prev buttons change index", () => {
+  test("next button calls setIndex with next index", () => {
     const setIndex = jest.fn();
-    const store = makeImageStore();
-    render(
-      <ImageModal
-        onClose={jest.fn()}
-        assets={assets}
-        index={0}
-        setIndex={setIndex}
-        rects={rects}
-        imageStore={store}
-      />,
-    );
+    renderModal({ setIndex });
 
-    const nextBtn = screen.getByLabelText("Next image");
-    fireEvent.click(nextBtn);
+    fireEvent.click(screen.getByLabelText("Next image"));
     expect(setIndex).toHaveBeenCalledWith(1);
   });
 
   test("toggle show annotations calls imageStore.setShowAnnotations", () => {
-    const store = makeImageStore();
-    render(
-      <ImageModal
-        onClose={jest.fn()}
-        assets={assets}
-        index={0}
-        setIndex={jest.fn()}
-        rects={rects}
-        imageStore={store}
-      />,
-    );
+    const store = makeImageStore({ showAnnotations: true });
+    renderModal({ imageStore: store });
 
-    const checkbox = screen.getByRole("checkbox");
-    fireEvent.click(checkbox);
+    fireEvent.click(screen.getByRole("checkbox"));
     expect(store.setShowAnnotations).toHaveBeenCalledWith(false);
   });
 
-  test("click annotation sets selectedAnnotationId", () => {
+  test("clicking annotation rect sets selected annotation id", () => {
     const store = makeImageStore();
-    render(
-      <ImageModal
-        onClose={jest.fn()}
-        assets={assets}
-        index={0}
-        setIndex={jest.fn()}
-        rects={rects}
-        imageStore={store}
-      />,
-    );
+    renderModal({ imageStore: store });
 
-    const absDiv = document.querySelector(
-      "#image-modal-image .position-absolute",
-    );
-    fireEvent.click(absDiv);
+    const rect = document.getElementById("annotation-rect-0");
+    expect(rect).toBeTruthy();
+
+    fireEvent.click(rect);
+    expect(store.setSelectedAnnotationId).toHaveBeenCalledWith("ann-1");
   });
 
-  test("match results button opens iaResults when clickable and selected", () => {
+  test("match results button opens iaResults when selected annotation exists", () => {
     const store = makeImageStore({
       matchResultClickable: true,
       selectedAnnotationId: "ann-1",
     });
-    render(
-      <ImageModal
-        onClose={jest.fn()}
-        assets={assets}
-        index={0}
-        setIndex={jest.fn()}
-        rects={rects}
-        imageStore={store}
-      />,
-    );
 
-    const matchBtn = screen.getByText("MATCH_RESULTS");
-    fireEvent.click(matchBtn);
+    renderModal({ imageStore: store });
 
-    expect(global.open).toHaveBeenCalledWith(
+    fireEvent.click(screen.getByText("MATCH_RESULTS"));
+
+    expect(window.open).toHaveBeenCalledWith(
       "/iaResults.jsp?taskId=task-123",
       "_blank",
     );
   });
 
-  test("delete image button confirms and calls imageStore.deleteImage", () => {
-    const store = makeImageStore();
-    const confirmSpy = jest.spyOn(window, "confirm").mockReturnValue(true);
+  test("match results button is disabled when matchResultClickable is false", () => {
+    const store = makeImageStore({
+      matchResultClickable: false,
+      selectedAnnotationId: "ann-1",
+    });
 
-    render(
+    renderModal({ imageStore: store });
+
+    const btn = screen.getByText("MATCH_RESULTS").closest("button");
+    expect(btn).toBeDisabled();
+  });
+
+  test("delete image button confirms and calls imageStore.deleteImage", async () => {
+    const store = makeImageStore();
+    renderModal({ imageStore: store });
+
+    fireEvent.click(screen.getByText("DELETE_IMAGE"));
+
+    expect(window.confirm).toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(store.deleteImage).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  test("returns null when assets is empty", () => {
+    const { container } = render(
       <ImageModal
         onClose={jest.fn()}
-        assets={assets}
+        assets={[]}
         index={0}
         setIndex={jest.fn()}
-        rects={rects}
-        imageStore={store}
+        rects={[]}
+        imageStore={makeImageStore()}
       />,
     );
 
-    const delBtn = screen.getByText("DELETE_IMAGE");
-    fireEvent.click(delBtn);
-
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(store.deleteImage).toHaveBeenCalled();
-
-    confirmSpy.mockRestore();
+    expect(container.firstChild).toBeNull();
   });
 });

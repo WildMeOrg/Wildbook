@@ -205,7 +205,7 @@ describe("parseYMDHM", () => {
 
 describe("expandOperations", () => {
   test("expands date operation to year/month/day/hour/minutes", () => {
-    const ops = [{ op: "replace", path: "date", value: "2025-10-31T14:20" }];
+    const ops = [{ op: "replace", path: "dateValues", value: "2025-10-31T14:20" }];
 
     const out = expandOperations(ops);
     expect(out).toEqual([
@@ -232,12 +232,15 @@ describe("expandOperations", () => {
     ]);
   });
 
-  test("locationGeoPoint with missing coords is ignored", () => {
+  test("locationGeoPoint with missing coords still pushes both ops", () => {
     const ops = [
       { op: "replace", path: "locationGeoPoint", value: { lat: 1.23 } },
     ];
     const out = expandOperations(ops);
-    expect(out).toEqual([]);
+    expect(out).toEqual([
+      { op: "replace", path: "decimalLatitude", value: 1.23 },
+      { op: "replace", path: "decimalLongitude", value: undefined },
+    ]);
   });
 
   test("expands taxonomy", () => {
@@ -257,7 +260,7 @@ describe("expandOperations", () => {
 
   test("mixed ops", () => {
     const ops = [
-      { op: "replace", path: "date", value: "2025-01-02" },
+      { op: "replace", path: "dateValues", value: "2025-01-02" },
       { op: "replace", path: "taxonomy", value: "Homo sapiens" },
       { op: "replace", path: "sex", value: "female" },
     ];

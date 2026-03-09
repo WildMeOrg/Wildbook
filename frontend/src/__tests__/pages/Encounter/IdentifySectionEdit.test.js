@@ -132,6 +132,22 @@ describe("IdentifySectionEdit", () => {
     );
   });
 
+  test("INDIVIDUAL_ID loadOptions directly invokes searchIndividualsByNameAndId with raw query string", async () => {
+    const store = makeStore();
+
+    store.searchIndividualsByNameAndId.mockResolvedValueOnce({
+      data: { hits: [] },
+    });
+
+    render(<IdentifySectionEdit store={store} />);
+
+    const props = global.__SEARCH_PROPS__["INDIVIDUAL_ID"];
+    await props.loadOptions("  In-42  ");
+
+    expect(store.searchIndividualsByNameAndId).toHaveBeenCalledTimes(1);
+    expect(store.searchIndividualsByNameAndId).toHaveBeenCalledWith("  In-42  ");
+  });
+
   test("INDIVIDUAL_ID loadOptions maps search results and sets individual options", async () => {
     const store = makeStore();
     store.searchIndividualsByNameAndId.mockResolvedValueOnce({

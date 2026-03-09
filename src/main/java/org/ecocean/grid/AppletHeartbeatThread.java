@@ -61,53 +61,31 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
     }
 
     private void sendHeartbeat(String appletID) {
-        // prep our streaming variables
-        URL u = null;
+        HttpURLConnection finishConnection = null;
         InputStream inputStreamFromServlet = null;
         BufferedReader in = null;
-        // HttpsURLConnection finishConnection=null;
-        URLConnection finishConnection = null;
 
         try {
-            u = new URL(rootURL + "/GridHeartbeatReceiver?nodeIdentifier=" + appletID +
+            URL u = new URL(rootURL + "/GridHeartbeatReceiver?nodeIdentifier=" + appletID +
                 "&numProcessors=" + numProcessors + "&version=" + version);
 
             System.out.println("...sending heartbeat...thump...thump...to: " + u.toString());
-            if (rootURL.substring(0, 5).equals("https")) {
+            if (rootURL.startsWith("https")) {
                 finishConnection = (HttpsURLConnection)u.openConnection();
             } else {
                 finishConnection = (HttpURLConnection)u.openConnection();
             }
+            finishConnection.setConnectTimeout(15000);
+            finishConnection.setReadTimeout(15000);
             inputStreamFromServlet = finishConnection.getInputStream();
             in = new BufferedReader(new InputStreamReader(inputStreamFromServlet));
             String line = in.readLine();
-            // in.close();
-            // inputStreamFromServlet.close();
-
-            // process the returned line however needed
-        } catch (MalformedURLException mue) {
-            System.out.println("!!!!!I hit a MalformedURLException in the heartbeat thread!!!!!");
-            mue.printStackTrace();
-            // System.exit(0);
-        } catch (IOException ioe) {
-            System.out.println("!!!!!I hit an IO exception in the heartbeat thread!!!!!");
-            ioe.printStackTrace();
-            // System.exit(0);
         } catch (Exception e) {
-            System.out.println("!!!!!I hit an Exception in the heartbeat thread!!!!!");
-            e.printStackTrace();
-            // System.exit(0);
+            System.out.println("Heartbeat error: " + e.getMessage());
         } finally {
-            try {
-                if (inputStreamFromServlet != null) inputStreamFromServlet.close();
-                if (in != null) in.close();
-                in = null;
-                inputStreamFromServlet = null;
-                finishConnection = null;
-                u = null;
-            } catch (Exception ex) {
-                // System.exit(0);
-            }
+            try { if (in != null) in.close(); } catch (Exception ignored) {}
+            try { if (inputStreamFromServlet != null) inputStreamFromServlet.close(); } catch (Exception ignored) {}
+            if (finishConnection != null) finishConnection.disconnect();
         }
     }
 }

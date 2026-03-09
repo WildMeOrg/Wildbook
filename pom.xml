@@ -360,8 +360,7 @@
       <version>2.6.2</version>
     </dependency>
 
-    <!-- Amazon support for sharkGrid -->
-    <!-- todo:  deprecate EC2RequestThread and any other AWS uses -->
+    <!-- Amazon SDK (used by ProjectUpdate for StringUtils) -->
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-ec2</artifactId>

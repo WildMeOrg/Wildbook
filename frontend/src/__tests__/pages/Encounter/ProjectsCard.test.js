@@ -65,6 +65,7 @@ jest.mock("react-select", () => {
 import { ProjectsCard } from "../../../pages/Encounter/ProjectsCard";
 
 const makeStore = (overrides = {}) => ({
+  access: "write",
   siteSettingsData: {
     projectsForUser: {
       p1: "Project 1",

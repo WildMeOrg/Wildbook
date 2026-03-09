@@ -7,6 +7,7 @@ import ThemeColorContext from "../../ThemeColorProvider";
 import RemoveIcon from "../../components/icons/RemoveIcon";
 import { FormattedMessage } from "react-intl";
 import { useIntl } from "react-intl";
+import ContainerWithSpinner from "../../components/ContainerWithSpinner";
 
 export const ProjectsCard = observer(({ store = {} }) => {
   const intl = useIntl();
@@ -25,6 +26,8 @@ export const ProjectsCard = observer(({ store = {} }) => {
     value: project.id,
     label: project.name,
   }));
+
+  const siteSettingsLoading = Boolean(store?.siteSettingsLoading);
 
   return (
     <div
@@ -109,29 +112,31 @@ export const ProjectsCard = observer(({ store = {} }) => {
             <p className="mb-2">
               <FormattedMessage id="SEARCH_PROJECT" />
             </p>
-            <Select
-              placeholder={intl.formatMessage({ id: "SEARCH_A_PROJECT" })}
-              name="project-select"
-              isClearable={true}
-              isSearchable={true}
-              isMulti={true}
-              options={options}
-              className="basic-multi-select"
-              classNamePrefix="select"
-              menuPlacement="auto"
-              menuPortalTarget={document.body}
-              styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-              value={(store.selectedProjects || []).map((p) => ({
-                value: p.id,
-                label: p.name,
-              }))}
-              onChange={(items) => {
-                const arr = items
-                  ? items.map((o) => ({ id: o.value, name: o.label }))
-                  : [];
-                store.setSelectedProjects(arr);
-              }}
-            />
+            <ContainerWithSpinner loading={siteSettingsLoading}>
+              <Select
+                placeholder={intl.formatMessage({ id: "SEARCH_A_PROJECT" })}
+                name="project-select"
+                isClearable={true}
+                isSearchable={true}
+                isMulti={true}
+                options={options}
+                className="basic-multi-select"
+                classNamePrefix="select"
+                menuPlacement="auto"
+                menuPortalTarget={document.body}
+                styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                value={(store.selectedProjects || []).map((p) => ({
+                  value: p.id,
+                  label: p.name,
+                }))}
+                onChange={(items) => {
+                  const arr = items
+                    ? items.map((o) => ({ id: o.value, name: o.label }))
+                    : [];
+                  store.setSelectedProjects(arr);
+                }}
+              />
+            </ContainerWithSpinner>
           </div>
           <div className="d-flex justify-content-between mt-3">
             <MainButton
