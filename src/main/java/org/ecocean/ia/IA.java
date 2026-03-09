@@ -433,7 +433,7 @@ public class IA {
                 }
                 Task mtask = intakeMediaAssets(myShepherd, mas, topTask);
                 System.out.println("INFO: IA.handleRest() just intook MediaAssets as " + mtask +
-                    " for " + topTask);
+                    " for (parent) " + topTask);
                 topTask.addChild(mtask);
             }
             JSONArray alist = jin.optJSONArray("annotationIds");
@@ -465,8 +465,10 @@ public class IA {
                 Task atask = intakeAnnotations(myShepherd, anns, topTask, fastlane);
                 System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask +
                     " for " + topTask);
-                topTask.addChild(atask);
                 myShepherd.getPM().refresh(topTask);
+                topTask.addChild(atask);
+                topTask.setModified();
+                myShepherd.getPM().makePersistent(atask);
             }
             myShepherd.commitDBTransaction();
         } catch (Exception e) {
