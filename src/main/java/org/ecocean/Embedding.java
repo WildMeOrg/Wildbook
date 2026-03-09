@@ -264,9 +264,19 @@ public class Embedding implements java.io.Serializable {
 
     public static boolean findMatchProspects(JSONObject iaConfig, Task task, Shepherd myShepherd) {
         if ((iaConfig == null) || (iaConfig.optString("api_endpoint", null) == null)) return false;
-        System.out.println("findMatchProspects() has embedding match: " + iaConfig + ", " + task);
-        if ((task == null) || (task.numberAnnotations() < 1)) return true;
+        // from here on out we should return true since this is a vector match, even when something goes wrong
+        // and we should also set status on the task (and subtasks)
+        if (task == null) return true;  // cant really set status on this :(
+        if (task.numberAnnotations() < 1) {
+            task.setStatus("completed");
+            task.setCompletionDateInMilliseconds();
+            return true;
+        }
+        System.out.println("findMatchProspects() (task " + task.getId() + ", " + task.numberAnnotations() + " annots) has embedding match: " + iaConfig);
         for (Annotation ann : task.getObjectAnnotations()) {
+            // every ann gets a subTask
+            Task subTask = new Task(task);
+            subTask.addObject(ann);
             // first we get matchingSetQuery to find number of candidates
             boolean useClauses = false; // TODO how??
             JSONObject matchingSetQuery = ann.getMatchingSetQuery(myShepherd, task.getParameters(),
@@ -278,21 +288,22 @@ public class Embedding implements java.io.Serializable {
             if (matchQuery == null) {
                 System.out.println("findMatchProspects() cannot getMatches() on " + ann +
                     " due to no suitable embeddings for " + iaConfig);
-                return true;
+                subTask.setStatus("error");
+                subTask.setCompletionDateInMilliseconds();
+                myShepherd.getPM().makePersistent(subTask);
+                continue; // on to next ann
             }
             OpenSearch os = new OpenSearch();
-            int numberCandidates = -1;
+            int numberCandidates = -2;
             try {
                 numberCandidates = os.queryCount("annotation", matchingSetQuery);
             } catch (IOException ex) {
-                System.out.println("findMatchProspects() numCandidates query failed with " + ex + " for matchingSetQuery=" + matchingSetQuery);
+                System.out.println("findMatchProspects() numCandidates query failed with " + ex);
             }
             List<Annotation> prospects = ann.getMatches(myShepherd, matchQuery);
-            Task subTask = new Task(task);
-            subTask.addObject(ann);
             System.out.println("findMatchProspects() on " + ann + " found " +
                 Util.collectionSize(prospects) + " prospects (in " + numberCandidates +
-                " candidates) for " + subTask);
+                " candidates) for subTask " + subTask.getId());
             try {
                 // we build this even if empty, cuz that means we got results; just not nice ones
                 MatchResult mr = new MatchResult(subTask, prospects, numberCandidates, myShepherd);
@@ -303,8 +314,12 @@ public class Embedding implements java.io.Serializable {
                 ex.printStackTrace();
             }
             subTask.setStatus("completed");
+            subTask.setCompletionDateInMilliseconds();
             myShepherd.getPM().makePersistent(subTask);
         }
+        // TODO is this correct for the toplevel even if some subTasks failed?
+        task.setStatus("completed");
+        task.setCompletionDateInMilliseconds();
         return true;
     }
 
