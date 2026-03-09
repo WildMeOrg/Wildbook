@@ -632,7 +632,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 		    			<img src="images/microscope.gif" height="32px" width="*" />
 		    		<%}
 		    		//if the encounter has a measurement, show the measurement icon
-		    		if(enc.hasMeasurementEvents()){%>	
+		    		if(enc.hasMeasurements()){%>	
 		    			<img src="images/ruler.png" height="32px" width="*" />
 		        	<%}%>
 		    		
