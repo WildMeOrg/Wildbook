@@ -64,6 +64,10 @@ public class Task implements java.io.Serializable {
         return modified;
     }
 
+    public void setModified() {
+        modified = System.currentTimeMillis();
+    }
+
 /*
     // not really convinced these are accurate enough to use
     //   actual computation of these things is complicated
@@ -580,6 +584,7 @@ public class Task implements java.io.Serializable {
     }
 
     public void setStatus(String newStatus) {
+        setModified();
         if (newStatus == null) status = null;
         else { status = newStatus; }
     }
