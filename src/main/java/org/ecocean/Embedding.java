@@ -304,6 +304,7 @@ public class Embedding implements java.io.Serializable {
                 ex.printStackTrace();
             }
  */
+            subTask.setStatus("completed");
             myShepherd.getPM().makePersistent(subTask);
         }
         return true;
