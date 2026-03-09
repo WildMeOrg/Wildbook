@@ -108,7 +108,7 @@ const MatchResults = observer(() => {
         filter={store.matchingSetFilter}
       />
 
-      {store.hasResults && (
+      {store.hasResults && store.encounterId && (
         <div data-testid="match-results-bottom-bar">
           <MatchResultsBottomBar
             store={store}
@@ -118,7 +118,7 @@ const MatchResults = observer(() => {
         </div>
       )}
 
-      {store.hasResults && (
+      {store.hasResults && store.encounterId && (
         <div
           style={{ height: "70px" }}
           data-testid="match-results-bottom-bar-spacer"
