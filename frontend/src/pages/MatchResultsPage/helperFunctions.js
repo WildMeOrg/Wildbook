@@ -4,9 +4,14 @@ const collectProspects = (node, type, result = []) => {
   const methodName = node.method?.name ?? node.method?.description;
   const methodDescription = node.method?.description ?? null;
   const prospects = node.matchResults?.prospects?.[type];
-  const hasResults = !!node.matchResults;
+  const hasMatchResults = !!node.matchResults;
+  const hasAnyProspects =
+    (Array.isArray(node.matchResults?.prospects?.annot) &&
+      node.matchResults.prospects.annot.length > 0) ||
+    (Array.isArray(node.matchResults?.prospects?.indiv) &&
+      node.matchResults.prospects.indiv.length > 0);
 
-  if (hasResults && hasMethod) {
+  if (hasMatchResults && hasMethod) {
     const common = {
       algorithm: methodName,
       date: node.dateCreated,
@@ -51,7 +56,7 @@ const collectProspects = (node, type, result = []) => {
           ...common,
         })),
       );
-    } else {
+    } else if (!hasAnyProspects) {
       result.push(common);
     }
   }
