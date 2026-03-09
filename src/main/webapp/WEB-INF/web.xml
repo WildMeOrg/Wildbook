@@ -455,6 +455,16 @@
 	</servlet-mapping>
 
 	<servlet>
+		<servlet-name>MarkedIndividualInfo</servlet-name>
+		<servlet-class>org.ecocean.api.MarkedIndividualInfo</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>MarkedIndividualInfo</servlet-name>
+		<url-pattern>/api/v3/individuals/info/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
 		<servlet-name>ApiProjects</servlet-name>
 		<servlet-class>org.ecocean.api.Projects</servlet-class>
 	</servlet>
@@ -2009,16 +2019,5 @@
 		<servlet-name>GenePopExport</servlet-name>
 		<url-pattern>/GenePopExport</url-pattern>
 	</servlet-mapping>
-	
-	<!-- temp optimized groth mapping -->
-	<servlet>
-			<servlet-name>GrothMatch</servlet-name>
-		<servlet-class>org.ecocean.servlet.GrothMatchServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>GrothMatch</servlet-name>
-		<url-pattern>/GrothMatch</url-pattern>
-	</servlet-mapping>
-	
 
 </web-app>
