@@ -302,6 +302,7 @@ public class Embedding implements java.io.Serializable {
                 System.out.println("findMatchProspects() MatchResult creation failed on " + subTask + ": " + ex);
                 ex.printStackTrace();
             }
+            subTask.setStatus("completed");
             myShepherd.getPM().makePersistent(subTask);
         }
         return true;
