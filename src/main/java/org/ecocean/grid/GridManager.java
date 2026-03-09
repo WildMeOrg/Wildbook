@@ -2,17 +2,21 @@ package org.ecocean.grid;
 
 // import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 // import org.ecocean.CommonConfiguration;
+import org.ecocean.Util;
 import org.ecocean.shepherd.core.Shepherd;
 
 // import org.ecocean.servlet.ServletUtilities;
 
+import java.io.IOException;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 
-// import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
+
+import org.json.JSONObject;
 
 // import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 
@@ -38,12 +42,12 @@ public class GridManager {
 
     // public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
 
-    // Modified Groth algorithm parameters
+    // Modified Groth algorithm parameters (optimized via GrothParameterSweepTest)
     private String epsilon = "0.008";
-    private String R = "49.8";
-    private String Sizelim = "0.998";
-    private String maxTriangleRotation = "12.33";
-    private String C = "0.998";
+    private String R = "6.8";
+    private String Sizelim = "0.671";
+    private String maxTriangleRotation = "22.5";
+    private String C = "1.146";
     private String secondRun = "true";
 
     private static ConcurrentHashMap<String,
@@ -52,6 +56,7 @@ public class GridManager {
     private static int numLeftPatterns = 0;
 
     private static boolean creationThread = false;
+    private static volatile boolean matchGraphReady = false;
 
     // hold incompleted scanWorkItems
     private ArrayList<ScanWorkItem> toDo = new ArrayList<ScanWorkItem>();
@@ -574,10 +579,21 @@ public class GridManager {
         return numProcessors;
     }
 
+    public static boolean isMatchGraphReady() { return matchGraphReady; }
+    public static void setMatchGraphReady(boolean ready) { matchGraphReady = ready; }
+
     public static ConcurrentHashMap<String, EncounterLite> getMatchGraph() { return matchGraph; }
     public static void addMatchGraphEntry(String elID, EncounterLite el) {
         matchGraph.put(elID, el);
         resetPatternCounts();
+    }
+
+    /**
+     * Bulk insert without triggering resetPatternCounts() on each call.
+     * Call resetPatternCounts() once after all entries are added.
+     */
+    public static void addMatchGraphEntryBulk(String elID, EncounterLite el) {
+        matchGraph.put(elID, el);
     }
 
     public static void removeMatchGraphEntry(String elID) {
@@ -611,7 +627,7 @@ public class GridManager {
      * Convenience method to speed ScanWorkItemCreationThread by always maintaining and recalculating accurate counts of potential patterns to compare
      * against.
      */
-    private static synchronized void resetPatternCounts() {
+    public static synchronized void resetPatternCounts() {
         numLeftPatterns = 0;
         numRightPatterns = 0;
         speciesCountsMapLeft = new ConcurrentHashMap<String, Long>();
@@ -652,5 +668,75 @@ public class GridManager {
     public void resetMatchGraphWithInitialCapacity(int initialCapacity) {
         matchGraph = null;
         matchGraph = new ConcurrentHashMap<String, EncounterLite>(initialCapacity);
+    }
+
+    private static final String CACHE_FILEPATH = "WEB-INF/MatchGraphCache.json";
+
+    public static String getCacheFilePath(String dataDir) {
+        return dataDir + "/" + CACHE_FILEPATH;
+    }
+
+    /**
+     * Serialize the matchGraph to a JSONObject for disk caching.
+     */
+    public static JSONObject cacheToJSONObject() {
+        JSONObject root = new JSONObject();
+        root.put("timestamp", System.currentTimeMillis());
+        JSONObject entries = new JSONObject();
+        for (ConcurrentHashMap.Entry<String, EncounterLite> entry : matchGraph.entrySet()) {
+            entries.put(entry.getKey(), entry.getValue().toJSONObject());
+        }
+        root.put("matchGraph", entries);
+        root.put("count", matchGraph.size());
+        return root;
+    }
+
+    /**
+     * Write the matchGraph cache to disk as JSON.
+     */
+    public static void cacheWrite(String filepath) throws IOException {
+        long t = System.currentTimeMillis();
+        System.out.println("INFO: GridManager.cacheWrite() writing to " + filepath);
+        Util.writeToFile(cacheToJSONObject().toString(), filepath);
+        System.out.println("INFO: GridManager.cacheWrite() complete with " + matchGraph.size() +
+            " entries in " + (System.currentTimeMillis() - t) + "ms");
+    }
+
+    /**
+     * Read the matchGraph cache from disk JSON.
+     * Returns true if the cache was loaded successfully, false otherwise.
+     */
+    public static boolean cacheRead(String filepath) throws IOException {
+        long t = System.currentTimeMillis();
+        matchGraphReady = false;
+        String content = Util.readFromFile(filepath);
+        JSONObject root = Util.stringToJSONObject(content);
+        if (root == null) {
+            System.out.println("ERROR: GridManager.cacheRead() could not parse " + filepath);
+            return false;
+        }
+        System.out.println("INFO: GridManager.cacheRead() from " + filepath +
+            " timestamp=" + root.optLong("timestamp"));
+
+        JSONObject entries = root.optJSONObject("matchGraph");
+        if (entries == null || entries.length() < 1) {
+            System.out.println("ERROR: GridManager.cacheRead() empty matchGraph in " + filepath);
+            return false;
+        }
+
+        matchGraph = new ConcurrentHashMap<String, EncounterLite>(entries.length());
+        Iterator<String> keys = entries.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            JSONObject elJson = entries.optJSONObject(key);
+            if (elJson == null) continue;
+            EncounterLite el = EncounterLite.fromJSONObject(elJson);
+            matchGraph.put(key, el);
+        }
+        resetPatternCounts();
+        matchGraphReady = true;
+        System.out.println("INFO: GridManager.cacheRead() complete with " + matchGraph.size() +
+            " entries in " + (System.currentTimeMillis() - t) + "ms");
+        return true;
     }
 }
