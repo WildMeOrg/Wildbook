@@ -222,6 +222,7 @@ public class LocationID {
     }
 
     public static boolean isValidLocationID(String locationID, String qualifier) {
+        if (Util.stringIsEmptyOrNull(locationID)) return false;
         JSONObject j = recurseToFindID(locationID, getLocationIDStructure(qualifier));
         return (j != null);
     }
@@ -229,8 +230,12 @@ public class LocationID {
     public static String getPrefixForLocationID(String locationID, String qualifier) { // now a wrapper method
         if (locationID == null) return ""; // "" here for improved cosmetics on front end?
         String locPrefix = "";
-        if (findPrefix(getLocationIDStructure(qualifier), locationID, null) != null) {
-            locPrefix = findPrefix(getLocationIDStructure(qualifier), locationID, null);
+        try {
+            if (findPrefix(getLocationIDStructure(qualifier), locationID, null) != null) {
+                locPrefix = findPrefix(getLocationIDStructure(qualifier), locationID, null);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
         return locPrefix;
     }
@@ -239,8 +244,12 @@ public class LocationID {
         if (locationID == null) return 3;
         int digitPadding = 3;
         if (findPrefixPadding(getLocationIDStructure(qualifier), locationID, null) != null) {
-            digitPadding = Integer.parseInt(findPrefixPadding(getLocationIDStructure(qualifier),
-                locationID, null));
+            try {
+                digitPadding = Integer.parseInt(findPrefixPadding(getLocationIDStructure(qualifier),
+                    locationID, null));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
         return digitPadding;
     }
