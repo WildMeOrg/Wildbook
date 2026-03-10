@@ -45,6 +45,19 @@ class UtilTest {
         assertTrue(Util.dateIsInFuture(year + 1, month, day));
     }
 
+    @Test void testHumanApprox() {
+        Long ms = 1003L;
+        assertEquals("1 second", Util.millisToHumanApprox(ms));
+        ms = 21100L;
+        assertEquals("21 seconds", Util.millisToHumanApprox(ms));
+        ms = 120333L;
+        assertEquals("2 minutes", Util.millisToHumanApprox(ms));
+        ms = 11L * 60L * 60L * 1000L;
+        assertEquals("11 hours", Util.millisToHumanApprox(ms));
+        ms = 191L * 24L * 60L * 60L * 1000L;
+        assertEquals("191 days", Util.millisToHumanApprox(ms));
+    }
+
     // some of these assertions may fail if the world collapses
     // into political chaos
     @Test void testCountries() {

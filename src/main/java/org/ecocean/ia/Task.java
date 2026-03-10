@@ -24,6 +24,7 @@ import org.json.JSONObject;
 import org.ecocean.identity.IdentityServiceLog;
 
 public class Task implements java.io.Serializable {
+    public static long TIMEOUT_INACTIVE_MILLIS = 7l * 24l * 60l * 60l * 1000l;
     private String id = null;
     private long created = -1;
     private long modified = -1;
@@ -64,6 +65,24 @@ public class Task implements java.io.Serializable {
 
     public long getModifiedLong() {
         return modified;
+    }
+
+    public long timeInactive() {
+        long now = System.currentTimeMillis();
+        if (modified > 0) return (now - modified);
+        if (created > 0) return (now - created);
+        // weird or inconclusive:
+        return -1l;
+    }
+
+    public boolean timedOutDueToInactivity() {
+        return (timeInactive() > TIMEOUT_INACTIVE_MILLIS);
+    }
+
+    public boolean statusInEndState() {
+        if ("completed".equals(status)) return true;
+        if ("error".equals(status)) return true;
+        return false;
     }
 
     public void setModified() {
@@ -344,17 +363,17 @@ public class Task implements java.io.Serializable {
         JSONObject add = new JSONObject();
         add.put("code", code);
         add.put("message", message);
-        setStatusAddToSection("errors", add);
+        setStatusDetailsAddToSection("errors", add);
     }
 
     public void setStatusDetailsAddLog(String message) {
         JSONObject add = new JSONObject();
         add.put("message", message);
-        setStatusAddToSection("log", add);
+        setStatusDetailsAddToSection("log", add);
     }
 
     // internal utility method for above
-    private void setStatusAddToSection(String section, JSONObject add) {
+    private void setStatusDetailsAddToSection(String section, JSONObject add) {
         if (add == null) return;
         add.put("timestamp", System.currentTimeMillis());
         JSONObject sd = getStatusDetails();
@@ -544,9 +563,19 @@ public class Task implements java.io.Serializable {
     }
 
     public String getStatus(Shepherd myShepherd) {
+        // see if we might be dead in the water
+        if (!statusInEndState() && timedOutDueToInactivity()) {
+            this.status = "error";
+            long ti = timeInactive();
+            setStatusDetailsAddError("TIMEOUT", "this task is likely timed out; no activity for " + Util.millisToHumanApprox(ti));
+            return status;
+        }
+
         // if status is not null, just send it
         if (status != null) return status;
+
         // otherwise
+        // note: this is LOCAL status :(  so it is not changing this.status, only returning the value
         String status = "waiting to queue";
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(getId(), "IBEISIA",
             myShepherd);
@@ -742,6 +771,7 @@ public class Task implements java.io.Serializable {
         rtn.put("parentTaskId", getParentId());
         rtn.put("dateCreated", Util.millisToISO8601String(getCreatedLong()));
         rtn.put("dateCompleted", Util.millisToISO8601String(getCompletionDateInMilliseconds()));
+        rtn.put("timeInactiveMillis", timeInactive());
         // TODO theory is that we might not need to use/store queryAnnotation on MatchResult as
         // we should have it here, hence this debugging value ... possible optimization for later
         if (hasObjectAnnotations()) {
