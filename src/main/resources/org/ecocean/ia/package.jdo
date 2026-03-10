@@ -32,6 +32,10 @@ alter table "TASK" alter column "PARAMETERS" type text;
 			<field name="status" persistence-modifier="persistent">
         		<column jdbc-type="LONGVARCHAR"/>
       		</field>
+
+      		<field name="statusDetails" persistence-modifier="persistent">
+        		<column jdbc-type="LONGVARCHAR"/>
+      		</field>
 			
 			<field name="queueResumeMessage" persistence-modifier="persistent">
         		<column jdbc-type="LONGVARCHAR"/>
