@@ -289,7 +289,7 @@ public class Embedding implements java.io.Serializable {
                 System.out.println("findMatchProspects() cannot getMatches() on " + ann +
                     " due to no suitable embeddings for " + iaConfig);
                 subTask.setStatus("error");
-                // FIXME subTask.setStatusDetailsAddError("REQUIRED", "no suitable embeddings for getMatches()");
+                subTask.setStatusDetailsAddError("REQUIRED", "no suitable embeddings for getMatches()");
                 subTask.setCompletionDateInMilliseconds();
                 myShepherd.getPM().makePersistent(subTask);
                 continue; // on to next ann
