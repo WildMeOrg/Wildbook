@@ -5,18 +5,11 @@ const collectProspects = (node, type, result = []) => {
   const methodName = node.method?.name ?? node.method?.description;
   const methodDescription = node.method?.description ?? null;
 
-  const hasMatchResults = !!node.matchResults;
   const prospects = node.matchResults?.prospects?.[type];
 
   const safeProspects = Array.isArray(prospects)
     ? prospects.filter((p) => p && typeof p === "object")
     : [];
-
-  const hasAnyProspects =
-    (Array.isArray(node.matchResults?.prospects?.annot) &&
-      node.matchResults.prospects.annot.length > 0) ||
-    (Array.isArray(node.matchResults?.prospects?.indiv) &&
-      node.matchResults.prospects.indiv.length > 0);
 
   const taskStatusOverall = node.statusOverall ?? null;
   const nodeIsTerminal = isTerminalStatus(taskStatusOverall);
@@ -69,10 +62,7 @@ const collectProspects = (node, type, result = []) => {
           ...common,
         })),
       );
-    } else if (
-      nodeIsStillRunning ||
-      (hasMatchResults && !hasAnyProspects && nodeIsTerminal)
-    ) {
+    } else if (nodeIsStillRunning || nodeIsTerminal) {
       result.push(common);
     }
   }
