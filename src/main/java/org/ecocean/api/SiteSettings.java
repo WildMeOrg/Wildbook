@@ -265,6 +265,10 @@ public class SiteSettings extends ApiBase {
                 Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncounters",
                     context))
                 );
+                
+            settings.put("showHowToPhotograph",
+                Util.booleanNotFalse(CommonConfiguration.getProperty("showHowToPhotograph", context))
+                );
 
             Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",
                 context);
