@@ -806,5 +806,6 @@
   "OR_CHOOSE_FROM_RESULTS_BELOW": "o scegli dai risultati qui sotto",
   "NO_MATCH_RESULT": "L’analisi dell’immagine è terminata e non è stata trovata alcuna corrispondenza.",
   "NO_MATCH_RESULTS_AVAILABLE": "Nessun risultato di corrispondenza disponibile al momento. Il lavoro potrebbe essere ancora in elaborazione, oppure potrebbero non esserci dati. Aggiorna la pagina per controllare di nuovo.",
-  "RESULTS_PER_PAGE": "Risultati per pagina"
+  "RESULTS_PER_PAGE": "Risultati per pagina",
+  "MATCH_RESULTS_PROCESSING_FAILED": "L'elaborazione dei risultati di corrispondenza non è riuscita."
 }
