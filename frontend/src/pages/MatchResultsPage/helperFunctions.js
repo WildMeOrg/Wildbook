@@ -2,6 +2,7 @@ const collectProspects = (node, type, result = []) => {
   if (!node) return result;
 
   const hasMethod = !!node.method;
+  const taskCreated = !!node.statusOverall || hasMethod || !!node.dateCreated;
   const methodName = node.method?.name ?? node.method?.description;
   const methodDescription = node.method?.description ?? null;
 
@@ -15,11 +16,11 @@ const collectProspects = (node, type, result = []) => {
   const nodeIsTerminal = isTerminalStatus(taskStatusOverall);
   const nodeIsStillRunning = !!taskStatusOverall && !nodeIsTerminal;
 
-  if (hasMethod) {
+  if (taskCreated) {
     const common = {
       algorithm: methodName,
       date: node.dateCreated,
-      numberCandidates: node.matchResults?.numberCandidates || 0,
+      numberCandidates: node.matchResults?.numberCandidates || "-",
       queryEncounterId:
         node.matchResults?.queryAnnotation?.encounter?.id || null,
       encounterLocationId:

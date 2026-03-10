@@ -1796,6 +1796,7 @@ public class IBEISIA {
             // set "error" on Task
             Task task = myShepherd.getTask(taskID);
             if (task != null) {
+                task.setStatusDetailsAddError("INVALID", "could not parse inference_dict from results");
                 task.setStatus("error");
             }
             myShepherd.rollbackDBTransaction();
