@@ -717,6 +717,15 @@ public class Util {
         return sdf.format(new Date());
     }
 
+    public static String millisToHumanApprox(Long millis) {
+        if (millis == null) return "unknown";
+        if (millis < 2000L) return "1 second";
+        if (millis < 60000L) return Math.round(millis / 1000L) + " seconds";
+        if (millis < 60L * 60L * 1000L) return Math.round(millis / (60L * 1000L)) + " minutes";
+        if (millis < 24L * 60L * 60L * 1000L) return Math.round(millis / (60L * 60L * 1000L)) + " hours";
+        return Math.round(millis / (24L * 60L * 60L * 1000L)) + " days";
+    }
+
     public static String millisToISO8601String(Long millis) {
         if (millis == null) return null;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
