@@ -34,6 +34,8 @@ public class Task implements java.io.Serializable {
     private List<Task> children = null;
     private String parameters = null;
     private String status;
+    // general use, but notably will contain error details when status=error
+    private String statusDetails = null;
     private Long completionDateInMilliseconds;
     private String queueResumeMessage;
 
@@ -314,8 +316,48 @@ public class Task implements java.io.Serializable {
         return cts;
     }
 
+    public JSONObject getStatusDetails() {
+        return Util.stringToJSONObject(statusDetails);
+    }
+
+    public void setStatusDetails(String s) {
+        statusDetails = s;
+    }
+
+    public void setStatusDetails(JSONObject j) {
+        if (j == null) {
+            statusDetails = null;
+        } else {
+            statusDetails = j.toString();
+        }
+    }
+
+    public void setStatusDetailsAddError(String code, String message) {
+        JSONObject add = new JSONObject();
+        add.put("code", code);
+        add.put("message", message);
+        setStatusAddToSection("errors", add);
+    }
+
+    public void setStatusDetailsAddLog(String message) {
+        JSONObject add = new JSONObject();
+        add.put("message", message);
+        setStatusAddToSection("log", add);
+    }
+
+    // internal utility method for above
+    private void setStatusAddToSection(String section, JSONObject add) {
+        if (add == null) return;
+        add.put("timestamp", System.currentTimeMillis());
+        JSONObject sd = getStatusDetails();
+        if (sd == null) sd = new JSONObject();
+        if (sd.optJSONArray(section) == null) sd.put(section, new JSONArray());
+        sd.getJSONArray(section).put(add);
+        setStatusDetails(sd);
+    }
+
+    
     public JSONObject getParameters() { // only return as JSONObject!
-        if (parameters == null) return null;
         return Util.stringToJSONObject(parameters);
     }
 
@@ -736,6 +778,7 @@ public class Task implements java.io.Serializable {
             // unsure which of these two things is more accurate or useful; thus including both
             rtn.put("status", getStatus(myShepherd));
             rtn.put("statusOverall", getOverallStatus(myShepherd));
+            rtn.put("statusDetails", getStatusDetails());
         }
         return rtn;
     }
