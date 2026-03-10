@@ -205,7 +205,9 @@ function expandOperations(operations) {
 
     if (op.path === "taxonomy" && op.value) {
       const s = String(op.value).trim();
-      const [genus = "", specificEpithet = ""] = s.split(/\s+/, 2);
+      const i = s.indexOf(" ");
+      const genus = i === -1 ? s : s.substring(0, i);
+      const specificEpithet = i === -1 ? "" : s.substring(i + 1).trim();
       out.push({ op: "replace", path: "genus", value: genus });
       out.push({
         op: "replace",
