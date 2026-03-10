@@ -156,7 +156,10 @@ public class MLService {
             System.out.println("MLService.processQueueJob() threw " + iaex + " with jobData=" +
                 jobData);
             iaex.printStackTrace();
-            if (task != null) task.setStatus("error");
+            if (task != null) {
+                task.setStatus("error");
+                // FIXME task.setStatusDetailsAddError("UNKNOWN", "MLService job: " + iaex);
+            }
             if (iaex.shouldRequeue()) {
                 requeueJob(jobData, iaex.shouldIncrement());
             } else {
