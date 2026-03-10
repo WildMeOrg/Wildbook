@@ -544,76 +544,78 @@ const MatchProspectTable = ({
       </div>
 
       <Row data-testid={`match-prospect-images-${sectionId}`}>
-        <Col
-          md={6}
-          className="mb-3 mb-md-0"
-          style={{ position: "relative" }}
-          data-testid={`match-prospect-left-col-${sectionId}`}
-        >
-          <div
-            style={styles.matchImageCard}
-            data-testid={`match-prospect-left-card-${sectionId}`}
+        {leftImageUrl && (
+          <Col
+            md={6}
+            className="mb-3 mb-md-0"
+            style={{ position: "relative" }}
+            data-testid={`match-prospect-left-col-${sectionId}`}
           >
             <div
-              style={styles.cornerLabel(themeColor)}
-              data-testid={`match-prospect-left-label-${sectionId}`}
+              style={styles.matchImageCard}
+              data-testid={`match-prospect-left-card-${sectionId}`}
             >
-              <FormattedMessage id="THIS_ENCOUNTER" />
-            </div>
-            <div
-              style={styles.imageContainer}
-              data-testid={`match-prospect-left-overlay-wrap-${sectionId}`}
-            >
-              <InteractiveAnnotationOverlay
-                ref={leftOverlayRef}
-                imageUrl={leftImageUrl}
-                originalWidth={leftOrigW}
-                originalHeight={leftOrigH}
-                annotations={leftAnnotations}
-                rotationInfo={leftRotationInfo}
-              />
-            </div>
-          </div>
-
-          <div
-            style={styles.toolsBarLeft}
-            data-testid={`match-prospect-left-toolbar-${sectionId}`}
-          >
-            <div
-              onClick={() => leftOverlayRef.current?.zoomIn?.()}
-              style={styles.iconButton}
-              title="Zoom In"
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  leftOverlayRef.current?.zoomIn?.();
-                }
-              }}
-              id={`match-prospect-left-zoom-in-${sectionId}`}
-              data-testid={`match-prospect-left-zoom-in-${sectionId}`}
-            >
-              <ZoomInIcon />
+              <div
+                style={styles.cornerLabel(themeColor)}
+                data-testid={`match-prospect-left-label-${sectionId}`}
+              >
+                <FormattedMessage id="THIS_ENCOUNTER" />
+              </div>
+              <div
+                style={styles.imageContainer}
+                data-testid={`match-prospect-left-overlay-wrap-${sectionId}`}
+              >
+                <InteractiveAnnotationOverlay
+                  ref={leftOverlayRef}
+                  imageUrl={leftImageUrl}
+                  originalWidth={leftOrigW}
+                  originalHeight={leftOrigH}
+                  annotations={leftAnnotations}
+                  rotationInfo={leftRotationInfo}
+                />
+              </div>
             </div>
 
             <div
-              onClick={() => leftOverlayRef.current?.zoomOut?.()}
-              style={styles.iconButton}
-              title="Zoom Out"
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  leftOverlayRef.current?.zoomOut?.();
-                }
-              }}
-              id={`match-prospect-left-zoom-out-${sectionId}`}
-              data-testid={`match-prospect-left-zoom-out-${sectionId}`}
+              style={styles.toolsBarLeft}
+              data-testid={`match-prospect-left-toolbar-${sectionId}`}
             >
-              <ZoomOutIcon />
+              <div
+                onClick={() => leftOverlayRef.current?.zoomIn?.()}
+                style={styles.iconButton}
+                title="Zoom In"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    leftOverlayRef.current?.zoomIn?.();
+                  }
+                }}
+                id={`match-prospect-left-zoom-in-${sectionId}`}
+                data-testid={`match-prospect-left-zoom-in-${sectionId}`}
+              >
+                <ZoomInIcon />
+              </div>
+
+              <div
+                onClick={() => leftOverlayRef.current?.zoomOut?.()}
+                style={styles.iconButton}
+                title="Zoom Out"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    leftOverlayRef.current?.zoomOut?.();
+                  }
+                }}
+                id={`match-prospect-left-zoom-out-${sectionId}`}
+                data-testid={`match-prospect-left-zoom-out-${sectionId}`}
+              >
+                <ZoomOutIcon />
+              </div>
             </div>
-          </div>
-        </Col>
+          </Col>
+        )}
 
         {hasProspects && (
           <Col

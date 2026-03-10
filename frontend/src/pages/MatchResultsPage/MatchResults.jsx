@@ -15,7 +15,6 @@ import FilterIcon from "./icons/FilterIcon";
 import MatchCriteriaDrawer from "./components/MatchCriteriaDrawer";
 import MultiSelectWithCheckbox from "../../components/MultiSelectWithCheckbox";
 import ContainerWithSpinner from "../../components/ContainerWithSpinner";
-import { Spinner } from "react-bootstrap";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
@@ -84,10 +83,8 @@ const MatchResults = observer(() => {
   if (store.loading) {
     return <FullScreenLoader data-testid="match-results-loader" />;
   }
-  const showErrorState = !store.hasResults && store.taskHasError;
-  const showRunningState = !store.hasResults && store.taskStillRunning;
-  const showEmptyState =
-    !store.hasResults && !store.taskHasError && !store.taskStillRunning;
+
+  const showEmptyState = !store.hasDisplaySections;
 
   return (
     <Container
@@ -348,38 +345,7 @@ const MatchResults = observer(() => {
       </div>
 
       <div id="match-results-content" data-testid="match-results-content">
-        {showErrorState ? (
-          <p
-            className="mt-3 text-danger"
-            id="match-results-error"
-            data-testid="match-results-error"
-          >
-            <FormattedMessage
-              id="MATCH_RESULTS_PROCESSING_FAILED"
-              defaultMessage="Match results processing failed."
-            />
-          </p>
-        ) : showRunningState ? (
-          <div
-            className="mt-3"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <FormattedMessage
-              id="MATCH_RESULTS_STILL_PROCESSING"
-              defaultMessage="Match results are still being processed."
-            />
-            <Spinner
-              animation="border"
-              size="sm"
-              role="status"
-              aria-label="Loading match results"
-            />
-          </div>
-        ) : showEmptyState ? (
+        {showEmptyState ? (
           <p
             className="mt-3"
             id="match-results-empty"
@@ -388,17 +354,6 @@ const MatchResults = observer(() => {
             <FormattedMessage
               id="NO_MATCH_RESULT"
               defaultMessage="No match results available."
-            />
-          </p>
-        ) : store.currentViewData.length === 0 ? (
-          <p
-            className="mt-3"
-            id="match-results-viewmode-empty"
-            data-testid="match-results-viewmode-empty"
-          >
-            <FormattedMessage
-              id="NO_RESULTS_FOR_SELECTED_VIEW"
-              defaultMessage="No results available for this view."
             />
           </p>
         ) : (

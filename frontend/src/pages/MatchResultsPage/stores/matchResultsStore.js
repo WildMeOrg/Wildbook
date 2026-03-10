@@ -191,7 +191,7 @@ export default class MatchResultsStore {
         taskId,
         columns,
         metadata: {
-          numCandidates: first.numberCandidates,
+          numCandidates: first.numberCandidates || "-",
           date: first.date,
           queryImageUrl:
             first.queryEncounterImageAsset?.url || first.queryEncounterImageUrl,
@@ -275,6 +275,10 @@ export default class MatchResultsStore {
 
   get shouldPoll() {
     return !!this._taskId && this._taskStillRunning;
+  }
+
+  get hasDisplaySections() {
+    return this.currentViewData.length > 0;
   }
 
   get encounterId() {
