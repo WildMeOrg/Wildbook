@@ -109,6 +109,7 @@ const EncounterSearch = observer(() => {
       if (encounter?.access === "none") {
         rawOffset++;
         assetOffset = 0;
+        store.setAssetOffset(0);
         continue;
       }
 
