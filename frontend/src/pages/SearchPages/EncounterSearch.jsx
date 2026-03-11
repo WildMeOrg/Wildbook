@@ -91,39 +91,59 @@ const EncounterSearch = observer(() => {
 
   const pg = async () => {
     const response = await refetchMediaAssets();
-    const fetchedData = response?.data?.data?.hits || [];
-    if (!fetchedData || !fetchedData.length) {
+    const rawHits = response?.data?.data?.hits || [];
+
+    if (!rawHits.length) {
       store.setCurrentPageItems([]);
       return;
     }
-    let offset = 0;
-    let contents = [];
 
-    if (fetchedData[offset].mediaAssets.length <= store.assetOffset) {
-      store.setAssetOffset(0);
-    }
+    let rawOffset = 0;
+    let assetOffset = store.assetOffset;
+    let checkedInitialBounds = false;
+    const contents = [];
 
-    while (contents.length < store.pageSize && offset < fetchedData.length) {
-      if (fetchedData[offset].mediaAssets.length > store.assetOffset) {
-        const encounter = fetchedData[offset];
-        const data = encounter.mediaAssets[store.assetOffset];
-        data.__k = `${encounter.id}-${store.assetOffset}-${data.uuid ?? data.id ?? ""}`;
-        data.encounterId = encounter.id;
-        data.individualId = encounter.individualId;
-        data.date = encounter.date;
-        data.individualDisplayName = encounter.individualDisplayName;
-        data.verbatimDate = encounter.verbatimDate;
-        contents.push(data);
-        const newOffset = store.assetOffset + 1;
-        store.setAssetOffset(newOffset);
+    while (contents.length < store.pageSize && rawOffset < rawHits.length) {
+      const encounter = rawHits[rawOffset];
+
+      if (encounter?.access === "none") {
+        rawOffset++;
+        assetOffset = 0;
+        store.setAssetOffset(0);
+        continue;
+      }
+
+      const mediaAssets = encounter?.mediaAssets || [];
+
+      if (!checkedInitialBounds) {
+        if (mediaAssets.length <= assetOffset) {
+          assetOffset = 0;
+          store.setAssetOffset(0);
+        }
+        checkedInitialBounds = true;
+      }
+
+      if (mediaAssets.length > assetOffset) {
+        const rawAsset = mediaAssets[assetOffset];
+        rawAsset.__k = `${encounter.id}-${assetOffset}-${rawAsset.uuid ?? rawAsset.id ?? ""}`;
+        rawAsset.encounterId = encounter.id;
+        rawAsset.individualId = encounter.individualId;
+        rawAsset.date = encounter.date;
+        rawAsset.individualDisplayName = encounter.individualDisplayName;
+        rawAsset.verbatimDate = encounter.verbatimDate;
+
+        contents.push(rawAsset);
+        assetOffset++;
+        store.setAssetOffset(assetOffset);
       } else {
-        offset++;
+        rawOffset++;
+        assetOffset = 0;
         store.setAssetOffset(0);
       }
     }
+
     store.setCurrentPageItems(contents);
-    const start = store.start + offset;
-    store.setStart(start);
+    store.setStart(store.start + rawOffset);
   };
 
   const encounters = queryID ? searchData || [] : encounterData?.results || [];
