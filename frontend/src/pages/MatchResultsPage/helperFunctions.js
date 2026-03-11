@@ -54,6 +54,7 @@ const collectProspects = (node, type, result = []) => {
       taskStatus: node.status ?? null,
       taskStatusOverall,
       hasResults: safeProspects.length > 0,
+      errors: node.statusDetails?.errors || null,
     };
 
     if (safeProspects.length > 0) {

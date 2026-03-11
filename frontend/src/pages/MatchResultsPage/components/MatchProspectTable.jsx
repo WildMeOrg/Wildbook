@@ -185,6 +185,7 @@ const MatchProspectTable = ({
   methodName,
   methodDescription,
   taskStatusOverall,
+  errors,
 }) => {
   const intl = useIntl();
   const matchesBasedOnText = intl.formatMessage({ id: "MATCHED_BASED_ON" });
@@ -522,22 +523,51 @@ const MatchProspectTable = ({
                 />
               </div>
             ) : isError ? (
-              <p
-                className="text-danger"
+              <div
+                className="alert alert-danger mt-3 mb-0"
+                role="alert"
                 data-testid={`match-prospect-error-${sectionId}`}
               >
-                <FormattedMessage
-                  id="MATCH_RESULTS_PROCESSING_FAILED"
-                  defaultMessage="Match results processing failed."
-                />
-              </p>
+                <div className="fw-semibold mb-1">
+                  <FormattedMessage
+                    id="MATCH_RESULTS_PROCESSING_FAILED"
+                    defaultMessage="Match results processing failed."
+                  />
+                </div>
+
+                {Array.isArray(errors) && errors.length > 0 && (
+                  <>
+                    <div className="small mb-1">
+                      <FormattedMessage
+                        id="AN_ERROR_OCCURRED"
+                        defaultMessage="An error occurred"
+                      />
+                    </div>
+
+                    <ul className="mb-0 ps-3">
+                      {errors.map((err, index) => (
+                        <li key={`${err?.code || "unknown"}-${index}`}>
+                          <FormattedMessage
+                            id={`MATCH_RESULTS_ERROR_${err?.code}`}
+                            defaultMessage="Unknown error"
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
             ) : (
-              <p data-testid={`match-prospect-empty-${sectionId}`}>
+              <div
+                className="alert alert-light mt-3 mb-0"
+                role="status"
+                data-testid={`match-prospect-empty-${sectionId}`}
+              >
                 <FormattedMessage
                   id="NO_MATCH_RESULT"
                   defaultMessage="No match results available."
                 />
-              </p>
+              </div>
             )}
           </div>
         )}

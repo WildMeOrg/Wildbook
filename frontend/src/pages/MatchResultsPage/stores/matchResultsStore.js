@@ -202,6 +202,7 @@ export default class MatchResultsStore {
           taskStatus: first.taskStatus,
           taskStatusOverall: first.taskStatusOverall,
           algorithm: first.algorithm,
+          errors: first.errors || null,
         },
       });
     }

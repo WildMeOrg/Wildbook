@@ -774,5 +774,9 @@
   "NO_MATCH_RESULT": "Die Bildanalyse ist abgeschlossen und es wurde keine Übereinstimmung gefunden.",
   "NO_MATCH_RESULTS_AVAILABLE": "Noch keine Übereinstimmungsergebnisse verfügbar. Der Job wird möglicherweise noch verarbeitet, oder es liegen keine Daten vor. Bitte aktualisieren Sie die Seite, um es erneut zu überprüfen.",
   "RESULTS_PER_PAGE": "Ergebnisse pro Seite",
-  "MATCH_RESULTS_PROCESSING_FAILED": "Die Verarbeitung der Übereinstimmungsergebnisse ist fehlgeschlagen."
+  "MATCH_RESULTS_PROCESSING_FAILED": "Die Verarbeitung der Übereinstimmungsergebnisse ist fehlgeschlagen.",
+  "MATCH_RESULTS_ERROR_REQUIRED": "Fehlende oder unzureichende Daten",
+  "MATCH_RESULTS_ERROR_INVALID": "Ungültige Ergebnisse",
+  "MATCH_RESULTS_ERROR_UNKNOWN": "Unbekannter Fehler",
+  "MATCH_RESULTS_ERROR_TIMEOUT": "Die Aufgabe hat das Zeitlimit überschritten"
 }

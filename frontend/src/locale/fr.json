@@ -773,5 +773,9 @@
   "NO_MATCH_RESULT": "L’analyse d’image est terminée et aucune correspondance n’a été trouvée.",
   "NO_MATCH_RESULTS_AVAILABLE": "Aucun résultat de correspondance disponible pour le moment. Le travail peut encore être en cours, ou il se peut qu'il n'y ait pas de données. Veuillez actualiser la page pour vérifier à nouveau.",
   "RESULTS_PER_PAGE": "Résultats par page",
-  "MATCH_RESULTS_PROCESSING_FAILED": "Le traitement des résultats de correspondance a échoué."
+  "MATCH_RESULTS_PROCESSING_FAILED": "Le traitement des résultats de correspondance a échoué.",
+  "MATCH_RESULTS_ERROR_REQUIRED": "Données manquantes ou insuffisantes",
+  "MATCH_RESULTS_ERROR_INVALID": "Résultats non valides",
+  "MATCH_RESULTS_ERROR_UNKNOWN": "Erreur inconnue",
+  "MATCH_RESULTS_ERROR_TIMEOUT": "La tâche a dépassé le délai imparti"
 }
