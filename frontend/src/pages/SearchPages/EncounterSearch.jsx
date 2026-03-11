@@ -102,7 +102,14 @@ const EncounterSearch = observer(() => {
     let assetOffset = store.assetOffset;
     const contents = [];
 
-    if ((rawHits[rawOffset]?.mediaAssets?.length || 0) <= assetOffset) {
+    const firstAccessibleEncounter = rawHits.find(
+      (encounter) => encounter?.access !== "none",
+    );
+
+    if (
+      firstAccessibleEncounter &&
+      (firstAccessibleEncounter.mediaAssets?.length || 0) <= assetOffset
+    ) {
       assetOffset = 0;
       store.setAssetOffset(0);
     }
@@ -113,25 +120,21 @@ const EncounterSearch = observer(() => {
       if (encounter?.access === "none") {
         rawOffset++;
         assetOffset = 0;
-        store.setAssetOffset(0);
         continue;
       }
 
       const mediaAssets = encounter?.mediaAssets || [];
 
       if (mediaAssets.length > assetOffset) {
-        const rawAsset = mediaAssets[assetOffset];
-        const data = {
-          ...rawAsset,
-          __k: `${encounter.id}-${assetOffset}-${rawAsset.uuid ?? rawAsset.id ?? ""}`,
-          encounterId: encounter.id,
-          individualId: encounter.individualId,
-          date: encounter.date,
-          individualDisplayName: encounter.individualDisplayName,
-          verbatimDate: encounter.verbatimDate,
-        };
-
+        const data = mediaAssets[assetOffset];
+        data.__k = `${encounter.id}-${assetOffset}-${data.uuid ?? data.id ?? ""}`;
+        data.encounterId = encounter.id;
+        data.individualId = encounter.individualId;
+        data.date = encounter.date;
+        data.individualDisplayName = encounter.individualDisplayName;
+        data.verbatimDate = encounter.verbatimDate;
         contents.push(data);
+
         assetOffset++;
         store.setAssetOffset(assetOffset);
       } else {
