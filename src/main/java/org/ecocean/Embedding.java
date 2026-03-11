@@ -35,7 +35,7 @@ public class Embedding implements java.io.Serializable {
     private long created;
 
     // for trying to query vectors of annots without embeddings
-    public static int BACKGROUND_SLICE_SIZE = 10;
+    public static int BACKGROUND_BATCH_SIZE = 50;
     public static int BACKGROUND_MINUTES = 30;
 
     public Embedding() {}
@@ -206,7 +206,8 @@ public class Embedding implements java.io.Serializable {
     }
 
     // returns final annot id
-    public static JSONObject catchUpEmbeddings(Shepherd myShepherd, String startId) {
+    public static JSONObject catchUpEmbeddings(Shepherd myShepherd, String startId, int batchSize) {
+        if (batchSize < 1) batchSize = BACKGROUND_BATCH_SIZE;
         JSONObject embData = SystemValue.getJSONObject(myShepherd, "EMBEDDING_CATCHUP");
 
         if (embData == null) embData = new JSONObject();
@@ -214,13 +215,12 @@ public class Embedding implements java.io.Serializable {
         // note: passing zero-uuid will effectively override to start over
         // TODO prevent duplicate runs by perhaps locking wity SystemValue like indexing
         if (startId == null) startId = embData.optString("_lastId", null);
-        System.out.println("catchUpEmbeddings: beginning at " + startId + "; slice size=" +
-            BACKGROUND_SLICE_SIZE);
+        System.out.println("catchUpEmbeddings: beginning at " + startId + "; batch size=" + batchSize);
 
         String sql =
             "select \"ANNOTATION\".\"ID\" as \"ID\" from \"ANNOTATION\" left join \"EMBEDDING\" on (\"ANNOTATION\".\"ID\" = \"ANNOTATION_ID\") where \"VECTORFLOATARRAY\" is null";
         if (startId != null) sql += " AND \"ANNOTATION\".\"ID\" > '" + startId + "'";
-        sql += " order by \"ANNOTATION\".\"ID\" limit " + BACKGROUND_SLICE_SIZE;
+        sql += " order by \"ANNOTATION\".\"ID\" limit " + batchSize;
         Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         q.setClass(Annotation.class);
         Collection c = (Collection)q.execute();
