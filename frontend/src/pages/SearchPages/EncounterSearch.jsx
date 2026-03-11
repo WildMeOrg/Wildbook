@@ -91,39 +91,51 @@ const EncounterSearch = observer(() => {
 
   const pg = async () => {
     const response = await refetchMediaAssets();
-    const fetchedData = response?.data?.data?.hits || [];
-    if (!fetchedData || !fetchedData.length) {
+    const rawHits = response?.data?.data?.hits || [];
+
+    const accessibleHits = rawHits.filter(
+      (encounter) => encounter?.access !== "none",
+    );
+
+    if (!accessibleHits.length) {
       store.setCurrentPageItems([]);
       return;
     }
+
     let offset = 0;
     let contents = [];
 
-    if (fetchedData[offset].mediaAssets.length <= store.assetOffset) {
+    if (
+      (accessibleHits[offset]?.mediaAssets?.length || 0) <= store.assetOffset
+    ) {
       store.setAssetOffset(0);
     }
 
-    while (contents.length < store.pageSize && offset < fetchedData.length) {
-      if (fetchedData[offset].mediaAssets.length > store.assetOffset) {
-        const encounter = fetchedData[offset];
-        const data = encounter.mediaAssets[store.assetOffset];
-        data.__k = `${encounter.id}-${store.assetOffset}-${data.uuid ?? data.id ?? ""}`;
-        data.encounterId = encounter.id;
-        data.individualId = encounter.individualId;
-        data.date = encounter.date;
-        data.individualDisplayName = encounter.individualDisplayName;
-        data.verbatimDate = encounter.verbatimDate;
+    while (contents.length < store.pageSize && offset < accessibleHits.length) {
+      const encounter = accessibleHits[offset];
+      const mediaAssets = encounter?.mediaAssets || [];
+
+      if (mediaAssets.length > store.assetOffset) {
+        const rawAsset = mediaAssets[store.assetOffset];
+        const data = {
+          ...rawAsset,
+          __k: `${encounter.id}-${store.assetOffset}-${rawAsset.uuid ?? rawAsset.id ?? ""}`,
+          encounterId: encounter.id,
+          individualId: encounter.individualId,
+          date: encounter.date,
+          individualDisplayName: encounter.individualDisplayName,
+          verbatimDate: encounter.verbatimDate,
+        };
         contents.push(data);
-        const newOffset = store.assetOffset + 1;
-        store.setAssetOffset(newOffset);
+        store.setAssetOffset(store.assetOffset + 1);
       } else {
         offset++;
         store.setAssetOffset(0);
       }
     }
+
     store.setCurrentPageItems(contents);
-    const start = store.start + offset;
-    store.setStart(start);
+    store.setStart(store.start + offset);
   };
 
   const encounters = queryID ? searchData || [] : encounterData?.results || [];
