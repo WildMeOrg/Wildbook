@@ -556,11 +556,12 @@ public class Task implements java.io.Serializable {
 
     public String getStatus(Shepherd myShepherd) {
         // see if we might be dead in the water
-        if (!statusInEndState() && timedOutDueToInactivity()) {
+        // TODO skipping status==null cuz i cant figure out what this means and there are so many of them
+        if (!statusInEndState() && timedOutDueToInactivity() && !(this.status == null)) {
             this.status = "error";
             long ti = timeInactive();
             setStatusDetailsAddError("TIMEOUT", "this task is likely timed out; no activity for " + Util.millisToHumanApprox(ti));
-            return status;
+            return this.status;
         }
 
         // if status is not null, just send it
