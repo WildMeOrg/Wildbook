@@ -806,5 +806,9 @@
   "NO_MATCH_RESULT": "El análisis de imagen ha finalizado y no se encontró ninguna coincidencia.",
   "NO_MATCH_RESULTS_AVAILABLE": "No hay resultados de coincidencias disponibles aún. El trabajo puede estar todavía en proceso, o puede que no haya datos. Por favor, actualice la página para comprobar de nuevo.",
   "RESULTS_PER_PAGE": "Resultados por página",
-  "MATCH_RESULTS_PROCESSING_FAILED": "El procesamiento de los resultados de coincidencia falló."
+  "MATCH_RESULTS_PROCESSING_FAILED": "El procesamiento de los resultados de coincidencia falló.",
+  "MATCH_RESULTS_ERROR_REQUIRED": "Faltan datos o los datos son insuficientes",
+  "MATCH_RESULTS_ERROR_INVALID": "Resultados no válidos",
+  "MATCH_RESULTS_ERROR_UNKNOWN": "Error desconocido",
+  "MATCH_RESULTS_ERROR_TIMEOUT": "La tarea ha superado el tiempo límite"
 }
