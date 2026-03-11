@@ -100,19 +100,8 @@ const EncounterSearch = observer(() => {
 
     let rawOffset = 0;
     let assetOffset = store.assetOffset;
+    let checkedInitialBounds = false;
     const contents = [];
-
-    const firstAccessibleEncounter = rawHits.find(
-      (encounter) => encounter?.access !== "none",
-    );
-
-    if (
-      firstAccessibleEncounter &&
-      (firstAccessibleEncounter.mediaAssets?.length || 0) <= assetOffset
-    ) {
-      assetOffset = 0;
-      store.setAssetOffset(0);
-    }
 
     while (contents.length < store.pageSize && rawOffset < rawHits.length) {
       const encounter = rawHits[rawOffset];
@@ -125,16 +114,24 @@ const EncounterSearch = observer(() => {
 
       const mediaAssets = encounter?.mediaAssets || [];
 
-      if (mediaAssets.length > assetOffset) {
-        const data = mediaAssets[assetOffset];
-        data.__k = `${encounter.id}-${assetOffset}-${data.uuid ?? data.id ?? ""}`;
-        data.encounterId = encounter.id;
-        data.individualId = encounter.individualId;
-        data.date = encounter.date;
-        data.individualDisplayName = encounter.individualDisplayName;
-        data.verbatimDate = encounter.verbatimDate;
-        contents.push(data);
+      if (!checkedInitialBounds) {
+        if (mediaAssets.length <= assetOffset) {
+          assetOffset = 0;
+          store.setAssetOffset(0);
+        }
+        checkedInitialBounds = true;
+      }
 
+      if (mediaAssets.length > assetOffset) {
+        const rawAsset = mediaAssets[assetOffset];
+        rawAsset.__k = `${encounter.id}-${assetOffset}-${rawAsset.uuid ?? rawAsset.id ?? ""}`;
+        rawAsset.encounterId = encounter.id;
+        rawAsset.individualId = encounter.individualId;
+        rawAsset.date = encounter.date;
+        rawAsset.individualDisplayName = encounter.individualDisplayName;
+        rawAsset.verbatimDate = encounter.verbatimDate;
+
+        contents.push(rawAsset);
         assetOffset++;
         store.setAssetOffset(assetOffset);
       } else {
