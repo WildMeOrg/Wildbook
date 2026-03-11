@@ -93,49 +93,56 @@ const EncounterSearch = observer(() => {
     const response = await refetchMediaAssets();
     const rawHits = response?.data?.data?.hits || [];
 
-    const accessibleHits = rawHits.filter(
-      (encounter) => encounter?.access !== "none",
-    );
-
-    if (!accessibleHits.length) {
+    if (!rawHits.length) {
       store.setCurrentPageItems([]);
       return;
     }
 
-    let offset = 0;
-    let contents = [];
+    let rawOffset = 0;
+    let assetOffset = store.assetOffset;
+    const contents = [];
 
-    if (
-      (accessibleHits[offset]?.mediaAssets?.length || 0) <= store.assetOffset
-    ) {
+    if ((rawHits[rawOffset]?.mediaAssets?.length || 0) <= assetOffset) {
+      assetOffset = 0;
       store.setAssetOffset(0);
     }
 
-    while (contents.length < store.pageSize && offset < accessibleHits.length) {
-      const encounter = accessibleHits[offset];
+    while (contents.length < store.pageSize && rawOffset < rawHits.length) {
+      const encounter = rawHits[rawOffset];
+
+      if (encounter?.access === "none") {
+        rawOffset++;
+        assetOffset = 0;
+        store.setAssetOffset(0);
+        continue;
+      }
+
       const mediaAssets = encounter?.mediaAssets || [];
 
-      if (mediaAssets.length > store.assetOffset) {
-        const rawAsset = mediaAssets[store.assetOffset];
+      if (mediaAssets.length > assetOffset) {
+        const rawAsset = mediaAssets[assetOffset];
         const data = {
           ...rawAsset,
-          __k: `${encounter.id}-${store.assetOffset}-${rawAsset.uuid ?? rawAsset.id ?? ""}`,
+          __k: `${encounter.id}-${assetOffset}-${rawAsset.uuid ?? rawAsset.id ?? ""}`,
           encounterId: encounter.id,
           individualId: encounter.individualId,
           date: encounter.date,
           individualDisplayName: encounter.individualDisplayName,
           verbatimDate: encounter.verbatimDate,
         };
+
         contents.push(data);
-        store.setAssetOffset(store.assetOffset + 1);
+        assetOffset++;
+        store.setAssetOffset(assetOffset);
       } else {
-        offset++;
+        rawOffset++;
+        assetOffset = 0;
         store.setAssetOffset(0);
       }
     }
 
     store.setCurrentPageItems(contents);
-    store.setStart(store.start + offset);
+    store.setStart(store.start + rawOffset);
   };
 
   const encounters = queryID ? searchData || [] : encounterData?.results || [];
