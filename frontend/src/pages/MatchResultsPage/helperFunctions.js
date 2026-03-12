@@ -14,9 +14,7 @@ const collectProspects = (node, type, result = []) => {
 
   const numberCandidatesRaw = node.matchResults?.numberCandidates;
   const numberCandidates =
-    typeof numberCandidatesRaw === "number"
-      ? numberCandidatesRaw
-      : Number(numberCandidatesRaw) || 0;
+    typeof numberCandidatesRaw === "number" ? numberCandidatesRaw : "-";
 
   let emptyStateType = null;
 
