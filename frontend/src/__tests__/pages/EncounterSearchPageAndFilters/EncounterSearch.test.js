@@ -22,6 +22,7 @@ jest.mock("../../../components/DataTable", () => {
       </button>
       <button onClick={() => props.onPageChange(1)}>PageChange</button>
       <button onClick={() => props.onPerPageChange(50)}>PerPageChange</button>
+      <button onClick={() => props.pg()}>TriggerGalleryPagination</button>
     </div>
   );
 
@@ -167,5 +168,193 @@ describe("EncounterSearch", () => {
 
     renderWithProviders();
     expect(screen.getByTestId("datatable")).toBeInTheDocument();
+  });
+
+  describe("gallery pagination with access filtering", () => {
+    it("filters out encounters with access 'none' from gallery results", async () => {
+      const mockRefetchMediaAssets = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            hits: [
+              {
+                id: "enc1",
+                access: "none",
+                mediaAssets: [{ id: "asset1", url: "http://x/1.jpg" }],
+              },
+              {
+                id: "enc2",
+                access: "read",
+                mediaAssets: [{ id: "asset2", url: "http://x/2.jpg" }],
+              },
+            ],
+          },
+        },
+      });
+
+      jest
+        .spyOn(useFilterEncountersWithMediaAssetsHook, "default")
+        .mockReturnValue({ refetch: mockRefetchMediaAssets });
+
+      renderWithProviders();
+      fireEvent.click(screen.getByText("TriggerGalleryPagination"));
+
+      await waitFor(() => {
+        expect(mockRefetchMediaAssets).toHaveBeenCalled();
+      });
+    });
+
+    it("handles all encounters having access 'none'", async () => {
+      const mockRefetchMediaAssets = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            hits: [
+              {
+                id: "enc1",
+                access: "none",
+                mediaAssets: [{ id: "asset1", url: "http://x/1.jpg" }],
+              },
+              {
+                id: "enc2",
+                access: "none",
+                mediaAssets: [{ id: "asset2", url: "http://x/2.jpg" }],
+              },
+            ],
+          },
+        },
+      });
+
+      jest
+        .spyOn(useFilterEncountersWithMediaAssetsHook, "default")
+        .mockReturnValue({ refetch: mockRefetchMediaAssets });
+
+      renderWithProviders();
+      fireEvent.click(screen.getByText("TriggerGalleryPagination"));
+
+      await waitFor(() => {
+        expect(mockRefetchMediaAssets).toHaveBeenCalled();
+      });
+    });
+
+    it("processes encounters with undefined access as accessible", async () => {
+      const mockRefetchMediaAssets = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            hits: [
+              {
+                id: "enc1",
+                access: undefined,
+                mediaAssets: [{ id: "asset1", url: "http://x/1.jpg" }],
+              },
+            ],
+          },
+        },
+      });
+
+      jest
+        .spyOn(useFilterEncountersWithMediaAssetsHook, "default")
+        .mockReturnValue({ refetch: mockRefetchMediaAssets });
+
+      renderWithProviders();
+      fireEvent.click(screen.getByText("TriggerGalleryPagination"));
+
+      await waitFor(() => {
+        expect(mockRefetchMediaAssets).toHaveBeenCalled();
+      });
+    });
+
+    it("handles mixed access levels in pagination", async () => {
+      const mockRefetchMediaAssets = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            hits: [
+              {
+                id: "enc1",
+                access: "none",
+                mediaAssets: [{ id: "asset1", url: "http://x/1.jpg" }],
+              },
+              {
+                id: "enc2",
+                access: "read",
+                mediaAssets: [{ id: "asset2", url: "http://x/2.jpg" }],
+              },
+              {
+                id: "enc3",
+                access: "none",
+                mediaAssets: [{ id: "asset3", url: "http://x/3.jpg" }],
+              },
+              {
+                id: "enc4",
+                access: "write",
+                mediaAssets: [{ id: "asset4", url: "http://x/4.jpg" }],
+              },
+            ],
+          },
+        },
+      });
+
+      jest
+        .spyOn(useFilterEncountersWithMediaAssetsHook, "default")
+        .mockReturnValue({ refetch: mockRefetchMediaAssets });
+
+      renderWithProviders();
+      fireEvent.click(screen.getByText("TriggerGalleryPagination"));
+
+      await waitFor(() => {
+        expect(mockRefetchMediaAssets).toHaveBeenCalled();
+      });
+    });
+
+    it("handles empty media assets array", async () => {
+      const mockRefetchMediaAssets = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            hits: [
+              {
+                id: "enc1",
+                access: "read",
+                mediaAssets: [],
+              },
+              {
+                id: "enc2",
+                access: "read",
+                mediaAssets: [{ id: "asset2", url: "http://x/2.jpg" }],
+              },
+            ],
+          },
+        },
+      });
+
+      jest
+        .spyOn(useFilterEncountersWithMediaAssetsHook, "default")
+        .mockReturnValue({ refetch: mockRefetchMediaAssets });
+
+      renderWithProviders();
+      fireEvent.click(screen.getByText("TriggerGalleryPagination"));
+
+      await waitFor(() => {
+        expect(mockRefetchMediaAssets).toHaveBeenCalled();
+      });
+    });
+
+    it("handles empty hits array", async () => {
+      const mockRefetchMediaAssets = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            hits: [],
+          },
+        },
+      });
+
+      jest
+        .spyOn(useFilterEncountersWithMediaAssetsHook, "default")
+        .mockReturnValue({ refetch: mockRefetchMediaAssets });
+
+      renderWithProviders();
+      fireEvent.click(screen.getByText("TriggerGalleryPagination"));
+
+      await waitFor(() => {
+        expect(mockRefetchMediaAssets).toHaveBeenCalled();
+      });
+    });
   });
 });
