@@ -115,11 +115,23 @@ export const IdentifySectionEdit = observer(({ store }) => {
                   value: suggestedId,
                   label: suggestedId,
                 };
+
                 store.setIndividualOptions([
                   newOption,
                   ...(store.individualOptions || []),
                 ]);
-                store.setFieldValue("identify", "individualId", suggestedId);
+
+                store.setHasSuggestedId(true);
+                console.log(JSON.stringify(store.hasSuggestedId));
+                if (store.hasSuggestedId) {
+                  store.setFieldValue("identify", "individualId", suggestedId);
+                  store.setFieldValue("identify", "individualId_suggested", {
+                    type: "locationId",
+                    value: store.getFieldValue("location", "locationName"),
+                  });
+                } else {
+                  store.setFieldValue("identify", "individualId", suggestedId);
+                }
               }}
             >
               <FormattedMessage id="USE_THIS" />
