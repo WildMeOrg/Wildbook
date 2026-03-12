@@ -1,5 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
+import { toast } from "react-toastify";
 import { MAX_ROWS_PER_COLUMN } from "../constants";
 import {
   getAllAnnot,
@@ -15,6 +16,7 @@ export default class MatchResultsStore {
   _annotResults = [];
   _indivResults = [];
   _encounterLocationId = "";
+  _useNextIndividualName = false;
   _statusOverall = "";
   _matchingSetFilter = {};
   _individualId = null;
@@ -187,6 +189,7 @@ export default class MatchResultsStore {
         ) ||
         sorted[0] ||
         {};
+
       sections.push({
         taskId,
         columns,
@@ -207,16 +210,15 @@ export default class MatchResultsStore {
         },
       });
     }
+
     return sections;
   }
 
   clearResults() {
     this._annotResults = [];
     this._indivResults = [];
-
     this._rawAnnots = [];
     this._rawIndivs = [];
-
     this._encounterId = null;
     this._encounterLocationId = "";
     this._matchingSetFilter = {};
@@ -380,6 +382,7 @@ export default class MatchResultsStore {
 
   async fetchMatchResults({ silent = false } = {}) {
     if (!this._taskId) return;
+
     const params = new URLSearchParams();
     params.set("prospectsSize", String(this.numResults));
 
@@ -401,6 +404,7 @@ export default class MatchResultsStore {
       } catch (e) {
         console.error(e);
         this.clearResults();
+        toast.error("Failed to load match results");
       } finally {
         this.setLoading(false);
       }
@@ -412,7 +416,6 @@ export default class MatchResultsStore {
         const root = result?.data?.matchResultsRoot;
 
         const stillRunning = isMatchTaskStillRunning(root);
-
         const annLen = (getAllAnnot(root) || []).length;
         const indLen = (getAllIndiv(root) || []).length;
         const hasAnyResults = annLen > 0 || indLen > 0;
@@ -420,6 +423,7 @@ export default class MatchResultsStore {
         if (stillRunning && !hasAnyResults) {
           return;
         }
+
         this.loadData(result?.data);
       } catch (e) {
         console.error(e);
@@ -460,7 +464,8 @@ export default class MatchResultsStore {
     }
   }
 
-  setNewIndividualName(name) {
+  setNewIndividualName(name, useNextName = false) {
+    this._useNextIndividualName = useNextName;
     this._newIndividualName = name;
   }
 
@@ -470,8 +475,10 @@ export default class MatchResultsStore {
 
     try {
       const newName = (this._newIndividualName || "").trim();
+
       if (!newName) {
         this._matchRequestError = "ENTER_INDIVIDUAL_NAME";
+        toast.error("Please enter a new individual name");
         return { ok: false, error: "ENTER_INDIVIDUAL_NAME" };
       }
 
@@ -483,9 +490,28 @@ export default class MatchResultsStore {
         ),
       );
 
-      const patchOps = [
-        { op: "replace", path: "individualId", value: newName },
-      ];
+      if (encounterIds.length === 0) {
+        this._matchRequestError = "NO_ENCOUNTERS_TO_UPDATE";
+        toast.error("No encounters to update");
+        return { ok: false, error: "NO_ENCOUNTERS_TO_UPDATE" };
+      }
+
+      let patchOps = [];
+
+      if (this._useNextIndividualName) {
+        patchOps = [
+          {
+            op: "replace",
+            path: "individualId",
+            value: {
+              type: "locationId",
+              value: this._encounterLocationId,
+            },
+          },
+        ];
+      } else {
+        patchOps = [{ op: "replace", path: "individualId", value: newName }];
+      }
 
       if (selectedRemark && selectedRemark.trim() !== "") {
         patchOps.push({
@@ -509,10 +535,12 @@ export default class MatchResultsStore {
       }
 
       this.resetSelectionToQuery();
+      toast.success("New individual created successfully!");
       return { ok: true };
     } catch (e) {
       console.error(e);
       this._matchRequestError = "CREATE_NEW_INDIVIDUAL_FAILED";
+      toast.error("Failed to create new individual");
       return { ok: false, error: "CREATE_NEW_INDIVIDUAL_FAILED" };
     } finally {
       this._matchRequestLoading = false;
@@ -571,6 +599,7 @@ export default class MatchResultsStore {
 
       if (uniqueIndividuals.length !== 1) {
         this._matchRequestError = "MATCH_REQUIRES_SINGLE_INDIVIDUAL";
+        toast.error("Please select exactly one target individual");
         return null;
       }
 
@@ -599,11 +628,14 @@ export default class MatchResultsStore {
       const res = await axios.get(url, {
         headers: { Accept: "application/json" },
       });
+
       this.resetSelectionToQuery();
+      toast.success("Match confirmed successfully!");
       return res.data;
     } catch (e) {
       console.error(e);
       this._matchRequestError = "MATCH_FAILED";
+      toast.error("Failed to confirm match");
       return null;
     } finally {
       this._matchRequestLoading = false;
@@ -624,6 +656,7 @@ export default class MatchResultsStore {
 
       if (uniqueIndividuals.length !== 2) {
         this._matchRequestError = "MERGE_REQUIRES_TWO_INDIVIDUALS";
+        toast.error("Please select exactly two individuals to merge");
         return null;
       }
 
@@ -647,10 +680,12 @@ export default class MatchResultsStore {
       window.open(url, "_blank");
 
       this.resetSelectionToQuery();
+      toast.success("Merge page opened successfully!");
       return { ok: true };
     } catch (e) {
       console.error(e);
       this._matchRequestError = "MERGE_FAILED";
+      toast.error("Failed to start merge");
       return null;
     } finally {
       this._matchRequestLoading = false;

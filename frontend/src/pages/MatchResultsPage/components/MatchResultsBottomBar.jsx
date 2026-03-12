@@ -47,8 +47,6 @@ const MatchResultsBottomBar = observer(
       if (result?.ok) {
         setShowCreateModal(false);
         setShowSuccessModal(true);
-      } else {
-        console.error("Failed to create new individual:", result?.error);
       }
     };
 
@@ -73,9 +71,11 @@ const MatchResultsBottomBar = observer(
       if (result) {
         setMatchConfirmedData(modalData);
         setShowMatchConfirmedModal(true);
-      } else {
-        console.error("Match failed");
       }
+    };
+
+    const handleMerge = async () => {
+      await store.handleMerge();
     };
 
     const getActionContent = () => {
@@ -319,7 +319,7 @@ const MatchResultsBottomBar = observer(
                 color="white"
                 backgroundColor={themeColor.primaryColors.primary700}
                 noArrow
-                onClick={store.handleMerge}
+                onClick={handleMerge}
                 disabled={store.matchRequestLoading}
                 style={{ marginTop: 0, marginBottom: 0 }}
                 id="match-bottombar-merge-individuals"

@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal, Form, Button, Spinner } from "react-bootstrap";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
+import { toast } from "react-toastify";
 
 const CreateNewIndividualModal = ({
   show,
@@ -14,6 +15,7 @@ const CreateNewIndividualModal = ({
   identificationRemarks = [],
   locationId = "",
 }) => {
+  const intl = useIntl();
   const [selectedRemark, setSelectedRemark] = React.useState("");
   const [suggestedId, setSuggestedId] = React.useState(null);
   const [loadingSuggestedId, setLoadingSuggestedId] = React.useState(false);
@@ -21,6 +23,7 @@ const CreateNewIndividualModal = ({
   React.useEffect(() => {
     if (show && locationId) {
       setLoadingSuggestedId(true);
+
       fetch(
         `/api/v3/individuals/info/next_name?locationId=${encodeURIComponent(locationId)}`,
       )
@@ -29,9 +32,14 @@ const CreateNewIndividualModal = ({
           return res.json();
         })
         .then((data) => {
-          if (data.success && data.results && data.results.length > 0) {
-            const successfulResult = data.results.find((r) => r.success);
-            console.log("successfulResult", JSON.stringify(successfulResult));
+          if (
+            data.success === true &&
+            data.results &&
+            data.results.length > 0
+          ) {
+            const successfulResult = data.results.find(
+              (r) => r.success === true,
+            );
             if (successfulResult && successfulResult.nextName) {
               setSuggestedId(successfulResult.nextName);
             } else {
@@ -44,6 +52,12 @@ const CreateNewIndividualModal = ({
         .catch((err) => {
           console.error("Failed to fetch suggested ID:", err);
           setSuggestedId(null);
+          toast.error(
+            intl.formatMessage({
+              id: "LOAD_SUGGESTED_ID_FAILED",
+              defaultMessage: "Failed to load suggested ID",
+            }),
+          );
         })
         .finally(() => {
           setLoadingSuggestedId(false);
@@ -60,6 +74,16 @@ const CreateNewIndividualModal = ({
 
   const handleConfirm = () => {
     onConfirm(selectedRemark);
+  };
+
+  const handleUseSuggestedId = () => {
+    onNameChange(suggestedId.toString(), true);
+    toast.success(
+      intl.formatMessage({
+        id: "SUGGESTED_ID_APPLIED",
+        defaultMessage: "Suggested ID applied",
+      }),
+    );
   };
 
   return (
@@ -170,7 +194,7 @@ const CreateNewIndividualModal = ({
               data-testid="create-new-individual-id-input"
               type="text"
               value={newIndividualName}
-              onChange={(e) => onNameChange(e.target.value)}
+              onChange={(e) => onNameChange(e.target.value, false)}
               placeholder="Enter name"
             />
           </Form.Group>
@@ -217,7 +241,7 @@ const CreateNewIndividualModal = ({
                     variant="link"
                     size="sm"
                     style={{ color: themeColor.primaryColors.primary500 }}
-                    onClick={() => onNameChange(suggestedId.toString())}
+                    onClick={handleUseSuggestedId}
                   >
                     <FormattedMessage id="USE_THIS" defaultMessage="Use This" />
                   </Button>
