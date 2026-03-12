@@ -1840,10 +1840,12 @@ public class IBEISIA {
                 MatchResult mr = new MatchResult(task, j, myShepherd);
                 System.out.println("processCallbackIdentify() created " + mr + " on " + task);
                 myShepherd.getPM().makePersistent(mr);
+                task.setStatusDetailsAddLog("Created " + mr + " upon task completion");
             } catch (IOException ex) {
                 System.out.println("processCallbackIdentify() failed to create MatchResult on " +
                     task + ": " + ex);
                 ex.printStackTrace();
+                task.setStatusDetailsAddError("UNKNOWN", "Creation of MatchResult upon task completion failed due to: " + ex);
             }
         }
         myShepherd.commitDBTransaction();

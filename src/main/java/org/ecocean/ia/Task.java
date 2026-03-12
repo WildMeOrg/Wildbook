@@ -744,10 +744,12 @@ public class Task implements java.io.Serializable {
                         log.getTimestamp() + "] on Task " + this.getId() + " generated: " + mr);
                     myShepherd.getPM().makePersistent(mr);
                     mrs.add(mr);
+                    setStatusDetailsAddLog("Created " + mr + " from IdentityServiceLog " + log.getTimestamp());
                 } catch (java.io.IOException ex) {
                     System.out.println("[ERROR] generateMatchResults() [log t=" +
                         log.getTimestamp() + "] on Task " + this.getId() + " failed: " + ex);
                     ex.printStackTrace();
+                    setStatusDetailsAddError("UNKNOWN", "Creation of MatchResult from IdentityServiceLog " + log.getTimestamp() + " failed due to: " + ex);
                 }
             }
         }
