@@ -6,10 +6,22 @@ import { FormattedMessage } from "react-intl";
 export const IdentifySectionReview = observer(({ store }) => {
   return (
     <div>
-      <AttributesAndValueComponent
-        attributeId="IDENTIFIED_AS"
-        value={store.getFieldValue("identify", "individualDisplayName")}
-      />
+      <div className="mb-2 d-flex align-items-baseline gap-1">
+        <h6 className="mb-0 me-1">
+          <FormattedMessage id="IDENTIFIED_AS" />
+          {":"}
+        </h6>
+        {!!store.getFieldValue("identify", "individualDisplayName") && (
+          <a
+            href={`/individuals.jsp?id=${store.getFieldValue("identify", "individualId")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-decoration-none"
+          >
+            {store.getFieldValue("identify", "individualDisplayName")}
+          </a>
+        )}
+      </div>
       <AttributesAndValueComponent
         attributeId="MATCHED_BY"
         value={store.getFieldValue("identify", "identificationRemarks")}
