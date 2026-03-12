@@ -773,7 +773,7 @@ function showTaskResult(res, taskId) {
 				else if (algoInfo == 'Hybrid') {
                     algoDesc = 'MiewID In-Depth Matcher';
                 }
-				else if (algoInfo == 'Lightglue') {
+				else if (algoInfo == 'LightGlue') {
                     algoDesc = 'Lightglue Feature Matcher';
                 }
                 algoDesc = '<span title="' + algoInfo + '">'+algoDesc+'</span>';
