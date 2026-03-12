@@ -770,6 +770,12 @@ function showTaskResult(res, taskId) {
 				else if (algoInfo == 'PieTwoHotSpotter') {
                     algoDesc = 'Pattern (ensemble of PIE v2 and HotSpotter)';
                 }
+				else if (algoInfo == 'Hybrid') {
+                    algoDesc = 'MiewID In-Depth Matcher';
+                }
+				else if (algoInfo == 'Lightglue') {
+                    algoDesc = 'Lightglue Feature Matcher';
+                }
                 algoDesc = '<span title="' + algoInfo + '">'+algoDesc+'</span>';
 
 console.log('algoDesc %o %s %s', res.status._response.response.json_result.query_config_dict, algoInfo, algoDesc);
