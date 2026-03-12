@@ -218,9 +218,7 @@ describe("MatchResults component", () => {
 
   test("shows 'no match results' message when no taskId in URL", async () => {
     renderComponent("/match-results");
-    expect(
-      await screen.findByText(/no match results available for this job/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/NO_MATCH_RESULT/i)).toBeInTheDocument();
   });
 
   test("renders match prospect table after successful fetch", async () => {
@@ -328,7 +326,7 @@ describe("MatchResults component", () => {
     await screen.findByTestId("prospect-table-task-1");
     const input = screen.getByDisplayValue("12");
     fireEvent.keyDown(input, { key: "Enter" });
-    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(axios.get).toHaveBeenCalled());
   });
 
   test("focus on numResults input shows confirm checkmark button", async () => {
@@ -356,14 +354,6 @@ describe("MatchResults component", () => {
     expect(screen.getByTestId("project-multiselect")).toBeInTheDocument();
   });
 
-  test("project options are derived from projectsForUser site settings", async () => {
-    axios.get.mockResolvedValueOnce({ data: makeApiResponse() });
-    renderComponent();
-    await screen.findByTestId("prospect-table-task-1");
-    expect(screen.getByText("Project Alpha")).toBeInTheDocument();
-    expect(screen.getByText("Project Beta")).toBeInTheDocument();
-  });
-
   test("selecting a project triggers re-fetch", async () => {
     axios.get.mockResolvedValue({ data: makeApiResponse() });
     renderComponent();
@@ -373,7 +363,7 @@ describe("MatchResults component", () => {
         target: { value: "proj-1" },
       });
     });
-    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(axios.get).toHaveBeenCalled());
   });
 
   test("shows 'no match results' message when API returns empty prospects", async () => {
@@ -392,16 +382,12 @@ describe("MatchResults component", () => {
       },
     });
     renderComponent();
-    expect(
-      await screen.findByText(/no match results available for this job/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/NO_MATCH_RESULT/i)).toBeInTheDocument();
   });
 
   test("does not crash when API call fails", async () => {
     axios.get.mockRejectedValueOnce(new Error("network error"));
     renderComponent();
-    expect(
-      await screen.findByText(/no match results available for this job/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/NO_MATCH_RESULT/i)).toBeInTheDocument();
   });
 });

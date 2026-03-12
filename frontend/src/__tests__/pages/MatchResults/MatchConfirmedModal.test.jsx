@@ -7,9 +7,15 @@ const themeColor = {
   primaryColors: { primary500: "#00ACCE" },
 };
 
+const messages = {
+  MATCH_CONFIRMED: "MATCH_CONFIRMED",
+  YOU_MERGED_N_ENCOUNTERS: "You merged {count} encounters",
+  CLOSE: "CLOSE",
+};
+
 const renderModal = (props = {}) =>
   render(
-    <IntlProvider locale="en" messages={{}}>
+    <IntlProvider locale="en" messages={messages}>
       <MatchConfirmedModal
         show={true}
         onHide={jest.fn()}
@@ -42,7 +48,7 @@ describe("MatchConfirmedModal", () => {
 
   test("shows merge message when encounterCount > 0", () => {
     renderModal({ encounterCount: 3 });
-    expect(screen.getByText(/YOU_MERGED_N_ENCOUNTERS/)).toBeInTheDocument();
+    expect(screen.getByText(/YOU_MERGED/)).toBeInTheDocument();
     // No encounter link in merged case
     expect(screen.queryByText("enc-123")).not.toBeInTheDocument();
   });
@@ -52,7 +58,7 @@ describe("MatchConfirmedModal", () => {
     expect(screen.getByText("ind-999")).toBeInTheDocument();
   });
 
-  test("Close button calls onHide and reloads page", () => {
+  test("CLOSE button calls onHide and reloads page", () => {
     const onHide = jest.fn();
     const reload = jest.fn();
     Object.defineProperty(window, "location", {
