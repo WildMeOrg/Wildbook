@@ -164,8 +164,7 @@ public class Annotation extends Base implements java.io.Serializable {
         // https://docs.opensearch.org/docs/latest/vector-search/creating-vector-index/
         embVect.put("type", "knn_vector");
         embVect.put("dimension", Embedding.getVectorDimension());
-        embVect.put("space_type", "l2");
-        // etc...... TODO
+        embVect.put("space_type", "cosinesimil");
         embProps.put("vector", embVect);
         embMap.put("properties", embProps);
         map.put("embeddings", embMap);
