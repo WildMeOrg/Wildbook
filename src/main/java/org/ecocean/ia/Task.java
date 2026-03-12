@@ -779,15 +779,22 @@ public class Task implements java.io.Serializable {
         if (methodInfo != null) {
             rtn.put("method", methodInfo);
             rtn.put("matchingSetFilter", getMatchingSetFilter());
-            // we only care about (and importantly try to generate) MatchResults for ident type too
+/*
+            1. we only care about (and importantly try to generate) MatchResults for ident type *with no children*
+               (as there may be non-leaf nodes with methodInfo)
+               * note: we try getting it regardless of children ("just in case"); but only try to generate if none
+            2. getLatestMatchResult() and generateMatchResults() only pertain to log-based (wbia) results,
+               as vector results should have generated their MatchResult upon completion
+*/
             MatchResult mr = getLatestMatchResult(myShepherd);
-            if (mr == null) {
+            if ((mr == null) && !hasChildren()) {
                 System.out.println(
-                    "[DEBUG] matchResultsJson() found no MatchResults; generating on Task " + this.getId());
+                    "[DEBUG] matchResultsJson() found no MatchResults; generating on (leaf) Task " + this.getId());
                 List<MatchResult> mrs = generateMatchResults(myShepherd);
                 rtn.put("_generatedMatchResultsSize", mrs.size()); // leave a clue that we did the work!
                 if (mrs.size() > 0) {
                     mr = mrs.get(mrs.size() - 1);
+                    // this hack is important cuz it forces a db commit even though we are a GET api call sorrynotsorry
                     rtn.put("_commitShepherd", true);
                 }
             }
