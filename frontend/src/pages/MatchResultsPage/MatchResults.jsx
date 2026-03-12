@@ -380,6 +380,7 @@ const MatchResults = observer(() => {
                     methodDescription={metadata?.methodDescription}
                     taskStatus={metadata?.taskStatus}
                     taskStatusOverall={metadata?.taskStatusOverall}
+                    emptyStateType={metadata?.emptyStateType}
                     errors={metadata?.errors}
                     themeColor={themeColor}
                     columns={columns}

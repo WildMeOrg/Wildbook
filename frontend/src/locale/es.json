@@ -777,5 +777,7 @@
   "MATCH_RESULTS_ERROR_REQUIRED": "Faltan datos o los datos son insuficientes",
   "MATCH_RESULTS_ERROR_INVALID": "Resultados no válidos",
   "MATCH_RESULTS_ERROR_UNKNOWN": "Error desconocido",
-  "MATCH_RESULTS_ERROR_TIMEOUT": "La tarea ha superado el tiempo límite"
+  "MATCH_RESULTS_ERROR_TIMEOUT": "La tarea ha superado el tiempo límite",
+  "NO_MATCH_CANDIDATES": "Ningún candidato coincidió con los filtros aplicados. Intenta ajustarlos o considera que se trata de un individuo nuevo.",
+  "NO_MATCH_PROSPECTS": "No pudimos encontrar ninguna coincidencia con los filtros actuales. Intenta ajustarlos o considera que se trata de un individuo nuevo."
 }

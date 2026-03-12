@@ -778,5 +778,7 @@
   "MATCH_RESULTS_ERROR_REQUIRED": "Fehlende oder unzureichende Daten",
   "MATCH_RESULTS_ERROR_INVALID": "Ungültige Ergebnisse",
   "MATCH_RESULTS_ERROR_UNKNOWN": "Unbekannter Fehler",
-  "MATCH_RESULTS_ERROR_TIMEOUT": "Die Aufgabe hat das Zeitlimit überschritten"
+  "MATCH_RESULTS_ERROR_TIMEOUT": "Die Aufgabe hat das Zeitlimit überschritten",
+  "NO_MATCH_CANDIDATES": "Keine Kandidaten entsprachen den angewendeten Filtern. Bitte passe sie an oder betrachte dies als neues Individuum.",
+  "NO_MATCH_PROSPECTS": "Wir konnten mit den aktuellen Filtern keine Übereinstimmungen finden. Bitte passe sie an oder betrachte dies als neues Individuum."
 }

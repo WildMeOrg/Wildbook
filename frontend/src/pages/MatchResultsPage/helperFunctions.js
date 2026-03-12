@@ -12,6 +12,20 @@ const collectProspects = (node, type, result = []) => {
     ? prospects.filter((p) => p && typeof p === "object")
     : [];
 
+  const numberCandidatesRaw = node.matchResults?.numberCandidates;
+  const numberCandidates =
+    typeof numberCandidatesRaw === "number"
+      ? numberCandidatesRaw
+      : Number(numberCandidatesRaw) || 0;
+
+  let emptyStateType = null;
+
+  if (numberCandidates === 0) {
+    emptyStateType = "no_candidates";
+  } else if (numberCandidates > 0 && safeProspects.length === 0) {
+    emptyStateType = "no_prospects";
+  }
+
   const taskStatusOverall = node.statusOverall ?? null;
   const nodeIsTerminal = isTerminalStatus(taskStatusOverall);
   const nodeIsStillRunning = !!taskStatusOverall && !nodeIsTerminal;
@@ -20,7 +34,7 @@ const collectProspects = (node, type, result = []) => {
     const common = {
       algorithm: methodName,
       date: node.dateCreated,
-      numberCandidates: node.matchResults?.numberCandidates || "-",
+      numberCandidates: numberCandidatesRaw || "-",
       queryEncounterId:
         node.matchResults?.queryAnnotation?.encounter?.id || null,
       encounterLocationId:
@@ -54,6 +68,7 @@ const collectProspects = (node, type, result = []) => {
       taskStatus: node.status ?? null,
       taskStatusOverall,
       hasResults: safeProspects.length > 0,
+      emptyStateType,
       errors: node.statusDetails?.errors || null,
     };
 

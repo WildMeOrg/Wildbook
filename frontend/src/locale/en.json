@@ -739,7 +739,7 @@
     "ZOOM_OUT": "Zoom Out",
     "WILDBOOK_DOCUMENTATION": "Wildbook Documentation",
     "SET_MATCH_FOR": "Set match for",
-    "NO_FURTHER_ACTION_NEEDED": "No further action needed",    
+    "NO_FURTHER_ACTION_NEEDED": "No further action needed",
     "MARK_AS_NEW_INDIVIDUAL": "Mark As New Individual",
     "CONFIRM_MATCH": "Confirm Match",
     "MERGE_INDIVIDUALS": "Merge Individuals",
@@ -774,8 +774,10 @@
     "NO_MATCH_RESULTS_AVAILABLE": "No match results available yet. The job may still be processing, or there may be no data. Please refresh the page to check again.",
     "RESULTS_PER_PAGE": "Results per page",
     "MATCH_RESULTS_PROCESSING_FAILED": "Match results processing failed.",
-    "MATCH_RESULTS_ERROR_REQUIRED": "Missing or insufficient data", 
-    "MATCH_RESULTS_ERROR_INVALID": "Invalid results", 
-    "MATCH_RESULTS_ERROR_UNKNOWN": "Unknown error", 
-    "MATCH_RESULTS_ERROR_TIMEOUT" : "Task has timed out"    
+    "MATCH_RESULTS_ERROR_REQUIRED": "Missing or insufficient data",
+    "MATCH_RESULTS_ERROR_INVALID": "Invalid results",
+    "MATCH_RESULTS_ERROR_UNKNOWN": "Unknown error",
+    "MATCH_RESULTS_ERROR_TIMEOUT": "Task has timed out",
+    "NO_MATCH_CANDIDATES": "No candidates matched the applied filters. Please try adjusting them or consider this a new individual.",
+    "NO_MATCH_PROSPECTS": "We couldn't find any matches based on your current filters. Please try adjusting them or consider this a new individual."
 }
