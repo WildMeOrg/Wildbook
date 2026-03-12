@@ -174,7 +174,6 @@ const InteractiveAnnotationOverlay = forwardRef(
           width: "100%",
           overflow: "hidden",
           cursor: dragging ? "grabbing" : "grab",
-          minHeight: "100px",
           ...containerStyle,
         }}
         onMouseDown={onMouseDown}

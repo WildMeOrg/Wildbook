@@ -7,9 +7,16 @@ const themeColor = {
   primaryColors: { primary500: "#00ACCE" },
 };
 
+const messages = {
+  NEW_INDIVIDUAL_CREATED: "NEW_INDIVIDUAL_CREATED",
+  ASSIGNED_ENCOUNTER_AS_NEW_INDIVIDUAL: "ASSIGNED_ENCOUNTER_AS_NEW_INDIVIDUAL",
+  AS_NEW_INDIVIDUAL: "AS_NEW_INDIVIDUAL",
+  CLOSE: "CLOSE",
+};
+
 const renderModal = (props = {}) =>
   render(
-    <IntlProvider locale="en" messages={{}}>
+    <IntlProvider locale="en" messages={messages}>
       <NewIndividualCreatedModal
         show={true}
         onHide={jest.fn()}
@@ -46,7 +53,7 @@ describe("NewIndividualCreatedModal", () => {
     expect(screen.getByText(/Willy/)).toBeInTheDocument();
   });
 
-  test("CLOSE button calls onHide", () => {
+  test("Close button calls onHide", () => {
     const onHide = jest.fn();
     renderModal({ onHide });
     fireEvent.click(screen.getByText("CLOSE"));

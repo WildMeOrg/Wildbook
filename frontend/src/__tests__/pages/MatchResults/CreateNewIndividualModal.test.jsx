@@ -7,6 +7,12 @@ const themeColor = {
   primaryColors: { primary500: "#00ACCE" },
 };
 
+const messages = {
+  CREATE_NEW_INDIVIDUAL: "CREATE_NEW_INDIVIDUAL",
+  CANCEL: "CANCEL",
+  USE_THIS: "USE_THIS",
+};
+
 const defaultProps = {
   show: true,
   onHide: jest.fn(),
@@ -22,7 +28,7 @@ const defaultProps = {
 
 const renderModal = (props = {}) =>
   render(
-    <IntlProvider locale="en" messages={{}}>
+    <IntlProvider locale="en" messages={messages}>
       <CreateNewIndividualModal {...defaultProps} {...props} />
     </IntlProvider>,
   );
@@ -104,7 +110,7 @@ describe("CreateNewIndividualModal", () => {
     expect(onNameChange).toHaveBeenCalledWith("Luna");
   });
 
-  test("Cancel button calls onHide", () => {
+  test("CANCEL button calls onHide", () => {
     const onHide = jest.fn();
     renderModal({ onHide });
     fireEvent.click(screen.getByText("CANCEL"));
@@ -113,6 +119,7 @@ describe("CreateNewIndividualModal", () => {
 
   test("fetches suggested ID when show=true and locationId provided", async () => {
     globalThis.fetch = jest.fn().mockResolvedValueOnce({
+      ok: true,
       json: () =>
         Promise.resolve({
           success: true,
@@ -129,6 +136,7 @@ describe("CreateNewIndividualModal", () => {
 
   test("shows suggested ID and USE_THIS button after fetch", async () => {
     globalThis.fetch = jest.fn().mockResolvedValueOnce({
+      ok: true,
       json: () =>
         Promise.resolve({
           success: true,
@@ -142,6 +150,7 @@ describe("CreateNewIndividualModal", () => {
 
   test("clicking USE_THIS calls onNameChange with suggested ID", async () => {
     globalThis.fetch = jest.fn().mockResolvedValueOnce({
+      ok: true,
       json: () =>
         Promise.resolve({
           success: true,

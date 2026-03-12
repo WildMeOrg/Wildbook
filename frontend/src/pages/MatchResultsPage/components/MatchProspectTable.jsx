@@ -10,6 +10,7 @@ import { FormattedMessage, useIntl } from "react-intl";
 import InspectorModal from "./InspectorModal";
 import ExitFullScreenIcon from "../icons/ExitFullScreenIcon";
 import EncounterIcon from "../../../components/icons/EncounterIcon";
+import EmptyMatchPlaceholder from "./EmptyMatchPlaceholder";
 
 const styles = {
   matchRow: (selected, themeColor) => ({
@@ -185,6 +186,7 @@ const MatchProspectTable = ({
   methodName,
   methodDescription,
   taskStatusOverall,
+  emptyStateType,
   errors,
 }) => {
   const intl = useIntl();
@@ -274,8 +276,11 @@ const MatchProspectTable = ({
     previewedRow?.annotation?.asset?.attributes?.height;
 
   const leftImageUrl = thisEncounterImageUrl;
+  const hasLeftImage = Boolean(leftImageUrl);
+  const hasRightImage = Boolean(rightImageUrl);
 
   const openFullscreen = () => {
+    if (!hasRightImage) return;
     setFullscreenOpen(true);
   };
 
@@ -559,14 +564,26 @@ const MatchProspectTable = ({
               </div>
             ) : (
               <div
-                className="alert alert-light mt-3 mb-0"
-                role="status"
+                className="alert alert-danger mt-3 mb-0"
+                role="alert"
                 data-testid={`match-prospect-empty-${sectionId}`}
               >
-                <FormattedMessage
-                  id="NO_MATCH_RESULT"
-                  defaultMessage="No match results available."
-                />
+                {emptyStateType === "no_candidates" ? (
+                  <FormattedMessage
+                    id="NO_MATCH_CANDIDATES"
+                    defaultMessage="No candidates were available for matching."
+                  />
+                ) : emptyStateType === "no_prospects" ? (
+                  <FormattedMessage
+                    id="NO_MATCH_PROSPECTS"
+                    defaultMessage="Candidates were searched, but no match results were found."
+                  />
+                ) : (
+                  <FormattedMessage
+                    id="NO_MATCH_RESULT"
+                    defaultMessage="No match results available."
+                  />
+                )}
               </div>
             )}
           </div>
@@ -574,27 +591,27 @@ const MatchProspectTable = ({
       </div>
 
       <Row data-testid={`match-prospect-images-${sectionId}`}>
-        {leftImageUrl && (
-          <Col
-            md={6}
-            className="mb-3 mb-md-0"
-            style={{ position: "relative" }}
-            data-testid={`match-prospect-left-col-${sectionId}`}
+        <Col
+          md={6}
+          className="mb-3 mb-md-0"
+          style={{ position: "relative" }}
+          data-testid={`match-prospect-left-col-${sectionId}`}
+        >
+          <div
+            style={styles.matchImageCard}
+            data-testid={`match-prospect-left-card-${sectionId}`}
           >
             <div
-              style={styles.matchImageCard}
-              data-testid={`match-prospect-left-card-${sectionId}`}
+              style={styles.cornerLabel(themeColor)}
+              data-testid={`match-prospect-left-label-${sectionId}`}
             >
-              <div
-                style={styles.cornerLabel(themeColor)}
-                data-testid={`match-prospect-left-label-${sectionId}`}
-              >
-                <FormattedMessage id="THIS_ENCOUNTER" />
-              </div>
-              <div
-                style={styles.imageContainer}
-                data-testid={`match-prospect-left-overlay-wrap-${sectionId}`}
-              >
+              <FormattedMessage id="THIS_ENCOUNTER" />
+            </div>
+            <div
+              style={styles.imageContainer}
+              data-testid={`match-prospect-left-overlay-wrap-${sectionId}`}
+            >
+              {hasLeftImage ? (
                 <InteractiveAnnotationOverlay
                   ref={leftOverlayRef}
                   imageUrl={leftImageUrl}
@@ -603,70 +620,72 @@ const MatchProspectTable = ({
                   annotations={leftAnnotations}
                   rotationInfo={leftRotationInfo}
                 />
-              </div>
+              ) : (
+                <EmptyMatchPlaceholder sectionId={`${sectionId}-left`} />
+              )}
             </div>
+          </div>
 
-            <div
-              style={styles.toolsBarLeft}
-              data-testid={`match-prospect-left-toolbar-${sectionId}`}
-            >
-              <div
-                onClick={() => leftOverlayRef.current?.zoomIn?.()}
-                style={styles.iconButton}
-                title="Zoom In"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    leftOverlayRef.current?.zoomIn?.();
-                  }
-                }}
-                id={`match-prospect-left-zoom-in-${sectionId}`}
-                data-testid={`match-prospect-left-zoom-in-${sectionId}`}
-              >
-                <ZoomInIcon />
-              </div>
-
-              <div
-                onClick={() => leftOverlayRef.current?.zoomOut?.()}
-                style={styles.iconButton}
-                title="Zoom Out"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    leftOverlayRef.current?.zoomOut?.();
-                  }
-                }}
-                id={`match-prospect-left-zoom-out-${sectionId}`}
-                data-testid={`match-prospect-left-zoom-out-${sectionId}`}
-              >
-                <ZoomOutIcon />
-              </div>
-            </div>
-          </Col>
-        )}
-
-        {hasProspects && (
-          <Col
-            md={6}
-            style={{ position: "relative" }}
-            data-testid={`match-prospect-right-col-${sectionId}`}
+          <div
+            style={styles.toolsBarLeft}
+            data-testid={`match-prospect-left-toolbar-${sectionId}`}
           >
             <div
-              style={styles.matchImageCard}
-              data-testid={`match-prospect-right-card-${sectionId}`}
+              onClick={() => leftOverlayRef.current?.zoomIn?.()}
+              style={styles.iconButton}
+              title="Zoom In"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  leftOverlayRef.current?.zoomIn?.();
+                }
+              }}
+              id={`match-prospect-left-zoom-in-${sectionId}`}
+              data-testid={`match-prospect-left-zoom-in-${sectionId}`}
             >
-              <div
-                style={{ ...styles.cornerLabel(themeColor) }}
-                data-testid={`match-prospect-right-label-${sectionId}`}
-              >
-                <FormattedMessage id="POSSIBLE_MATCH" />
-              </div>
-              <div
-                style={styles.imageContainer}
-                data-testid={`match-prospect-right-overlay-wrap-${sectionId}`}
-              >
+              <ZoomInIcon />
+            </div>
+
+            <div
+              onClick={() => leftOverlayRef.current?.zoomOut?.()}
+              style={styles.iconButton}
+              title="Zoom Out"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  leftOverlayRef.current?.zoomOut?.();
+                }
+              }}
+              id={`match-prospect-left-zoom-out-${sectionId}`}
+              data-testid={`match-prospect-left-zoom-out-${sectionId}`}
+            >
+              <ZoomOutIcon />
+            </div>
+          </div>
+        </Col>
+
+        <Col
+          md={6}
+          style={{ position: "relative" }}
+          data-testid={`match-prospect-right-col-${sectionId}`}
+        >
+          <div
+            style={styles.matchImageCard}
+            data-testid={`match-prospect-right-card-${sectionId}`}
+          >
+            <div
+              style={{ ...styles.cornerLabel(themeColor) }}
+              data-testid={`match-prospect-right-label-${sectionId}`}
+            >
+              <FormattedMessage id="POSSIBLE_MATCH" />
+            </div>
+            <div
+              style={styles.imageContainer}
+              data-testid={`match-prospect-right-overlay-wrap-${sectionId}`}
+            >
+              {hasRightImage ? (
                 <InteractiveAnnotationOverlay
                   ref={rightOverlayRef}
                   imageUrl={rightImageUrl}
@@ -677,121 +696,148 @@ const MatchProspectTable = ({
                     previewedRow?.annotation?.asset?.rotationInfo ?? null
                   }
                 />
-              </div>
+              ) : (
+                <EmptyMatchPlaceholder sectionId={sectionId} />
+              )}
+            </div>
+          </div>
+
+          <div
+            style={styles.toolsBarRight}
+            data-testid={`match-prospect-right-toolbar-${sectionId}`}
+          >
+            <div
+              onClick={() => {
+                if (!hasRightImage) return;
+                rightOverlayRef.current?.zoomIn?.();
+              }}
+              style={
+                hasRightImage ? styles.iconButton : styles.iconButtonDisabled
+              }
+              title="Zoom In"
+              role="button"
+              tabIndex={hasRightImage ? 0 : -1}
+              onKeyDown={(e) => {
+                if (!hasRightImage) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  rightOverlayRef.current?.zoomIn?.();
+                }
+              }}
+              id={`match-prospect-right-zoom-in-${sectionId}`}
+              data-testid={`match-prospect-right-zoom-in-${sectionId}`}
+              aria-disabled={!hasRightImage}
+            >
+              <ZoomInIcon />
             </div>
 
             <div
-              style={styles.toolsBarRight}
-              data-testid={`match-prospect-right-toolbar-${sectionId}`}
+              onClick={() => {
+                if (!hasRightImage) return;
+                rightOverlayRef.current?.zoomOut?.();
+              }}
+              style={
+                hasRightImage ? styles.iconButton : styles.iconButtonDisabled
+              }
+              title="Zoom Out"
+              role="button"
+              tabIndex={hasRightImage ? 0 : -1}
+              onKeyDown={(e) => {
+                if (!hasRightImage) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  rightOverlayRef.current?.zoomOut?.();
+                }
+              }}
+              id={`match-prospect-right-zoom-out-${sectionId}`}
+              data-testid={`match-prospect-right-zoom-out-${sectionId}`}
+              aria-disabled={!hasRightImage}
             >
-              <div
-                onClick={() => rightOverlayRef.current?.zoomIn?.()}
-                style={styles.iconButton}
-                title="Zoom In"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    rightOverlayRef.current?.zoomIn?.();
-                  }
-                }}
-                id={`match-prospect-right-zoom-in-${sectionId}`}
-                data-testid={`match-prospect-right-zoom-in-${sectionId}`}
-              >
-                <ZoomInIcon />
-              </div>
+              <ZoomOutIcon />
+            </div>
 
-              <div
-                onClick={() => rightOverlayRef.current?.zoomOut?.()}
-                style={styles.iconButton}
-                title="Zoom Out"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    rightOverlayRef.current?.zoomOut?.();
-                  }
-                }}
-                id={`match-prospect-right-zoom-out-${sectionId}`}
-                data-testid={`match-prospect-right-zoom-out-${sectionId}`}
-              >
-                <ZoomOutIcon />
-              </div>
-
-              <div
-                style={
-                  inspectorUrl ? styles.iconButton : styles.iconButtonDisabled
+            <div
+              style={
+                inspectorUrl && hasRightImage
+                  ? styles.iconButton
+                  : styles.iconButtonDisabled
+              }
+              title={
+                inspectorUrl
+                  ? "View Hotspotter Visualization"
+                  : "No visualization available"
+              }
+              role="button"
+              tabIndex={inspectorUrl && hasRightImage ? 0 : -1}
+              onKeyDown={(e) => {
+                if (!inspectorUrl || !hasRightImage) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  setInspectorOpen(true);
                 }
-                title={
-                  inspectorUrl
-                    ? "View Hotspotter Visualization"
-                    : "No visualization available"
-                }
-                role="button"
-                tabIndex={inspectorUrl ? 0 : -1}
-                onKeyDown={(e) => {
-                  if (!inspectorUrl) return;
-                  if (e.key === "Enter" || e.key === " ")
-                    setInspectorOpen(true);
-                }}
-                onClick={() => {
-                  if (inspectorUrl) setInspectorOpen(true);
-                }}
-                id={`match-prospect-inspector-open-${sectionId}`}
-                data-testid={`match-prospect-inspector-open-${sectionId}`}
-                aria-disabled={!inspectorUrl}
-              >
-                <HatchMarkIcon />
-              </div>
+              }}
+              onClick={() => {
+                if (inspectorUrl && hasRightImage) setInspectorOpen(true);
+              }}
+              id={`match-prospect-inspector-open-${sectionId}`}
+              data-testid={`match-prospect-inspector-open-${sectionId}`}
+              aria-disabled={!inspectorUrl || !hasRightImage}
+            >
+              <HatchMarkIcon />
+            </div>
 
-              <div
-                style={styles.iconButton}
-                title="View Annotations"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    rightOverlayRef.current?.toggleAnnotations?.();
-                    leftOverlayRef.current?.toggleAnnotations?.();
-                  }
-                }}
-                onClick={() => {
+            <div
+              style={
+                hasRightImage ? styles.iconButton : styles.iconButtonDisabled
+              }
+              title="View Annotations"
+              role="button"
+              tabIndex={hasRightImage ? 0 : -1}
+              onKeyDown={(e) => {
+                if (!hasRightImage) return;
+                if (e.key === "Enter" || e.key === " ") {
                   rightOverlayRef.current?.toggleAnnotations?.();
                   leftOverlayRef.current?.toggleAnnotations?.();
-                }}
-                id={`match-prospect-toggle-annotations-${sectionId}`}
-                data-testid={`match-prospect-toggle-annotations-${sectionId}`}
-              >
-                <ToggoleAnnotationIcon />
-              </div>
-
-              <div
-                style={styles.iconButton}
-                title="Fullscreen"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    if (!previewedRow) return;
-                    openFullscreen();
-                  }
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!previewedRow) return;
-                  openFullscreen();
-                }}
-                id={`match-prospect-fullscreen-open-${sectionId}`}
-                data-testid={`match-prospect-fullscreen-open-${sectionId}`}
-              >
-                <FullScreenIcon />
-              </div>
+                }
+              }}
+              onClick={() => {
+                if (!hasRightImage) return;
+                rightOverlayRef.current?.toggleAnnotations?.();
+                leftOverlayRef.current?.toggleAnnotations?.();
+              }}
+              id={`match-prospect-toggle-annotations-${sectionId}`}
+              data-testid={`match-prospect-toggle-annotations-${sectionId}`}
+              aria-disabled={!hasRightImage}
+            >
+              <ToggoleAnnotationIcon />
             </div>
-          </Col>
-        )}
+
+            <div
+              style={
+                hasRightImage ? styles.iconButton : styles.iconButtonDisabled
+              }
+              title="Fullscreen"
+              role="button"
+              tabIndex={hasRightImage ? 0 : -1}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  if (!hasRightImage) return;
+                  openFullscreen();
+                }
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!hasRightImage) return;
+                openFullscreen();
+              }}
+              id={`match-prospect-fullscreen-open-${sectionId}`}
+              data-testid={`match-prospect-fullscreen-open-${sectionId}`}
+              aria-disabled={!hasRightImage}
+            >
+              <FullScreenIcon />
+            </div>
+          </div>
+        </Col>
       </Row>
 
-      {hasProspects && (
+      {hasProspects && hasRightImage && (
         <Modal
           show={fullscreenOpen}
           onHide={() => setFullscreenOpen(false)}

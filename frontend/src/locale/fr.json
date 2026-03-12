@@ -810,5 +810,7 @@
   "MATCH_RESULTS_ERROR_REQUIRED": "Données manquantes ou insuffisantes",
   "MATCH_RESULTS_ERROR_INVALID": "Résultats non valides",
   "MATCH_RESULTS_ERROR_UNKNOWN": "Erreur inconnue",
-  "MATCH_RESULTS_ERROR_TIMEOUT": "La tâche a dépassé le délai imparti"
+  "MATCH_RESULTS_ERROR_TIMEOUT": "La tâche a dépassé le délai imparti",
+  "NO_MATCH_CANDIDATES": "Aucun candidat ne correspond aux filtres appliqués. Veuillez les ajuster ou considérer qu’il s’agit d’un nouvel individu.",
+  "NO_MATCH_PROSPECTS": "Nous n’avons trouvé aucune correspondance avec vos filtres actuels. Veuillez les ajuster ou considérer qu’il s’agit d’un nouvel individu."
 }

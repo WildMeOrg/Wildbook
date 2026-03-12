@@ -811,5 +811,7 @@
   "MATCH_RESULTS_ERROR_REQUIRED": "Dati mancanti o insufficienti",
   "MATCH_RESULTS_ERROR_INVALID": "Risultati non validi",
   "MATCH_RESULTS_ERROR_UNKNOWN": "Errore sconosciuto",
-  "MATCH_RESULTS_ERROR_TIMEOUT": "L'operazione ha superato il tempo limite"
+  "MATCH_RESULTS_ERROR_TIMEOUT": "L'operazione ha superato il tempo limite",
+  "NO_MATCH_CANDIDATES": "Nessun candidato corrisponde ai filtri applicati. Prova a modificarli oppure considera che si tratti di un nuovo individuo.",
+  "NO_MATCH_PROSPECTS": "Non siamo riusciti a trovare alcuna corrispondenza con i filtri attuali. Prova a modificarli oppure considera che si tratti di un nuovo individuo."
 }

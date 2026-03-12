@@ -41,29 +41,32 @@ describe("helperFunctions", () => {
       expect(getAllAnnot(undefined)).toEqual([]);
     });
 
-    test("returns empty array when node has no method", () => {
-      const node = makeNode({ method: null });
-      expect(getAllAnnot(node)).toEqual([]);
-    });
-
-    test("returns empty array when annot prospects is empty", () => {
+    test("returns common object when annot prospects is empty but task is running", () => {
       const node = makeNode({
         matchResults: {
           ...makeNode().matchResults,
           prospects: { annot: [], indiv: [{ individualId: "i1", score: 0.9 }] },
         },
       });
-      expect(getAllAnnot(node)).toEqual([]);
+      // statusOverall is "complete" (not "completed"), so task is considered still running
+      const result = getAllAnnot(node);
+      expect(result).toHaveLength(1);
+      expect(result[0].hasResults).toBe(false);
+      expect(result[0].taskId).toBe("task-1");
     });
 
-    test("returns empty array when annot prospects is missing", () => {
+    test("returns common object when annot prospects is missing but task is running", () => {
       const node = makeNode({
         matchResults: {
           ...makeNode().matchResults,
           prospects: { indiv: [{ individualId: "i1" }] },
         },
       });
-      expect(getAllAnnot(node)).toEqual([]);
+      // statusOverall is "complete" (not "completed"), so task is considered still running
+      const result = getAllAnnot(node);
+      expect(result).toHaveLength(1);
+      expect(result[0].hasResults).toBe(false);
+      expect(result[0].taskId).toBe("task-1");
     });
 
     test("collects annot prospects and attaches common fields", () => {
@@ -125,9 +128,13 @@ describe("helperFunctions", () => {
       expect(result.map((r) => r.annotId)).toContain("a2");
     });
 
-    test("handles node with no matchResults gracefully", () => {
+    test("returns common object when no matchResults but task is running", () => {
       const node = makeNode({ matchResults: null });
-      expect(getAllAnnot(node)).toEqual([]);
+      // statusOverall is "complete" (not "completed"), so task is considered still running
+      const result = getAllAnnot(node);
+      expect(result).toHaveLength(1);
+      expect(result[0].hasResults).toBe(false);
+      expect(result[0].taskId).toBe("task-1");
     });
 
     test("handles multiple annot prospects in one node", () => {
@@ -160,19 +167,18 @@ describe("helperFunctions", () => {
       expect(getAllIndiv(null)).toEqual([]);
     });
 
-    test("returns empty array when node has no method", () => {
-      const node = makeNode({ method: undefined });
-      expect(getAllIndiv(node)).toEqual([]);
-    });
-
-    test("returns empty array when indiv prospects is empty", () => {
+    test("returns common object when indiv prospects is empty but task is running", () => {
       const node = makeNode({
         matchResults: {
           ...makeNode().matchResults,
           prospects: { annot: [{ annotId: "a1" }], indiv: [] },
         },
       });
-      expect(getAllIndiv(node)).toEqual([]);
+      // statusOverall is "complete" (not "completed"), so task is considered still running
+      const result = getAllIndiv(node);
+      expect(result).toHaveLength(1);
+      expect(result[0].hasResults).toBe(false);
+      expect(result[0].taskId).toBe("task-1");
     });
 
     test("collects indiv prospects and attaches common fields", () => {
@@ -224,7 +230,7 @@ describe("helperFunctions", () => {
           prospects: { annot: [], indiv: [{ individualId: "i1" }] },
         },
       });
-      expect(getAllIndiv(node)[0].numberCandidates).toBe(0);
+      expect(getAllIndiv(node)[0].numberCandidates).toBe("-");
     });
 
     test("queryEncounterId is null when encounter is absent", () => {

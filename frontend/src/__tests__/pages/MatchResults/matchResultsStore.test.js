@@ -158,9 +158,10 @@ describe("MatchResultsStore — loadData", () => {
     store = new MatchResultsStore();
   });
 
-  test("clears state when both annot and indiv results are empty", () => {
+  test("returns task info with hasResults=false when prospects are empty but task is terminal", () => {
     store.loadData({
       matchResultsRoot: makeProspect({
+        statusOverall: "completed", // Terminal status
         matchResults: {
           numberCandidates: 0,
           queryAnnotation: {},
@@ -168,9 +169,13 @@ describe("MatchResultsStore — loadData", () => {
         },
       }),
     });
-    expect(store.hasResults).toBe(false);
-    expect(store._rawAnnots).toEqual([]);
-    expect(store._rawIndivs).toEqual([]);
+    // Even with empty prospects, we get task info to show "no results" in UI
+    expect(store.hasResults).toBe(true);
+    expect(store._rawAnnots.length).toBe(1);
+    expect(store._rawIndivs.length).toBe(1);
+    // But the items should have hasResults: false
+    expect(store._rawAnnots[0].hasResults).toBe(false);
+    expect(store._rawIndivs[0].hasResults).toBe(false);
   });
 
   test("clears state when matchResultsRoot is null", () => {
@@ -200,9 +205,13 @@ describe("MatchResultsStore — loadData", () => {
     expect(store.individualDisplayName).toBe("Luna");
   });
 
-  test("sets thisEncounterImageUrl", () => {
+  test("sets queryImageUrl in processed data metadata", () => {
     store.loadData(makeApiResponse());
-    expect(store.thisEncounterImageUrl).toBe("http://img.test/query.jpg");
+    const sections = store.processedIndivs;
+    expect(sections.length).toBeGreaterThan(0);
+    expect(sections[0].metadata.queryImageUrl).toBe(
+      "http://img.test/query.jpg",
+    );
   });
 
   test("clears selectedMatch after loading (resetSelectionToQuery called)", () => {
@@ -637,11 +646,9 @@ describe("MatchResultsStore — fetchMatchResults", () => {
     await store.fetchMatchResults();
     expect(axios.get).toHaveBeenCalledWith(
       expect.stringContaining("/api/v3/tasks/task-abc/match-results"),
-      expect.any(Object),
     );
     expect(axios.get).toHaveBeenCalledWith(
       expect.stringContaining("prospectsSize=5"),
-      expect.any(Object),
     );
   });
 
