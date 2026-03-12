@@ -9,6 +9,7 @@ import {
 import EncounterSearch from "../../../pages/SearchPages/EncounterSearch";
 import { MemoryRouter } from "react-router-dom";
 import * as useFilterEncountersHook from "../../../models/encounters/useFilterEncounters";
+import * as useFilterEncountersWithMediaAssetsHook from "../../../models/encounters/useFilterEncountersWithMediaAssets";
 import * as useEncounterSearchSchemasHook from "../../../models/encounters/useEncounterSearchSchemas";
 import * as getAllSearchParams from "../../../pages/SearchPages/getAllSearchParamsAndParse";
 import axios from "axios";
@@ -69,6 +70,9 @@ describe("EncounterSearch", () => {
       .spyOn(useFilterEncountersHook, "default")
       .mockReturnValue(mockFilterEncounters);
     jest
+      .spyOn(useFilterEncountersWithMediaAssetsHook, "default")
+      .mockReturnValue({ refetch: jest.fn() });
+    jest
       .spyOn(useEncounterSearchSchemasHook, "default")
       .mockReturnValue(mockSchemas);
     jest
@@ -96,7 +100,7 @@ describe("EncounterSearch", () => {
     renderWithProviders();
     fireEvent.click(screen.getByText("RowClick"));
     expect(window.open).toHaveBeenCalledWith(
-      "/encounters/encounter.jsp?number=enc1",
+      "/react/encounter?number=enc1",
       "_blank",
     );
   });

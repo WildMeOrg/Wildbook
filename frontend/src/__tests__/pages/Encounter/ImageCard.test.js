@@ -1,8 +1,9 @@
 /* eslint-disable react/display-name */
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { IntlProvider } from "react-intl";
+import axios from "axios";
 
 jest.mock("mobx-react-lite", () => ({
   observer: (Comp) => Comp,
@@ -105,6 +106,7 @@ const baseEncounterData = {
 };
 
 const makeStore = (overrides = {}) => ({
+  access: "write",
   encounterData: baseEncounterData,
   encounterAnnotations: baseEncounterData.mediaAssets[0].annotations,
   selectedImageIndex: 0,
@@ -127,6 +129,7 @@ const makeStore = (overrides = {}) => ({
   initializeFlow: jest.fn(),
   isUploading: false,
   uploadProgress: 0,
+  siteSettingsData: {},
   ...overrides,
 });
 
@@ -142,40 +145,44 @@ const renderCard = (store) =>
 describe("ImageCard", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    delete window.open;
     window.open = jest.fn();
+    window.alert = jest.fn();
+    window.confirm = jest.fn(() => true);
   });
 
-  test("renders header, current filename, tags count, and main image", () => {
+  test("renders header, filename, keyword count, and main image", () => {
     const store = makeStore();
     renderCard(store);
 
     expect(screen.getByText("IMAGES")).toBeInTheDocument();
     expect(screen.getByText("first.jpg")).toBeInTheDocument();
-    expect(screen.getByText("2 tags")).toBeInTheDocument();
+    expect(screen.getByText("2 Keywords")).toBeInTheDocument();
+
     const img = screen.getByAltText("encounter image");
     expect(img).toHaveAttribute("src", "http://img/1.jpg");
+
     expect(store.setIntl).toHaveBeenCalled();
   });
 
-  test("shows thumbnails and clicking one switches image via store", async () => {
+  test("renders thumbnails and clicking thumbnail switches image", async () => {
+    const user = userEvent.setup();
     const store = makeStore();
     renderCard(store);
 
     const thumbs = screen.getAllByAltText(/media-/);
     expect(thumbs).toHaveLength(2);
 
-    await userEvent.click(thumbs[1]);
+    await user.click(thumbs[1]);
     expect(store.setSelectedImageIndex).toHaveBeenCalledWith(1);
   });
 
-  test("clicking image opens ImageModal and can be closed", async () => {
+  test("clicking image area opens ImageModal and close button closes it", async () => {
     const user = userEvent.setup();
     const store = makeStore();
     renderCard(store);
 
-    const imgBox = screen.getByAltText("encounter image").parentElement;
-    await user.click(imgBox);
+    const imageBox = screen.getByAltText("encounter image").parentElement;
+    await user.click(imageBox);
 
     expect(screen.getByTestId("image-modal")).toBeInTheDocument();
 
@@ -183,7 +190,7 @@ describe("ImageCard", () => {
     expect(screen.queryByTestId("image-modal")).not.toBeInTheDocument();
   });
 
-  test("clicking NEW_MATCH calls store.modals.setOpenMatchCriteriaModal when image exists", async () => {
+  test("clicking NEW_MATCH opens match criteria modal", async () => {
     const user = userEvent.setup();
     const store = makeStore();
     renderCard(store);
@@ -192,15 +199,17 @@ describe("ImageCard", () => {
     expect(store.modals.setOpenMatchCriteriaModal).toHaveBeenCalledWith(true);
   });
 
-  test("clicking VISUAL_MATCHER opens visual matcher page when image exists", async () => {
+  test("clicking VISUAL_MATCHER opens visual matcher page", async () => {
     const user = userEvent.setup();
     const store = makeStore();
     renderCard(store);
 
     await user.click(screen.getByText("VISUAL_MATCHER"));
+
     expect(window.open).toHaveBeenCalledTimes(1);
-    const url = window.open.mock.calls[0][0];
-    expect(url).toContain("/encounters/encounterVM.jsp?number=E-1");
+    expect(window.open.mock.calls[0][0]).toContain(
+      "/encounters/encounterVM.jsp?number=E-1",
+    );
   });
 
   test("clicking ADD_ANNOTATION opens manual annotation page", async () => {
@@ -209,87 +218,97 @@ describe("ImageCard", () => {
     renderCard(store);
 
     await user.click(screen.getByText("ADD_ANNOTATION"));
+
     expect(window.open).toHaveBeenCalledTimes(1);
-    const url = window.open.mock.calls[0][0];
-    expect(url).toContain(
+    expect(window.open.mock.calls[0][0]).toContain(
       "/react/manual-annotation?encounterId=E-1&assetId=A1",
     );
   });
 
-  test("renders upload slot and clicking container triggers file input click", () => {
-    const store = makeStore({
-      flow: { assignBrowse: jest.fn() },
-    });
-    renderCard(store);
-
-    const uploader = screen.getByText("ADD_IMAGE").closest("#add-more-files");
-    const input =
-      screen.getByLabelText("ADD_IMAGE", { selector: "input" }) ||
-      document.getElementById("add-more-files-input");
-    const spy = jest.spyOn(input, "click");
-
-    fireEvent.click(uploader);
-    expect(spy).toHaveBeenCalled();
-  });
-
-  test("when isUploading true shows spinner and progress", () => {
+  test("shows upload progress when uploading", () => {
     const store = makeStore({
       isUploading: true,
       uploadProgress: 45,
+      flow: { assignBrowse: jest.fn() },
     });
-    renderCard(store);
 
+    renderCard(store);
     expect(screen.getByText("45%")).toBeInTheDocument();
   });
 
-  test("if no mediaAssets, rects should be empty and image src blank", () => {
+  test("shows no-image message when mediaAssets is empty", () => {
     const store = makeStore({
       encounterData: { id: "E-1", mediaAssets: [] },
+      encounterAnnotations: [],
     });
+
     renderCard(store);
 
-    const img = screen.getByAltText("encounter image");
-    expect(img).toHaveAttribute("src", "");
+    expect(screen.queryByAltText("encounter image")).not.toBeInTheDocument();
+    expect(screen.getByText("NO_IMAGE_AVAILABLE")).toBeInTheDocument();
+
+    const rect = document.querySelector('[id^="rect-"]');
+    expect(rect).toBeNull();
   });
 
-  test("calls initializeFlow when store.flow is null", () => {
+  test("calls initializeFlow when store.flow is null (default maxSize=3)", () => {
     const store = makeStore({ flow: null, initializeFlow: jest.fn() });
+
     renderCard(store);
 
     expect(store.initializeFlow).toHaveBeenCalledTimes(1);
-    expect(store.initializeFlow.mock.calls[0][1]).toBe(10);
+    expect(store.initializeFlow.mock.calls[0][1]).toBe(3);
   });
 
-  test("when matchResultClickable=true it opens iaResults directly", async () => {
-    const user = userEvent.setup();
+  test("calls assignBrowse when flow already exists", () => {
+    const assignBrowse = jest.fn();
     const store = makeStore({
-      matchResultClickable: true,
-      encounterData: {
-        ...baseEncounterData,
-      },
-      imageModal: {
-        selectedAnnotationId: "ann-1",
-      },
+      flow: { assignBrowse },
     });
 
-    store.encounterAnnotations = [
-      {
-        id: "ann-1",
-        iaTaskId: "TASK-99",
-        boundingBox: [10, 20, 100, 40],
-      },
-    ];
+    renderCard(store);
+
+    expect(assignBrowse).toHaveBeenCalledTimes(1);
+    const input = document.getElementById("add-more-files-input");
+    expect(assignBrowse).toHaveBeenCalledWith(input);
+  });
+
+  test("MATCH_RESULTS opens iaResults directly when matchResultClickable=true", async () => {
+    const user = userEvent.setup();
+    const imageModal = {
+      selectedAnnotationId: "ann-1",
+      encounterData: baseEncounterData,
+      selectedImageIndex: 0,
+      removeAnnotation: jest.fn(),
+      setSelectedAnnotationId: jest.fn(),
+      refreshEncounterData: jest.fn(),
+    };
+
+    const store = makeStore({
+      matchResultClickable: true,
+      imageModal,
+      encounterAnnotations: [
+        {
+          id: "ann-1",
+          iaTaskId: "TASK-99",
+          boundingBox: [10, 20, 100, 40],
+        },
+      ],
+    });
 
     renderCard(store);
 
     await user.click(screen.getByText("MATCH_RESULTS"));
+
     expect(window.open).toHaveBeenCalledTimes(1);
-    const url = window.open.mock.calls[0][0];
-    expect(url).toContain("/iaResults.jsp?taskId=TASK-99");
+    expect(window.open.mock.calls[0][0]).toContain(
+      "/iaResults.jsp?taskId=TASK-99",
+    );
   });
 
-  test("clicking MATCH_RESULTS on foreign encounter -> fetches encounter and may open", async () => {
+  test("MATCH_RESULTS for foreign annotation fetches encounter and opens iaResults if available", async () => {
     const user = userEvent.setup();
+
     const store = makeStore({
       encounterData: {
         id: "E-1",
@@ -314,11 +333,9 @@ describe("ImageCard", () => {
           },
         ],
       },
+      encounterAnnotations: [],
     });
 
-    const { getByText } = renderCard(store);
-
-    const axios = require("axios");
     axios.get.mockResolvedValueOnce({
       data: {
         id: "E-2",
@@ -339,10 +356,13 @@ describe("ImageCard", () => {
       },
     });
 
-    const rectDiv = document.querySelector('[id^="rect-"]');
-    await user.click(rectDiv);
+    renderCard(store);
 
-    await user.click(getByText("MATCH_RESULTS"));
+    const rectDiv = document.querySelector('[id^="rect-"]');
+    expect(rectDiv).toBeTruthy();
+
+    await user.click(rectDiv); // select foreign annotation
+    await user.click(screen.getByText("MATCH_RESULTS"));
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith("/api/v3/encounters/E-2");
@@ -351,17 +371,31 @@ describe("ImageCard", () => {
     await waitFor(() => {
       expect(window.open).toHaveBeenCalledTimes(1);
     });
-    const url = window.open.mock.calls[0][0];
-    expect(url).toContain("/iaResults.jsp?taskId=TASK-FR-1");
+
+    expect(window.open.mock.calls[0][0]).toContain(
+      "/iaResults.jsp?taskId=TASK-FR-1",
+    );
   });
 
-  test("rects are cleared when encounter has no mediaAssets", () => {
+  test("clicking MATCH_RESULTS without annotation shows alert", async () => {
+    const user = userEvent.setup();
     const store = makeStore({
-      encounterData: { id: "E-1", mediaAssets: [] },
+      matchResultClickable: false,
+      imageModal: {
+        selectedAnnotationId: null,
+        encounterData: baseEncounterData,
+        selectedImageIndex: 0,
+        removeAnnotation: jest.fn(),
+        setSelectedAnnotationId: jest.fn(),
+        refreshEncounterData: jest.fn(),
+      },
     });
+
     renderCard(store);
 
-    const rect = document.querySelector('[id^="rect-"]');
-    expect(rect).toBeNull();
+    await user.click(screen.getByText("MATCH_RESULTS"));
+    expect(window.alert).toHaveBeenCalledWith(
+      "Select an annotation to view match results.",
+    );
   });
 });

@@ -2,6 +2,12 @@ import React from "react";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "../../../utils/utils";
 import BulkImportTask from "../../../pages/BulkImport/BulkImportTask";
+import axios from "axios";
+
+jest.mock("antd/es/tree-select", () => ({
+  __esModule: true,
+  default: () => <div>TreeSelect</div>,
+}));
 
 jest.mock("../../../models/bulkImport/useGetBulkImportTask", () => jest.fn());
 jest.mock("../../../components/InfoAccordion", () => ({
@@ -83,6 +89,7 @@ describe("BulkImportTask", () => {
     jest.clearAllMocks();
     delete window.location;
     window.location = new URL("http://localhost/react/?id=12345");
+    axios.get.mockResolvedValue({ data: { roles: [] } });
   });
 
   test("displays spinner during loading", () => {

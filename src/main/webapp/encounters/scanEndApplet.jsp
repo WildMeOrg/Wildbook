@@ -2,12 +2,15 @@
 
 
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List,
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, org.ecocean.grid.GridManager, org.ecocean.grid.GridManagerFactory, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List,
 org.ecocean.grid.ScanTask,
 java.util.ArrayList,
 org.json.JSONArray,
+java.text.MessageFormat,
+java.util.Properties,
 java.util.Vector" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <%
 
@@ -20,11 +23,14 @@ File webappsDir = new File(rootWebappPath).getParentFile();
 File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
-
-
-  //session.setMaxInactiveInterval(6000);
   String num="";
-    ArrayList<String> locationIDs = new ArrayList<String>();
+  ArrayList<String> locationIDs = new ArrayList<String>();
+  boolean scanInProgress = false;
+  boolean scanTaskExists = false;
+  int numComplete = 0;
+  int numTotal = 0;
+  long scanTaskStartTime = -1;
+
   if(request.getParameter("number")!=null){
 	Shepherd myShepherd=new Shepherd(context);
 	myShepherd.setAction("scanEndApplet.jsp");
@@ -33,28 +39,32 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
 	}
 
-	//get any scantask locationID lists
+	//get any scantask locationID lists and check scan status
         String taskID = request.getParameter("taskID");
-        if (taskID == null) taskID = "scan" + (Util.requestParameterSet("rightSide") ? "R" : "L") + num;
+        boolean isRightSide = (request.getParameter("rightSide") != null) && request.getParameter("rightSide").equals("true");
+        if (taskID == null) taskID = "scan" + (isRightSide ? "R" : "L") + num;
 	if(taskID != null) {
 		ScanTask st=myShepherd.getScanTask(taskID);
-		if(st!=null && st.getLocationIDFilters()!=null){
-			locationIDs=st.getLocationIDFilters();
+		if(st!=null){
+			scanTaskExists = true;
+			if(st.getLocationIDFilters()!=null){
+				locationIDs=st.getLocationIDFilters();
+			}
+			if(!st.hasFinished()){
+				scanInProgress = true;
+				scanTaskStartTime = st.getStartTime();
+				// Check how much work is done via GridManager
+				GridManager gm = GridManagerFactory.getGridManager();
+				numComplete = gm.getNumWorkItemsCompleteForTask(taskID);
+				numTotal = numComplete + gm.getNumWorkItemsIncompleteForTask(taskID);
+			}
 		}
 	}
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
-  }	
+  }
   String encSubdir = Encounter.subdir(num);
 
-	/*
-  Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("scanEndApplet.jsp");
-  if (request.getParameter("writeThis") == null) {
-    myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
-  }
-  */
-  //Shepherd altShepherd = new Shepherd(context);
   String sessionId = session.getId();
   boolean xmlOK = false;
   SAXReader xmlReader = new SAXReader();
@@ -66,11 +76,16 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   String Sizelim = "";
   String maxTriangleRotation = "";
   String side2 = "";
+
+  // Determine the language for i18n
+  String langCode = "en";
+  if (session.getAttribute("langCode") != null) langCode = (String) session.getAttribute("langCode");
+  Properties i18n = ShepherdProperties.getProperties("commonConfigurationLabels.properties", langCode, context);
 %>
 <jsp:include page="../header.jsp" flush="true"/>
 
 <style type="text/css">
- 
+
   #tabmenu {
     color: #000;
     border-bottom: 1px solid #CDCDCD;
@@ -109,14 +124,14 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
+
   td, th {
     border: 1px solid black;
     padding: 5px;
@@ -164,8 +179,10 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     height: 400px;
 }
 .match-side-info {
-    height: 9.1em;
+    min-height: 9.1em;
     background-color: #DDD;
+    padding: 4px 0;
+    overflow-wrap: break-word;
 }
 
 #match-controls {
@@ -210,8 +227,58 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     background-color: #FF8;
 }
 
+.scan-waiting {
+    text-align: center;
+    padding: 40px 20px;
+    margin: 20px 0;
+    background-color: #f0f8ff;
+    border: 1px solid #b0d4f1;
+    border-radius: 8px;
+}
+.scan-waiting h2 {
+    color: #333;
+}
+.scan-waiting .spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.scan-progress {
+    margin: 10px 0;
+    font-size: 1.1em;
+}
+.scan-progress-bar {
+    width: 300px;
+    height: 20px;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    margin: 10px auto;
+    overflow: hidden;
+}
+.scan-progress-fill {
+    height: 100%;
+    background-color: #3498db;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
 </style>
 
+<%
+// If scan is in progress, add auto-refresh
+if (scanInProgress) {
+%>
+<meta http-equiv="refresh" content="15" />
+<%
+}
+%>
 
 <div class="container maincontent">
 
@@ -220,14 +287,13 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     href="encounter.jsp?number=<%=num%>">Encounter
     <%=num%>
   </a></li>
-  
+
 
   <%
     String fileSider = "";
     File finalXMLFile;
     File locationIDXMLFile;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightI3SScan.xml");
       locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightLocationIDScan.xml");
 
@@ -235,22 +301,21 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       side2 = "right";
       fileSider = "&rightSide=true";
     } else {
-      //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
       locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullLocationIDScan.xml");
     }
-    
-    
+
+
     if (locationIDXMLFile.exists()) {
   %>
 
   <%
     }
     %>
-    
+
     <li><a class="active">Modified Groth (Full)</a></li>
     <%
-    
+
     if (finalXMLFile.exists()) {
   %>
 
@@ -259,7 +324,6 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   </li>
   <%
     }
-    
 
 
   %>
@@ -268,33 +332,56 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 </ul>
 
 <%
+  // ============================================================
+  // SCAN IN PROGRESS: Show waiting message with progress
+  // ============================================================
+  if (scanInProgress) {
+%>
+
+<div class="scan-waiting">
+    <div class="spinner"></div>
+    <h2><%=MessageFormat.format(i18n.getProperty("scanInProgress.title", "Scan in progress for encounter {0}"), num)%></h2>
+    <p><%=i18n.getProperty("scanInProgress.message", "The pattern matching scan is running. Results will appear here when complete.")%></p>
+
+    <%
+    if (numTotal > 0) {
+        int pct = (int) ((numComplete * 100.0) / numTotal);
+    %>
+    <div class="scan-progress">
+        <%=MessageFormat.format(i18n.getProperty("scanInProgress.progress", "{0} of {1} comparisons complete"), String.valueOf(numComplete), String.valueOf(numTotal))%>
+        <div class="scan-progress-bar">
+            <div class="scan-progress-fill" style="width: <%=pct%>%"></div>
+        </div>
+    </div>
+    <%
+    } else {
+    %>
+    <p><%=i18n.getProperty("scanInProgress.queuing", "Preparing comparisons...")%></p>
+    <%
+    }
+    %>
+    <p style="color: #888; font-size: 0.9em;"><%=i18n.getProperty("scanInProgress.autoRefresh", "This page will automatically refresh every 15 seconds.")%></p>
+</div>
+
+<%
+  } else {
+    // ============================================================
+    // SCAN COMPLETE or NO SCAN: Show results
+    // ============================================================
+%>
+
+<%
   Vector initresults = new Vector();
   Document doc;
   Element root;
   String side = "left";
 
-  /*
-  if (request.getParameter("writeThis") == null) {
-    initresults = myShepherd.matches;
-    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      side = "right";
-    }
-  }
-  */
-  //else {
-
-//read from the written XML here if flagged
     try {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-        //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightScan.xml");
         file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightScan.xml");
-
-
         side = "right";
       } else {
-        //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml");
         file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
-
       }
       doc = xmlReader.read(file);
       root = doc.getRootElement();
@@ -308,11 +395,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     } catch (Exception ioe) {
       System.out.println("Error accessing the stored scan XML data for encounter: " + num);
       ioe.printStackTrace();
-      //initresults = myShepherd.matches;
       xmlOK = false;
     }
 
-  //}
   MatchObject[] matches = new MatchObject[0];
   if (!xmlOK) {
     int resultsSize = initresults.size();
@@ -331,6 +416,22 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <p>
 
+<%
+  if (!xmlOK && !scanTaskExists) {
+    // No scan has ever been run and no XML exists
+%>
+<h2><%=i18n.getProperty("scanResults.noResults.title", "No Scan Results")%></h2>
+<p><%=i18n.getProperty("scanResults.noResults.message", "No pattern matching scan has been run for this encounter yet.")%></p>
+<%
+  } else if (!xmlOK && scanTaskExists) {
+    // Scan task finished but XML was not written (failed or partial write)
+%>
+<h2><%=i18n.getProperty("scanResults.failed.title", "Scan Failed")%></h2>
+<p><%=i18n.getProperty("scanResults.failed.message", "The scan task completed but results could not be written. Please try running the scan again.")%></p>
+<%
+  } else if (xmlOK) {
+    // We have results to display
+%>
 <h2>Modified Groth Scan Results</h2>
 </p>
 <p>The following encounter(s) received the highest
@@ -357,7 +458,6 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     String feedURL = "//" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
     String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
-    //System.out.println("Base URL is: " + baseURL);
     if (xmlOK) {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
         feedURL = baseURL + encSubdir + "/lastFullRightScan.xml?";
@@ -430,7 +530,7 @@ function fitLeftImage() {
   let leftImgContainer = document.getElementById('match-side-0');
   let lRect = leftImage.getBoundingClientRect();
   console.log("current left image width: "+lRect.width);
-  console.log("current left container width: "+leftImgContainer.clientWidth); 
+  console.log("current left container width: "+leftImgContainer.clientWidth);
   if (lRect.width>leftImgContainer.clientWidth) {
     console.log("image WIDTH is out of bounds!");
     let newWidthScale = (leftImgContainer.clientWidth/lRect.width);
@@ -481,9 +581,9 @@ function fitRightImage() {
     <input type="button" id="mode-button-all" value="Show all matches" onClick="return toggleLocalMode(false);"/>
 </div>
 </p>
-  
+
       <a name="resultstable"></a>
-      
+
       <table class="tablesorter" width="800px">
       <thead>
         <tr align="left" valign="top">
@@ -491,7 +591,7 @@ function fitRightImage() {
           <th><strong> Encounter</strong></th>
           <th><strong>Fraction Matched Triangles </strong></th>
           <th><strong>Match Score </strong></th>
-    
+
           <th><strong>logM std. dev.</strong></th>
           <th><strong>Confidence</strong></th>
           <th><strong>Matched Keywords</strong></th>
@@ -500,17 +600,31 @@ function fitRightImage() {
         </thead>
         <tbody>
         <%
+          Shepherd indShepherd = new Shepherd(context);
+          indShepherd.setAction("scanEndApplet.jsp_displayNames");
+          indShepherd.beginDBTransaction();
+          java.util.HashMap<String, String> displayNameCache = new java.util.HashMap<>();
+
           if (!xmlOK) {
 
             MatchObject[] results = new MatchObject[1];
             results = matches;
             Arrays.sort(results, new MatchComparator());
             for (int p = 0; p < results.length; p++) {
-              if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
+              if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {
+                String indId_mo = results[p].getIndividualName();
+                String displayName_mo = displayNameCache.get(indId_mo);
+                if (displayName_mo == null && indId_mo != null) {
+                    MarkedIndividual ind_mo = indShepherd.getMarkedIndividual(indId_mo);
+                    displayName_mo = (ind_mo != null) ? ind_mo.getDisplayName() : indId_mo;
+                    displayNameCache.put(indId_mo, displayName_mo);
+                }
+                if (displayName_mo == null) displayName_mo = "Unknown";
+              %>
         <tr>
           <td>
             <a
-                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indId_mo%>"><%=displayName_mo%>
                 </a>
           </td>
           <%if (results[p].encounterNumber.equals("N/A")) {%>
@@ -552,7 +666,7 @@ function fitRightImage() {
             //end for loop
           }
 
-//or use XML output here	
+//or use XML output here
         } else {
           doc = xmlReader.read(file);
           root = doc.getRootElement();
@@ -564,14 +678,22 @@ function fitRightImage() {
             List encounters = match.elements("encounter");
             Element enc1 = (Element) encounters.get(0);
             Element enc2 = (Element) encounters.get(1);
+            String indId_xml = enc1.attributeValue("assignedToShark");
+            String displayName_xml = displayNameCache.get(indId_xml);
+            if (displayName_xml == null && indId_xml != null) {
+                MarkedIndividual ind_xml = indShepherd.getMarkedIndividual(indId_xml);
+                displayName_xml = (ind_xml != null) ? ind_xml.getDisplayName() : indId_xml;
+                displayNameCache.put(indId_xml, displayName_xml);
+            }
+            if (displayName_xml == null) displayName_xml = "Unknown";
         %>
-        
+
         <tr id="table-row-<%=ct%>" align="left" valign="top"
 class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
  style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
           <td>
-            <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
-            	<%=enc1.attributeValue("assignedToShark")%>
+            <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indId_xml%>">
+            	<%=displayName_xml%>
             </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
@@ -660,6 +782,8 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
 
 
   <%
+          indShepherd.rollbackDBTransaction();
+          indShepherd.closeDBTransaction();
 
 
 
@@ -670,7 +794,7 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
     initresults = null;
     file = null;
     xmlReader = null;
-    
+
 if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != null)) {%>
       <p><font size="+1">Custom Scan</font></p>
       <%} else {%>
@@ -687,7 +811,12 @@ if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != n
         <li>Max. Triangle Rotation (<%=maxTriangleRotation%>)</li>
 
       </ul>
+<%
+  } // end if xmlOK
+%>
 <br />
+<%
+  } // end else (not scanInProgress)
+%>
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
-

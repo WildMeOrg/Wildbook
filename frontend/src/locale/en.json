@@ -707,5 +707,6 @@
     "ADD_ENCOUNTER_TO_PROJECT_DESC": "Select one or more encounters to add to a project.",
     "INVALID_DATE": "Invalid date",
     "INVALID_LAT_LON": "Please enter a valid latitude and longitude",
-    "INVALID_MEASUREMENTS": "Please enter valid values"
+    "INVALID_MEASUREMENTS": "Please enter valid values",
+    "RESULTS_PER_PAGE": "Results per page"
 }
