@@ -206,7 +206,7 @@ export default class MatchResultsStore {
         taskId,
         columns,
         metadata: {
-          numCandidates: first.numberCandidates || "-",
+          numCandidates: first.numberCandidates ?? "-",
           date: first.date,
           queryImageUrl:
             first.queryEncounterImageAsset?.url || first.queryEncounterImageUrl,
@@ -217,8 +217,8 @@ export default class MatchResultsStore {
           taskStatus: first.taskStatus,
           taskStatusOverall: first.taskStatusOverall,
           algorithm: first.algorithm,
-          emptyStateType: first.emptyStateType || null,
-          errors: first.errors || null,
+          emptyStateType: first.emptyStateType ?? null,
+          errors: first.errors ?? null,
         },
       });
     }
