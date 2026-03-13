@@ -632,7 +632,9 @@ const MatchProspectTable = ({
           >
             <div
               onClick={() => leftOverlayRef.current?.zoomIn?.()}
-              style={styles.iconButton}
+              style={
+                hasLeftImage ? styles.iconButton : styles.iconButtonDisabled
+              }
               title="Zoom In"
               role="button"
               tabIndex={0}
@@ -643,13 +645,16 @@ const MatchProspectTable = ({
               }}
               id={`match-prospect-left-zoom-in-${sectionId}`}
               data-testid={`match-prospect-left-zoom-in-${sectionId}`}
+              aria-disabled={!hasLeftImage}
             >
               <ZoomInIcon />
             </div>
 
             <div
               onClick={() => leftOverlayRef.current?.zoomOut?.()}
-              style={styles.iconButton}
+              style={
+                hasLeftImage ? styles.iconButton : styles.iconButtonDisabled
+              }
               title="Zoom Out"
               role="button"
               tabIndex={0}
@@ -660,6 +665,7 @@ const MatchProspectTable = ({
               }}
               id={`match-prospect-left-zoom-out-${sectionId}`}
               data-testid={`match-prospect-left-zoom-out-${sectionId}`}
+              aria-disabled={!hasLeftImage}
             >
               <ZoomOutIcon />
             </div>
@@ -756,7 +762,9 @@ const MatchProspectTable = ({
 
             <div
               style={
-                inspectorUrl && hasRightImage
+                inspectorUrl &&
+                hasRightImage &&
+                algorithm.toLowerCase().includes("hotspotter")
                   ? styles.iconButton
                   : styles.iconButtonDisabled
               }
