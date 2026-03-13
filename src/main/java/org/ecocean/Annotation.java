@@ -1047,6 +1047,9 @@ public class Annotation extends Base implements java.io.Serializable {
             }
            }
          */
+
+        // this exludes the very noisy embeddings from opensearch results since we dont need it
+        query.put("_source", new JSONObject("{ \"excludes\": [\"embeddings\"] }"));
         System.out.println("getMatchingSetQuery() returning query=" + query.toString(4));
         return query;
     }
@@ -1132,8 +1135,11 @@ public class Annotation extends Base implements java.io.Serializable {
                 "\"}}"));
         nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("must",
             must);
-        matchingSetQuery.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(
-            nested);
+
+        // we put nested under its own top-level must, that way its score counts (whereas filter does not)
+        JSONArray nestedMust = new JSONArray();
+        nestedMust.put(nested);
+        matchingSetQuery.getJSONObject("query").getJSONObject("bool").put("must", nestedMust);
         return matchingSetQuery;
     }
 
