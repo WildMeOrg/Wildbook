@@ -1086,7 +1086,10 @@ public class Annotation extends Base implements java.io.Serializable {
             JSONObject hit = hits.optJSONObject(i);
             if (hit == null) continue;
             Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
-            if (ann != null) anns.add(ann);
+            if (ann != null) {
+                ann.setOpensearchScore(hit.optDouble("_score", 0.0d));
+                anns.add(ann);
+            }
         }
         System.out.println("getMatchingSet() results: hitSize=" + hitSize + "; hits length=" +
             hits.length() + "; anns size=" + anns.size() + "; " +
@@ -1167,7 +1170,10 @@ public class Annotation extends Base implements java.io.Serializable {
             JSONObject hit = hits.optJSONObject(i);
             if (hit == null) continue;
             Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
-            if (ann != null) anns.add(ann);
+            if (ann != null) {
+                ann.setOpensearchScore(hit.optDouble("_score", 0.0d));
+                anns.add(ann);
+            }
         }
         System.out.println("getMatches() results: hitSize=" + hitSize + "; hits length=" +
             hits.length() + "; anns size=" + anns.size() + "; " +
