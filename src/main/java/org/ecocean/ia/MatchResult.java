@@ -65,9 +65,6 @@ public class MatchResult implements java.io.Serializable {
         this.createFromJsonResult(jsonResult, myShepherd);
     }
 
-    // opensearch doc scores with vectors seem to be 0.0 but the ordering seems best-to-worst,
-    // so we generally trust the score *for annot/image* however scoreByIndividual will weight
-    // scores by how many times the individual appears
     public MatchResult(Task task, List<Annotation> annots, int numberCandidates,
         Shepherd myShepherd)
     throws IOException {
@@ -186,9 +183,13 @@ public class MatchResult implements java.io.Serializable {
         if (this.prospects == null)
             this.prospects = new HashSet<MatchResultProspect>();
         if (scoreByIndividual) {
+            // the scores for these are calculated weighted by indiv count
             _populateProspectsByIndividual(annots, myShepherd);
         } else {
+            // these scores are direct from opensearch
             for (Annotation ann : annots) {
+                // TODO FIXME - getOpensearchScore() comes in via vector branch - replace this in the merged future
+                //this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(), "annot", null));
                 this.prospects.add(new MatchResultProspect(ann, 0.0d, "annot", null));
             }
         }
