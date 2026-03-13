@@ -410,7 +410,7 @@ public class MatchResult implements java.io.Serializable {
         s += " query " + queryAnnotation;
         s += "; numCandidates=" + this.getNumberCandidates();
         s += "; numProspects=" + this.numberProspects();
-        s += "; " + task;
+        s += "; task=" + (task == null ? "null" : task.getId());
         return s;
     }
 }
