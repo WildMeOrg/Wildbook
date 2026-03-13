@@ -193,6 +193,16 @@ function expandOperations(operations) {
       continue;
     }
 
+    if (op.path === "individualId_suggested") {
+      const existing = out.find((item) => item.path === "individualId");
+      if (existing) {
+        existing.value = op.value;
+      } else {
+        out.push({ op: "replace", path: "individualId", value: op.value });
+      }
+      continue;
+    }
+
     if (op.path === "locationGeoPoint" && op.value) {
       out.push({ op: "replace", path: "decimalLatitude", value: op.value.lat });
       out.push({
@@ -204,8 +214,16 @@ function expandOperations(operations) {
     }
 
     if (op.path === "taxonomy" && op.value) {
-      const s = String(op.value).trim();
-      const [genus = "", specificEpithet = ""] = s.split(/\s+/, 2);
+      const taxonomyString = String(op.value).trim();
+      const spaceIndex = taxonomyString.indexOf(" ");
+      const genus =
+        spaceIndex === -1
+          ? taxonomyString
+          : taxonomyString.substring(0, spaceIndex);
+      const specificEpithet =
+        spaceIndex === -1
+          ? ""
+          : taxonomyString.substring(spaceIndex + 1).trim();
       out.push({ op: "replace", path: "genus", value: genus });
       out.push({
         op: "replace",

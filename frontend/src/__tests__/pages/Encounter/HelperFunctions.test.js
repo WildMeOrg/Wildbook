@@ -254,6 +254,24 @@ describe("expandOperations", () => {
     ]);
   });
 
+  test("expands taxonomy with subspecies", () => {
+    const ops = [{ op: "replace", path: "taxonomy", value: "Giraffa tippelskirchi tippelskirchi" }];
+    const out = expandOperations(ops);
+    expect(out).toEqual([
+      { op: "replace", path: "genus", value: "Giraffa" },
+      { op: "replace", path: "specificEpithet", value: "tippelskirchi tippelskirchi" },
+    ]);
+  });
+
+  test("expands taxonomy with genus only", () => {
+    const ops = [{ op: "replace", path: "taxonomy", value: "Giraffa" }];
+    const out = expandOperations(ops);
+    expect(out).toEqual([
+      { op: "replace", path: "genus", value: "Giraffa" },
+      { op: "replace", path: "specificEpithet", value: "" },
+    ]);
+  });
+
   test("keeps other ops unchanged", () => {
     const ops = [{ op: "replace", path: "sex", value: "male" }];
     const out = expandOperations(ops);
