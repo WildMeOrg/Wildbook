@@ -595,6 +595,7 @@ public class Task implements java.io.Serializable {
             // if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
             // if(status.equals("waiting to queue"))System.out.println("islObj: "+islObj.toString());
         }
+        System.out.println("[DEBUG] getStatus() fell through to status='" + status + "' on Task " + this.getId());
         return status;
     }
 
