@@ -31,6 +31,8 @@ export default class MatchResultsStore {
   // raw data from API, before grouping / processing
   _rawAnnots = [];
   _rawIndivs = [];
+  _processedAnnots = [];
+  _processedIndivs = [];
 
   _loading = false;
   _matchRequestLoading = false;
@@ -75,7 +77,7 @@ export default class MatchResultsStore {
     return candidates[0];
   }
 
-  loadData(results) {
+  loadData(results, { preserveSelection = false } = {}) {
     const root = results?.matchResultsRoot;
 
     this._annotResults = getAllAnnot(root);
@@ -83,6 +85,7 @@ export default class MatchResultsStore {
     this._taskStillRunning = isMatchTaskStillRunning(root);
     this._taskHasError = hasMatchTaskError(root);
     this._taskIsTerminal = isMatchTaskTerminal(root);
+
     const rootHasChildren =
       Array.isArray(root?.children) && root.children.length > 0;
     const rootHasMatchResults = !!root?.matchResults;
@@ -106,6 +109,8 @@ export default class MatchResultsStore {
     if (!hasAnyResults) {
       this._rawAnnots = [];
       this._rawIndivs = [];
+      this._processedAnnots = [];
+      this._processedIndivs = [];
       this._encounterId = null;
       this._matchingSetFilter = {};
       this._individualId = null;
@@ -113,7 +118,10 @@ export default class MatchResultsStore {
       this._hasResults = false;
       this._encounterLocationId = "";
       this._statusOverall = root?.statusOverall || "";
-      this.resetSelectionToQuery();
+
+      if (!preserveSelection) {
+        this.resetSelectionToQuery();
+      }
       return;
     }
 
@@ -146,8 +154,12 @@ export default class MatchResultsStore {
       ? this._indivResults
       : [];
     this._hasResults = this._rawAnnots.length > 0 || this._rawIndivs.length > 0;
+    this._processedAnnots = this._processData(this._rawAnnots);
+    this._processedIndivs = this._processData(this._rawIndivs);
 
-    this.resetSelectionToQuery();
+    if (!preserveSelection) {
+      this.resetSelectionToQuery();
+    }
   }
 
   _processData(rawData) {
@@ -219,6 +231,8 @@ export default class MatchResultsStore {
     this._indivResults = [];
     this._rawAnnots = [];
     this._rawIndivs = [];
+    this._processedAnnots = [];
+    this._processedIndivs = [];
     this._encounterId = null;
     this._encounterLocationId = "";
     this._matchingSetFilter = {};
@@ -240,17 +254,17 @@ export default class MatchResultsStore {
   // --- computed data for UI ---
 
   get processedAnnots() {
-    return this._processData(this._rawAnnots);
+    return this._processedAnnots;
   }
 
   get processedIndivs() {
-    return this._processData(this._rawIndivs);
+    return this._processedIndivs;
   }
 
   get currentViewData() {
     return this._viewMode === "individual"
-      ? this.processedIndivs
-      : this.processedAnnots;
+      ? this._processedIndivs
+      : this._processedAnnots;
   }
 
   get viewMode() {
@@ -400,7 +414,7 @@ export default class MatchResultsStore {
         const result = await axios.get(
           `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
         );
-        this.loadData(result?.data);
+        this.loadData(result?.data, { preserveSelection: false });
       } catch (e) {
         console.error(e);
         this.clearResults();
@@ -424,7 +438,7 @@ export default class MatchResultsStore {
           return;
         }
 
-        this.loadData(result?.data);
+        this.loadData(result?.data, { preserveSelection: true });
       } catch (e) {
         console.error(e);
       }
