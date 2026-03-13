@@ -121,7 +121,34 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        String speciesString = enc.getTaxonomyString();
 	        Annotation ann = new Annotation(speciesString, crMa);
 	        ann.setMatchAgainst(true);
-	        String iaClass = "whalesharkCR"; // should we change this?
+	        String iaClass = "unknown"; // should we change this?
+	        //WB-1841 only whale sharks are currently matchable via this method
+	        if(speciesString!=null && speciesString.equals("Rhincodon typus")) {
+	          ann.setMatchAgainst(true);
+	          iaClass = "whaleshark"; // should we change this?
+	          ann.setIAClass(iaClass);
+	        }
+	        else if(speciesString!=null && speciesString.equals("Stegostoma tigrinum")) {
+	          ann.setMatchAgainst(true);
+	          iaClass = "leopard_shark"; // should we change this?
+	          ann.setIAClass(iaClass);
+	        }
+	        else if(speciesString!=null && speciesString.equals("Scyliorhinus stellaris")) {
+	          ann.setMatchAgainst(true);
+	          iaClass = "nursehoundsharkCR"; // should we change this?
+	          ann.setIAClass(iaClass);
+	        }
+	        else if(speciesString!=null && speciesString.equals("Carcharias taurus")) {
+		          ann.setMatchAgainst(true);
+		          iaClass = "shark"; // should we change this?
+		          ann.setIAClass(iaClass);
+		    }
+			else if(speciesString!=null && speciesString.equals("Notorynchus cepedianus")) {
+		          ann.setMatchAgainst(true);
+		          iaClass = "sevengill_shark"; // should we change this?
+		          ann.setIAClass(iaClass);
+		    }
+	        
 	        ann.setIAClass(iaClass);
 	        if (rightSide) { ann.setViewpoint("right"); } else { ann.setViewpoint("left"); }
 	        enc.addAnnotation(ann);
@@ -131,33 +158,24 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        myShepherd.getPM().makePersistent(ann);
 	        System.out.println("    + saved annotation");
 	
-	        // Send to IA in background — don't block the user on slow WBIA calls
-	        final String iaContext = context;
-	        final ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
+	        // we need to intake mediaassets so they get acmIds and are matchable
+	        ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
 	        maList.add(crMa);
-	        final ArrayList<Annotation> annList = new ArrayList<Annotation>();
+	        ArrayList<Annotation> annList = new ArrayList<Annotation>();
 	        annList.add(ann);
-	        new Thread(() -> {
-	            Shepherd iaShepherd = new Shepherd(iaContext);
-	            iaShepherd.setAction("SubmitSpotsAndImage_IA");
-	            iaShepherd.beginDBTransaction();
-	            try {
-	                System.out.println("    + sending asset to IA (background)");
-	                IBEISIA.sendMediaAssetsNew(maList, iaContext);
-	                iaShepherd.updateDBTransaction();
-	                System.out.println("    + asset sent, sending annot");
-	                IBEISIA.sendAnnotationsNew(annList, iaContext, iaShepherd);
-	                iaShepherd.commitDBTransaction();
-	                System.out.println("    + annot sent (background).");
-	            } catch (Exception e) {
-	                e.printStackTrace();
-	                System.out.println("hit above exception while trying to send CR ma & annot to IA");
-	                iaShepherd.rollbackDBTransaction();
-	            } finally {
-	                iaShepherd.closeDBTransaction();
-	            }
-	        }, "IA-register-" + encId).start();
-	        System.out.println("    + IA registration queued in background");
+	        try {
+	            System.out.println("    + sending asset to IA");
+	            IBEISIA.sendMediaAssetsNew(maList, context);
+	            myShepherd.updateDBTransaction();
+	            System.out.println("    + asset sent, sending annot");
+	            IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
+	            myShepherd.updateDBTransaction();
+	            System.out.println("    + annot sent.");
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            System.out.println("hit above exception while trying to send CR ma & annot to IA");
+	        }
+	        System.out.println("    + done processing new CR annot");
 	        if (rightSide) {
 	            enc.setRightSpots(spots);
 	            enc.setRightReferenceSpots(refSpots);
