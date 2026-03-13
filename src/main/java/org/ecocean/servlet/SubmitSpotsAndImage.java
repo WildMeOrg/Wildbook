@@ -143,6 +143,11 @@ public class SubmitSpotsAndImage extends HttpServlet {
 		          iaClass = "shark"; // should we change this?
 		          ann.setIAClass(iaClass);
 		    }
+			else if(speciesString!=null && speciesString.equals("Notorynchus cepedianus")) {
+		          ann.setMatchAgainst(true);
+		          iaClass = "sevengill_shark"; // should we change this?
+		          ann.setIAClass(iaClass);
+		    }
 	        
 	        ann.setIAClass(iaClass);
 	        if (rightSide) { ann.setViewpoint("right"); } else { ann.setViewpoint("left"); }
