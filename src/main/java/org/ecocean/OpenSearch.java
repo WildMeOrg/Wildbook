@@ -462,7 +462,9 @@ public class OpenSearch {
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         Request searchRequest = new Request("POST", indexName + "/_count");
-        searchRequest.setJsonEntity(query.toString());
+        JSONObject cleanedQuery = new JSONObject(query.toString());
+        cleanedQuery.remove("_source"); // invalid for a _count query
+        searchRequest.setJsonEntity(cleanedQuery.toString());
         JSONObject res = new JSONObject();
         try {
             res = new JSONObject(getRestResponse(searchRequest));
