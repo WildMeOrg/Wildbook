@@ -546,7 +546,7 @@ const ImageCard = observer(({ store = {} }) => {
               onClick={async () => {
                 if (store.matchResultClickable) {
                   const taskId = currentAnnotation?.iaTaskId;
-                  const url = `/iaResults.jsp?taskId=${encodeURIComponent(taskId)}`;
+                  const url = `/react/match-results?taskId=${encodeURIComponent(taskId)}`;
                   window.open(url, "_blank", "noopener,noreferrer");
                 } else if (
                   clickedAnnotation &&
@@ -584,7 +584,7 @@ const ImageCard = observer(({ store = {} }) => {
                     identActive &&
                     (detectionComplete || identificationStatus)
                   ) {
-                    const url = `/iaResults.jsp?taskId=${encodeURIComponent(selectedAnnotation.iaTaskId)}`;
+                    const url = `/react/match-results?taskId=${encodeURIComponent(selectedAnnotation.iaTaskId)}`;
                     window.open(url, "_blank", "noopener,noreferrer");
                   } else {
                     alert("No match results available for this annotation.");

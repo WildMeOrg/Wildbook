@@ -7,8 +7,9 @@ import { FormLabel, FormGroup } from "react-bootstrap";
 import FormMeasurements from "../Form/FormMeasurements";
 import FormGroupText from "../Form/FormGroupText";
 import ContainerWithSpinner from "../ContainerWithSpinner";
+import { observer } from "mobx-react-lite";
 
-export default function ObservationAttributeFilter({ data, store }) {
+const ObservationAttributeFilter = observer(({ data, store }) => {
   const sexOptions =
     data?.sex?.map((item) => {
       return {
@@ -177,4 +178,6 @@ export default function ObservationAttributeFilter({ data, store }) {
       </FormGroup>
     </div>
   );
-}
+});
+
+export default ObservationAttributeFilter;

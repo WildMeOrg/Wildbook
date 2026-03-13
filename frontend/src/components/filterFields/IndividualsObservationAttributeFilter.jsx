@@ -3,8 +3,9 @@ import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import ContainerWithSpinner from "../ContainerWithSpinner";
+import { observer } from "mobx-react-lite";
 
-export default function ObservationAttributeFilter({ data, store }) {
+const ObservationAttributeFilter = observer(({ data, store }) => {
   const sexOptions =
     data?.sex?.map((item) => {
       return {
@@ -62,4 +63,6 @@ export default function ObservationAttributeFilter({ data, store }) {
       </ContainerWithSpinner>
     </div>
   );
-}
+});
+
+export default ObservationAttributeFilter;

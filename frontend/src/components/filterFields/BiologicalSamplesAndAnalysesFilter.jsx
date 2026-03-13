@@ -10,7 +10,7 @@ import { useIntl } from "react-intl";
 import { observer } from "mobx-react-lite";
 import ContainerWithSpinner from "../ContainerWithSpinner";
 
-const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
+const BiologicalSamplesAndAnalysesFilter = observer(({ data, store }) => {
   const intl = useIntl();
   const label = <FormattedMessage id="FILTER_HAS_BIOLOGICAL_SAMPLE" />;
   const bioMeasurementOptions =
@@ -409,6 +409,6 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
       })}
     </div>
   );
-};
+});
 
-export default observer(BiologicalSamplesAndAnalysesFilter);
+export default BiologicalSamplesAndAnalysesFilter;

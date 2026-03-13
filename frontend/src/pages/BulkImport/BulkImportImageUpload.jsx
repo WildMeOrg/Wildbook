@@ -9,7 +9,7 @@ import {
 import { FormattedMessage } from "react-intl";
 import ThemeContext from "../../ThemeColorProvider";
 import MainButton from "../../components/MainButton";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import { observer } from "mobx-react-lite";
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
 import { FixedSizeList as List } from "react-window";
@@ -33,7 +33,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
   const fileInputRef = useRef(null);
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   const serverMaxSize = data?.maximumMediaSizeMegabytes;
   const maxSizeForUI =
     serverMaxSize ?? store.maxImageSizeMB ?? defaultMaxMediaSize;
