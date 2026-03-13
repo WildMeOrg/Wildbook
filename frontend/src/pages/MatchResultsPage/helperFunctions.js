@@ -32,20 +32,20 @@ const collectProspects = (node, type, result = []) => {
     const common = {
       algorithm: methodName,
       date: node.dateCreated,
-      numberCandidates: numberCandidatesRaw || "-",
+      numberCandidates: numberCandidatesRaw ?? "-",
       queryEncounterId:
-        node.matchResults?.queryAnnotation?.encounter?.id || null,
+        node.matchResults?.queryAnnotation?.encounter?.id ?? null,
       encounterLocationId:
-        node.matchResults?.queryAnnotation?.encounter?.locationId || null,
+        node.matchResults?.queryAnnotation?.encounter?.locationId ?? null,
       matchingSetFilter: node.matchingSetFilter,
       queryIndividualId:
-        node.matchResults?.queryAnnotation?.individual?.id || null,
+        node.matchResults?.queryAnnotation?.individual?.id ?? null,
       queryIndividualDisplayName:
-        node.matchResults?.queryAnnotation?.individual?.displayName || null,
+        node.matchResults?.queryAnnotation?.individual?.displayName ?? null,
       queryEncounterImageAsset:
-        node.matchResults?.queryAnnotation?.asset || null,
+        node.matchResults?.queryAnnotation?.asset ?? null,
       queryEncounterImageUrl:
-        node.matchResults?.queryAnnotation?.asset?.url || null,
+        node.matchResults?.queryAnnotation?.asset?.url ?? null,
       queryEncounterAnnotation: node.matchResults?.queryAnnotation
         ? {
             id: node.matchResults.queryAnnotation?.id,
@@ -61,13 +61,13 @@ const collectProspects = (node, type, result = []) => {
         : null,
       methodName,
       methodDescription,
-      method: node.method || null,
+      method: node.method ?? null,
       taskId: node.id ?? null,
       taskStatus: node.status ?? null,
       taskStatusOverall,
       hasResults: safeProspects.length > 0,
       emptyStateType,
-      errors: node.statusDetails?.errors || null,
+      errors: node.statusDetails?.errors ?? null,
     };
 
     if (safeProspects.length > 0) {
