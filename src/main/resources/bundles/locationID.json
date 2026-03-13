@@ -79,6 +79,10 @@
 					"id": "Auf der Halle",
 					"prefix": "H",
 					"prefixDigitPadding": 4,
+					"geospatialInfo":{
+						"lat": 51.36429,
+						"long": 7.4081
+					},
 					"locationID":[]
 				},
 				{
