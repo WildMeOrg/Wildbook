@@ -75,6 +75,13 @@
 					"locationID": []
 				},
 				{
+					"name": "Auf der Halle",
+					"id": "Auf der Halle",
+					"prefix": "H",
+					"prefixDigitPadding": 4,
+					"locationID":[]
+				},
+				{
 					"name": "Bonn",
 					"id": "Bonn",
 					"locationID": [
