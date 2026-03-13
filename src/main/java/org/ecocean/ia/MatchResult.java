@@ -188,9 +188,7 @@ public class MatchResult implements java.io.Serializable {
         } else {
             // these scores are direct from opensearch
             for (Annotation ann : annots) {
-                // TODO FIXME - getOpensearchScore() comes in via vector branch - replace this in the merged future
-                //this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(), "annot", null));
-                this.prospects.add(new MatchResultProspect(ann, 0.0d, "annot", null));
+                this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(), "annot", null));
             }
         }
         return this.prospects.size();
