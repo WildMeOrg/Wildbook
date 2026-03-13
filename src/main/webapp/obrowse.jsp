@@ -12,6 +12,7 @@ org.ecocean.movement.*,
 java.net.URL,
 java.util.Vector,
 java.util.ArrayList,
+java.util.Set,
 org.json.JSONObject,
 org.json.JSONArray,
 java.util.Properties" %>
@@ -140,6 +141,16 @@ java.util.Properties" %>
         return "obrowse.jsp?type=Annotation&id="+ann.getId();
     }
 
+     private String showEmbeddingList(Set<Embedding> embs, HttpServletRequest req, Shepherd myShepherd) {
+        if (Util.collectionIsEmptyOrNull(embs)) return "<b>[none]</b>";
+        String h = "<div class=\"embedding\"><ul>";
+        for (Embedding emb : embs) {
+            h += "<li>" + emb + "</li>";
+        }
+        h += "</ul></div>";
+        return h;
+    }
+
 	private String showAnnotation(Annotation ann, HttpServletRequest req, Shepherd myShepherd) {
 		if (ann == null) return "annotation: <b>[none]</b>";
 		if (shown.contains(ann)) return "<div class=\"annotation shown\">Annotation <b>" + ann.getId() + "</b></div>";
@@ -154,6 +165,7 @@ java.util.Properties" %>
 		h += "<li>" + format("identificationStatus", ann.getIdentificationStatus()) + "</li>";
                 h += "<li>" + format("AoI", ann.getIsOfInterest()) + "</li>";
 		h += "<li>features: " + showFeatureList(ann.getFeatures(), req, myShepherd) + "</li>";
+		h += "<li>embeddings: " + showEmbeddingList(ann.getEmbeddings(), req, myShepherd) + "</li>";
 		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd), req) + "</li>";
 		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset(), req, myShepherd) + "</li>";
 		return h + "</ul></div>";

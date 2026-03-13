@@ -145,6 +145,7 @@ public class SiteSettings extends ApiBase {
                 iaConfigJson.put(snSpaces, identConfigs.values());
             }
             settings.put("iaClassesForTaxonomy", iaForTx);
+            // FIXME remove api_endpoint from mlservice (and maybe autopopulate description?)
             settings.put("iaConfig", iaConfigJson);
 
             List<String> behavs = myShepherd.getAllBehaviors();
