@@ -125,14 +125,18 @@ public class SimpleCMROutput extends HttpServlet {
             // ServletContext ctx = getServletContext();
             // InputStream is = ctx.getResourceAsStream("/encounters/"+emailFilename);
             InputStream is = new FileInputStream(inpFile);
-            int read = 0;
-            byte[] bytes = new byte[BYTES_DOWNLOAD];
-            OutputStream os = response.getOutputStream();
-            while ((read = is.read(bytes)) != -1) {
-                os.write(bytes, 0, read);
+            try {
+                int read = 0;
+                byte[] bytes = new byte[BYTES_DOWNLOAD];
+                OutputStream os = response.getOutputStream();
+                while ((read = is.read(bytes)) != -1) {
+                    os.write(bytes, 0, read);
+                }
+                os.flush();
+                os.close();
+            } finally {
+                is.close();
             }
-            os.flush();
-            os.close();
         } catch (Exception e) {
             e.printStackTrace();
             response.setContentType("text/html");
