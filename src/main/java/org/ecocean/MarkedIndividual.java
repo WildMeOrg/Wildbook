@@ -751,6 +751,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         int startMonth = m_startMonth;
         GregorianCalendar gcMin = new GregorianCalendar(startYear, startMonth, 1);
         GregorianCalendar gcMax = new GregorianCalendar(endYear, endMonth, 31);
+        gcMax.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        gcMax.set(java.util.Calendar.MINUTE, 59);
+        gcMax.set(java.util.Calendar.SECOND, 59);
 
         for (int c = 0; c < encounters.size(); c++) {
             Encounter temp = (Encounter)encounters.get(c);
