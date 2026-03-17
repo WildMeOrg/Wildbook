@@ -74,8 +74,8 @@ public class MarkRecaptureEncounters extends HttpServlet {
             end[j] = parser2.parseDateTime(enddate);
             // System.out.println(("datepicker"+j+"end")+": "+end.toString());
 
-            sessionsSummary += ("Session " + (j + 1) + ": " + start[j].toString() + " to " +
-                end[j].toString() + "\n");
+            sessionsSummary += ("Session " + (j + 1) + ": " + start[j].toLocalDate().toString() +
+                " to " + end[j].toLocalDate().toString() + "\n");
         }
         sessionsSummary += "\n*/\n";
 
