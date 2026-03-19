@@ -504,8 +504,9 @@ public class Collaboration implements java.io.Serializable {
                 List<Organization> ownerOrgs = encounterOwner.getOrganizations();
                 List<Organization> requesterOrgs = requester.getOrganizations();
                 if (ownerOrgs != null && requesterOrgs != null) {
+                    Set<Organization> requesterOrgSet = new HashSet<>(requesterOrgs);
                     for (Organization org : ownerOrgs) {
-                        if (requesterOrgs.contains(org)) return true;
+                        if (requesterOrgSet.contains(org)) return true;
                     }
                 }
             }
@@ -527,7 +528,7 @@ public class Collaboration implements java.io.Serializable {
             boolean researcherSubmitted = false;
             if (submitters != null) {
                 for (User user : submitters) {
-                    if (user.getUsername() != null && !"".equals(user.getUsername())) {
+                    if (Util.stringExists(user.getUsername())) {
                         researcherSubmitted = true;
                         break;
                     }
@@ -551,7 +552,7 @@ public class Collaboration implements java.io.Serializable {
         try {
             return canUserAccessEncounter(enc, request, myShepherd);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            System.out.println("WARNING: Collaboration.canUserAccessEncounter exception: " + ex.getMessage());
             return false;
         } finally {
             myShepherd.rollbackAndClose();
