@@ -471,90 +471,32 @@ public class ServletUtilities {
                 myShepherd.getUser(myShepherd.getUsername(request))).isEmpty();
     }
 
+    /**
+     * @deprecated Use {@link Collaboration#canUserAccessEncounter} for read access
+     * or {@link Collaboration#canUserModifyEncounter} for write access.
+     * This method requires edit-level collaboration (matching original behavior).
+     */
     public static boolean isUserAuthorizedForEncounter(Encounter enc, HttpServletRequest request) {
-        boolean isOwner = false;
+        if (request.getUserPrincipal() == null) return false;
         Shepherd myShepherd = new Shepherd(request);
-
-        myShepherd.setAction("SevrletUtilities.isUserAuthorizedForEncounterShortForm");
+        myShepherd.setAction("ServletUtilities.isUserAuthorizedForEncounter");
         myShepherd.beginDBTransaction();
         try {
-            isOwner = isUserAuthorizedForEncounter(enc, request, myShepherd);
-        } catch (Exception e) {
-            e.printStackTrace();
+            return Collaboration.canUserModifyEncounter(enc, request, myShepherd);
         } finally {
             myShepherd.rollbackAndClose();
         }
-        return isOwner;
     }
 
+    /**
+     * @deprecated Use {@link Collaboration#canUserAccessEncounter} for read access
+     * or {@link Collaboration#canUserModifyEncounter} for write access.
+     * This method requires edit-level collaboration (matching original behavior).
+     */
     public static boolean isUserAuthorizedForEncounter(Encounter enc, HttpServletRequest request,
         Shepherd myShepherd) {
-        boolean isOwner = false;
-
-        try {
-            if (request.getUserPrincipal() != null) {
-                // if the current user is an admin, they always have access
-                if (request.isUserInRole("admin")) {
-                    isOwner = true;
-                }
-                // user-specific checks
-                else if ((enc.getSubmitterID() != null) && (request.getRemoteUser() != null)) {
-                    // allow access to public encounters
-                    if (enc.getSubmitterID().equals("public"))
-                        return true;
-                    // if the current user owns the Encounter, they obviously have permission
-                    if (enc.getSubmitterID().equals(request.getRemoteUser())) {
-                        isOwner = true;
-                    }
-                    // if the current user is the orgAdmin for the other user, they can ave
-                    // permission
-                    else if (request.isUserInRole("orgAdmin") &&
-                        myShepherd.getUser(enc.getSubmitterID()) != null) {
-                        User encounterOwner = myShepherd.getUser(enc.getSubmitterID());
-                        User requester = myShepherd.getUser(request);
-                        List<Organization> encounterOwnerOrgs = encounterOwner.getOrganizations();
-                        List<Organization> requesterOrgs = requester.getOrganizations();
-                        if (encounterOwnerOrgs != null && encounterOwnerOrgs.size() > 0 &&
-                            requesterOrgs != null && requesterOrgs.size() > 0) {
-                            for (Organization org : encounterOwnerOrgs) {
-                                if (requesterOrgs.contains(org)) {
-                                    isOwner = true;
-                                }
-                            }
-                        }
-                    }
-                }
-                // check other cases
-                // ----------------
-                // if the current user has a location ID-specific role matching the location ID
-                // of this Encounter, they are authorized
-                if (!isOwner && enc.getLocationCode() != null &&
-                    request.isUserInRole(enc.getLocationCode())) {
-                    isOwner = true;
-                }
-                // if the current user is in a collaboration with the Encounter owner
-                if (!isOwner && Collaboration.canEditEncounter(enc, request)) {
-                    return true;
-                }
-                // allow WDP edit stenella frontalis cit sci encounters
-                if (!isOwner && "wdp".equals(request.getUserPrincipal().getName())) {
-                    List<User> users = enc.getSubmitters();
-                    boolean researcherSubmitted = false;
-                    for (User user : users) {
-                        if (user.getUsername() != null && !"".equals(user.getUsername())) {
-                            researcherSubmitted = true;
-                        }
-                    }
-                    String genSpec = enc.getTaxonomyString();
-                    if (!researcherSubmitted && "Stenella frontalis".equals(genSpec)) {
-                        isOwner = true;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return isOwner;
+        if (request.getUserPrincipal() == null) return false;
+        return Collaboration.canUserModifyEncounter(enc, request, myShepherd);
     }
 
     public static boolean isEncounterOwnedByPublic(Encounter enc) {
@@ -567,39 +509,33 @@ public class ServletUtilities {
         return isPublic;
     }
 
+    /**
+     * @deprecated Use {@link Collaboration#canUserAccessMarkedIndividual} for read access
+     * or {@link Collaboration#canUserModifyMarkedIndividual} for write access.
+     * This method requires edit-level access (matching original behavior).
+     */
     public static boolean isUserAuthorizedForIndividual(MarkedIndividual indy,
         HttpServletRequest request) {
-        boolean isOwner = false;
+        if (request.getUserPrincipal() == null) return false;
         Shepherd myShepherd = new Shepherd(request);
-
-        myShepherd.setAction("SevrletUtilities.isUserAuthorizedForIndividualShortForm");
+        myShepherd.setAction("ServletUtilities.isUserAuthorizedForIndividual");
         myShepherd.beginDBTransaction();
         try {
-            isOwner = isUserAuthorizedForIndividual(indy, request, myShepherd);
-        } catch (Exception e) {
-            e.printStackTrace();
+            return Collaboration.canUserModifyMarkedIndividual(indy, request, myShepherd);
         } finally {
             myShepherd.rollbackAndClose();
         }
-        return isOwner;
     }
 
+    /**
+     * @deprecated Use {@link Collaboration#canUserAccessMarkedIndividual} for read access
+     * or {@link Collaboration#canUserModifyMarkedIndividual} for write access.
+     * This method requires edit-level access (matching original behavior).
+     */
     public static boolean isUserAuthorizedForIndividual(MarkedIndividual indy,
         HttpServletRequest request, Shepherd myShepherd) {
-        if (request.getUserPrincipal() != null) {
-            if (request.isUserInRole("admin")) {
-                return true;
-            }
-            Vector encounters = indy.getEncounters();
-            int numEncs = encounters.size();
-            for (int y = 0; y < numEncs; y++) {
-                Encounter enc = (Encounter)encounters.get(y);
-                if (isUserAuthorizedForEncounter(enc, request, myShepherd)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        if (request.getUserPrincipal() == null) return false;
+        return Collaboration.canUserModifyMarkedIndividual(indy, request, myShepherd);
     }
 
     // occurrence
