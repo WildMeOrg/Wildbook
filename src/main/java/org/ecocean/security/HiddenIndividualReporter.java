@@ -1,7 +1,6 @@
 package org.ecocean.security;
 
 import org.ecocean.MarkedIndividual;
-import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 
 import java.util.Vector;
@@ -53,7 +52,7 @@ public class HiddenIndividualReporter extends HiddenDataReporter<MarkedIndividua
     public void loadAllViewable(Vector tObjects, Shepherd myShepherd) {
         for (Object tObject : tObjects) {
             MarkedIndividual indy = (MarkedIndividual)tObject;
-            if (!ServletUtilities.isUserAuthorizedForIndividual(indy, request)) this.add(indy);
+            if (!Collaboration.canUserAccessMarkedIndividual(indy, request, myShepherd)) this.add(indy);
         }
     }
 }
