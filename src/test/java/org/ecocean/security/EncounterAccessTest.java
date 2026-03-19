@@ -553,7 +553,10 @@ class EncounterAccessTest {
 
             assertTrue(Collaboration.canUserAccessMarkedIndividual(individual, mockRequest,
                 mockShepherd),
-                "individual should be accessible when user has matching locationID role");
+                "individual should be readable when user has matching locationID role");
+            assertTrue(Collaboration.canUserModifyMarkedIndividual(individual, mockRequest,
+                mockShepherd),
+                "individual should be modifiable when user has matching locationID role");
         }
     }
 }
