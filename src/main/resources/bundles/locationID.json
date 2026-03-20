@@ -75,17 +75,6 @@
 					"locationID": []
 				},
 				{
-					"name": "Auf der Halle",
-					"id": "Auf der Halle",
-					"prefix": "H",
-					"prefixDigitPadding": 4,
-					"geospatialInfo":{
-						"lat": 51.36429,
-						"long": 7.4081
-					},
-					"locationID":[]
-				},
-				{
 					"name": "Bonn",
 					"id": "Bonn",
 					"locationID": [
@@ -199,6 +188,23 @@
 							"geospatialInfo": {
 								"lat": 51.036410,
 								"long": 7.568259
+							},
+							"locationID":[]
+						}
+					]
+				},
+				{
+					"name": "Hagen",
+					"id": "Hagen",
+					"locationID":[
+						{
+							"name": "Auf der Halle",
+							"id": "Auf der Halle",
+							"prefix": "H",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.36429,
+								"long": 7.4081
 							},
 							"locationID":[]
 						}
@@ -482,11 +488,42 @@
 					"id": "Remscheid",
 					"locationID": [
 						{
+							"name": "Eschbach",
+							"id": "Eschbach",
+							"geospatialInfo": {
+								"lat": 51.160653,
+								"long": 7.211977
+							},
+							"locationID": []
+						},
+						{
 							"name": "Eschbachtal",
 							"id": "Eschbachtal",
 							"geospatialInfo": {
 								"lat": 51.1555,
 								"long": 7.1635
+							},
+							"locationID": []
+						},
+						{
+							"name": "Fuerberger Bach",
+							"id": "Fuerberger Bach",
+							"prefix": "RF-",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.18544,
+								"long": 7.15079
+							},
+							"locationID": []
+						},
+						{
+							"name": "Grund",
+							"id": "Grund",
+							"prefix": "RG-",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.20737,
+								"long": 7.17762
 							},
 							"locationID": []
 						},
@@ -500,11 +537,46 @@
 							"locationID": []
 						},
 						{
-							"name": "Eschbach",
-							"id": "Eschbach",
+							"name": "Kueckesbecke",
+							"id": "Kueckesbecke",
+							"prefix": "RK-",
+							"prefixDigitPadding": 4,
 							"geospatialInfo": {
-								"lat": 51.160653,
-								"long": 7.211977
+								"lat": 51.16157,
+								"long": 7.23806
+							},
+							"locationID": []
+						},
+						{
+							"name": "Ochsensiefen",
+							"id": "Ochsensiefen",
+							"prefix": "RO-",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.17203,
+								"long": 7.29675
+							},
+							"locationID": []
+						},
+						{
+							"name": "Rheinshagen",
+							"id": "Rheinshagen",
+							"prefix": "RRH-",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.16439,
+								"long": 7.14054
+							},
+							"locationID": []
+						},
+						{
+							"name": "Teufelsbach",
+							"id": "Teufelsbach",
+							"prefix": "RT-",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.18794,
+								"long": 7.20766
 							},
 							"locationID": []
 						}
@@ -830,6 +902,39 @@
 							"locationID": []
 						},
 						{
+							"name": "Ehrenberg",
+							"id": "Ehrenberg",
+							"prefix": "WE-",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.25854,
+								"long": 7.25564
+							},
+							"locationID": []
+						},
+						{
+							"name": "Gelpe",
+							"id": "Gelpe",
+							"prefix": "WG-",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.233092,
+								"long": 7.170316
+							},
+							"locationID": []
+						},
+						{
+							"name": "Hasenkamp",
+							"id": "Hasenkamp",
+							"prefix": "WH-",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.3064,
+								"long": 7.241455
+							},
+							"locationID": []
+						},
+						{
 							"name": "Kothen",
 							"id": "Kothen",
 							"geospatialInfo": {
@@ -844,6 +949,17 @@
 							"geospatialInfo": {
 								"lat": 51.252608,
 								"long": 7.228016
+							},
+							"locationID": []
+						},
+						{
+							"name": "Marscheid",
+							"id": "Marscheid",
+							"prefix": "WM-",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.25065,
+								"long": 7.24061
 							},
 							"locationID": []
 						},
