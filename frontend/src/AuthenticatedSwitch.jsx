@@ -29,6 +29,7 @@ const BulkImport = lazy(() => import("./pages/BulkImport/BulkImport"));
 const BulkImportTask = lazy(() => import("./pages/BulkImport/BulkImportTask"));
 
 const Encounter = lazy(() => import("./pages/Encounter/Encounter"));
+const Individual = lazy(() => import("./pages/Individual/Individual"));
 
 export default function AuthenticatedSwitch({
   showclassicsubmit,
@@ -79,6 +80,7 @@ export default function AuthenticatedSwitch({
             <Route path="/report" element={<ReportEncounter />} />
             <Route path="/reportConfirm" element={<ReportConfirm />} />
             <Route path="/encounter" element={<Encounter />} />
+            <Route path="/individual" element={<Individual />} />
 
             <Route path="/encounter-search" element={<EncounterSearch />} />
             <Route path="/admin/logs" element={<AdminLogs />} />
