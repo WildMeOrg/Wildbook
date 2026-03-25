@@ -7,50 +7,51 @@ import ThemeColorContext from "../../../ThemeColorProvider";
 const EncountersTableView = observer(({ store }) => {
   const theme = useContext(ThemeColorContext);
 
+  const linkStyle = {
+    color: theme.primaryColors.primary500,
+    textDecoration: "underline",
+  };
+
   const columns = useMemo(
     () => [
       {
-        name: <FormattedMessage id="DATE" />,
+        name: <FormattedMessage id="DATE" defaultMessage="Date" />,
         selector: (row) => row.date || "-",
         sortable: true,
       },
       {
-        name: <FormattedMessage id="LOCATION" />,
-        selector: (row) =>
-          row.locationName || row.verbatimLocality || "-",
+        name: <FormattedMessage id="LOCATION" defaultMessage="Location" />,
+        selector: (row) => row.locationName || row.verbatimLocality || "-",
         sortable: true,
       },
       {
-        name: <FormattedMessage id="ENCOUNTER" />,
-        selector: (row) => row.id,
-        cell: (row) => (
-          <a
-            href={`/react/encounter?number=${row.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: theme.primaryColors.primary500,
-              textDecoration: "none",
-            }}
-          >
-            {row.id}
-          </a>
-        ),
+        name: <FormattedMessage id="ENCOUNTER" defaultMessage="Encounter" />,
+        selector: (row) => row.id || "",
+        cell: (row) =>
+          row.id ? (
+            <a
+              href={`/react/encounter?number=${row.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={linkStyle}
+            >
+              {row.id}
+            </a>
+          ) : (
+            "-"
+          ),
         sortable: true,
       },
       {
-        name: <FormattedMessage id="SIGHTING_ID" />,
-        selector: (row) => row.occurrenceId,
+        name: <FormattedMessage id="SIGHTING" defaultMessage="Sighting" />,
+        selector: (row) => row.occurrenceId || "",
         cell: (row) =>
           row.occurrenceId ? (
             <a
               href={`/occurrence.jsp?number=${row.occurrenceId}`}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                color: theme.primaryColors.primary500,
-                textDecoration: "none",
-              }}
+              style={linkStyle}
             >
               {row.occurrenceId}
             </a>
@@ -60,12 +61,63 @@ const EncountersTableView = observer(({ store }) => {
         sortable: true,
       },
       {
-        name: <FormattedMessage id="ANNOTATIONS" />,
+        name: (
+          <FormattedMessage id="COOCCURRENCE" defaultMessage="Cooccurrence" />
+        ),
         selector: (row) =>
-          row.mediaAssets?.reduce(
-            (acc, asset) => acc + (asset.annotations?.length || 0),
-            0,
-          ) || 0,
+          (row.cooccurrenceIndividuals || [])
+            .map((item) => item.displayName || item.name || item.id)
+            .join(", "),
+        cell: (row) => {
+          const individuals = row.cooccurrenceIndividuals || [];
+
+          if (!individuals.length) {
+            return "-";
+          }
+
+          return (
+            <div>
+              {individuals.map((item, index) => {
+                const label = item.displayName || item.name || item.id || "-";
+                const href = item.id ? `/react/individual?id=${item.id}` : null;
+
+                return (
+                  <React.Fragment key={item.id || `${label}-${index}`}>
+                    {href ? (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={linkStyle}
+                      >
+                        {label}
+                      </a>
+                    ) : (
+                      <span>{label}</span>
+                    )}
+                    {index < individuals.length - 1 ? ", " : ""}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          );
+        },
+        sortable: true,
+        grow: 1.5,
+      },
+      {
+        name: <FormattedMessage id="BEHAVIOR" defaultMessage="Behavior" />,
+        selector: (row) =>
+          Array.isArray(row.behavior)
+            ? row.behavior.join(", ")
+            : row.behavior || "-",
+        cell: (row) => (
+          <span>
+            {Array.isArray(row.behavior)
+              ? row.behavior.join(", ")
+              : row.behavior || "-"}
+          </span>
+        ),
         sortable: true,
       },
     ],
@@ -73,9 +125,9 @@ const EncountersTableView = observer(({ store }) => {
   );
 
   const data = useMemo(() => {
-    return store.encounters.map((enc) => ({
-      ...enc,
-      tableID: enc.id,
+    return store.encounters.map((encounter) => ({
+      ...encounter,
+      tableID: encounter.id,
     }));
   }, [store.encounters]);
 
