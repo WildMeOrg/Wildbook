@@ -492,8 +492,8 @@ public class ImportTask implements java.io.Serializable {
         if ((id == null) || (user == null)) throw new IOException("must provide id and user");
         ImportTask itask = myShepherd.getImportTask(id);
         if (itask == null) throw new IOException("invalid ImportTask id=" + id);
-        if (!Collaboration.canUserAccessImportTask(itask, myShepherd.getContext(),
-            user.getUsername()))
+        if (!user.isAdmin(myShepherd) && !Collaboration.canUserAccessImportTask(itask,
+            myShepherd.getContext(), user.getUsername()))
             throw new IOException("user does not have privileges to delete task");
         Util.mark("ImportTask.deleteWithRelated(" + id + ") started");
         try {
