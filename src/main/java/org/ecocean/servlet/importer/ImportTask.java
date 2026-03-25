@@ -18,6 +18,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.Project;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.security.Collaboration;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.SocialUnit;
@@ -532,6 +533,17 @@ public class ImportTask implements java.io.Serializable {
                     mark.removeEncounter(enc);
                     // myShepherd.updateDBTransaction();
                     if (mark.getEncounters().size() == 0) {
+                        // remove scheduled tasks referencing this individual
+                        List<ScheduledIndividualMerge> mergeTasks =
+                            myShepherd.getAllIncompleteScheduledIndividualMerges();
+                        if (mergeTasks != null) {
+                            for (ScheduledIndividualMerge mergeTask : mergeTasks) {
+                                if (mark.equals(mergeTask.getPrimaryIndividual()) ||
+                                    mark.equals(mergeTask.getSecondaryIndividual())) {
+                                    myShepherd.getPM().deletePersistent(mergeTask);
+                                }
+                            }
+                        }
                         // check for social unit membership and remove
                         List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(
                             mark);
