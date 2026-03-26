@@ -2,6 +2,7 @@ import { makeAutoObservable, runInAction } from "mobx";
 import axios from "axios";
 import { toast } from "react-toastify";
 import ModalStore from "./ModalStore";
+import ImageModalStore from "./ImageModalStore";
 
 const USE_MOCK_DATA = true;
 
@@ -14,14 +15,13 @@ const EMPTY_DETAILS_ERRORS = {
   alternateIds: "",
   additionalComments: "",
 };
-
 const mockIndividual = {
   id: "indv-001",
   thumbnailUrl: "https://placehold.co/200x200/png?text=Avatar",
   taxonomy: "Eubalaena glacialis",
   sex: "Female",
   dateOfBirth: "2012-06-15",
-  dateOfDeath: "2020",
+  dateOfDeath: "",
   livingStatus: "Alive",
   identifyingScars: "Distinct scar near dorsal ridge",
   access: "write",
@@ -30,7 +30,8 @@ const mockIndividual = {
     { displayName: "RW-2012-15" },
     { displayName: "Catalog-A119" },
   ],
-  additionalComments: "",
+  additionalComments:
+    "Observed across multiple regions with recurring cooccurrence patterns.",
   additionalFiles: [
     {
       id: "file-1",
@@ -47,13 +48,20 @@ const mockIndividual = {
   ],
   encounters: [
     {
-      id: "enc-001",
-      date: "2025-11-02",
-      locationName: "Cape Cod Bay",
-      verbatimLocality: "Cape Cod Bay, Massachusetts",
+      id: "6aa4-6b32-474e",
+      date: "2024",
+      sortDate: "2024-01-01",
+      locationName: "Indiana",
+      verbatimLocality: "Indiana",
+      occurrenceId: "08f9-41f7-be7c",
+      behavior: "weird",
+      cooccurrenceIndividuals: [
+        { id: "indv-zay", displayName: "Zay" },
+        { id: "indv-kia", displayName: "Kia" },
+      ],
       locationGeoPoint: {
-        lat: 41.9584,
-        lon: -70.3086,
+        lat: 39.7684,
+        lon: -86.1581,
       },
       mediaAssets: [
         {
@@ -61,23 +69,32 @@ const mockIndividual = {
           url: "https://placehold.co/800x500/png?text=Encounter+1+Image+1",
           thumbnailUrl:
             "https://placehold.co/300x200/png?text=Encounter+1+Thumb+1",
+          annotations: [{ id: "ann-1" }, { id: "ann-2" }],
         },
         {
           id: "asset-2",
           url: "https://placehold.co/800x500/png?text=Encounter+1+Image+2",
           thumbnailUrl:
             "https://placehold.co/300x200/png?text=Encounter+1+Thumb+2",
+          annotations: [{ id: "ann-3" }],
         },
       ],
     },
     {
-      id: "enc-002",
-      date: "2025-08-14",
-      locationName: "Bay of Fundy",
-      verbatimLocality: "Bay of Fundy, Canada",
+      id: "3a9b-4161-936e",
+      date: "Jun 2020",
+      sortDate: "2020-06-01",
+      locationName: "Kansas",
+      verbatimLocality: "Kansas",
+      occurrenceId: "6dfc-447b-8ff6",
+      behavior: "resting",
+      cooccurrenceIndividuals: [
+        { id: "indv-isha", displayName: "isha" },
+        { id: "indv-kia", displayName: "Kia" },
+      ],
       locationGeoPoint: {
-        lat: 45.2217,
-        lon: -64.5319,
+        lat: 39.0119,
+        lon: -98.4842,
       },
       mediaAssets: [
         {
@@ -85,19 +102,113 @@ const mockIndividual = {
           url: "https://placehold.co/800x500/png?text=Encounter+2+Image+1",
           thumbnailUrl:
             "https://placehold.co/300x200/png?text=Encounter+2+Thumb+1",
+          annotations: [{ id: "ann-4" }],
         },
       ],
     },
     {
-      id: "enc-003",
-      date: "2024-12-21",
-      locationName: "Georges Bank",
-      verbatimLocality: "Georges Bank",
+      id: "f32a-4c22-b7c9",
+      date: "Mar 2000",
+      sortDate: "2000-03-01",
+      locationName: "Missouri",
+      verbatimLocality: "Missouri",
+      occurrenceId: "3d75-425e-84ec",
+      behavior: "funny",
+      cooccurrenceIndividuals: [
+        { id: "indv-jay", displayName: "jay" },
+        { id: "indv-kia", displayName: "Kia" },
+      ],
       locationGeoPoint: {
-        lat: 41.0,
-        lon: -67.0,
+        lat: 37.9643,
+        lon: -91.8318,
       },
-      mediaAssets: [],
+      mediaAssets: [
+        {
+          id: "asset-4",
+          url: "https://placehold.co/800x500/png?text=Encounter+3+Image+1",
+          thumbnailUrl:
+            "https://placehold.co/300x200/png?text=Encounter+3+Thumb+1",
+          annotations: [{ id: "ann-5" }, { id: "ann-6" }],
+        },
+      ],
+    },
+    {
+      id: "h8j9-0k1l-2m3n",
+      date: "Nov 2023",
+      sortDate: "2023-11-01",
+      locationName: "Washington",
+      verbatimLocality: "Washington",
+      occurrenceId: "4o5p-6q7r-8s9t",
+      behavior: "running",
+      cooccurrenceIndividuals: [
+        { id: "indv-sam", displayName: "Sam" },
+        { id: "indv-kia", displayName: "Kia" },
+      ],
+      locationGeoPoint: {
+        lat: 47.7511,
+        lon: -120.7401,
+      },
+      mediaAssets: [
+        {
+          id: "asset-5",
+          url: "https://placehold.co/800x500/png?text=Encounter+4+Image+1",
+          thumbnailUrl:
+            "https://placehold.co/300x200/png?text=Encounter+4+Thumb+1",
+          annotations: [{ id: "ann-7" }],
+        },
+      ],
+    },
+    {
+      id: "e1f2-3g4h-5i6j",
+      date: "Jan 2024",
+      sortDate: "2024-01-01",
+      locationName: "Ohio",
+      verbatimLocality: "Ohio",
+      occurrenceId: "7k8l-9m0n-1o2p",
+      behavior: "painting",
+      cooccurrenceIndividuals: [
+        { id: "indv-lex", displayName: "Lex" },
+        { id: "indv-kia", displayName: "Kia" },
+      ],
+      locationGeoPoint: {
+        lat: 40.4173,
+        lon: -82.9071,
+      },
+      mediaAssets: [
+        {
+          id: "asset-6",
+          url: "https://placehold.co/800x500/png?text=Encounter+5+Image+1",
+          thumbnailUrl:
+            "https://placehold.co/300x200/png?text=Encounter+5+Thumb+1",
+          annotations: [{ id: "ann-8" }, { id: "ann-9" }],
+        },
+      ],
+    },
+    {
+      id: "6aa4-6b32-474e-repeat",
+      date: "2024",
+      sortDate: "2024-02-01",
+      locationName: "Indiana",
+      verbatimLocality: "Indiana",
+      occurrenceId: "08f9-41f7-be7c",
+      behavior: "weird",
+      cooccurrenceIndividuals: [
+        { id: "indv-zay", displayName: "Zay" },
+        { id: "indv-kia", displayName: "Kia" },
+      ],
+      locationGeoPoint: {
+        lat: 39.7684,
+        lon: -86.1581,
+      },
+      mediaAssets: [
+        {
+          id: "asset-7",
+          url: "https://placehold.co/800x500/png?text=Encounter+6+Image+1",
+          thumbnailUrl:
+            "https://placehold.co/300x200/png?text=Encounter+6+Thumb+1",
+          annotations: [{ id: "ann-10" }],
+        },
+      ],
     },
   ],
 };
@@ -129,11 +240,13 @@ class IndividualStore {
 
   constructor() {
     this.modals = new ModalStore(this);
+    this.imageModalStore = new ImageModalStore();
 
     makeAutoObservable(
       this,
       {
         modals: false,
+        imageModalStore: false,
       },
       { autoBind: true },
     );
@@ -891,6 +1004,7 @@ class IndividualStore {
     this._lifeStageOptions = [];
 
     this.modals.closeAllModals();
+    this.imageModalStore.reset();
   }
 }
 

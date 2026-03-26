@@ -1,4 +1,4 @@
-import React, { useContext, useState, useMemo } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import ThemeColorContext from "../../../ThemeColorProvider";
@@ -6,31 +6,43 @@ import ImageModal from "../../../components/ImageModal";
 
 const EncountersGalleryView = observer(({ store }) => {
   const theme = useContext(ThemeColorContext);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [imageModalOpen, setImageModalOpen] = useState(false);
   const [imgDims, setImgDims] = useState({});
 
   const allAssets = useMemo(() => {
-    return store.encounters.flatMap((enc) =>
-      (enc.mediaAssets || []).map((asset) => ({
+    return store.encounters.flatMap((encounter) =>
+      (encounter.mediaAssets || []).map((asset, assetIndex) => ({
         ...asset,
-        encounterId: enc.id,
-        encounterDate: enc.date,
+        encounterId: encounter.id,
+        encounterDate: encounter.date,
+        encounterData: {
+          ...encounter,
+          individualDisplayName: store.displayName,
+        },
+        tableID: `${encounter.id}-${asset.id || assetIndex}`,
       })),
     );
-  }, [store.encounters]);
+  }, [store.encounters, store.displayName]);
 
-  const handleImageLoad = (assetKey, e) => {
-    const img = e.currentTarget;
+  const handleImageLoad = (assetKey, event) => {
+    const img = event.currentTarget;
+
     setImgDims((prev) => ({
       ...prev,
       [assetKey]: {
-        nw: img.naturalWidth,
-        nh: img.naturalHeight,
-        dw: img.clientWidth,
-        dh: img.clientHeight,
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight,
+        displayWidth: img.clientWidth,
+        displayHeight: img.clientHeight,
       },
     }));
+  };
+
+  const openImageModal = (index) => {
+    store.imageModalStore.openModal({
+      assets: allAssets,
+      selectedImageIndex: index,
+      access: store.individualData?.access || "read",
+    });
   };
 
   if (store.encountersLoading) {
@@ -52,137 +64,122 @@ const EncountersGalleryView = observer(({ store }) => {
         className="d-flex justify-content-center align-items-center"
         style={{ minHeight: "300px" }}
       >
-        <p className="text-muted">
-          <FormattedMessage id="NO_IMAGE_AVAILABLE" />
+        <p className="text-muted mb-0">
+          <FormattedMessage
+            id="NO_IMAGE_AVAILABLE"
+            defaultMessage="No image available"
+          />
         </p>
       </div>
     );
   }
 
   return (
-    <div>
-      <h5 className="mb-3">
-        <FormattedMessage id="IMAGES" />
-      </h5>
+    <>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
           gap: "16px",
         }}
       >
         {allAssets.map((asset, index) => {
-          const annotations =
-            asset.annotations
-              ?.filter((a) => !a.isTrivial && a.boundingBox)
-              ?.map((a) => ({
-                x: a.boundingBox[0],
-                y: a.boundingBox[1],
-                width: a.boundingBox[2],
-                height: a.boundingBox[3],
-                rotation: a.theta || 0,
-                annotationId: a.id,
-                encounterId: a.encounterId,
-                viewpoint: a.viewpoint,
-                iaClass: a.iaClass,
-              })) || [];
-
-          const assetKey = `${asset.encounterId}-${asset.id || index}`;
+          const assetKey = asset.tableID;
           const dims = imgDims[assetKey];
-          const scaleX = dims ? dims.nw / dims.dw : 1;
-          const scaleY = dims ? dims.nh / dims.dh : 1;
+
+          const annotations =
+            asset.annotations?.filter(
+              (annotation) => !annotation.isTrivial && annotation.boundingBox,
+            ) || [];
+
+          const scaleX =
+            dims?.naturalWidth && dims?.displayWidth
+              ? dims.naturalWidth / dims.displayWidth
+              : 1;
+
+          const scaleY =
+            dims?.naturalHeight && dims?.displayHeight
+              ? dims.naturalHeight / dims.displayHeight
+              : 1;
 
           return (
             <div
               key={assetKey}
-              className="position-relative"
               style={{
-                borderRadius: "8px",
+                backgroundColor: theme.defaultColors.white,
+                borderRadius: "10px",
                 overflow: "hidden",
-                cursor: "zoom-in",
-                backgroundColor: theme.grayColors.gray100,
-              }}
-              onClick={() => {
-                setSelectedImageIndex(index);
-                setImageModalOpen(true);
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
               }}
             >
-              <img
-                src={asset.url}
-                alt={`Encounter ${asset.encounterId}`}
-                style={{
-                  width: "100%",
-                  height: "180px",
-                  objectFit: "cover",
-                  display: "block",
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => openImageModal(index)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openImageModal(index);
+                  }
                 }}
-                loading="lazy"
-                onLoad={(e) => handleImageLoad(assetKey, e)}
-              />
-
-              {/* Annotation bounding boxes */}
-              {dims &&
-                annotations.map((rect, rectIndex) => (
-                  <div
-                    key={rectIndex}
-                    className="position-absolute"
-                    style={{
-                      left: rect.x / scaleX,
-                      top: rect.y / scaleY,
-                      width: rect.width / scaleX,
-                      height: rect.height / scaleY,
-                      border: "2px solid red",
-                      pointerEvents: "none",
-                    }}
-                  />
-                ))}
-
-              {/* Favorite badge placeholder */}
-              {asset.isFavorite && (
-                <div
-                  className="position-absolute"
+                style={{
+                  position: "relative",
+                  cursor: "pointer",
+                  outline: "none",
+                }}
+              >
+                <img
+                  src={asset.thumbnailUrl || asset.url}
+                  alt={asset.encounterId || "Encounter image"}
+                  onLoad={(event) => handleImageLoad(assetKey, event)}
                   style={{
-                    top: "8px",
-                    right: "8px",
-                    width: "24px",
-                    height: "24px",
-                    borderRadius: "50%",
-                    backgroundColor: theme.statusColors.blue500,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    width: "100%",
+                    height: "220px",
+                    objectFit: "cover",
+                    display: "block",
+                    backgroundColor: theme.grayColors.gray100,
                   }}
-                >
-                  <i className="bi bi-star-fill" style={{ color: "white", fontSize: "12px" }} />
-                </div>
-              )}
+                />
+
+                {dims &&
+                  annotations.map((annotation) => {
+                    const [x, y, width, height] = annotation.boundingBox;
+
+                    return (
+                      <div
+                        key={annotation.id}
+                        style={{
+                          position: "absolute",
+                          left: x / scaleX,
+                          top: y / scaleY,
+                          width: width / scaleX,
+                          height: height / scaleY,
+                          border: `2px solid ${theme.primaryColors.primary500}`,
+                          pointerEvents: "none",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    );
+                  })}
+              </div>
             </div>
           );
         })}
       </div>
 
-      {imageModalOpen && allAssets.length > 0 && (
-        <ImageModal
-          open={imageModalOpen}
-          onClose={() => setImageModalOpen(false)}
-          assets={allAssets}
-          index={selectedImageIndex}
-          setIndex={setSelectedImageIndex}
-          rects={
-            allAssets[selectedImageIndex]?.annotations
-              ?.filter((a) => !a.isTrivial && a.boundingBox)
-              ?.map((a) => ({
-                x: a.boundingBox[0],
-                y: a.boundingBox[1],
-                width: a.boundingBox[2],
-                height: a.boundingBox[3],
-                rotation: a.theta || 0,
-                annotationId: a.id,
-              })) || []
-          }
-        />
-      )}
-    </div>
+      {store.imageModalStore.open &&
+        store.imageModalStore.assets.length > 0 && (
+          <ImageModal
+            open={store.imageModalStore.open}
+            onClose={store.imageModalStore.closeModal}
+            assets={store.imageModalStore.assets}
+            index={store.imageModalStore.selectedImageIndex}
+            setIndex={store.imageModalStore.setSelectedImageIndex}
+            rects={store.imageModalStore.currentRects}
+            imageStore={store.imageModalStore}
+          />
+        )}
+    </>
   );
 });
 
