@@ -2,7 +2,7 @@ import React, { useContext, useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import ThemeColorContext from "../../../ThemeColorProvider";
-import ImageModal from "../../../components/ImageModal";
+import IndividualImageModal from "./IndividualImageModal";
 
 const EncountersGalleryView = observer(({ store }) => {
   const theme = useContext(ThemeColorContext);
@@ -169,7 +169,7 @@ const EncountersGalleryView = observer(({ store }) => {
 
       {store.imageModalStore.open &&
         store.imageModalStore.assets.length > 0 && (
-          <ImageModal
+          <IndividualImageModal
             open={store.imageModalStore.open}
             onClose={store.imageModalStore.closeModal}
             assets={store.imageModalStore.assets}
