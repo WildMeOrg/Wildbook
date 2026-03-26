@@ -50,6 +50,15 @@
         {"name":"Iceland", "id":"Iceland", "locationID":[
           {"name": "Breiðafjörður", "id": "Breiðafjörður", "locationID":[]}
         ]},
+        {"name": "Ireland", "id": "Ireland", "locationID":[
+          {"name": "Blasket Islands", "id": "Blasket Islands", "geospatialInfo":{"lat": 52.075, "long": -10.65688889}, "locationID":[]},
+          {"name": "Brandon Bay", "id": "Brandon Bay", "geospatialInfo":{"lat": 52.29236111,"long": -10.10697222}, "locationID":[]},
+          {"name": "Clare Coast", "id": "Clare Coast", "geospatialInfo":{"lat": 52.78533333, "long": -9.618861111}, "locationID":[]},
+          {"name": "Dingle Bay", "id": "Dingle Bay", "geospatialInfo":{"lat": 52.05766667, "long": -10.22241667}, "locationID":[]},
+          {"name": "Kerry Coast", "id": "Kerry Coast", "geospatialInfo":{"lat": 51.95483333, "long": -10.4875}, "locationID":[]},
+          {"name": "Shannon Estuary", "id": "Shannon Estuary", "geospatialInfo":{"lat": 52.60113889, "long": -9.564416667}, "locationID":[]},
+          { "name": "Tralee Bay", "id": "Tralee Bay", "geospatialInfo":{"lat": 52.27683333, "long": -9.934444444}, "locationID":[]}
+        ]},
         {"name": "Portugal", "id": "Portugal", "locationID": [
            {"name": "Faro", "id": "Faro", "geospatialInfo": {"lat": 36.96105556, "long": -7.868527778}, "locationID":[]}
         ]},
