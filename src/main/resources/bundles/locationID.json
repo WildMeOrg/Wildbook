@@ -795,6 +795,11 @@
 			"id": "Atlantic Ocean (North)",
 			"locationID": [
 				{
+					"name": "Azores",
+					"id": "Azores",
+					"locationID": []
+				},
+				{
 					"name": "Mediterranean Sea", 
 					"id": "Mediterranean Sea", 
 					"locationID": [
@@ -850,10 +855,6 @@
 				"id": "Brazil", 
 				"prefix": "BRZ-", 
 				"prefixDigitPadding": 3 
-			},
-			{
-				"name": "Azores", 
-				"id": "Azores" 
 			}
 		] 
 	},
