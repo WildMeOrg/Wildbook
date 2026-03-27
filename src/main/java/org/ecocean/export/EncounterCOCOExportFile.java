@@ -52,50 +52,13 @@ public class EncounterCOCOExportFile {
             mediaAssetToImageId.put(uuid, imageId++);
         }
 
-        // Build JSON arrays
-        JSONArray imagesArray = new JSONArray();
-        for (Map.Entry<String, MediaAsset> entry : mediaAssetMap.entrySet()) {
-            MediaAsset ma = entry.getValue();
-            int imgId = mediaAssetToImageId.get(entry.getKey());
-            imagesArray.put(buildImageObject(ma, imgId));
-        }
-
-        JSONArray annotationsArray = new JSONArray();
-        int annotationId = 1;
-        for (Encounter enc : encounters) {
-            if (enc.getAnnotations() == null) continue;
-            for (Annotation ann : enc.getAnnotations()) {
-                if (!isValidAnnotation(ann)) continue;
-                MediaAsset ma = ann.getMediaAsset();
-                int imgId = mediaAssetToImageId.get(ma.getUUID());
-                annotationsArray.put(buildAnnotationObject(ann, annotationId++, imgId,
-                    categoryMap, individualIdMap, enc));
-            }
-        }
-
-        // Build complete COCO JSON
-        JSONObject coco = new JSONObject();
-        coco.put("info", buildInfo(individualIdMap));
-        coco.put("licenses", buildLicenses());
-        coco.put("categories", buildCategories(categoryMap));
-        coco.put("images", imagesArray);
-        coco.put("annotations", annotationsArray);
-
-        // Write ZIP
+        // Write ZIP: images first, then JSON manifest so it only references
+        // images that were actually written successfully.
         try (ZipOutputStream zipOut = new ZipOutputStream(outputStream)) {
-            // Write annotations.json
-            log.info("COCO Export: Writing annotations JSON...");
-            byte[] jsonBytes = coco.toString(2).getBytes(StandardCharsets.UTF_8);
-            ZipEntry jsonEntry = new ZipEntry("coco/annotations/instances.json");
-            zipOut.putNextEntry(jsonEntry);
-            zipOut.write(jsonBytes);
-            zipOut.closeEntry();
-            zipOut.flush();
-
-            // Write images with streaming to minimize memory usage
             int totalImages = mediaAssetMap.size();
             int processedImages = 0;
             int failedImages = 0;
+            Set<String> exportedUuids = new LinkedHashSet<>();
             log.info("COCO Export: Starting export of " + totalImages + " images...");
 
             for (Map.Entry<String, MediaAsset> entry : mediaAssetMap.entrySet()) {
@@ -103,22 +66,61 @@ public class EncounterCOCOExportFile {
                 processedImages++;
                 try {
                     boolean success = writeImageToZip(ma, zipOut);
-                    if (!success) {
+                    if (success) {
+                        exportedUuids.add(entry.getKey());
+                    } else {
                         failedImages++;
                     }
-                    // Progress logging every 100 images
                     if (processedImages % 100 == 0) {
                         log.info("COCO Export: Processed " + processedImages + "/" + totalImages +
                                  " images (" + failedImages + " failed)");
                     }
                 } catch (Exception e) {
                     failedImages++;
-                    log.warning("COCO Export: Failed to export image " + ma.getUUID() + ": " + e.getMessage());
+                    log.warning("COCO Export: Failed to export image " + ma.getUUID() +
+                        ": " + e.getMessage());
                 }
             }
 
+            // Build JSON arrays using only successfully exported images
+            JSONArray imagesArray = new JSONArray();
+            for (String uuid : exportedUuids) {
+                MediaAsset ma = mediaAssetMap.get(uuid);
+                int imgId = mediaAssetToImageId.get(uuid);
+                imagesArray.put(buildImageObject(ma, imgId));
+            }
+
+            JSONArray annotationsArray = new JSONArray();
+            int annotationId = 1;
+            for (Encounter enc : encounters) {
+                if (enc.getAnnotations() == null) continue;
+                for (Annotation ann : enc.getAnnotations()) {
+                    if (!isValidAnnotation(ann)) continue;
+                    MediaAsset ma = ann.getMediaAsset();
+                    if (!exportedUuids.contains(ma.getUUID())) continue;
+                    int imgId = mediaAssetToImageId.get(ma.getUUID());
+                    annotationsArray.put(buildAnnotationObject(ann, annotationId++, imgId,
+                        categoryMap, individualIdMap, enc));
+                }
+            }
+
+            JSONObject coco = new JSONObject();
+            coco.put("info", buildInfo(individualIdMap));
+            coco.put("licenses", buildLicenses());
+            coco.put("categories", buildCategories(categoryMap));
+            coco.put("images", imagesArray);
+            coco.put("annotations", annotationsArray);
+
+            // Write annotations.json as the last entry
+            log.info("COCO Export: Writing annotations JSON...");
+            byte[] jsonBytes = coco.toString(2).getBytes(StandardCharsets.UTF_8);
+            ZipEntry jsonEntry = new ZipEntry("coco/annotations/instances.json");
+            zipOut.putNextEntry(jsonEntry);
+            zipOut.write(jsonBytes);
+            zipOut.closeEntry();
+
             zipOut.finish();
-            log.info("COCO Export: Completed. " + (processedImages - failedImages) + "/" + totalImages +
+            log.info("COCO Export: Completed. " + exportedUuids.size() + "/" + totalImages +
                      " images exported successfully, " + failedImages + " failed.");
         }
     }
@@ -162,23 +164,19 @@ public class EncounterCOCOExportFile {
      * Detects the content type of a URL, handling redirects.
      */
     private String detectContentType(URL url) {
+        HttpURLConnection httpConn = null;
         try {
             URLConnection conn = url.openConnection();
             conn.setConnectTimeout(CONNECTION_TIMEOUT_MS);
             conn.setReadTimeout(READ_TIMEOUT_MS);
 
             if (conn instanceof HttpURLConnection) {
-                ((HttpURLConnection) conn).setRequestMethod("HEAD");
-                ((HttpURLConnection) conn).setInstanceFollowRedirects(true);
+                httpConn = (HttpURLConnection) conn;
+                httpConn.setRequestMethod("HEAD");
+                httpConn.setInstanceFollowRedirects(true);
             }
 
-            String contentType = conn.getContentType();
-
-            if (conn instanceof HttpURLConnection) {
-                ((HttpURLConnection) conn).disconnect();
-            }
-
-            return contentType;
+            return conn.getContentType();
         } catch (Exception e) {
             // Fall back to checking file extension
             String path = url.getPath().toLowerCase();
@@ -186,6 +184,10 @@ public class EncounterCOCOExportFile {
                 return "image/jpeg";
             }
             return null;
+        } finally {
+            if (httpConn != null) {
+                httpConn.disconnect();
+            }
         }
     }
 
@@ -247,12 +249,19 @@ public class EncounterCOCOExportFile {
             if (image.getColorModel().hasAlpha()) {
                 BufferedImage rgbImage = new BufferedImage(
                     image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-                rgbImage.createGraphics().drawImage(image, 0, 0, java.awt.Color.WHITE, null);
+                java.awt.Graphics2D g2d = rgbImage.createGraphics();
+                try {
+                    g2d.drawImage(image, 0, 0, java.awt.Color.WHITE, null);
+                } finally {
+                    g2d.dispose();
+                }
                 image = rgbImage;
             }
 
-            // Write directly to zip stream
-            ImageIO.write(image, "jpg", zipOut);
+            // Buffer the JPEG output to avoid ImageIO closing the ZipOutputStream
+            java.io.ByteArrayOutputStream imgBuf = new java.io.ByteArrayOutputStream();
+            ImageIO.write(image, "jpg", imgBuf);
+            zipOut.write(imgBuf.toByteArray());
         } finally {
             if (conn instanceof HttpURLConnection) {
                 ((HttpURLConnection) conn).disconnect();
