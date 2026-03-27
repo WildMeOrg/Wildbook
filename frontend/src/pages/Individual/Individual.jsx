@@ -12,14 +12,17 @@ import EncountersTableView from "./Components/EncountersTableView";
 import EncountersGalleryView from "./Components/EncountersGalleryView";
 import EncountersMapView from "./Components/EncountersMapView";
 import LoadingScreen from "../../components/LoadingScreen";
+import ThemeColorContext from "../../ThemeColorProvider";
+import { useSearchParams } from "react-router-dom";
 
 const Individual = observer(() => {
   const [store] = useState(() => new IndividualStore());
   const intl = useIntl();
   const [individualValid, setIndividualValid] = useState(true);
 
-  const params = new URLSearchParams(window.location.search);
+  const [params] = useSearchParams();
   const individualId = params.get("id");
+  const theme = React.useContext(ThemeColorContext);
 
   useEffect(() => {
     store.setIntl(intl);
@@ -50,8 +53,7 @@ const Individual = observer(() => {
   }, [individualId, store]);
 
   if (store.loading) {
-    // return <LoadingScreen />;
-    return <>123</>
+    return <LoadingScreen />;
   }
 
   if (!individualValid) {
@@ -138,7 +140,7 @@ const Individual = observer(() => {
               width: "40px",
               height: "40px",
               borderRadius: "50%",
-              backgroundColor: "#E5F6FF",
+              backgroundColor: theme.primaryColors.primary50,
             }}
             onClick={() => store.modals.setOpenHistoryModal(true)}
             title={intl.formatMessage({ id: "INDIVIDUAL_HISTORY" })}
@@ -186,24 +188,13 @@ const Individual = observer(() => {
               {renderContent()}
             </>
           )}
-
-          {store.activeTab === "social" && (
-            <div
-              className="d-flex justify-content-center align-items-center"
-              style={{
-                minHeight: "400px",
-                borderRadius: "10px",
-                backgroundColor: "#f5f5f5",
-              }}
-            >
-              <p className="text-muted">
-                <FormattedMessage
-                  id="SOCIAL_COMING_SOON"
-                  defaultMessage="Social relationships coming soon"
-                />
-              </p>
-            </div>
-          )}
+          <Pill
+            text="SOCIAL"
+            active={store.activeTab === "social"}
+            onClick={() => {
+              window.location.href = `/individuals.jsp?id=${individualId}#social`;
+            }}
+          />
         </Col>
       </Row>
 

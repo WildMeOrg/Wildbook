@@ -26,11 +26,11 @@ export default function ViewSwitcher({ activeView, onViewChange }) {
             cursor: "pointer",
             backgroundColor:
               activeView === view.id
-                ? theme.primaryColors.primary500
+                ? theme.primaryColors.primary50
                 : theme.grayColors.gray100,
             color:
               activeView === view.id
-                ? theme.defaultColors.white
+                ? theme.primaryColors.primary500
                 : theme.grayColors.gray600,
             transition: "all 0.2s ease",
           }}
