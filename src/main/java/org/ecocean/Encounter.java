@@ -4090,12 +4090,41 @@ public class Encounter extends Base implements java.io.Serializable {
         Util.mark("perm: user build done", startT);
         System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
             " total users; " + collab.size() + " have active collab");
+
+        // build locationId -> Set<userId> map for locationID-based role access
+        Set<String> systemRoles = new HashSet<>(
+            CommonConfiguration.getIndexedPropertyValues("role", "context0"));
+        Map<String, Set<String>> locationRoleUsers = new HashMap<>();
+        Query roleQuery = null;
+        try {
+            String roleSql =
+                "SELECT r.\"ROLE_NAME\", u.\"UUID\" FROM \"USER_ROLES\" r JOIN \"USERS\" u ON r.\"username\" = u.\"USERNAME\" WHERE r.\"CONTEXT\" = 'context0'";
+            roleQuery = myShepherd.getPM().newQuery("javax.jdo.query.SQL", roleSql);
+            List roleResults = (List)roleQuery.execute();
+            for (Object rObj : roleResults) {
+                Object[] rRow = (Object[])rObj;
+                String roleName = (String)rRow[0];
+                String roleUserId = (String)rRow[1];
+                if (roleName == null || roleUserId == null) continue;
+                if (systemRoles.contains(roleName)) continue;
+                locationRoleUsers.computeIfAbsent(roleName, k -> new HashSet<>()).add(roleUserId);
+            }
+        } catch (Exception ex) {
+            System.out.println("opensearchIndexPermissions(): failed building location role map: " + ex);
+            ex.printStackTrace();
+        } finally {
+            if (roleQuery != null) roleQuery.closeAll();
+        }
+        Util.mark("perm: location role map done", startT);
+        System.out.println("opensearchIndexPermissions(): " + locationRoleUsers.size() +
+            " locationID roles mapped");
+
         // now iterated over (non-public) encounters
         int encCount = 0;
         org.json.JSONObject updateData = new org.json.JSONObject();
         // we do not need full Encounter objects here to update index docs, so lets do this via sql/fields - much faster
         String sql =
-            "SELECT \"CATALOGNUMBER\", \"SUBMITTERID\" FROM \"ENCOUNTER\" WHERE \"SUBMITTERID\" IS NOT NULL AND \"SUBMITTERID\" != '' AND \"SUBMITTERID\" != 'N/A' AND \"SUBMITTERID\" != 'public'";
+            "SELECT \"CATALOGNUMBER\", \"SUBMITTERID\", \"LOCATIONID\" FROM \"ENCOUNTER\" WHERE \"SUBMITTERID\" IS NOT NULL AND \"SUBMITTERID\" != '' AND \"SUBMITTERID\" != 'N/A' AND \"SUBMITTERID\" != 'public'";
         Query q = null;
         try {
             q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
@@ -4106,6 +4135,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 Object[] row = (Object[])it.next();
                 String id = (String)row[0];
                 String submitterId = (String)row[1];
+                String locationId = (String)row[2];
                 org.json.JSONArray viewUsers = new org.json.JSONArray();
                 String uid = usernameToId.get(submitterId);
                 if (uid == null) {
@@ -4151,6 +4181,15 @@ public class Encounter extends Base implements java.io.Serializable {
                     if (localCollabs.contains(submitterId)) {
                         // if the submitterId is in the list, put the uid of the user in viewUsers for OpenSearch
                         viewUsers.put(localUid);
+                    }
+                }
+                // locationID-based role access: users with a role matching this encounter's locationId
+                if (locationId != null) {
+                    Set<String> locUsers = locationRoleUsers.get(locationId);
+                    if (locUsers != null) {
+                        for (String locUid : locUsers) {
+                            viewUsers.put(locUid);
+                        }
                     }
                 }
                 if (viewUsers.length() > 0) {
