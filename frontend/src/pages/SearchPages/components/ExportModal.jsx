@@ -11,7 +11,7 @@ import {
   Spinner,
   Alert,
 } from "react-bootstrap";
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 
 const downloadFunction = async (url, setLoading) => {
@@ -75,6 +75,18 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
   });
 
   const [error, setError] = useState(null);
+  const [cocoProgress, setCocoProgress] = useState(null);
+  const cocoPollingRef = useRef(null);
+
+  // Clean up polling interval on unmount (e.g., modal close)
+  useEffect(() => {
+    return () => {
+      if (cocoPollingRef.current) {
+        clearInterval(cocoPollingRef.current);
+        cocoPollingRef.current = null;
+      }
+    };
+  }, []);
 
   const setLoading = (key, value) => {
     setLoadingStates((prev) => ({ ...prev, [key]: value }));
@@ -89,6 +101,78 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
       setError(`Failed to export: ${result.error}`);
     }
   };
+
+  const handleCocoExport = useCallback(async () => {
+    setError(null);
+    setLoading("cocoFormat", true);
+    setCocoProgress(null);
+
+    try {
+      // Start the async export job
+      const startUrl = `/EncounterSearchExportCOCO?action=start&searchQueryId=${searchQueryId}&regularQuery=true`;
+      const startResp = await fetch(startUrl);
+      const startData = await startResp.json();
+      if (!startResp.ok || !startData.jobId) {
+        throw new Error(startData.error || "Failed to start export");
+      }
+      const { jobId } = startData;
+
+      // Poll for progress
+      const result = await new Promise((resolve, reject) => {
+        cocoPollingRef.current = setInterval(async () => {
+          try {
+            const statusResp = await fetch(
+              `/EncounterSearchExportCOCO?action=status&jobId=${jobId}`,
+            );
+            const status = await statusResp.json();
+
+            if (status.totalImages > 0) {
+              setCocoProgress(status);
+            }
+
+            if (status.status === "complete") {
+              clearInterval(cocoPollingRef.current);
+              cocoPollingRef.current = null;
+              resolve(jobId);
+            } else if (status.status === "error") {
+              clearInterval(cocoPollingRef.current);
+              cocoPollingRef.current = null;
+              reject(new Error(status.error || "Export failed"));
+            }
+          } catch (e) {
+            clearInterval(cocoPollingRef.current);
+            cocoPollingRef.current = null;
+            reject(e);
+          }
+        }, 3000);
+      });
+
+      // Download the completed file
+      const downloadResp = await fetch(
+        `/EncounterSearchExportCOCO?action=download&jobId=${result}`,
+      );
+      if (!downloadResp.ok) throw new Error("Download failed");
+      const blob = await downloadResp.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = "wildbook-coco-export.zip";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error("COCO export error:", err);
+      setError(`Failed to export: ${err.message}`);
+    } finally {
+      if (cocoPollingRef.current) {
+        clearInterval(cocoPollingRef.current);
+        cocoPollingRef.current = null;
+      }
+      setLoading("cocoFormat", false);
+      setCocoProgress(null);
+    }
+  }, [searchQueryId]);
 
   const scrollToSection = (sectionId) => {
     setActiveSection(sectionId);
@@ -249,17 +333,12 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                       <Card.Text className="text-muted small">
                         <FormattedMessage id="COCO_FORMAT_DESCRIPTION" />
                       </Card.Text>
-                      <div className="d-flex gap-2">
+                      <div className="d-flex gap-2 align-items-center">
                         <Button
                           className="my-3"
                           variant="outline-primary"
                           size="sm"
-                          onClick={() =>
-                            handleDownload(
-                              `/EncounterSearchExportCOCO?searchQueryId=${searchQueryId}&regularQuery=true`,
-                              "cocoFormat",
-                            )
-                          }
+                          onClick={handleCocoExport}
                           disabled={loadingStates.cocoFormat}
                         >
                           {loadingStates.cocoFormat ? (
@@ -272,7 +351,10 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                                 aria-hidden="true"
                                 className="me-2"
                               />
-                              <FormattedMessage id="EXPORTING" />
+                              {cocoProgress && cocoProgress.totalImages > 0
+                                ? `${cocoProgress.processedImages} / ${cocoProgress.totalImages}`
+                                : <FormattedMessage id="EXPORTING" />
+                              }
                             </>
                           ) : (
                             <FormattedMessage id="EXPORT_ZIP_FILE" />
