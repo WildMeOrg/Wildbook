@@ -34,10 +34,19 @@ public class EncounterCOCOExportFile {
     private final List<Encounter> encounters;
     private final Shepherd shepherd;
 
+    // Progress tracking for async exports
+    private volatile int totalImages;
+    private volatile int processedImages;
+    private volatile int failedImages;
+
     public EncounterCOCOExportFile(List<Encounter> encounters, Shepherd shepherd) {
         this.encounters = encounters;
         this.shepherd = shepherd;
     }
+
+    public int getTotalImages() { return totalImages; }
+    public int getProcessedImages() { return processedImages; }
+    public int getFailedImages() { return failedImages; }
 
     public void writeTo(OutputStream outputStream) throws IOException {
         // Collect data
@@ -55,15 +64,14 @@ public class EncounterCOCOExportFile {
         // Write ZIP: images first, then JSON manifest so it only references
         // images that were actually written successfully.
         try (ZipOutputStream zipOut = new ZipOutputStream(outputStream)) {
-            int totalImages = mediaAssetMap.size();
-            int processedImages = 0;
-            int failedImages = 0;
+            totalImages = mediaAssetMap.size();
+            processedImages = 0;
+            failedImages = 0;
             Set<String> exportedUuids = new LinkedHashSet<>();
             log.info("COCO Export: Starting export of " + totalImages + " images...");
 
             for (Map.Entry<String, MediaAsset> entry : mediaAssetMap.entrySet()) {
                 MediaAsset ma = entry.getValue();
-                processedImages++;
                 try {
                     boolean success = writeImageToZip(ma, zipOut);
                     if (success) {
@@ -71,14 +79,15 @@ public class EncounterCOCOExportFile {
                     } else {
                         failedImages++;
                     }
-                    if (processedImages % 100 == 0) {
-                        log.info("COCO Export: Processed " + processedImages + "/" + totalImages +
-                                 " images (" + failedImages + " failed)");
-                    }
                 } catch (Exception e) {
                     failedImages++;
                     log.warning("COCO Export: Failed to export image " + ma.getUUID() +
                         ": " + e.getMessage());
+                }
+                processedImages++;
+                if (processedImages % 100 == 0) {
+                    log.info("COCO Export: Processed " + processedImages + "/" + totalImages +
+                             " images (" + failedImages + " failed)");
                 }
             }
 
