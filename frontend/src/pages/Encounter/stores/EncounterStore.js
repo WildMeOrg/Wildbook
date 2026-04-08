@@ -545,7 +545,11 @@ class EncounterStore {
       this.encounterData?.mediaAssets?.[
         this._selectedImageIndex
       ]?.annotations?.filter(
-        (data) => data.encounterId === this.encounterData.id,
+        (data) =>
+          data.encounterId === this.encounterData.id &&
+          !data.isTrivial &&
+          (data.boundingBox?.[2] || 0) > 0 &&
+          (data.boundingBox?.[3] || 0) > 0,
       ) || []
     );
   }

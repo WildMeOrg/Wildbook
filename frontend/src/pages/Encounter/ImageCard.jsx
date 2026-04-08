@@ -94,9 +94,14 @@ const ImageCard = observer(({ store = {} }) => {
   };
   const handleLeave = () => setTip({ show: false, x: 0, y: 0, text: "" });
 
+  const isRenderableAnnotation = (a) => {
+    const width = a?.boundingBox?.[2] || 0;
+    const height = a?.boundingBox?.[3] || 0;
+    return !a?.isTrivial && width > 0 && height > 0;
+  };
   const hasNonTrivialAnnotations = store.encounterData?.mediaAssets?.[
     store.selectedImageIndex
-  ]?.annotations?.some((a) => !a.isTrivial);
+  ]?.annotations?.some(isRenderableAnnotation);
 
   useEffect(() => {
     if (
