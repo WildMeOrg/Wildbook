@@ -785,19 +785,39 @@ const MatchProspectTable = ({
                   : "No visualization available"
               }
               role="button"
-              tabIndex={inspectorUrl && hasRightImage ? 0 : -1}
+              tabIndex={
+                inspectorUrl &&
+                hasRightImage &&
+                (algorithm || "").toLowerCase().includes("hotspotter")
+                  ? 0
+                  : -1
+              }
               onKeyDown={(e) => {
-                if (!inspectorUrl || !hasRightImage) return;
+                if (
+                  !inspectorUrl ||
+                  !hasRightImage ||
+                  !(algorithm || "").toLowerCase().includes("hotspotter")
+                )
+                  return;
                 if (e.key === "Enter" || e.key === " ") {
                   setInspectorOpen(true);
                 }
               }}
               onClick={() => {
-                if (inspectorUrl && hasRightImage) setInspectorOpen(true);
+                if (
+                  inspectorUrl &&
+                  hasRightImage &&
+                  (algorithm || "").toLowerCase().includes("hotspotter")
+                )
+                  setInspectorOpen(true);
               }}
               id={`match-prospect-inspector-open-${sectionId}`}
               data-testid={`match-prospect-inspector-open-${sectionId}`}
-              aria-disabled={!inspectorUrl || !hasRightImage}
+              aria-disabled={
+                !inspectorUrl ||
+                !hasRightImage ||
+                !(algorithm || "").toLowerCase().includes("hotspotter")
+              }
             >
               <HatchMarkIcon />
             </div>
