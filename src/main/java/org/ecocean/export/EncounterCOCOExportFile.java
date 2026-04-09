@@ -38,6 +38,7 @@ public class EncounterCOCOExportFile {
     private volatile int totalImages;
     private volatile int processedImages;
     private volatile int failedImages;
+    private volatile String phase = "preparing";
 
     public EncounterCOCOExportFile(List<Encounter> encounters, Shepherd shepherd) {
         this.encounters = encounters;
@@ -47,6 +48,7 @@ public class EncounterCOCOExportFile {
     public int getTotalImages() { return totalImages; }
     public int getProcessedImages() { return processedImages; }
     public int getFailedImages() { return failedImages; }
+    public String getPhase() { return phase; }
 
     public void writeTo(OutputStream outputStream) throws IOException {
         // Collect data
@@ -67,6 +69,7 @@ public class EncounterCOCOExportFile {
             totalImages = mediaAssetMap.size();
             processedImages = 0;
             failedImages = 0;
+            phase = "images";
             Set<String> exportedUuids = new LinkedHashSet<>();
             log.info("COCO Export: Starting export of " + totalImages + " images...");
 
@@ -92,6 +95,7 @@ public class EncounterCOCOExportFile {
             }
 
             // Build JSON arrays using only successfully exported images
+            phase = "manifest";
             JSONArray imagesArray = new JSONArray();
             for (String uuid : exportedUuids) {
                 MediaAsset ma = mediaAssetMap.get(uuid);
@@ -121,6 +125,7 @@ public class EncounterCOCOExportFile {
             coco.put("annotations", annotationsArray);
 
             // Write annotations.json as the last entry
+            phase = "packaging";
             log.info("COCO Export: Writing annotations JSON...");
             byte[] jsonBytes = coco.toString(2).getBytes(StandardCharsets.UTF_8);
             ZipEntry jsonEntry = new ZipEntry("coco/annotations/instances.json");
