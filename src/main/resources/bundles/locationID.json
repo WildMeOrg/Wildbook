@@ -45,8 +45,6 @@
         {"name":"Faroe Islands", "id":"Faroe Islands", "locationID":[]},
         {"name":"France", "id":"France", "locationID":[]},
         {"name":"Greenland", "id":"Greenland", "locationID":[]},
-        {"name":"Haldimand Canyon", "id":"Haldimand Canyon", "locationID":[]},
-        {"name":"Shortland Canyon", "id":"Shortland Canyon", "locationID":[]},
         {"name":"Iceland", "id":"Iceland", "locationID":[
           {"name": "Breiðafjörður", "id": "Breiðafjörður", "locationID":[]}
         ]},
