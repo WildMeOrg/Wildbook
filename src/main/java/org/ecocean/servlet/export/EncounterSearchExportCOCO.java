@@ -167,6 +167,7 @@ public class EncounterSearchExportCOCO extends HttpServlet {
             json.append(",\"totalImages\":").append(job.exportFile.getTotalImages());
             json.append(",\"processedImages\":").append(job.exportFile.getProcessedImages());
             json.append(",\"failedImages\":").append(job.exportFile.getFailedImages());
+            json.append(",\"phase\":\"").append(job.exportFile.getPhase()).append("\"");
         }
         if (job.errorMessage != null) {
             json.append(",\"error\":\"").append(escapeJson(job.errorMessage)).append("\"");

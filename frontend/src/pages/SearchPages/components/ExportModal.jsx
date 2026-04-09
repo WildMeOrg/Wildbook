@@ -126,7 +126,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
             );
             const status = await statusResp.json();
 
-            if (status.totalImages > 0) {
+            if (status.totalImages > 0 || status.phase) {
               setCocoProgress(status);
             }
 
@@ -351,8 +351,17 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                                 aria-hidden="true"
                                 className="me-2"
                               />
-                              {cocoProgress && cocoProgress.totalImages > 0
-                                ? `${cocoProgress.processedImages} / ${cocoProgress.totalImages}`
+                              {cocoProgress?.phase === "images" && cocoProgress.totalImages > 0
+                                ? <>
+                                    <FormattedMessage id="COCO_PHASE_IMAGES" />
+                                    {` ${cocoProgress.processedImages} / ${cocoProgress.totalImages}`}
+                                  </>
+                                : cocoProgress?.phase === "manifest"
+                                ? <FormattedMessage id="COCO_PHASE_MANIFEST" />
+                                : cocoProgress?.phase === "packaging"
+                                ? <FormattedMessage id="COCO_PHASE_PACKAGING" />
+                                : cocoProgress?.phase === "preparing"
+                                ? <FormattedMessage id="COCO_PHASE_PREPARING" />
                                 : <FormattedMessage id="EXPORTING" />
                               }
                             </>
