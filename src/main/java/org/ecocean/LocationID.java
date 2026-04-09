@@ -52,6 +52,7 @@ public class LocationID {
         myShepherd.setAction("LocationID.java");
         myShepherd.beginDBTransaction();
         qualifier = ShepherdProperties.getOverwriteStringForUser(request, myShepherd);
+        // test qualifier ...
         if (qualifier == null) { qualifier = "default"; } else {
             qualifier = qualifier.replaceAll(".properties", "");
         }

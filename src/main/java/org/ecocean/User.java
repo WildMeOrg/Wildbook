@@ -175,6 +175,7 @@ public class User implements Serializable {
 
     // this is handy for UI: does this user (belong to an organization that) use a custom .properties file?
     public boolean hasCustomProperties() {
+        // due to upstream issues, this always returns false
         return ShepherdProperties.userHasOverrideString(this);
     }
 
