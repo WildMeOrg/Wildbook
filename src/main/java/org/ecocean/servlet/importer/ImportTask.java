@@ -595,20 +595,20 @@ public class ImportTask implements java.io.Serializable {
         for (MediaAsset ma : this.getMediaAssets()) {
             numAnnotations += ma.numAnnotations();
             if (ma.getAcmId() != null) numAcmId++;
-            // check if we can get validity off the image before the expensive check of hitting the AssetStore
+            boolean isEligible = false;
             if (ma.isValidImageForIA() != null) {
-                if (ma.isValidImageForIA().booleanValue()) numAllowedIA++;
+                if (ma.isValidImageForIA().booleanValue()) isEligible = true;
             } else if (ma.validateSourceImage()) {
-                numAllowedIA++;
+                isEligible = true;
             }
-/*
-                if ((ma.isValidImageForIA() == null) || !ma.isValidImageForIA().booleanValue()) {
-                    invalidMediaAssets.add(asset);
-                }
- */
-            if ((ma.getDetectionStatus() != null) &&
-                (ma.getDetectionStatus().equals("complete") ||
-                ma.getDetectionStatus().equals("pending"))) numDetectionComplete++;
+            if (isEligible) numAllowedIA++;
+            if (isEligible &&
+                ((ma.getDetectionStatus() != null &&
+                  (ma.getDetectionStatus().equals("complete") ||
+                   ma.getDetectionStatus().equals("pending")))
+                 || ma.hasNonTrivialAnnotations())) {
+                numDetectionComplete++;
+            }
         }
         JSONObject pj = new JSONObject();
         pj.put("statsMediaAssets", statsMA);
@@ -625,7 +625,7 @@ public class ImportTask implements java.io.Serializable {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
-                if (numAssets > 0) pj.put("detectionPercent", new Double(numDetectionComplete) / new Double(numAssets));
+                if (numAllowedIA > 0) pj.put("detectionPercent", (double)numDetectionComplete / (double)numAllowedIA);
                 pj.put("detectionStatus", "sent");
             }
             if (this.iaTaskRequestedIdentification()) {
@@ -656,13 +656,13 @@ public class ImportTask implements java.io.Serializable {
             // legacy flavor
         } else if ((this.getIATask() == null) && (numDetectionComplete > 0)) {
             pipelineStarted = true;
-            if (numDetectionComplete == numAssets) {
+            if (numDetectionComplete == numAllowedIA) {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
-                if (numAssets > 0)
+                if (numAllowedIA > 0)
                     pj.put("detectionPercent",
-                        new Double(numDetectionComplete) / new Double(numAssets));
+                        (double)numDetectionComplete / (double)numAllowedIA);
                 pj.put("detectionStatus", "sent");
             }
             pj.put("identificationStatus", "unknown");

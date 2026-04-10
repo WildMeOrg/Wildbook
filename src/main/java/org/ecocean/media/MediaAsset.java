@@ -630,6 +630,13 @@ public class MediaAsset extends Base implements java.io.Serializable {
         return getAnnotations().size();
     }
 
+    public boolean hasNonTrivialAnnotations() {
+        for (Annotation ann : getAnnotations()) {
+            if (!ann.isTrivial()) return true;
+        }
+        return false;
+    }
+
     public List<Taxonomy> getTaxonomies(Shepherd myShepherd) {
         Set<Taxonomy> taxis = new HashSet<Taxonomy>();
 
