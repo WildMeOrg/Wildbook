@@ -773,51 +773,29 @@ const MatchProspectTable = ({
 
             <div
               style={
-                inspectorUrl &&
-                hasRightImage &&
-                (algorithm || "").toLowerCase().includes("hotspotter")
+                inspectorUrl && hasRightImage
                   ? styles.iconButton
                   : styles.iconButtonDisabled
               }
               title={
                 inspectorUrl
-                  ? "View Hotspotter Visualization"
+                  ? "View inspection visualization"
                   : "No visualization available"
               }
               role="button"
-              tabIndex={
-                inspectorUrl &&
-                hasRightImage &&
-                (algorithm || "").toLowerCase().includes("hotspotter")
-                  ? 0
-                  : -1
-              }
+              tabIndex={inspectorUrl && hasRightImage ? 0 : -1}
               onKeyDown={(e) => {
-                if (
-                  !inspectorUrl ||
-                  !hasRightImage ||
-                  !(algorithm || "").toLowerCase().includes("hotspotter")
-                )
-                  return;
+                if (!inspectorUrl || !hasRightImage) return;
                 if (e.key === "Enter" || e.key === " ") {
                   setInspectorOpen(true);
                 }
               }}
               onClick={() => {
-                if (
-                  inspectorUrl &&
-                  hasRightImage &&
-                  (algorithm || "").toLowerCase().includes("hotspotter")
-                )
-                  setInspectorOpen(true);
+                if (inspectorUrl && hasRightImage) setInspectorOpen(true);
               }}
               id={`match-prospect-inspector-open-${sectionId}`}
               data-testid={`match-prospect-inspector-open-${sectionId}`}
-              aria-disabled={
-                !inspectorUrl ||
-                !hasRightImage ||
-                !(algorithm || "").toLowerCase().includes("hotspotter")
-              }
+              aria-disabled={!inspectorUrl || !hasRightImage}
             >
               <HatchMarkIcon />
             </div>
@@ -1018,7 +996,7 @@ const MatchProspectTable = ({
                       }
                       title={
                         inspectorUrl
-                          ? "View Hotspotter Visualization"
+                          ? "View inspection visualization"
                           : "No visualization available"
                       }
                       role="button"
