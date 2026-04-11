@@ -89,6 +89,13 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
     };
   }, []);
 
+  // Auto-expire the retry button after 1 hour (matches server-side job TTL)
+  useEffect(() => {
+    if (!cocoJobId) return;
+    const timer = setTimeout(() => setCocoJobId(null), 60 * 60 * 1000);
+    return () => clearTimeout(timer);
+  }, [cocoJobId]);
+
   const setLoading = (key, value) => {
     setLoadingStates((prev) => ({ ...prev, [key]: value }));
   };
@@ -166,10 +173,11 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
         }, 3000);
       });
 
-      // Download the completed file
+      // Trigger native browser download — no buffering in JS memory.
+      // The Content-Disposition: attachment header tells the browser to
+      // save the file without navigating away from the page.
       setCocoJobId(result);
-      await downloadCocoFile(result);
-      setCocoJobId(null);
+      triggerCocoDownload(result);
     } catch (err) {
       console.error("COCO export error:", err);
       setError(`Failed to export: ${err.message}`);
@@ -183,36 +191,35 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
     }
   }, [searchQueryId]);
 
-  const downloadCocoFile = useCallback(async (jobId) => {
-    const downloadResp = await fetch(
-      `/EncounterSearchExportCOCO?action=download&jobId=${jobId}`,
-    );
-    if (!downloadResp.ok) throw new Error("Download failed");
-    const blob = await downloadResp.blob();
-    const downloadUrl = window.URL.createObjectURL(blob);
+  const triggerCocoDownload = useCallback(async (jobId) => {
+    // Pre-flight check: verify the job is still available before triggering
+    // the native download (which can't surface HTTP errors in-app).
+    try {
+      const checkResp = await fetch(
+        `/EncounterSearchExportCOCO?action=status&jobId=${jobId}`,
+      );
+      if (!checkResp.ok) {
+        setCocoJobId(null);
+        setError("Export is no longer available. Please run a new export.");
+        return;
+      }
+      const checkData = await checkResp.json();
+      if (checkData.status !== "complete") {
+        setCocoJobId(null);
+        setError("Export is no longer available. Please run a new export.");
+        return;
+      }
+    } catch {
+      // Network error on pre-flight — try the download anyway
+    }
+
     const a = document.createElement("a");
-    a.href = downloadUrl;
+    a.href = `/EncounterSearchExportCOCO?action=download&jobId=${jobId}`;
     a.download = "wildbook-coco-export.zip";
     document.body.appendChild(a);
     a.click();
     a.remove();
-    window.URL.revokeObjectURL(downloadUrl);
   }, []);
-
-  const handleCocoRetry = useCallback(async () => {
-    if (!cocoJobId) return;
-    setError(null);
-    setLoading("cocoFormat", true);
-    try {
-      await downloadCocoFile(cocoJobId);
-      setCocoJobId(null);
-    } catch (err) {
-      console.error("COCO retry download error:", err);
-      setError(`Download failed: ${err.message}. You can retry.`);
-    } finally {
-      setLoading("cocoFormat", false);
-    }
-  }, [cocoJobId, downloadCocoFile]);
 
   const scrollToSection = (sectionId) => {
     setActiveSection(sectionId);
@@ -378,7 +385,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                           className="my-3"
                           variant="outline-primary"
                           size="sm"
-                          onClick={cocoJobId ? handleCocoRetry : handleCocoExport}
+                          onClick={handleCocoExport}
                           disabled={loadingStates.cocoFormat}
                         >
                           {loadingStates.cocoFormat ? (
@@ -405,12 +412,20 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                                 : <FormattedMessage id="EXPORTING" />
                               }
                             </>
-                          ) : cocoJobId ? (
-                            <FormattedMessage id="COCO_RETRY_DOWNLOAD" />
                           ) : (
                             <FormattedMessage id="EXPORT_ZIP_FILE" />
                           )}
                         </Button>
+                        {cocoJobId && !loadingStates.cocoFormat && (
+                          <Button
+                            className="my-3"
+                            variant="primary"
+                            size="sm"
+                            onClick={() => triggerCocoDownload(cocoJobId)}
+                          >
+                            <FormattedMessage id="COCO_RETRY_DOWNLOAD" />
+                          </Button>
+                        )}
                       </div>
                     </Card.Body>
                   </Card>
