@@ -485,7 +485,6 @@ const BulkImportTask = observer(() => {
               (!userRoles?.includes("admin") &&
                 !userRoles?.includes("researcher")) ||
               !store.locationIDString ||
-              task?.status !== "complete" ||
               task?.iaSummary?.detectionStatus !== "complete"
             }
             onClick={() => {
@@ -542,7 +541,6 @@ const BulkImportTask = observer(() => {
           {((!userRoles?.includes("admin") &&
             !userRoles?.includes("researcher")) ||
             !store.locationIDString ||
-            task?.status !== "complete" ||
             task?.iaSummary?.detectionStatus !== "complete") && (
             <p
               style={{
