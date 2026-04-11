@@ -3,6 +3,7 @@ package org.ecocean.export;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.MultiValue;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
@@ -478,14 +479,12 @@ public class EncounterCOCOExportFile {
             individualIds.put(individualIdMap.get(ind.getId()));
             annJson.put("individual_uuid", ind.getId());
             String displayName = ind.getDisplayName();
-            if (displayName != null) {
-                annJson.put("name", displayName);
-            } else {
-                annJson.put("name", JSONObject.NULL);
-            }
+            annJson.put("name", displayName != null ? displayName : JSONObject.NULL);
+            annJson.put("all_names", buildAllNames(ind));
         } else {
             annJson.put("individual_uuid", JSONObject.NULL);
             annJson.put("name", JSONObject.NULL);
+            annJson.put("all_names", new JSONArray());
         }
         annJson.put("individual_ids", individualIds);
 
@@ -495,5 +494,28 @@ public class EncounterCOCOExportFile {
         annJson.put("encounter_id", enc.getCatalogNumber());
 
         return annJson;
+    }
+
+    /**
+     * Builds a JSONArray of all name key:value pairs from a MarkedIndividual's names MultiValue.
+     * Each entry is {"key": "...", "value": "..."}.
+     */
+    private JSONArray buildAllNames(MarkedIndividual ind) {
+        JSONArray allNames = new JSONArray();
+        MultiValue names = ind.getNames();
+        if (names == null) return allNames;
+        Set<String> keys = names.getKeys();
+        if (keys == null) return allNames;
+        for (String key : keys) {
+            List<String> vals = names.getValuesByKey(key);
+            if (vals == null) continue;
+            for (String val : vals) {
+                JSONObject entry = new JSONObject();
+                entry.put("key", key);
+                entry.put("value", val);
+                allNames.put(entry);
+            }
+        }
+        return allNames;
     }
 }
