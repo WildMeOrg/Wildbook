@@ -650,6 +650,7 @@
   "COCO_PHASE_IMAGES": "Downloading images",
   "COCO_PHASE_MANIFEST": "Building manifest...",
   "COCO_PHASE_PACKAGING": "Packaging ZIP...",
+  "COCO_RETRY_DOWNLOAD": "Reintentar descarga",
   "EXPORT_ZIP_FILE": "Exportar archivo ZIP",
   "THIS_ENCOUNTER": "Este encuentro",
   "CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS": "Haz clic en la anotación para ver los resultados de coincidencia",
