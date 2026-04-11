@@ -114,9 +114,11 @@ public class EncounterSearchExportCOCO extends HttpServlet {
         ExportJob job = new ExportJob(jobId);
         jobs.put(jobId, job);
 
-        // Background thread opens its own Shepherd and re-fetches encounters
+        // Background thread opens its own Shepherd, extracts data, closes the
+        // DB transaction, then does the long-running image I/O without a DB connection.
         List<String> encIds = encounterIds;
         Thread exportThread = new Thread(() -> {
+            // Phase 1: extract all JDO data while transaction is alive
             Shepherd bgShepherd = new Shepherd(context);
             bgShepherd.setAction("EncounterSearchExportCOCO.export-" + jobId);
             bgShepherd.beginDBTransaction();
@@ -126,8 +128,20 @@ public class EncounterSearchExportCOCO extends HttpServlet {
                     Encounter enc = bgShepherd.getEncounter(id);
                     if (enc != null) encounters.add(enc);
                 }
+                // Constructor eagerly extracts all JDO data into plain objects
                 job.exportFile = new EncounterCOCOExportFile(encounters, bgShepherd);
+            } catch (Throwable t) {
+                t.printStackTrace();
+                job.status = "error";
+                job.errorMessage = t.getMessage() != null ? t.getMessage() : t.getClass().getName();
+                return;
+            } finally {
+                bgShepherd.rollbackDBTransaction();
+                bgShepherd.closeDBTransaction();
+            }
 
+            // Phase 2: write ZIP (image downloads + JSON manifest) — no DB needed
+            try {
                 File tmpDir = new File(CommonConfiguration.getUploadTmpDir(context));
                 if (!tmpDir.exists()) tmpDir.mkdirs();
                 File tempFile = File.createTempFile("wildbook-coco-export-", ".zip", tmpDir);
@@ -137,13 +151,10 @@ public class EncounterSearchExportCOCO extends HttpServlet {
                 }
                 job.tempFile = tempFile;
                 job.status = "complete";
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Throwable t) {
+                t.printStackTrace();
                 job.status = "error";
-                job.errorMessage = e.getMessage();
-            } finally {
-                bgShepherd.rollbackDBTransaction();
-                bgShepherd.closeDBTransaction();
+                job.errorMessage = t.getMessage() != null ? t.getMessage() : t.getClass().getName();
             }
         }, "coco-export-" + jobId);
         exportThread.setDaemon(true);
@@ -179,8 +190,7 @@ public class EncounterSearchExportCOCO extends HttpServlet {
     private void handleDownload(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         String jobId = request.getParameter("jobId");
-        // Atomic remove prevents concurrent downloads of the same job
-        ExportJob job = (jobId != null) ? jobs.remove(jobId) : null;
+        ExportJob job = (jobId != null) ? jobs.get(jobId) : null;
         if (job == null) {
             sendJson(response, 404, "{\"error\":\"Job not found\"}");
             return;
@@ -190,17 +200,15 @@ public class EncounterSearchExportCOCO extends HttpServlet {
             return;
         }
 
-        try {
-            response.setContentType("application/zip");
-            response.setHeader("Content-Disposition",
-                "attachment; filename=\"wildbook-coco-export.zip\"");
-            response.setContentLengthLong(job.tempFile.length());
-            OutputStream out = response.getOutputStream();
-            Files.copy(job.tempFile.toPath(), out);
-            out.flush();
-        } finally {
-            job.tempFile.delete();
-        }
+        // Job stays in the map — retryable until the 1-hour purge removes it.
+        // This accommodates slow connections and failed downloads.
+        response.setContentType("application/zip");
+        response.setHeader("Content-Disposition",
+            "attachment; filename=\"wildbook-coco-export.zip\"");
+        response.setContentLengthLong(job.tempFile.length());
+        OutputStream out = response.getOutputStream();
+        Files.copy(job.tempFile.toPath(), out);
+        out.flush();
     }
 
     /** Synchronous fallback for legacy/non-JS callers. */
@@ -212,7 +220,8 @@ public class EncounterSearchExportCOCO extends HttpServlet {
         myShepherd.setAction("EncounterSearchExportCOCO.class");
         myShepherd.beginDBTransaction();
 
-        File tempFile = null;
+        // Phase 1: extract data while transaction is alive
+        EncounterCOCOExportFile exportFile;
         try {
             EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(
                 myShepherd, request, "year descending, month descending, day descending");
@@ -225,12 +234,25 @@ public class EncounterSearchExportCOCO extends HttpServlet {
                     encounters.add(enc);
                 }
             }
+            exportFile = new EncounterCOCOExportFile(encounters, myShepherd);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (!response.isCommitted()) {
+                sendJson(response, 500, "{\"error\":\"" + escapeJson(e.getMessage()) + "\"}");
+            }
+            return;
+        } finally {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+        }
 
+        // Phase 2: write ZIP (no DB needed)
+        File tempFile = null;
+        try {
             File tmpDir = new File(CommonConfiguration.getUploadTmpDir(context));
             if (!tmpDir.exists()) tmpDir.mkdirs();
             tempFile = File.createTempFile("wildbook-coco-export-", ".zip", tmpDir);
             tempFile.deleteOnExit();
-            EncounterCOCOExportFile exportFile = new EncounterCOCOExportFile(encounters, myShepherd);
             try (FileOutputStream fos = new FileOutputStream(tempFile)) {
                 exportFile.writeTo(fos);
             }
@@ -249,8 +271,6 @@ public class EncounterSearchExportCOCO extends HttpServlet {
                 sendJson(response, 500, "{\"error\":\"" + escapeJson(e.getMessage()) + "\"}");
             }
         } finally {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
             if (tempFile != null) {
                 tempFile.delete();
             }

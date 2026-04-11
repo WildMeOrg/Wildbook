@@ -76,6 +76,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
 
   const [error, setError] = useState(null);
   const [cocoProgress, setCocoProgress] = useState(null);
+  const [cocoJobId, setCocoJobId] = useState(null);
   const cocoPollingRef = useRef(null);
 
   // Clean up polling interval on unmount (e.g., modal close)
@@ -117,14 +118,28 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
       }
       const { jobId } = startData;
 
-      // Poll for progress
+      // Poll for progress (timeout after 2 hours for very large exports)
+      const MAX_POLL_MS = 2 * 60 * 60 * 1000;
+      const pollStart = Date.now();
+      let consecutiveErrors = 0;
       const result = await new Promise((resolve, reject) => {
         cocoPollingRef.current = setInterval(async () => {
           try {
+            if (Date.now() - pollStart > MAX_POLL_MS) {
+              clearInterval(cocoPollingRef.current);
+              cocoPollingRef.current = null;
+              reject(new Error("Export timed out after 2 hours"));
+              return;
+            }
+
             const statusResp = await fetch(
               `/EncounterSearchExportCOCO?action=status&jobId=${jobId}`,
             );
+            if (!statusResp.ok) {
+              throw new Error(`Status check failed (HTTP ${statusResp.status})`);
+            }
             const status = await statusResp.json();
+            consecutiveErrors = 0;
 
             if (status.totalImages > 0 || status.phase) {
               setCocoProgress(status);
@@ -140,27 +155,21 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
               reject(new Error(status.error || "Export failed"));
             }
           } catch (e) {
-            clearInterval(cocoPollingRef.current);
-            cocoPollingRef.current = null;
-            reject(e);
+            consecutiveErrors++;
+            // Tolerate up to 3 transient network errors before giving up
+            if (consecutiveErrors >= 3) {
+              clearInterval(cocoPollingRef.current);
+              cocoPollingRef.current = null;
+              reject(e);
+            }
           }
         }, 3000);
       });
 
       // Download the completed file
-      const downloadResp = await fetch(
-        `/EncounterSearchExportCOCO?action=download&jobId=${result}`,
-      );
-      if (!downloadResp.ok) throw new Error("Download failed");
-      const blob = await downloadResp.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = downloadUrl;
-      a.download = "wildbook-coco-export.zip";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(downloadUrl);
+      setCocoJobId(result);
+      await downloadCocoFile(result);
+      setCocoJobId(null);
     } catch (err) {
       console.error("COCO export error:", err);
       setError(`Failed to export: ${err.message}`);
@@ -173,6 +182,37 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
       setCocoProgress(null);
     }
   }, [searchQueryId]);
+
+  const downloadCocoFile = useCallback(async (jobId) => {
+    const downloadResp = await fetch(
+      `/EncounterSearchExportCOCO?action=download&jobId=${jobId}`,
+    );
+    if (!downloadResp.ok) throw new Error("Download failed");
+    const blob = await downloadResp.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = "wildbook-coco-export.zip";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+  }, []);
+
+  const handleCocoRetry = useCallback(async () => {
+    if (!cocoJobId) return;
+    setError(null);
+    setLoading("cocoFormat", true);
+    try {
+      await downloadCocoFile(cocoJobId);
+      setCocoJobId(null);
+    } catch (err) {
+      console.error("COCO retry download error:", err);
+      setError(`Download failed: ${err.message}. You can retry.`);
+    } finally {
+      setLoading("cocoFormat", false);
+    }
+  }, [cocoJobId, downloadCocoFile]);
 
   const scrollToSection = (sectionId) => {
     setActiveSection(sectionId);
@@ -338,7 +378,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                           className="my-3"
                           variant="outline-primary"
                           size="sm"
-                          onClick={handleCocoExport}
+                          onClick={cocoJobId ? handleCocoRetry : handleCocoExport}
                           disabled={loadingStates.cocoFormat}
                         >
                           {loadingStates.cocoFormat ? (
@@ -365,6 +405,8 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                                 : <FormattedMessage id="EXPORTING" />
                               }
                             </>
+                          ) : cocoJobId ? (
+                            <FormattedMessage id="COCO_RETRY_DOWNLOAD" />
                           ) : (
                             <FormattedMessage id="EXPORT_ZIP_FILE" />
                           )}
