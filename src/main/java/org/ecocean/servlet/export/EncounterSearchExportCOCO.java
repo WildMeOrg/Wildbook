@@ -188,27 +188,34 @@ public class EncounterSearchExportCOCO extends HttpServlet {
         sendJson(response, 200, json.toString());
     }
 
+    private static final java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(EncounterSearchExportCOCO.class.getName());
+
     private void handleDownload(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         String jobId = request.getParameter("jobId");
         ExportJob job = (jobId != null) ? jobs.get(jobId) : null;
         if (job == null) {
+            log.warning("COCO Download: job not found, jobId=" + jobId);
             sendJson(response, 404, "{\"error\":\"Job not found\"}");
             return;
         }
         if (!"complete".equals(job.status) || job.tempFile == null || !job.tempFile.exists()) {
+            log.warning("COCO Download: job not ready, jobId=" + jobId +
+                " status=" + job.status + " tempFile=" + job.tempFile +
+                " exists=" + (job.tempFile != null && job.tempFile.exists()));
             sendJson(response, 400, "{\"error\":\"Export not ready\"}");
             return;
         }
 
-        // Job stays in the map — retryable until the 1-hour purge removes it.
         long fileLength = job.tempFile.length();
         long start = 0;
         long end = fileLength - 1;
 
-        // Support Range requests so browsers can resume interrupted downloads
-        // instead of restarting from the beginning.
         String rangeHeader = request.getHeader("Range");
+        log.info("COCO Download: jobId=" + jobId + " fileLength=" + fileLength +
+            " Range=" + rangeHeader + " method=" + request.getMethod());
+
         if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
             String rangeSpec = rangeHeader.substring(6).trim();
             String[] parts = rangeSpec.split("-", 2);
@@ -237,15 +244,24 @@ public class EncounterSearchExportCOCO extends HttpServlet {
             response.setHeader("Content-Range",
                 "bytes " + start + "-" + end + "/" + fileLength);
             response.setContentLengthLong(contentLength);
+            log.info("COCO Download: sending 206, start=" + start + " end=" + end +
+                " contentLength=" + contentLength);
         } else {
             response.setContentLengthLong(fileLength);
+            log.info("COCO Download: sending 200, full file, length=" + fileLength);
         }
 
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition",
             "attachment; filename=\"wildbook-coco-export.zip\"");
         response.setHeader("Accept-Ranges", "bytes");
+        // Tell nginx to stream directly to the client instead of buffering.
+        // Without this, nginx buffers up to proxy_max_temp_file_size (default 1GB),
+        // then stalls Tomcat's writes, eventually timing out and cutting the connection
+        // — causing browsers to restart the download in an infinite loop.
+        response.setHeader("X-Accel-Buffering", "no");
 
+        long bytesSent = 0;
         OutputStream out = response.getOutputStream();
         try (RandomAccessFile raf = new RandomAccessFile(job.tempFile, "r")) {
             raf.seek(start);
@@ -256,9 +272,15 @@ public class EncounterSearchExportCOCO extends HttpServlet {
                     (int) Math.min(buffer.length, remaining))) != -1) {
                 out.write(buffer, 0, read);
                 remaining -= read;
+                bytesSent += read;
             }
+        } catch (IOException e) {
+            log.warning("COCO Download: connection broken after " + bytesSent +
+                " bytes (of " + (end - start + 1) + " expected). " + e.getMessage());
+            throw e;
         }
         out.flush();
+        log.info("COCO Download: completed, sent " + bytesSent + " bytes for jobId=" + jobId);
     }
 
     /** Synchronous fallback for legacy/non-JS callers. */
