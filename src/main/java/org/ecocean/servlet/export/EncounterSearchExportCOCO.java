@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -201,13 +202,62 @@ public class EncounterSearchExportCOCO extends HttpServlet {
         }
 
         // Job stays in the map — retryable until the 1-hour purge removes it.
-        // This accommodates slow connections and failed downloads.
+        long fileLength = job.tempFile.length();
+        long start = 0;
+        long end = fileLength - 1;
+
+        // Support Range requests so browsers can resume interrupted downloads
+        // instead of restarting from the beginning.
+        String rangeHeader = request.getHeader("Range");
+        if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+            String rangeSpec = rangeHeader.substring(6).trim();
+            String[] parts = rangeSpec.split("-", 2);
+            try {
+                if (!parts[0].isEmpty()) {
+                    start = Long.parseLong(parts[0]);
+                }
+                if (parts.length > 1 && !parts[1].isEmpty()) {
+                    end = Long.parseLong(parts[1]);
+                }
+            } catch (NumberFormatException e) {
+                response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+                response.setHeader("Content-Range", "bytes */" + fileLength);
+                return;
+            }
+            if (start < 0 || start > end || start >= fileLength) {
+                response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+                response.setHeader("Content-Range", "bytes */" + fileLength);
+                return;
+            }
+            if (end >= fileLength) {
+                end = fileLength - 1;
+            }
+            long contentLength = end - start + 1;
+            response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+            response.setHeader("Content-Range",
+                "bytes " + start + "-" + end + "/" + fileLength);
+            response.setContentLengthLong(contentLength);
+        } else {
+            response.setContentLengthLong(fileLength);
+        }
+
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition",
             "attachment; filename=\"wildbook-coco-export.zip\"");
-        response.setContentLengthLong(job.tempFile.length());
+        response.setHeader("Accept-Ranges", "bytes");
+
         OutputStream out = response.getOutputStream();
-        Files.copy(job.tempFile.toPath(), out);
+        try (RandomAccessFile raf = new RandomAccessFile(job.tempFile, "r")) {
+            raf.seek(start);
+            byte[] buffer = new byte[65536];
+            long remaining = end - start + 1;
+            int read;
+            while (remaining > 0 && (read = raf.read(buffer, 0,
+                    (int) Math.min(buffer.length, remaining))) != -1) {
+                out.write(buffer, 0, read);
+                remaining -= read;
+            }
+        }
         out.flush();
     }
 
