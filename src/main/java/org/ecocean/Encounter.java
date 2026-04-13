@@ -1174,7 +1174,8 @@ public class Encounter extends Base implements java.io.Serializable {
         Long thisTime = getDateInMilliseconds();
 
         if (thisTime == null) return false;
-        return (start.getMillis() <= thisTime && end.getMillis() >= thisTime);
+        long endOfDay = end.withTime(23, 59, 59, 999).getMillis();
+        return (start.getMillis() <= thisTime && endOfDay >= thisTime);
     }
 
     // @return the String holding specific location data used for searching
