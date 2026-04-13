@@ -442,16 +442,9 @@ public class ImportTask implements java.io.Serializable {
         }
         sa.put("numTasks", numTasks);
         sa.put("numLatestTasks", numLatestTasks);
-        // Log all numLatestTask_* counts to see what statuses are being returned
-        StringBuilder statusCounts = new StringBuilder();
-        for (String key : sa.keySet()) {
-            if (key.startsWith("numLatestTask_")) {
-                statusCounts.append(key.replace("numLatestTask_", "")).append("=")
-                    .append(sa.optInt(key)).append(" ");
-            }
-        }
         System.out.println("[statsAnnotations DEBUG] numTasks=" + numTasks +
-            " numLatestTasks=" + numLatestTasks + " statusCounts: " + statusCounts.toString());
+            " numLatestTasks=" + numLatestTasks +
+            " numLatestTask_completed=" + sa.optInt("numLatestTask_completed", 0));
 
         // now we do the work to create encounterTaskInfo
         JSONObject encData = new JSONObject();
