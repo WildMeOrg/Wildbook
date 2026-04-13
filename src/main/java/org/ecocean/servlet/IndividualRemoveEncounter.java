@@ -2,6 +2,8 @@ package org.ecocean.servlet;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
+import org.ecocean.IndexingManager;
+import org.ecocean.IndexingManagerFactory;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.shepherd.core.Shepherd;
@@ -107,7 +109,16 @@ public class IndividualRemoveEncounter extends HttpServlet {
                 }
                 if (!locked) {
                     myShepherd.commitDBTransaction();
-                    //if (enc2remove != null) enc2remove.opensearchIndexDeep();
+                    // Reindex encounter and old individual after assignment change
+                    IndexingManager im = IndexingManagerFactory.getIndexingManager();
+                    if (im != null) {
+                        if (enc2remove != null) {
+                            im.addIndexingQueueEntry(enc2remove, false);
+                        }
+                        if (!wasRemoved && removeFromMe != null) {
+                            im.addIndexingQueueEntry(removeFromMe, false);
+                        }
+                    }
                     out.println(ServletUtilities.getHeader(request));
                     response.setStatus(HttpServletResponse.SC_OK);
                     out.println("<strong>Success:</strong> Encounter #" +
