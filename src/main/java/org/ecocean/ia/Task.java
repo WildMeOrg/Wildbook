@@ -501,8 +501,6 @@ public class Task implements java.io.Serializable {
                 (islObj.optJSONObject("status").optJSONObject("needReview") != null)) {
                 status = "completed";
             } else if (logs.toString().indexOf("score") > -1) {
-                // Note: this checks ALL logs, not just the latest. A task that failed later
-                // (e.g., emptyTargetAnnotations) but had earlier scores will match here.
                 status = "completed";
             } else if (islObj.optJSONObject("status") != null &&
                 islObj.optJSONObject("status").optJSONObject("error") != null &&
