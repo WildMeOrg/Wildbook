@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Annotation;
@@ -18,6 +19,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.Project;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.security.Collaboration;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.SocialUnit;
@@ -492,8 +494,8 @@ public class ImportTask implements java.io.Serializable {
         if ((id == null) || (user == null)) throw new IOException("must provide id and user");
         ImportTask itask = myShepherd.getImportTask(id);
         if (itask == null) throw new IOException("invalid ImportTask id=" + id);
-        if (!Collaboration.canUserAccessImportTask(itask, myShepherd.getContext(),
-            user.getUsername()))
+        if (!user.isAdmin(myShepherd) && !Collaboration.canUserAccessImportTask(itask,
+            myShepherd.getContext(), user.getUsername()))
             throw new IOException("user does not have privileges to delete task");
         Util.mark("ImportTask.deleteWithRelated(" + id + ") started");
         try {
@@ -532,6 +534,17 @@ public class ImportTask implements java.io.Serializable {
                     mark.removeEncounter(enc);
                     // myShepherd.updateDBTransaction();
                     if (mark.getEncounters().size() == 0) {
+                        // remove scheduled tasks referencing this individual
+                        List<ScheduledIndividualMerge> mergeTasks =
+                            myShepherd.getAllIncompleteScheduledIndividualMerges();
+                        if (mergeTasks != null) {
+                            for (ScheduledIndividualMerge mergeTask : mergeTasks) {
+                                if (mark.equals(mergeTask.getPrimaryIndividual()) ||
+                                    mark.equals(mergeTask.getSecondaryIndividual())) {
+                                    myShepherd.getPM().deletePersistent(mergeTask);
+                                }
+                            }
+                        }
                         // check for social unit membership and remove
                         List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(
                             mark);
@@ -675,5 +688,51 @@ public class ImportTask implements java.io.Serializable {
             (is.equals("complete") || is.equals("skipped")));
         pj.put("pipelineComplete", pipelineComplete);
         return pj;
+    }
+
+    // Batch-count helpers for imports.jsp — run 3 GROUP BY queries instead of 3*N.
+
+    static Map<String, Integer> parseSqlCountResults(Query query) {
+        Map<String, Integer> map = new HashMap<>();
+        try {
+            List<?> results = query.executeList();
+            for (Object row : results) {
+                Object[] cols = (Object[]) row;
+                map.put((String) cols[0], ((Number) cols[1]).intValue());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (query != null) query.closeAll();
+        }
+        return map;
+    }
+
+    public static Map<String, Integer> getAllEncounterCounts(Shepherd myShepherd) {
+        Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
+            "SELECT \"ID_OID\", count(*) FROM \"IMPORTTASK_ENCOUNTERS\" GROUP BY \"ID_OID\"");
+        return parseSqlCountResults(query);
+    }
+
+    public static Map<String, Integer> getAllIndividualCounts(Shepherd myShepherd) {
+        Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
+            "SELECT ie.\"ID_OID\", count(distinct me.\"INDIVIDUALID_OID\") " +
+            "FROM \"IMPORTTASK_ENCOUNTERS\" ie " +
+            "JOIN \"MARKEDINDIVIDUAL_ENCOUNTERS\" me " +
+            "ON ie.\"CATALOGNUMBER_EID\" = me.\"CATALOGNUMBER_EID\" " +
+            "GROUP BY ie.\"ID_OID\"");
+        return parseSqlCountResults(query);
+    }
+
+    public static Map<String, Integer> getAllMediaAssetCounts(Shepherd myShepherd) {
+        Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
+            "SELECT ie.\"ID_OID\", count(distinct mf.\"ID_OID\") " +
+            "FROM \"IMPORTTASK_ENCOUNTERS\" ie " +
+            "JOIN \"ENCOUNTER_ANNOTATIONS\" ea " +
+            "ON ie.\"CATALOGNUMBER_EID\" = ea.\"CATALOGNUMBER_OID\" " +
+            "JOIN \"ANNOTATION_FEATURES\" af ON ea.\"ID_EID\" = af.\"ID_OID\" " +
+            "JOIN \"MEDIAASSET_FEATURES\" mf ON af.\"ID_EID\" = mf.\"ID_EID\" " +
+            "GROUP BY ie.\"ID_OID\"");
+        return parseSqlCountResults(query);
     }
 }
