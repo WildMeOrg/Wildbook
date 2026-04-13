@@ -2713,7 +2713,7 @@ public class Shepherd {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            query.closeAll();
+            if (query != null) query.closeAll();
         }
         return taskList;
     }

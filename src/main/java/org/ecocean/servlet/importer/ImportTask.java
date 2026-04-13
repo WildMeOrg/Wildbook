@@ -18,6 +18,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.Project;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.security.Collaboration;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.SocialUnit;
@@ -493,8 +494,8 @@ public class ImportTask implements java.io.Serializable {
         if ((id == null) || (user == null)) throw new IOException("must provide id and user");
         ImportTask itask = myShepherd.getImportTask(id);
         if (itask == null) throw new IOException("invalid ImportTask id=" + id);
-        if (!Collaboration.canUserAccessImportTask(itask, myShepherd.getContext(),
-            user.getUsername()))
+        if (!user.isAdmin(myShepherd) && !Collaboration.canUserAccessImportTask(itask,
+            myShepherd.getContext(), user.getUsername()))
             throw new IOException("user does not have privileges to delete task");
         Util.mark("ImportTask.deleteWithRelated(" + id + ") started");
         try {
@@ -533,6 +534,17 @@ public class ImportTask implements java.io.Serializable {
                     mark.removeEncounter(enc);
                     // myShepherd.updateDBTransaction();
                     if (mark.getEncounters().size() == 0) {
+                        // remove scheduled tasks referencing this individual
+                        List<ScheduledIndividualMerge> mergeTasks =
+                            myShepherd.getAllIncompleteScheduledIndividualMerges();
+                        if (mergeTasks != null) {
+                            for (ScheduledIndividualMerge mergeTask : mergeTasks) {
+                                if (mark.equals(mergeTask.getPrimaryIndividual()) ||
+                                    mark.equals(mergeTask.getSecondaryIndividual())) {
+                                    myShepherd.getPM().deletePersistent(mergeTask);
+                                }
+                            }
+                        }
                         // check for social unit membership and remove
                         List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(
                             mark);
