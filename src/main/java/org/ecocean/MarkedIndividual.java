@@ -2596,9 +2596,12 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     // Need request to record which user did it
     public void mergeIndividual(MarkedIndividual other, String username, Shepherd myShepherd) {
+        IndexingManager im = IndexingManagerFactory.getIndexingManager();
         for (Encounter enc : other.getEncounters()) {
             other.removeEncounter(enc);
             enc.setIndividual(this);
+            // Reindex each transferred encounter
+            if (im != null) im.addIndexingQueueEntry(enc, false);
         }
         this.names.merge(other.getNames());
         this.setComments(getMergedComments(other, username));
@@ -2643,6 +2646,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             myShepherd.updateDBTransaction();
         }
         refreshDependentProperties();
+        // Reindex both individuals after merge
+        if (im != null) {
+            im.addIndexingQueueEntry(this, false);
+            im.addIndexingQueueEntry(other, false);
+        }
     }
 
     public String getMergedComments(MarkedIndividual other, HttpServletRequest request,
