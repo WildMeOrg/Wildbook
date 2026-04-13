@@ -503,7 +503,8 @@ public class Task implements java.io.Serializable {
             } else if (logs.toString().indexOf("score") > -1) {
                 status = "completed";
             } else if (islObj.optJSONObject("status") != null &&
-                islObj.optJSONObject("status").optBoolean(
+                islObj.optJSONObject("status").optJSONObject("error") != null &&
+                islObj.optJSONObject("status").optJSONObject("error").optBoolean(
                     "emptyTargetAnnotations", false)) {
                 // No target annotations to match against is a terminal state, not a failure.
                 // Treating it as completed lets import progress reach 100%.
