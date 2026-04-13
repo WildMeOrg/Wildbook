@@ -490,12 +490,7 @@ public class Task implements java.io.Serializable {
         String status = "waiting to queue";
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(getId(), "IBEISIA",
             myShepherd);
-        if (logs == null || logs.size() == 0) {
-            // No ISL entries means task was never processed or logs were lost.
-            // Treat as completed to unblock import progress tracking.
-            return "completed";
-        }
-        if (logs.size() > 0) {
+        if (logs != null && logs.size() > 0) {
             Collections.reverse(logs); // so it has newest first like mostRecent above
             IdentityServiceLog l = logs.get(0);
             JSONObject islObj = l.toJSONObject();
