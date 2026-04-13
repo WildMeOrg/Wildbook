@@ -109,6 +109,9 @@ public class IndividualAddEncounter extends HttpServlet {
                             addToMe.refreshDependentProperties();
                             myShepherd.updateDBTransaction();
                             System.out.println("Now adding the Encounter to the individual");
+                            // Reindex encounter after individual assignment
+                            IndexingManager im = IndexingManagerFactory.getIndexingManager();
+                            if (im != null) im.addIndexingQueueEntry(enc2add, false);
                         }
                         enc2add.setMatchedBy(request.getParameter("matchType"));
                         enc2add.addComments("<p><em>" + request.getRemoteUser() + " on " +
