@@ -389,7 +389,11 @@ public class ImportTask implements java.io.Serializable {
                 sa.put(ann.getId(), 0);
                 continue;
             }
-            sa.put(ann.getId(), Util.collectionSize(atm.get(ann)));
+            int taskCount = Util.collectionSize(atm.get(ann));
+            sa.put(ann.getId(), taskCount);
+            if (taskCount == 0) {
+                System.out.println("[statsAnnotations DEBUG] Non-trivial annotation " + ann.getId() + " has 0 tasks");
+            }
             boolean latestTask = true; // only for first (most recent) task
             for (Task atask : atm.get(ann)) {
                 String status = atask.getStatus(myShepherd);
@@ -438,6 +442,9 @@ public class ImportTask implements java.io.Serializable {
         }
         sa.put("numTasks", numTasks);
         sa.put("numLatestTasks", numLatestTasks);
+        System.out.println("[statsAnnotations DEBUG] numTasks=" + numTasks +
+            " numLatestTasks=" + numLatestTasks +
+            " numLatestTask_completed=" + sa.optInt("numLatestTask_completed", 0));
 
         // now we do the work to create encounterTaskInfo
         JSONObject encData = new JSONObject();
