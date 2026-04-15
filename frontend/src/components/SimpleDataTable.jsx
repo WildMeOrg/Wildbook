@@ -4,27 +4,35 @@ import ReactPaginate from "react-paginate";
 import { Row, Col } from "react-bootstrap";
 import ThemeColorContext from "../ThemeColorProvider";
 
-const customStyles = {
-  rows: {
-    style: {
-      border: "none !important",
-      borderRadius: "5px",
-    },
-  },
-};
-
 const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
   const theme = useContext(ThemeColorContext);
   const [currentPage, setCurrentPage] = useState(0);
   const [pagedData, setPagedData] = useState([]);
+  const [dataset, setDataset] = useState([]);
 
-  const pageCount = Math.ceil(data.length / perPage);
+  const safePerPage = Math.max(1, perPage);
+  const pageCount = Math.ceil(data.length / safePerPage);
 
   useEffect(() => {
-    const start = currentPage * perPage;
-    const end = start + perPage;
-    setPagedData(data.slice(start, end));
-  }, [data, currentPage, perPage]);
+    if (dataset.length === 0) {
+      const indexedData = data.map((row, index) => ({
+        ...row,
+        tableID: row.tableID ?? index + 1,
+      }));
+      setDataset(indexedData);
+      setCurrentPage(0);
+      setPagedData([...indexedData].slice(0, safePerPage));
+    } else {
+      setCurrentPage(0);
+      setPagedData([...dataset].slice(0, safePerPage));
+    }
+  }, [data, safePerPage]);
+
+  useEffect(() => {
+    const start = currentPage * safePerPage;
+    const end = start + safePerPage;
+    setPagedData([...dataset].slice(start, end));
+  }, [dataset, currentPage, safePerPage]);
 
   const userColumns = columns.map((col) => ({
     id: col.selector,
@@ -34,40 +42,55 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
     cell: col.cell || ((row) => row[col.selector] || "-"),
   }));
 
-  const conditionalRowStyles = [
-    {
-      when: (row) => row.tableID % 2 === 0,
-      style: {
-        backgroundColor: "#ffffff",
-        "&:hover": {
-          backgroundColor: theme?.primaryColors?.primary50,
-        },
-      },
-    },
-    {
-      when: (row) => row.tableID % 2 !== 0,
-      style: {
-        backgroundColor: "#f2f2f2",
-        "&:hover": {
-          backgroundColor: theme?.primaryColors?.primary50,
-        },
-      },
-    },
-  ];
+  const dataSortFunction = (column, sortDirection) => {
+    let sortedData = [...dataset].sort((rowA, rowB) => {
+      let comparison = 0;
 
-  const dataWithIndex = pagedData.map((row, index) => ({
-    ...row,
-    tableID: row.tableID ?? currentPage * perPage + index + 1,
-  }));
+      if (column.selector(rowA) > column.selector(rowB)) {
+        comparison = 1;
+      } else if (column.selector(rowA) < column.selector(rowB)) {
+        comparison = -1;
+      }
+
+      return sortDirection === "desc" ? comparison * -1 : comparison;
+    });
+    setDataset(sortedData);
+  };
+
+  const tableStyles = {
+    rows: {
+      style: {
+        borderRadius: "2px",
+        border: "none !important",
+        backgroundColor: theme?.defaultColors.white,
+      },
+      stripedStyle: {
+        border: "none !important",
+        backgroundColor: theme?.grayColors.gray50,
+      },
+      highlightOnHoverStyle: {
+        outlineStyle: "none",
+        outlineWidth: "0px",
+        outlineColor: "transparent",
+        backgroundColor: theme?.primaryColors?.primary50,
+        transition: "background-color 0.2s ease",
+      },
+    },
+  };
 
   return (
     <div className="container mt-3">
       <DataTable
         columns={userColumns}
-        data={dataWithIndex}
-        customStyles={customStyles}
-        conditionalRowStyles={conditionalRowStyles}
+        data={pagedData}
+        customStyles={tableStyles}
+        sortServer={true}
+        onSort={dataSortFunction}
+        keyField="tableID"
         highlightOnHover
+        fixedHeader
+        fixedHeaderScrollHeight="85vh"
+        striped
       />
       <Row className="mt-3 d-flex justify-content-center">
         <Col xs="auto">

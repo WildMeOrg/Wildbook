@@ -1,14 +1,13 @@
 package org.ecocean.servlet.export;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import jxl.write.*;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.text.StringEscapeUtils;
 import org.ecocean.*;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
 
 public class ExportColumn {
     public final String header;
@@ -42,19 +41,18 @@ public class ExportColumn {
 
     public String getStringValue(Object obj)
     throws InvocationTargetException, IllegalAccessException {
-        if (obj == null) return null;
+        if (obj == null) return "";
+        if (obj instanceof String) return (String)obj;
         Object value = null;
         try {
             value = getter.invoke(declaringClass.cast(obj)); // this is why we need declaringClass
         } catch (InvocationTargetException e) {
-            System.out.println(
-                "EncounterSearchExportMetadataExcel got an InvocationTargetException on column " +
-                header + " and object " + obj);
+            System.out.println("ExportColumn got an InvocationTargetException on column " + header +
+                " and object " + obj);
             return null;
         } catch (Error e) {
-            System.out.println(
-                "EncounterSearchExportMetadataExcel got a more generic error on column " + header +
-                " and object " + obj);
+            System.out.println("ExportColumn got an error on column " + header + " and object " +
+                obj);
             e.printStackTrace();
             return null;
         }
@@ -84,51 +82,30 @@ public class ExportColumn {
         return (declaringClass != null && declaringClass == c);
     }
 
-    public Label getHeaderLabel() {
-        return new Label(colNum, 0, header);
+    public String getHeaderLabel() {
+        return header;
     }
 
-    public void writeHeaderLabel(WritableSheet sheet)
-    throws jxl.write.WriteException {
-        sheet.addCell(getHeaderLabel());
+    public void writeHeaderLabel(CSVPrinter file)
+    throws IOException {
+        file.print(getHeaderLabel());
     }
 
-    public Label getLabel(Object obj, int rowNum)
+    public String getLabel(Object obj, int rowNum)
     throws InvocationTargetException, IllegalAccessException {
-        return new Label(colNum, rowNum, getStringValue(obj));
+        return getStringValue(obj);
     }
 
-    public void writeLabel(Object obj, int rowNum, WritableSheet sheet)
-    throws jxl.write.WriteException, InvocationTargetException, IllegalAccessException {
-        if (obj == null) return;
-        sheet.addCell(getLabel(obj, rowNum));
-    }
-
-    public void writeHeaderLabel(Sheet sheet)
+    /**
+     * Writes the label value to the row array at this column's position.
+     * This method uses colNum to place the value at the correct index,
+     * ensuring proper column alignment even when some values are null.
+     */
+    public void writeLabel(Object obj, int rowNum, String[] row)
     throws InvocationTargetException, IllegalAccessException {
-        Row row = sheet.getRow(0);
+        String value = getLabel(obj, rowNum);
 
-        if (row == null) {
-            row = sheet.createRow(0);
-        }
-        Cell cell = row.createCell(colNum, Cell.CELL_TYPE_STRING);
-        cell.setCellValue(header);
-    }
-
-    public void writeLabel(Object obj, int rowNum, Sheet sheet)
-    throws InvocationTargetException, IllegalAccessException {
-        if (obj == null) return;
-        // Ensure the row exists in the sheet
-        Row row = sheet.getRow(rowNum);
-        if (row == null) {
-            row = sheet.createRow(rowNum);
-        }
-        Cell cell = row.createCell(colNum, Cell.CELL_TYPE_STRING);
-        if (obj instanceof String) {
-            cell.setCellValue((String)obj);
-        } else {
-            cell.setCellValue(getStringValue(obj));
-        }
+        row[colNum] = (value != null) ? value : "";
     }
 
     // this would be a static method of above subclass if java allowed that

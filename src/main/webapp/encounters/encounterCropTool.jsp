@@ -293,13 +293,11 @@ jQuery(document).ready(function() {
 	</div>
 
 	<div id="scan-tool" class="tool"><b class="tool-head">scan for matches</b>
-		<form target="_new" method="post" action="../ScanTaskHandler">
-			<input name="action" type="hidden" id="action" value="addTask" /> 
+		<form target="_new" method="post" action="../GrothMatch" id="scanForm">
 			<input name="encounterNumber" type="hidden" value="<%=enc.getCatalogNumber()%>" />
-			<!-- input name="jdoql" type="text" id="jdoql" size="80" -->
-			<input name="writeThis" type="hidden" id="writeThis" value="true" />
-			<input name="cutoff" type="hidden" value="0.02" />
-			<input name="scan" type="submit" id="scan" value="start scan" style="margin-top: 15px;" />
+			<input name="rightSide" type="hidden" id="scanRightSide" value="false" />
+			<input name="scan" type="submit" id="scan" value="start scan" style="margin-top: 15px;"
+				onClick="document.getElementById('scanRightSide').value = (typeof side !== 'undefined' && side === 'right') ? 'true' : 'false';" />
 		</form>
 	</div>
 

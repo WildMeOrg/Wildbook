@@ -16,7 +16,7 @@
 		</field>
 		<field name="store" persistence-modifier="persistent" element-type="org.ecocean.media.AssetStore" />
 		<field name="parentId" persistence-modifier="persistent">
-			<column jdbc-type="INT" allows-null="true"/>
+			<column jdbc-type="INTEGER" allows-null="true"/>
 		</field>
 		<field name="validImageForIA" persistence-modifier="persistent">
 			<column jdbc-type="BIT" allows-null="true"/>
@@ -86,12 +86,6 @@
 		</inheritance>
 	</class>
 
-	<class name="S3AssetStore">
-		<inheritance strategy="superclass-table">
-			<discriminator value="S3"/>
-		</inheritance>
-	</class>
-
  	<class name="URLAssetStore">
  		<inheritance strategy="superclass-table">
  			<discriminator value="URL"/>
@@ -103,13 +97,6 @@
  			<discriminator value="YouTube"/>
  		</inheritance>
  	</class>
-
- 	<class name="TwitterAssetStore">
- 		<inheritance strategy="superclass-table">
- 			<discriminator value="Twitter"/>
- 		</inheritance>
- 	</class>
-
 
 	<class name="MediaAssetSet">
 		<field name="id" primary-key="true">

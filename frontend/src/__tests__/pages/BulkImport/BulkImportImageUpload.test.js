@@ -57,6 +57,7 @@ describe("BulkImportImageUpload", () => {
       imagePreview: [],
       maxImageCount: 10,
       setMaxImageCount: jest.fn(),
+      setMaxImageSizeMB: jest.fn(),
       initializeFlow: jest.fn(() => {}),
       triggerUploadAfterFileInput: jest.fn(),
       generateThumbnailsForFirst50: jest.fn(),
@@ -132,7 +133,7 @@ describe("BulkImportImageUpload", () => {
     };
     fireEvent.drop(dropArea, { dataTransfer });
     expect(store.flow.addFile).toHaveBeenCalledWith(file);
-    expect(store.uploadFilteredFiles).toHaveBeenCalledWith(5);
+    expect(store.uploadFilteredFiles).toHaveBeenCalled();
   });
 
   test("does not add non-image files", () => {
@@ -152,7 +153,7 @@ describe("BulkImportImageUpload", () => {
     const item = { webkitGetAsEntry: () => entry };
     const dataTransfer = { items: [item], types: ["Files"] };
     fireEvent.drop(dropArea, { dataTransfer });
-    expect(store.traverseFileTree).toHaveBeenCalledWith(entry, 5);
+    expect(store.traverseFileTree).toHaveBeenCalledWith(entry);
   });
 
   test("renders image error alert when imageSectionError is true", () => {

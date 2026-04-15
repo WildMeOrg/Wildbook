@@ -10,8 +10,8 @@ jest.mock("react-intl", () => ({
   FormattedMessage: ({ id }) => <span>{id}</span>,
 }));
 
-jest.mock("react-bootstrap", () => ({
-  Modal: ({ show, onHide, children }) =>
+jest.mock("react-bootstrap", () => {
+  const Modal = ({ show, onHide, children }) =>
     show ? (
       <div data-testid="modal">
         <button data-testid="modal-close" onClick={onHide}>
@@ -19,25 +19,36 @@ jest.mock("react-bootstrap", () => ({
         </button>
         {children}
       </div>
-    ) : null,
-  ModalHeader: ({ children }) => <div>{children}</div>,
-  ModalTitle: ({ children }) => <h2>{children}</h2>,
-  ModalBody: ({ children }) => <div>{children}</div>,
-}));
+    ) : null;
 
-jest.mock("antd/es/tree-select", () => (props) => (
-  <div
-    data-testid="tree-select"
-    onClick={() => props.onChange(["loc1"], ["Label 1"], {})}
-  >
-    TreeSelect
-  </div>
+  Modal.Header = ({ children }) => <div>{children}</div>;
+  Modal.Title = ({ children }) => <h2>{children}</h2>;
+  Modal.Body = ({ children }) => <div>{children}</div>;
+
+  return { Modal };
+});
+
+jest.mock("../../../components/ContainerWithSpinner", () => (props) => (
+  <div data-testid="container-spinner">{props.children}</div>
 ));
+
+jest.mock("antd/es/tree-select", () => ({
+  __esModule: true,
+  default: (props) => (
+    <div
+      data-testid="tree-select"
+      onClick={() => props.onChange(["loc1"], ["Label 1"], {})}
+    >
+      TreeSelect
+    </div>
+  ),
+}));
 
 jest.mock("../../../components/generalInputs/SelectInput", () => (props) => (
   <select
     data-testid="select-input"
     value={props.value || ""}
+    disabled={props.disabled}
     onChange={(e) => props.onChange && props.onChange(e.target.value)}
   >
     <option value="">--</option>
@@ -86,6 +97,7 @@ jest.mock("../../../ThemeColorProvider", () => {
 import MatchCriteriaModal from "../../../pages/Encounter/MatchCriteria";
 
 const makeStore = (overrides = {}) => ({
+  siteSettingsLoading: false,
   locationIdOptions: [{ label: "L1", value: "loc1" }],
   newMatch: {
     locationId: [],
@@ -116,38 +128,45 @@ describe("MatchCriteriaModal", () => {
     global.alert = jest.fn();
   });
 
-  test("renders modal body, messages and inputs", () => {
+  test("renders modal body, messages and inputs", async () => {
     const store = makeStore();
     render(<MatchCriteriaModal isOpen={true} store={store} />);
 
     expect(screen.getByTestId("modal")).toBeInTheDocument();
     expect(screen.getByText("MATCH_CRITERIA")).toBeInTheDocument();
     expect(screen.getByText("MATCH_DESC_1")).toBeInTheDocument();
-    expect(screen.getByTestId("tree-select")).toBeInTheDocument();
+
+    expect(await screen.findByTestId("tree-select")).toBeInTheDocument();
+
     expect(screen.getByTestId("select-input")).toBeInTheDocument();
     expect(screen.getByTestId("react-select")).toBeInTheDocument();
+
     const buttons = screen.getAllByTestId("main-button");
-    expect(buttons.length).toBe(2);
+    expect(buttons).toHaveLength(2);
+
+    expect(screen.getByText("MATCH")).toBeInTheDocument();
+    expect(screen.getByText("CANCEL")).toBeInTheDocument();
   });
 
-  test("clicking Cancel calls onClose", () => {
+  test("clicking Cancel calls onClose", async () => {
     const store = makeStore();
     const onClose = jest.fn();
+
     render(
       <MatchCriteriaModal isOpen={true} store={store} onClose={onClose} />,
     );
 
-    const cancelBtn = screen.getAllByTestId("main-button")[1];
+    const cancelBtn = await screen.findByText("CANCEL");
     fireEvent.click(cancelBtn);
 
-    expect(onClose).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  test("tree select change calls store.newMatch.handleStrictChange", () => {
+  test("tree select change calls store.newMatch.handleStrictChange", async () => {
     const store = makeStore();
     render(<MatchCriteriaModal isOpen={true} store={store} />);
 
-    fireEvent.click(screen.getByTestId("tree-select"));
+    fireEvent.click(await screen.findByTestId("tree-select"));
 
     expect(store.newMatch.handleStrictChange).toHaveBeenCalledWith(
       ["loc1"],
@@ -160,41 +179,38 @@ describe("MatchCriteriaModal", () => {
     const store = makeStore();
     render(<MatchCriteriaModal isOpen={true} store={store} />);
 
-    const sel = screen.getByTestId("select-input");
-    fireEvent.change(sel, { target: { value: "mydata" } });
+    fireEvent.change(screen.getByTestId("select-input"), {
+      target: { value: "mydata" },
+    });
 
     expect(store.newMatch.setOwner).toHaveBeenCalledWith("mydata");
   });
 
-  test("match button is disabled when no algorithms or annotationIds", () => {
-    const store = makeStore({
-      newMatch: {
-        ...makeStore().newMatch,
-        algorithms: [],
-        annotationIds: [],
-      },
-    });
+  test("react-select change maps options to values and calls setAlgorithm", () => {
+    const store = makeStore();
     render(<MatchCriteriaModal isOpen={true} store={store} />);
 
-    const matchBtn = screen.getAllByTestId("main-button")[0];
-    expect(matchBtn).toBeDisabled();
+    fireEvent.click(screen.getByTestId("react-select"));
+
+    expect(store.newMatch.setAlgorithm).toHaveBeenCalledWith(["algo1"]);
   });
 
   test("successful match calls buildNewMatchPayload, opens window and closes modal", async () => {
+    const base = makeStore();
     const store = makeStore({
       newMatch: {
-        ...makeStore().newMatch,
+        ...base.newMatch,
         algorithms: ["algo1"],
         annotationIds: ["ann-1"],
       },
     });
+
     render(<MatchCriteriaModal isOpen={true} store={store} />);
 
-    const matchBtn = screen.getAllByTestId("main-button")[0];
-    fireEvent.click(matchBtn);
+    fireEvent.click(await screen.findByText("MATCH"));
 
     await waitFor(() => {
-      expect(store.newMatch.buildNewMatchPayload).toHaveBeenCalled();
+      expect(store.newMatch.buildNewMatchPayload).toHaveBeenCalledTimes(1);
       expect(global.open).toHaveBeenCalledWith(
         "/iaResults.jsp?taskId=t123",
         "_blank",
@@ -206,9 +222,10 @@ describe("MatchCriteriaModal", () => {
   });
 
   test("failed match shows alert", async () => {
+    const base = makeStore();
     const store = makeStore({
       newMatch: {
-        ...makeStore().newMatch,
+        ...base.newMatch,
         algorithms: ["algo1"],
         annotationIds: ["ann-1"],
         buildNewMatchPayload: jest
@@ -216,15 +233,29 @@ describe("MatchCriteriaModal", () => {
           .mockResolvedValue({ status: 500, data: {} }),
       },
     });
+
     render(<MatchCriteriaModal isOpen={true} store={store} />);
 
-    const matchBtn = screen.getAllByTestId("main-button")[0];
-    fireEvent.click(matchBtn);
+    fireEvent.click(await screen.findByText("MATCH"));
 
     await waitFor(() => {
       expect(global.alert).toHaveBeenCalledWith(
         "There was an error creating the match. Please try again.",
       );
     });
+  });
+
+  test("does not call handlers when siteSettingsLoading is true", async () => {
+    const store = makeStore({ siteSettingsLoading: true });
+
+    render(<MatchCriteriaModal isOpen={true} store={store} />);
+
+    fireEvent.click(await screen.findByTestId("tree-select"));
+    fireEvent.click(screen.getByTestId("react-select"));
+
+    expect(store.newMatch.handleStrictChange).not.toHaveBeenCalled();
+    expect(store.newMatch.setAlgorithm).not.toHaveBeenCalled();
+
+    expect(screen.getByText("MATCH").closest("button")).toBeDisabled();
   });
 });

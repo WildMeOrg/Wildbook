@@ -22,7 +22,7 @@ jest.mock("../../../components/generalInputs/SelectInput", () => (props) => (
   </select>
 ));
 
-jest.mock("../../../components/generalInputs/TextInput", () => (props) => (
+jest.mock("../../../components/generalInputs/NumberInput", () => (props) => (
   <input
     data-testid={`text-${props.label}`}
     value={props.value || ""}
@@ -150,7 +150,7 @@ describe("MeasurementsEdit", () => {
     expect(store.errors.setFieldError).toHaveBeenCalledWith(
       "measurement",
       "length",
-      "Value cannot be empty",
+      null,
     );
   });
 

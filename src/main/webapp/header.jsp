@@ -315,21 +315,11 @@ if(request.getUserPrincipal()!=null){
 
                     if (searchResults.length > 0) {
                         resultsDropdown.innerHTML = searchResults.map(data => {
-                            const taxonomy = data.taxonomy ? data.taxonomy : " ";
-                            let context = Name;
-                            if (data.id.toLowerCase().includes(query.toLowerCase())) {
-                                context = SystemId;
-                            } else {
-                                context = Name;
-                            }
-
-                            let value = data.id;
-                            if(context === SystemId){
-                              value = data.id;  
-                            }else {
-                              value = data.names.find(name => name.toLowerCase().includes(query.toLowerCase())) || data.names.join(" | ");
-                            }
-
+                            const taxonomy = data.taxonomy ? data.taxonomy : " ";                            
+                            let value = data.displayName || 
+                              (data.names?.length ? result.names.join(" | ") : null) || 
+                              data.id;                        
+                          
                             return "<a href=\"" + "<%= urlLoc %>" + "/individuals.jsp?id=" + data.id + "\" target=\"_blank\">" +
                               "    <div class=\"quick-search-result\" style=\"height: 60px; font-size: 14px\">" +
                               "        <div class=\"quick-search-result-content\">" +

@@ -2,6 +2,11 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import BulkImportInstructionsModal from "../../../pages/BulkImport/BulkImportInstructionsModal";
 
+jest.mock("../../../models/useGetSiteSettings", () => ({
+  __esModule: true,
+  default: () => ({ data: null }),
+}));
+
 jest.mock("react-intl", () => ({
   FormattedMessage: ({ id, defaultMessage, values }) => {
     if (values?.youtubeLink) return values.youtubeLink;

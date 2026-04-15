@@ -280,7 +280,7 @@ if (allSpotMAs != null) {
 
 		 				//System.out.println("     uploadedFile exists!");
 		 				
-		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
+		 				Dimension imageDimensions = Util.hackSanselanGetImageSize(uploadedFile, null);
 		 				
 
 		 				//iInfo.setInput(new FileInputStream(uploadedFile));
@@ -317,7 +317,7 @@ if (allSpotMAs != null) {
 						if((uploadedRightFile.exists())&&uploadedRightFile.isFile()&&(uploadedRightFile.length()>0)&&(enc.getNumRightSpots()>0)) {
 									
 									//iInfo=new ImageInfo();
-									Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedRightFile);
+									Dimension imageDimensions = Util.hackSanselanGetImageSize(uploadedRightFile, null);
 		 				
 
 									//iInfo.setInput(new FileInputStream(uploadedRightFile));
@@ -527,8 +527,7 @@ $(document).ready(function() {
   					<a href="http://www.blackwell-synergy.com/doi/abs/10.1111/j.1365-2664.2006.01273.x?journalCode=jpe">I3S</a> algorithms.
 
     				<div id="formDiv">
-      					<form name="formSharkGrid" id="formSharkGrid" method="post" action="../ScanTaskHandler">
-      						<input name="action" type="hidden" id="action" value="addTask" /> 
+      					<form name="formSharkGrid" id="formSharkGrid" method="post" action="../GrothMatch">
       						<input name="encounterNumber" type="hidden" value="<%=encNum%>" />
         						<table width="200px">
           							<tr>
@@ -542,7 +541,7 @@ $(document).ready(function() {
             							</td>
             						<%
               						}
-            						
+
               						if ((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0) && (enc.getSpots() != null) && (enc.getSpots().size() == 0)) {
             						%>
             							<td class="para">
@@ -551,11 +550,11 @@ $(document).ready(function() {
             								</label>
             							</td>
             						<%
-            						} 
+            						}
               						else if ((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) {
             						%>
             						<td class="para">
-            							<label> 
+            							<label>
             								<input type="radio" name="rightSide" value="true" /> right-side
             							</label>
             						</td>
@@ -563,19 +562,10 @@ $(document).ready(function() {
               						}
             						%>
           						</tr>
-          						<%
-          						if(request.isUserInRole("admin")){
-          						%>
-          						<tr><i>Optional JDOQL filter: </i> <input name="jdoql" type="text" id="jdoql" size="80"/> </tr>
-        						<%
-          						}
-        						%>
         					</table>
 
-        					<input name="writeThis" type="hidden" id="writeThis" value="true" />
-        					<br/> 
-        					<input name="scan" type="submit" id="scan" value="Start Scan" onclick="submitForm(document.getElementById('formSharkGrid'))" />
-        					<input name="cutoff" type="hidden" value="0.02" />
+        					<br/>
+        					<input name="scan" type="submit" id="scan" value="Start Scan" />
         				</form>
 
 					</div>

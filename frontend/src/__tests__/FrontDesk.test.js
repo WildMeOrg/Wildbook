@@ -36,31 +36,46 @@ jest.mock("../components/SessionWarning", () => {
 
 jest.mock("../hooks/useDocumentTitle", () => jest.fn());
 jest.mock("../models/useGetSiteSettings");
+jest.mock("../models/notifications/getMergeNotifications", () => jest.fn());
+jest.mock("../models/notifications/getCollaborationNotifications", () =>
+  jest.fn(),
+);
 
 jest.mock("axios");
 
 describe("FrontDesk Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useGetSiteSettings.mockReturnValue({ data: { showClassicSubmit: false } });
   });
 
-  test("renders UnauthenticatedSwitch if user is not logged in", async () => {
+  test("renders UnauthenticatedSwitch if user is not logged in (401)", async () => {
     axios.head.mockRejectedValueOnce({ response: { status: 401 } });
-    useGetSiteSettings.mockReturnValue({ data: { showClassicSubmit: false } });
 
     render(<FrontDesk />);
+
     await waitFor(() => {
       expect(screen.getByText("Unauthenticated")).toBeInTheDocument();
     });
+
+    expect(screen.getByText("GTM")).toBeInTheDocument();
+    expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
   });
 
-  test("handles login status check failure gracefully", async () => {
+  test("keeps loading on non-401 login check failure (current behavior)", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     axios.head.mockRejectedValueOnce(new Error("Network Error"));
     useGetSiteSettings.mockReturnValue({ data: {} });
 
     render(<FrontDesk />);
+
     await waitFor(() => {
-      expect(screen.getByText("Unauthenticated")).toBeInTheDocument();
+      expect(screen.getByText("Loading...")).toBeInTheDocument();
     });
+
+    expect(screen.queryByText("Unauthenticated")).not.toBeInTheDocument();
+    expect(warnSpy).toHaveBeenCalled();
+
+    warnSpy.mockRestore();
   });
 });

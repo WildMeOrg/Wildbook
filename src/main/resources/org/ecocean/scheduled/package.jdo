@@ -4,6 +4,12 @@
   <package name="org.ecocean.scheduled">
       
     <class name="WildbookScheduledTask" identity-type="application">
+      <inheritance strategy="new-table">
+          <discriminator strategy="class-name">
+              <column name="DISCRIMINATOR"/>
+          </discriminator>
+      </inheritance>
+
       <field name="id" primary-key="true" persistence-modifier="persistent">
         <column length="36" name="ID"/>
       </field>
