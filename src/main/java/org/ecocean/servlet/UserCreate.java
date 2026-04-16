@@ -100,7 +100,10 @@ public class UserCreate extends HttpServlet {
                                 salt);
                             newUser = new User(username, hashedPassword, salt);
                         } else {
-                            newUser = new User(email);
+                            // GH-1545: use the (email, uuid) ctor so the email is not stored as the UUID.
+                            // The single-arg User(String uuid) ctor was misused here, producing
+                            // accounts whose primary key is the email address.
+                            newUser = new User(email, Util.generateUUID());
                         }
                         myShepherd.getPM().makePersistent(newUser);
                         createThisUser = true;
