@@ -213,22 +213,25 @@ public class ProjectUpdate extends HttpServlet {
         res.put("success", true);
     }
 
-    // GH-1545: Some legacy User accounts have an email stored in their UUID primary key
-    // (see UserCreate.java history and the deprecated User(String uuid) constructor).
-    // The autocomplete therefore posts an email-shaped identifier, Util.isUUID returns
-    // false, and the legacy getUser(username) lookup misses when username != email.
-    // Fall back to an email lookup so those accounts can still be added/removed until
-    // a data migration repairs the affected rows. Logs every fallback hit.
+    // GH-1545: Resolve a user from an autocomplete-supplied identifier.
+    //
+    // Ordering matters. Some legacy User accounts have an email stored in their UUID
+    // primary key (see UserCreate.java history and the deprecated User(String uuid)
+    // constructor). For those rows, the frontend posts `u.getId()` which is the email.
+    //
+    // We therefore try the PK lookup FIRST, not last — and regardless of whether the
+    // string looks UUID-shaped — because:
+    //   (1) for real UUIDs it's the direct, correct path; and
+    //   (2) for legacy email-as-UUID rows it still resolves via the literal PK
+    //       ("alice@example.org" IS that user's primary key), which avoids a wrong
+    //       match if some other account happens to have that email as their username.
+    //
+    // Only after the PK miss do we try username and then email-address lookups.
+    // Every email-fallback hit is logged so operators can gauge the migration backlog.
     static User resolveUser(Shepherd myShepherd, String userId) {
         if (StringUtils.isNullOrEmpty(userId)) return null;
-        User user = null;
-        if (Util.isUUID(userId)) {
-            user = myShepherd.getUserByUUID(userId);
-            if (user == null) {
-                return null;
-            }
-            return user;
-        }
+        User user = myShepherd.getUserByUUID(userId);
+        if (user != null) return user;
         user = myShepherd.getUser(userId);
         if (user != null) return user;
         user = myShepherd.getUserByEmailAddress(userId);
