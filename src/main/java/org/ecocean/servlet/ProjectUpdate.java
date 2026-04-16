@@ -187,25 +187,58 @@ public class ProjectUpdate extends HttpServlet {
 
     private void addOrRemoveUsersFromProject(Project project, Shepherd myShepherd,
         JSONArray usersToAddJSONArr, String action, JSONObject res) {
+        JSONArray unresolved = res.optJSONArray("unresolvedUserIds");
+        if (unresolved == null) {
+            unresolved = new JSONArray();
+            res.put("unresolvedUserIds", unresolved);
+        }
         for (int i = 0; i < usersToAddJSONArr.length(); i++) {
             String userId = usersToAddJSONArr.getString(i);
-            User user = null;
-            if (Util.isUUID(userId)) {
-                user = myShepherd.getUserByUUID(userId);
-            } else {
-                user = myShepherd.getUser(userId);
-            }
+            User user = resolveUser(myShepherd, userId);
             if (user != null && !StringUtils.isNullOrEmpty(action)) {
                 if ("add".equals(action)) {
                     project.addUser(user);
                 } else if ("remove".equals(action)) {
                     project.removeUser(user);
                 }
+            } else {
+                unresolved.put(userId);
+                System.out.println(
+                    "ProjectUpdate.addOrRemoveUsersFromProject: could not resolve userId=" +
+                    userId + " for action=" + action + " project=" + project.getId());
             }
         }
         myShepherd.updateDBTransaction();
         res.put("modified", true);
         res.put("success", true);
+    }
+
+    // GH-1545: Some legacy User accounts have an email stored in their UUID primary key
+    // (see UserCreate.java history and the deprecated User(String uuid) constructor).
+    // The autocomplete therefore posts an email-shaped identifier, Util.isUUID returns
+    // false, and the legacy getUser(username) lookup misses when username != email.
+    // Fall back to an email lookup so those accounts can still be added/removed until
+    // a data migration repairs the affected rows. Logs every fallback hit.
+    static User resolveUser(Shepherd myShepherd, String userId) {
+        if (StringUtils.isNullOrEmpty(userId)) return null;
+        User user = null;
+        if (Util.isUUID(userId)) {
+            user = myShepherd.getUserByUUID(userId);
+            if (user == null) {
+                return null;
+            }
+            return user;
+        }
+        user = myShepherd.getUser(userId);
+        if (user != null) return user;
+        user = myShepherd.getUserByEmailAddress(userId);
+        if (user != null) {
+            System.out.println(
+                "ProjectUpdate.resolveUser: resolved userId=" + userId +
+                " via email-address fallback (GH-1545 legacy uuid). user.uuid=" +
+                user.getUUID());
+        }
+        return user;
     }
 
     private JSONArray removeUnauthorizedEncounters(JSONArray encountersToAddJSONArr,
