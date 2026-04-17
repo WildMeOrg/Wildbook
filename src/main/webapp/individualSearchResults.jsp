@@ -49,8 +49,8 @@
 	    rIndividuals = result.getResult();
 
 		// viewOnly=true arg means this hiddenData relates to viewing the summary results
-		HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, true,myShepherd);
-		rIndividuals = hiddenData.viewableResults(rIndividuals, true, myShepherd);
+		HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, true, myShepherd);
+		rIndividuals = hiddenData.viewableResults(rIndividuals, false, myShepherd);
 
 	  %>
 

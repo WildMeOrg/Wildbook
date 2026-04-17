@@ -456,17 +456,113 @@ public class Collaboration implements java.io.Serializable {
         return canCollaborate(context, user.getUsername(), ownerName);
     }
 
+    /**
+     * Consolidated encounter authorization check. This is the single source of truth for
+     * whether a user (via request) can access an encounter. Checks, in order:
+     * admin, anonymous/public owner, owner match, orgAdmin shared org, locationID role,
+     * collaboration, and the wdp special case.
+     */
+    public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request,
+        Shepherd myShepherd) {
+        return checkEncounterAccess(enc, request, myShepherd, false);
+    }
+
+    /**
+     * Checks whether the user can modify the encounter. Like canUserAccessEncounter but requires
+     * edit-level collaboration (STATE_EDIT_PRIV) rather than approved-or-edit.
+     */
+    public static boolean canUserModifyEncounter(Encounter enc, HttpServletRequest request,
+        Shepherd myShepherd) {
+        return checkEncounterAccess(enc, request, myShepherd, true);
+    }
+
+    /**
+     * Core encounter authorization logic. When requireEdit is false, any approved collaboration
+     * grants access (read). When true, only edit-level collaborations pass (write).
+     */
+    private static boolean checkEncounterAccess(Encounter enc, HttpServletRequest request,
+        Shepherd myShepherd, boolean requireEdit) {
+        if (enc == null) return false;
+        String context = ServletUtilities.getContext(request);
+        if (!securityEnabled(context)) return true;
+        String ownerName = enc.getAssignedUsername();
+        // anonymous/public/null owner — readable by everyone (read path only;
+        // write path requires admin/owner/etc below, matching original behavior)
+        if (!requireEdit && User.isUsernameAnonymous(ownerName)) return true;
+        // unauthenticated users cannot access private encounters
+        if (request.getUserPrincipal() == null) return false;
+        String username = request.getUserPrincipal().getName();
+        // admin always has access
+        if (request.isUserInRole("admin")) return true;
+        // owner match
+        if (ownerName != null && ownerName.equals(username)) return true;
+        // orgAdmin with shared organization
+        if (request.isUserInRole("orgAdmin") && myShepherd != null) {
+            User encounterOwner = myShepherd.getUser(ownerName);
+            User requester = myShepherd.getUser(request);
+            if (encounterOwner != null && requester != null) {
+                List<Organization> ownerOrgs = encounterOwner.getOrganizations();
+                List<Organization> requesterOrgs = requester.getOrganizations();
+                if (ownerOrgs != null && requesterOrgs != null) {
+                    Set<Organization> requesterOrgSet = new HashSet<>(requesterOrgs);
+                    for (Organization org : ownerOrgs) {
+                        if (requesterOrgSet.contains(org)) return true;
+                    }
+                }
+            }
+        }
+        // locationID-based role
+        if (enc.getLocationCode() != null && request.isUserInRole(enc.getLocationCode()))
+            return true;
+        // collaboration: requireEdit → edit-only; otherwise approved or edit
+        if (requireEdit) {
+            if (canEdit(context, username, ownerName)) return true;
+        } else {
+            if (canCollaborate(context, username, ownerName)) return true;
+        }
+        // wdp special case for citizen-science Stenella frontalis encounters
+        // (write path only, matching original behavior where this was only in
+        // isUserAuthorizedForEncounter, not in the read-access canUserAccessEncounter)
+        if (requireEdit && "wdp".equals(username)) {
+            List<User> submitters = enc.getSubmitters();
+            boolean researcherSubmitted = false;
+            if (submitters != null) {
+                for (User user : submitters) {
+                    if (Util.stringExists(user.getUsername())) {
+                        researcherSubmitted = true;
+                        break;
+                    }
+                }
+            }
+            if (!researcherSubmitted && "Stenella frontalis".equals(enc.getTaxonomyString()))
+                return true;
+        }
+        return false;
+    }
+
+    /** Convenience overload that creates its own Shepherd for the orgAdmin check. */
     public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
-        if (enc != null && enc.getSubmitterID() == null) return true;
-        // System.out.println("canUserAccessEncounter(Encounter enc, HttpServletRequest request)");
-        return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
+        if (enc == null) return false;
+        String ownerName = enc.getAssignedUsername();
+        // fast path: skip Shepherd creation when we can resolve without orgAdmin check
+        if (User.isUsernameAnonymous(ownerName)) return true;
+        Shepherd myShepherd = new Shepherd(request);
+        myShepherd.setAction("Collaboration.canUserAccessEncounter");
+        myShepherd.beginDBTransaction();
+        try {
+            return canUserAccessEncounter(enc, request, myShepherd);
+        } catch (Exception ex) {
+            System.out.println("WARNING: Collaboration.canUserAccessEncounter exception: " + ex.getMessage());
+            return false;
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
     }
 
     public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
         String owner = enc.getAssignedUsername();
 
         if (User.isUsernameAnonymous(owner)) return true; // anon-owned is "fair game" to anyone
-        // System.out.println("canUserAccessEncounter(Encounter enc, String context, String username)");
         return canCollaborate(context, username, owner);
     }
 
@@ -536,11 +632,38 @@ public class Collaboration implements java.io.Serializable {
 
     public static boolean canUserAccessMarkedIndividual(MarkedIndividual mi,
         HttpServletRequest request) {
+        Shepherd myShepherd = new Shepherd(request);
+        myShepherd.setAction("Collaboration.canUserAccessMarkedIndividual");
+        myShepherd.beginDBTransaction();
+        try {
+            return canUserAccessMarkedIndividual(mi, request, myShepherd);
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    public static boolean canUserAccessMarkedIndividual(MarkedIndividual mi,
+        HttpServletRequest request, Shepherd myShepherd) {
         Vector<Encounter> all = mi.getEncounters();
 
         if ((all == null) || (all.size() < 1)) return true;
         for (Encounter enc : all) {
-            if (canUserAccessEncounter(enc, request)) return true; // one is good enough (either owner or in collab or no security etc)
+            if (canUserAccessEncounter(enc, request, myShepherd)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks if the user can modify at least one encounter in this individual.
+     * Uses canUserModifyEncounter (edit-level collaboration required).
+     */
+    public static boolean canUserModifyMarkedIndividual(MarkedIndividual mi,
+        HttpServletRequest request, Shepherd myShepherd) {
+        Vector<Encounter> all = mi.getEncounters();
+
+        if ((all == null) || (all.size() < 1)) return false;
+        for (Encounter enc : all) {
+            if (canUserModifyEncounter(enc, request, myShepherd)) return true;
         }
         return false;
     }
@@ -558,13 +681,19 @@ public class Collaboration implements java.io.Serializable {
     }
 
     public static boolean canUserAccessSocialUnit(SocialUnit su, HttpServletRequest request) {
-        List<MarkedIndividual> all = su.getMarkedIndividuals();
-
-        if ((all == null) || (all.size() < 1)) return true;
-        for (MarkedIndividual indy : all) {
-            if (canUserAccessMarkedIndividual(indy, request)) return true; // one is good enough (either owner or in collab or no security etc)
+        Shepherd myShepherd = new Shepherd(request);
+        myShepherd.setAction("Collaboration.canUserAccessSocialUnit");
+        myShepherd.beginDBTransaction();
+        try {
+            List<MarkedIndividual> all = su.getMarkedIndividuals();
+            if ((all == null) || (all.size() < 1)) return true;
+            for (MarkedIndividual indy : all) {
+                if (canUserAccessMarkedIndividual(indy, request, myShepherd)) return true;
+            }
+            return false;
+        } finally {
+            myShepherd.rollbackAndClose();
         }
-        return false;
     }
 
     public String toString() {
