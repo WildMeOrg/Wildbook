@@ -27,6 +27,7 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
+import org.ecocean.IndexingManager;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.IAJsonProperties;
@@ -615,6 +616,10 @@ public class EncounterForm extends HttpServlet {
                 System.out.println("        ENCOUNTERFORM:");
                 System.out.println("        ENCOUNTERFORM:");
             }
+            // GH-1514: track individual id so we can queue a post-commit deep
+            // reindex; new encounter on existing individual changes sibling
+            // individualNumberEncounters.
+            String manualIndID = null;
             if (formValues.get("manualID") != null &&
                 formValues.get("manualID").toString().length() > 0) {
                 String indID = formValues.get("manualID").toString();
@@ -632,6 +637,7 @@ public class EncounterForm extends HttpServlet {
                 }
                 if (ind != null) enc.setIndividual(ind);
                 enc.setFieldID(indID);
+                manualIndID = ind != null ? ind.getIndividualID() : indID;
             }
             if (formValues.get("occurrenceID") != null &&
                 formValues.get("occurrenceID").toString().length() > 0) {
@@ -872,6 +878,12 @@ public class EncounterForm extends HttpServlet {
             if (!spamBot) {
                 newnum = myShepherd.storeNewEncounter(enc, encID);
                 enc.refreshAssetFormats(myShepherd);
+                // GH-1514: post-commit deep reindex so individualNumberEncounters
+                // updates on sibling encounters of the manually-assigned individual.
+                if (!"fail".equals(newnum) && manualIndID != null) {
+                    IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
+                        java.util.Collections.singleton(manualIndID));
+                }
 
                 // *after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
                 // note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable

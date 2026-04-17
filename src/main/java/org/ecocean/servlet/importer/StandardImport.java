@@ -446,6 +446,12 @@ public class StandardImport extends HttpServlet {
                 OpenSearch.setPermissionsNeeded(myShepherd, true);
                 myShepherd.commitDBTransaction();
                 myShepherd.closeDBTransaction();
+                // GH-1514: post-commit, queue deep reindex of every individual
+                // touched by this import so sibling encounters refresh
+                // individualNumberEncounters. individualCache values are the
+                // resolved MarkedIndividual UUIDs.
+                org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
+                    new java.util.LinkedHashSet<String>(individualCache.values()));
                 if (itask != null)
                     out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" +
                         itask.getId() + "\">" + itask.getId() + "</a></b></li>");
