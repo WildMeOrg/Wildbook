@@ -2559,6 +2559,10 @@ public class IBEISIA {
             rtn.put("annotations", ja);
         }
         myShepherd.commitDBTransaction();
+        // GH-1514: post-commit, queue deep reindex of the target individual so
+        // sibling encounters pick up refreshed individualNumberEncounters etc.
+        org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
+            java.util.Collections.singleton(indivId));
         return rtn;
     }
 

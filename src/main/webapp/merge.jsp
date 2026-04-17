@@ -584,13 +584,19 @@ table.compareZone tr th {
             enc.setIndividual(markA);
         }
 
-    } 
+    }
 	catch (Exception e) {
     	System.out.println("Exception on merge.jsp! indIdA="+indIdA+" indIdB="+indIdB);
     	myShepherd.rollbackDBTransaction();
     } finally {
         myShepherd.commitDBTransaction();
     	myShepherd.closeDBTransaction();
+        // GH-1514: post-commit, queue a deep reindex of the retained individual
+        // so sibling encounters pick up refreshed individualNumberEncounters.
+        if (indIdA != null) {
+            org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
+                java.util.Collections.singleton(indIdA));
+        }
     }
     %>
   </div>

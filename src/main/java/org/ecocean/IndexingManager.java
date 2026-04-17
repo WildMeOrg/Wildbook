@@ -83,6 +83,24 @@ public class IndexingManager {
 
     }
 
+    // GH-1514: queue deep reindex for each MarkedIndividual identified by id,
+    // so sibling encounters pick up refreshed individualNumberEncounters (and
+    // the other individual-derived denormalized fields on the encounter index).
+    // Safe to call with an empty or null set. Callers should invoke this AFTER
+    // the caller's DB transaction has committed, since IndexingManager spins
+    // a background Shepherd that reads the individual by id.
+    public static void queueIndividualsByIdForDeepReindex(Shepherd myShepherd,
+        java.util.Collection<String> individualIds) {
+        if ((myShepherd == null) || (individualIds == null) || individualIds.isEmpty()) return;
+        IndexingManager im = IndexingManagerFactory.getIndexingManager();
+        if (im == null) return;
+        for (String id : individualIds) {
+            if (id == null) continue;
+            MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(id);
+            if (indiv != null) im.addIndexingQueueEntry(indiv, false);
+        }
+    }
+
     //Removes an oject's UUID from the queue
     public void removeIndexingQueueEntry(String objectID) {
         if (indexingQueue.contains(objectID)) {

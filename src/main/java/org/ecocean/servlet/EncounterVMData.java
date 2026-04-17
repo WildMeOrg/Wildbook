@@ -92,6 +92,10 @@ public class EncounterVMData extends HttpServlet {
                             matchID + ".</p>");
                         enc.setMatchedBy("Visual Matcher");
                         myShepherd.commitDBTransaction();
+                        // GH-1514: post-commit, queue deep reindex of the individual
+                        // so sibling encounters pick up refreshed denormalized fields.
+                        org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(
+                            myShepherd, java.util.Collections.singleton(matchID));
                         redirUrl = "encounters/encounter.jsp?number=" + enc.getCatalogNumber();
                     } else {
                         rtn.put("error", "unauthorized");
