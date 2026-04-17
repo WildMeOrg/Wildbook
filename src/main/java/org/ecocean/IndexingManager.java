@@ -89,15 +89,30 @@ public class IndexingManager {
     // Safe to call with an empty or null set. Callers should invoke this AFTER
     // the caller's DB transaction has committed, since IndexingManager spins
     // a background Shepherd that reads the individual by id.
+    //
+    // Opens its own short-lived read-only Shepherd for the id->object resolution
+    // rather than reusing the caller's. Callers in servlets typically close their
+    // Shepherd in a finally block before (or alongside) queueing; reusing it here
+    // would silently no-op because getMarkedIndividualQuiet uses the underlying
+    // closed PersistenceManager. The passed-in Shepherd is used only for its
+    // context string.
     public static void queueIndividualsByIdForDeepReindex(Shepherd myShepherd,
         java.util.Collection<String> individualIds) {
-        if ((myShepherd == null) || (individualIds == null) || individualIds.isEmpty()) return;
+        if ((individualIds == null) || individualIds.isEmpty()) return;
         IndexingManager im = IndexingManagerFactory.getIndexingManager();
         if (im == null) return;
-        for (String id : individualIds) {
-            if (id == null) continue;
-            MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(id);
-            if (indiv != null) im.addIndexingQueueEntry(indiv, false);
+        String context = (myShepherd != null) ? myShepherd.getContext() : "context0";
+        Shepherd shep = new Shepherd(context);
+        shep.setAction("IndexingManager.queueIndividualsByIdForDeepReindex");
+        shep.beginDBTransaction();
+        try {
+            for (String id : individualIds) {
+                if (id == null) continue;
+                MarkedIndividual indiv = shep.getMarkedIndividualQuiet(id);
+                if (indiv != null) im.addIndexingQueueEntry(indiv, false);
+            }
+        } finally {
+            shep.rollbackAndClose();
         }
     }
 

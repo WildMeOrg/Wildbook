@@ -1875,6 +1875,12 @@ public class StandardImport extends HttpServlet {
             if (!newIndividual) {
                 mark.addEncounter(enc);
                 enc.setIndividual(mark);
+                // GH-1514: pre-existing individual had an encounter added; cache
+                // its UUID so the end-of-import sweep queues it for deep reindex
+                // and refreshes sibling encounters' individualNumberEncounters.
+                if (mark.getIndividualID() != null) {
+                    individualCache.put(individualID, mark.getIndividualID());
+                }
                 // System.out.println("loadIndividual notnew individual: "+mark.getDisplayName(request, myShepherd));
             } else {
                 enc.setIndividual(mark);
