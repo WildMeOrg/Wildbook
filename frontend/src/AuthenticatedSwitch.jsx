@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import NotFound from "./pages/errorPages/NotFound";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
 import Footer from "./components/Footer";
+import LoadingScreen from "./components/LoadingScreen";
 import useGetMe from "./models/auth/users/useGetMe";
 const HowToPhotograph = lazy(() => import("./pages/HowToPhotograph"));
 const AboutUs = lazy(() => import("./pages/AboutUs"));
@@ -38,6 +39,7 @@ export default function AuthenticatedSwitch({
   showclassicsubmit,
   showClassicEncounterSearch,
   showHowToPhotograph,
+  siteSettingsLoading,
 }) {
   const { data } = useGetMe();
   const username = data?.username;
@@ -80,9 +82,19 @@ export default function AuthenticatedSwitch({
           <Routes>
             <Route path="/profile" element={<Profile />} />
             <Route path="/policies-and-data" element={<PoliciesAndData />} />
-            {showHowToPhotograph && (
-              <Route path="/how-to-photograph" element={<HowToPhotograph />} />
-            )}
+            <Route
+              path="/how-to-photograph"
+              element={
+                siteSettingsLoading ? (
+                  <LoadingScreen />
+                ) : showHowToPhotograph ? (
+                  <HowToPhotograph />
+                ) : (
+                  <NotFound setHeader={setHeader} />
+                )
+              }
+            />
+
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/projects/overview" element={<ProjectList />} />
             <Route path="/home" element={<Home />} />
