@@ -55,6 +55,10 @@ alter table "TASK" alter column "PARAMETERS" type text;
             	</field>
 -->
 
+		<field name="bulkFinalIdentificationFired" persistence-modifier="persistent">
+			<column allows-null="true"/>
+		</field>
+
 		<field name="objectMediaAssets">
 			<collection element-type="org.ecocean.media.MediaAsset"/>
 			<join />

@@ -192,6 +192,21 @@ public class ImportTask implements java.io.Serializable {
         return mas;
     }
 
+    private static final Set<String> TERMINAL_DETECTION_STATUSES =
+        java.util.Collections.unmodifiableSet(new HashSet<>(
+            java.util.Arrays.asList("complete", "pending", "error")));
+
+    public boolean isAllDetectionTerminal() {
+        List<MediaAsset> assets = this.getMediaAssets();
+        if (assets == null || assets.isEmpty()) return true;
+        for (MediaAsset ma : assets) {
+            if (ma == null) continue;
+            String status = ma.getDetectionStatus();
+            if (status == null || !TERMINAL_DETECTION_STATUSES.contains(status)) return false;
+        }
+        return true;
+    }
+
     public List<Occurrence> getOccurrences(Shepherd myShepherd) {
         if (encounters == null) return null;
         List<Occurrence> occs = new ArrayList<Occurrence>();

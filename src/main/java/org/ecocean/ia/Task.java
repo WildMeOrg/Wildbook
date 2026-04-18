@@ -35,6 +35,7 @@ public class Task implements java.io.Serializable {
     private String status;
     private Long completionDateInMilliseconds;
     private String queueResumeMessage;
+    private Boolean bulkFinalIdentificationFired = null;
 
     public Task() {
         this(Util.generateUUID());
@@ -400,6 +401,14 @@ public class Task implements java.io.Serializable {
                    .append("params=" + ((this.getParameters() ==
                 null) ? "(none)" : this.getParameters().toString()))
                    .toString();
+    }
+
+    public boolean isBulkFinalIdentificationFired() {
+        return Boolean.TRUE.equals(bulkFinalIdentificationFired);
+    }
+
+    public void markBulkFinalIdentificationFired() {
+        this.bulkFinalIdentificationFired = Boolean.TRUE;
     }
 
     public static Task load(String taskId, Shepherd myShepherd) {

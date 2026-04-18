@@ -1415,93 +1415,153 @@ public class IBEISIA {
 
         boolean skipIdent = Util.booleanNotFalse(IA.getProperty(context,
             "IBEISIADisableIdentification"));
-        // now we pick up IA.intake(anns) from detection above (if applicable)
-        // should we cluster these based on MediaAsset instead? send them in groups to IA.intake()?
-        if (!skipIdent && (newAnns != null)) {
-            List<Annotation> needIdentifying = new ArrayList<Annotation>();
-            Shepherd myShepherd2 = new Shepherd(context);
-            myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
-            myShepherd2.beginDBTransaction();
+        if (skipIdent) return rtn;
+
+        Shepherd myShepherd2 = new Shepherd(context);
+        myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
+        myShepherd2.beginDBTransaction();
+        try {
             Task parentTask = Task.load(taskID, myShepherd2);
-            // Task parametersSkipIdent looks at the parent task.. It works for non-ID Wildbooks. If you are sending multiple annotations from a
-            // single image, and some need
-            // ID, some don't, you need to check downstream.
             if (taskParametersSkipIdent(parentTask)) {
                 System.out.println("NOTICE: IBEISIA.processCallback() " + parentTask +
                     " skipped identification");
-            } else {
-                Iterator<?> keys = newAnns.keys();
-                while (keys.hasNext()) {
-                    String maId = (String)keys.next();
-                    System.out.println("maId -> " + maId);
-                    JSONArray annIds = newAnns.optJSONArray(maId);
-                    if (annIds == null) continue;
-                    System.out.println("     ---> " + annIds);
-                    for (int i = 0; i < annIds.length(); i++) {
-                        String aid = annIds.optString(i, null);
-                        if (aid == null) continue;
-                        Annotation ann = ((Annotation)(myShepherd2.getPM().getObjectById(
-                            myShepherd2.getPM().newObjectIdInstance(Annotation.class, aid), true)));
-                        if (ann != null && IBEISIA.validForIdentification(ann,
-                            myShepherd2.getContext())) {
-                            needIdentifying.add(ann);
-                        }
-                    }
-                }
+                return rtn;
             }
-            if (needIdentifying.size() > 0) {
-                // split the results into encounters
-                HashMap<String, ArrayList<Annotation> > needIdentifyingMap = new HashMap<String,
-                    ArrayList<Annotation> >();
-                for (Annotation annot : needIdentifying) {
-                    Encounter enc = annot.findEncounter(myShepherd2);
-                    if (enc != null) {
-                        if (needIdentifyingMap.containsKey(enc.getCatalogNumber())) {
-                            ArrayList<Annotation> annots = needIdentifyingMap.get(
-                                enc.getCatalogNumber());
-                            annots.add(annot);
-                            needIdentifyingMap.put(enc.getCatalogNumber(), annots);
-                        } else {
-                            ArrayList<Annotation> annots = new ArrayList<Annotation>();
-                            annots.add(annot);
-                            needIdentifyingMap.put(enc.getCatalogNumber(), annots);
-                        }
-                    }
-                }
-                // send to ID by Encounter
-                for (String encUUID : needIdentifyingMap.keySet()) {
-                    ArrayList<Annotation> annots = needIdentifyingMap.get(encUUID);
-                    JSONObject taskParameters = new JSONObject();
-                    JSONObject mf = new JSONObject();
-                    Encounter enc = myShepherd2.getEncounter(encUUID);
-                    if (enc != null && enc.getLocationID() != null) {
-                        ArrayList<String> locationIDs = new ArrayList<String>();
-                        List<String> matchTheseLocationIDs = LocationID.getIDForParentAndChildren(
-                            enc.getLocationID(), locationIDs, null);
-                        mf.put("locationIds", matchTheseLocationIDs);
-                    }
-                    taskParameters.put("matchingSetFilter", mf);
-                    Task subParentTask = new Task();
-                    subParentTask.setParameters(taskParameters);
-                    myShepherd2.storeNewTask(subParentTask);
-                    myShepherd2.updateDBTransaction();
-                    
-                    
-                    Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask,
-                        false);
-                    myShepherd2.storeNewTask(childTask);
-                    myShepherd2.updateDBTransaction();
-                    subParentTask.addChild(childTask);
-                    myShepherd2.updateDBTransaction();
-                }
-            } else {
-                System.out.println(
-                    "[INFO]: No annotations were suitable for identification. Check resulting identification class(es).");
-                myShepherd2.rollbackDBTransaction();
+
+            String importTaskId = getImportTaskId(parentTask);
+            if (importTaskId != null) {
+                fireBulkFinalIdentificationIfReady(importTaskId, parentTask, myShepherd2);
+            } else if (newAnns != null) {
+                List<Annotation> needIdentifying = collectNewAnnotations(newAnns, myShepherd2);
+                kickoffIdentificationForAnnotations(needIdentifying, myShepherd2, null);
             }
+        } finally {
             myShepherd2.rollbackAndClose();
         }
         return rtn;
+    }
+
+    static String getImportTaskId(Task parentTask) {
+        if (parentTask == null) return null;
+        JSONObject params = parentTask.getParameters();
+        if (params == null) return null;
+        String id = params.optString("importTaskId", null);
+        return (id != null && !id.isEmpty()) ? id : null;
+    }
+
+    static boolean isBulkImportParentTask(Task parentTask) {
+        return getImportTaskId(parentTask) != null;
+    }
+
+    private static void fireBulkFinalIdentificationIfReady(
+        String importTaskId, Task parentTask, Shepherd myShepherd) {
+        ImportTask itask = myShepherd.getImportTask(importTaskId);
+        if (itask == null) {
+            System.out.println("WARN: fireBulkFinalIdentificationIfReady: " +
+                "ImportTask " + importTaskId + " not found");
+            return;
+        }
+        if (!itask.isAllDetectionTerminal()) return;
+        Task rootTask = itask.getIATask();
+        if (rootTask == null) rootTask = parentTask;
+        if (rootTask.isBulkFinalIdentificationFired()) {
+            System.out.println("INFO: fireBulkFinalIdentificationIfReady: " +
+                "already fired (persistent) for ImportTask " + importTaskId);
+            return;
+        }
+        if (!BulkFinalIdentificationRegistry.tryClaim(importTaskId)) {
+            System.out.println("INFO: fireBulkFinalIdentificationIfReady: " +
+                "another callback already claimed for ImportTask " + importTaskId);
+            return;
+        }
+        rootTask.markBulkFinalIdentificationFired();
+        myShepherd.updateDBTransaction();
+
+        java.util.Set<Annotation> all = itask.getAnnotations();
+        List<Annotation> eligible = new ArrayList<Annotation>();
+        for (Annotation a : all) {
+            if (a == null) continue;
+            if (!a.getMatchAgainst()) continue;
+            if (!validForIdentification(a, myShepherd.getContext())) continue;
+            eligible.add(a);
+        }
+        System.out.println("INFO: fireBulkFinalIdentificationIfReady: ImportTask " +
+            importTaskId + " -> ID on " + eligible.size() + " annotations across " +
+            itask.numberEncounters() + " encounters");
+        kickoffIdentificationForAnnotations(eligible, myShepherd, rootTask);
+        BulkFinalIdentificationRegistry.release(importTaskId);
+    }
+
+    static Map<String, List<Annotation>> groupByEncounter(
+        List<Annotation> anns, Shepherd myShepherd) {
+        Map<String, List<Annotation>> map = new java.util.LinkedHashMap<>();
+        if (anns == null) return map;
+        for (Annotation ann : anns) {
+            if (ann == null) continue;
+            Encounter enc = ann.findEncounter(myShepherd);
+            if (enc == null) continue;
+            map.computeIfAbsent(enc.getCatalogNumber(), k -> new ArrayList<>()).add(ann);
+        }
+        return map;
+    }
+
+    private static List<Annotation> collectNewAnnotations(
+        JSONObject newAnns, Shepherd myShepherd) {
+        List<Annotation> out = new ArrayList<Annotation>();
+        if (newAnns == null) return out;
+        Iterator<?> keys = newAnns.keys();
+        while (keys.hasNext()) {
+            String maId = (String) keys.next();
+            JSONArray annIds = newAnns.optJSONArray(maId);
+            if (annIds == null) continue;
+            for (int i = 0; i < annIds.length(); i++) {
+                String aid = annIds.optString(i, null);
+                if (aid == null) continue;
+                try {
+                    Annotation ann = (Annotation) myShepherd.getPM().getObjectById(
+                        myShepherd.getPM().newObjectIdInstance(Annotation.class, aid), true);
+                    if (ann != null && validForIdentification(ann, myShepherd.getContext())) {
+                        out.add(ann);
+                    }
+                } catch (Exception ex) {
+                    System.out.println("WARN: collectNewAnnotations miss " + aid + ": " + ex);
+                }
+            }
+        }
+        return out;
+    }
+
+    private static void kickoffIdentificationForAnnotations(
+        List<Annotation> anns, Shepherd myShepherd, Task rootTask) {
+        if (anns == null || anns.isEmpty()) {
+            System.out.println("[INFO]: No annotations suitable for identification.");
+            return;
+        }
+        Map<String, List<Annotation>> byEncounter = groupByEncounter(anns, myShepherd);
+        for (Map.Entry<String, List<Annotation>> e : byEncounter.entrySet()) {
+            String encUUID = e.getKey();
+            List<Annotation> encAnnots = e.getValue();
+            JSONObject taskParameters = new JSONObject();
+            JSONObject mf = new JSONObject();
+            Encounter enc = myShepherd.getEncounter(encUUID);
+            if (enc != null && enc.getLocationID() != null) {
+                ArrayList<String> locationIDs = new ArrayList<String>();
+                List<String> matchTheseLocationIDs = LocationID.getIDForParentAndChildren(
+                    enc.getLocationID(), locationIDs, null);
+                mf.put("locationIds", matchTheseLocationIDs);
+            }
+            taskParameters.put("matchingSetFilter", mf);
+            Task subParentTask = new Task();
+            subParentTask.setParameters(taskParameters);
+            myShepherd.storeNewTask(subParentTask);
+            if (rootTask != null) rootTask.addChild(subParentTask);
+            myShepherd.updateDBTransaction();
+            Task childTask = IA.intakeAnnotations(myShepherd, encAnnots, subParentTask, false);
+            myShepherd.storeNewTask(childTask);
+            myShepherd.updateDBTransaction();
+            subParentTask.addChild(childTask);
+            myShepherd.updateDBTransaction();
+        }
     }
 
     private static JSONObject processCallbackDetect(String taskID,
