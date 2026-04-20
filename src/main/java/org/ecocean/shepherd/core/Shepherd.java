@@ -3299,22 +3299,26 @@ public class Shepherd {
      * Closes a PersistenceManager
      */
     public void closeDBTransaction() {
+        boolean closed = false;
         try {
             if ((pm != null) && (!pm.isClosed())) {
                 pm.close();
             }
-            // ShepherdState.setShepherdState(action+"_"+shepherdID, "close");
-            ShepherdState.removeShepherdState(action + "_" + shepherdID);
-
-            // logger.info("A PersistenceManager has been successfully closed.");
+            closed = true;
         } catch (JDOUserException jdoe) {
             System.out.println("I hit an error trying to close a DBTransaction.");
             jdoe.printStackTrace();
-
-            // logger.error("I failed to close a PersistenceManager."+"\n"+jdoe.getStackTrace());
         } catch (NullPointerException npe) {
             System.out.println("I hit a NullPointerException trying to close a DBTransaction.");
             npe.printStackTrace();
+        } finally {
+            // Only clear the diagnostic state entry if the close actually succeeded.
+            // If it threw, leave evidence behind so dbconnections.jsp can surface the leak.
+            if (closed) {
+                ShepherdState.removeShepherdState(action + "_" + shepherdID);
+            } else {
+                ShepherdState.setShepherdState(action + "_" + shepherdID, "close-failed");
+            }
         }
     }
 
@@ -3322,21 +3326,23 @@ public class Shepherd {
      * Undoes any changes made to an open database.
      */
     public void rollbackDBTransaction() {
+        boolean rolledBack = false;
         try {
             if ((pm != null) && (pm.currentTransaction().isActive())) {
-                // System.out.println("     Now rollingback a transaction with pm"+(String)pm.getUserObject());
                 pm.currentTransaction().rollback();
-                // System.out.println("A transaction has been successfully committed.");
-            } else {
-                // System.out.println("You are trying to rollback an inactive transaction.");
             }
-            ShepherdState.setShepherdState(action + "_" + shepherdID, "rollback");
+            rolledBack = true;
         } catch (JDOUserException jdoe) {
             jdoe.printStackTrace();
         } catch (JDOFatalUserException fdoe) {
             fdoe.printStackTrace();
         } catch (NullPointerException npe) {
             npe.printStackTrace();
+        } finally {
+            // Always publish a terminal rollback state so leaked "begin" entries do not accumulate,
+            // but distinguish success from failure so close-follow-up can see the evidence.
+            ShepherdState.setShepherdState(action + "_" + shepherdID,
+                rolledBack ? "rollback" : "rollback-failed");
         }
     }
 
