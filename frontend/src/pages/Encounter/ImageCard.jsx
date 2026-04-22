@@ -110,7 +110,10 @@ const ImageCard = observer(({ store = {} }) => {
   const handleLeave = () => setTip({ show: false, x: 0, y: 0, text: "" });
 
   const hasNonTrivialAnnotations = store.encounterAnnotations?.some(
-    (a) => !a.isTrivial && (a.boundingBox?.[2] || 0) > 0 && (a.boundingBox?.[3] || 0) > 0
+    (a) =>
+      !a.isTrivial &&
+      (a.boundingBox?.[2] || 0) > 0 &&
+      (a.boundingBox?.[3] || 0) > 0,
   );
 
   useEffect(() => {
@@ -367,6 +370,31 @@ const ImageCard = observer(({ store = {} }) => {
             const finalZ =
               rect.annotationId === clickedAnnotation?.id ? 2000 : baseZ;
 
+            const containerWidth = boxRef.current?.clientWidth || 0;
+            const containerHeight = boxRef.current?.clientHeight || 0;
+            const iconSize = 20;
+            const iconCount = 2;
+            const totalIconHeight = iconSize * iconCount;
+
+            const annotationRight = newRect.x + newRect.width;
+
+            let iconTop = newRect.y;
+            let iconLeft = annotationRight;
+
+            if (iconLeft + iconSize > containerWidth) {
+              iconLeft = newRect.x - iconSize;
+            }
+            if (iconLeft < 0) {
+              iconLeft = 0;
+            }
+
+            if (iconTop + totalIconHeight > containerHeight) {
+              iconTop = containerHeight - totalIconHeight;
+            }
+            if (iconTop < 0) {
+              iconTop = 0;
+            }
+
             return (
               <div
                 id={`rect-${index}`}
@@ -413,8 +441,8 @@ const ImageCard = observer(({ store = {} }) => {
                       className="d-flex flex-column"
                       style={{
                         position: "absolute",
-                        top: 0,
-                        right: 0,
+                        top: iconTop - newRect.y,
+                        left: iconLeft - newRect.x,
                         zIndex: 20,
                       }}
                       onClick={(e) => e.stopPropagation()}
@@ -550,8 +578,8 @@ const ImageCard = observer(({ store = {} }) => {
                       className="d-flex"
                       style={{
                         position: "absolute",
-                        top: 0,
-                        right: -2,
+                        top: iconTop - newRect.y,
+                        left: iconLeft - newRect.x,
                         zIndex: 20,
                       }}
                       onClick={(e) => e.stopPropagation()}

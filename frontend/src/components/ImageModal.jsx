@@ -115,7 +115,8 @@ export const ImageModal = observer(
       if (!imgRef.current) return;
 
       const handleImageLoad = () => {
-        const naturalWidth = assets[safeIndex]?.width || imgRef.current?.naturalWidth;
+        const naturalWidth =
+          assets[safeIndex]?.width || imgRef.current?.naturalWidth;
         const naturalHeight =
           assets[safeIndex]?.height || imgRef.current?.naturalHeight;
         const displayWidth = imgRef.current?.clientWidth;
@@ -203,7 +204,10 @@ export const ImageModal = observer(
     }, [rects]);
 
     const hasNonTrivialAnnotations = imageStore.encounterAnnotations?.some(
-      (a) => !a.isTrivial && (a.boundingBox?.[2] || 0) > 0 && (a.boundingBox?.[3] || 0) > 0
+      (a) =>
+        !a.isTrivial &&
+        (a.boundingBox?.[2] || 0) > 0 &&
+        (a.boundingBox?.[3] || 0) > 0,
     );
 
     return (
@@ -448,6 +452,32 @@ export const ImageModal = observer(
                             ? 2000
                             : baseZ;
 
+                        const containerWidth = boxRef.current?.clientWidth || 0;
+                        const containerHeight =
+                          boxRef.current?.clientHeight || 0;
+                        const iconSize = 20;
+                        const iconCount = 2;
+                        const totalIconHeight = iconSize * iconCount;
+
+                        const annotationRight = newRect.x + newRect.width;
+
+                        let iconTop = newRect.y;
+                        let iconLeft = annotationRight;
+
+                        if (iconLeft + iconSize > containerWidth) {
+                          iconLeft = newRect.x - iconSize;
+                        }
+                        if (iconLeft < 0) {
+                          iconLeft = 0;
+                        }
+
+                        if (iconTop + totalIconHeight > containerHeight) {
+                          iconTop = containerHeight - totalIconHeight;
+                        }
+                        if (iconTop < 0) {
+                          iconTop = 0;
+                        }
+
                         return (
                           <div
                             id={`annotation-rect-${index}`}
@@ -499,8 +529,8 @@ export const ImageModal = observer(
                               className="d-flex flex-column"
                               style={{
                                 position: "absolute",
-                                top: 0,
-                                right: 0,
+                                top: iconTop - newRect.y,
+                                left: iconLeft - newRect.x,
                                 zIndex: 20,
                               }}
                               onClick={(e) => e.stopPropagation()}
