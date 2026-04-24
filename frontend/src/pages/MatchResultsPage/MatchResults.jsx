@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import { Container, Form } from "react-bootstrap";
@@ -45,6 +45,8 @@ const MatchResults = observer(() => {
     }));
   }, [projectsForUser]);
 
+  const hasFetchedRef = useRef(false);
+
   useEffect(() => {
     if (taskId) {
       let initialProjectIds = [];
@@ -62,8 +64,14 @@ const MatchResults = observer(() => {
 
       store.setTaskId(taskId);
       store.setProjectNames(initialProjectIds, { fetch: false });
-      store.fetchMatchResults();
+
+      store.fetchMatchResults({
+        silent: hasFetchedRef.current,
+      });
+
+      hasFetchedRef.current = true;
     } else {
+      hasFetchedRef.current = false;
       store.setTaskId(null);
       store.setProjectNames([], { fetch: false });
       store.clearResults();
