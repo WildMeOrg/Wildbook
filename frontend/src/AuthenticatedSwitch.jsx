@@ -11,7 +11,6 @@ const AboutUs = lazy(() => import("./pages/AboutUs"));
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
-const Profile = lazy(() => import("./pages/Profile"));
 const Home = lazy(() => import("./pages/Home"));
 const EncounterSearch = lazy(
   () => import("./pages/SearchPages/EncounterSearch"),
@@ -29,8 +28,12 @@ const EditAnnotation = lazy(() => import("./pages/EditAnnotation"));
 
 const BulkImport = lazy(() => import("./pages/BulkImport/BulkImport"));
 const BulkImportTask = lazy(() => import("./pages/BulkImport/BulkImportTask"));
+const MatchResults = lazy(
+  () => import("./pages/MatchResultsPage/MatchResults"),
+);
 
 const Encounter = lazy(() => import("./pages/Encounter/Encounter"));
+const Citation = lazy(() => import("./pages/Citation"));
 const PoliciesAndData = lazy(
   () => import("./pages/PoliciesAndData/PoliciesAndData"),
 );
@@ -80,7 +83,8 @@ export default function AuthenticatedSwitch({
       >
         <Suspense fallback={<div>Loading...</div>}>
           <Routes>
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/match-results" element={<MatchResults />} />
+            <Route path="/citation" element={<Citation />} />
             <Route path="/policies-and-data" element={<PoliciesAndData />} />
             <Route
               path="/how-to-photograph"

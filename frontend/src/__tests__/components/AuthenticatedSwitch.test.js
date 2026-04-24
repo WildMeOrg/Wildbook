@@ -80,12 +80,6 @@ describe("AuthenticatedSwitch", () => {
     expect(await screen.findByText("Home Page")).toBeInTheDocument();
   });
 
-  test("renders the profile page when navigating to /profile", async () => {
-    window.history.pushState({}, "", "/profile");
-    renderComponent({ showAlert: false, setShowAlert: jest.fn() });
-    expect(await screen.findByText("Profile Page")).toBeInTheDocument();
-  });
-
   test("renders the login page when navigating to /login", async () => {
     window.history.pushState({}, "", "/login");
     renderComponent({ showAlert: false, setShowAlert: jest.fn() });

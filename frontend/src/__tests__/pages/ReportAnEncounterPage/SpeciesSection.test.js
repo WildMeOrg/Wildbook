@@ -1,10 +1,12 @@
 import React from "react";
 import { screen, fireEvent } from "@testing-library/react";
 import { ReportEncounterSpeciesSection } from "../../../pages/ReportsAndManagamentPages/SpeciesSection";
-import useGetSiteSettings from "../../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 import { renderWithProviders } from "../../../utils/utils";
 
-jest.mock("../../../models/useGetSiteSettings", () => jest.fn());
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: jest.fn(),
+}));
 
 const mockStore = {
   speciesSection: {
@@ -22,13 +24,15 @@ describe("ReportEncounterSpeciesSection Component", () => {
   });
 
   it("renders correctly with required fields", () => {
-    useGetSiteSettings.mockReturnValue({
+    useSiteSettings.mockReturnValue({
       data: {
         siteTaxonomies: [
           { scientificName: "Panthera leo" },
           { scientificName: "Canis lupus" },
         ],
       },
+      isLoading: false,
+      error: null,
     });
 
     renderWithProviders(<ReportEncounterSpeciesSection store={mockStore} />);
@@ -42,13 +46,15 @@ describe("ReportEncounterSpeciesSection Component", () => {
   });
 
   it("displays the correct options in the select dropdown", () => {
-    useGetSiteSettings.mockReturnValue({
+    useSiteSettings.mockReturnValue({
       data: {
         siteTaxonomies: [
           { scientificName: "Panthera leo" },
           { scientificName: "Canis lupus" },
         ],
       },
+      isLoading: false,
+      error: null,
     });
 
     renderWithProviders(<ReportEncounterSpeciesSection store={mockStore} />);
@@ -61,13 +67,15 @@ describe("ReportEncounterSpeciesSection Component", () => {
   });
 
   it("calls setSpeciesSectionValue when an option is selected", () => {
-    useGetSiteSettings.mockReturnValue({
+    useSiteSettings.mockReturnValue({
       data: {
         siteTaxonomies: [
           { scientificName: "Panthera leo" },
           { scientificName: "Canis lupus" },
         ],
       },
+      isLoading: false,
+      error: null,
     });
 
     renderWithProviders(<ReportEncounterSpeciesSection store={mockStore} />);
@@ -81,8 +89,10 @@ describe("ReportEncounterSpeciesSection Component", () => {
   });
 
   it("displays error message when species selection is required but not provided", () => {
-    useGetSiteSettings.mockReturnValue({
+    useSiteSettings.mockReturnValue({
       data: { siteTaxonomies: [] },
+      isLoading: false,
+      error: null,
     });
 
     mockStore.speciesSection.error = true;
@@ -93,10 +103,12 @@ describe("ReportEncounterSpeciesSection Component", () => {
   });
 
   it("allows selecting 'Unknown' as an option", () => {
-    useGetSiteSettings.mockReturnValue({
+    useSiteSettings.mockReturnValue({
       data: {
         siteTaxonomies: [{ scientificName: "Panthera leo" }],
       },
+      isLoading: false,
+      error: null,
     });
 
     renderWithProviders(<ReportEncounterSpeciesSection store={mockStore} />);

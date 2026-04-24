@@ -16,7 +16,10 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
   onClose = () => {},
 }) {
   const theme = React.useContext(ThemeColorContext);
-  const siteSettingsLoading = Boolean(store?.siteSettingsLoading);
+
+  const algorithms = store?.newMatch?.algorithmOptions ?? [];
+  const selectedAlgorithms = store?.newMatch?.algorithms ?? [];
+  const locationIdOptions = store?.locationIdOptions ?? [];
 
   return (
     <Modal
@@ -41,21 +44,18 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
             <FormattedMessage id="LOCATION_ID" />
           </p>
 
-          <ContainerWithSpinner loading={siteSettingsLoading}>
+          {store?.siteSettingsLoading ? (
+            <ContainerWithSpinner loading>
+              <div style={{ minHeight: 40 }}>Loading locations...</div>
+            </ContainerWithSpinner>
+          ) : (
             <Suspense fallback={<div>Loading location picker...</div>}>
               <TreeSelect
                 id="location-tree-select"
-                treeData={store.locationIdOptions ?? []}
+                treeData={locationIdOptions}
                 value={store?.newMatch?.locationId || []}
-                disabled={siteSettingsLoading}
-                placeholder={
-                  siteSettingsLoading
-                    ? "Loading locations..."
-                    : "Select locations"
-                }
-                notFoundContent={
-                  siteSettingsLoading ? "Loading locations..." : "No locations"
-                }
+                placeholder="Select locations"
+                notFoundContent="No locations"
                 treeCheckable
                 treeCheckStrictly
                 showCheckedStrategy="SHOW_ALL"
@@ -67,57 +67,55 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
                 style={{ width: "100%" }}
                 dropdownStyle={{ maxHeight: 500, zIndex: 9999 }}
                 onChange={(vals, labels, extra) => {
-                  if (siteSettingsLoading) return;
                   store?.newMatch?.handleStrictChange?.(vals, labels, extra);
                 }}
               />
             </Suspense>
-          </ContainerWithSpinner>
+          )}
 
-          <ContainerWithSpinner loading={siteSettingsLoading}>
-            <SelectInput
-              label="OWNER"
-              options={[{ label: "My Data", value: "mydata" }]}
-              value={store?.newMatch?.owner}
-              onChange={(v) => store?.newMatch?.setOwner?.(v)}
-              disabled={siteSettingsLoading}
-            />
-          </ContainerWithSpinner>
+          <div className="mt-3">
+            {store?.siteSettingsLoading ? (
+              <ContainerWithSpinner loading>
+                <div style={{ minHeight: 40 }}>Loading owner...</div>
+              </ContainerWithSpinner>
+            ) : (
+              <SelectInput
+                label="OWNER"
+                options={[{ label: "My Data", value: "mydata" }]}
+                value={store?.newMatch?.owner}
+                onChange={(v) => store?.newMatch?.setOwner?.(v)}
+              />
+            )}
+          </div>
 
-          <ContainerWithSpinner loading={siteSettingsLoading}>
-            <Select
-              isMulti
-              options={store?.newMatch?.algorithmOptions ?? []}
-              className="basic-multi-select"
-              classNamePrefix="select"
-              menuPlacement="auto"
-              menuPortalTarget={document.body}
-              styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-              isLoading={siteSettingsLoading}
-              isDisabled={siteSettingsLoading}
-              placeholder={
-                siteSettingsLoading
-                  ? "Loading algorithms..."
-                  : "Select algorithms"
-              }
-              loadingMessage={() => "Loading algorithms..."}
-              noOptionsMessage={() =>
-                siteSettingsLoading
-                  ? "Loading algorithms..."
-                  : "No algorithms available"
-              }
-              value={(store?.newMatch?.algorithmOptions ?? []).filter((o) =>
-                (store?.newMatch?.algorithms ?? []).includes(o.value),
-              )}
-              onChange={(newValue) => {
-                if (siteSettingsLoading) return;
-                store?.newMatch?.setAlgorithm?.(
-                  (newValue ?? []).map((o) => o.value),
-                );
-              }}
-              closeMenuOnSelect={false}
-            />
-          </ContainerWithSpinner>
+          <div className="mt-3">
+            {store?.siteSettingsLoading ? (
+              <ContainerWithSpinner loading>
+                <div style={{ minHeight: 40 }}>Loading algorithms...</div>
+              </ContainerWithSpinner>
+            ) : (
+              <Select
+                isMulti
+                options={algorithms}
+                className="basic-multi-select"
+                classNamePrefix="select"
+                menuPlacement="auto"
+                menuPortalTarget={document.body}
+                styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                placeholder="Select algorithms"
+                noOptionsMessage={() => "No algorithms available"}
+                value={algorithms.filter((o) =>
+                  selectedAlgorithms.includes(o.value),
+                )}
+                onChange={(newValue) => {
+                  store?.newMatch?.setAlgorithm?.(
+                    (newValue ?? []).map((o) => o.value),
+                  );
+                }}
+                closeMenuOnSelect={false}
+              />
+            )}
+          </div>
 
           <div className="d-flex justify-content-between align-items-center w-100 flex-wrap mt-3">
             <MainButton
@@ -125,14 +123,14 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
               backgroundColor={theme.primaryColors.primary700}
               color="white"
               disabled={
-                siteSettingsLoading ||
+                store?.siteSettingsLoading ||
                 (store?.newMatch?.algorithms?.length ?? 0) === 0 ||
                 (store?.newMatch?.annotationIds?.length ?? 0) === 0
               }
               onClick={async () => {
-                const result = await store?.newMatch?.buildNewMatchPayload?.();
-                if (result?.status === 200) {
-                  const url = `/iaResults.jsp?taskId=${result?.data?.taskId}`;
+                const result = await store?.newMatch?.buildNewMatchPayload();
+                if (result.status === 200) {
+                  const url = `/react/match-results?taskId=${result?.data?.taskId}`;
                   window.open(url, "_blank");
                   store?.modals?.setOpenMatchCriteriaModal?.(false);
                 } else {

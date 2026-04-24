@@ -171,12 +171,12 @@
         <Valve className="org.apache.catalina.authenticator.SingleSignOn" />
         -->
 
-        <!-- Access log processes all example.
-             Documentation at: /docs/config/valve.html
-             Note: The pattern used is equivalent to using pattern="common" -->
+        <!-- Access log in JSON; field names aligned with nginx for cross-service queries.
+             Note: Tomcat does not escape header values — malformed JSON is possible
+             if a header contains a literal double quote (rare in practice). -->
         <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
-               prefix="localhost_access_log" suffix=".txt"
-               pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+               prefix="localhost_access_log" suffix=".log"
+               pattern="{&quot;timestamp&quot;:&quot;%{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}t&quot;,&quot;remote_addr&quot;:&quot;%h&quot;,&quot;http_method&quot;:&quot;%m&quot;,&quot;endpoint&quot;:&quot;%U&quot;,&quot;status_code&quot;:%s,&quot;bytes&quot;:%B,&quot;http_referer&quot;:&quot;%{Referer}i&quot;,&quot;http_user_agent&quot;:&quot;%{User-Agent}i&quot;,&quot;request_time_ms&quot;:%{ms}D}" />
 
       </Host>
     </Engine>

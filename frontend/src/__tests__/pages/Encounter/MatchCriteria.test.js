@@ -212,7 +212,7 @@ describe("MatchCriteriaModal", () => {
     await waitFor(() => {
       expect(store.newMatch.buildNewMatchPayload).toHaveBeenCalledTimes(1);
       expect(global.open).toHaveBeenCalledWith(
-        "/iaResults.jsp?taskId=t123",
+        "/react/match-results?taskId=t123",
         "_blank",
       );
       expect(store.modals.setOpenMatchCriteriaModal).toHaveBeenCalledWith(
@@ -243,19 +243,5 @@ describe("MatchCriteriaModal", () => {
         "There was an error creating the match. Please try again.",
       );
     });
-  });
-
-  test("does not call handlers when siteSettingsLoading is true", async () => {
-    const store = makeStore({ siteSettingsLoading: true });
-
-    render(<MatchCriteriaModal isOpen={true} store={store} />);
-
-    fireEvent.click(await screen.findByTestId("tree-select"));
-    fireEvent.click(screen.getByTestId("react-select"));
-
-    expect(store.newMatch.handleStrictChange).not.toHaveBeenCalled();
-    expect(store.newMatch.setAlgorithm).not.toHaveBeenCalled();
-
-    expect(screen.getByText("MATCH").closest("button")).toBeDisabled();
   });
 });

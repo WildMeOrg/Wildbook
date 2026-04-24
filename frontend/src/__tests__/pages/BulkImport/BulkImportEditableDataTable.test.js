@@ -2,6 +2,7 @@ import React from "react";
 import { screen, fireEvent } from "@testing-library/react";
 import { DataTable } from "../../../pages/BulkImport/EditableDataTable";
 import { renderWithProviders } from "../../../utils/utils";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
 const mockStore = {
   spreadsheetData: [
@@ -42,7 +43,11 @@ const mockStore = {
   ]),
 };
 
-jest.mock("../../../models/useGetSiteSettings", () => () => ({
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: jest.fn(),
+}));
+
+useSiteSettings.mockReturnValue({
   data: {
     bulkImportMinimalFields: {},
     locationData: { locationID: ["loc1", "loc2"] },
@@ -57,7 +62,9 @@ jest.mock("../../../models/useGetSiteSettings", () => () => ({
       key1: ["val1", "val2"],
     },
   },
-}));
+  isLoading: false,
+  error: null,
+});
 
 describe("EditableDataTable", () => {
   test("renders the table with correct headers", () => {

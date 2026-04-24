@@ -1,11 +1,13 @@
 import React from "react";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { PlaceSection } from "../../../pages/ReportsAndManagamentPages/PlaceSection";
-import useGetSiteSettings from "../../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 import { renderWithProviders } from "../../../utils/utils";
 import { ReportEncounterStore } from "../../../pages/ReportsAndManagamentPages/ReportEncounterStore";
 
-jest.mock("../../../models/useGetSiteSettings");
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: jest.fn(),
+}));
 jest.mock("@googlemaps/js-api-loader", () => ({
   Loader: jest.fn().mockImplementation(() => ({
     load: jest.fn().mockResolvedValue({}),
@@ -35,7 +37,7 @@ const renderComponent = () => {
 };
 describe("PlaceSection Component", () => {
   beforeEach(() => {
-    useGetSiteSettings.mockReturnValue({
+    useSiteSettings.mockReturnValue({
       data: {
         mapCenterLat: 51,
         mapCenterLon: 7,
@@ -43,6 +45,8 @@ describe("PlaceSection Component", () => {
         googleMapsKey: "test-key",
         locationData: [{ locationID: "test-id" }],
       },
+      isLoading: false,
+      error: null,
     });
   });
 

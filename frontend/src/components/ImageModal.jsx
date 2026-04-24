@@ -1041,7 +1041,7 @@ export const ImageModal = observer(
                         (a) => a.id === imageStore.selectedAnnotationId,
                       )?.[0]?.iaTaskId;
                       window.open(
-                        `/iaResults.jsp?taskId=${encodeURIComponent(taskId)}`,
+                        `/react/match-results?taskId=${taskId}`,
                         "_blank",
                       );
                     }}

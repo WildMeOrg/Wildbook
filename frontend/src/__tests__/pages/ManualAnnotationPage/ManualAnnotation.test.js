@@ -10,6 +10,7 @@ import {
 import { MemoryRouter } from "react-router-dom";
 import { IntlProvider } from "react-intl";
 import ManualAnnotation from "../../../pages/ManualAnnotation";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
 jest.mock("mobx-react-lite", () => ({
   observer: (Comp) => Comp,
@@ -78,8 +79,8 @@ const siteSettingsState = {
   iaClassesForTaxonomy: { testTaxonomy: ["Zebra", "Elephant"] },
   annotationViewpoint: ["Front", "Side"],
 };
-jest.mock("../../../models/useGetSiteSettings", () => () => ({
-  data: siteSettingsState,
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: jest.fn(),
 }));
 
 let latestAnnotationSuccessfulProps;
@@ -249,6 +250,11 @@ describe("ManualAnnotation (important coverage)", () => {
       testTaxonomy: ["Zebra", "Elephant"],
     };
     siteSettingsState.annotationViewpoint = ["Front", "Side"];
+    useSiteSettings.mockReturnValue({
+      data: siteSettingsState,
+      isLoading: false,
+      error: null,
+    });
 
     global.alert = jest.fn();
   });
