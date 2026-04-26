@@ -1441,6 +1441,29 @@ public class IBEISIA {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
 
+        // [DETECT-DIAG] post-commit diagnostics + scoped L2 evict for the encounters/MAs/anns/features
+        // touched by detection. Goal: distinguish "stale L2 cache" from "missing back-reference in DB".
+        if ("detect".equals(type)) {
+            JSONObject dres = rtn.optJSONObject("processResult");
+            if (dres != null) {
+                List<String> dEncIds = Util.jsonArrayToStringList(dres.optJSONArray("_diagEncIds"));
+                List<String> dAnnIds = Util.jsonArrayToStringList(dres.optJSONArray("_diagAnnIds"));
+                List<String> dFeatIds = Util.jsonArrayToStringList(dres.optJSONArray("_diagFeatureIds"));
+                List<Integer> dMaIds = new ArrayList<Integer>();
+                JSONArray jma = dres.optJSONArray("_diagMaIds");
+                if (jma != null) {
+                    for (int i = 0; i < jma.length(); i++) dMaIds.add(jma.optInt(i));
+                }
+                try {
+                    org.ecocean.ia.DetectionCacheDebug.runPostCommitDiagnostics(context,
+                        dEncIds, dMaIds, dAnnIds, dFeatIds);
+                } catch (Exception ex) {
+                    System.out.println("[DETECT-DIAG] runPostCommitDiagnostics threw " + ex);
+                    ex.printStackTrace();
+                }
+            }
+        }
+
         boolean skipIdent = Util.booleanNotFalse(IA.getProperty(context,
             "IBEISIADisableIdentification"));
         // now we pick up IA.intake(anns) from detection above (if applicable)
@@ -1553,9 +1576,17 @@ public class IBEISIA {
             return rtn;
         }
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+        // [DETECT-DIAG] track touched OIDs so we can run post-commit diagnostics + scoped L2 evict
+        Set<Integer> touchedMaIds = new HashSet<Integer>();
+        Set<String> touchedEncIds = new HashSet<String>();
+        Set<String> touchedAnnIds = new HashSet<String>();
+        Set<String> touchedFeatureIds = new HashSet<String>();
         for (int i = 0; i < ids.length; i++) {
             MediaAsset ma = MediaAssetFactory.load(Integer.parseInt(ids[i]), myShepherd);
-            if (ma != null) mas.add(ma);
+            if (ma != null) {
+                mas.add(ma);
+                touchedMaIds.add(ma.getIdInt());
+            }
         }
         int numCreated = 0;
         System.out.println("RESP ===>>>>>> " + resp.toString(2));
@@ -1655,6 +1686,13 @@ public class IBEISIA {
                         // _tellEncounter(myShepherd, ann);  // ???, context, rootDir);
                         allAnns.add(ann); // this is cumulative over *all MAs*
                         newAnns.put(ann.getId());
+                        // [DETECT-DIAG] track this annotation + its features
+                        touchedAnnIds.add(ann.getId());
+                        if (ann.getFeatures() != null) {
+                            for (org.ecocean.media.Feature ft : ann.getFeatures()) {
+                                if (ft != null) touchedFeatureIds.add(ft.getId());
+                            }
+                        }
                         ///note: *removed* IA.intake (or IAIntake?) from here, as it needs to be done post-commit,
                         ///  so we use 'annotations' in returned JSON to kick that off (since they all would have passed confidence)
                         numCreated++;
@@ -1668,6 +1706,12 @@ public class IBEISIA {
                     if (newAnns.length() > 0) {
                         List<Encounter> assignedEncs = asset.assignEncounters(myShepherd); // here is where we make some encounter(s) if we need to
                         rtn.put("_assignedEncsSize", assignedEncs.size());
+                        // [DETECT-DIAG] track encounters touched by assignEncounters
+                        if (assignedEncs != null) {
+                            for (Encounter e : assignedEncs) {
+                                if (e != null) touchedEncIds.add(e.getCatalogNumber());
+                            }
+                        }
                         amap.put(Integer.toString(asset.getIdInt()), newAnns);
                         // now we have to collect them under an Occurrence and/or ImportTask as applicable
                         // we basically pick the first of these we find (in case there is more than one?)
@@ -1744,6 +1788,8 @@ public class IBEISIA {
                         occ.setSocialMediaSourceID(enc.getEventID());
                         myShepherd.getPM().makePersistent(enc);
                         je.put(enc.getCatalogNumber());
+                        // [DETECT-DIAG] track frame-collated encounter
+                        touchedEncIds.add(enc.getCatalogNumber());
                     }
                     myShepherd.getPM().makePersistent(occ);
                     fromDetection(occ, myShepherd, context, rootDir);
@@ -1754,10 +1800,45 @@ public class IBEISIA {
                 if (amap.length() > 0) jlog.put("annotations", amap);
                 if (needReview.length() > 0) jlog.put("needReview", needReview);
                 log(taskID, null, jlog, myShepherd.getContext());
+                // [DETECT-DIAG] catch any encounters reachable via allAnns that we didn't already track
+                for (Annotation ann : allAnns) {
+                    if (ann == null) continue;
+                    try {
+                        Encounter ae = ann.findEncounter(myShepherd);
+                        if (ae != null) touchedEncIds.add(ae.getCatalogNumber());
+                    } catch (Exception ex) {
+                        System.out.println("[DETECT-DIAG] findEncounter failed for ann=" +
+                            ann.getId() + ": " + ex);
+                    }
+                    // also catch features that might have been added to existing annotations
+                    if (ann.getFeatures() != null) {
+                        for (org.ecocean.media.Feature ft : ann.getFeatures()) {
+                            if (ft != null) touchedFeatureIds.add(ft.getId());
+                        }
+                    }
+                    touchedAnnIds.add(ann.getId());
+                }
             } else {
                 rtn.put("error", "results_list is empty");
             }
         }
+        // [DETECT-DIAG] log in-memory state from the writing shepherd, post-updateDBTransaction
+        org.ecocean.ia.DetectionCacheDebug.logEncounterGraph(
+            "in-shepherd post-updateDBTransaction (writing shepherd)",
+            myShepherd, touchedEncIds);
+        // [DETECT-DIAG] stash IDs for processCallback to use after the outer commit
+        JSONArray jEncIds = new JSONArray();
+        for (String s : touchedEncIds) jEncIds.put(s);
+        JSONArray jMaIds = new JSONArray();
+        for (Integer id : touchedMaIds) jMaIds.put(id.intValue());
+        JSONArray jAnnIds = new JSONArray();
+        for (String s : touchedAnnIds) jAnnIds.put(s);
+        JSONArray jFeatIds = new JSONArray();
+        for (String s : touchedFeatureIds) jFeatIds.put(s);
+        rtn.put("_diagEncIds", jEncIds);
+        rtn.put("_diagMaIds", jMaIds);
+        rtn.put("_diagAnnIds", jAnnIds);
+        rtn.put("_diagFeatureIds", jFeatIds);
         return rtn;
     }
 
