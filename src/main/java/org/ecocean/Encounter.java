@@ -4322,6 +4322,34 @@ public class Encounter extends Base implements java.io.Serializable {
                     jgen.writeArrayFieldStart("boundingBox");
                     Feature ft = ann.getFeature(); // attempt force loading features for getBbox()
                     int[] bbox = ann.getBbox();
+                    // [BBOX-DEBUG] log when bbox comes back empty so we can see why
+                    if (bbox == null) {
+                        java.util.ArrayList<org.ecocean.media.Feature> _dbgFeats = ann.getFeatures();
+                        org.ecocean.media.MediaAsset _dbgMa = ann.getMediaAsset();
+                        StringBuilder _dbgFt = new StringBuilder();
+                        if (_dbgFeats != null) {
+                            for (org.ecocean.media.Feature _f : _dbgFeats) {
+                                if (_f == null) {
+                                    _dbgFt.append("null ");
+                                    continue;
+                                }
+                                _dbgFt.append("{id=").append(_f.getId())
+                                    .append(" type=").append(_f.getType() == null ? "null"
+                                        : _f.getType().getId())
+                                    .append(" params=").append(_f.getParameters() == null ? "null"
+                                        : _f.getParameters().toString())
+                                    .append(" asset=").append(_f.getMediaAsset() == null ? "null"
+                                        : Integer.toString(_f.getMediaAsset().getIdInt()))
+                                    .append("} ");
+                            }
+                        }
+                        System.out.println("[BBOX-DEBUG] ann=" + ann.getId() +
+                            " thread=" + Thread.currentThread().getName() +
+                            " features.size=" + (_dbgFeats == null ? -1 : _dbgFeats.size()) +
+                            " getMediaAsset=" + (_dbgMa == null ? "NULL" :
+                                Integer.toString(_dbgMa.getIdInt())) +
+                            " features=[" + _dbgFt.toString() + "]");
+                    }
                     if (bbox != null)
                         for (int i : bbox) {
                             jgen.writeNumber(i);
