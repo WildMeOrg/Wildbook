@@ -477,26 +477,36 @@ public class Shepherd {
     // EMBEDDING.ANNOTATION_ID, and the Task↔Annotation join table.
     public void throwAwayAnnotation(Annotation ad) {
         if (ad == null) return;
-        cleanUpAnnotationReferences(ad);
-        pm.flush(); // make sure all dependent deletes hit the DB before the annotation row is removed
-        pm.deletePersistent(ad);
+        throwAwayAnnotations(java.util.Collections.singletonList(ad));
     }
 
-    private void cleanUpAnnotationReferences(Annotation ann) {
-        String annId = ann.getId();
-        if (annId == null) return; // not persisted
+    // Batch version: collects all FK-bound dependents in a single pass per dependent table
+    // (one JDOQL query per table instead of N). Used by ImportTask.deleteWithRelated for
+    // bulk-import deletion which can otherwise be O(N) queries × seq scans of large IA tables.
+    public void throwAwayAnnotations(Collection<Annotation> anns) {
+        if (anns == null || anns.isEmpty()) return;
+        List<String> annIds = new ArrayList<String>();
+        for (Annotation a : anns) {
+            if (a != null && a.getId() != null) annIds.add(a.getId());
+        }
+        if (annIds.isEmpty()) return;
+        cleanUpAnnotationReferencesBatch(annIds);
+        pm.flush(); // ensure dependent deletes hit the DB before the annotation rows go
+        for (Annotation a : anns) {
+            if (a != null) pm.deletePersistent(a);
+        }
+    }
 
-        // 1. Delete every MatchResultProspect that references this annotation OR belongs to a
-        //    MatchResult whose queryAnnotation is this annotation. One query covers both cases
-        //    (avoids double-deleting via separate steps). Prospect.annotation is allows-null=false
-        //    so we cannot null it out — must delete the row.
-        Query qProspects = pm.newQuery(
-            "SELECT FROM org.ecocean.ia.MatchResultProspect WHERE annotation.id == :annId" +
-            " || matchResult.queryAnnotation.id == :annId");
+    private void cleanUpAnnotationReferencesBatch(Collection<String> annIds) {
+        // 1. Delete every MatchResultProspect whose annotation OR whose parent MR's
+        //    queryAnnotation is in the doomed set. Single query covers both cases.
+        Query qProspects = pm.newQuery(MatchResultProspect.class);
+        qProspects.setFilter(
+            ":ids.contains(annotation.id) || :ids.contains(matchResult.queryAnnotation.id)");
         try {
             @SuppressWarnings("unchecked")
             Collection<MatchResultProspect> prospects =
-                (Collection<MatchResultProspect>)qProspects.execute(annId);
+                (Collection<MatchResultProspect>)qProspects.execute(annIds);
             if (prospects != null) {
                 for (MatchResultProspect p : new ArrayList<MatchResultProspect>(prospects)) {
                     pm.deletePersistent(p);
@@ -505,17 +515,14 @@ public class Shepherd {
         } finally {
             qProspects.closeAll();
         }
-        pm.flush(); // flush prospect deletes before we delete their parent MatchResults
+        pm.flush(); // commit prospect deletes before MR FK check
 
-        // 2. Delete MatchResults whose queryAnnotation is this annotation. queryAnnotation is
-        //    allows-null=false so we cannot null it out. Prospects are now declared
-        //    dependent-element=true on the prospects collection, but step 1 already removed
-        //    them, so this is just the MR rows.
-        Query qMRs = pm.newQuery(
-            "SELECT FROM org.ecocean.ia.MatchResult WHERE queryAnnotation.id == :annId");
+        // 2. Delete MatchResults whose queryAnnotation is in the doomed set.
+        Query qMRs = pm.newQuery(MatchResult.class);
+        qMRs.setFilter(":ids.contains(queryAnnotation.id)");
         try {
             @SuppressWarnings("unchecked")
-            Collection<MatchResult> mrs = (Collection<MatchResult>)qMRs.execute(annId);
+            Collection<MatchResult> mrs = (Collection<MatchResult>)qMRs.execute(annIds);
             if (mrs != null) {
                 for (MatchResult mr : new ArrayList<MatchResult>(mrs)) {
                     pm.deletePersistent(mr);
@@ -526,35 +533,35 @@ public class Shepherd {
         }
         pm.flush();
 
-        // 3. Remove this annotation from any surviving MatchResult.candidates collection.
-        //    Defensive — the field is rarely populated in practice (see MatchResult.java
-        //    comment) but the join-table FK would still block annotation delete if any row
-        //    referenced this annotation.
-        Query qCand = pm.newQuery(
-            "SELECT FROM org.ecocean.ia.MatchResult" +
-            " WHERE candidates.contains(c) && c.id == :annId");
+        // 3. Remove all doomed annotations from any surviving MatchResult.candidates collection.
+        //    Defensive — the field is rarely populated (see MatchResult.java comment) but the
+        //    join-table FK would still block deletion if any row referenced these annotations.
+        Query qCand = pm.newQuery(MatchResult.class);
+        qCand.setFilter("candidates.contains(c) && :ids.contains(c.id)");
         qCand.declareVariables("org.ecocean.Annotation c");
         try {
             @SuppressWarnings("unchecked")
-            Collection<MatchResult> mrsWithCandidate =
-                (Collection<MatchResult>)qCand.execute(annId);
-            if (mrsWithCandidate != null) {
-                for (MatchResult mr : new ArrayList<MatchResult>(mrsWithCandidate)) {
-                    if (mr.getCandidates() != null) mr.getCandidates().remove(ann);
+            Collection<MatchResult> mrsWithCand = (Collection<MatchResult>)qCand.execute(annIds);
+            if (mrsWithCand != null) {
+                for (MatchResult mr : new ArrayList<MatchResult>(mrsWithCand)) {
+                    if (mr.getCandidates() == null) continue;
+                    Iterator<Annotation> it = mr.getCandidates().iterator();
+                    while (it.hasNext()) {
+                        Annotation cAnn = it.next();
+                        if (cAnn != null && annIds.contains(cAnn.getId())) it.remove();
+                    }
                 }
             }
         } finally {
             qCand.closeAll();
         }
 
-        // 4. Delete Embedding rows that reference this annotation. Annotation.embeddings is
-        //    mapped-by="annotation" with dependent-element="false", so JDO does not cascade
-        //    on annotation delete. The FK on EMBEDDING.ANNOTATION_ID blocks deletion.
-        Query qEmb = pm.newQuery(
-            "SELECT FROM org.ecocean.Embedding WHERE annotation.id == :annId");
+        // 4. Delete Embeddings whose annotation is in the doomed set.
+        Query qEmb = pm.newQuery(Embedding.class);
+        qEmb.setFilter(":ids.contains(annotation.id)");
         try {
             @SuppressWarnings("unchecked")
-            Collection<Embedding> embs = (Collection<Embedding>)qEmb.execute(annId);
+            Collection<Embedding> embs = (Collection<Embedding>)qEmb.execute(annIds);
             if (embs != null) {
                 for (Embedding e : new ArrayList<Embedding>(embs)) {
                     pm.deletePersistent(e);
@@ -564,19 +571,21 @@ public class Shepherd {
             qEmb.closeAll();
         }
 
-        // 5. Remove this annotation from any Task.objectAnnotations join collection. The
-        //    Task↔Annotation join table has an FK on the Annotation column that blocks
-        //    deletion of the annotation while any join row references it.
-        Query qTasks = pm.newQuery(
-            "SELECT FROM org.ecocean.ia.Task" +
-            " WHERE objectAnnotations.contains(a) && a.id == :annId");
+        // 5. Remove all doomed annotations from any Task.objectAnnotations join collection.
+        Query qTasks = pm.newQuery(Task.class);
+        qTasks.setFilter("objectAnnotations.contains(a) && :ids.contains(a.id)");
         qTasks.declareVariables("org.ecocean.Annotation a");
         try {
             @SuppressWarnings("unchecked")
-            Collection<Task> tasks = (Collection<Task>)qTasks.execute(annId);
+            Collection<Task> tasks = (Collection<Task>)qTasks.execute(annIds);
             if (tasks != null) {
                 for (Task t : new ArrayList<Task>(tasks)) {
-                    t.removeObject(ann);
+                    if (t.getObjectAnnotations() == null) continue;
+                    List<Annotation> toRemove = new ArrayList<Annotation>();
+                    for (Annotation a : t.getObjectAnnotations()) {
+                        if (a != null && annIds.contains(a.getId())) toRemove.add(a);
+                    }
+                    for (Annotation a : toRemove) t.removeObject(a);
                 }
             }
         } finally {

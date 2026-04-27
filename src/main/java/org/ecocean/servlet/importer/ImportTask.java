@@ -498,44 +498,36 @@ public class ImportTask implements java.io.Serializable {
         if (!user.isAdmin(myShepherd) && !Collaboration.canUserAccessImportTask(itask,
             myShepherd.getContext(), user.getUsername()))
             throw new IOException("user does not have privileges to delete task");
+        long startedAt = System.currentTimeMillis();
         Util.mark("ImportTask.deleteWithRelated(" + id + ") started");
         try {
             List<Encounter> allEncs = new ArrayList<Encounter>(itask.getEncounters());
-            int total = allEncs.size();
-            for (int i = 0; i < allEncs.size(); i++) {
-                Encounter enc = allEncs.get(i);
+            // First pass: detach annotations from encounters and collect them for a single
+            // batched FK-cleanup at the end. The previous per-annotation throwAwayAnnotation
+            // ran ~6 unindexed JDOQL queries per annotation, which becomes catastrophic for
+            // large imports. The batch path collapses that to a constant number of queries.
+            List<Annotation> allAnns = new ArrayList<Annotation>();
+            long phaseStart = System.currentTimeMillis();
+            for (Encounter enc : allEncs) {
                 Occurrence occ = myShepherd.getOccurrence(enc);
                 MarkedIndividual mark = myShepherd.getMarkedIndividualQuiet(enc.getIndividualID());
                 List<Project> projects = myShepherd.getProjectsForEncounter(enc);
                 ArrayList<Annotation> anns = enc.getAnnotations();
-                for (Annotation ann : anns) {
-                    enc.removeAnnotation(ann);
-                    // myShepherd.updateDBTransaction();
-                    List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
-                    if (iaTasks != null && !iaTasks.isEmpty()) {
-                        for (Task iaTask : iaTasks) {
-                            iaTask.removeObject(ann);
-                            // myShepherd.updateDBTransaction();
-                        }
+                if (anns != null) {
+                    for (Annotation ann : new ArrayList<Annotation>(anns)) {
+                        enc.removeAnnotation(ann);
+                        if (ann != null) allAnns.add(ann);
                     }
-                    myShepherd.throwAwayAnnotation(ann);
-                    // myShepherd.updateDBTransaction();
                 }
-                // handle occurrences
                 if (occ != null) {
                     occ.removeEncounter(enc);
-                    // myShepherd.updateDBTransaction();
                     if (occ.getEncounters().size() == 0) {
                         myShepherd.throwAwayOccurrence(occ);
-                        // myShepherd.updateDBTransaction();
                     }
                 }
-                // handle markedindividual
                 if (mark != null) {
                     mark.removeEncounter(enc);
-                    // myShepherd.updateDBTransaction();
                     if (mark.getEncounters().size() == 0) {
-                        // remove scheduled tasks referencing this individual
                         List<ScheduledIndividualMerge> mergeTasks =
                             myShepherd.getAllIncompleteScheduledIndividualMerges();
                         if (mergeTasks != null) {
@@ -546,44 +538,43 @@ public class ImportTask implements java.io.Serializable {
                                 }
                             }
                         }
-                        // check for social unit membership and remove
                         List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(
                             mark);
                         if (units != null && units.size() > 0) {
                             for (SocialUnit unit : units) {
-                                boolean worked = unit.removeMember(mark, myShepherd);
-                                // if (worked) myShepherd.updateDBTransaction();
+                                unit.removeMember(mark, myShepherd);
                             }
                         }
                         myShepherd.throwAwayMarkedIndividual(mark);
-                        // myShepherd.updateDBTransaction();
                     }
                 }
-                // handle projects
                 if (projects != null && projects.size() > 0) {
                     for (Project project : projects) {
                         project.removeEncounter(enc);
-                        // myShepherd.updateDBTransaction();
                     }
                 }
                 itask.removeEncounter(enc);
                 itask.addLog("Servlet DeleteImportTask removed Encounter: " +
                     enc.getCatalogNumber());
-                // myShepherd.updateDBTransaction();
                 try {
                     myShepherd.throwAwayEncounter(enc);
                 } catch (Exception e) {
                     System.out.println("Exception on throwAwayEncounter!!");
                     e.printStackTrace();
                 }
-                // myShepherd.updateDBTransaction();
             }
+            Util.mark("ImportTask.deleteWithRelated(" + id + ") encounter loop done (" +
+                allEncs.size() + " encs, " + allAnns.size() + " anns)", phaseStart);
+            // Single batched FK cleanup + delete for all annotations across the import.
+            phaseStart = System.currentTimeMillis();
+            myShepherd.throwAwayAnnotations(allAnns);
+            Util.mark("ImportTask.deleteWithRelated(" + id +
+                ") batched annotation cleanup done", phaseStart);
             myShepherd.getPM().deletePersistent(itask);
-            // myShepherd.commitDBTransaction();
         } catch (Exception ex) {
             throw new IOException("general exception on ImportTask delete: " + ex);
         }
-        Util.mark("ImportTask.deleteWithRelated(" + id + ") completed");
+        Util.mark("ImportTask.deleteWithRelated(" + id + ") completed", startedAt);
     }
 
     // this is hobbled together from some complex code in import.jsp

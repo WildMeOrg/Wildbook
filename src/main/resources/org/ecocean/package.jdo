@@ -1023,6 +1023,7 @@
 
 		<field name="annotation" dependent-element="false" >
 			<column name="ANNOTATION_ID" />
+			<index name="EMBEDDING_ANNOTATION_idx" />
 		</field>
 
 		<field name="vectorFloatArray" persistence-modifier="persistent" />

@@ -511,6 +511,7 @@
   "ROW": "Zeile",
   "APPLY_TO_ALL_ROWS_NOTE": "+ kennzeichnet, dass die Änderung auf alle Zeilen dieser Spalte angewendet werden kann",
   "BULK_IMPORT_DELETE_TASK": "Massenimport-Aufgabe löschen",
+  "BULK_IMPORT_DELETE_TASK_IN_PROGRESS": "Wird gelöscht...",
   "BULK_IMPORT_DATA_UPLOADED": "Daten hochgeladen",
   "BULK_IMPORT_IMAGE_UPLOADED": "Bild hochgeladen",
   "SPREADSHEET_UPLOADED_TITLE": "Tabellen-Datei hochgeladen: {fileName}",

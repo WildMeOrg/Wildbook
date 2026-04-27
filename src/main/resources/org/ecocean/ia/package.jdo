@@ -91,6 +91,7 @@ alter table "TASK" alter column "PARAMETERS" type text;
 
       		<field name="queryAnnotation" persistence-modifier="persistent" element-type="org.ecocean.Annotation">
 			<column allows-null="false" />
+			<index name="MATCHRESULT_QUERYANNOTATION_idx" />
 		</field>
 
 		<field name="candidates">
@@ -102,6 +103,7 @@ alter table "TASK" alter column "PARAMETERS" type text;
 	<class name="MatchResultProspect">
       		<field name="annotation" persistence-modifier="persistent" element-type="org.ecocean.Annotation">
 			<column allows-null="false" />
+			<index name="MATCHRESULTPROSPECT_ANNOTATION_idx" />
 		</field>
       		<field name="asset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" />
 		<field name="matchResult" dependent-element="false" >
