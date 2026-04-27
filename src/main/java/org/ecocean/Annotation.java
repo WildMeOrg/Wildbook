@@ -13,6 +13,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.api.ApiException;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.IAException;
+import org.ecocean.ia.MatchResult;
 import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
@@ -1598,7 +1599,6 @@ public class Annotation extends Base implements java.io.Serializable {
                     foundTrivial + " (and Feature) from " + ma + " and " + enc);
             }
         }
-
         // we queue for embedding extraction so this is done in the background
         // and frees up foreground api process to return results to user
         // TODO myShepherd commit doesnt happen until we return; potential race condition on IA queue?
@@ -1606,7 +1606,8 @@ public class Annotation extends Base implements java.io.Serializable {
         task.addObject(ann);
         task.setStatusDetailsAddLog("Annotation.createFromApi() embedding extraction on " + ann);
         myShepherd.getPM().makePersistent(task);
-        System.out.println("[INFO] Annotation.createFromApi(): queueing for embedding extraction with " + task);
+        System.out.println(
+            "[INFO] Annotation.createFromApi(): queueing for embedding extraction with " + task);
         ann.queueForEmbeddingExtraction(task, myShepherd);
         return ann;
     }
@@ -1734,6 +1735,19 @@ public class Annotation extends Base implements java.io.Serializable {
             task.removeObject(this);
         }
         return tasks.size();
+    }
+
+    // we cant just detach the annots from match results, so we need
+    // to kill them off before we can delete an Annotation
+    public int deleteMatchResults(Shepherd myShepherd) {
+        List<MatchResult> mrs = myShepherd.getMatchResults(this);
+        int ct = 0;
+
+        for (MatchResult mr : mrs) {
+            myShepherd.getPM().deletePersistent(mr);
+            ct++;
+        }
+        return ct;
     }
 
     public static boolean isValidViewpoint(String vp) {

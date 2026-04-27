@@ -2830,6 +2830,20 @@ public class Shepherd {
         return all;
     }
 
+    public List<MatchResult> getMatchResults(Annotation ann) {
+        List<MatchResult> all = new ArrayList<MatchResult>();
+
+        if (ann == null) return all;
+        String filter = "SELECT FROM org.ecocean.ia.MatchResult WHERE queryAnnotation.id == '" +
+            ann.getId() + "'";
+        Query query = pm.newQuery(filter);
+        query.setOrdering("created DESC");
+        Collection c = (Collection)query.execute();
+        if (c != null) all = new ArrayList<MatchResult>(c);
+        query.closeAll();
+        return all;
+    }
+
     public MarkedIndividual getMarkedIndividualQuiet(String name) {
         MarkedIndividual indiv = null;
 
