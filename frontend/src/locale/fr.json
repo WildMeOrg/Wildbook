@@ -511,6 +511,7 @@
   "ROW": "Ligne",
   "APPLY_TO_ALL_ROWS_NOTE": "+ indique que la modification peut s'appliquer à toutes les lignes de cette colonne",
   "BULK_IMPORT_DELETE_TASK": "Supprimer la tâche d'importation en masse",
+  "BULK_IMPORT_DELETE_TASK_IN_PROGRESS": "Suppression...",
   "BULK_IMPORT_DATA_UPLOADED": "Données téléchargées",
   "BULK_IMPORT_IMAGE_UPLOADED": "Image téléchargée",
   "SPREADSHEET_UPLOADED_TITLE": "Feuille de calcul téléchargée: {fileName}",

@@ -35,6 +35,7 @@ const BulkImportTask = observer(() => {
   const [userRoles, setUserRoles] = useState(null);
   const store = useLocalObservable(() => new BulkImportTaskStore());
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const previousLocationID = task?.matchingLocations || [];
 
@@ -76,12 +77,14 @@ const BulkImportTask = observer(() => {
 
   const deleteTask = async () => {
     if (!task?.id) return;
+    if (isDeleting) return;
 
     const confirmed = window.confirm(
       intl.formatMessage({ id: "BULK_IMPORT_DELETE_TASK_CONFIRM" }),
     );
     if (!confirmed) return;
 
+    setIsDeleting(true);
     try {
       const res = await fetch(`/api/v3/bulk-import/${task.id}`, {
         method: "DELETE",
@@ -102,6 +105,7 @@ const BulkImportTask = observer(() => {
           { error: err.message || "" },
         ),
       );
+      setIsDeleting(false);
     }
   };
 
@@ -568,6 +572,7 @@ const BulkImportTask = observer(() => {
         <Col xs="auto">
           <MainButton
             onClick={deleteTask}
+            disabled={isDeleting}
             shadowColor={theme.statusColors.red500}
             color={theme.statusColors.red500}
             noArrow={true}
@@ -579,9 +584,23 @@ const BulkImportTask = observer(() => {
               marginLeft: 0,
               marginTop: "1rem",
               marginBottom: "2rem",
+              opacity: isDeleting ? 0.7 : 1,
+              cursor: isDeleting ? "not-allowed" : "pointer",
             }}
           >
-            <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
+            {isDeleting ? (
+              <>
+                <Spinner
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  className="me-2"
+                />
+                <FormattedMessage id="BULK_IMPORT_DELETE_TASK_IN_PROGRESS" />
+              </>
+            ) : (
+              <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
+            )}
           </MainButton>
         </Col>
       </Row>

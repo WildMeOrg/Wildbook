@@ -509,6 +509,7 @@
     "ROW": "Row",
     "APPLY_TO_ALL_ROWS_NOTE": "+ denotes change can apply to all rows for this column",
     "BULK_IMPORT_DELETE_TASK": "Delete Import Task",
+    "BULK_IMPORT_DELETE_TASK_IN_PROGRESS": "Deleting...",
     "BULK_IMPORT_DATA_UPLOADED": "Data Uploaded",
     "BULK_IMPORT_IMAGE_UPLOADED": "Image Uploaded",
     "SPREADSHEET_UPLOADED_TITLE": "Spreadsheet Uploaded: {fileName}",

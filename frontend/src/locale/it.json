@@ -511,6 +511,7 @@
   "ROW": "Riga",
   "APPLY_TO_ALL_ROWS_NOTE": "+ indica che la modifica può essere applicata a tutte le righe di questa colonna",
   "BULK_IMPORT_DELETE_TASK": "Elimina attività di importazione",
+  "BULK_IMPORT_DELETE_TASK_IN_PROGRESS": "Eliminazione in corso...",
   "BULK_IMPORT_DATA_UPLOADED": "Dati caricati",
   "BULK_IMPORT_IMAGE_UPLOADED": "Immagine caricata",
   "SPREADSHEET_UPLOADED_TITLE": "Foglio di calcolo caricato: {fileName}",
