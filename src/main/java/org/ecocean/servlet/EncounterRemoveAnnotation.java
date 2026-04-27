@@ -15,8 +15,8 @@ import javax.servlet.ServletException;
 import java.io.*;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class EncounterRemoveAnnotation extends HttpServlet {
     private static final Logger log = LogManager.getLogger(EncounterRemoveAnnotation.class);
@@ -104,6 +104,8 @@ public class EncounterRemoveAnnotation extends HttpServlet {
                         enc.addComments("<p data-annot-id=\"" + ann.getId() +
                             "\">Annotation deleted by " + user.getDisplayName() + " on " +
                             Util.prettyTimeStamp() + "</p>");
+                        ann.deleteMatchResults(myShepherd);
+                        ann.deleteEmbeddings(myShepherd);
                         myShepherd.getPM().deletePersistent(ann);
                         myShepherd.updateDBTransaction();
                         res.put("revertToTrivial", true);
@@ -121,6 +123,8 @@ public class EncounterRemoveAnnotation extends HttpServlet {
                             "\">Annotation deleted by " + user.getDisplayName() + " on " +
                             Util.prettyTimeStamp() + "</p>");
                         enc.removeAnnotation(ann);
+                        ann.deleteMatchResults(myShepherd);
+                        ann.deleteEmbeddings(myShepherd);
                         myShepherd.getPM().deletePersistent(ann);
                         myShepherd.commitDBTransaction();
                     }
