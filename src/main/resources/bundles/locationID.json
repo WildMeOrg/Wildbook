@@ -126,6 +126,21 @@
 					]
 				},
 				{
+					"name": "Dresden",
+					"id": "Dresden",
+					"locationID":[
+						{
+							"name": "Roßthaler Bach",
+							"id": "Roßthaler Bach",
+							"geospatialInfo":{
+								"lat": 51.033498,
+								"long": 13.680755
+							},
+							"locationID":[]
+						}
+					]
+				},
+				{
 					"name": "Eulenberger See",
 					"id": "Eulenberger See",
 					"locationID": []
