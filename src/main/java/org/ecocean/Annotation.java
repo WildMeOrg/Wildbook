@@ -1744,10 +1744,43 @@ public class Annotation extends Base implements java.io.Serializable {
         int ct = 0;
 
         for (MatchResult mr : mrs) {
-            myShepherd.getPM().deletePersistent(mr);
             ct++;
+            System.out.println("[DEBUG] (" + ct + ") ann.deleteMatchResults() on id=" +
+                this.getId() + " deleting " + mr);
+            myShepherd.getPM().deletePersistent(mr);
         }
         return ct;
+    }
+
+    // when we delete an Annotation, we usually dont want to leave the Embeddings around
+    public int deleteEmbeddings(Shepherd myShepherd) {
+        int rtn = numberEmbeddings();
+
+        if (rtn < 1) return 0;
+        for (Embedding emb : embeddings) {
+            System.out.println("[DEBUG] ann.deleteEmbeddings() on id=" + this.getId() +
+                " deleting " + emb);
+            myShepherd.getPM().deletePersistent(emb);
+        }
+        return rtn;
+    }
+
+    // a convenient method which does a typical set of steps to ready Annotation for deletion from db
+    // if encounter is already known, it can be passed (null will be ignored)
+    public void prepareForDeletion(Shepherd myShepherd, Encounter enc) {
+        int nt = this.detachFromTasks(myShepherd);
+
+        if (enc != null) enc.removeAnnotation(this);
+        this.detachFromMediaAsset();
+        int nm = this.deleteMatchResults(myShepherd);
+        int ne = this.deleteEmbeddings(myShepherd);
+        System.out.println("[INFO] ann.prepareForDeletion(): " + nt + " Tasks, " + nm +
+            " MatchResults, " + ne + " Embeddings on " + this);
+    }
+
+    // this version takes no enc, but will attempt to find it
+    public void prepareForDeletion(Shepherd myShepherd) {
+        prepareForDeletion(myShepherd, this.findEncounter(myShepherd));
     }
 
     public static boolean isValidViewpoint(String vp) {
