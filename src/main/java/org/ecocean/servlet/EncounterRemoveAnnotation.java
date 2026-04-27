@@ -104,7 +104,7 @@ public class EncounterRemoveAnnotation extends HttpServlet {
                         enc.addComments("<p data-annot-id=\"" + ann.getId() +
                             "\">Annotation deleted by " + user.getDisplayName() + " on " +
                             Util.prettyTimeStamp() + "</p>");
-                        myShepherd.getPM().deletePersistent(ann);
+                        myShepherd.throwAwayAnnotation(ann);
                         myShepherd.updateDBTransaction();
                         res.put("revertToTrivial", true);
                     }
@@ -121,7 +121,7 @@ public class EncounterRemoveAnnotation extends HttpServlet {
                             "\">Annotation deleted by " + user.getDisplayName() + " on " +
                             Util.prettyTimeStamp() + "</p>");
                         enc.removeAnnotation(ann);
-                        myShepherd.getPM().deletePersistent(ann);
+                        myShepherd.throwAwayAnnotation(ann);
                         myShepherd.commitDBTransaction();
                     }
                     response.setStatus(HttpServletResponse.SC_OK);

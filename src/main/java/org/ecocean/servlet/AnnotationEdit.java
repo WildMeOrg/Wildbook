@@ -163,7 +163,7 @@ public class AnnotationEdit extends HttpServlet {
                             myShepherd.getPM().deletePersistent(enc);
                             rtn.put("encounterDeleted", true);
                         }
-                        myShepherd.getPM().deletePersistent(annot);
+                        myShepherd.throwAwayAnnotation(annot);
                         myShepherd.getPM().deletePersistent(feat);
                         System.out.println(
                             "INFO: AnnotationEdit.remove deleted [enc,annot,feat]=[" +

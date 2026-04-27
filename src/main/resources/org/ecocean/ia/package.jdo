@@ -86,7 +86,7 @@ alter table "TASK" alter column "PARAMETERS" type text;
 		</field>
 
 		<field name="prospects" default-fetch-group="false" mapped-by="matchResult">
-			<collection element-type="org.ecocean.ia.MatchResultProspect" dependent-element="false" />
+			<collection element-type="org.ecocean.ia.MatchResultProspect" dependent-element="true" />
 		</field>
 
       		<field name="queryAnnotation" persistence-modifier="persistent" element-type="org.ecocean.Annotation">

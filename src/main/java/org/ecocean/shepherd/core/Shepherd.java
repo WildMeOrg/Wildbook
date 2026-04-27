@@ -17,6 +17,7 @@ import org.ecocean.genetics.*;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.ia.MatchResult;
+import org.ecocean.ia.MatchResultProspect;
 import org.ecocean.ia.Task;
 import org.ecocean.media.*;
 import org.ecocean.movement.Path;
@@ -467,8 +468,120 @@ public class Shepherd {
         pm.deletePersistent(analysis);
     }
 
+    // Caller must detach this Annotation from its owning Encounter (Encounter.removeAnnotation)
+    // before calling — that's a business decision about which encounter the annotation
+    // belongs to. This method handles the FK-constrained dependents that JDO mapping cascades
+    // do not reach: MatchResult, MatchResultProspect, Embedding, and the Task.objectAnnotations
+    // join collection. Without this cleanup, the JDO commit fails with constraints like
+    // MATCHRESULT_FK1 (MatchResult.queryAnnotation), the FKs on MatchResultProspect.annotation,
+    // EMBEDDING.ANNOTATION_ID, and the Task↔Annotation join table.
     public void throwAwayAnnotation(Annotation ad) {
+        if (ad == null) return;
+        cleanUpAnnotationReferences(ad);
+        pm.flush(); // make sure all dependent deletes hit the DB before the annotation row is removed
         pm.deletePersistent(ad);
+    }
+
+    private void cleanUpAnnotationReferences(Annotation ann) {
+        String annId = ann.getId();
+        if (annId == null) return; // not persisted
+
+        // 1. Delete every MatchResultProspect that references this annotation OR belongs to a
+        //    MatchResult whose queryAnnotation is this annotation. One query covers both cases
+        //    (avoids double-deleting via separate steps). Prospect.annotation is allows-null=false
+        //    so we cannot null it out — must delete the row.
+        Query qProspects = pm.newQuery(
+            "SELECT FROM org.ecocean.ia.MatchResultProspect WHERE annotation.id == :annId" +
+            " || matchResult.queryAnnotation.id == :annId");
+        try {
+            @SuppressWarnings("unchecked")
+            Collection<MatchResultProspect> prospects =
+                (Collection<MatchResultProspect>)qProspects.execute(annId);
+            if (prospects != null) {
+                for (MatchResultProspect p : new ArrayList<MatchResultProspect>(prospects)) {
+                    pm.deletePersistent(p);
+                }
+            }
+        } finally {
+            qProspects.closeAll();
+        }
+        pm.flush(); // flush prospect deletes before we delete their parent MatchResults
+
+        // 2. Delete MatchResults whose queryAnnotation is this annotation. queryAnnotation is
+        //    allows-null=false so we cannot null it out. Prospects are now declared
+        //    dependent-element=true on the prospects collection, but step 1 already removed
+        //    them, so this is just the MR rows.
+        Query qMRs = pm.newQuery(
+            "SELECT FROM org.ecocean.ia.MatchResult WHERE queryAnnotation.id == :annId");
+        try {
+            @SuppressWarnings("unchecked")
+            Collection<MatchResult> mrs = (Collection<MatchResult>)qMRs.execute(annId);
+            if (mrs != null) {
+                for (MatchResult mr : new ArrayList<MatchResult>(mrs)) {
+                    pm.deletePersistent(mr);
+                }
+            }
+        } finally {
+            qMRs.closeAll();
+        }
+        pm.flush();
+
+        // 3. Remove this annotation from any surviving MatchResult.candidates collection.
+        //    Defensive — the field is rarely populated in practice (see MatchResult.java
+        //    comment) but the join-table FK would still block annotation delete if any row
+        //    referenced this annotation.
+        Query qCand = pm.newQuery(
+            "SELECT FROM org.ecocean.ia.MatchResult" +
+            " WHERE candidates.contains(c) && c.id == :annId");
+        qCand.declareVariables("org.ecocean.Annotation c");
+        try {
+            @SuppressWarnings("unchecked")
+            Collection<MatchResult> mrsWithCandidate =
+                (Collection<MatchResult>)qCand.execute(annId);
+            if (mrsWithCandidate != null) {
+                for (MatchResult mr : new ArrayList<MatchResult>(mrsWithCandidate)) {
+                    if (mr.getCandidates() != null) mr.getCandidates().remove(ann);
+                }
+            }
+        } finally {
+            qCand.closeAll();
+        }
+
+        // 4. Delete Embedding rows that reference this annotation. Annotation.embeddings is
+        //    mapped-by="annotation" with dependent-element="false", so JDO does not cascade
+        //    on annotation delete. The FK on EMBEDDING.ANNOTATION_ID blocks deletion.
+        Query qEmb = pm.newQuery(
+            "SELECT FROM org.ecocean.Embedding WHERE annotation.id == :annId");
+        try {
+            @SuppressWarnings("unchecked")
+            Collection<Embedding> embs = (Collection<Embedding>)qEmb.execute(annId);
+            if (embs != null) {
+                for (Embedding e : new ArrayList<Embedding>(embs)) {
+                    pm.deletePersistent(e);
+                }
+            }
+        } finally {
+            qEmb.closeAll();
+        }
+
+        // 5. Remove this annotation from any Task.objectAnnotations join collection. The
+        //    Task↔Annotation join table has an FK on the Annotation column that blocks
+        //    deletion of the annotation while any join row references it.
+        Query qTasks = pm.newQuery(
+            "SELECT FROM org.ecocean.ia.Task" +
+            " WHERE objectAnnotations.contains(a) && a.id == :annId");
+        qTasks.declareVariables("org.ecocean.Annotation a");
+        try {
+            @SuppressWarnings("unchecked")
+            Collection<Task> tasks = (Collection<Task>)qTasks.execute(annId);
+            if (tasks != null) {
+                for (Task t : new ArrayList<Task>(tasks)) {
+                    t.removeObject(ann);
+                }
+            }
+        } finally {
+            qTasks.closeAll();
+        }
     }
 
     public void throwAwayOccurrence(Occurrence occ) {

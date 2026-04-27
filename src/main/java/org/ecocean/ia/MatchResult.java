@@ -397,6 +397,10 @@ public class MatchResult implements java.io.Serializable {
         return Util.collectionSize(prospects);
     }
 
+    public Set<Annotation> getCandidates() {
+        return candidates;
+    }
+
     public Set<String> prospectScoreTypes() {
         Set<String> types = new HashSet<String>();
 

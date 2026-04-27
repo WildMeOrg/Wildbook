@@ -248,7 +248,7 @@ public class EncounterPatchValidator {
                     enc.addAnnotation(triv);
                     myShepherd.getPM().makePersistent(triv);
                 }
-                myShepherd.getPM().deletePersistent(ann);
+                myShepherd.throwAwayAnnotation(ann);
                 value = ann;
             } else if (path.equals("occurrenceId")) {
                 // this may be overkill. *technically* an Encounter should be contained in (at most) ONE Occurrence
