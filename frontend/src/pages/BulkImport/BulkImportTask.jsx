@@ -36,7 +36,8 @@ const BulkImportTask = observer(() => {
   const store = useLocalObservable(() => new BulkImportTaskStore());
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [isDeleting, setIsDeleting] = useState(false);
-
+  const [isSendingToIdentification, setIsSendingToIdentification] =
+    useState(false);
   const previousLocationID = task?.matchingLocations || [];
 
   const fetchData = async () => {
@@ -490,50 +491,50 @@ const BulkImportTask = observer(() => {
           <MainButton
             id="re-id-button"
             disabled={
+              isSendingToIdentification ||
               (!userRoles?.includes("admin") &&
                 !userRoles?.includes("researcher")) ||
               !store.locationIDString ||
               task?.status !== "complete" ||
               task?.iaSummary?.detectionStatus !== "complete"
             }
-            onClick={() => {
+            onClick={async () => {
               setShowError(false);
-              axios
-                .get(
+              setIsSendingToIdentification(true);
+
+              try {
+                const response = await axios.get(
                   `/appadmin/resendBulkImportID.jsp?importIdTask=${taskId}${store.locationIDString}`,
-                )
-                .then((response) => {
-                  if (response.status === 200) {
-                    alert(
-                      intl.formatMessage({
-                        id: "BULK_IMPORT_RE_ID_SUCCESS",
-                        defaultMessage:
-                          "Re-identification task started successfully.",
-                      }),
-                    );
-                    window.location.reload();
-                  } else {
-                    throw new Error(
-                      intl.formatMessage({
-                        id: "BULK_IMPORT_RE_ID_ERROR",
-                        defaultMessage:
-                          "Failed to start re-identification task.",
-                      }),
-                    );
-                  }
-                })
-                .catch((error) => {
-                  console.error(
-                    "Error starting re-identification task:",
-                    error,
-                  );
+                );
+
+                if (response.status === 200) {
                   alert(
+                    intl.formatMessage({
+                      id: "BULK_IMPORT_RE_ID_SUCCESS",
+                      defaultMessage:
+                        "Re-identification task started successfully.",
+                    }),
+                  );
+                  window.location.reload();
+                } else {
+                  throw new Error(
                     intl.formatMessage({
                       id: "BULK_IMPORT_RE_ID_ERROR",
                       defaultMessage: "Failed to start re-identification task.",
                     }),
                   );
-                });
+                }
+              } catch (error) {
+                console.error("Error starting re-identification task:", error);
+                alert(
+                  intl.formatMessage({
+                    id: "BULK_IMPORT_RE_ID_ERROR",
+                    defaultMessage: "Failed to start re-identification task.",
+                  }),
+                );
+              } finally {
+                setIsSendingToIdentification(false);
+              }
             }}
             backgroundColor={theme.wildMeColors.cyan700}
             color={theme.defaultColors.white}
@@ -545,6 +546,15 @@ const BulkImportTask = observer(() => {
               marginLeft: 0,
             }}
           >
+            {isSendingToIdentification && (
+              <Spinner
+                animation="border"
+                size="sm"
+                className="me-2"
+                role="status"
+                aria-hidden="true"
+              />
+            )}
             <FormattedMessage id="BULK_IMPORT_SEND_TO_IDENTIFICATION" />
           </MainButton>
           {((!userRoles?.includes("admin") &&
