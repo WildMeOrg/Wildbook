@@ -1740,17 +1740,8 @@ public class Annotation extends Base implements java.io.Serializable {
 
     // we cant just detach the annots from match results, so we need
     // to kill them off before we can delete an Annotation
-    public int deleteMatchResults(Shepherd myShepherd) {
-        List<MatchResult> mrs = myShepherd.getMatchResults(this);
-        int ct = 0;
-
-        for (MatchResult mr : mrs) {
-            ct++;
-            System.out.println("[DEBUG] (" + ct + ") ann.deleteMatchResults() on id=" +
-                this.getId() + " deleting " + mr);
-            myShepherd.getPM().deletePersistent(mr);
-        }
-        return ct;
+    public long deleteMatchResults(Shepherd myShepherd) {
+        return myShepherd.deleteMatchResults(this);
     }
 
     // similar as above for MatchResultProspects
@@ -1787,7 +1778,7 @@ public class Annotation extends Base implements java.io.Serializable {
 
         if (enc != null) enc.removeAnnotation(this);
         this.detachFromMediaAsset();
-        int nm = this.deleteMatchResults(myShepherd);
+        long nm = this.deleteMatchResults(myShepherd);
         int np = this.deleteMatchResultProspects(myShepherd);
         int ne = this.deleteEmbeddings(myShepherd);
         System.out.println("[INFO] ann.prepareForDeletion(): " + nt + " Tasks, " + nm +

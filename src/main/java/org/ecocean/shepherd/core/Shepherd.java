@@ -2845,6 +2845,19 @@ public class Shepherd {
         return all;
     }
 
+    // faster deletion of all MatchResults associated with Annotation
+    public long deleteMatchResults(Annotation ann) {
+        if (ann == null) return 0l;
+        long t = System.currentTimeMillis();
+        String filter = "SELECT FROM org.ecocean.ia.MatchResult WHERE queryAnnotation.id == '" +
+            ann.getId() + "'";
+        Query query = pm.newQuery(filter);
+        long ct = query.deletePersistentAll(); 
+        query.closeAll();
+        System.out.println("[DEBUG] deleteMatchResults() deleted " + ct + " [" + (System.currentTimeMillis() - t) + "ms] on " + ann);
+        return ct;
+    }
+
     public List<MatchResultProspect> getMatchResultProspects(Annotation ann) {
         List<MatchResultProspect> all = new ArrayList<MatchResultProspect>();
 
