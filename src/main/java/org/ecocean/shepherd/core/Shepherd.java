@@ -17,6 +17,7 @@ import org.ecocean.genetics.*;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.ia.MatchResult;
+import org.ecocean.ia.MatchResultProspect;
 import org.ecocean.ia.Task;
 import org.ecocean.media.*;
 import org.ecocean.movement.Path;
@@ -2840,6 +2841,19 @@ public class Shepherd {
         query.setOrdering("created DESC");
         Collection c = (Collection)query.execute();
         if (c != null) all = new ArrayList<MatchResult>(c);
+        query.closeAll();
+        return all;
+    }
+
+    public List<MatchResultProspect> getMatchResultProspects(Annotation ann) {
+        List<MatchResultProspect> all = new ArrayList<MatchResultProspect>();
+
+        if (ann == null) return all;
+        String filter = "SELECT FROM org.ecocean.ia.MatchResultProspect WHERE annotation.id == '" +
+            ann.getId() + "'";
+        Query query = pm.newQuery(filter);
+        Collection c = (Collection)query.execute();
+        if (c != null) all = new ArrayList<MatchResultProspect>(c);
         query.closeAll();
         return all;
     }

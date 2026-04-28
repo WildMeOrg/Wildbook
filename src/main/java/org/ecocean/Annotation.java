@@ -14,6 +14,7 @@ import org.ecocean.api.ApiException;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.IAException;
 import org.ecocean.ia.MatchResult;
+import org.ecocean.ia.MatchResultProspect;
 import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
@@ -1752,6 +1753,20 @@ public class Annotation extends Base implements java.io.Serializable {
         return ct;
     }
 
+    // similar as above for MatchResultProspects
+    public int deleteMatchResultProspects(Shepherd myShepherd) {
+        List<MatchResultProspect> mrps = myShepherd.getMatchResultProspects(this);
+        int ct = 0;
+
+        for (MatchResultProspect mrp : mrps) {
+            ct++;
+            System.out.println("[DEBUG] (" + ct + ") ann.deleteMatchResultProspects() on id=" +
+                this.getId() + " deleting " + mrp);
+            myShepherd.getPM().deletePersistent(mrp);
+        }
+        return ct;
+    }
+
     // when we delete an Annotation, we usually dont want to leave the Embeddings around
     public int deleteEmbeddings(Shepherd myShepherd) {
         int rtn = numberEmbeddings();
@@ -1773,9 +1788,10 @@ public class Annotation extends Base implements java.io.Serializable {
         if (enc != null) enc.removeAnnotation(this);
         this.detachFromMediaAsset();
         int nm = this.deleteMatchResults(myShepherd);
+        int np = this.deleteMatchResultProspects(myShepherd);
         int ne = this.deleteEmbeddings(myShepherd);
         System.out.println("[INFO] ann.prepareForDeletion(): " + nt + " Tasks, " + nm +
-            " MatchResults, " + ne + " Embeddings on " + this);
+            " MatchResults, " + np + " MatchResultProspects, " + ne + " Embeddings on " + this);
     }
 
     // this version takes no enc, but will attempt to find it

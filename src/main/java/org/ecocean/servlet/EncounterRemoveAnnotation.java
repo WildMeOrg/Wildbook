@@ -105,6 +105,7 @@ public class EncounterRemoveAnnotation extends HttpServlet {
                             "\">Annotation deleted by " + user.getDisplayName() + " on " +
                             Util.prettyTimeStamp() + "</p>");
                         ann.deleteMatchResults(myShepherd);
+                        ann.deleteMatchResultProspects(myShepherd);
                         ann.deleteEmbeddings(myShepherd);
                         myShepherd.getPM().deletePersistent(ann);
                         myShepherd.updateDBTransaction();
@@ -124,6 +125,7 @@ public class EncounterRemoveAnnotation extends HttpServlet {
                             Util.prettyTimeStamp() + "</p>");
                         enc.removeAnnotation(ann);
                         ann.deleteMatchResults(myShepherd);
+                        ann.deleteMatchResultProspects(myShepherd);
                         ann.deleteEmbeddings(myShepherd);
                         myShepherd.getPM().deletePersistent(ann);
                         myShepherd.commitDBTransaction();
