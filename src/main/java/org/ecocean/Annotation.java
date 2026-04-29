@@ -1775,13 +1775,14 @@ public class Annotation extends Base implements java.io.Serializable {
     // if encounter is already known, it can be passed (null will be ignored)
     public void prepareForDeletion(Shepherd myShepherd, Encounter enc) {
         int nt = this.detachFromTasks(myShepherd);
+        long t = System.currentTimeMillis();
 
         if (enc != null) enc.removeAnnotation(this);
         this.detachFromMediaAsset();
         long nm = this.deleteMatchResults(myShepherd);
         int np = this.deleteMatchResultProspects(myShepherd);
         int ne = this.deleteEmbeddings(myShepherd);
-        System.out.println("[INFO] ann.prepareForDeletion(): " + nt + " Tasks, " + nm +
+        System.out.println("[INFO] ann.prepareForDeletion() [" + (System.currentTimeMillis() - t) + "ms]: " + nt + " Tasks, " + nm +
             " MatchResults, " + np + " MatchResultProspects, " + ne + " Embeddings on " + this);
     }
 
