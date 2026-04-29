@@ -765,6 +765,7 @@
   "INDIVIDUAL_SCORE": "Puntuación Individual",
   "IMAGE_SCORE": "Puntuación de Imagen",
   "NUMBER_OF_RESULTS": "Número de resultados",
+  "NUMBER_OF_RESULTS_MAX_HINT": "(máx. {max})",
   "SELECT_A_PROJECT": "seleccionar un proyecto",
   "MATCHED_BASED_ON": "Coincidencia basada en ",
   "POSSIBLE_MATCH": "Posible Coincidencia",
