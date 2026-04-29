@@ -240,7 +240,10 @@ public class IBEISIA {
         myShepherd.setAction("IBEISIA.sendIdentify");
         myShepherd.beginDBTransaction();
 
+        // hoisted out of the try below so RestClient.post(...) at the bottom can still see it
+        // after the shepherd has been closed.
         HashMap<String, Object> map = new HashMap<String, Object>();
+        try {
         map.put("callback_url", callbackUrl(baseUrl));
         map.put("jobid", taskId);
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
@@ -286,8 +289,6 @@ public class IBEISIA {
         Util.mark("sendIdentify-2", startTime);
         // Do we have a qaan? We need one, or load a failure response.
         if (qlist.isEmpty()) {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
             JSONObject noQueryAnn = new JSONObject();
             noQueryAnn.put("status", new JSONObject().put("message", "rejected"));
             noQueryAnn.put("error", "No query annotation was valid for identification. ");
@@ -334,10 +335,6 @@ public class IBEISIA {
             status.put("error", "Empty target annotation list");
             status.put("emptyTargetAnnotations", true);
             emptyRtn.put("status", status);
-
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-
             return emptyRtn;
         }
         map.put("query_annot_uuid_list", qlist);
@@ -371,8 +368,11 @@ public class IBEISIA {
         System.out.println("qlist.size()=" + qlist.size() + " annnnd qnlist.size()=" +
             qnlist.size() + ". not printing the map about to be POSTed because it's a big'un.");
         // System.out.println(map);
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        } finally {
+            // Always release the DB connection before the WBIA HTTP POST below, even on early
+            // returns and any thrown exception.
+            myShepherd.rollbackAndClose();
+        }
         Util.mark("identify process pre-post end");
         return RestClient.post(url, hashMapToJSONObject2(map));
     }
