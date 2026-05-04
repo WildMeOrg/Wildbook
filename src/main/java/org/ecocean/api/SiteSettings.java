@@ -130,15 +130,22 @@ public class SiteSettings extends ApiBase {
                 try {
                     for (String iaClass : iaConfig.getValidIAClasses(tx)) {
                         for (JSONObject idOpt : iaConfig.identOpts(tx, iaClass)) {
-                            idOpt.remove("api_endpoint"); // dont want this shown
-                            String key = idOpt.toString();
+                            // make a copy so we can safely modify it
+                            JSONObject idOptCopy = new JSONObject(idOpt.toString());
+                            idOptCopy.remove("api_endpoint"); // dont want this shown
+                            // NOTE: JSONObject.toString() in theory might produce different strings
+                            // for the same object (key ordering different); but in practice seems to
+                            // be consistent within these iterations
+                            String key = idOptCopy.toString();
                             if (identConfigs.containsKey(key)) {
+                                // TODO this will append *duplicate* iaClass values, which is not currently an error
+                                // but might be nice fix later
                                 identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
                             } else {
                                 JSONArray iacls = new JSONArray();
                                 iacls.put(iaClass);
-                                idOpt.put("_iaClasses", iacls);
-                                identConfigs.put(key, idOpt);
+                                idOptCopy.put("_iaClasses", iacls);
+                                identConfigs.put(key, idOptCopy);
                             }
                         }
                     }

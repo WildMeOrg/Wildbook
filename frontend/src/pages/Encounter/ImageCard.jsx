@@ -14,6 +14,7 @@ import Tooltip from "../../components/ToolTip";
 import axios from "axios";
 import { useIntl } from "react-intl";
 import SpotMappingIcon2 from "../../components/icons/SpotMappingIcon2";
+import { isAssetActivelyAwaitingDetection } from "./pollingHelpers";
 
 const ImageCard = observer(({ store = {} }) => {
   const imgRef = useRef(null);
@@ -67,17 +68,11 @@ const ImageCard = observer(({ store = {} }) => {
     JSON.stringify(editAnnotationParams),
   );
 
-  const isTerminalDetectionStatus = (status) =>
-    !status ||
-    status === "complete" ||
-    status === "error" ||
-    status === "pending";
-
   const selectedAsset =
     store.encounterData?.mediaAssets?.[store.selectedImageIndex];
-  const selectedAssetDetectionStatus = selectedAsset?.detectionStatus;
   const isDetectionInProgress =
-    !!selectedAsset && !isTerminalDetectionStatus(selectedAssetDetectionStatus);
+    !!selectedAsset &&
+    isAssetActivelyAwaitingDetection(selectedAsset, store.encounterData);
 
   const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
   const handleMove = (e) => {
