@@ -38,6 +38,11 @@ import { Divider } from "antd";
 import { get } from "lodash-es";
 import CollabModal from "./CollabModal";
 import Alert from "react-bootstrap/Alert";
+import {
+  shouldContinuePollingEncounter,
+  POLL_INTERVAL_MS,
+  MAX_POLL_CYCLES,
+} from "./pollingHelpers";
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
@@ -72,26 +77,7 @@ const Encounter = observer(() => {
   useEffect(() => {
     let cancelled = false;
     let timeoutId = null;
-
-    const isTerminalDetectionStatus = (status) =>
-      !status ||
-      status === "complete" ||
-      status === "error" ||
-      status === "pending";
-
-    const shouldContinuePolling = (encounterData) => {
-      const mediaAssets = Array.isArray(encounterData?.mediaAssets)
-        ? encounterData.mediaAssets
-        : [];
-
-      if (mediaAssets.length === 0) {
-        return false;
-      }
-
-      return mediaAssets.some(
-        (asset) => !isTerminalDetectionStatus(asset?.detectionStatus),
-      );
-    };
+    let pollCount = 0;
 
     const fetchEncounter = async () => {
       try {
@@ -108,8 +94,12 @@ const Encounter = observer(() => {
           store.setMediaAssets(res.data.mediaAssets);
         }
 
-        if (shouldContinuePolling(res.data)) {
-          timeoutId = window.setTimeout(fetchEncounter, 3000);
+        pollCount++;
+        if (
+          pollCount < MAX_POLL_CYCLES &&
+          shouldContinuePollingEncounter(res.data)
+        ) {
+          timeoutId = window.setTimeout(fetchEncounter, POLL_INTERVAL_MS);
         }
       } catch (_err) {
         if (!cancelled && isInitialLoad.current) {

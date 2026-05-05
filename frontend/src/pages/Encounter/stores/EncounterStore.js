@@ -162,7 +162,7 @@ class EncounterStore {
 
   setMediaAssets(mediaAssets) {
     if (this._encounterData) {
-      this._encounterData.mediaAssets = mediaAssets;
+      this._encounterData = { ...this._encounterData, mediaAssets };
     }
   }
 
