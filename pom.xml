@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>10.9.5</version>
+  <version>10.10.0</version>
   <packaging>war</packaging>
 
   <properties>
@@ -678,21 +678,44 @@
       </plugin>
 
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
         <executions>
           <execution>
             <id>Git Version Stamper</id>
             <phase>clean</phase>
             <goals>
-              <goal>exec</goal>
+              <goal>run</goal>
             </goals>
-            <configuration> <!-- note: this is unix-centric... so thats probably bad -->
-              <executable>${basedir}/config/git-json-info.sh</executable>
-              <workingDirectory>${basedir}/src/main/webapp/javascript</workingDirectory>
+            <configuration>
+              <target>
+                <exec executable="sh"
+                      dir="${basedir}/src/main/webapp/javascript"
+                      osfamily="unix"
+                      failonerror="true">
+                  <arg value="${basedir}/config/git-json-info.sh"/>
+                </exec>
+                <exec executable="powershell"
+                      dir="${basedir}/src/main/webapp/javascript"
+                      osfamily="windows"
+                      failonerror="true">
+                  <arg value="-ExecutionPolicy"/>
+                  <arg value="Bypass"/>
+                  <arg value="-File"/>
+                  <arg value="${basedir}/config/git-json-info.ps1"/>
+                </exec>
+              </target>
             </configuration>
           </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
           <execution>
             <id>Build React Directory</id>
             <phase>clean</phase>
