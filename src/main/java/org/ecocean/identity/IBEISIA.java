@@ -240,6 +240,7 @@ public class IBEISIA {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.sendIdentify");
         myShepherd.beginDBTransaction();
+        try {
 
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("callback_url", callbackUrl(baseUrl));
@@ -287,8 +288,6 @@ public class IBEISIA {
         Util.mark("sendIdentify-2", startTime);
         // Do we have a qaan? We need one, or load a failure response.
         if (qlist.isEmpty()) {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
             JSONObject noQueryAnn = new JSONObject();
             noQueryAnn.put("status", new JSONObject().put("message", "rejected"));
             noQueryAnn.put("error", "No query annotation was valid for identification. ");
@@ -336,9 +335,6 @@ public class IBEISIA {
             status.put("emptyTargetAnnotations", true);
             emptyRtn.put("status", status);
 
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-
             return emptyRtn;
         }
         map.put("query_annot_uuid_list", qlist);
@@ -372,10 +368,11 @@ public class IBEISIA {
         System.out.println("qlist.size()=" + qlist.size() + " annnnd qnlist.size()=" +
             qnlist.size() + ". not printing the map about to be POSTed because it's a big'un.");
         // System.out.println(map);
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
         Util.mark("identify process pre-post end");
         return RestClient.post(url, hashMapToJSONObject2(map));
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
     }
 
     // this version of sendDetect only works for the first detection algo for a given taxonomy. The more robust version below is used in our ia.json pipeline
