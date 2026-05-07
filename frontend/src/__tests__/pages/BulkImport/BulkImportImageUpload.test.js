@@ -1,10 +1,11 @@
 import React from "react";
 import { render, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
-jest.mock("../../../models/useGetSiteSettings", () => ({
+jest.mock("../../../SiteSettingsContext", () => ({
   __esModule: true,
-  default: () => ({ data: { maximumMediaSizeMegabytes: 5 } }),
+  useSiteSettings: jest.fn(),
 }));
 jest.mock("../../../pages/BulkImport/BulkImportImageUploadInfo", () => ({
   __esModule: true,
@@ -52,6 +53,11 @@ describe("BulkImportImageUpload", () => {
   };
 
   beforeEach(() => {
+    useSiteSettings.mockReturnValue({
+      data: { maximumMediaSizeMegabytes: 5 },
+      isLoading: false,
+      error: null,
+    });
     store = {
       filesParsed: false,
       imagePreview: [],

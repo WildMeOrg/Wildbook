@@ -4,6 +4,7 @@ import org.ecocean.AccessControl;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.*;
 import org.ecocean.media.*;
@@ -474,6 +475,10 @@ public class IAGateway extends HttpServlet {
                 sent.put("_action", "error");
                 IBEISIA.log(annTaskId, ann.getId(), jobId, sent, context);
                 taskRes.put("error", sent.optJSONObject("error"));
+                task.setStatus("error");
+                task.setStatusDetailsAddError("UNKNOWN", "ident task failed to send: " +
+                    ((sent.optJSONObject("error") == null) ? "unknown reason" : sent.getJSONObject("error").toString()));
+                task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
             }
         } catch (Exception ex) {
             success = false;
@@ -616,6 +621,11 @@ public class IAGateway extends HttpServlet {
         // __context and __baseUrl should be set -- this is done automatically in IAGateway, but if getting here by some other method, do the work!
         if (jobj.optBoolean("v2", false)) { // lets "new world" ia package do its thing
             IA.handleRest(jobj);
+            return;
+        }
+        if (jobj.optBoolean("MLService", false)) {
+            MLService mlserv = new MLService();
+            mlserv.processQueueJob(jobj);
             return;
         }
         boolean requeue = false;
@@ -762,7 +772,7 @@ public class IAGateway extends HttpServlet {
                             Thread.sleep(whileSleepMillis);
                         } catch (java.lang.InterruptedException ex) {}
                         if (jobj.optJSONObject("detect") != null || jobj.optBoolean("fastlane",
-                            false)) {
+                            false) || jobj.optBoolean("MLService", false)) {
                             addToDetectionQueue(context, jobj.toString());
                         } else {
                             addToQueue(context, jobj.toString());

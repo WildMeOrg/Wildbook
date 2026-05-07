@@ -4,6 +4,7 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { IntlProvider } from "react-intl";
 import axios from "axios";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
 jest.mock("react", () => jest.requireActual("react"));
 
@@ -16,12 +17,9 @@ jest.mock("axios", () => {
   return { __esModule: true, default: api, ...api };
 });
 
-jest.mock("../../../models/useGetSiteSettings", () => ({
+jest.mock("../../../SiteSettingsContext", () => ({
   __esModule: true,
-  default: () => ({
-    data: { encounterState: ["unidentifiable", "identified", "rejected"] },
-    loading: false,
-  }),
+  useSiteSettings: jest.fn(),
 }));
 
 jest.mock("../../../components/icons/DateIcon", () => () => (
@@ -254,6 +252,11 @@ const flushPromises = async () => {
 
 describe("Encounter page – stable behavior tests", () => {
   beforeEach(() => {
+    useSiteSettings.mockReturnValue({
+      data: { encounterState: ["unidentifiable", "identified", "rejected"] },
+      isLoading: false,
+      error: null,
+    });
     jest.useRealTimers();
     global.__MOCK_STORE_PRESET__ = undefined;
     global.__LAST_ENCOUNTER_STORE__ = undefined;

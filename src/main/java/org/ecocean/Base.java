@@ -107,6 +107,17 @@ import org.json.JSONObject;
         return skipAutoIndexing;
     }
 
+    // this is not persisted, but is a place to keep score when from search query results
+    public double opensearchScore = 0.0d;
+
+    public void setOpensearchScore(double s) {
+        opensearchScore = s;
+    }
+
+    public double getOpensearchScore() {
+        return opensearchScore;
+    }
+
     public abstract String opensearchIndexName();
 
     public void opensearchCreateIndex()

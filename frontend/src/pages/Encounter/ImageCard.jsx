@@ -14,6 +14,7 @@ import Tooltip from "../../components/ToolTip";
 import axios from "axios";
 import { useIntl } from "react-intl";
 import SpotMappingIcon2 from "../../components/icons/SpotMappingIcon2";
+import { isAssetActivelyAwaitingDetection } from "./pollingHelpers";
 
 const ImageCard = observer(({ store = {} }) => {
   const imgRef = useRef(null);
@@ -67,17 +68,11 @@ const ImageCard = observer(({ store = {} }) => {
     JSON.stringify(editAnnotationParams),
   );
 
-  const isTerminalDetectionStatus = (status) =>
-    !status ||
-    status === "complete" ||
-    status === "error" ||
-    status === "pending";
-
   const selectedAsset =
     store.encounterData?.mediaAssets?.[store.selectedImageIndex];
-  const selectedAssetDetectionStatus = selectedAsset?.detectionStatus;
   const isDetectionInProgress =
-    !!selectedAsset && !isTerminalDetectionStatus(selectedAssetDetectionStatus);
+    !!selectedAsset &&
+    isAssetActivelyAwaitingDetection(selectedAsset, store.encounterData);
 
   const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
   const handleMove = (e) => {
@@ -709,7 +704,7 @@ const ImageCard = observer(({ store = {} }) => {
               onClick={async () => {
                 if (store.matchResultClickable) {
                   const taskId = currentAnnotation?.iaTaskId;
-                  const url = `/iaResults.jsp?taskId=${encodeURIComponent(taskId)}`;
+                  const url = `/react/match-results?taskId=${encodeURIComponent(taskId)}`;
                   window.open(url, "_blank", "noopener,noreferrer");
                 } else if (
                   clickedAnnotation &&
@@ -747,7 +742,7 @@ const ImageCard = observer(({ store = {} }) => {
                     identActive &&
                     (detectionComplete || identificationStatus)
                   ) {
-                    const url = `/iaResults.jsp?taskId=${encodeURIComponent(selectedAnnotation.iaTaskId)}`;
+                    const url = `/react/match-results?taskId=${encodeURIComponent(selectedAnnotation.iaTaskId)}`;
                     window.open(url, "_blank", "noopener,noreferrer");
                   } else {
                     alert("No match results available for this annotation.");

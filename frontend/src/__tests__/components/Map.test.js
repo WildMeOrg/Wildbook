@@ -1,9 +1,9 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import MapComponent from "../../components/Map";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 
-jest.mock("../../models/useGetSiteSettings", () => jest.fn());
+jest.mock("../../SiteSettingsContext", () => ({ useSiteSettings: jest.fn() }));
 
 jest.mock("react-intl", () => {
   const OriginalModule = jest.requireActual("react-intl");
@@ -31,7 +31,11 @@ describe("MapComponent", () => {
   });
 
   test("renders loading state when no googleMapsKey is present", () => {
-    useGetSiteSettings.mockReturnValue({ data: {} });
+    useSiteSettings.mockReturnValue({
+      data: {},
+      isLoading: false,
+      error: null,
+    });
 
     render(<MapComponent setBounds={jest.fn()} />);
 
@@ -39,14 +43,22 @@ describe("MapComponent", () => {
   });
 
   test("renders the Draw button", () => {
-    useGetSiteSettings.mockReturnValue({ data: {} });
+    useSiteSettings.mockReturnValue({
+      data: {},
+      isLoading: false,
+      error: null,
+    });
 
     render(<MapComponent setBounds={jest.fn()} />);
     expect(screen.getByRole("button")).toBeInTheDocument();
   });
 
   test("toggles button text between DRAW and CANCEL", () => {
-    useGetSiteSettings.mockReturnValue({ data: {} });
+    useSiteSettings.mockReturnValue({
+      data: {},
+      isLoading: false,
+      error: null,
+    });
 
     render(<MapComponent setBounds={jest.fn()} />);
     const button = screen.getByRole("button");
@@ -63,7 +75,11 @@ describe("MapComponent", () => {
   test("calls setBounds and setTempBounds when drawing is toggled", () => {
     const setBoundsMock = jest.fn();
     const setTempBoundsMock = jest.fn();
-    useGetSiteSettings.mockReturnValue({ data: {} });
+    useSiteSettings.mockReturnValue({
+      data: {},
+      isLoading: false,
+      error: null,
+    });
 
     render(
       <MapComponent

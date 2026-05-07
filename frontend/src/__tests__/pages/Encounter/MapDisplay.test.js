@@ -1,19 +1,14 @@
 import React from "react";
 import { render, waitFor } from "@testing-library/react";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
 jest.mock("mobx-react-lite", () => ({
   observer: (Comp) => Comp,
 }));
 
-jest.mock("../../../models/useGetSiteSettings", () => ({
+jest.mock("../../../SiteSettingsContext", () => ({
   __esModule: true,
-  default: () => ({
-    data: {
-      googleMapsKey: "FAKE_KEY",
-      mapCenterLat: 10,
-      mapCenterLon: 20,
-    },
-  }),
+  useSiteSettings: jest.fn(),
 }));
 
 jest.mock("@googlemaps/js-api-loader", () => {
@@ -30,6 +25,15 @@ import { MapDisplay } from "../../../pages/Encounter/MapDisplay";
 describe("MapDisplay", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useSiteSettings.mockReturnValue({
+      data: {
+        googleMapsKey: "FAKE_KEY",
+        mapCenterLat: 10,
+        mapCenterLon: 20,
+      },
+      isLoading: false,
+      error: null,
+    });
 
     global.window.google = {
       maps: {

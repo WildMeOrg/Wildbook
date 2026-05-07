@@ -2521,6 +2521,21 @@ public class Encounter extends Base implements java.io.Serializable {
         return myShepherd.getProjectsForEncounter(this);
     }
 
+    public boolean isInProjects(Set<String> projectIds, Shepherd myShepherd) {
+        // if we dont have any ids, here we are going to consider it false
+        // NOTE: opposite logic in MatchResultProspect.isInProject()
+        if (Util.collectionIsEmptyOrNull(projectIds)) return false;
+        String sql = "select count(*) from \"PROJECT_ENCOUNTERS\" where \"CATALOGNUMBER_EID\" = '" +
+            this.getId() + "' and \"ID_OID\" in ('" + String.join("', '", projectIds) + "')";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        if (!it.hasNext()) return false;
+        Long count = (Long)it.next();
+        q.closeAll();
+        return (count > 0);
+    }
+
     public void addTissueSample(TissueSample dce) {
         if (tissueSamples == null) { tissueSamples = new ArrayList<TissueSample>(); }
         if (!tissueSamples.contains(dce)) { tissueSamples.add(dce); }
@@ -4871,6 +4886,9 @@ public class Encounter extends Base implements java.io.Serializable {
                                 rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
                                     "annotations").getJSONObject(j).put("identificationStatus",
                                     ann.getIdentificationStatus());
+                                rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                    "annotations").getJSONObject(j).put("embeddingCounts",
+                                    new org.json.JSONObject(ann.getEmbeddingCounts()));
                                 // annTasks are in chron order so most recent will be at end
                                 List<Task> annTasks = ann.getRootIATasks(myShepherd);
                                 int ntasks = Util.collectionSize(annTasks);

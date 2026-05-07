@@ -403,6 +403,7 @@ public class ImportTask implements java.io.Serializable {
                 // this records only most recent task statuses like: numLatestTask_complete
                 if (latestTask) {
                     String latestStatus = "numLatestTask_" + atask.getStatus(myShepherd);
+                    System.out.println("[DEBUG] (ImportTask " + this.getId() + ") latestStatus for Task " + atask.getId() + ": " + latestStatus);
                     if (sa.has(latestStatus)) {
                         sa.put(latestStatus, sa.optInt(latestStatus, 0) + 1);
                     } else {

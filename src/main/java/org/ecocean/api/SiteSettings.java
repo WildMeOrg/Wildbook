@@ -60,7 +60,8 @@ public class SiteSettings extends ApiBase {
             settings.put("siteDescription", CommonConfiguration.getHTMLDescription(context));
             settings.put("siteKeywords", CommonConfiguration.getHTMLKeywords(context));
             settings.put("siteAuthor", CommonConfiguration.getHTMLAuthor(context));
-            settings.put("spotMappingEnabled", CommonConfiguration.useSpotPatternRecognition(context));
+            settings.put("spotMappingEnabled",
+                CommonConfiguration.useSpotPatternRecognition(context));
             settings.put("locationData", LocationID.getLocationIDStructure());
 
             settings.put("mapCenterLat", CommonConfiguration.getCenterLat(context));
@@ -129,14 +130,22 @@ public class SiteSettings extends ApiBase {
                 try {
                     for (String iaClass : iaConfig.getValidIAClasses(tx)) {
                         for (JSONObject idOpt : iaConfig.identOpts(tx, iaClass)) {
-                            String key = idOpt.toString();
+                            // make a copy so we can safely modify it
+                            JSONObject idOptCopy = new JSONObject(idOpt.toString());
+                            idOptCopy.remove("api_endpoint"); // dont want this shown
+                            // NOTE: JSONObject.toString() in theory might produce different strings
+                            // for the same object (key ordering different); but in practice seems to
+                            // be consistent within these iterations
+                            String key = idOptCopy.toString();
                             if (identConfigs.containsKey(key)) {
+                                // TODO this will append *duplicate* iaClass values, which is not currently an error
+                                // but might be nice fix later
                                 identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
                             } else {
                                 JSONArray iacls = new JSONArray();
                                 iacls.put(iaClass);
-                                idOpt.put("_iaClasses", iacls);
-                                identConfigs.put(key, idOpt);
+                                idOptCopy.put("_iaClasses", iacls);
+                                identConfigs.put(key, idOptCopy);
                             }
                         }
                     }
@@ -183,9 +192,10 @@ public class SiteSettings extends ApiBase {
             settings.put("keywordId", kwIdArr);
 
             // we map to a Set here so we keep values unique (remove duplicates: issue 1279)
-            Map<String,Set<String>> allLK = new HashMap<String, Set<String>>();
+            Map<String, Set<String> > allLK = new HashMap<String, Set<String> >();
             for (LabeledKeyword lkw : myShepherd.getAllLabeledKeywords()) {
-                if (!allLK.containsKey(lkw.getLabel())) allLK.put(lkw.getLabel(), new HashSet<String>());
+                if (!allLK.containsKey(lkw.getLabel()))
+                    allLK.put(lkw.getLabel(), new HashSet<String>());
                 allLK.get(lkw.getLabel()).add(lkw.getValue());
             }
             JSONObject lkeyword = new JSONObject();
@@ -266,9 +276,10 @@ public class SiteSettings extends ApiBase {
                 Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncounters",
                     context))
                 );
-                
+
             settings.put("showHowToPhotograph",
-                Util.booleanNotFalse(CommonConfiguration.getProperty("showHowToPhotograph", context))
+                Util.booleanNotFalse(CommonConfiguration.getProperty("showHowToPhotograph",
+                    context))
                 );
 
             Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",
@@ -299,7 +310,11 @@ public class SiteSettings extends ApiBase {
                 ArrayList<Project> projs = myShepherd.getProjectsForUser(currentUser);
                 if (projs != null) {
                     for (Project proj : projs) {
-                        jp.put(proj.getId(), proj.getResearchProjectName());
+                        JSONObject info = new JSONObject();
+                        info.put("id", proj.getId());
+                        info.put("name", proj.getResearchProjectName());
+                        info.put("prefix", proj.getProjectIdPrefix());
+                        jp.put(proj.getId(), info);
                     }
                 }
                 settings.put("projectsForUser", jp);

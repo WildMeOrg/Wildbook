@@ -145,7 +145,9 @@ describe("IdentifySectionEdit", () => {
     await props.loadOptions("  In-42  ");
 
     expect(store.searchIndividualsByNameAndId).toHaveBeenCalledTimes(1);
-    expect(store.searchIndividualsByNameAndId).toHaveBeenCalledWith("  In-42  ");
+    expect(store.searchIndividualsByNameAndId).toHaveBeenCalledWith(
+      "  In-42  ",
+    );
   });
 
   test("INDIVIDUAL_ID loadOptions maps search results and sets individual options", async () => {

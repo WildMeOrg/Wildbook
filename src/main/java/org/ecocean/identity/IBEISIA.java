@@ -60,7 +60,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 // date time
 
-
 public class IBEISIA {
     // move this ish to its own class asap!
     private static final Map<String, String[]> speciesMap;
@@ -73,7 +72,9 @@ public class IBEISIA {
 
     public static String STATUS_PENDING = "pending"; // pending review (needs action by user)
     public static String STATUS_COMPLETE = "complete"; // process is done
+    public static String STATUS_COMPLETE_MLSERVICE = "complete-mlservice"; // ml-service is done (e.g. embeddings added)
     public static String STATUS_PROCESSING = "processing"; // off at IA, awaiting results
+    public static String STATUS_PROCESSING_MLSERVICE = "processing-mlservice"; // off at ml-service, awaiting results
     public static String STATUS_INITIATED = "initiated"; // initiated on our side but may or may not be processing on IA side
     public static String STATUS_ERROR = "error";
     public static final String IA_UNKNOWN_NAME = "____";
@@ -240,10 +241,7 @@ public class IBEISIA {
         myShepherd.setAction("IBEISIA.sendIdentify");
         myShepherd.beginDBTransaction();
 
-        // hoisted out of the try below so RestClient.post(...) at the bottom can still see it
-        // after the shepherd has been closed.
         HashMap<String, Object> map = new HashMap<String, Object>();
-        try {
         map.put("callback_url", callbackUrl(baseUrl));
         map.put("jobid", taskId);
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
@@ -289,6 +287,8 @@ public class IBEISIA {
         Util.mark("sendIdentify-2", startTime);
         // Do we have a qaan? We need one, or load a failure response.
         if (qlist.isEmpty()) {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             JSONObject noQueryAnn = new JSONObject();
             noQueryAnn.put("status", new JSONObject().put("message", "rejected"));
             noQueryAnn.put("error", "No query annotation was valid for identification. ");
@@ -335,6 +335,10 @@ public class IBEISIA {
             status.put("error", "Empty target annotation list");
             status.put("emptyTargetAnnotations", true);
             emptyRtn.put("status", status);
+
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+
             return emptyRtn;
         }
         map.put("query_annot_uuid_list", qlist);
@@ -368,11 +372,8 @@ public class IBEISIA {
         System.out.println("qlist.size()=" + qlist.size() + " annnnd qnlist.size()=" +
             qnlist.size() + ". not printing the map about to be POSTed because it's a big'un.");
         // System.out.println(map);
-        } finally {
-            // Always release the DB connection before the WBIA HTTP POST below, even on early
-            // returns and any thrown exception.
-            myShepherd.rollbackAndClose();
-        }
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         Util.mark("identify process pre-post end");
         return RestClient.post(url, hashMapToJSONObject2(map));
     }
@@ -412,7 +413,7 @@ public class IBEISIA {
         JSONArray uuidList = new JSONArray();
 
         for (MediaAsset ma : mas) {
-        	if(ma.getAcmId()!=null)uuidList.put(toFancyUUID(ma.getAcmId()));
+            if (ma.getAcmId() != null) uuidList.put(toFancyUUID(ma.getAcmId()));
         }
         return uuidList;
     }
@@ -721,6 +722,14 @@ public class IBEISIA {
         }
         // we could also do a comparison with when it was started to enable a failure due to timeout
         return null; // if we fall through, it means we are still waiting ......
+    }
+
+    // singular log version
+    public static JSONObject getTaskResultsBasic(String taskID, IdentityServiceLog log) {
+        ArrayList<IdentityServiceLog> one = new ArrayList<IdentityServiceLog>();
+
+        one.add(log);
+        return getTaskResultsBasic(taskID, one);
     }
 
     public static HashMap<String, Object> getTaskResultsAsHashMap(String taskID, String context) {
@@ -1335,6 +1344,7 @@ public class IBEISIA {
     }
 
     public static String getTaskType(ArrayList<IdentityServiceLog> logs) {
+        if (logs == null) return null;
         for (IdentityServiceLog l : logs) {
             JSONObject j = l.getStatusJson();
             if ((j == null) || j.optString("_action").equals("")) continue;
@@ -1381,137 +1391,142 @@ public class IBEISIA {
     public static JSONObject processCallback(String taskID, JSONObject resp, String context,
         String rootDir) {
         logCallback(taskID, resp);
+        boolean fromEmbeddingExtraction = ((resp != null) && resp.optBoolean("embeddingExtraction",
+            false));
         JSONObject rtn = new JSONObject("{\"success\": false}");
         rtn.put("taskId", taskID);
         if (taskID == null) return rtn;
-
-        JSONObject newAnns = null;
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.processCallback");
         myShepherd.beginDBTransaction();
-        try {
-            ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA",
-                myShepherd);
-            rtn.put("_logs", logs);
-            if ((logs == null) || (logs.size() < 1)) return rtn;
-            String type = getTaskType(logs);
-            System.out.println("**** type ---------------> [" + type + "]");
-            if ("detect".equals(type)) {
-                rtn.put("success", true);
-                JSONObject dres = processCallbackDetect(taskID, logs, resp, myShepherd, context,
-                    rootDir);
-                rtn.put("processResult", dres);
-                /*
-                    for detection, we have to check if we have generated any Annotations, which we then pass on to IA.intake() for identification ... BUT
-                 * only after we commit* (below) !! since ident stuff is queue-based
-                 */
-                newAnns = dres.optJSONObject("annotations");
-            } else if ("identify".equals(type)) {
-                rtn.put("success", true);
-                rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, context,
-                    rootDir));
-            } else {
-                rtn.put("error", "unknown task action type " + type);
-            }
-            myShepherd.commitDBTransaction();
-        } finally {
-            // Always run rollbackAndClose: rollback is a no-op once commit has landed, and close
-            // must run on every path (including the early return when logs is empty) so the PM
-            // and its pooled connection are released.
-            myShepherd.rollbackAndClose();
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA",
+            myShepherd);
+        rtn.put("_logs", logs);
+        if (((logs == null) || (logs.size() < 1)) && !fromEmbeddingExtraction) return rtn;
+        JSONObject newAnns = null;
+        String type = getTaskType(logs);
+        System.out.println("**** type ---------------> [" + type + "]");
+        if ("detect".equals(type)) {
+            rtn.put("success", true);
+            JSONObject dres = processCallbackDetect(taskID, logs, resp, myShepherd, context,
+                rootDir);
+            rtn.put("processResult", dres);
+            /*
+                for detection, we have to check if we have generated any Annotations, which we then pass on to IA.intake() for identification ... BUT
+             * only after we commit* (below) !! since ident stuff is queue-based
+             */
+            System.out.println(
+                ">>>>>>>>>>>>>>>>>>>>>>>>>> SHORT-CIRCUIT of detection-to-identification <<<<<<<<<<<<<<<<<<<<<<<<");
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " +
+                dres.optJSONObject("annotations"));
+/*
+            newAnns (left commented out below) remains null here, which caused claude/codex code review to fear that non-embedding pipelne was broken
+            and ident would not be picked up without embeddings being extracted. however, testing proves that in the event IA.json is entirely
+            missing mlservice references, the pipeline behaves as expected, since the extraction loop (see `embedTask` in IBEISIA.java) basically
+            does nothing, yet continues on with pipeline to identification. this can be seen when testing that the `if (fromEmbeddingExtraction)` code
+            a few lines below here still has output (in mlservice-free IA.json) such as:
+            [DEBUG] IBEISIA.processCallback() [embeddingExtraction] taskID=42816234-5ce7-4fcf-bb76-978727346a71; resp=>{"annotationMap":{"403191":["a7a44a49-edda-4fef-aac0-e69730420745"]},"embeddingExtraction":true}
+ */
+            /* newAnns = dres.optJSONObject("annotations"); */
+        } else if ("identify".equals(type)) {
+            rtn.put("success", true);
+            rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, context, rootDir));
+        } else if (fromEmbeddingExtraction) {
+            System.out.println("[DEBUG] IBEISIA.processCallback() [embeddingExtraction] taskID=" +
+                taskID + "; resp=>" + resp);
+            newAnns = resp.optJSONObject("annotationMap");
+        } else {
+            rtn.put("error", "unknown task action type " + type);
         }
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
 
         boolean skipIdent = Util.booleanNotFalse(IA.getProperty(context,
             "IBEISIADisableIdentification"));
         // now we pick up IA.intake(anns) from detection above (if applicable)
         // should we cluster these based on MediaAsset instead? send them in groups to IA.intake()?
         if (!skipIdent && (newAnns != null)) {
-            Shepherd myShepherd2 = null;
-            try {
-                myShepherd2 = new Shepherd(context);
-                myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
-                myShepherd2.beginDBTransaction();
-                List<Annotation> needIdentifying = new ArrayList<Annotation>();
-                Task parentTask = Task.load(taskID, myShepherd2);
-                // Task parametersSkipIdent looks at the parent task.. It works for non-ID Wildbooks. If you are sending multiple annotations from a
-                // single image, and some need
-                // ID, some don't, you need to check downstream.
-                if (taskParametersSkipIdent(parentTask)) {
-                    System.out.println("NOTICE: IBEISIA.processCallback() " + parentTask +
-                        " skipped identification");
-                } else {
-                    Iterator<?> keys = newAnns.keys();
-                    while (keys.hasNext()) {
-                        String maId = (String)keys.next();
-                        System.out.println("maId -> " + maId);
-                        JSONArray annIds = newAnns.optJSONArray(maId);
-                        if (annIds == null) continue;
-                        System.out.println("     ---> " + annIds);
-                        for (int i = 0; i < annIds.length(); i++) {
-                            String aid = annIds.optString(i, null);
-                            if (aid == null) continue;
-                            Annotation ann = ((Annotation)(myShepherd2.getPM().getObjectById(
-                                myShepherd2.getPM().newObjectIdInstance(Annotation.class, aid),
-                                true)));
-                            if (ann != null && IBEISIA.validForIdentification(ann,
-                                myShepherd2.getContext())) {
-                                needIdentifying.add(ann);
-                            }
+            List<Annotation> needIdentifying = new ArrayList<Annotation>();
+            Shepherd myShepherd2 = new Shepherd(context);
+            myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
+            myShepherd2.beginDBTransaction();
+            Task parentTask = Task.load(taskID, myShepherd2);
+            // Task parametersSkipIdent looks at the parent task.. It works for non-ID Wildbooks. If you are sending multiple annotations from a
+            // single image, and some need
+            // ID, some don't, you need to check downstream.
+            if (taskParametersSkipIdent(parentTask)) {
+                System.out.println("NOTICE: IBEISIA.processCallback() " + parentTask +
+                    " skipped identification");
+            } else {
+                Iterator<?> keys = newAnns.keys();
+                while (keys.hasNext()) {
+                    String maId = (String)keys.next();
+                    System.out.println("maId -> " + maId);
+                    JSONArray annIds = newAnns.optJSONArray(maId);
+                    if (annIds == null) continue;
+                    System.out.println("     ---> " + annIds);
+                    for (int i = 0; i < annIds.length(); i++) {
+                        String aid = annIds.optString(i, null);
+                        if (aid == null) continue;
+                        Annotation ann = ((Annotation)(myShepherd2.getPM().getObjectById(
+                            myShepherd2.getPM().newObjectIdInstance(Annotation.class, aid), true)));
+                        if (ann != null && IBEISIA.validForIdentification(ann,
+                            myShepherd2.getContext())) {
+                            needIdentifying.add(ann);
                         }
                     }
                 }
-                if (needIdentifying.size() > 0) {
-                    // split the results into encounters
-                    HashMap<String, ArrayList<Annotation> > needIdentifyingMap = new HashMap<String,
-                        ArrayList<Annotation> >();
-                    for (Annotation annot : needIdentifying) {
-                        Encounter enc = annot.findEncounter(myShepherd2);
-                        if (enc != null) {
-                            if (needIdentifyingMap.containsKey(enc.getCatalogNumber())) {
-                                ArrayList<Annotation> annots = needIdentifyingMap.get(
-                                    enc.getCatalogNumber());
-                                annots.add(annot);
-                                needIdentifyingMap.put(enc.getCatalogNumber(), annots);
-                            } else {
-                                ArrayList<Annotation> annots = new ArrayList<Annotation>();
-                                annots.add(annot);
-                                needIdentifyingMap.put(enc.getCatalogNumber(), annots);
-                            }
-                        }
-                    }
-                    // send to ID by Encounter
-                    for (String encUUID : needIdentifyingMap.keySet()) {
-                        ArrayList<Annotation> annots = needIdentifyingMap.get(encUUID);
-                        JSONObject taskParameters = new JSONObject();
-                        JSONObject mf = new JSONObject();
-                        Encounter enc = myShepherd2.getEncounter(encUUID);
-                        if (enc != null && enc.getLocationID() != null) {
-                            ArrayList<String> locationIDs = new ArrayList<String>();
-                            List<String> matchTheseLocationIDs =
-                                LocationID.getIDForParentAndChildren(enc.getLocationID(),
-                                locationIDs, null);
-                            mf.put("locationIds", matchTheseLocationIDs);
-                        }
-                        taskParameters.put("matchingSetFilter", mf);
-                        Task subParentTask = new Task();
-                        subParentTask.setParameters(taskParameters);
-                        myShepherd2.storeNewTask(subParentTask);
-                        myShepherd2.updateDBTransaction();
-
-                        Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask,
-                            false);
-                        myShepherd2.storeNewTask(childTask);
-                        myShepherd2.updateDBTransaction();
-                        subParentTask.addChild(childTask);
-                        myShepherd2.updateDBTransaction();
-                    }
-                } else {
-                    System.out.println(
-                        "[INFO]: No annotations were suitable for identification. Check resulting identification class(es).");
-                }
-            } finally {
-                if (myShepherd2 != null) myShepherd2.rollbackAndClose();
             }
+            if (needIdentifying.size() > 0) {
+                // split the results into encounters
+                HashMap<String, ArrayList<Annotation> > needIdentifyingMap = new HashMap<String,
+                    ArrayList<Annotation> >();
+                for (Annotation annot : needIdentifying) {
+                    Encounter enc = annot.findEncounter(myShepherd2);
+                    if (enc != null) {
+                        if (needIdentifyingMap.containsKey(enc.getCatalogNumber())) {
+                            ArrayList<Annotation> annots = needIdentifyingMap.get(
+                                enc.getCatalogNumber());
+                            annots.add(annot);
+                            needIdentifyingMap.put(enc.getCatalogNumber(), annots);
+                        } else {
+                            ArrayList<Annotation> annots = new ArrayList<Annotation>();
+                            annots.add(annot);
+                            needIdentifyingMap.put(enc.getCatalogNumber(), annots);
+                        }
+                    }
+                }
+                // send to ID by Encounter
+                for (String encUUID : needIdentifyingMap.keySet()) {
+                    ArrayList<Annotation> annots = needIdentifyingMap.get(encUUID);
+                    JSONObject taskParameters = new JSONObject();
+                    JSONObject mf = new JSONObject();
+                    Encounter enc = myShepherd2.getEncounter(encUUID);
+                    if (enc != null && enc.getLocationID() != null) {
+                        ArrayList<String> locationIDs = new ArrayList<String>();
+                        List<String> matchTheseLocationIDs = LocationID.getIDForParentAndChildren(
+                            enc.getLocationID(), locationIDs, null);
+                        mf.put("locationIds", matchTheseLocationIDs);
+                    }
+                    taskParameters.put("matchingSetFilter", mf);
+                    Task subParentTask = new Task();
+                    subParentTask.setParameters(taskParameters);
+                    myShepherd2.storeNewTask(subParentTask);
+                    myShepherd2.updateDBTransaction();
+
+                    Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask,
+                        false);
+                    myShepherd2.storeNewTask(childTask);
+                    myShepherd2.updateDBTransaction();
+                    subParentTask.addChild(childTask);
+                    myShepherd2.updateDBTransaction();
+                }
+            } else {
+                System.out.println(
+                    "[INFO]: No annotations were suitable for identification. Check resulting identification class(es).");
+                myShepherd2.rollbackDBTransaction();
+            }
+            myShepherd2.rollbackAndClose();
         }
         return rtn;
     }
@@ -1578,7 +1593,8 @@ public class IBEISIA {
                     MediaAsset asset = null;
                     for (MediaAsset ma : mas) {
                         if (ma.getAcmId() == null) continue; // was likely an asset rejected (e.g. video)
-                        if (ma.getAcmId().equals(iuuid) && !alreadyDetected.contains(ma.getIdInt())) {
+                        if (ma.getAcmId().equals(iuuid) &&
+                            !alreadyDetected.contains(ma.getIdInt())) {
                             alreadyDetected.add(ma.getIdInt());
                             asset = ma;
                             break;
@@ -1687,8 +1703,27 @@ public class IBEISIA {
                     "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
                 task.setStatus("completed");
-                task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                task.setCompletionDateInMilliseconds();
+                // first we set the state here (before the updateDBTransaction)
+                for (Annotation ann : allAnns) {
+                    ann.setIdentificationStatus(STATUS_PROCESSING_MLSERVICE);
+                }
                 myShepherd.updateDBTransaction();
+                // this will queue up annots to have embeddings extracted and set on annot
+                if (allAnns.size() > 0) {
+                    Task embedTask = new Task(task); // this should copy task's parameters
+                    JSONObject params = embedTask.getParameters(); // but we need to modify them
+                    params.remove("ibeis.detection");
+                    params.put("embeddingExtraction", true);
+                    embedTask.setParameters(params);
+                    embedTask.setObjectAnnotations(allAnns);
+                    embedTask.setStatus("initiated");
+                    myShepherd.getPM().makePersistent(embedTask);
+                    myShepherd.updateDBTransaction();
+                    for (Annotation ann : allAnns) {
+                        ann.queueForEmbeddingExtraction(embedTask, myShepherd);
+                    }
+                }
                 if (amap.length() > 0) rtn.put("annotations", amap); // needed to kick off ident jobs with return value
 
                 JSONObject jlog = new JSONObject();
@@ -1770,6 +1805,8 @@ public class IBEISIA {
             // set "error" on Task
             Task task = myShepherd.getTask(taskID);
             if (task != null) {
+                task.setStatusDetailsAddError("INVALID",
+                    "could not parse inference_dict from results");
                 task.setStatus("error");
             }
             myShepherd.rollbackDBTransaction();
@@ -1840,7 +1877,19 @@ public class IBEISIA {
         Task task = myShepherd.getTask(taskID);
         if (task != null) {
             task.setStatus("completed");
-            task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+            task.setCompletionDateInMilliseconds();
+            try {
+                MatchResult mr = new MatchResult(task, j, myShepherd);
+                System.out.println("processCallbackIdentify() created " + mr + " on " + task);
+                myShepherd.getPM().makePersistent(mr);
+                task.setStatusDetailsAddLog("Created " + mr + " upon task completion");
+            } catch (IOException ex) {
+                System.out.println("processCallbackIdentify() failed to create MatchResult on " +
+                    task + ": " + ex);
+                ex.printStackTrace();
+                task.setStatusDetailsAddError("UNKNOWN",
+                    "Creation of MatchResult upon task completion failed due to: " + ex);
+            }
         }
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
@@ -2027,9 +2076,6 @@ public class IBEISIA {
             System.out.println("INFO: setting iaBaseURL=" + iaBaseURL);
         }
         String ustr = iaBaseURL;
-
-        System.out.println("!!!ustr: " + iaBaseURL);
-        System.out.println("!!!urlSuffix: " + urlSuffix);
         if (urlSuffix != null) {
             if (urlSuffix.indexOf("/") == 0) urlSuffix = urlSuffix.substring(1); // get rid of leading /
             ustr += urlSuffix;

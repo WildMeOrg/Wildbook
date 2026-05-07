@@ -13,14 +13,14 @@ import { observer, useLocalObservable } from "mobx-react-lite";
 import { ReportEncounterStore } from "./ReportEncounterStore";
 import { ReportEncounterSpeciesSection } from "./SpeciesSection";
 import { useNavigate } from "react-router-dom";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import "./recaptcha.css";
 
 const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const Navigate = useNavigate();
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   const procaptchaSiteKey = data?.procaptchaSiteKey;
   const store = useLocalObservable(() => new ReportEncounterStore());
   const [missingField, setMissingField] = useState(false);

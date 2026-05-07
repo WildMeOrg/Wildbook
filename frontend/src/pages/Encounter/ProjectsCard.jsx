@@ -15,7 +15,7 @@ export const ProjectsCard = observer(({ store = {} }) => {
   const allProjectsRaw = store.siteSettingsData?.projectsForUser || {};
   const allProjects = Object.entries(allProjectsRaw).map(([key, value]) => ({
     id: key,
-    name: value,
+    name: value?.name,
   }));
   const encounterProjects = store.encounterData?.projects || [];
   const currentEncounterProjects = allProjects.filter((project) =>
