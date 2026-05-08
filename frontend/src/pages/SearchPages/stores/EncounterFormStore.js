@@ -24,6 +24,8 @@ class EncounterFormStore {
   _pageSize = 20;
   _start = 0;
   _assetOffset = 0;
+  _galleryExhausted = false;
+  _galleryLoading = false;
 
   _showAnnotations = true;
 
@@ -111,6 +113,9 @@ class EncounterFormStore {
     this.setCurrentPageItems([]);
     this.setStart(0);
     this.setAssetOffset(0);
+    this.setLoadingAll(false);
+    this.setGalleryExhausted(false);
+    this.setGalleryLoading(false);
     this.clearPreviousPageItems();
     this.setCurrentPage?.(0);
   });
@@ -137,6 +142,20 @@ class EncounterFormStore {
   }
   setAssetOffset(offset) {
     this._assetOffset = offset;
+  }
+
+  get galleryExhausted() {
+    return this._galleryExhausted;
+  }
+  setGalleryExhausted(value) {
+    this._galleryExhausted = value;
+  }
+
+  get galleryLoading() {
+    return this._galleryLoading;
+  }
+  setGalleryLoading(value) {
+    this._galleryLoading = value;
   }
 
   get mediaAssetsSearchQuery() {
@@ -174,11 +193,22 @@ class EncounterFormStore {
   get previousPageItems() {
     return this._previousPageItems;
   }
-  setPreviousPageItems(index, data) {
+  setPreviousPageItems(
+    index,
+    data,
+    start = this._start,
+    assetOffset = this._assetOffset,
+    galleryExhausted = this._galleryExhausted,
+  ) {
     if (index < 0) {
       return;
     }
-    this._previousPageItems[index] = Array.isArray(data) ? data.slice() : [];
+    this._previousPageItems[index] = {
+      items: Array.isArray(data) ? data.slice() : [],
+      start,
+      assetOffset,
+      galleryExhausted,
+    };
   }
 
   clearPreviousPageItems() {

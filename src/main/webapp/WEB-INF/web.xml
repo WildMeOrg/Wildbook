@@ -424,6 +424,10 @@
 		<servlet-name>ApiBaseObject</servlet-name>
 		<url-pattern>/api/v3/encounters/*</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ApiGenericObject</servlet-name>
+		<url-pattern>/api/v3/tasks/*</url-pattern>
+	</servlet-mapping>
 
 	<servlet-mapping>
 		<servlet-name>ApiBaseObject</servlet-name>
@@ -448,6 +452,16 @@
 	<servlet-mapping>
 		<servlet-name>ApiGenericObject</servlet-name>
 		<url-pattern>/api/v3/media-assets/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>MarkedIndividualInfo</servlet-name>
+		<servlet-class>org.ecocean.api.MarkedIndividualInfo</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>MarkedIndividualInfo</servlet-name>
+		<url-pattern>/api/v3/individuals/info/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>

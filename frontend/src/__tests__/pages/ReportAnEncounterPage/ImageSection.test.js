@@ -4,9 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { ImageSection } from "../../../pages/ReportsAndManagamentPages/ImageSection";
 import { ReportEncounterStore } from "../../../pages/ReportsAndManagamentPages/ReportEncounterStore";
 import { renderWithProviders } from "../../../utils/utils";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
-jest.mock("../../../models/useGetSiteSettings", () => () => ({
-  data: { maximumMediaSizeMegabytes: 40 },
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: jest.fn(),
 }));
 
 jest.mock(
@@ -37,6 +38,14 @@ const renderComponent = () => {
 };
 
 describe("ImageSection Component", () => {
+  beforeEach(() => {
+    useSiteSettings.mockReturnValue({
+      data: { maximumMediaSizeMegabytes: 40 },
+      isLoading: false,
+      error: null,
+    });
+  });
+
   test("renders the component correctly", () => {
     renderComponent();
     expect(screen.getByText(/PHOTOS_SECTION/i)).toBeInTheDocument();

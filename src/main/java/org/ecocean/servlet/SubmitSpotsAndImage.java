@@ -108,7 +108,7 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        // crMa.addLabel("CR");
 	        crMa.addKeyword(crKeyword);
 	        crMa.updateMinimalMetadata();
-	        crMa.setDetectionStatus("complete");
+	        crMa.setDetectionStatus(IBEISIA.STATUS_COMPLETE);
 	        System.out.println("    + updated made media asset");
 	        MediaAssetFactory.save(crMa, myShepherd);
 	        System.out.println("    + saved media asset " + crMa.toString());

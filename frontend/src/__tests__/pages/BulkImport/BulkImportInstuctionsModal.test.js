@@ -1,10 +1,11 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import BulkImportInstructionsModal from "../../../pages/BulkImport/BulkImportInstructionsModal";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
-jest.mock("../../../models/useGetSiteSettings", () => ({
+jest.mock("../../../SiteSettingsContext", () => ({
   __esModule: true,
-  default: () => ({ data: null }),
+  useSiteSettings: jest.fn(),
 }));
 
 jest.mock("react-intl", () => ({
@@ -22,6 +23,11 @@ describe("BulkImportInstructionsModal (without changing the component)", () => {
       showInstructions: true,
       setShowInstructions: jest.fn(),
     };
+    useSiteSettings.mockReturnValue({
+      data: null,
+      isLoading: false,
+      error: null,
+    });
   });
 
   it("renders the Wildbook docs link in the NEED_HELP_DOCS step", () => {

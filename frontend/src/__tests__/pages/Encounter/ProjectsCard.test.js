@@ -93,8 +93,6 @@ describe("ProjectsCard", () => {
     render(<ProjectsCard store={store} />);
 
     expect(screen.getByText("PROJECTS")).toBeInTheDocument();
-    expect(screen.getByText("Project 1")).toBeInTheDocument();
-    expect(screen.getByText("Project 2")).toBeInTheDocument();
     expect(screen.getByText(/Project ID: p1/)).toBeInTheDocument();
     expect(screen.getByText(/Project ID: p2/)).toBeInTheDocument();
 

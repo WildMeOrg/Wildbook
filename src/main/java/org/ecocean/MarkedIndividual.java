@@ -2529,6 +2529,16 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return String.format("%s%0" + zeroPadding + "d", prefix, val.add(new BigInteger("1")));
     }
 
+    // convenience method which uses the above prefix stuff
+    public static String nextNameByLocationId(String locationId)
+    throws IllegalArgumentException {
+        if (!LocationID.isValidLocationID(locationId)) throw new IllegalArgumentException("invalid location id: " + locationId);
+        String locPrefix = LocationID.getPrefixForLocationID(locationId, null);
+        if (Util.stringIsEmptyOrNull(locPrefix)) throw new IllegalArgumentException("no prefix value for locationId: " + locationId);
+        int locPad = LocationID.getPrefixDigitPaddingForLocationID(locationId, null);
+        return nextNameByPrefix(locPrefix, locPad);
+    }
+
     public static List<String> findNames(String regex) {
         List<String> names = new ArrayList<String>();
 

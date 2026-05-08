@@ -1,9 +1,10 @@
 /* eslint-disable react/display-name */
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { IntlProvider } from "react-intl";
 import axios from "axios";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
 jest.mock("react", () => jest.requireActual("react"));
 
@@ -16,12 +17,9 @@ jest.mock("axios", () => {
   return { __esModule: true, default: api, ...api };
 });
 
-jest.mock("../../../models/useGetSiteSettings", () => ({
+jest.mock("../../../SiteSettingsContext", () => ({
   __esModule: true,
-  default: () => ({
-    data: { encounterState: ["unidentifiable", "identified", "rejected"] },
-    loading: false,
-  }),
+  useSiteSettings: jest.fn(),
 }));
 
 jest.mock("../../../components/icons/DateIcon", () => () => (
@@ -176,6 +174,11 @@ jest.mock("../../../pages/Encounter/stores", () => {
       this.setEncounterData = jest.fn((data) => {
         this.encounterData = data;
       });
+      this.setMediaAssets = jest.fn((assets) => {
+        if (this.encounterData) {
+          this.encounterData.mediaAssets = assets;
+        }
+      });
       this.refreshEncounterData = makeFn();
 
       this.access = preset.access ?? "write";
@@ -242,8 +245,18 @@ const renderEncounter = () => {
   );
 };
 
+// Flush all pending promises / React state updates (works with fake timers)
+const flushPromises = async () => {
+  await act(async () => {});
+};
+
 describe("Encounter page – stable behavior tests", () => {
   beforeEach(() => {
+    useSiteSettings.mockReturnValue({
+      data: { encounterState: ["unidentifiable", "identified", "rejected"] },
+      isLoading: false,
+      error: null,
+    });
     jest.useRealTimers();
     global.__MOCK_STORE_PRESET__ = undefined;
     global.__LAST_ENCOUNTER_STORE__ = undefined;
@@ -276,9 +289,9 @@ describe("Encounter page – stable behavior tests", () => {
     const user = userEvent.setup();
     await user.click(await screen.findByTestId("pill-select-identified"));
 
-    expect(global.__LAST_ENCOUNTER_STORE__.changeEncounterState).toHaveBeenCalledWith(
-      "identified",
-    );
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.changeEncounterState,
+    ).toHaveBeenCalledWith("identified");
   });
 
   test("clicking contact/history icons opens modals via store setters", async () => {
@@ -320,20 +333,246 @@ describe("Encounter page – stable behavior tests", () => {
       "date",
       "E-400",
     );
-    expect(global.__LAST_ENCOUNTER_STORE__.setEditDateCard).toHaveBeenCalledWith(false);
-    expect(global.__LAST_ENCOUNTER_STORE__.refreshEncounterData).toHaveBeenCalled();
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.setEditDateCard,
+    ).toHaveBeenCalledWith(false);
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.refreshEncounterData,
+    ).toHaveBeenCalled();
 
     await user.click(screen.getByTestId("btn-cancel-DATE"));
 
-    expect(global.__LAST_ENCOUNTER_STORE__.resetSectionDraft).toHaveBeenCalledWith("date");
-    expect(global.__LAST_ENCOUNTER_STORE__.setEditDateCard).toHaveBeenCalledWith(false);
-    expect(global.__LAST_ENCOUNTER_STORE__.errors.setFieldError).toHaveBeenCalledWith(
-      "date",
-      "date",
-      null,
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.resetSectionDraft,
+    ).toHaveBeenCalledWith("date");
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.setEditDateCard,
+    ).toHaveBeenCalledWith(false);
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.errors.setFieldError,
+    ).toHaveBeenCalledWith("date", "date", null);
+    expect(
+      global.__LAST_ENCOUNTER_STORE__.errors.clearSectionErrors,
+    ).toHaveBeenCalledWith("date");
+  });
+});
+
+describe("Encounter page – polling behavior", () => {
+  const renderWithResult = () => {
+    let Encounter;
+    jest.isolateModules(() => {
+      Encounter = require("../../../pages/Encounter/Encounter").default;
+    });
+    return render(
+      <IntlProvider locale="en" messages={{}}>
+        <Encounter />
+      </IntlProvider>,
     );
-    expect(global.__LAST_ENCOUNTER_STORE__.errors.clearSectionErrors).toHaveBeenCalledWith(
-      "date",
-    );
+  };
+
+  beforeEach(() => {
+    global.__MOCK_STORE_PRESET__ = undefined;
+    global.__LAST_ENCOUNTER_STORE__ = undefined;
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test("no polling when mediaAssets is empty", async () => {
+    setUrl("E-POLL-1");
+    axios.get.mockResolvedValue({ data: { id: "E-POLL-1", mediaAssets: [] } });
+
+    renderWithResult();
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+
+    act(() => jest.advanceTimersByTime(3001));
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+  });
+
+  test("no polling when all assets have terminal detectionStatus 'complete'", async () => {
+    setUrl("E-POLL-2");
+    axios.get.mockResolvedValue({
+      data: { id: "E-POLL-2", mediaAssets: [{ detectionStatus: "complete" }] },
+    });
+
+    renderWithResult();
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+
+    act(() => jest.advanceTimersByTime(3001));
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+  });
+
+  test("no polling when all assets have terminal detectionStatus 'error'", async () => {
+    setUrl("E-POLL-2b");
+    axios.get.mockResolvedValue({
+      data: { id: "E-POLL-2b", mediaAssets: [{ detectionStatus: "error" }] },
+    });
+
+    renderWithResult();
+    await flushPromises();
+
+    act(() => jest.advanceTimersByTime(3001));
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+  });
+
+  test("polling is scheduled when an asset has a non-terminal detectionStatus", async () => {
+    setUrl("E-POLL-3");
+    axios.get
+      .mockResolvedValueOnce({
+        data: { id: "E-POLL-3", mediaAssets: [{ detectionStatus: "running" }] },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          id: "E-POLL-3",
+          mediaAssets: [{ detectionStatus: "complete" }],
+        },
+      });
+
+    renderWithResult();
+    await flushPromises(); // first fetch resolves, setTimeout(fetchEncounter, 3000) is scheduled
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+
+    act(() => jest.advanceTimersByTime(3000)); // fires the scheduled poll
+    await flushPromises(); // second fetch resolves
+
+    expect(axios.get).toHaveBeenCalledTimes(2);
+  });
+
+  test("no polling when an asset has null detectionStatus", async () => {
+    setUrl("E-POLL-3b");
+    axios.get.mockResolvedValue({
+      data: { id: "E-POLL-3b", mediaAssets: [{ detectionStatus: null }] },
+    });
+
+    renderWithResult();
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+
+    act(() => jest.advanceTimersByTime(3001));
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+  });
+
+  test("no polling when an asset has empty string detectionStatus", async () => {
+    setUrl("E-POLL-3c");
+    axios.get.mockResolvedValue({
+      data: { id: "E-POLL-3c", mediaAssets: [{ detectionStatus: "" }] },
+    });
+
+    renderWithResult();
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+
+    act(() => jest.advanceTimersByTime(3001));
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+  });
+
+  test("no polling when an asset has no detectionStatus property", async () => {
+    setUrl("E-POLL-3d");
+    axios.get.mockResolvedValue({
+      data: { id: "E-POLL-3d", mediaAssets: [{}] },
+    });
+
+    renderWithResult();
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+
+    act(() => jest.advanceTimersByTime(3001));
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+  });
+
+  test("polling stops once all assets reach a terminal status", async () => {
+    setUrl("E-POLL-4");
+    axios.get
+      .mockResolvedValueOnce({
+        data: { id: "E-POLL-4", mediaAssets: [{ detectionStatus: "running" }] },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          id: "E-POLL-4",
+          mediaAssets: [{ detectionStatus: "complete" }],
+        },
+      });
+
+    renderWithResult();
+    await flushPromises();
+
+    act(() => jest.advanceTimersByTime(3000));
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(2);
+
+    // Advance again — no third call expected
+    act(() => jest.advanceTimersByTime(3000));
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(2);
+  });
+
+  test("initial fetch calls setEncounterData, poll tick calls setMediaAssets", async () => {
+    setUrl("E-POLL-6");
+    const secondMediaAssets = [{ detectionStatus: "complete" }];
+    axios.get
+      .mockResolvedValueOnce({
+        data: { id: "E-POLL-6", mediaAssets: [{ detectionStatus: "running" }] },
+      })
+      .mockResolvedValueOnce({
+        data: { id: "E-POLL-6", mediaAssets: secondMediaAssets },
+      });
+
+    renderWithResult();
+    await flushPromises();
+
+    const store = global.__LAST_ENCOUNTER_STORE__;
+    expect(store.setEncounterData).toHaveBeenCalledTimes(1);
+    expect(store.setMediaAssets).not.toHaveBeenCalled();
+
+    act(() => jest.advanceTimersByTime(3000));
+    await flushPromises();
+
+    expect(store.setEncounterData).toHaveBeenCalledTimes(1);
+    expect(store.setMediaAssets).toHaveBeenCalledTimes(1);
+    expect(store.setMediaAssets).toHaveBeenCalledWith(secondMediaAssets);
+  });
+
+  test("unmounting before the poll fires cancels the scheduled fetch", async () => {
+    setUrl("E-POLL-5");
+    axios.get.mockResolvedValue({
+      data: { id: "E-POLL-5", mediaAssets: [{ detectionStatus: "running" }] },
+    });
+
+    const { unmount } = renderWithResult();
+    await flushPromises(); // first fetch resolves, setTimeout is scheduled
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+
+    unmount(); // cleanup: cancelled = true, clearTimeout removes the scheduled timer
+
+    act(() => jest.advanceTimersByTime(3000)); // timer was cleared — nothing fires
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
   });
 });

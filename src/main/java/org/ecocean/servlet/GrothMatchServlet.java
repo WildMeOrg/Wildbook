@@ -1,5 +1,8 @@
 package org.ecocean.servlet;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.SuperSpot;
@@ -11,17 +14,19 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Properties;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
- * Asynchronous Modified Groth pattern matching servlet.
- * Creates a ScanTask and queues work items for the grid client
- * (WorkAppletHeadlessEpic) to process, then redirects the user
- * to the results page which polls for completion.
+ * Synchronous Modified Groth pattern matching servlet.
+ * Runs the optimized Groth algorithm against the full matchGraph catalog
+ * and writes results in the XML format expected by scanEndApplet.jsp.
  *
  * Parameters:
  *   encounterNumber - the encounter to match (required)
@@ -29,9 +34,6 @@ import java.util.logging.Logger;
  */
 public class GrothMatchServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(GrothMatchServlet.class.getName());
-
-    // Per-taskID locks to prevent concurrent re-scan races
-    private static final ConcurrentHashMap<String, Object> taskLocks = new ConcurrentHashMap<>();
 
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
@@ -51,7 +53,6 @@ public class GrothMatchServlet extends HttpServlet {
                 "Missing required parameter: encounterNumber");
             return;
         }
-        encNumber = encNumber.trim();
 
         boolean rightScan = "true".equals(request.getParameter("rightSide"));
 
@@ -62,106 +63,226 @@ public class GrothMatchServlet extends HttpServlet {
             return;
         }
 
-        // Validate the encounter exists and has enough spots
+        // Read Groth parameters from config
+        double epsilon, R, Sizelim, maxTriangleRotation, C;
+        try {
+            epsilon = Double.parseDouble(CommonConfiguration.getEpsilon(context));
+            R = Double.parseDouble(CommonConfiguration.getR(context));
+            Sizelim = Double.parseDouble(CommonConfiguration.getSizelim(context));
+            maxTriangleRotation = Double.parseDouble(
+                CommonConfiguration.getMaxTriangleRotation(context));
+            C = Double.parseDouble(CommonConfiguration.getC(context));
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                "Invalid Groth parameters in configuration: " + e.getMessage());
+            return;
+        }
+
+        // Phase 1: Short DB transaction to load query encounter spots
+        SuperSpot[] queryArray;
+        String encDate, encSex, encIndividualID, encLocation, encLocationID, encSize;
+        {
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("GrothMatchServlet.class");
+            myShepherd.beginDBTransaction();
+            try {
+                Encounter enc = myShepherd.getEncounter(encNumber);
+                if (enc == null) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                        "Encounter not found: " + encNumber);
+                    return;
+                }
+
+                ArrayList<SuperSpot> querySpots = rightScan ?
+                    enc.getRightSpots() : enc.getSpots();
+
+                if (querySpots == null || querySpots.size() < 4) {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                        "Need at least 4 spots for matching. Found: " +
+                        (querySpots == null ? 0 : querySpots.size()));
+                    return;
+                }
+
+                queryArray = querySpots.toArray(new SuperSpot[0]);
+                encDate = enc.getDate();
+                encSex = enc.getSex() != null ? enc.getSex() : "unknown";
+                encIndividualID = ServletUtilities.handleNullString(enc.getIndividualID());
+                encSize = enc.getSizeAsDouble() != null ? enc.getSize() + " meters" : "unknown";
+                encLocation = enc.getLocation();
+                encLocationID = enc.getLocationID();
+            } finally {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+            }
+        }
+
+        // Phase 2: CPU-heavy Groth matching — no DB transaction needed
+        long startTime = System.currentTimeMillis();
+
+        ConcurrentHashMap<String, EncounterLite> matchGraph = GridManager.getMatchGraph();
+        List<MatchObject> grothResults = new ArrayList<>();
+
+        for (ConcurrentHashMap.Entry<String, EncounterLite> entry : matchGraph.entrySet()) {
+            if (entry.getKey().equals(encNumber)) continue;
+            EncounterLite el = entry.getValue();
+
+            MatchObject mo = el.getPointsForBestMatch(
+                queryArray, epsilon, R, Sizelim, maxTriangleRotation, C,
+                true, rightScan);
+            mo.encounterNumber = entry.getKey();
+            grothResults.add(mo);
+        }
+
+        MatchObject[] matchArray = grothResults.toArray(new MatchObject[0]);
+        Arrays.sort(matchArray, new MatchComparator());
+
+        long totalTime = System.currentTimeMillis() - startTime;
+        log.info("Groth match for " + encNumber + " completed in " + totalTime +
+            "ms (" + matchGraph.size() + " catalog encounters)");
+
+        // Phase 3: Short DB transaction to build XML with encounter details
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("GrothMatchServlet.class");
         myShepherd.beginDBTransaction();
+
         try {
-            Encounter enc = myShepherd.getEncounter(encNumber);
-            if (enc == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND,
-                    "Encounter not found: " + encNumber);
-                return;
+            Document document = DocumentHelper.createDocument();
+            Element root = document.addElement("matchSet");
+            root.addAttribute("scanDate", (new java.util.Date()).toString());
+            root.addAttribute("R", String.valueOf(R));
+            root.addAttribute("epsilon", String.valueOf(epsilon));
+            root.addAttribute("Sizelim", String.valueOf(Sizelim));
+            root.addAttribute("maxTriangleRotation", String.valueOf(maxTriangleRotation));
+            root.addAttribute("C", String.valueOf(C));
+
+            int numMatches = matchArray.length;
+            if (numMatches > 100) numMatches = 100;
+
+            for (int i = 0; i < numMatches; i++) {
+                try {
+                    MatchObject mo = matchArray[i];
+                    if ((mo.getMatchValue() > 0) &&
+                        ((mo.getMatchValue() * mo.getAdjustedMatchValue()) > 2)) {
+
+                        Element match = root.addElement("match");
+                        match.addAttribute("points",
+                            String.valueOf(mo.getMatchValue()));
+                        match.addAttribute("adjustedpoints",
+                            String.valueOf(mo.getAdjustedMatchValue()));
+                        match.addAttribute("pointBreakdown", mo.getPointBreakdown());
+
+                        String finalscore = String.valueOf(
+                            mo.getMatchValue() * mo.getAdjustedMatchValue());
+                        if (finalscore.length() > 7) {
+                            finalscore = finalscore.substring(0, 6);
+                        }
+                        match.addAttribute("finalscore", finalscore);
+
+                        try {
+                            match.addAttribute("logMStdDev",
+                                String.valueOf(mo.getLogMStdDev()));
+                        } catch (NumberFormatException nfe) {
+                            match.addAttribute("logMStdDev", "<0.01");
+                        }
+                        match.addAttribute("evaluation", mo.getEvaluation());
+
+                        Encounter firstEnc = myShepherd.getEncounter(mo.getEncounterNumber());
+                        if (firstEnc == null) continue;
+
+                        Element enc1 = match.addElement("encounter");
+                        enc1.addAttribute("number", firstEnc.getEncounterNumber());
+                        enc1.addAttribute("date", firstEnc.getDate());
+                        enc1.addAttribute("sex",
+                            firstEnc.getSex() != null ? firstEnc.getSex() : "unknown");
+                        enc1.addAttribute("assignedToShark",
+                            ServletUtilities.handleNullString(firstEnc.getIndividualID()));
+                        if (firstEnc.getSizeAsDouble() != null) {
+                            enc1.addAttribute("size", firstEnc.getSize() + " meters");
+                        }
+                        enc1.addAttribute("location", firstEnc.getLocation());
+                        enc1.addAttribute("locationID", firstEnc.getLocationID());
+
+                        VertexPointMatch[] scores = mo.getScores();
+                        try {
+                            for (VertexPointMatch score : scores) {
+                                Element spot = enc1.addElement("spot");
+                                spot.addAttribute("x", String.valueOf(score.getOldX()));
+                                spot.addAttribute("y", String.valueOf(score.getOldY()));
+                            }
+                        } catch (NullPointerException npe) {}
+
+                        Element enc2 = match.addElement("encounter");
+                        enc2.addAttribute("number", encNumber);
+                        enc2.addAttribute("date", encDate);
+                        enc2.addAttribute("sex", encSex);
+                        enc2.addAttribute("assignedToShark", encIndividualID);
+                        enc2.addAttribute("size", encSize);
+                        enc2.addAttribute("location", encLocation);
+                        enc2.addAttribute("locationID", encLocationID);
+
+                        try {
+                            for (VertexPointMatch score : scores) {
+                                Element spot = enc2.addElement("spot");
+                                spot.addAttribute("x", String.valueOf(score.getNewX()));
+                                spot.addAttribute("y", String.valueOf(score.getNewY()));
+                            }
+                        } catch (NullPointerException npe) {}
+
+                        List<String> keywords = myShepherd.getKeywordsInCommon(
+                            mo.getEncounterNumber(), encNumber);
+                        if (keywords != null && !keywords.isEmpty()) {
+                            Element kws = match.addElement("keywords");
+                            for (String kwName : keywords) {
+                                Element keyword = kws.addElement("keyword");
+                                keyword.addAttribute("name", kwName);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
-            ArrayList<SuperSpot> querySpots = rightScan ?
-                enc.getRightSpots() : enc.getSpots();
+            // Write XML to encounter directory
+            String rootWebappPath = getServletContext().getRealPath("/");
+            File webappsDir = new File(rootWebappPath).getParentFile();
+            File shepherdDataDir = new File(webappsDir,
+                CommonConfiguration.getDataDirectoryName(context));
 
-            if (querySpots == null || querySpots.size() < 4) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                    "Need at least 4 spots for matching. Found: " +
-                    (querySpots == null ? 0 : querySpots.size()));
-                return;
+            String fileAddition = rightScan ? "Right" : "";
+            String thisEncDirString = Encounter.dir(shepherdDataDir, encNumber);
+            File thisEncounterDir = new File(thisEncDirString);
+            if (!thisEncounterDir.exists()) {
+                thisEncounterDir.mkdirs();
             }
 
-            // Verify this encounter is in the matchGraph
-            if (GridManager.getMatchGraphEncounterLiteEntry(encNumber) == null) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                    "Encounter " + encNumber + " is not in the match graph. " +
-                    "Spots may not have been loaded yet.");
-                return;
+            File file = new File(thisEncDirString +
+                "/lastFull" + fileAddition + "Scan.xml");
+            log.info("Writing Groth scan XML to: " + file.getAbsolutePath());
+
+            FileWriter mywriter = new FileWriter(file);
+            org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
+            format.setLineSeparator(System.getProperty("line.separator"));
+            org.dom4j.io.XMLWriter writer = new org.dom4j.io.XMLWriter(mywriter, format);
+            writer.write(document);
+            writer.close();
+
+            // Redirect to scanEndApplet.jsp
+            String redirectUrl = "encounters/scanEndApplet.jsp?number=" + encNumber +
+                "&writeThis=true";
+            if (rightScan) {
+                redirectUrl += "&rightSide=true";
             }
+            response.sendRedirect(redirectUrl);
+
+        } catch (Exception e) {
+            log.severe("Groth match failed: " + e.getMessage());
+            e.printStackTrace();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                "Match failed: " + e.getMessage());
         } finally {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
         }
-
-        // Build the task ID: "scanL" or "scanR" + encounter number
-        String taskID = "scan" + (rightScan ? "R" : "L") + encNumber;
-
-        // Synchronize on per-taskID lock to prevent concurrent re-scan races.
-        // putIfAbsent is atomic; all threads for the same taskID synchronize on
-        // the same lock object. The lock is kept in the map permanently (lightweight).
-        Object lock = taskLocks.computeIfAbsent(taskID, k -> new Object());
-        synchronized (lock) {
-            // Clean up any existing work items for this task in GridManager
-            GridManager gm = GridManagerFactory.getGridManager();
-            gm.removeWorkItemsForTask(taskID);
-            gm.removeCompletedWorkItemsForTask(taskID);
-
-            // Create and persist a new ScanTask
-            Properties props = new Properties();
-            props.setProperty("epsilon", CommonConfiguration.getEpsilon(context));
-            props.setProperty("R", CommonConfiguration.getR(context));
-            props.setProperty("Sizelim", CommonConfiguration.getSizelim(context));
-            props.setProperty("maxTriangleRotation",
-                CommonConfiguration.getMaxTriangleRotation(context));
-            props.setProperty("C", CommonConfiguration.getC(context));
-
-            Shepherd taskShepherd = new Shepherd(context);
-            taskShepherd.setAction("GrothMatchServlet.class");
-            try {
-                // Delete old ScanTask if it exists
-                taskShepherd.beginDBTransaction();
-                ScanTask oldTask = taskShepherd.getScanTask(taskID);
-                if (oldTask != null) {
-                    taskShepherd.getPM().deletePersistent(oldTask);
-                    taskShepherd.commitDBTransaction();
-                    log.info("Deleted old ScanTask: " + taskID);
-                } else {
-                    taskShepherd.rollbackDBTransaction();
-                }
-
-                // Create and store new ScanTask
-                ScanTask scanTask = new ScanTask(taskShepherd, taskID, props, encNumber, true);
-                scanTask.setSubmitter(request.getRemoteUser() != null ?
-                    request.getRemoteUser() : "unknown");
-                taskShepherd.storeNewScanTask(scanTask);
-                log.info("Created new ScanTask: " + taskID);
-            } catch (Exception e) {
-                log.severe("Failed to create ScanTask: " + e.getMessage());
-                e.printStackTrace();
-                taskShepherd.rollbackDBTransaction();
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Failed to create scan task: " + e.getMessage());
-                return;
-            } finally {
-                taskShepherd.closeDBTransaction();
-            }
-
-            // Start ScanWorkItemCreationThread to populate work items
-            ScanWorkItemCreationThread thread = new ScanWorkItemCreationThread(
-                taskID, rightScan, encNumber, true, context, null);
-            thread.threadCreationObject.start();
-            log.info("Started ScanWorkItemCreationThread for task: " + taskID);
-        } // end synchronized
-
-        // Redirect immediately to the results page
-        String redirectUrl = "encounters/scanEndApplet.jsp?number=" + encNumber +
-            "&taskID=" + taskID;
-        if (rightScan) {
-            redirectUrl += "&rightSide=true";
-        }
-        response.sendRedirect(redirectUrl);
     }
 }
