@@ -132,7 +132,9 @@ public class SiteSettings extends ApiBase {
                         for (JSONObject idOpt : iaConfig.identOpts(tx, iaClass)) {
                             // make a copy so we can safely modify it
                             JSONObject idOptCopy = new JSONObject(idOpt.toString());
-                            idOptCopy.remove("api_endpoint"); // dont want this shown
+                            // FIXME we need to leave this endpoint in on site-settings for now
+                            // as it is needed to kick off the matching from the client
+                            // idOptCopy.remove("api_endpoint");
                             // NOTE: JSONObject.toString() in theory might produce different strings
                             // for the same object (key ordering different); but in practice seems to
                             // be consistent within these iterations

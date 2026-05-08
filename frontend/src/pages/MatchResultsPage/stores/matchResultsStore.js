@@ -1,7 +1,11 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { MAX_ROWS_PER_COLUMN } from "../constants";
+import {
+  MAX_ROWS_PER_COLUMN,
+  MAX_NUM_RESULTS,
+  DEFAULT_NUM_RESULTS,
+} from "../constants";
 import {
   getAllAnnot,
   getAllIndiv,
@@ -22,7 +26,7 @@ export default class MatchResultsStore {
   _individualId = null;
   _individualDisplayName = null;
   _projectNames = [];
-  _numResults = 12;
+  _numResults = DEFAULT_NUM_RESULTS;
   _selectedMatchImageUrlByAlgo = new Map();
   _selectedMatch = [];
   _taskId = null;
@@ -421,11 +425,14 @@ export default class MatchResultsStore {
           `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
         );
         // Discard stale responses
-        if (this._currentRequestId !== requestId || this._taskId !== capturedTaskId) {
+        if (
+          this._currentRequestId !== requestId ||
+          this._taskId !== capturedTaskId
+        ) {
           return;
         }
         this.loadData(result?.data, { preserveSelection: false });
-      } catch (e) {
+      } catch {
         this.clearResults();
         toast.error("Failed to load match results");
       } finally {
@@ -440,7 +447,10 @@ export default class MatchResultsStore {
           `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
         );
         // Discard stale responses
-        if (this._currentRequestId !== requestId || this._taskId !== capturedTaskId) {
+        if (
+          this._currentRequestId !== requestId ||
+          this._taskId !== capturedTaskId
+        ) {
           return;
         }
 
@@ -457,7 +467,10 @@ export default class MatchResultsStore {
 
         this.loadData(result?.data, { preserveSelection: true });
       } catch (e) {
-          throw new Error("Failed to silently refresh match results: " + (e?.message || String(e)));
+        throw new Error(
+          "Failed to silently refresh match results: " +
+            (e?.message || String(e)),
+        );
       }
     }
   }
@@ -481,7 +494,9 @@ export default class MatchResultsStore {
   }
 
   setNumResults(n) {
-    this._numResults = n;
+    const num = Number(n);
+    if (!Number.isFinite(num)) return;
+    this._numResults = Math.min(Math.max(Math.floor(num), 1), MAX_NUM_RESULTS);
   }
 
   setProjectNames(names, { fetch = true } = {}) {
@@ -558,19 +573,17 @@ export default class MatchResultsStore {
 
       // Run all PATCHes in parallel and track results
       const patchPromises = encounterIds.map((id) =>
-        axios.patch(
-          `/api/v3/encounters/${encodeURIComponent(id)}`,
-          patchOps,
-          {
+        axios
+          .patch(`/api/v3/encounters/${encodeURIComponent(id)}`, patchOps, {
             headers: {
               "Content-Type": "application/json-patch+json",
               Accept: "application/json",
             },
-          },
-        ).then(
-          (response) => ({ status: "fulfilled", encounterId: id, response }),
-          (error) => ({ status: "rejected", encounterId: id, error }),
-        ),
+          })
+          .then(
+            (response) => ({ status: "fulfilled", encounterId: id, response }),
+            (error) => ({ status: "rejected", encounterId: id, error }),
+          ),
       );
 
       const results = await Promise.allSettled(patchPromises);
@@ -601,14 +614,17 @@ export default class MatchResultsStore {
           ok: false,
           error: "CREATE_NEW_INDIVIDUAL_PARTIAL",
           successes,
-          failures: failures.map((f) => ({ encounterId: f.encounterId, error: f.error?.message || String(f.error) })),
+          failures: failures.map((f) => ({
+            encounterId: f.encounterId,
+            error: f.error?.message || String(f.error),
+          })),
         };
       }
 
       this.resetSelectionToQuery();
       toast.success("New individual created successfully!");
       return { ok: true, successes };
-    } catch (e) {
+    } catch {
       this._matchRequestError = "CREATE_NEW_INDIVIDUAL_FAILED";
       toast.error("Failed to create new individual");
       return { ok: false, error: "CREATE_NEW_INDIVIDUAL_FAILED" };
@@ -702,7 +718,7 @@ export default class MatchResultsStore {
       this.resetSelectionToQuery();
       toast.success("Match confirmed successfully!");
       return res.data;
-    } catch (e) {
+    } catch {
       this._matchRequestError = "MATCH_FAILED";
       toast.error("Failed to confirm match");
       return null;
@@ -751,7 +767,7 @@ export default class MatchResultsStore {
       this.resetSelectionToQuery();
       toast.success("Merge page opened successfully!");
       return { ok: true };
-    } catch (e) {
+    } catch {
       this._matchRequestError = "MERGE_FAILED";
       toast.error("Failed to start merge");
       return null;

@@ -13,6 +13,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.api.ApiException;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.IAException;
+import org.ecocean.ia.MatchResult;
+import org.ecocean.ia.MatchResultProspect;
 import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
@@ -1598,7 +1600,6 @@ public class Annotation extends Base implements java.io.Serializable {
                     foundTrivial + " (and Feature) from " + ma + " and " + enc);
             }
         }
-
         // we queue for embedding extraction so this is done in the background
         // and frees up foreground api process to return results to user
         // TODO myShepherd commit doesnt happen until we return; potential race condition on IA queue?
@@ -1606,7 +1607,8 @@ public class Annotation extends Base implements java.io.Serializable {
         task.addObject(ann);
         task.setStatusDetailsAddLog("Annotation.createFromApi() embedding extraction on " + ann);
         myShepherd.getPM().makePersistent(task);
-        System.out.println("[INFO] Annotation.createFromApi(): queueing for embedding extraction with " + task);
+        System.out.println(
+            "[INFO] Annotation.createFromApi(): queueing for embedding extraction with " + task);
         ann.queueForEmbeddingExtraction(task, myShepherd);
         return ann;
     }
@@ -1734,6 +1736,59 @@ public class Annotation extends Base implements java.io.Serializable {
             task.removeObject(this);
         }
         return tasks.size();
+    }
+
+    // we cant just detach the annots from match results, so we need
+    // to kill them off before we can delete an Annotation
+    public long deleteMatchResults(Shepherd myShepherd) {
+        return myShepherd.deleteMatchResults(this);
+    }
+
+    // similar as above for MatchResultProspects
+    public int deleteMatchResultProspects(Shepherd myShepherd) {
+        List<MatchResultProspect> mrps = myShepherd.getMatchResultProspects(this);
+        int ct = 0;
+
+        for (MatchResultProspect mrp : mrps) {
+            ct++;
+            System.out.println("[DEBUG] (" + ct + ") ann.deleteMatchResultProspects() on id=" +
+                this.getId() + " deleting " + mrp);
+            myShepherd.getPM().deletePersistent(mrp);
+        }
+        return ct;
+    }
+
+    // when we delete an Annotation, we usually dont want to leave the Embeddings around
+    public int deleteEmbeddings(Shepherd myShepherd) {
+        int rtn = numberEmbeddings();
+
+        if (rtn < 1) return 0;
+        for (Embedding emb : embeddings) {
+            System.out.println("[DEBUG] ann.deleteEmbeddings() on id=" + this.getId() +
+                " deleting " + emb);
+            myShepherd.getPM().deletePersistent(emb);
+        }
+        return rtn;
+    }
+
+    // a convenient method which does a typical set of steps to ready Annotation for deletion from db
+    // if encounter is already known, it can be passed (null will be ignored)
+    public void prepareForDeletion(Shepherd myShepherd, Encounter enc) {
+        int nt = this.detachFromTasks(myShepherd);
+        long t = System.currentTimeMillis();
+
+        if (enc != null) enc.removeAnnotation(this);
+        this.detachFromMediaAsset();
+        long nm = this.deleteMatchResults(myShepherd);
+        int np = this.deleteMatchResultProspects(myShepherd);
+        int ne = this.deleteEmbeddings(myShepherd);
+        System.out.println("[INFO] ann.prepareForDeletion() [" + (System.currentTimeMillis() - t) + "ms]: " + nt + " Tasks, " + nm +
+            " MatchResults, " + np + " MatchResultProspects, " + ne + " Embeddings on " + this);
+    }
+
+    // this version takes no enc, but will attempt to find it
+    public void prepareForDeletion(Shepherd myShepherd) {
+        prepareForDeletion(myShepherd, this.findEncounter(myShepherd));
     }
 
     public static boolean isValidViewpoint(String vp) {
