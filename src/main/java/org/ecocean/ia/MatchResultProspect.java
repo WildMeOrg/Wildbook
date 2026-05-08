@@ -57,7 +57,7 @@ public class MatchResultProspect implements java.io.Serializable, Comparable<Mat
     }
 
     public String toString() {
-        return scoreType + ": " + score + " on " + annotation;
+        return scoreType + "=" + score + " on " + annotation + " for " + matchResult;
     }
 
     public JSONObject jsonForApiGet(Shepherd myShepherd) {
