@@ -20,9 +20,9 @@ import java.util.Map;
 // import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import org.ecocean.shepherd.core.Shepherd;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class EncounterDelete extends HttpServlet {
     private static final Logger log = LogManager.getLogger(EncounterDelete.class);
@@ -162,15 +162,7 @@ public class EncounterDelete extends HttpServlet {
                     ArrayList<Annotation> anns = enc2trash.getAnnotations();
                     for (Annotation ann : anns) {
                         myShepherd.beginDBTransaction();
-                        enc2trash.removeAnnotation(ann);
-                        myShepherd.updateDBTransaction();
-                        List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
-                        if (iaTasks != null && !iaTasks.isEmpty()) {
-                            for (Task iaTask : iaTasks) {
-                                iaTask.removeObject(ann);
-                                myShepherd.updateDBTransaction();
-                            }
-                        }
+                        ann.prepareForDeletion(myShepherd, enc2trash);
                         myShepherd.throwAwayAnnotation(ann);
                         myShepherd.commitDBTransaction();
                     }
