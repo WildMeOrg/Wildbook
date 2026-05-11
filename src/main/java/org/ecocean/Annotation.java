@@ -596,6 +596,21 @@ public class Annotation extends Base implements java.io.Serializable {
         return mediaAsset;
     }
 
+    /**
+     * Direct setter for the {@code mediaAsset} field — populates the
+     * underlying {@code ANNOTATION.MEDIAASSET_ID_OID} column. The plan v2
+     * partial unique index on (mediaAsset, predictModelId, bboxKey, thetaKey)
+     * needs this column to be populated on ml-service-created annotations.
+     * Bumps version for OpenSearch reindex pickup. Mirrors the
+     * {@link #__getMediaAsset} naming convention used by infrastructure
+     * code (use {@link #getMediaAsset()} when you want the proper
+     * Feature-based linkage).
+     */
+    public void __setMediaAsset(MediaAsset ma) {
+        this.mediaAsset = ma;
+        this.setVersion();
+    }
+
     public MediaAsset getMediaAsset() {
         ArrayList<Feature> fts = getFeatures();
 
