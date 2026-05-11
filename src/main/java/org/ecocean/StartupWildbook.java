@@ -202,6 +202,15 @@ public class StartupWildbook implements ServletContextListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        // ml-service migration v2 §commit #12: at-most-once delivery on the
+        // FileQueue means a JVM crash mid-detection can leave a MediaAsset
+        // in processing-mlservice forever. Once at startup, walk assets
+        // stuck past a threshold and re-enqueue them.
+        try {
+            runStaleMlServiceReconciliation(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         // initialize the MarkedIndividual names cache
         // moved initNamesCache here
         Shepherd myShepherd = new Shepherd(context);
@@ -486,6 +495,135 @@ public class StartupWildbook implements ServletContextListener {
         // Shepherd tx so a slow WBIA call blocks only that one slot.
         for (String annId : pendingIds) {
             registerOneAnnotationWithWbia(context, annId);
+        }
+    }
+
+    /**
+     * ml-service migration v2 §commit #12. Once-at-startup pass that
+     * detects MediaAssets stuck in {@code processing-mlservice} past a
+     * threshold (worker presumably died mid-detection due to the
+     * at-most-once FileQueue semantics) and re-enqueues them through
+     * the normal routing layer.
+     *
+     * <p>Safe under any active worker because:</p>
+     * <ul>
+     *   <li>The re-check inside reconcileOneStaleAsset uses the fresh
+     *       Shepherd's current state; if another worker has already
+     *       progressed the asset, the status will no longer be
+     *       {@code processing-mlservice} and the reconciler skips.</li>
+     *   <li>MlServiceProcessor's Phase 4 idempotency check (composite of
+     *       mediaAsset + predictModelId + bboxKey + thetaKey) prevents
+     *       duplicate annotation creation if the dead worker had already
+     *       persisted some results.</li>
+     *   <li>On re-enqueue, {@code MediaAsset.setDetectionStatus} bumps
+     *       REVISION so this reconciler does not re-pick the same asset
+     *       on a subsequent restart.</li>
+     * </ul>
+     *
+     * <p>Threshold default: 1 hour. Longer than any healthy detection
+     * job's worst-case duration; short enough that operators don't wait
+     * days for recovery.</p>
+     */
+    private static final long STALE_MLSERVICE_THRESHOLD_MS = 60L * 60L * 1000L;
+
+    private static void runStaleMlServiceReconciliation(String context) {
+        System.out.println(
+            "STARTING: StartupWildbook.runStaleMlServiceReconciliation()");
+        long revisionCutoff = System.currentTimeMillis() - STALE_MLSERVICE_THRESHOLD_MS;
+        java.util.List<String> staleIds = fetchStaleMlServiceAssetIds(context, revisionCutoff);
+        if (staleIds.isEmpty()) {
+            System.out.println(
+                "[INFO] StaleMlServiceReconciliation: no stuck assets older than threshold");
+            return;
+        }
+        System.out.println("[INFO] StaleMlServiceReconciliation: " + staleIds.size() +
+            " stuck assets older than " + STALE_MLSERVICE_THRESHOLD_MS + "ms");
+        for (String maId : staleIds) {
+            reconcileOneStaleAsset(context, maId);
+        }
+    }
+
+    private static java.util.List<String> fetchStaleMlServiceAssetIds(String context,
+        long revisionCutoff) {
+        java.util.List<String> ids = new ArrayList<String>();
+        Shepherd shep = new Shepherd(context);
+        shep.setAction("StartupWildbook.StaleMlServiceReconciliation.fetch");
+        shep.beginDBTransaction();
+        try {
+            javax.jdo.Query q = shep.getPM().newQuery(
+                org.ecocean.media.MediaAsset.class,
+                "detectionStatus == 'processing-mlservice' && revision < "
+                + revisionCutoff);
+            @SuppressWarnings("unchecked")
+            java.util.List<org.ecocean.media.MediaAsset> stale =
+                (java.util.List<org.ecocean.media.MediaAsset>) q.execute();
+            if (stale != null) {
+                for (org.ecocean.media.MediaAsset ma : stale) {
+                    ids.add(String.valueOf(ma.getId()));
+                }
+            }
+            q.closeAll();
+            shep.commitDBTransaction();
+        } catch (Exception ex) {
+            System.out.println(
+                "WARN: StaleMlServiceReconciliation fetch failed: " + ex);
+            shep.rollbackDBTransaction();
+        } finally {
+            shep.closeDBTransaction();
+        }
+        return ids;
+    }
+
+    private static void reconcileOneStaleAsset(String context, String maId) {
+        Shepherd shep = new Shepherd(context);
+        shep.setAction("StartupWildbook.StaleMlServiceReconciliation." + maId);
+        shep.beginDBTransaction();
+        try {
+            org.ecocean.media.MediaAsset ma = shep.getMediaAsset(maId);
+            if (ma == null) {
+                shep.commitDBTransaction();
+                return;
+            }
+            // Re-check: another worker may have progressed it since fetch.
+            if (!"processing-mlservice".equals(ma.getDetectionStatus())) {
+                shep.commitDBTransaction();
+                return;
+            }
+            // Derive taxonomy.
+            java.util.List<org.ecocean.Taxonomy> taxies = ma.getTaxonomies(shep);
+            org.ecocean.Taxonomy taxy = null;
+            if (taxies != null && !taxies.isEmpty()) taxy = taxies.get(0);
+
+            org.ecocean.IAJsonProperties iac = org.ecocean.IAJsonProperties.iaConfig();
+            boolean stillVectorRouted = iac != null && taxy != null
+                && iac.getActiveMlServiceConfigs(taxy) != null;
+            if (!stillVectorRouted) {
+                // Species is no longer configured for ml-service (or no taxy).
+                // Flip to error so the operator sees it; don't re-enqueue.
+                ma.setDetectionStatus("error");
+                System.out.println("[INFO] StaleMlServiceReconciliation: " + maId +
+                    " no longer vector-routed; marking error");
+                shep.commitDBTransaction();
+                return;
+            }
+            // Clear the stuck status before re-routing. The routing layer
+            // and MlServiceProcessor will set processing-mlservice again
+            // on resume. (Also bumps REVISION via setDetectionStatus, so
+            // a subsequent reconcile cycle won't re-pick this asset.)
+            ma.setDetectionStatus(null);
+
+            java.util.List<org.ecocean.media.MediaAsset> single =
+                new ArrayList<org.ecocean.media.MediaAsset>();
+            single.add(ma);
+            org.ecocean.ia.IA.intakeMediaAssetsOneSpecies(shep, single, taxy, null);
+            shep.commitDBTransaction();
+            System.out.println("[INFO] StaleMlServiceReconciliation: re-enqueued " + maId);
+        } catch (Exception ex) {
+            System.out.println("WARN: StaleMlServiceReconciliation registerOne failed for " +
+                maId + ": " + ex);
+            shep.rollbackDBTransaction();
+        } finally {
+            shep.closeDBTransaction();
         }
     }
 
