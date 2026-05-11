@@ -611,8 +611,13 @@ public class ImportTask implements java.io.Serializable {
                     invalidMediaAssets.add(asset);
                 }
  */
+            // ml-service migration v2 (commit #5): "complete-mlservice" is
+            // terminal alongside "complete" and "pending" for the bulk-import
+            // detection-complete tally. Without this, an ml-service-routed
+            // bulk import never reports 100% detection complete in the UI.
             if ((ma.getDetectionStatus() != null) &&
                 (ma.getDetectionStatus().equals("complete") ||
+                ma.getDetectionStatus().equals("complete-mlservice") ||
                 ma.getDetectionStatus().equals("pending"))) numDetectionComplete++;
         }
         JSONObject pj = new JSONObject();

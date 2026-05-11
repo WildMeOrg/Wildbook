@@ -732,8 +732,11 @@ const ImageCard = observer(({ store = {} }) => {
                   const skipId =
                     !!selectedAnnotation?.iaTaskParameters?.skipIdent;
                   const identActive = iaTaskId && !skipId;
+                  // ml-service migration v2 (commit #5): "complete-mlservice"
+                  // is the terminal state from the ml-service detection path.
                   const detectionComplete =
-                    mediaAsset?.detectionStatus === "complete";
+                    mediaAsset?.detectionStatus === "complete" ||
+                    mediaAsset?.detectionStatus === "complete-mlservice";
                   const identificationStatus =
                     selectedAnnotation?.identificationStatus === "complete" ||
                     selectedAnnotation?.identificationStatus === "pending";

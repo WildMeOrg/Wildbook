@@ -85,6 +85,10 @@ public class Task implements java.io.Serializable {
     public boolean statusInEndState() {
         if ("completed".equals(status)) return true;
         if ("error".equals(status)) return true;
+        // ml-service migration v2: "dropped-stale" is terminal — the task's
+        // target was deleted before the queued job ran. Neither success nor
+        // error; the inactivity-timeout watchdog must not flip it to error.
+        if ("dropped-stale".equals(status)) return true;
         return false;
     }
 

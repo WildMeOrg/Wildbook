@@ -216,6 +216,11 @@ public class MediaAsset extends Base implements java.io.Serializable {
 
     public void setDetectionStatus(String status) {
         this.detectionStatus = status;
+        // ml-service migration v2 (commit #5): bump revision so the
+        // OpenSearch reindexer picks up detection-status changes and so the
+        // stale-job reconciler in commit #12 has a real "when did this
+        // detectionStatus change" timestamp via REVISION.
+        this.setRevision();
     }
 
     public String getIdentificationStatus() {
