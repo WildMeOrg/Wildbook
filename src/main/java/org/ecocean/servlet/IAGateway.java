@@ -628,6 +628,22 @@ public class IAGateway extends HttpServlet {
             mlserv.processQueueJob(jobj);
             return;
         }
+        // Migration plan v2 §commit #10a: ml-service v2 dispatcher branch.
+        // The new processor takes context in its constructor (no hardcoded
+        // "context0") and returns a typed outcome. Both the detection +
+        // extraction lifecycle (Phases 1-5) and the deferred-match path
+        // route here; MlServiceProcessor.process(jobj) handles routing
+        // internally based on the payload's flags.
+        if (jobj.optBoolean("mlServiceV2", false)) {
+            String mlContext = jobj.optString("__context", "context0");
+            org.ecocean.ia.MlServiceProcessor processor =
+                new org.ecocean.ia.MlServiceProcessor(mlContext);
+            org.ecocean.ia.MlServiceJobOutcome outcome = processor.process(jobj);
+            System.out.println("IAGateway: mlServiceV2 job " +
+                jobj.optString("taskId", "?") + " → " + outcome.getKind() +
+                (outcome.getCode() == null ? "" : " [" + outcome.getCode() + "]"));
+            return;
+        }
         boolean requeue = false;
         boolean requeueIncrement = false;
         if ((jobj.optJSONObject("detect") != null) && (jobj.optString("taskId", null) != null)) {
@@ -772,7 +788,12 @@ public class IAGateway extends HttpServlet {
                             Thread.sleep(whileSleepMillis);
                         } catch (java.lang.InterruptedException ex) {}
                         if (jobj.optJSONObject("detect") != null || jobj.optBoolean("fastlane",
-                            false) || jobj.optBoolean("MLService", false)) {
+                            false) || jobj.optBoolean("MLService", false) ||
+                            jobj.optBoolean("mlServiceV2", false)) {
+                            // mlServiceV2 retries must land on the detection
+                            // queue, not the generic IA queue. Without this,
+                            // a retryable ml-service failure would never be
+                            // re-dispatched to MlServiceProcessor.
                             addToDetectionQueue(context, jobj.toString());
                         } else {
                             addToQueue(context, jobj.toString());
