@@ -547,6 +547,28 @@
 	<field name="acmId">
 		<column length="100"/>
 	</field>
+
+	<!-- ml-service migration v2 (commit #4): idempotency + WBIA registration.
+	     The partial unique index on (mediaAsset, predictModelId, bboxKey,
+	     thetaKey) WHERE predictModelId IS NOT NULL is applied by
+	     archive/sql/ml_service_idempotency.sql. -->
+	<field name="predictModelId">
+		<column length="100" allows-null="true"/>
+		<index name="ANNOTATION_PREDICTMODELID_IDX"/>
+	</field>
+	<field name="bboxKey">
+		<column length="64" allows-null="true"/>
+	</field>
+	<field name="thetaKey">
+		<column length="20" allows-null="true"/>
+	</field>
+	<field name="wbiaRegistered">
+		<column allows-null="true"/>
+	</field>
+	<field name="wbiaRegisterAttempts">
+		<column allows-null="false" default-value="0"/>
+	</field>
+
 		<field name="isExemplar">
 <!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here: -->
 <!--			<column default-value="0" /> -->
@@ -1017,6 +1039,16 @@
 	</class>
 
 	<class name="Embedding" identity-type="application">
+		<!-- ml-service migration v2 (commit #4): non-unique composite index
+		     to support idempotency lookup of (annotation, method, methodVersion).
+		     Promotion to UNIQUE is deferred to a follow-up branch after a
+		     per-deployment audit confirms no existing duplicates (see
+		     archive/sql/ml_service_embedding_audit.sql). -->
+		<index name="EMBEDDING_ANN_METHOD_VER_IDX">
+			<column name="ANNOTATION_ID"/>
+			<column name="METHOD"/>
+			<column name="METHODVERSION"/>
+		</index>
 		<field name="id" primary-key="true">
 			<column length="36"/>
 		</field>

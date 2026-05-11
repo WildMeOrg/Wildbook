@@ -52,6 +52,37 @@ public class Annotation extends Base implements java.io.Serializable {
     private Set<Embedding> embeddings;
     protected String acmId;
 
+    // ----- ml-service migration v2: idempotency + WBIA registration -----
+    // (commit #4 of the v2 plan)
+    //
+    // predictModelId / bboxKey / thetaKey form the composite that uniquely
+    // identifies an ml-service-created detection. The partial unique index
+    // in archive/sql/ml_service_idempotency.sql guards against concurrent
+    // retry creating duplicates. Null on legacy WBIA-era rows and on
+    // manually-drawn annotations.
+    protected String predictModelId;
+    protected String bboxKey;   // literal "x:y:w:h" of rounded ints
+    protected String thetaKey;  // theta rounded to 4 decimals, as String
+
+    // wbiaRegistered drives the DB-backed background poller that tells WBIA
+    // about ml-service-created annotations so HotSpotter remains available.
+    //
+    //   null  — legacy annotation (column is new; starts null on existing
+    //           rows). The DDL migration sets nulls to TRUE wherever
+    //           acmId IS NOT NULL ("already registered via the historical
+    //           IBEISIA flow"). Excluded from polling.
+    //   false — new ml-service annotation awaiting WBIA registration.
+    //           Polling thread picks these up.
+    //   true  — WBIA acknowledged. Terminal success.
+    //
+    // Contract: MlServiceProcessor MUST set this to false (not null) on
+    // new ml-service annotations.
+    protected Boolean wbiaRegistered;
+
+    // Failed-attempt counter. Polling filters wbiaRegisterAttempts < MAX so
+    // chronically-failing rows park rather than spin forever.
+    protected int wbiaRegisterAttempts = 0;
+
     // this is used to decide "should we match against this"  problem is: that is not very (IA-)algorithm agnostic
     // TODO: was this made obsolete by ACM and friends?
     private boolean matchAgainst = false;
@@ -289,6 +320,31 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public boolean hasAcmId() {
         return (this.acmId != null);
+    }
+
+    // ----- ml-service migration v2 idempotency / WBIA-registration accessors -----
+
+    public String getPredictModelId() { return predictModelId; }
+    public void setPredictModelId(String s) { this.predictModelId = s; this.setVersion(); }
+
+    public String getBboxKey() { return bboxKey; }
+    public void setBboxKey(String s) { this.bboxKey = s; this.setVersion(); }
+
+    public String getThetaKey() { return thetaKey; }
+    public void setThetaKey(String s) { this.thetaKey = s; this.setVersion(); }
+
+    public Boolean getWbiaRegistered() { return wbiaRegistered; }
+    public void setWbiaRegistered(Boolean b) { this.wbiaRegistered = b; this.setVersion(); }
+
+    // Convenience: hides the tri-state from frontend JSON. Returns true only
+    // when the column is explicitly TRUE.
+    public boolean isWbiaRegistered() { return Boolean.TRUE.equals(this.wbiaRegistered); }
+
+    public int getWbiaRegisterAttempts() { return wbiaRegisterAttempts; }
+    public void setWbiaRegisterAttempts(int n) { this.wbiaRegisterAttempts = n; this.setVersion(); }
+    public void incrementWbiaRegisterAttempts() {
+        this.wbiaRegisterAttempts++;
+        this.setVersion();
     }
 
     public ArrayList<Feature> getFeatures() {
