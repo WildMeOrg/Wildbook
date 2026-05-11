@@ -192,6 +192,16 @@ public class StartupWildbook implements ServletContextListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        // ml-service migration v2 §commit #11: DB-backed WBIA registration
+        // polling. Replaces v1's plan to use a separate "wbiaRegister"
+        // FileQueue with manual reconcile servlet. The polling thread reads
+        // Annotation.wbiaRegistered/wbiaRegisterAttempts directly so state
+        // survives JVM restarts without queue infrastructure.
+        try {
+            startWbiaRegistrationPollingThread(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         // initialize the MarkedIndividual names cache
         // moved initNamesCache here
         Shepherd myShepherd = new Shepherd(context);
@@ -395,6 +405,133 @@ public class StartupWildbook implements ServletContextListener {
                 myShepherd.closeDBTransaction();
             }
         }, 0, 1, TimeUnit.HOURS);
+    }
+
+    /**
+     * ml-service migration v2 §commit #11. Background polling thread that
+     * registers ml-service-created annotations with WBIA so HotSpotter is
+     * available on demand for them. State is on the Annotation row itself
+     * ({@code wbiaRegistered} + {@code wbiaRegisterAttempts}); no separate
+     * queue or reconcile servlet is needed.
+     *
+     * <p>Per cycle (~30s): query annotations with
+     * {@code wbiaRegistered == false AND wbiaRegisterAttempts < MAX},
+     * up to a small batch limit. For each, call
+     * {@link org.ecocean.ia.plugin.WildbookIAM#sendAnnotationsForceId} in a
+     * per-annotation Shepherd transaction (so one slow WBIA call blocks
+     * only one slot, not the entire batch). On success: set
+     * {@code wbiaRegistered = TRUE} (terminal). On failure: increment
+     * {@code wbiaRegisterAttempts}; the next cycle retries until cutoff.</p>
+     *
+     * <p>Legacy annotations are excluded from the query because the DDL
+     * migration in {@code archive/sql/ml_service_idempotency.sql} backfills
+     * their {@code wbiaRegistered} to {@code TRUE} on deploy.</p>
+     */
+    private static final int WBIA_REGISTER_MAX_ATTEMPTS = 10;
+    private static final int WBIA_REGISTER_BATCH_LIMIT = 50;
+    private static final long WBIA_REGISTER_POLL_SECONDS = 30L;
+
+    private static void startWbiaRegistrationPollingThread(final String context) {
+        System.out.println("STARTING: StartupWildbook.startWbiaRegistrationPollingThread()");
+        ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+        ses.scheduleAtFixedRate(new Runnable() {
+            @Override public void run() {
+                try {
+                    runWbiaRegistrationPoll(context);
+                } catch (Throwable t) {
+                    // Catch Throwable here: ScheduledExecutorService silently
+                    // stops re-firing the task on any uncaught exception.
+                    // We want the thread to keep ticking through transient
+                    // failures.
+                    System.out.println("WARN: WbiaRegistrationPoll uncaught: " + t);
+                    t.printStackTrace();
+                }
+            }
+        }, WBIA_REGISTER_POLL_SECONDS, WBIA_REGISTER_POLL_SECONDS, TimeUnit.SECONDS);
+    }
+
+    private static void runWbiaRegistrationPoll(String context) {
+        // Phase 1: query the pending list (Shepherd open, no network). Capture
+        // annotation IDs and release before any WBIA calls.
+        java.util.List<String> pendingIds = new ArrayList<String>();
+        Shepherd shep = new Shepherd(context);
+        shep.setAction("StartupWildbook.WbiaRegistrationPoll.fetch");
+        shep.beginDBTransaction();
+        try {
+            javax.jdo.Query q = shep.getPM().newQuery(
+                org.ecocean.Annotation.class,
+                "wbiaRegistered == false && wbiaRegisterAttempts < "
+                + WBIA_REGISTER_MAX_ATTEMPTS);
+            q.setOrdering("wbiaRegisterAttempts ascending");
+            q.setRange(0, WBIA_REGISTER_BATCH_LIMIT);
+            @SuppressWarnings("unchecked")
+            java.util.List<org.ecocean.Annotation> pending =
+                (java.util.List<org.ecocean.Annotation>) q.execute();
+            if (pending != null) {
+                for (org.ecocean.Annotation a : pending) pendingIds.add(a.getId());
+            }
+            q.closeAll();
+            shep.commitDBTransaction();
+        } catch (Exception ex) {
+            System.out.println("WARN: WbiaRegistrationPoll fetch failed: " + ex);
+            shep.rollbackDBTransaction();
+        } finally {
+            shep.closeDBTransaction();
+        }
+
+        if (pendingIds.isEmpty()) return;
+        System.out.println("[INFO] WbiaRegistrationPoll: " + pendingIds.size() + " pending");
+
+        // Phase 2: per-annotation registration. Each runs in its own short
+        // Shepherd tx so a slow WBIA call blocks only that one slot.
+        for (String annId : pendingIds) {
+            registerOneAnnotationWithWbia(context, annId);
+        }
+    }
+
+    private static void registerOneAnnotationWithWbia(String context, String annId) {
+        Shepherd shep = new Shepherd(context);
+        shep.setAction("StartupWildbook.WbiaRegistrationPoll." + annId);
+        shep.beginDBTransaction();
+        try {
+            org.ecocean.Annotation ann = shep.getAnnotation(annId);
+            if (ann == null) {
+                shep.commitDBTransaction();
+                return;
+            }
+            // Re-check state: it may have changed since the fetch query.
+            if (Boolean.TRUE.equals(ann.getWbiaRegistered())) {
+                shep.commitDBTransaction();
+                return;
+            }
+            if (ann.getWbiaRegisterAttempts() >= WBIA_REGISTER_MAX_ATTEMPTS) {
+                shep.commitDBTransaction();
+                return;
+            }
+            ArrayList<org.ecocean.Annotation> single =
+                new ArrayList<org.ecocean.Annotation>();
+            single.add(ann);
+            org.ecocean.ia.plugin.WildbookIAM iam =
+                new org.ecocean.ia.plugin.WildbookIAM(context);
+            try {
+                // NB: this holds the Shepherd across the WBIA network call.
+                // Matches the existing AcmIdMessageHandler pattern in this
+                // class. Per-annotation tx so a hung call blocks one slot.
+                iam.sendAnnotationsForceId(single, true, shep);
+                ann.setWbiaRegistered(Boolean.TRUE);
+            } catch (Exception netEx) {
+                System.out.println("WARN: WbiaRegistrationPoll WBIA call failed for " +
+                    annId + ": " + netEx);
+                ann.incrementWbiaRegisterAttempts();
+            }
+            shep.commitDBTransaction();
+        } catch (Exception ex) {
+            System.out.println("WARN: WbiaRegistrationPoll registerOne failed for " +
+                annId + ": " + ex);
+            shep.rollbackDBTransaction();
+        } finally {
+            shep.closeDBTransaction();
+        }
     }
 
     public void contextDestroyed(ServletContextEvent sce) {

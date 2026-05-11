@@ -512,6 +512,14 @@ public class MatchResult implements java.io.Serializable {
             }
         }
         aj.put("id", ann.getId());
+        // ml-service migration v2 §commit #11: surface WBIA registration
+        // state so the frontend can disable the "Match with HotSpotter"
+        // button until WBIA has acknowledged the annotation. tri-state:
+        // null = legacy or not-yet-pending; false = pending registration;
+        // true = WBIA acknowledged. Frontend treats anything non-true as
+        // "HotSpotter not available yet" with a tooltip.
+        Boolean wbiaReg = ann.getWbiaRegistered();
+        if (wbiaReg != null) aj.put("wbiaRegistered", wbiaReg.booleanValue());
         return aj;
     }
 
