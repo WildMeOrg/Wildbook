@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Embedding;
+import org.ecocean.Encounter;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.media.MediaAsset;
@@ -149,14 +150,32 @@ public class IA {
         topTask.setObjectMediaAssets(mas);
         myShepherd.storeNewTask(topTask);
 
-        // what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
-        JSONObject dj = new JSONObject();
-        dj.put("mediaAssetIds", maArr);
         String context = myShepherd.getContext();
         String baseUrl = getBaseURL(context);
 
         // Ia configs are keyed off taxonomies
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+
+        // Migration plan v2 §commit #10b: routing reroute.
+        // If the species' _id_conf.default.pipeline_root is "vector" AND
+        // _mlservice_conf is configured, route per-asset through the
+        // MlServiceProcessor lifecycle. Otherwise fall through to the legacy
+        // WBIA path below — production deployments without _mlservice_conf
+        // see no behavior change at all.
+        //
+        // Per-asset CHILD tasks under topTask (vs v1's shared topTask) so
+        // child finalization is local; no first-finisher-wins. The topTask
+        // remains as the aggregator for the caller contract (and so legacy
+        // summary code that reads topTask.objectMediaAssets keeps working).
+        if (iaConfig != null && taxy != null &&
+            iaConfig.getActiveMlServiceConfigs(taxy) != null) {
+            return intakeMediaAssetsOneSpeciesMlService(myShepherd, mas, taxy, topTask,
+                context, baseUrl);
+        }
+
+        // what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
+        JSONObject dj = new JSONObject();
+        dj.put("mediaAssetIds", maArr);
         // mimicking intakeAnnotations, we assume the first mediaAsset is representative of all of them wrt Taxonomies, configs etc.
         int numDetectAlgos = iaConfig.numDetectionAlgos(taxy);
         Boolean[] sent = new Boolean[numDetectAlgos];
@@ -200,6 +219,74 @@ public class IA {
         }
         System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() +
             " assets; queued? = " + sent + "; " + topTask);
+        return topTask;
+    }
+
+    /**
+     * ml-service migration v2 §commit #10b: per-asset job enqueue for the
+     * vector pipeline. Each MediaAsset gets its own child Task under
+     * topTask; each emits a {@code mlServiceV2:true} payload to the
+     * detection queue. MlServiceProcessor.processQueueJob (commit #9)
+     * picks them up via the IAGateway dispatcher (commit #10a).
+     *
+     * <p>Per-asset child Tasks avoid v1's first-finisher-wins on the shared
+     * topTask. The topTask itself remains as the aggregator that holds the
+     * full MediaAsset list for caller-side summary code.</p>
+     *
+     * <p>encounterId is derived best-effort from the MediaAsset's existing
+     * trivial annotation (every Encounter.addMediaAsset call creates one).
+     * If null, MlServiceProcessor persists annotations without explicit
+     * Encounter linkage and downstream MediaAsset.assignEncounters handles
+     * the assignment per the legacy IBEISIA detect-callback pattern.</p>
+     */
+    private static Task intakeMediaAssetsOneSpeciesMlService(Shepherd myShepherd,
+        List<MediaAsset> mas, Taxonomy taxy, Task topTask, String context, String baseUrl) {
+        String taxonomyString = taxy.getScientificName();
+        int queued = 0;
+        for (MediaAsset ma : mas) {
+            // Per-asset child Task. Task(parent) constructor sets parent +
+            // inherits parameters; setObjectMediaAssets to the singleton.
+            Task childTask = new Task(topTask);
+            ArrayList<MediaAsset> singleton = new ArrayList<MediaAsset>();
+            singleton.add(ma);
+            childTask.setObjectMediaAssets(singleton);
+            myShepherd.storeNewTask(childTask);
+
+            // Best-effort encounterId via existing annotations on the MA.
+            String encounterId = null;
+            ArrayList<Annotation> existing = ma.getAnnotations();
+            if (existing != null) {
+                for (Annotation a : existing) {
+                    Encounter enc = a.findEncounter(myShepherd);
+                    if (enc != null) {
+                        encounterId = enc.getId();
+                        break;
+                    }
+                }
+            }
+
+            JSONObject qjob = new JSONObject();
+            qjob.put("mlServiceV2", true);
+            qjob.put("mediaAssetId", ma.getId());
+            qjob.put("taxonomyString", taxonomyString);
+            qjob.put("taskId", childTask.getId());
+            qjob.put("__context", context);
+            qjob.put("__baseUrl", baseUrl);
+            if (Util.stringExists(encounterId)) {
+                qjob.put("encounterId", encounterId);
+            }
+
+            try {
+                if (org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString())) {
+                    queued++;
+                }
+            } catch (java.io.IOException iox) {
+                System.out.println("ERROR: IA.intakeMediaAssetsOneSpeciesMlService() " +
+                    "addToDetectionQueue threw on ma " + ma.getId() + ": " + iox);
+            }
+        }
+        System.out.println("INFO: IA.intakeMediaAssetsOneSpeciesMlService accepted " +
+            mas.size() + " assets; queued=" + queued + "; topTask=" + topTask);
         return topTask;
     }
 
