@@ -5,10 +5,13 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -455,6 +458,94 @@ public class OpenSearch {
         searchRequest.setJsonEntity(data.toString());
         String rtn = getRestResponse(searchRequest);
         return new JSONObject(rtn);
+    }
+
+    // ml-service migration v2 (commit #7): force pending writes in `indexName`
+    // through Lucene's refresh boundary so they are searchable. Synchronous;
+    // returns after targeted shards have completed the refresh. NOT a Wildbook
+    // queue drain — IndexingManager may still have unindexed entities queued.
+    // Callers (typically waitForVisibility) follow with a visibility poll.
+    public void indexRefresh(final String indexName)
+    throws IOException {
+        if (!isValidIndexName(indexName))
+            throw new IOException("invalid index name: " + indexName);
+        Request req = new Request("POST", indexName + "/_refresh");
+        getRestResponse(req);   // discard body; non-2xx surfaces as IOException
+    }
+
+    // ml-service migration v2 (commit #7): bounded poll-and-wait until OpenSearch
+    // can see every id in `ids` in `indexName`. Used by MlServiceProcessor
+    // (commit #9) post-persist to avoid running findMatchProspects against an
+    // index that doesn't yet contain the freshly-written annotations.
+    //
+    // On entry:
+    //   - normalizes `ids` to a Set (drops nulls and duplicates so they can't
+    //     prevent the count check from ever succeeding);
+    //   - calls _refresh once (synchronous; pushes pending writes through
+    //     Lucene's refresh boundary);
+    //   - WARNs if /tmp/skipAutoIndexing is set, since that flag will make
+    //     every poll return zero hits regardless of how long we wait.
+    //
+    // Then polls a _count eligibility query with exponential backoff (start
+    // 100ms, double, cap 1s) until count >= |normalized ids| OR the total
+    // wait reaches timeoutMs. Returns true on visible-success, false on
+    // timeout. Caller decides what to do on false (e.g. enqueue a deferred-
+    // match job rather than match against a partial index).
+    //
+    // Does NOT try to drain the Wildbook IndexingManager queue. That queue
+    // may contain unrelated entities; queue-depth zero doesn't imply the
+    // specific IDs are queryable. Polling visibility IS the correctness gate.
+    public boolean waitForVisibility(String indexName, Collection<String> ids,
+        long timeoutMs)
+    throws IOException {
+        if (!isValidIndexName(indexName))
+            throw new IOException("invalid index name: " + indexName);
+        if (ids == null || ids.isEmpty()) return true;
+
+        // Normalize: drop nulls + duplicates so the count comparison is
+        // against the true number of distinct documents we expect to see.
+        Set<String> targetIds = new LinkedHashSet<String>();
+        for (String id : ids) {
+            if (id != null) targetIds.add(id);
+        }
+        if (targetIds.isEmpty()) return true;
+
+        if (skipAutoIndexing()) {
+            System.out.println(
+                "WARN: OpenSearch.waitForVisibility called with /tmp/skipAutoIndexing set " +
+                "— every poll will return zero hits regardless of wait time.");
+        }
+
+        indexRefresh(indexName);
+
+        JSONObject query = buildIdEligibilityQuery(targetIds);
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        long sleepMs = 100;
+        while (true) {
+            int seen = queryCount(indexName, query);
+            if (seen >= targetIds.size()) return true;
+            long remaining = deadline - System.currentTimeMillis();
+            if (remaining <= 0) return false;
+            try {
+                Thread.sleep(Math.min(sleepMs, remaining));
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+            sleepMs = Math.min(sleepMs * 2, 1000);
+        }
+    }
+
+    // Package-visible for testing. Returns the _count-shaped query body that
+    // filters on _id ∈ ids, using OpenSearch's idiomatic `ids` query.
+    static JSONObject buildIdEligibilityQuery(Set<String> ids) {
+        JSONArray idArr = new JSONArray();
+        for (String id : ids) idArr.put(id);
+        JSONObject query = new JSONObject();
+        query.put("query",
+            new JSONObject().put("ids",
+                new JSONObject().put("values", idArr)));
+        return query;
     }
 
     // when you only care about how many this would return
