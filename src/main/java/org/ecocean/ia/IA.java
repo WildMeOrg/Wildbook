@@ -241,53 +241,79 @@ public class IA {
      */
     private static Task intakeMediaAssetsOneSpeciesMlService(Shepherd myShepherd,
         List<MediaAsset> mas, Taxonomy taxy, Task topTask, String context, String baseUrl) {
-        String taxonomyString = taxy.getScientificName();
         int queued = 0;
         for (MediaAsset ma : mas) {
-            // Per-asset child Task. Task(parent) constructor sets parent +
-            // inherits parameters; setObjectMediaAssets to the singleton.
-            Task childTask = new Task(topTask);
-            ArrayList<MediaAsset> singleton = new ArrayList<MediaAsset>();
-            singleton.add(ma);
-            childTask.setObjectMediaAssets(singleton);
-            myShepherd.storeNewTask(childTask);
-
-            // Best-effort encounterId via existing annotations on the MA.
-            String encounterId = null;
-            ArrayList<Annotation> existing = ma.getAnnotations();
-            if (existing != null) {
-                for (Annotation a : existing) {
-                    Encounter enc = a.findEncounter(myShepherd);
-                    if (enc != null) {
-                        encounterId = enc.getId();
-                        break;
-                    }
-                }
-            }
-
-            JSONObject qjob = new JSONObject();
-            qjob.put("mlServiceV2", true);
-            qjob.put("mediaAssetId", ma.getId());
-            qjob.put("taxonomyString", taxonomyString);
-            qjob.put("taskId", childTask.getId());
-            qjob.put("__context", context);
-            qjob.put("__baseUrl", baseUrl);
-            if (Util.stringExists(encounterId)) {
-                qjob.put("encounterId", encounterId);
-            }
-
-            try {
-                if (org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString())) {
-                    queued++;
-                }
-            } catch (java.io.IOException iox) {
-                System.out.println("ERROR: IA.intakeMediaAssetsOneSpeciesMlService() " +
-                    "addToDetectionQueue threw on ma " + ma.getId() + ": " + iox);
+            if (enqueueOneAssetForMlService(myShepherd, ma, taxy, topTask, context, baseUrl)) {
+                queued++;
             }
         }
         System.out.println("INFO: IA.intakeMediaAssetsOneSpeciesMlService accepted " +
             mas.size() + " assets; queued=" + queued + "; topTask=" + topTask);
         return topTask;
+    }
+
+    /**
+     * Build and enqueue one v2 ml-service job for a single MediaAsset.
+     * Returns {@code true} iff the FileQueue write succeeded.
+     *
+     * <p>Used by both {@link #intakeMediaAssetsOneSpeciesMlService} (the
+     * normal intake path) and the startup stale-mlservice reconciler in
+     * {@code StartupWildbook}. The reconciler relies on the boolean
+     * return to decide whether to commit accompanying state changes; the
+     * normal intake path tolerates the swallowed-failure behavior.</p>
+     *
+     * <p><b>Task persistence note:</b> {@link Shepherd#storeNewTask}
+     * internally commits/reopens the transaction, so the child Task row
+     * is persisted before this method enqueues. On enqueue failure the
+     * child Task remains in the DB (no queued job ever fires for it).
+     * Callers that need to clean up are responsible for explicit
+     * deletion; the typical pattern is to accept the orphan since it is
+     * unreachable from user-facing UIs without a queued job and will be
+     * GC-ed by other task-cleanup paths.</p>
+     *
+     * <p>If {@code topTask} is null a fresh root task is created inside
+     * this method. This matches the reconciler's use case where there is
+     * no caller-side aggregator umbrella.</p>
+     */
+    public static boolean enqueueOneAssetForMlService(Shepherd myShepherd, MediaAsset ma,
+        Taxonomy taxy, Task topTask, String context, String baseUrl) {
+        Task childTask = (topTask == null) ? new Task() : new Task(topTask);
+        ArrayList<MediaAsset> singleton = new ArrayList<MediaAsset>();
+        singleton.add(ma);
+        childTask.setObjectMediaAssets(singleton);
+        myShepherd.storeNewTask(childTask);
+
+        // Best-effort encounterId via existing annotations on the MA.
+        String encounterId = null;
+        ArrayList<Annotation> existing = ma.getAnnotations();
+        if (existing != null) {
+            for (Annotation a : existing) {
+                Encounter enc = a.findEncounter(myShepherd);
+                if (enc != null) {
+                    encounterId = enc.getId();
+                    break;
+                }
+            }
+        }
+
+        JSONObject qjob = new JSONObject();
+        qjob.put("mlServiceV2", true);
+        qjob.put("mediaAssetId", ma.getId());
+        qjob.put("taxonomyString", taxy.getScientificName());
+        qjob.put("taskId", childTask.getId());
+        qjob.put("__context", context);
+        qjob.put("__baseUrl", baseUrl);
+        if (Util.stringExists(encounterId)) {
+            qjob.put("encounterId", encounterId);
+        }
+
+        try {
+            return org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
+        } catch (java.io.IOException iox) {
+            System.out.println("ERROR: IA.enqueueOneAssetForMlService() " +
+                "addToDetectionQueue threw on ma " + ma.getId() + ": " + iox);
+            return false;
+        }
     }
 
     public static void handleMissingAcmids(List<MediaAsset> mediaAssets, Shepherd myShepherd) {

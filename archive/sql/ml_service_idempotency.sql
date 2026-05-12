@@ -88,4 +88,14 @@ CREATE INDEX IF NOT EXISTS "ANNOTATION_WBIAREGISTER_PENDING_IDX"
 ON "ANNOTATION" ("WBIAREGISTERATTEMPTS")
 WHERE "WBIAREGISTERED" = FALSE AND "WBIAREGISTERATTEMPTS" < 10;
 
+-- (6) Partial index for the startup stale-mlservice reconciler (commit
+--     #12 fix-pass). The reconciler's JDOQL filter is
+--         detectionStatus == 'processing-mlservice' AND revision < <cutoff>
+--     run once at startup. Partial-on-detectionStatus keeps the index
+--     tiny: assets in any other state never enter the index, and a
+--     healthy deployment has at most a handful in-flight at any moment.
+CREATE INDEX IF NOT EXISTS "MEDIAASSET_STALE_MLSERVICE_IDX"
+ON "MEDIAASSET" ("REVISION")
+WHERE "DETECTIONSTATUS" = 'processing-mlservice';
+
 COMMIT;

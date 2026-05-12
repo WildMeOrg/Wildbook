@@ -584,6 +584,9 @@ public class StartupWildbook implements ServletContextListener {
                 org.ecocean.media.MediaAsset.class,
                 "detectionStatus == 'processing-mlservice' && revision < "
                 + revisionCutoff);
+            // Oldest-first so the most-stuck assets get recovered before
+            // newer ones in the same batch.
+            q.setOrdering("revision ascending");
             @SuppressWarnings("unchecked")
             java.util.List<org.ecocean.media.MediaAsset> stale =
                 (java.util.List<org.ecocean.media.MediaAsset>) q.execute();
@@ -615,7 +618,8 @@ public class StartupWildbook implements ServletContextListener {
                 return;
             }
             // Re-check: another worker may have progressed it since fetch.
-            if (!"processing-mlservice".equals(ma.getDetectionStatus())) {
+            if (!org.ecocean.identity.IBEISIA.STATUS_PROCESSING_MLSERVICE.equals(
+                    ma.getDetectionStatus())) {
                 shep.commitDBTransaction();
                 return;
             }
@@ -630,22 +634,43 @@ public class StartupWildbook implements ServletContextListener {
             if (!stillVectorRouted) {
                 // Species is no longer configured for ml-service (or no taxy).
                 // Flip to error so the operator sees it; don't re-enqueue.
-                ma.setDetectionStatus("error");
+                ma.setDetectionStatus(org.ecocean.identity.IBEISIA.STATUS_ERROR);
                 System.out.println("[INFO] StaleMlServiceReconciliation: " + maId +
                     " no longer vector-routed; marking error");
                 shep.commitDBTransaction();
                 return;
             }
-            // Clear the stuck status before re-routing. The routing layer
-            // and MlServiceProcessor will set processing-mlservice again
-            // on resume. (Also bumps REVISION via setDetectionStatus, so
-            // a subsequent reconcile cycle won't re-pick this asset.)
-            ma.setDetectionStatus(null);
-
-            java.util.List<org.ecocean.media.MediaAsset> single =
-                new ArrayList<org.ecocean.media.MediaAsset>();
-            single.add(ma);
-            org.ecocean.ia.IA.intakeMediaAssetsOneSpecies(shep, single, taxy, null);
+            // Call the per-asset enqueue helper directly. This bypasses
+            // handleMissingAcmids (which would otherwise fire WBIA HTTP
+            // inside this Shepherd transaction) and passes null for
+            // topTask so the helper creates a root task internally. The
+            // reconciler doesn't need an aggregator parent.
+            //
+            // The helper internally calls storeNewTask, which commits the
+            // surrounding transaction. So when we get here, either:
+            //   - enqueue succeeded: the child Task + queue file are durable;
+            //   - enqueue failed: the child Task IS still persisted (orphan,
+            //     unreachable without a queued job) but the asset remains
+            //     in processing-mlservice for next-startup retry.
+            boolean enqueued = org.ecocean.ia.IA.enqueueOneAssetForMlService(
+                shep, ma, taxy, /* topTask */ null, context, /* baseUrl */ null);
+            if (!enqueued) {
+                System.out.println("WARN: StaleMlServiceReconciliation: enqueue FAILED for " +
+                    maId + "; leaving processing-mlservice intact for next-startup retry");
+                shep.rollbackDBTransaction();
+                return;
+            }
+            // No status update after a successful enqueue. The queued
+            // MlServiceProcessor job will set processing-mlservice itself
+            // (bumping REVISION) when its Phase 1 picks the work up. We
+            // intentionally do NOT mutate ma here: a fast queue consumer
+            // could already have advanced detectionStatus to
+            // complete-mlservice before our commit lands, and writing
+            // back from this stale managed instance would overwrite it.
+            //
+            // We still need a successful commit so the storeNewTask done
+            // inside the helper is finalized (it is already committed via
+            // updateDBTransaction, so this commit is essentially a no-op).
             shep.commitDBTransaction();
             System.out.println("[INFO] StaleMlServiceReconciliation: re-enqueued " + maId);
         } catch (Exception ex) {
