@@ -134,6 +134,38 @@ class WildbookIAMRegisterTest {
         assertEquals("u1", ids.get(0));
     }
 
+    // --- parseAnnotationIdsArrayStrict -----------------------------------
+
+    @Test void parseAnnotationIdsArrayStrictReturnsEmptyOnNull() throws IOException {
+        assertTrue(WildbookIAM.parseAnnotationIdsArrayStrict(null).isEmpty());
+    }
+
+    @Test void parseAnnotationIdsArrayStrictExtractsWhenWellFormed() throws IOException {
+        JSONArray jids = new JSONArray()
+            .put(makeFancy("u1"))
+            .put(makeFancy("u2"));
+        List<String> ids = WildbookIAM.parseAnnotationIdsArrayStrict(jids);
+        assertEquals(2, ids.size());
+        assertTrue(ids.contains("u1"));
+        assertTrue(ids.contains("u2"));
+    }
+
+    @Test void parseAnnotationIdsArrayStrictThrowsOnNonObjectEntry() {
+        JSONArray jids = new JSONArray()
+            .put(makeFancy("u1"))
+            .put("not-an-object");
+        assertThrows(IOException.class,
+            () -> WildbookIAM.parseAnnotationIdsArrayStrict(jids));
+    }
+
+    @Test void parseAnnotationIdsArrayStrictThrowsOnUndecodableEntry() {
+        JSONArray jids = new JSONArray()
+            .put(makeFancy("u1"))
+            .put(new JSONObject().put("not_uuid_key", "x"));
+        assertThrows(IOException.class,
+            () -> WildbookIAM.parseAnnotationIdsArrayStrict(jids));
+    }
+
     // --- helpers ---------------------------------------------------------
 
     /**

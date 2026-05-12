@@ -489,7 +489,7 @@ public class WildbookIAM extends IAPlugin {
                 org.datanucleus.api.rest.orgjson.JSONObject jobj = Util.toggleJSONObject(
                     qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
                 JSONArray cached = Util.toggleJSONArray(jobj.getJSONArray("iaAnnotationIds"));
-                return parseAnnotationIdsArray(cached);
+                return parseAnnotationIdsArrayStrict(cached);
             } catch (Exception ex) {
                 IA.log("WARNING: WildbookIAM.iaAnnotationIdsStrict() cache parse failed; refetching: "
                     + ex.getMessage());
@@ -514,7 +514,29 @@ public class WildbookIAM extends IAPlugin {
                 // Cache store failure is non-fatal; we still have the ids.
             }
         }
-        return parseAnnotationIdsArray(jids);
+        return parseAnnotationIdsArrayStrict(jids);
+    }
+
+    /**
+     * Strict element parser: throws IOException if any element is not a
+     * decodable fancy-UUID. The non-strict {@link #parseAnnotationIdsArray}
+     * skips/null-pads malformed entries, which is fine for legacy paths but
+     * would let a corrupt response masquerade as "annotation not yet
+     * registered" in the polling thread's already-present check.
+     */
+    static List<String> parseAnnotationIdsArrayStrict(JSONArray jids) throws IOException {
+        List<String> ids = new ArrayList<String>();
+        if (jids == null) return ids;
+        for (int i = 0; i < jids.length(); i++) {
+            JSONObject jo = jids.optJSONObject(i);
+            if (jo == null)
+                throw new IOException("iaAnnotationIds entry " + i + " is not a JSONObject");
+            String decoded = fromFancyUUID(jo);
+            if (decoded == null)
+                throw new IOException("iaAnnotationIds entry " + i + " could not be decoded: " + jo);
+            ids.add(decoded);
+        }
+        return ids;
     }
 
     static List<String> parseAnnotationIdsArray(JSONArray jids) {

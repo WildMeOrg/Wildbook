@@ -763,20 +763,21 @@ public class StartupWildbook implements ServletContextListener {
                 shep.commitDBTransaction();
                 return;
             }
-            if (ann.getWbiaRegisterAttempts() >= WBIA_REGISTER_MAX_ATTEMPTS) {
-                // Already parked (by us, another poller, or the ineligibility
-                // path). Do not increment past MAX on a retry outcome.
-                shep.commitDBTransaction();
-                return;
-            }
             switch (outcome) {
                 case REGISTERED_OK:
                 case REGISTERED_ALREADY_PRESENT:
+                    // Always honor a success outcome even if the row was
+                    // parked by a racing poller: stuck-at-attempts==MAX
+                    // would otherwise become permanent.
                     ann.setWbiaRegistered(Boolean.TRUE);
                     break;
                 case NETWORK_FAIL:
                 case RESPONSE_BAD:
                 default:
+                    if (ann.getWbiaRegisterAttempts() >= WBIA_REGISTER_MAX_ATTEMPTS) {
+                        // Already parked by another path; do not increment past MAX.
+                        break;
+                    }
                     ann.incrementWbiaRegisterAttempts();
                     if (ann.getWbiaRegisterAttempts() >= WBIA_REGISTER_MAX_ATTEMPTS) {
                         System.out.println("WARN: WbiaRegistrationPoll abandoning " + annId +
