@@ -28,7 +28,7 @@ class WildbookIAMRegisterTest {
 
     private static WbiaRegisterRequest sampleDto() {
         return new WbiaRegisterRequest(
-            "ann-uuid-1", "ma-acm-1",
+            "ann-uuid-1", "ann-acm-1", "ma-acm-1",
             new int[] { 10, 20, 100, 200 },
             0.0d, "right_dorsalfin", "indiv-1");
     }
@@ -57,7 +57,8 @@ class WildbookIAMRegisterTest {
 
     @Test void buildForcedRequestMapNullIndividualSerializesUnderscores() {
         WbiaRegisterRequest dto = new WbiaRegisterRequest(
-            "ann-2", "ma-2", new int[] { 0, 0, 1, 1 }, 1.5d, "iaClass", null);
+            "ann-2", "ann-acm-2", "ma-2", new int[] { 0, 0, 1, 1 },
+            1.5d, "iaClass", null);
         HashMap<String, ArrayList> map = WildbookIAM.buildForcedRequestMap(dto);
         assertEquals("____", map.get("annot_name_list").get(0));
     }

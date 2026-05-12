@@ -515,7 +515,15 @@ public class StartupWildbook implements ServletContextListener {
 
         // Phase 2: per-annotation registration. Each runs in its own short
         // Shepherd tx so a slow WBIA call blocks only that one slot.
+        // The interrupted-check makes shutdownNow() effective at bounding
+        // the per-tick work even if the in-flight Phase B HTTP call ran
+        // past awaitTermination.
         for (String annId : pendingIds) {
+            if (Thread.currentThread().isInterrupted() ||
+                wbiaRegisterExecutor == null) {
+                System.out.println("[INFO] WbiaRegistrationPoll: stopping mid-batch (interrupted)");
+                return;
+            }
             registerOneAnnotationWithWbia(context, annId);
         }
     }
@@ -673,6 +681,17 @@ public class StartupWildbook implements ServletContextListener {
         org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterOutcome outcome =
             iam.registerOneByDto(dto);
 
+        // Skip Phase C if shutdown has been requested while Phase B ran.
+        // RestClient is not interruptible mid-IO, so Phase B can outlive
+        // awaitTermination; this prevents Phase C from racing the rest of
+        // contextDestroyed's cleanup (Shepherd / IndexingManager / etc.).
+        if (Thread.currentThread().isInterrupted() ||
+            wbiaRegisterExecutor == null) {
+            System.out.println("[INFO] WbiaRegistrationPoll: skipping Phase C for " + annId +
+                " (shutdown requested)");
+            return;
+        }
+
         // ---- Phase C: persist outcome under a short transaction. ----
         persistWbiaRegisterResult(context, annId, outcome);
     }
@@ -727,8 +746,8 @@ public class StartupWildbook implements ServletContextListener {
             int[] bbCopy = (bb == null) ? null : new int[] { bb[0], bb[1], bb[2], bb[3] };
             org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterRequest dto =
                 new org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterRequest(
-                    ann.getId(), ma.getAcmId(), bbCopy, ann.getTheta(),
-                    ann.getIAClass(), name);
+                    ann.getId(), ann.getAcmId(), ma.getAcmId(), bbCopy,
+                    ann.getTheta(), ann.getIAClass(), name);
             shep.commitDBTransaction();
             return dto;
         } catch (Exception ex) {
@@ -827,7 +846,13 @@ public class StartupWildbook implements ServletContextListener {
         System.out.println("STOPPING: StartupWildbook.wbiaRegisterExecutor");
         ses.shutdown();
         try {
-            if (!ses.awaitTermination(5L, TimeUnit.SECONDS)) ses.shutdownNow();
+            // 15s gives a healthy Phase B WBIA call time to finish so we
+            // do not skip its Phase C unnecessarily. RestClient HTTP isn't
+            // truly interruptible, so a hung call will still outlive this
+            // wait; the per-id and pre-Phase-C interrupt checks in the
+            // poller handle that case by bailing out before doing more DB
+            // work.
+            if (!ses.awaitTermination(15L, TimeUnit.SECONDS)) ses.shutdownNow();
         } catch (InterruptedException ie) {
             ses.shutdownNow();
             Thread.currentThread().interrupt();

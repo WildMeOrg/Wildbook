@@ -445,15 +445,18 @@ public class WildbookIAM extends IAPlugin {
      */
     public static final class WbiaRegisterRequest {
         public final String annotationId;       // Annotation.id (the WBIA annot id we send)
+        public final String annotationAcmId;    // Annotation.acmId, may differ from id on legacy rows
         public final String mediaAssetAcmId;    // MediaAsset.acmId (the WBIA image id we send)
         public final int[]  bbox;               // x,y,w,h
         public final double theta;
         public final String iaClass;            // species/class string
         public final String individualName;     // "____" if absent
 
-        public WbiaRegisterRequest(String annotationId, String mediaAssetAcmId,
-            int[] bbox, double theta, String iaClass, String individualName) {
+        public WbiaRegisterRequest(String annotationId, String annotationAcmId,
+            String mediaAssetAcmId, int[] bbox, double theta, String iaClass,
+            String individualName) {
             this.annotationId    = annotationId;
+            this.annotationAcmId = annotationAcmId;
             this.mediaAssetAcmId = mediaAssetAcmId;
             this.bbox            = bbox;
             this.theta           = theta;
@@ -617,7 +620,12 @@ public class WildbookIAM extends IAPlugin {
                 ex.getMessage());
             return WbiaRegisterOutcome.NETWORK_FAIL;
         }
-        if (known.contains(dto.annotationId) || known.contains(dto.mediaAssetAcmId)) {
+        // iaAnnotationIds returns ANNOTATION uuids (not image uuids), so
+        // only check the annotation's id and acmId here. Comparing against
+        // the media-asset's acmId is wrong - that would compare an image
+        // identifier against a list of annotation identifiers.
+        if (known.contains(dto.annotationId) ||
+            (Util.stringExists(dto.annotationAcmId) && known.contains(dto.annotationAcmId))) {
             return WbiaRegisterOutcome.REGISTERED_ALREADY_PRESENT;
         }
         URL url;
