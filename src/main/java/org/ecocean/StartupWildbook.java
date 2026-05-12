@@ -42,6 +42,12 @@ import java.util.concurrent.TimeUnit;
 // global variables are initialized, and do so if necessary.
 
 public class StartupWildbook implements ServletContextListener {
+    // ml-service migration v2 §commit #11: handle to the WBIA-registration
+    // poller so contextDestroyed can shut it down cleanly. Without this the
+    // executor leaks across redeploys and a new poll thread starts on top
+    // of any zombie that survived undeploy.
+    private static volatile ScheduledExecutorService wbiaRegisterExecutor;
+
     // this function is automatically run on webapp init
     // it is attached via web.xml's <listener></listener>
     public static void initializeWildbook(HttpServletRequest request, Shepherd myShepherd) {
@@ -441,8 +447,23 @@ public class StartupWildbook implements ServletContextListener {
     private static final long WBIA_REGISTER_POLL_SECONDS = 30L;
 
     private static void startWbiaRegistrationPollingThread(final String context) {
+        // Refuse to start a second poller if one is already running; this
+        // also matters when contextInitialized fires more than once for
+        // the same JVM (e.g., context reload).
+        if (wbiaRegisterExecutor != null) {
+            System.out.println(
+                "WARN: startWbiaRegistrationPollingThread() called with existing executor; skipping");
+            return;
+        }
         System.out.println("STARTING: StartupWildbook.startWbiaRegistrationPollingThread()");
-        ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+        ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor(
+            new java.util.concurrent.ThreadFactory() {
+                @Override public Thread newThread(Runnable r) {
+                    Thread t = new Thread(r, "WbiaRegistrationPoll");
+                    t.setDaemon(true);
+                    return t;
+                }
+            });
         ses.scheduleAtFixedRate(new Runnable() {
             @Override public void run() {
                 try {
@@ -457,6 +478,7 @@ public class StartupWildbook implements ServletContextListener {
                 }
             }
         }, WBIA_REGISTER_POLL_SECONDS, WBIA_REGISTER_POLL_SECONDS, TimeUnit.SECONDS);
+        wbiaRegisterExecutor = ses;
     }
 
     private static void runWbiaRegistrationPoll(String context) {
@@ -627,9 +649,108 @@ public class StartupWildbook implements ServletContextListener {
         }
     }
 
+    /**
+     * Phase A/B/C split per Codex c11 fix-review.
+     * <ul>
+     *   <li>Phase A: Shepherd open, re-check state, build DTO, close.
+     *   <li>Phase B: no Shepherd held; WBIA HTTP via
+     *       {@link org.ecocean.ia.plugin.WildbookIAM#registerOneByDto}.
+     *   <li>Phase C: Shepherd open, re-load, persist outcome, close.
+     * </ul>
+     * Ineligible annotations (missing media asset, missing acmId, fails
+     * {@code validForIdentification}) are parked at MAX_ATTEMPTS so they
+     * fall out of the polling query.
+     */
     private static void registerOneAnnotationWithWbia(String context, String annId) {
+        // ---- Phase A: load DTO under a short transaction. ----
+        org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterRequest dto =
+            loadWbiaRegisterDto(context, annId);
+        if (dto == null) return;  // ineligible / already registered / parked
+
+        // ---- Phase B: no Shepherd held; call WBIA. ----
+        org.ecocean.ia.plugin.WildbookIAM iam =
+            new org.ecocean.ia.plugin.WildbookIAM(context);
+        org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterOutcome outcome =
+            iam.registerOneByDto(dto);
+
+        // ---- Phase C: persist outcome under a short transaction. ----
+        persistWbiaRegisterResult(context, annId, outcome);
+    }
+
+    /**
+     * Phase A. Returns a detached DTO ready for Phase B, or null if the
+     * annotation does not need (or cannot get) a Phase-B network call.
+     * Null cases: missing annotation, already registered, parked at max
+     * attempts, or ineligible (missing media asset / acmId / bbox / etc.).
+     * Ineligible annotations are parked here so they stop being polled.
+     */
+    private static org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterRequest
+        loadWbiaRegisterDto(String context, String annId) {
         Shepherd shep = new Shepherd(context);
-        shep.setAction("StartupWildbook.WbiaRegistrationPoll." + annId);
+        shep.setAction("StartupWildbook.WbiaRegistrationPoll.loadDto." + annId);
+        shep.beginDBTransaction();
+        try {
+            org.ecocean.Annotation ann = shep.getAnnotation(annId);
+            if (ann == null) {
+                shep.commitDBTransaction();
+                return null;
+            }
+            if (Boolean.TRUE.equals(ann.getWbiaRegistered())) {
+                shep.commitDBTransaction();
+                return null;
+            }
+            if (ann.getWbiaRegisterAttempts() >= WBIA_REGISTER_MAX_ATTEMPTS) {
+                shep.commitDBTransaction();
+                return null;
+            }
+            // Eligibility checks. Any failure here is permanent for this
+            // annotation under its current state, so park it.
+            org.ecocean.media.MediaAsset ma = ann.getMediaAsset();
+            String reason = null;
+            if (ma == null) reason = "missing media asset";
+            else if (!Util.stringExists(ma.getAcmId())) reason = "media asset has no acmId";
+            else if (!Util.stringExists(ann.getId())) reason = "annotation has no id";
+            else if (!org.ecocean.identity.IBEISIA.validForIdentification(ann))
+                reason = "validForIdentification returned false (bbox/iaClass/etc.)";
+            if (reason != null) {
+                System.out.println("WARN: WbiaRegistrationPoll parking " + annId +
+                    " (ineligible: " + reason + ")");
+                ann.setWbiaRegisterAttempts(WBIA_REGISTER_MAX_ATTEMPTS);
+                shep.commitDBTransaction();
+                return null;
+            }
+            // Resolve the individual name now while the Shepherd is open;
+            // Phase B has no DB access.
+            String name = ann.findIndividualId(shep);
+            // Copy bbox into a fresh array so the DTO is fully detached.
+            int[] bb = ann.getBbox();
+            int[] bbCopy = (bb == null) ? null : new int[] { bb[0], bb[1], bb[2], bb[3] };
+            org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterRequest dto =
+                new org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterRequest(
+                    ann.getId(), ma.getAcmId(), bbCopy, ann.getTheta(),
+                    ann.getIAClass(), name);
+            shep.commitDBTransaction();
+            return dto;
+        } catch (Exception ex) {
+            System.out.println("WARN: WbiaRegistrationPoll loadWbiaRegisterDto failed for " +
+                annId + ": " + ex);
+            shep.rollbackDBTransaction();
+            return null;
+        } finally {
+            shep.closeDBTransaction();
+        }
+    }
+
+    /**
+     * Phase C. Re-loads the annotation and writes the outcome of the
+     * Phase-B network call. On terminal-success outcomes the annotation
+     * is marked registered; on retryable outcomes the attempts counter
+     * is bumped and we WARN-log when we hit the abandonment threshold.
+     */
+    private static void persistWbiaRegisterResult(String context, String annId,
+        org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterOutcome outcome) {
+        Shepherd shep = new Shepherd(context);
+        shep.setAction("StartupWildbook.WbiaRegistrationPoll.persist." + annId);
         shep.beginDBTransaction();
         try {
             org.ecocean.Annotation ann = shep.getAnnotation(annId);
@@ -637,34 +758,36 @@ public class StartupWildbook implements ServletContextListener {
                 shep.commitDBTransaction();
                 return;
             }
-            // Re-check state: it may have changed since the fetch query.
             if (Boolean.TRUE.equals(ann.getWbiaRegistered())) {
+                // Some other path flipped it while Phase B ran; respect that.
                 shep.commitDBTransaction();
                 return;
             }
             if (ann.getWbiaRegisterAttempts() >= WBIA_REGISTER_MAX_ATTEMPTS) {
+                // Already parked (by us, another poller, or the ineligibility
+                // path). Do not increment past MAX on a retry outcome.
                 shep.commitDBTransaction();
                 return;
             }
-            ArrayList<org.ecocean.Annotation> single =
-                new ArrayList<org.ecocean.Annotation>();
-            single.add(ann);
-            org.ecocean.ia.plugin.WildbookIAM iam =
-                new org.ecocean.ia.plugin.WildbookIAM(context);
-            try {
-                // NB: this holds the Shepherd across the WBIA network call.
-                // Matches the existing AcmIdMessageHandler pattern in this
-                // class. Per-annotation tx so a hung call blocks one slot.
-                iam.sendAnnotationsForceId(single, true, shep);
-                ann.setWbiaRegistered(Boolean.TRUE);
-            } catch (Exception netEx) {
-                System.out.println("WARN: WbiaRegistrationPoll WBIA call failed for " +
-                    annId + ": " + netEx);
-                ann.incrementWbiaRegisterAttempts();
+            switch (outcome) {
+                case REGISTERED_OK:
+                case REGISTERED_ALREADY_PRESENT:
+                    ann.setWbiaRegistered(Boolean.TRUE);
+                    break;
+                case NETWORK_FAIL:
+                case RESPONSE_BAD:
+                default:
+                    ann.incrementWbiaRegisterAttempts();
+                    if (ann.getWbiaRegisterAttempts() >= WBIA_REGISTER_MAX_ATTEMPTS) {
+                        System.out.println("WARN: WbiaRegistrationPoll abandoning " + annId +
+                            " after " + WBIA_REGISTER_MAX_ATTEMPTS +
+                            " attempts (last outcome=" + outcome + "); will not retry");
+                    }
+                    break;
             }
             shep.commitDBTransaction();
         } catch (Exception ex) {
-            System.out.println("WARN: WbiaRegistrationPoll registerOne failed for " +
+            System.out.println("WARN: WbiaRegistrationPoll persistWbiaRegisterResult failed for " +
                 annId + ": " + ex);
             shep.rollbackDBTransaction();
         } finally {
@@ -682,11 +805,32 @@ public class StartupWildbook implements ServletContextListener {
         if (CommonConfiguration.useSpotPatternRecognition(context)) {
             saveMatchGraph(sContext, context);
         }
+        // Stop the WBIA poller first so it does not race teardown of
+        // Shepherd / IndexingManager / QueueUtil while a poll cycle is in
+        // flight. The shutdown is bounded (5s awaitTermination).
+        shutdownWbiaRegisterExecutor();
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
         MetricsBot.cleanup();
         AcmIdBot.cleanup();
         IndexingManagerFactory.getIndexingManager().shutdown();
+    }
+
+    // ml-service migration v2 §commit #11 fix-pass. The polling executor
+    // was previously held only in a local variable, which meant redeploys
+    // could leak a zombie thread that re-armed on next contextInitialized.
+    private static void shutdownWbiaRegisterExecutor() {
+        ScheduledExecutorService ses = wbiaRegisterExecutor;
+        if (ses == null) return;
+        wbiaRegisterExecutor = null;
+        System.out.println("STOPPING: StartupWildbook.wbiaRegisterExecutor");
+        ses.shutdown();
+        try {
+            if (!ses.awaitTermination(5L, TimeUnit.SECONDS)) ses.shutdownNow();
+        } catch (InterruptedException ie) {
+            ses.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     public static void createMatchGraph() {

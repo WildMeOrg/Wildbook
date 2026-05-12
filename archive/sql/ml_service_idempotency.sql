@@ -75,4 +75,17 @@ SET "WBIAREGISTERED" = TRUE,
     "VERSION" = (EXTRACT(EPOCH FROM now()) * 1000)::bigint
 WHERE "ACMID" IS NOT NULL AND "WBIAREGISTERED" IS NULL;
 
+-- (5) Partial index for the WBIA-registration polling thread (commit #11
+--     fix-pass). The poller's JDOQL filter is
+--         wbiaRegistered == false AND wbiaRegisterAttempts < 10
+--     ordered by wbiaRegisterAttempts ASC. Partial-on-FALSE keeps the
+--     index tiny: legacy rows are TRUE post-backfill, registered rows are
+--     TRUE, and only the small still-pending set lives in the index.
+--     The predicate matches the poller's filter exactly (also excluding
+--     parked rows at attempts == MAX_ATTEMPTS, so abandoned rows never
+--     hit the index).
+CREATE INDEX IF NOT EXISTS "ANNOTATION_WBIAREGISTER_PENDING_IDX"
+ON "ANNOTATION" ("WBIAREGISTERATTEMPTS")
+WHERE "WBIAREGISTERED" = FALSE AND "WBIAREGISTERATTEMPTS" < 10;
+
 COMMIT;

@@ -409,6 +409,219 @@ public class WildbookIAM extends IAPlugin {
         return rtn;
     }
 
+    // ------------------------------------------------------------------
+    // ml-service migration v2: no-Shepherd WBIA registration helpers.
+    //
+    // The polling thread in StartupWildbook splits the work into:
+    //   Phase A (write tx) - load DTO + close.
+    //   Phase B (no DB)    - call into the helpers below.
+    //   Phase C (write tx) - persist result.
+    // Phase B must not hold a Shepherd transaction across the WBIA call.
+    // ------------------------------------------------------------------
+
+    /**
+     * Outcome of a Phase-B WBIA registration attempt.
+     * REGISTERED_OK              - POST succeeded, ids match.
+     * REGISTERED_ALREADY_PRESENT - WBIA already knew the annotation; no POST.
+     * NETWORK_FAIL               - GET or POST threw / non-2xx.
+     * RESPONSE_BAD               - POST returned 200 but body shape was wrong
+     *                              (id mismatch, length mismatch, missing field).
+     */
+    public enum WbiaRegisterOutcome {
+        REGISTERED_OK,
+        REGISTERED_ALREADY_PRESENT,
+        NETWORK_FAIL,
+        RESPONSE_BAD,
+    }
+
+    /**
+     * Plain-data DTO that holds everything Phase B needs about one
+     * Annotation. Built under a Shepherd transaction in Phase A, then
+     * passed across the close/open boundary into Phase B.
+     *
+     * <p>Phase A is responsible for pre-validating that all required
+     * fields are populated; Phase B treats the DTO as opaque and does
+     * not re-touch any JDO-managed state.</p>
+     */
+    public static final class WbiaRegisterRequest {
+        public final String annotationId;       // Annotation.id (the WBIA annot id we send)
+        public final String mediaAssetAcmId;    // MediaAsset.acmId (the WBIA image id we send)
+        public final int[]  bbox;               // x,y,w,h
+        public final double theta;
+        public final String iaClass;            // species/class string
+        public final String individualName;     // "____" if absent
+
+        public WbiaRegisterRequest(String annotationId, String mediaAssetAcmId,
+            int[] bbox, double theta, String iaClass, String individualName) {
+            this.annotationId    = annotationId;
+            this.mediaAssetAcmId = mediaAssetAcmId;
+            this.bbox            = bbox;
+            this.theta           = theta;
+            this.iaClass         = iaClass;
+            this.individualName  = individualName;
+        }
+    }
+
+    /**
+     * Strict variant of {@link #iaAnnotationIds(String)}: throws on
+     * fetch failure rather than returning an empty list. Phase B needs
+     * this so a network failure during the already-present check is
+     * not silently treated as "go ahead and POST".
+     *
+     * <p>Honors the 15-minute QueryCache the same way the lenient
+     * variant does, so a cache hit avoids the network entirely.</p>
+     */
+    public static List<String> iaAnnotationIdsStrict(String context) throws IOException {
+        String cacheName = "iaAnnotationIds";
+        // QueryCacheFactory.getQueryCache(context) can return null on a
+        // context that has never been initialized; treat that as "no cache"
+        // rather than NPE-ing out and aborting the poll cycle.
+        QueryCache qc = null;
+        try {
+            qc = QueryCacheFactory.getQueryCache(context);
+        } catch (Exception ex) {
+            // Defensive: cache factory init can fail; degrade to no-cache.
+        }
+        if (qc != null && qc.getQueryByName(cacheName) != null &&
+            System.currentTimeMillis() <
+            qc.getQueryByName(cacheName).getNextExpirationTimeout()) {
+            try {
+                org.datanucleus.api.rest.orgjson.JSONObject jobj = Util.toggleJSONObject(
+                    qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
+                JSONArray cached = Util.toggleJSONArray(jobj.getJSONArray("iaAnnotationIds"));
+                return parseAnnotationIdsArray(cached);
+            } catch (Exception ex) {
+                IA.log("WARNING: WildbookIAM.iaAnnotationIdsStrict() cache parse failed; refetching: "
+                    + ex.getMessage());
+            }
+        }
+        JSONArray jids;
+        try {
+            jids = apiGetJSONArray("/api/annot/json/", context);
+        } catch (Exception ex) {
+            throw new IOException("WBIA /api/annot/json/ fetch failed: " + ex.getMessage(), ex);
+        }
+        if (jids == null) throw new IOException("WBIA /api/annot/json/ returned null");
+        if (qc != null) {
+            try {
+                org.datanucleus.api.rest.orgjson.JSONObject jobj =
+                    new org.datanucleus.api.rest.orgjson.JSONObject();
+                jobj.put("iaAnnotationIds", Util.toggleJSONArray(jids));
+                CachedQuery cq = new CachedQuery(cacheName, Util.toggleJSONObject(jobj));
+                cq.nextExpirationTimeout = System.currentTimeMillis() + (15 * 60 * 1000);
+                qc.addCachedQuery(cq);
+            } catch (Exception cacheEx) {
+                // Cache store failure is non-fatal; we still have the ids.
+            }
+        }
+        return parseAnnotationIdsArray(jids);
+    }
+
+    static List<String> parseAnnotationIdsArray(JSONArray jids) {
+        List<String> ids = new ArrayList<String>();
+        if (jids == null) return ids;
+        for (int i = 0; i < jids.length(); i++) {
+            JSONObject jo = jids.optJSONObject(i);
+            if (jo != null) ids.add(fromFancyUUID(jo));
+        }
+        return ids;
+    }
+
+    /**
+     * Build the forced-id POST body for a single DTO. Pure function;
+     * factored out so unit tests can verify the request shape without
+     * a network round trip.
+     */
+    static HashMap<String, ArrayList> buildForcedRequestMap(WbiaRegisterRequest dto) {
+        HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
+        map.put("image_uuid_list", new ArrayList<JSONObject>());
+        map.put("annot_uuid_list", new ArrayList<JSONObject>());
+        map.put("annot_species_list", new ArrayList<String>());
+        map.put("annot_bbox_list", new ArrayList<int[]>());
+        map.put("annot_name_list", new ArrayList<String>());
+        map.put("annot_theta_list", new ArrayList<Double>());
+        map.get("image_uuid_list").add(toFancyUUID(dto.mediaAssetAcmId));
+        map.get("annot_uuid_list").add(toFancyUUID(dto.annotationId));
+        map.get("annot_species_list").add(dto.iaClass);
+        map.get("annot_bbox_list").add(dto.bbox);
+        map.get("annot_name_list").add(
+            (dto.individualName == null) ? "____" : dto.individualName);
+        map.get("annot_theta_list").add(dto.theta);
+        return map;
+    }
+
+    /**
+     * Validate a forced-id response. Throws on any contract violation
+     * (length mismatch, missing entry, id mismatch). Pure function.
+     */
+    static void validateForcedResponse(String sentAnnotId, JSONObject resp) throws IOException {
+        if (resp == null) throw new IOException("null forced-id response");
+        if (resp.has("status")) {
+            JSONObject status = resp.optJSONObject("status");
+            if (status != null && status.has("success") && !status.optBoolean("success", true)) {
+                throw new IOException("forced-id response status.success=false: " + resp);
+            }
+        }
+        JSONArray respArr = resp.optJSONArray("response");
+        if (respArr == null) throw new IOException("no response array: " + resp);
+        if (respArr.length() != 1)
+            throw new IOException("expected response array length 1, got " + respArr.length());
+        JSONObject jid = respArr.optJSONObject(0);
+        if (jid == null) throw new IOException("response[0] is not a JSONObject: " + respArr);
+        String respId = fromFancyUUID(jid);
+        if (respId == null) throw new IOException("response[0] could not be decoded: " + jid);
+        if (!respId.equals(sentAnnotId))
+            throw new IOException("forced-id mismatch: sent=" + sentAnnotId + " got=" + respId);
+    }
+
+    /**
+     * Phase B entry point. Does the already-present check, builds the
+     * forced-id POST, fires it, and classifies the outcome. Does NOT
+     * touch any Shepherd or JDO state; callers must hand it a DTO that
+     * was pre-validated and detached in Phase A.
+     */
+    public WbiaRegisterOutcome registerOneByDto(WbiaRegisterRequest dto) {
+        if (dto == null) return WbiaRegisterOutcome.RESPONSE_BAD;
+        String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
+        if (u == null) {
+            IA.log("WARNING: WildbookIAM.registerOneByDto() property IBEISIARestUrlAddAnnotations not set");
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        List<String> known;
+        try {
+            known = iaAnnotationIdsStrict(context);
+        } catch (IOException ex) {
+            IA.log("WARNING: WildbookIAM.registerOneByDto() iaAnnotationIds fetch failed: " +
+                ex.getMessage());
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        if (known.contains(dto.annotationId) || known.contains(dto.mediaAssetAcmId)) {
+            return WbiaRegisterOutcome.REGISTERED_ALREADY_PRESENT;
+        }
+        URL url;
+        try {
+            url = new URL(u);
+        } catch (MalformedURLException ex) {
+            IA.log("WARNING: WildbookIAM.registerOneByDto() malformed URL " + u);
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        HashMap<String, ArrayList> map = buildForcedRequestMap(dto);
+        JSONObject rtn;
+        try {
+            rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
+        } catch (Exception ex) {
+            IA.log("WARNING: WildbookIAM.registerOneByDto() POST failed: " + ex.getMessage());
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        try {
+            validateForcedResponse(dto.annotationId, rtn);
+        } catch (IOException ex) {
+            IA.log("WARNING: WildbookIAM.registerOneByDto() response invalid: " + ex.getMessage());
+            return WbiaRegisterOutcome.RESPONSE_BAD;
+        }
+        return WbiaRegisterOutcome.REGISTERED_OK;
+    }
+
     private static void checkForcedIds(List<JSONObject> sentIds, JSONArray respArr)
     throws IOException {
         if ((sentIds == null) || (respArr == null))
