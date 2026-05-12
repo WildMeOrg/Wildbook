@@ -675,6 +675,16 @@ public class StartupWildbook implements ServletContextListener {
             loadWbiaRegisterDto(context, annId);
         if (dto == null) return;  // ineligible / already registered / parked
 
+        // Bail out before starting the non-interruptible HTTP call if
+        // shutdown was requested while Phase A was running. Otherwise we
+        // would start a 300s WBIA POST that contextDestroyed can't cancel.
+        if (Thread.currentThread().isInterrupted() ||
+            wbiaRegisterExecutor == null) {
+            System.out.println("[INFO] WbiaRegistrationPoll: skipping Phase B for " + annId +
+                " (shutdown requested)");
+            return;
+        }
+
         // ---- Phase B: no Shepherd held; call WBIA. ----
         org.ecocean.ia.plugin.WildbookIAM iam =
             new org.ecocean.ia.plugin.WildbookIAM(context);
@@ -827,7 +837,10 @@ public class StartupWildbook implements ServletContextListener {
         }
         // Stop the WBIA poller first so it does not race teardown of
         // Shepherd / IndexingManager / QueueUtil while a poll cycle is in
-        // flight. The shutdown is bounded (5s awaitTermination).
+        // flight. shutdownWbiaRegisterExecutor signals shutdown by
+        // nulling the executor handle and waits up to 15s for in-flight
+        // ticks; any tick still running after that gets shutdownNow().
+        // The poll loop's interrupt/null checks make subsequent work bail.
         shutdownWbiaRegisterExecutor();
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
