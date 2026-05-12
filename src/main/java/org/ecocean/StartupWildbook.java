@@ -545,9 +545,15 @@ public class StartupWildbook implements ServletContextListener {
      *       mediaAsset + predictModelId + bboxKey + thetaKey) prevents
      *       duplicate annotation creation if the dead worker had already
      *       persisted some results.</li>
-     *   <li>On re-enqueue, {@code MediaAsset.setDetectionStatus} bumps
-     *       REVISION so this reconciler does not re-pick the same asset
-     *       on a subsequent restart.</li>
+     *   <li>The reconciler intentionally does NOT bump REVISION after a
+     *       successful re-enqueue, because doing so from the stale
+     *       managed MediaAsset instance could overwrite progress made by
+     *       a fast queue consumer between enqueue and commit. REVISION
+     *       advances naturally when MlServiceProcessor's Phase 1 calls
+     *       setDetectionStatus on the picked-up job. A restart that
+     *       happens between enqueue and consumer pickup can re-enqueue
+     *       a duplicate job; Phase 4 idempotency (see previous bullet)
+     *       bounds the impact to wasted work, not data corruption.</li>
      * </ul>
      *
      * <p>Threshold default: 1 hour. Longer than any healthy detection

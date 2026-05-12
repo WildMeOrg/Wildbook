@@ -265,11 +265,14 @@ public class IA {
      * <p><b>Task persistence note:</b> {@link Shepherd#storeNewTask}
      * internally commits/reopens the transaction, so the child Task row
      * is persisted before this method enqueues. On enqueue failure the
-     * child Task remains in the DB (no queued job ever fires for it).
-     * Callers that need to clean up are responsible for explicit
-     * deletion; the typical pattern is to accept the orphan since it is
-     * unreachable from user-facing UIs without a queued job and will be
-     * GC-ed by other task-cleanup paths.</p>
+     * child Task remains in the DB as an orphan — there is no queued
+     * job that will ever drive it. The orphan IS still discoverable
+     * via {@link org.ecocean.media.MediaAsset#getRootIATasks} (since
+     * the task references the MediaAsset through objectMediaAssets),
+     * so it may surface in operator-facing task listings until cleaned
+     * up by an out-of-band path. Callers that need cleanup should
+     * delete the orphan explicitly; the default posture here is to
+     * accept it since FileQueue write failures are rare.</p>
      *
      * <p>If {@code topTask} is null a fresh root task is created inside
      * this method. This matches the reconciler's use case where there is
