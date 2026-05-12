@@ -479,9 +479,15 @@ public class MlServiceProcessor {
                     "findMatchProspects rejected match config: " +
                     (matchConfig == null ? "null" : matchConfig.toString()));
                 matchTask.setCompletionDateInMilliseconds();
+                // Update the parent task in this same transaction (parent is
+                // already loaded above) so the two updates commit atomically.
+                // Splitting across transactions risks leaving the parent
+                // "completed" if the second commit fails or the JVM dies.
+                if (parent != null) {
+                    markTaskError(parent, "INVALID_MATCH_CONFIG",
+                        "no usable vector match config");
+                }
                 shep.commitDBTransaction();
-                markTaskError(taskId, "INVALID_MATCH_CONFIG",
-                    "no usable vector match config");
                 return MlServiceJobOutcome.validationError("INVALID_MATCH_CONFIG",
                     "no usable vector match config");
             }
@@ -678,6 +684,11 @@ public class MlServiceProcessor {
         payload.put("deferredMatch", true);
         payload.put("annotationIds", new JSONArray(annotationIds));
         if (Util.stringExists(parentTaskId)) payload.put("taskId", parentTaskId);
+        // Carry __context in the payload so the dispatcher's
+        // jobj.optString("__context", "context0") fallback at IAGateway.java
+        // doesn't silently route the deferred-match into context0 when this
+        // processor is running in a non-default context.
+        payload.put("__context", context);
         try {
             IAGateway.addToDetectionQueue(context, payload.toString());
         } catch (IOException ex) {
