@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import axios from "axios";
 import FrontDesk from "../FrontDesk";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import { useSiteSettings } from "../SiteSettingsContext";
 
 jest.mock("../AuthenticatedSwitch", () => {
   const MockComponent = () => <div>Authenticated</div>;
@@ -35,32 +35,55 @@ jest.mock("../components/SessionWarning", () => {
 });
 
 jest.mock("../hooks/useDocumentTitle", () => jest.fn());
-jest.mock("../models/useGetSiteSettings");
+jest.mock("../SiteSettingsContext", () => ({ useSiteSettings: jest.fn() }));
+jest.mock("../models/notifications/getMergeNotifications", () => jest.fn());
+jest.mock("../models/notifications/getCollaborationNotifications", () =>
+  jest.fn(),
+);
 
 jest.mock("axios");
 
 describe("FrontDesk Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useSiteSettings.mockReturnValue({
+      data: { showClassicSubmit: false },
+      isLoading: false,
+      error: null,
+    });
   });
 
-  test("renders UnauthenticatedSwitch if user is not logged in", async () => {
+  test("renders UnauthenticatedSwitch if user is not logged in (401)", async () => {
     axios.head.mockRejectedValueOnce({ response: { status: 401 } });
-    useGetSiteSettings.mockReturnValue({ data: { showClassicSubmit: false } });
 
     render(<FrontDesk />);
+
     await waitFor(() => {
       expect(screen.getByText("Unauthenticated")).toBeInTheDocument();
     });
+
+    expect(screen.getByText("GTM")).toBeInTheDocument();
+    expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
   });
 
-  test("handles login status check failure gracefully", async () => {
+  test("keeps loading on non-401 login check failure (current behavior)", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     axios.head.mockRejectedValueOnce(new Error("Network Error"));
-    useGetSiteSettings.mockReturnValue({ data: {} });
+    useSiteSettings.mockReturnValue({
+      data: {},
+      isLoading: false,
+      error: null,
+    });
 
     render(<FrontDesk />);
+
     await waitFor(() => {
-      expect(screen.getByText("Unauthenticated")).toBeInTheDocument();
+      expect(screen.getByText("Loading...")).toBeInTheDocument();
     });
+
+    expect(screen.queryByText("Unauthenticated")).not.toBeInTheDocument();
+    expect(warnSpy).toHaveBeenCalled();
+
+    warnSpy.mockRestore();
   });
 });

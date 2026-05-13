@@ -114,6 +114,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
         if (params != null) this.parametersAsString = params.toString();
         this.setRevision();
         this.setHashCode();
+        if (this.acmId == null) this.acmId = this.getUUID();
     }
 
     public AccessControl getAccessControl() {
@@ -662,6 +663,25 @@ public class MediaAsset extends Base implements java.io.Serializable {
         }
     }
 
+    // will find one with same qualities on this asset (will not return self!)
+    public Annotation findAnnotation(Annotation match, boolean shapeOnly) {
+        if (match == null) return null;
+        if (numAnnotations() < 1) return null;
+        Annotation found = null;
+        for (Annotation ann : getAnnotations()) {
+            if (ann.equals(match)) continue;
+            if (ann.equalsShape(match)) {
+                found = ann;
+                break;
+            }
+        }
+        if (shapeOnly || (found == null)) return found;
+        // TODO what else do we want to compare here?
+        if (!found.equalsIAClass(match)) return null;
+        if (!found.equalsViewpoint(match)) return null;
+        return found;
+    }
+
     /**
      * Return a full web-accessible url to the asset, or null if the asset is not web-accessible. NOTE: now you should *almost always* use .safeURL()
      * to return something to a user -- this will hide original files when necessary
@@ -969,7 +989,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
     public JSONObject toSimpleJSONObject() {
         JSONObject j = new JSONObject();
 
-        j.put("id", getId());
+        j.put("id", getIdInt());
         j.put("uuid", getUUID());
         j.put("url", safeURL());
         if ((getMetadata() != null) && (getMetadata().getData() != null) &&

@@ -60,7 +60,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 // date time
 
-
 public class IBEISIA {
     // move this ish to its own class asap!
     private static final Map<String, String[]> speciesMap;
@@ -73,7 +72,9 @@ public class IBEISIA {
 
     public static String STATUS_PENDING = "pending"; // pending review (needs action by user)
     public static String STATUS_COMPLETE = "complete"; // process is done
+    public static String STATUS_COMPLETE_MLSERVICE = "complete-mlservice"; // ml-service is done (e.g. embeddings added)
     public static String STATUS_PROCESSING = "processing"; // off at IA, awaiting results
+    public static String STATUS_PROCESSING_MLSERVICE = "processing-mlservice"; // off at ml-service, awaiting results
     public static String STATUS_INITIATED = "initiated"; // initiated on our side but may or may not be processing on IA side
     public static String STATUS_ERROR = "error";
     public static final String IA_UNKNOWN_NAME = "____";
@@ -140,7 +141,8 @@ public class IBEISIA {
             map.get("image_width_list").add(w);
             map.get("image_height_list").add(h);
 
-            map.get("image_uuid_list").add(toFancyUUID(ma.getUUID()));
+            String uuidToSend = (ma.getAcmId() != null) ? ma.getAcmId() : ma.getUUID();
+            map.get("image_uuid_list").add(toFancyUUID(uuidToSend));
             map.get("image_uri_list").add(mediaAssetToUri(ma));
 
             map.get("image_gps_lat_list").add(ma.getLatitude());
@@ -411,7 +413,7 @@ public class IBEISIA {
         JSONArray uuidList = new JSONArray();
 
         for (MediaAsset ma : mas) {
-        	if(ma.getAcmId()!=null)uuidList.put(toFancyUUID(ma.getAcmId()));
+            if (ma.getAcmId() != null) uuidList.put(toFancyUUID(ma.getAcmId()));
         }
         return uuidList;
     }
@@ -720,6 +722,14 @@ public class IBEISIA {
         }
         // we could also do a comparison with when it was started to enable a failure due to timeout
         return null; // if we fall through, it means we are still waiting ......
+    }
+
+    // singular log version
+    public static JSONObject getTaskResultsBasic(String taskID, IdentityServiceLog log) {
+        ArrayList<IdentityServiceLog> one = new ArrayList<IdentityServiceLog>();
+
+        one.add(log);
+        return getTaskResultsBasic(taskID, one);
     }
 
     public static HashMap<String, Object> getTaskResultsAsHashMap(String taskID, String context) {
@@ -1334,6 +1344,7 @@ public class IBEISIA {
     }
 
     public static String getTaskType(ArrayList<IdentityServiceLog> logs) {
+        if (logs == null) return null;
         for (IdentityServiceLog l : logs) {
             JSONObject j = l.getStatusJson();
             if ((j == null) || j.optString("_action").equals("")) continue;
@@ -1380,6 +1391,8 @@ public class IBEISIA {
     public static JSONObject processCallback(String taskID, JSONObject resp, String context,
         String rootDir) {
         logCallback(taskID, resp);
+        boolean fromEmbeddingExtraction = ((resp != null) && resp.optBoolean("embeddingExtraction",
+            false));
         JSONObject rtn = new JSONObject("{\"success\": false}");
         rtn.put("taskId", taskID);
         if (taskID == null) return rtn;
@@ -1389,7 +1402,7 @@ public class IBEISIA {
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA",
             myShepherd);
         rtn.put("_logs", logs);
-        if ((logs == null) || (logs.size() < 1)) return rtn;
+        if (((logs == null) || (logs.size() < 1)) && !fromEmbeddingExtraction) return rtn;
         JSONObject newAnns = null;
         String type = getTaskType(logs);
         System.out.println("**** type ---------------> [" + type + "]");
@@ -1402,10 +1415,26 @@ public class IBEISIA {
                 for detection, we have to check if we have generated any Annotations, which we then pass on to IA.intake() for identification ... BUT
              * only after we commit* (below) !! since ident stuff is queue-based
              */
-            newAnns = dres.optJSONObject("annotations");
+            System.out.println(
+                ">>>>>>>>>>>>>>>>>>>>>>>>>> SHORT-CIRCUIT of detection-to-identification <<<<<<<<<<<<<<<<<<<<<<<<");
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " +
+                dres.optJSONObject("annotations"));
+/*
+            newAnns (left commented out below) remains null here, which caused claude/codex code review to fear that non-embedding pipelne was broken
+            and ident would not be picked up without embeddings being extracted. however, testing proves that in the event IA.json is entirely
+            missing mlservice references, the pipeline behaves as expected, since the extraction loop (see `embedTask` in IBEISIA.java) basically
+            does nothing, yet continues on with pipeline to identification. this can be seen when testing that the `if (fromEmbeddingExtraction)` code
+            a few lines below here still has output (in mlservice-free IA.json) such as:
+            [DEBUG] IBEISIA.processCallback() [embeddingExtraction] taskID=42816234-5ce7-4fcf-bb76-978727346a71; resp=>{"annotationMap":{"403191":["a7a44a49-edda-4fef-aac0-e69730420745"]},"embeddingExtraction":true}
+ */
+            /* newAnns = dres.optJSONObject("annotations"); */
         } else if ("identify".equals(type)) {
             rtn.put("success", true);
             rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, context, rootDir));
+        } else if (fromEmbeddingExtraction) {
+            System.out.println("[DEBUG] IBEISIA.processCallback() [embeddingExtraction] taskID=" +
+                taskID + "; resp=>" + resp);
+            newAnns = resp.optJSONObject("annotationMap");
         } else {
             rtn.put("error", "unknown task action type " + type);
         }
@@ -1484,8 +1513,7 @@ public class IBEISIA {
                     subParentTask.setParameters(taskParameters);
                     myShepherd2.storeNewTask(subParentTask);
                     myShepherd2.updateDBTransaction();
-                    
-                    
+
                     Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask,
                         false);
                     myShepherd2.storeNewTask(childTask);
@@ -1565,7 +1593,8 @@ public class IBEISIA {
                     MediaAsset asset = null;
                     for (MediaAsset ma : mas) {
                         if (ma.getAcmId() == null) continue; // was likely an asset rejected (e.g. video)
-                        if (ma.getAcmId().equals(iuuid) && !alreadyDetected.contains(ma.getIdInt())) {
+                        if (ma.getAcmId().equals(iuuid) &&
+                            !alreadyDetected.contains(ma.getIdInt())) {
                             alreadyDetected.add(ma.getIdInt());
                             asset = ma;
                             break;
@@ -1674,8 +1703,27 @@ public class IBEISIA {
                     "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
                 task.setStatus("completed");
-                task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                task.setCompletionDateInMilliseconds();
+                // first we set the state here (before the updateDBTransaction)
+                for (Annotation ann : allAnns) {
+                    ann.setIdentificationStatus(STATUS_PROCESSING_MLSERVICE);
+                }
                 myShepherd.updateDBTransaction();
+                // this will queue up annots to have embeddings extracted and set on annot
+                if (allAnns.size() > 0) {
+                    Task embedTask = new Task(task); // this should copy task's parameters
+                    JSONObject params = embedTask.getParameters(); // but we need to modify them
+                    params.remove("ibeis.detection");
+                    params.put("embeddingExtraction", true);
+                    embedTask.setParameters(params);
+                    embedTask.setObjectAnnotations(allAnns);
+                    embedTask.setStatus("initiated");
+                    myShepherd.getPM().makePersistent(embedTask);
+                    myShepherd.updateDBTransaction();
+                    for (Annotation ann : allAnns) {
+                        ann.queueForEmbeddingExtraction(embedTask, myShepherd);
+                    }
+                }
                 if (amap.length() > 0) rtn.put("annotations", amap); // needed to kick off ident jobs with return value
 
                 JSONObject jlog = new JSONObject();
@@ -1757,6 +1805,8 @@ public class IBEISIA {
             // set "error" on Task
             Task task = myShepherd.getTask(taskID);
             if (task != null) {
+                task.setStatusDetailsAddError("INVALID",
+                    "could not parse inference_dict from results");
                 task.setStatus("error");
             }
             myShepherd.rollbackDBTransaction();
@@ -1827,7 +1877,19 @@ public class IBEISIA {
         Task task = myShepherd.getTask(taskID);
         if (task != null) {
             task.setStatus("completed");
-            task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+            task.setCompletionDateInMilliseconds();
+            try {
+                MatchResult mr = new MatchResult(task, j, myShepherd);
+                System.out.println("processCallbackIdentify() created " + mr + " on " + task);
+                myShepherd.getPM().makePersistent(mr);
+                task.setStatusDetailsAddLog("Created " + mr + " upon task completion");
+            } catch (IOException ex) {
+                System.out.println("processCallbackIdentify() failed to create MatchResult on " +
+                    task + ": " + ex);
+                ex.printStackTrace();
+                task.setStatusDetailsAddError("UNKNOWN",
+                    "Creation of MatchResult upon task completion failed due to: " + ex);
+            }
         }
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
@@ -2014,9 +2076,6 @@ public class IBEISIA {
             System.out.println("INFO: setting iaBaseURL=" + iaBaseURL);
         }
         String ustr = iaBaseURL;
-
-        System.out.println("!!!ustr: " + iaBaseURL);
-        System.out.println("!!!urlSuffix: " + urlSuffix);
         if (urlSuffix != null) {
             if (urlSuffix.indexOf("/") == 0) urlSuffix = urlSuffix.substring(1); // get rid of leading /
             ustr += urlSuffix;

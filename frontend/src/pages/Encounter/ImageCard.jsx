@@ -13,6 +13,8 @@ import EyeIcon from "../../components/icons/EyeIcon";
 import Tooltip from "../../components/ToolTip";
 import axios from "axios";
 import { useIntl } from "react-intl";
+import SpotMappingIcon2 from "../../components/icons/SpotMappingIcon2";
+import { isAssetActivelyAwaitingDetection } from "./pollingHelpers";
 
 const ImageCard = observer(({ store = {} }) => {
   const imgRef = useRef(null);
@@ -27,11 +29,22 @@ const ImageCard = observer(({ store = {} }) => {
   const [tip, setTip] = React.useState({ show: false, x: 0, y: 0, text: "" });
   const [clickedAnnotation, setClickedAnnotation] = useState(null);
   const [editAnnotationParams, setEditAnnotationParams] = useState({});
+  const [imageReady, setImageReady] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const intl = useIntl();
+  const mediaAssets = store.encounterData?.mediaAssets;
+  const hasMediaAssets = Array.isArray(mediaAssets) && mediaAssets.length > 0;
+  const encounterDataLoaded =
+    !!store.encounterData && Array.isArray(mediaAssets);
 
   useEffect(() => {
     store.setIntl(intl);
   }, [store, intl]);
+
+  useEffect(() => {
+    setImageReady(false);
+    setImageError(false);
+  }, [store.selectedImageIndex]);
 
   const currentAnnotation =
     store.encounterAnnotations.filter(
@@ -41,10 +54,10 @@ const ImageCard = observer(({ store = {} }) => {
   useEffect(() => {
     if (!currentAnnotation) return;
     setEditAnnotationParams({
-      x: currentAnnotation.boundingBox[0] || 0,
-      y: currentAnnotation.boundingBox[1] || 0,
-      width: currentAnnotation.boundingBox[2] || 0,
-      height: currentAnnotation.boundingBox[3] || 0,
+      x: currentAnnotation.boundingBox?.[0] || 0,
+      y: currentAnnotation.boundingBox?.[1] || 0,
+      width: currentAnnotation.boundingBox?.[2] || 0,
+      height: currentAnnotation.boundingBox?.[3] || 0,
       theta: currentAnnotation.theta || 0,
       viewpoint: currentAnnotation.viewpoint || "",
       iaClass: currentAnnotation.iaClass || "",
@@ -54,6 +67,12 @@ const ImageCard = observer(({ store = {} }) => {
   const annotationParam = encodeURIComponent(
     JSON.stringify(editAnnotationParams),
   );
+
+  const selectedAsset =
+    store.encounterData?.mediaAssets?.[store.selectedImageIndex];
+  const isDetectionInProgress =
+    !!selectedAsset &&
+    isAssetActivelyAwaitingDetection(selectedAsset, store.encounterData);
 
   const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
   const handleMove = (e) => {
@@ -85,6 +104,10 @@ const ImageCard = observer(({ store = {} }) => {
   };
   const handleLeave = () => setTip({ show: false, x: 0, y: 0, text: "" });
 
+  const hasNonTrivialAnnotations = store.encounterAnnotations?.some(
+    (a) => !a.isTrivial && (a.boundingBox?.[2] || 0) > 0 && (a.boundingBox?.[3] || 0) > 0
+  );
+
   useEffect(() => {
     if (
       store.encounterData &&
@@ -98,12 +121,16 @@ const ImageCard = observer(({ store = {} }) => {
         const anns = selectedImage?.annotations || [];
         setRects(
           anns
-            .filter((data) => !data.isTrivial)
-            ?.map((a) => ({
-              x: a.boundingBox[0],
-              y: a.boundingBox[1],
-              width: a.boundingBox[2],
-              height: a.boundingBox[3],
+            .filter((a) => {
+              const width = a.boundingBox?.[2] || 0;
+              const height = a.boundingBox?.[3] || 0;
+              return !a.isTrivial && width > 0 && height > 0;
+            })
+            .map((a) => ({
+              x: a.boundingBox?.[0],
+              y: a.boundingBox?.[1],
+              width: a.boundingBox?.[2],
+              height: a.boundingBox?.[3],
               rotation: a.theta || 0,
               annotationId: a.id,
               encounterId: a.encounterId,
@@ -121,18 +148,36 @@ const ImageCard = observer(({ store = {} }) => {
 
   useEffect(() => {
     if (!imgRef.current) return;
+
     const handleImageLoad = () => {
       if (imgRef.current) {
         const naturalWidth =
-          store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.width;
+          store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.width ||
+          imgRef.current.naturalWidth;
         const naturalHeight =
-          store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.height;
+          store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+            ?.height || imgRef.current.naturalHeight;
         const displayWidth = imgRef.current.clientWidth;
         const displayHeight = imgRef.current.clientHeight;
 
+        if (
+          !naturalWidth ||
+          !naturalHeight ||
+          !displayWidth ||
+          !displayHeight
+        ) {
+          return;
+        }
+
         setScaleX(naturalWidth / displayWidth);
         setScaleY(naturalHeight / displayHeight);
+        setImageReady(true);
       }
+    };
+
+    const handleError = () => {
+      setImageError(true);
+      setImageReady(true);
     };
 
     const imgElement = imgRef.current;
@@ -140,14 +185,16 @@ const ImageCard = observer(({ store = {} }) => {
       handleImageLoad();
     } else if (imgElement) {
       imgElement.addEventListener("load", handleImageLoad);
+      imgElement.addEventListener("error", handleError);
     }
 
     return () => {
       if (imgElement) {
         imgElement.removeEventListener("load", handleImageLoad);
+        imgElement.removeEventListener("error", handleError);
       }
     };
-  }, [rects, store.selectedImageIndex, store.encounterData]);
+  }, [store.selectedImageIndex, store.encounterData]);
 
   useEffect(() => {
     const ref = fileInputRef.current;
@@ -197,6 +244,13 @@ const ImageCard = observer(({ store = {} }) => {
     }
   };
 
+  const maxArea = React.useMemo(() => {
+    return rects.reduce(
+      (max, r) => Math.max(max, (r.width || 0) * (r.height || 0)),
+      1,
+    );
+  }, [rects]);
+
   return (
     <div
       className="d-flex flex-column justify-content-between mt-3 position-relative mb-3"
@@ -216,6 +270,7 @@ const ImageCard = observer(({ store = {} }) => {
           <FormattedMessage id="IMAGES" />
         </span>
       </div>
+
       <div className="mb-2 d-flex flex-row align-items-center justify-content-between">
         <p>
           {store.encounterData?.mediaAssets?.[store.selectedImageIndex]
@@ -228,17 +283,48 @@ const ImageCard = observer(({ store = {} }) => {
             : ""}
         </p>
       </div>
+
+      {isDetectionInProgress && (
+        <div
+          className="d-flex align-items-center mb-2"
+          style={{
+            gap: 8,
+            color: "#856404",
+            backgroundColor: "#fff3cd",
+            border: "1px solid #ffc107",
+            borderRadius: 6,
+            padding: "6px 10px",
+            fontSize: "0.85rem",
+          }}
+        >
+          <div
+            className="spinner-border spinner-border-sm"
+            role="status"
+            style={{ color: "#856404", flexShrink: 0 }}
+          >
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <FormattedMessage id="DETECTION_IN_PROGRESS" />
+        </div>
+      )}
+
       <div
         ref={boxRef}
         style={{
           width: "100%",
           position: "relative",
-          cursor: "pointer",
+          cursor: imageReady ? "pointer" : "default",
           overflow: "hidden",
+          minHeight: 200,
         }}
-        onClick={() => setOpenImageModal(true)}
+        onClick={() => {
+          if (!imageReady) return;
+          setOpenImageModal(true);
+        }}
       >
-        {rects.length > 0 &&
+        {imageReady &&
+          !imageError &&
+          rects.length > 0 &&
           rects.map((rect, index) => {
             let newRect = { ...rect };
             if (
@@ -270,6 +356,12 @@ const ImageCard = observer(({ store = {} }) => {
               };
             }
 
+            const area = (rect.width || 0) * (rect.height || 0);
+            const score = 1 - area / maxArea;
+            const baseZ = 10 + Math.round(score * 1000);
+            const finalZ =
+              rect.annotationId === clickedAnnotation?.id ? 2000 : baseZ;
+
             return (
               <div
                 id={`rect-${index}`}
@@ -294,8 +386,7 @@ const ImageCard = observer(({ store = {} }) => {
                   transform: `rotate(${(newRect.rotation * 180) / Math.PI}deg)`,
                   transformOrigin: "center",
                   cursor: "pointer",
-                  zIndex:
-                    newRect.annotationId === clickedAnnotation?.id ? 2000 : 10,
+                  zIndex: finalZ,
                   backgroundColor:
                     newRect.annotationId === clickedAnnotation?.id
                       ? "rgba(240, 11, 11, 0.3)"
@@ -493,32 +584,111 @@ const ImageCard = observer(({ store = {} }) => {
             );
           })}
 
-        {store.encounterData?.mediaAssets.length > 0 ? (
-          <img
-            ref={imgRef}
-            src={
-              store.encounterData?.mediaAssets?.[store.selectedImageIndex]
-                ?.url || ""
-            }
-            alt="encounter image"
-            style={{ width: "100%", height: "auto" }}
-          />
+        {!encounterDataLoaded ? (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(255, 255, 255, 0.45)",
+              zIndex: 30,
+            }}
+          >
+            <div className="d-flex flex-column align-items-center">
+              <div className="spinner-border spinner-border-sm" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <small style={{ marginTop: 8 }}>Loading image...</small>
+            </div>
+          </div>
+        ) : hasMediaAssets ? (
+          <>
+            <img
+              ref={imgRef}
+              src={mediaAssets?.[store.selectedImageIndex]?.url || ""}
+              alt="encounter image"
+              style={{
+                width: "100%",
+                height: "auto",
+                display: "block",
+                opacity: imageReady ? 1 : 0.35,
+              }}
+            />
+
+            {!imageReady && !imageError && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "rgba(255, 255, 255, 0.45)",
+                  zIndex: 30,
+                }}
+              >
+                <div className="d-flex flex-column align-items-center">
+                  <div
+                    className="spinner-border spinner-border-sm"
+                    role="status"
+                  >
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <small style={{ marginTop: 8 }}>Loading image...</small>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <p>
             <FormattedMessage id="NO_IMAGE_AVAILABLE" />
           </p>
         )}
+
         <Tooltip show={tip.show} x={tip.x} y={tip.y}>
           {tip.text}
         </Tooltip>
-        {store.encounterData?.mediaAssets.length > 0 && (
+
+        {store.encounterData?.mediaAssets?.length > 0 &&
+          store?.encounterData?.spotMapping?.enabled && (
+            <div
+              style={{
+                position: "absolute",
+                top: 5,
+                right: 45,
+                cursor: "pointer",
+                zIndex: 20,
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+
+                const mediaAssetId =
+                  store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+                    ?.id;
+
+                if (!mediaAssetId) return;
+
+                window.open(
+                  `/encounters/encounterSpotTool.jsp?imageID=${encodeURIComponent(mediaAssetId)}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+              }}
+            >
+              <SpotMappingIcon2 />
+            </div>
+          )}
+        {store.encounterData?.mediaAssets?.length > 0 && (
           <div style={{ position: "absolute", top: 5, right: 5 }}>
             <FullscreenIcon />
           </div>
         )}
       </div>
+
       {store.access === "write" &&
-        store.encounterData?.mediaAssets.length > 0 && (
+        store.encounterData?.mediaAssets?.length > 0 && (
           <div
             className="d-flex flex-row justify-content-between align-items-center w-100 align-items-center"
             style={{
@@ -534,7 +704,7 @@ const ImageCard = observer(({ store = {} }) => {
               onClick={async () => {
                 if (store.matchResultClickable) {
                   const taskId = currentAnnotation?.iaTaskId;
-                  const url = `/iaResults.jsp?taskId=${encodeURIComponent(taskId)}`;
+                  const url = `/react/match-results?taskId=${encodeURIComponent(taskId)}`;
                   window.open(url, "_blank", "noopener,noreferrer");
                 } else if (
                   clickedAnnotation &&
@@ -572,7 +742,7 @@ const ImageCard = observer(({ store = {} }) => {
                     identActive &&
                     (detectionComplete || identificationStatus)
                   ) {
-                    const url = `/iaResults.jsp?taskId=${encodeURIComponent(selectedAnnotation.iaTaskId)}`;
+                    const url = `/react/match-results?taskId=${encodeURIComponent(selectedAnnotation.iaTaskId)}`;
                     window.open(url, "_blank", "noopener,noreferrer");
                   } else {
                     alert("No match results available for this annotation.");
@@ -589,6 +759,7 @@ const ImageCard = observer(({ store = {} }) => {
                 <FormattedMessage id="MATCH_RESULTS" />
               </p>
             </div>
+
             <div
               className="d-flex align-items-center justify-content-center flex-column"
               style={{ cursor: "pointer", paddingTop: "20px" }}
@@ -612,9 +783,12 @@ const ImageCard = observer(({ store = {} }) => {
                 <FormattedMessage id="VISUAL_MATCHER" />
               </p>
             </div>
+
             <div
               className="d-flex align-items-center justify-content-center flex-column"
               onClick={() => {
+                if (!hasNonTrivialAnnotations) return;
+
                 if (
                   !store.encounterData?.mediaAssets?.[store.selectedImageIndex]
                 ) {
@@ -623,13 +797,18 @@ const ImageCard = observer(({ store = {} }) => {
                 }
                 store.modals.setOpenMatchCriteriaModal(true);
               }}
-              style={{ cursor: "pointer", paddingTop: "20px" }}
+              style={{
+                cursor: hasNonTrivialAnnotations ? "pointer" : "not-allowed",
+                paddingTop: "20px",
+                opacity: hasNonTrivialAnnotations ? 1 : 0.5,
+              }}
             >
               <RefreshIcon />
               <p>
                 <FormattedMessage id="NEW_MATCH" />
               </p>
             </div>
+
             <div
               className="d-flex align-items-center justify-content-center flex-column"
               style={{ cursor: "pointer", paddingTop: "20px" }}
@@ -653,11 +832,12 @@ const ImageCard = observer(({ store = {} }) => {
             </div>
           </div>
         )}
+
       <div
         className="d-flex flex-wrap align-items-center mt-2"
         style={{ gap: 8, overflowY: "auto", maxHeight: 200 }}
       >
-        {store.encounterData?.mediaAssets.map((asset, index) => (
+        {store.encounterData?.mediaAssets?.map((asset, index) => (
           <img
             key={index}
             src={asset.url}
@@ -675,6 +855,7 @@ const ImageCard = observer(({ store = {} }) => {
             onClick={() => store.setSelectedImageIndex(index)}
           />
         ))}
+
         {store.access === "write" && (
           <div id="add-more-files">
             <label
@@ -733,6 +914,7 @@ const ImageCard = observer(({ store = {} }) => {
           </div>
         )}
       </div>
+
       {openImageModal && (
         <ImageModal
           open={openImageModal}

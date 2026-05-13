@@ -191,6 +191,7 @@ export class ReportEncounterStore {
 
   setDateTimeSectionValue(value) {
     this._dateTimeSection.value = value;
+    this._dateTimeSection.error = false;
   }
 
   setDateTimeSectionError(error) {
@@ -330,9 +331,20 @@ export class ReportEncounterStore {
       isValid = false;
     }
 
-    if (!this._dateTimeSection.value && this._dateTimeSection.required) {
-      this._dateTimeSection.error = true;
-      isValid = false;
+    if (this._dateTimeSection.required) {
+      const dateValue = this._dateTimeSection.value
+        ? new Date(this._dateTimeSection.value)
+        : null;
+
+      const isFutureDate =
+        dateValue &&
+        !Number.isNaN(dateValue.getTime()) &&
+        dateValue > new Date();
+
+      if (!dateValue || Number.isNaN(dateValue.getTime()) || isFutureDate) {
+        this._dateTimeSection.error = true;
+        isValid = false;
+      }
     }
 
     if (!this._placeSection.locationId && this._placeSection.required) {

@@ -16,7 +16,7 @@ import InfoAccordion from "../../components/InfoAccordion";
 import SimpleDataTable from "../../components/SimpleDataTable";
 import { Modal } from "react-bootstrap";
 import { Suspense, lazy } from "react";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import axios from "axios";
 import MainButton from "../../components/MainButton";
 import convertToTreeData from "../../utils/converToTreeData";
@@ -31,10 +31,13 @@ const BulkImportTask = observer(() => {
   const [showError, setShowError] = useState(false);
   const taskId = new URLSearchParams(window.location.search).get("id");
   const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
-  const { data: siteData } = useGetSiteSettings();
+  const { data: siteData } = useSiteSettings();
   const [userRoles, setUserRoles] = useState(null);
   const store = useLocalObservable(() => new BulkImportTaskStore());
-
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSendingToIdentification, setIsSendingToIdentification] =
+    useState(false);
   const previousLocationID = task?.matchingLocations || [];
 
   const fetchData = async () => {
@@ -75,12 +78,14 @@ const BulkImportTask = observer(() => {
 
   const deleteTask = async () => {
     if (!task?.id) return;
+    if (isDeleting) return;
 
     const confirmed = window.confirm(
       intl.formatMessage({ id: "BULK_IMPORT_DELETE_TASK_CONFIRM" }),
     );
     if (!confirmed) return;
 
+    setIsDeleting(true);
     try {
       const res = await fetch(`/api/v3/bulk-import/${task.id}`, {
         method: "DELETE",
@@ -101,6 +106,7 @@ const BulkImportTask = observer(() => {
           { error: err.message || "" },
         ),
       );
+      setIsDeleting(false);
     }
   };
 
@@ -207,7 +213,7 @@ const BulkImportTask = observer(() => {
       cell: (row) => {
         const arr = row.class;
         if (Array.isArray(arr) && arr.length === 3) {
-          const link = `/iaResults.jsp?taskId=${arr[0]}`;
+          const link = `/react/match-results?taskId=${arr[0]}`;
           return (
             <a href={link} target="_blank" rel="noreferrer">
               {arr[2]} {": "}
@@ -405,7 +411,33 @@ const BulkImportTask = observer(() => {
           />
         </div>
 
-        <SimpleDataTable columns={columns} data={sortedTableData} />
+        <div className="mb-2">
+          <label>
+            <h6 className="mb-2">
+              <FormattedMessage
+                id="RESULTS_PER_PAGE"
+                defaultMessage="Results per page"
+              />
+            </h6>
+
+            <select
+              value={rowsPerPage}
+              onChange={(e) => setRowsPerPage(Number(e.target.value))}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={250}>250</option>
+              <option value={sortedTableData.length}>All</option>
+            </select>
+          </label>
+        </div>
+        <SimpleDataTable
+          columns={columns}
+          data={sortedTableData}
+          perPage={rowsPerPage}
+        />
       </section>
 
       <Row>
@@ -459,50 +491,50 @@ const BulkImportTask = observer(() => {
           <MainButton
             id="re-id-button"
             disabled={
+              isSendingToIdentification ||
               (!userRoles?.includes("admin") &&
                 !userRoles?.includes("researcher")) ||
               !store.locationIDString ||
               task?.status !== "complete" ||
               task?.iaSummary?.detectionStatus !== "complete"
             }
-            onClick={() => {
+            onClick={async () => {
               setShowError(false);
-              axios
-                .get(
+              setIsSendingToIdentification(true);
+
+              try {
+                const response = await axios.get(
                   `/appadmin/resendBulkImportID.jsp?importIdTask=${taskId}${store.locationIDString}`,
-                )
-                .then((response) => {
-                  if (response.status === 200) {
-                    alert(
-                      intl.formatMessage({
-                        id: "BULK_IMPORT_RE_ID_SUCCESS",
-                        defaultMessage:
-                          "Re-identification task started successfully.",
-                      }),
-                    );
-                    window.location.reload();
-                  } else {
-                    throw new Error(
-                      intl.formatMessage({
-                        id: "BULK_IMPORT_RE_ID_ERROR",
-                        defaultMessage:
-                          "Failed to start re-identification task.",
-                      }),
-                    );
-                  }
-                })
-                .catch((error) => {
-                  console.error(
-                    "Error starting re-identification task:",
-                    error,
-                  );
+                );
+
+                if (response.status === 200) {
                   alert(
+                    intl.formatMessage({
+                      id: "BULK_IMPORT_RE_ID_SUCCESS",
+                      defaultMessage:
+                        "Re-identification task started successfully.",
+                    }),
+                  );
+                  window.location.reload();
+                } else {
+                  throw new Error(
                     intl.formatMessage({
                       id: "BULK_IMPORT_RE_ID_ERROR",
                       defaultMessage: "Failed to start re-identification task.",
                     }),
                   );
-                });
+                }
+              } catch (error) {
+                console.error("Error starting re-identification task:", error);
+                alert(
+                  intl.formatMessage({
+                    id: "BULK_IMPORT_RE_ID_ERROR",
+                    defaultMessage: "Failed to start re-identification task.",
+                  }),
+                );
+              } finally {
+                setIsSendingToIdentification(false);
+              }
             }}
             backgroundColor={theme.wildMeColors.cyan700}
             color={theme.defaultColors.white}
@@ -514,6 +546,15 @@ const BulkImportTask = observer(() => {
               marginLeft: 0,
             }}
           >
+            {isSendingToIdentification && (
+              <Spinner
+                animation="border"
+                size="sm"
+                className="me-2"
+                role="status"
+                aria-hidden="true"
+              />
+            )}
             <FormattedMessage id="BULK_IMPORT_SEND_TO_IDENTIFICATION" />
           </MainButton>
           {((!userRoles?.includes("admin") &&
@@ -541,6 +582,7 @@ const BulkImportTask = observer(() => {
         <Col xs="auto">
           <MainButton
             onClick={deleteTask}
+            disabled={isDeleting}
             shadowColor={theme.statusColors.red500}
             color={theme.statusColors.red500}
             noArrow={true}
@@ -552,9 +594,23 @@ const BulkImportTask = observer(() => {
               marginLeft: 0,
               marginTop: "1rem",
               marginBottom: "2rem",
+              opacity: isDeleting ? 0.7 : 1,
+              cursor: isDeleting ? "not-allowed" : "pointer",
             }}
           >
-            <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
+            {isDeleting ? (
+              <>
+                <Spinner
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  className="me-2"
+                />
+                <FormattedMessage id="BULK_IMPORT_DELETE_TASK_IN_PROGRESS" />
+              </>
+            ) : (
+              <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
+            )}
           </MainButton>
         </Col>
       </Row>

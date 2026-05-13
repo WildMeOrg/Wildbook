@@ -9,6 +9,7 @@ import CardWithSaveAndCancelButtons from "../../components/CardWithSaveAndCancel
 import { TrackingReview } from "./TrackingReview";
 import { TrackingEdit } from "./TrackingEdit";
 import { ProjectsCard } from "./ProjectsCard";
+import { SpotMappingCard } from "./SpotMappingCard";
 import { MeasurementsEdit } from "./MeasurementsEdit";
 import { MeasurementsReview } from "./MeasurementsReview";
 import { FormattedMessage } from "react-intl";
@@ -27,6 +28,7 @@ export const MoreDetails = observer(({ store = {} }) => {
               store.setMeasurementsAndTrackingSection(true);
               store.setBiologicalSamplesSection(false);
               store.setProjectsSection(false);
+              store.setSpotMappingSection(false);
             }}
             style={{
               cursor: "pointer",
@@ -45,6 +47,7 @@ export const MoreDetails = observer(({ store = {} }) => {
             onClick={() => {
               store.setMeasurementsAndTrackingSection(true);
               store.setProjectsSection(false);
+              store.setSpotMappingSection(false);
               const url =
                 "/encounters/biologicalSamples.jsp?number=" +
                 store.encounterData?.id;
@@ -65,6 +68,7 @@ export const MoreDetails = observer(({ store = {} }) => {
               store.setProjectsSection(true);
               store.setMeasurementsAndTrackingSection(false);
               store.setBiologicalSamplesSection(false);
+              store.setSpotMappingSection(false);
             }}
             style={{
               cursor: "pointer",
@@ -76,6 +80,26 @@ export const MoreDetails = observer(({ store = {} }) => {
             </p>
             <i className="bi bi-chevron-right"></i>
           </div>
+          {store?.encounterData?.spotMapping?.enabled && (
+            <div
+              className="d-flex align-items-center justify-content-between mb-3 w-100"
+              onClick={() => {
+                store.setProjectsSection(false);
+                store.setMeasurementsAndTrackingSection(false);
+                store.setBiologicalSamplesSection(false);
+                store.setSpotMappingSection(true);
+              }}
+              style={{
+                cursor: "pointer",
+                color: !store.spotMappingSection ? "black" : primary700,
+              }}
+            >
+              <p>
+                <FormattedMessage id="SPOT_MAPPING_ALGORITHMS" />
+              </p>
+              <i className="bi bi-chevron-right"></i>
+            </div>
+          )}
         </Col>
         {store.measurementsAndTrackingSection && (
           <Col
@@ -143,6 +167,11 @@ export const MoreDetails = observer(({ store = {} }) => {
         {store.projectsSection && (
           <Col md={9} sm={12}>
             <ProjectsCard store={store} />
+          </Col>
+        )}
+        {store.spotMappingSection && (
+          <Col md={9} sm={12}>
+            <SpotMappingCard store={store} />
           </Col>
         )}
       </Row>

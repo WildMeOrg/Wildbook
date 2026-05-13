@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.Embedding;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.media.MediaAsset;
@@ -349,6 +350,8 @@ public class IA {
             aj.put("annotationIds", annArr);
             String baseUrl = getBaseURL(context);
             for (int i = 0; i < opts.size(); i++) {
+                // if this is a vector-based matching option, this will just do the job and be done
+                if (Embedding.findMatchProspects(opts.get(i), tasks.get(i), myShepherd)) continue;
                 JSONObject qjob = new JSONObject();
                 qjob.put("identify", aj);
                 qjob.put("taskId", tasks.get(i).getId());
@@ -418,7 +421,6 @@ public class IA {
             if (fastlane) topTask.addParameter("fastlane", true);
             myShepherd.storeNewTask(topTask);
             JSONObject opt = jin.optJSONObject("opt"); // should use this to decide how to branch differently than "default"
-
             JSONArray mlist = jin.optJSONArray("mediaAssetIds");
             if ((mlist != null) && (mlist.length() > 0)) {
                 System.out.println("MLIST: " + mlist);
@@ -433,7 +435,7 @@ public class IA {
                 }
                 Task mtask = intakeMediaAssets(myShepherd, mas, topTask);
                 System.out.println("INFO: IA.handleRest() just intook MediaAssets as " + mtask +
-                    " for " + topTask);
+                    " for (parent) " + topTask);
                 topTask.addChild(mtask);
             }
             JSONArray alist = jin.optJSONArray("annotationIds");
@@ -465,8 +467,10 @@ public class IA {
                 Task atask = intakeAnnotations(myShepherd, anns, topTask, fastlane);
                 System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask +
                     " for " + topTask);
-                topTask.addChild(atask);
                 myShepherd.getPM().refresh(topTask);
+                topTask.addChild(atask);
+                topTask.setModified();
+                myShepherd.getPM().makePersistent(atask);
             }
             myShepherd.commitDBTransaction();
         } catch (Exception e) {

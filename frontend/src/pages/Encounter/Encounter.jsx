@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { observer } from "mobx-react-lite";
 import { Container } from "react-bootstrap";
@@ -12,7 +12,7 @@ import LocationIcon from "../../components/icons/LocationIcon";
 import AttributesIcon from "../../components/icons/AttributesIcon";
 import ImageCard from "./ImageCard";
 import CardWithEditButton from "../../components/CardWithEditButton";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import PillWithDropdown from "../../components/PillWithDropdown";
 import ContactIcon from "../../components/icons/ContactIcon";
 import HistoryIcon from "../../components/icons/HistoryIcon";
@@ -38,10 +38,16 @@ import { Divider } from "antd";
 import { get } from "lodash-es";
 import CollabModal from "./CollabModal";
 import Alert from "react-bootstrap/Alert";
+import {
+  shouldContinuePollingEncounter,
+  POLL_INTERVAL_MS,
+  MAX_POLL_CYCLES,
+} from "./pollingHelpers";
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
-  const { data: siteSettings } = useGetSiteSettings();
+  const { data: siteSettings, isLoading: siteSettingsLoading } =
+    useSiteSettings();
   const [encounterValid, setEncounterValid] = useState(true);
   const [encounterDeleted, setEncounterDeleted] = useState(false);
   const intl = useIntl();
@@ -61,22 +67,54 @@ const Encounter = observer(() => {
   useEffect(() => {
     if (!siteSettings) return;
     store.setSiteSettings(siteSettings);
-  }, [siteSettings, store]);
+    store.setSiteSettingsLoading(siteSettingsLoading);
+  }, [siteSettings, store, siteSettingsLoading]);
 
   const params = new URLSearchParams(window.location.search);
   const encounterId = params.get("number");
+  const isInitialLoad = useRef(true);
 
   useEffect(() => {
     let cancelled = false;
-    axios
-      .get(`/api/v3/encounters/${encounterId}`)
-      .then((res) => {
-        if (!cancelled) store.setEncounterData(res.data);
-        store.setAccess(get(res.data, "access", "read"));
-      })
-      .catch((_err) => setEncounterValid(false));
+    let timeoutId = null;
+    let pollCount = 0;
+
+    const fetchEncounter = async () => {
+      try {
+        const res = await axios.get(`/api/v3/encounters/${encounterId}`);
+
+        if (cancelled) return;
+
+        if (isInitialLoad.current) {
+          store.setEncounterData(res.data);
+          store.setAccess(get(res.data, "access", "read"));
+          setEncounterValid(true);
+          isInitialLoad.current = false;
+        } else {
+          store.setMediaAssets(res.data.mediaAssets);
+        }
+
+        pollCount++;
+        if (
+          pollCount < MAX_POLL_CYCLES &&
+          shouldContinuePollingEncounter(res.data)
+        ) {
+          timeoutId = window.setTimeout(fetchEncounter, POLL_INTERVAL_MS);
+        }
+      } catch (_err) {
+        if (!cancelled && isInitialLoad.current) {
+          setEncounterValid(false);
+        }
+      }
+    };
+
+    fetchEncounter();
+
     return () => {
       cancelled = true;
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, [encounterId, store]);
 
@@ -300,21 +338,29 @@ const Encounter = observer(() => {
           </Modal.Body>
         </Modal>
       )}
-      <ContactInfoModal
-        isOpen={store.modals.openContactInfoModal}
-        onClose={() => store.modals.setOpenContactInfoModal(false)}
-        store={store}
-      />
-      <EncounterHistoryModal
-        isOpen={store.modals.openEncounterHistoryModal}
-        onClose={() => store.modals.setOpenEncounterHistoryModal(false)}
-        store={store}
-      />
-      <MatchCriteriaModal
-        store={store}
-        isOpen={store.modals.openMatchCriteriaModal}
-        onClose={() => store.modals.setOpenMatchCriteriaModal(false)}
-      />
+
+      {store.modals.openContactInfoModal && (
+        <ContactInfoModal
+          isOpen={store.modals.openContactInfoModal}
+          onClose={() => store.modals.setOpenContactInfoModal(false)}
+          store={store}
+        />
+      )}
+      {store.modals.openEncounterHistoryModal && (
+        <EncounterHistoryModal
+          isOpen={store.modals.openEncounterHistoryModal}
+          onClose={() => store.modals.setOpenEncounterHistoryModal(false)}
+          store={store}
+        />
+      )}
+      {store.modals.openMatchCriteriaModal && (
+        <MatchCriteriaModal
+          store={store}
+          isOpen={store.modals.openMatchCriteriaModal}
+          onClose={() => store.modals.setOpenMatchCriteriaModal(false)}
+        />
+      )}
+
       <Row>
         <Col md={6}>
           <h2>

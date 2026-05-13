@@ -23,6 +23,7 @@ public class Feature implements java.io.Serializable {
     protected FeatureType type;
 
     protected JSONObject parameters;
+    protected String parametersAsString;
 
     // this link back to the objs with .features that include us
     protected Annotation annotation;
@@ -52,6 +53,7 @@ public class Feature implements java.io.Serializable {
         this.id = id;
         this.type = type;
         this.parameters = params;
+        if (params != null) this.parametersAsString = params.toString();
         this.setRevision();
     }
 
@@ -90,31 +92,34 @@ public class Feature implements java.io.Serializable {
     }
 
     public JSONObject getParameters() {
-// System.out.println("getParameters() called -> " + parameters);
+        if (parameters != null) return parameters;
+        if (parametersAsString == null) return null;
+        try {
+            parameters = new JSONObject(parametersAsString);
+        } catch (JSONException je) {
+            System.out.println(this + " -- error parsing parameters json string (" +
+                parametersAsString + "): " + je.toString());
+            return null;
+        }
         return parameters;
     }
 
     public void setParameters(JSONObject p) {
-// System.out.println("setParameters(" + p + ") called");
         parameters = p;
+        parametersAsString = (p == null) ? null : p.toString();
     }
 
+    // only DataNucleus should be calling get/setParametersAsString. always use get/setParameters() instead.
     public String getParametersAsString() {
-// System.out.println("getParametersAsString() called -> " + parameters);
+        if (parametersAsString != null) return parametersAsString;
         if (parameters == null) return null;
-        return parameters.toString();
+        parametersAsString = parameters.toString();
+        return parametersAsString;
     }
 
     public void setParametersAsString(String p) {
-// System.out.println("setParametersAsString(" + p + ") called");
-        if (p == null) return;
-        try {
-            parameters = new JSONObject(p);
-        } catch (JSONException je) {
-            System.out.println(this + " -- error parsing parameters json string (" + p + "): " +
-                je.toString());
-            parameters = null;
-        }
+        parametersAsString = p;
+        parameters = null; // force lazy re-parse on next getParameters()
     }
 
     public long getRevision() {

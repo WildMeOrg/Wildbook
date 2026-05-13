@@ -16,13 +16,14 @@ jest.mock("../../../components/icons/TrashCanIcon", () => () => (
 import ContactInfoCard from "../../../pages/Encounter/ContactInfoCard";
 
 const makeStore = (overrides = {}) => ({
+  access: "write",
   removeContact: jest.fn(),
   refreshEncounterData: jest.fn(),
   ...overrides,
 });
 
 describe("ContactInfoCard", () => {
-  test("renders title via FormattedMessage id and contact items", () => {
+  test("renders title via FormattedMessage id and contact items (write access)", () => {
     const store = makeStore();
     const data = [
       { id: "1", displayName: "Alice", image: "http://img/alice.png" },
@@ -51,11 +52,13 @@ describe("ContactInfoCard", () => {
     expect(img).toHaveAttribute("src", "http://img/alice.png");
 
     expect(container.querySelectorAll("i.bi.bi-person-circle").length).toBe(1);
+
+    expect(screen.getAllByTestId("trash-icon")).toHaveLength(2);
   });
 
   test("clicking trash with confirm=true calls removeContact(type,id) and refreshEncounterData", async () => {
     const user = userEvent.setup();
-    const store = makeStore();
+    const store = makeStore({ access: "write" });
     const data = [
       { id: "1", displayName: "Alice", image: "http://img/alice.png" },
       { id: "2", displayName: "Bob" },
@@ -86,7 +89,7 @@ describe("ContactInfoCard", () => {
 
   test("clicking trash with confirm=false does not call store methods", async () => {
     const user = userEvent.setup();
-    const store = makeStore();
+    const store = makeStore({ access: "write" });
     const data = [{ id: "1", displayName: "Alice" }];
 
     const confirmSpy = jest.spyOn(window, "confirm").mockReturnValue(false);

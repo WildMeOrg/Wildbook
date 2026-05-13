@@ -248,6 +248,7 @@
 				/SubmitSpotsAndTransformImage = authc,roles[researcher]
 				/EncounterAddSpotFile = authc, roles[identifier]
 				/EncounterRemoveSpots = authc, roles[researcher]
+				/GrothMatch = authc, roles[researcher]
 
 				# ===== Occurrence Management =====
 				/OccurrenceCreate = authc, roles[researcher]
@@ -423,6 +424,10 @@
 		<servlet-name>ApiBaseObject</servlet-name>
 		<url-pattern>/api/v3/encounters/*</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ApiGenericObject</servlet-name>
+		<url-pattern>/api/v3/tasks/*</url-pattern>
+	</servlet-mapping>
 
 	<servlet-mapping>
 		<servlet-name>ApiBaseObject</servlet-name>
@@ -447,6 +452,16 @@
 	<servlet-mapping>
 		<servlet-name>ApiGenericObject</servlet-name>
 		<url-pattern>/api/v3/media-assets/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>MarkedIndividualInfo</servlet-name>
+		<servlet-class>org.ecocean.api.MarkedIndividualInfo</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>MarkedIndividualInfo</servlet-name>
+		<url-pattern>/api/v3/individuals/info/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
@@ -791,12 +806,12 @@
 		<url-pattern>/WriteOutScanTask</url-pattern>
 	</servlet-mapping>
 	<servlet>
-		<servlet-name>ScanTaskHandler</servlet-name>
-		<servlet-class>org.ecocean.servlet.ScanTaskHandlerAWS</servlet-class>
+		<servlet-name>GrothMatch</servlet-name>
+		<servlet-class>org.ecocean.servlet.GrothMatchServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>ScanTaskHandler</servlet-name>
-		<url-pattern>/ScanTaskHandler</url-pattern>
+		<servlet-name>GrothMatch</servlet-name>
+		<url-pattern>/GrothMatch</url-pattern>
 	</servlet-mapping>
 
 	<servlet>

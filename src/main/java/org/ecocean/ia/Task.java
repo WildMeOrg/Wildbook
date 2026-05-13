@@ -10,11 +10,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.jdo.Query;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Annotation;
+import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.User;
 import org.ecocean.Util;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
@@ -23,6 +26,7 @@ import org.json.JSONObject;
 import org.ecocean.identity.IdentityServiceLog;
 
 public class Task implements java.io.Serializable {
+    public static long TIMEOUT_INACTIVE_MILLIS = 7l * 24l * 60l * 60l * 1000l;
     private String id = null;
     private long created = -1;
     private long modified = -1;
@@ -33,6 +37,8 @@ public class Task implements java.io.Serializable {
     private List<Task> children = null;
     private String parameters = null;
     private String status;
+    // general use, but notably will contain error details when status=error
+    private String statusDetails = null;
     private Long completionDateInMilliseconds;
     private String queueResumeMessage;
 
@@ -61,6 +67,53 @@ public class Task implements java.io.Serializable {
 
     public long getModifiedLong() {
         return modified;
+    }
+
+    public long timeInactive() {
+        long now = System.currentTimeMillis();
+
+        if (modified > 0) return (now - modified);
+        if (created > 0) return (now - created);
+        // weird or inconclusive:
+        return -1l;
+    }
+
+    public boolean timedOutDueToInactivity() {
+        return (timeInactive() > TIMEOUT_INACTIVE_MILLIS);
+    }
+
+    public boolean statusInEndState() {
+        if ("completed".equals(status)) return true;
+        if ("error".equals(status)) return true;
+        return false;
+    }
+
+    public void setModified() {
+        modified = System.currentTimeMillis();
+    }
+
+    public boolean canUserAccess(User user, Shepherd myShepherd) {
+        if (user == null) return false;
+        if (user.isAdmin(myShepherd)) return true;
+        Encounter enc = null;
+        // if we have annotations, use first to determine encounter
+        if (this.countObjectAnnotations() > 0) {
+            enc = this.getObjectAnnotations().get(0).findEncounter(myShepherd);
+        } else if (this.countObjectMediaAssets() > 0) { // no annots, use asset instead
+            MediaAsset ma = this.getObjectMediaAssets().get(0);
+            // we iterate over all annots on this asset til we find an encounter.
+            // it might be better to find *all* encounters and return access based on each;
+            // however the main use for userHasAccess() revolves around *annotation-based* tasks (matching)
+            // so i think this means asset-based access of tasks will be rare or unused anyway
+            for (Annotation ann : ma.getAnnotations()) {
+                if (ann != null) enc = ann.findEncounter(myShepherd);
+                if (enc != null) break;
+            }
+        }
+        if (enc == null) return false;
+        if (enc.isPubliclyReadable()) return true;
+        // note: we also have enc.canUserView() and enc.canUserEdit() !!! :(
+        return enc.canUserAccess(user, myShepherd.getContext());
     }
 
 /*
@@ -130,6 +183,14 @@ public class Task implements java.io.Serializable {
 
     public List<Annotation> getObjectAnnotations() {
         return objectAnnotations;
+    }
+
+    public int numberMediaAssets() {
+        return Util.collectionSize(objectMediaAssets);
+    }
+
+    public int numberAnnotations() {
+        return Util.collectionSize(objectAnnotations);
     }
 
     // kinda for convenience?
@@ -209,6 +270,11 @@ public class Task implements java.io.Serializable {
 
     public Task getParent() {
         return parent;
+    }
+
+    public String getParentId() {
+        if (parent == null) return null;
+        return parent.getId();
     }
 
     public int numChildren() {
@@ -304,8 +370,49 @@ public class Task implements java.io.Serializable {
         return cts;
     }
 
+    public JSONObject getStatusDetails() {
+        return Util.stringToJSONObject(statusDetails);
+    }
+
+    public void setStatusDetails(String s) {
+        statusDetails = s;
+    }
+
+    public void setStatusDetails(JSONObject j) {
+        if (j == null) {
+            statusDetails = null;
+        } else {
+            statusDetails = j.toString();
+        }
+    }
+
+    public void setStatusDetailsAddError(String code, String message) {
+        JSONObject add = new JSONObject();
+
+        add.put("code", code);
+        add.put("message", message);
+        setStatusDetailsAddToSection("errors", add);
+    }
+
+    public void setStatusDetailsAddLog(String message) {
+        JSONObject add = new JSONObject();
+
+        add.put("message", message);
+        setStatusDetailsAddToSection("log", add);
+    }
+
+    // internal utility method for above
+    private void setStatusDetailsAddToSection(String section, JSONObject add) {
+        if (add == null) return;
+        add.put("timestamp", System.currentTimeMillis());
+        JSONObject sd = getStatusDetails();
+        if (sd == null) sd = new JSONObject();
+        if (sd.optJSONArray(section) == null) sd.put(section, new JSONArray());
+        sd.getJSONArray(section).put(add);
+        setStatusDetails(sd);
+    }
+
     public JSONObject getParameters() { // only return as JSONObject!
-        if (parameters == null) return null;
         return Util.stringToJSONObject(parameters);
     }
 
@@ -484,9 +591,19 @@ public class Task implements java.io.Serializable {
     }
 
     public String getStatus(Shepherd myShepherd) {
+        // see if we might be dead in the water
+        // TODO skipping status==null cuz i cant figure out what this means and there are so many of them
+        if (!statusInEndState() && timedOutDueToInactivity() && !(this.status == null)) {
+            this.status = "error";
+            long ti = timeInactive();
+            setStatusDetailsAddError("TIMEOUT",
+                "this task is likely timed out; no activity for " + Util.millisToHumanApprox(ti));
+            return this.status;
+        }
         // if status is not null, just send it
         if (status != null) return status;
         // otherwise
+        // note: this is LOCAL status :(  so it is not changing this.status, only returning the value
         String status = "waiting to queue";
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(getId(), "IBEISIA",
             myShepherd);
@@ -513,6 +630,8 @@ public class Task implements java.io.Serializable {
             // if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
             // if(status.equals("waiting to queue"))System.out.println("islObj: "+islObj.toString());
         }
+        System.out.println("[DEBUG] getStatus() fell through to status='" + status + "' on Task " +
+            this.getId());
         return status;
     }
 
@@ -574,17 +693,21 @@ public class Task implements java.io.Serializable {
     }
 
     public void setStatus(String newStatus) {
+        setModified();
         if (newStatus == null) status = null;
         else { status = newStatus; }
     }
 
-    public java.lang.Long getCompletionDateInMilliseconds() { return completionDateInMilliseconds; }
+    public Long getCompletionDateInMilliseconds() { return completionDateInMilliseconds; }
 
     // this will set all date stuff based on ms since epoch
     public void setCompletionDateInMilliseconds(Long ms) {
-        if (ms == null) { this.completionDateInMilliseconds = null; } else {
-            this.completionDateInMilliseconds = ms;
-        }
+        this.completionDateInMilliseconds = ms;
+    }
+
+    // no arg = set to now
+    public void setCompletionDateInMilliseconds() {
+        this.completionDateInMilliseconds = Long.valueOf(System.currentTimeMillis());
     }
 
     // capture original queue message to make this Task more easily resumeable
@@ -593,5 +716,154 @@ public class Task implements java.io.Serializable {
         if (message == null) { queueResumeMessage = null; } else {
             queueResumeMessage = message;
         }
+    }
+
+    public JSONObject getMatchingSetFilter() {
+        if (getParameters() == null) return null;
+        return getParameters().optJSONObject("matchingSetFilter");
+    }
+
+    public JSONObject getIdentificationMethodInfo() {
+        if (getParameters() == null) return null;
+        if (getParameters().optJSONObject("ibeis.identification") == null) return null;
+        JSONObject rtn = new JSONObject();
+        // vector/embed flavor
+        if (getParameters().getJSONObject("ibeis.identification").optString("api_endpoint",
+            null) != null) {
+            String modelId = getParameters().getJSONObject("ibeis.identification").optString(
+                "model_id", null);
+            if (modelId == null) {
+                rtn.put("description", "Vector embedding match");
+            } else {
+                rtn.put("description", "Vector embedding match (model: " + modelId + ")");
+                rtn.put("modelId", modelId);
+            }
+            return rtn;
+        }
+        // it seems both of these are in most logs (and are identical), but being safe in case there are
+        // examples in the wild with only one
+        JSONObject conf = getParameters().getJSONObject("ibeis.identification").optJSONObject(
+            "query_config_dict");
+        if (conf == null)
+            conf = getParameters().getJSONObject("ibeis.identification").optJSONObject(
+                "queryConfigDict");
+        // we set HotSpotter if pipeline_root is not set here
+        if (conf != null) rtn.put("name", conf.optString("pipeline_root", "HotSpotter"));
+        rtn.put("description",
+            getParameters().getJSONObject("ibeis.identification").optString("description",
+            "unknown algorithm/method"));
+        return rtn;
+    }
+
+    // convenience
+    public List<MatchResult> getMatchResults(Shepherd myShepherd) {
+        return myShepherd.getMatchResults(this);
+    }
+
+    public MatchResult getLatestMatchResult(Shepherd myShepherd) {
+        List<MatchResult> all = myShepherd.getMatchResults(this);
+
+        if (Util.collectionIsEmptyOrNull(all)) return null;
+        return all.get(0);
+    }
+
+    // logs are returned in chronological order here, so if the latest is desired, take the LAST one
+    public List<MatchResult> generateMatchResults(Shepherd myShepherd) {
+        List<MatchResult> mrs = new ArrayList<MatchResult>();
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(this.id, "IBEISIA",
+            myShepherd);
+
+        if (logs == null) return mrs;
+        for (IdentityServiceLog log : logs) {
+            JSONObject res = log.getJsonResult();
+            // in theory this is how we can tell if it is an ident result log versus detection
+            if ((res != null) && (res.optJSONObject("cm_dict") != null)) {
+                try {
+                    MatchResult mr = new MatchResult(log, myShepherd);
+                    System.out.println("[INFO] generateMatchResults() [log t=" +
+                        log.getTimestamp() + "] on Task " + this.getId() + " generated: " + mr);
+                    myShepherd.getPM().makePersistent(mr);
+                    mrs.add(mr);
+                    setStatusDetailsAddLog("Created " + mr + " from IdentityServiceLog " +
+                        log.getTimestamp());
+                } catch (java.io.IOException ex) {
+                    System.out.println("[ERROR] generateMatchResults() [log t=" +
+                        log.getTimestamp() + "] on Task " + this.getId() + " failed: " + ex);
+                    ex.printStackTrace();
+                    setStatusDetailsAddError("UNKNOWN",
+                        "Creation of MatchResult from IdentityServiceLog " + log.getTimestamp() +
+                        " failed due to: " + ex);
+                }
+            }
+        }
+        return mrs;
+    }
+
+    public JSONObject matchResultsJson(int cutoff, Set<String> projectIds, Shepherd myShepherd) {
+        JSONObject rtn = new JSONObject();
+
+        rtn.put("id", getId());
+        rtn.put("parentTaskId", getParentId());
+        rtn.put("dateCreated", Util.millisToISO8601String(getCreatedLong()));
+        rtn.put("dateCompleted", Util.millisToISO8601String(getCompletionDateInMilliseconds()));
+        rtn.put("timeInactiveMillis", timeInactive());
+        // TODO theory is that we might not need to use/store queryAnnotation on MatchResult as
+        // we should have it here, hence this debugging value ... possible optimization for later
+        if (hasObjectAnnotations()) {
+            JSONArray annotArr = new JSONArray();
+            for (Annotation ann : getObjectAnnotations()) {
+                if (ann != null) annotArr.put(ann.getId());
+            }
+            rtn.put("__taskAnnotations", annotArr);
+        }
+        JSONObject methodInfo = getIdentificationMethodInfo();
+        // we basically use this to determine if we are "identification-like" enough
+        // to display extended details
+        if (methodInfo != null) {
+            rtn.put("method", methodInfo);
+            rtn.put("matchingSetFilter", getMatchingSetFilter());
+/*
+            1. we only care about (and importantly try to generate) MatchResults for ident type *with no children*
+               (as there may be non-leaf nodes with methodInfo)
+ * note: we try getting it regardless of children ("just in case"); but only try to generate if none
+            2. getLatestMatchResult() and generateMatchResults() only pertain to log-based (wbia) results,
+               as vector results should have generated their MatchResult upon completion
+ */
+            MatchResult mr = getLatestMatchResult(myShepherd);
+            if ((mr == null) && !hasChildren()) {
+                System.out.println(
+                    "[DEBUG] matchResultsJson() found no MatchResults; generating on (leaf) Task " +
+                    this.getId());
+                List<MatchResult> mrs = generateMatchResults(myShepherd);
+                rtn.put("_generatedMatchResultsSize", mrs.size()); // leave a clue that we did the work!
+                if (mrs.size() > 0) {
+                    mr = mrs.get(mrs.size() - 1);
+                    // this hack is important cuz it forces a db commit even though we are a GET api call sorrynotsorry
+                    rtn.put("_commitShepherd", true);
+                }
+            }
+            if (mr != null)
+                rtn.put("matchResults", mr.jsonForApiGet(cutoff, projectIds, myShepherd));
+        }
+        // now we recurse thru children if applicable
+        if (hasChildren()) {
+            JSONArray charr = new JSONArray();
+            for (Task child : children) {
+                // TODO decide if we need to process child????
+                JSONObject childJson = child.matchResultsJson(cutoff, projectIds, myShepherd);
+                // we have to bubble this up all the way to the toplevel  :/
+                if (childJson.optBoolean("_commitShepherd", false))
+                    rtn.put("_commitShepherd", true);
+                charr.put(childJson);
+            }
+            rtn.put("children", charr);
+            // if we dont have children (leaf nodes) we get the status
+        } else {
+            // unsure which of these two things is more accurate or useful; thus including both
+            rtn.put("status", getStatus(myShepherd));
+            rtn.put("statusOverall", getOverallStatus(myShepherd));
+            rtn.put("statusDetails", getStatusDetails());
+        }
+        return rtn;
     }
 }

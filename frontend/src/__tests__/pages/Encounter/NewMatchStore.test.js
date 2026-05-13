@@ -1,8 +1,33 @@
 import NewMatchStore from "../../../pages/Encounter/stores/NewMatchStore";
 import axios from "axios";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 
 jest.mock("axios");
+jest.mock("../../../utils/treeSelectionFunction", () => ({
+  findNodeByValue: jest.fn((nodes, value) => {
+    const dfs = (arr = []) => {
+      for (const n of arr) {
+        if (n.value === value) return n;
+        const found = dfs(n.children || []);
+        if (found) return found;
+      }
+      return null;
+    };
+    return dfs(nodes);
+  }),
+  getAllDescendantValues: jest.fn((node) => {
+    const out = [];
+    const walk = (n) => {
+      (n.children || []).forEach((c) => {
+        out.push(c.value);
+        walk(c);
+      });
+    };
+    walk(node || {});
+    return out;
+  }),
+  expandIds: jest.fn((_nodes, ids) => ids || []),
+}));
 
 describe("NewMatchStore", () => {
   const makeEncounterStore = (overrides = {}) => ({
@@ -25,6 +50,7 @@ describe("NewMatchStore", () => {
         },
       ],
     },
+    selectedImageIndex: 0,
     locationIdOptions: [
       {
         title: "LOC-1",
@@ -62,7 +88,7 @@ describe("NewMatchStore", () => {
     expect(store.locationId).toEqual(["A", "B"]);
   });
 
-  test("annotationIds returns only annotations that belong to current encounter", () => {
+  test("annotationIds returns only annotations that belong to current encounter (selected image)", () => {
     const encounterStore = makeEncounterStore();
     const store = new NewMatchStore(encounterStore);
 
@@ -87,6 +113,24 @@ describe("NewMatchStore", () => {
 
     expect(store.algorithms).toEqual(["MiewID"]);
     expect(store.matchingAlgorithms).toEqual([{ description: "MiewID" }]);
+  });
+
+  test("auto-selects default algorithms when iaConfig has default=true", () => {
+    const encounterStore = makeEncounterStore({
+      siteSettingsData: {
+        iaConfig: {
+          Delphinidae: [
+            { description: "HotSpotter", default: true },
+            { description: "MiewID" },
+            { description: "WhaleNet", default: true },
+          ],
+        },
+      },
+    });
+
+    const store = new NewMatchStore(encounterStore);
+
+    expect(store.algorithms).toEqual(["HotSpotter", "WhaleNet"]);
   });
 
   test("handleStrictChange adds trigger and all descendants when checked", () => {
@@ -123,6 +167,15 @@ describe("NewMatchStore", () => {
     expect(store.locationId).toEqual([]);
   });
 
+  test("handleStrictChange without extra.triggerValue falls back to expandIds path", () => {
+    const encounterStore = makeEncounterStore();
+    const store = new NewMatchStore(encounterStore);
+
+    store.handleStrictChange([{ value: "LOC-2" }], [], {});
+
+    expect(store.locationId).toEqual(["LOC-2"]);
+  });
+
   test("buildNewMatchPayload posts correct payload without owner / location filter", async () => {
     const encounterStore = {
       siteSettingsData: { iaConfig: {} },
@@ -136,6 +189,7 @@ describe("NewMatchStore", () => {
           },
         ],
       },
+      selectedImageIndex: 0,
       locationIdOptions: [],
     };
     const store = new NewMatchStore(encounterStore);
@@ -204,10 +258,39 @@ describe("NewMatchStore", () => {
     expect(store.locationId).toEqual(["LOC-1"]);
 
     store.setLocationID(["USER-LOC"]);
+
     act(() => {
       encounterStore.encounterData.locationId = "SHOULD-NOT-OVERRIDE";
     });
 
     expect(store.locationId).toEqual(["USER-LOC"]);
+  });
+
+  test("annotationIds uses selectedImageIndex when multiple media assets exist", () => {
+    const encounterStore = makeEncounterStore({
+      selectedImageIndex: 1,
+      encounterData: {
+        id: "E-1",
+        taxonomy: "Delphinidae",
+        locationId: "LOC-1",
+        mediaAssets: [
+          {
+            id: "ma-1",
+            annotations: [{ id: "ann-1", encounterId: "E-1" }],
+          },
+          {
+            id: "ma-2",
+            annotations: [
+              { id: "ann-3", encounterId: "E-1" },
+              { id: "ann-4", encounterId: "OTHER" },
+            ],
+          },
+        ],
+      },
+    });
+
+    const store = new NewMatchStore(encounterStore);
+
+    expect(store.annotationIds).toEqual(["ann-3"]);
   });
 });

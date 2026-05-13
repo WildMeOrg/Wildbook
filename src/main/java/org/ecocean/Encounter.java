@@ -1174,7 +1174,8 @@ public class Encounter extends Base implements java.io.Serializable {
         Long thisTime = getDateInMilliseconds();
 
         if (thisTime == null) return false;
-        return (start.getMillis() <= thisTime && end.getMillis() >= thisTime);
+        long endOfDay = end.withTime(23, 59, 59, 999).getMillis();
+        return (start.getMillis() <= thisTime && endOfDay >= thisTime);
     }
 
     // @return the String holding specific location data used for searching
@@ -1429,7 +1430,7 @@ public class Encounter extends Base implements java.io.Serializable {
         System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString());
         org.json.JSONObject sp = astore.createParameters(fullPath);
         sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName);
-                                                                          // others?
+        // others?
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma == null) {
             System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
@@ -1639,6 +1640,28 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public void setRightReferenceSpots(ArrayList<SuperSpot> rightReferenceSpots) {
         this.rightReferenceSpots = rightReferenceSpots;
+    }
+
+    // this is for jsonForApiGet()
+    public org.json.JSONObject spotMappingJsonForApiGet() {
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        boolean enabled = CommonConfiguration.useSpotPatternRecognition("context0");
+        rtn.put("enabled", enabled);
+        if (!enabled) return rtn;
+        rtn.put("numberLeftSpots", getNumSpots());
+        rtn.put("numberRightSpots", getNumRightSpots());
+        rtn.put("hasLeftSpots", getNumSpots() > 0);
+        rtn.put("hasRightSpots", getNumRightSpots() > 0);
+        rtn.put("hasSpots", (getNumSpots() + getNumRightSpots()) > 0);
+
+        // check where results xml is stored (per spotMappingAlgorith.jsp)
+        File ddir = Util.getDataDir();
+        String encDir = dir(ddir.toString());
+        rtn.put("resultsGrothLeft", new File(encDir, "lastFullScan.xml").exists());
+        rtn.put("resultsGrothRight", new File(encDir, "lastFullRightScan.xml").exists());
+        rtn.put("resultsI3SLeft", new File(encDir, "lastFullI3SScan.xml").exists());
+        rtn.put("resultsI3SRight", new File(encDir, "lastFullRightI3SScan.xml").exists());
+        return rtn;
     }
 
     // @return the variance for population
@@ -2337,30 +2360,60 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // also supports YYYY and YYYY-MM
-    public void setDateFromISO8601String(String iso8601) {
+    // per issue 1489, cannot set a future date
+    public void setDateFromISO8601String(String iso8601)
+    throws ApiException {
         if (!validISO8601String(iso8601)) return;
+
+        // this is for potential ApiException
+        org.json.JSONObject error = new org.json.JSONObject();
+        error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+
         if (iso8601.length() == 4) { // assume year
             try {
                 this.year = Integer.parseInt(iso8601);
             } catch (Exception ex) {}
+
+            // got an int year, but lets see if it is valid
+            if (Util.dateIsInFuture(this.year, null, null)) {
+                error.put("fieldName", "year");
+                error.put("value", this.year);
+                throw new ApiException("date is in the future", error);
+            }
             resetDateInMilliseconds();
             return;
         }
-        // this should already be validated so we can trust it (flw)
+        // this format should already be validated so we can trust it (flw)
         if (iso8601.length() == 7) {
             try {
                 this.year = Integer.parseInt(iso8601.substring(0, 4));
                 this.month = Integer.parseInt(iso8601.substring(5, 7));
             } catch (Exception ex) {}
+            if (Util.dateIsInFuture(this.year, this.month, null)) {
+                // if we wanted to be super thorough we could do errors array of year & month
+                error.put("fieldName", "month");
+                error.put("value", this.month);
+                throw new ApiException("date is in the future", error);
+            }
             resetDateInMilliseconds();
             return;
         }
         try {
             String adjusted = Util.getISO8601Date(iso8601);
             DateTime dt = new DateTime(adjusted);
+            if (Util.dateIsInFuture(dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth())) {
+                error.put("fieldName", "day");
+                error.put("value", dt.getDayOfMonth());
+                throw new ApiException("date is in the future", error);
+            }
             this.setDateInMilliseconds(dt.getMillis());
+        // pass this flavor out...
+        } catch (ApiException ex) {
+            throw ex;
+        // this catches failure of new DateTime() basically, so we make this an ApiException
         } catch (Exception ex) {
             System.out.println("setDateFromISO8601String(" + iso8601 + ") failed: " + ex);
+            throw new ApiException("date/time values are invalid");
         }
         resetDateInMilliseconds();
     }
@@ -2466,6 +2519,21 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public List<Project> getProjects(Shepherd myShepherd) {
         return myShepherd.getProjectsForEncounter(this);
+    }
+
+    public boolean isInProjects(Set<String> projectIds, Shepherd myShepherd) {
+        // if we dont have any ids, here we are going to consider it false
+        // NOTE: opposite logic in MatchResultProspect.isInProject()
+        if (Util.collectionIsEmptyOrNull(projectIds)) return false;
+        String sql = "select count(*) from \"PROJECT_ENCOUNTERS\" where \"CATALOGNUMBER_EID\" = '" +
+            this.getId() + "' and \"ID_OID\" in ('" + String.join("', '", projectIds) + "')";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        if (!it.hasNext()) return false;
+        Long count = (Long)it.next();
+        q.closeAll();
+        return (count > 0);
     }
 
     public void addTissueSample(TissueSample dce) {
@@ -2987,7 +3055,7 @@ public class Encounter extends Base implements java.io.Serializable {
         for (Annotation ann : annotations) {
             if (ann == null) continue; // really weird that this happens sometimes
             MediaAsset ma = ann.getMediaAsset();
-            if (ma != null) m.add(ma);
+            if ((ma != null) && !m.contains(ma)) m.add(ma);
         }
         return m;
     }
@@ -4762,6 +4830,7 @@ public class Encounter extends Base implements java.io.Serializable {
         rtn.put("researcherComments", getRComments());
         rtn.put("groupRole", getGroupRole());
         rtn.put("identificationRemarks", getIdentificationRemarks());
+        rtn.put("spotMapping", spotMappingJsonForApiGet());
 
         // the user-listy things
         rtn.put("submitters",
@@ -4835,6 +4904,9 @@ public class Encounter extends Base implements java.io.Serializable {
                                 rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
                                     "annotations").getJSONObject(j).put("identificationStatus",
                                     ann.getIdentificationStatus());
+                                rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                    "annotations").getJSONObject(j).put("embeddingCounts",
+                                    new org.json.JSONObject(ann.getEmbeddingCounts()));
                                 // annTasks are in chron order so most recent will be at end
                                 List<Task> annTasks = ann.getRootIATasks(myShepherd);
                                 int ntasks = Util.collectionSize(annTasks);
@@ -5459,7 +5531,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 if (id < 0) continue;
                 MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
                 if (ma != null) {
-                    ma.setDetectionStatus(hasConfig ? "pending" : "complete");
+                    ma.setDetectionStatus(hasConfig ? IBEISIA.STATUS_INITIATED : IBEISIA.STATUS_COMPLETE);
                     allMAs.add(ma);
                 }
             }
