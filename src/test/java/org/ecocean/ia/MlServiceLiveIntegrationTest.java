@@ -14,13 +14,17 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 /**
  * Live end-to-end wire-contract probe for {@link MlServiceClient}.
  *
- * <p>Opt-in only. Runs only when the env var {@code ML_SERVICE_BASE_URL}
- * is set. CI does not set it, so this test never fires by accident. Run
- * locally with:</p>
+ * <p>Opt-in only. Runs only when both {@code ML_SERVICE_BASE_URL} and one
+ * of the image-source env vars below are set. CI does not set them, so
+ * this test never fires by accident. Run locally with:</p>
  *
  * <pre>
- * ML_SERVICE_BASE_URL=http://52.146.95.168:6050 \
- * ML_SERVICE_TEST_IMAGE_URI=https://upload.wikimedia.org/wikipedia/commons/9/9e/Plains_Zebra_Equus_quagga.jpg \
+ * # Required:
+ * ML_SERVICE_BASE_URL=&lt;ml-service-host&gt;:&lt;port&gt; \
+ * # One of:
+ * ML_SERVICE_TEST_IMAGE_URI=&lt;url ml-service can fetch&gt; \
+ * #   OR
+ * ML_SERVICE_TEST_IMAGE_FILE=&lt;local image path&gt; \
  *     mvn test -Dtest=MlServiceLiveIntegrationTest -DargLine="-Xmx2g"
  * </pre>
  *
@@ -56,7 +60,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * <ul>
  *   <li>{@code IAException(code=INVALID, "/pipeline/ response missing
  *       'results' array")} → ml-service is not running the v2-contract
- *       fixes (commit {@code 3fbed82} or later in {@code /mnt/c/ml-service}).</li>
+ *       fixes; pull the latest ml-service repo and redeploy.</li>
  *   <li>{@code IAException(code=TIMEOUT)} → network path is too slow OR
  *       ml-service is loading models on cold start. Re-run; should be
  *       fast on the second call.</li>
@@ -68,34 +72,42 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
     disabledReason = "Set ML_SERVICE_BASE_URL to enable live ml-service integration test")
 class MlServiceLiveIntegrationTest {
 
-    /**
-     * Default test image. Public-domain plains zebra photo from Wikimedia
-     * Commons. Override via {@code ML_SERVICE_TEST_IMAGE_URI} env var to
-     * point at any other URL, or {@code ML_SERVICE_TEST_IMAGE_FILE} to
-     * inline a local file as a base64 {@code data:} URI (useful when the
-     * ml-service can't reach Wikimedia — they 403 default httpx UAs).
-     */
-    private static final String DEFAULT_IMAGE_URI =
-        "https://upload.wikimedia.org/wikipedia/commons/9/9e/Plains_Zebra_Equus_quagga.jpg";
-
-    /** Zebra model triple. Matches what zebra.wildme.org's IA.json has under
-     *  {@code Equus.quagga._mlservice_conf[0]}. */
-    private static final String PREDICT_MODEL  = "msv3";
-    private static final String CLASSIFY_MODEL = "efficientnet-classifier";
-    private static final String EXTRACT_MODEL  = "miewid-msv4.1";
+    /** Default model triple. Override via the env vars below if the live
+     *  ml-service deployment uses different model_ids. */
+    private static final String DEFAULT_PREDICT_MODEL  = "msv3";
+    private static final String DEFAULT_CLASSIFY_MODEL = "efficientnet-classifier";
+    private static final String DEFAULT_EXTRACT_MODEL  = "miewid-msv4.1";
 
     private static String baseUrl() {
         return System.getenv("ML_SERVICE_BASE_URL");
     }
 
+    private static String envOr(String name, String fallback) {
+        String v = System.getenv(name);
+        return (v == null || v.isEmpty()) ? fallback : v;
+    }
+
+    private static String predictModel()  { return envOr("ML_SERVICE_PREDICT_MODEL",  DEFAULT_PREDICT_MODEL);  }
+    private static String classifyModel() { return envOr("ML_SERVICE_CLASSIFY_MODEL", DEFAULT_CLASSIFY_MODEL); }
+    private static String extractModel()  { return envOr("ML_SERVICE_EXTRACT_MODEL",  DEFAULT_EXTRACT_MODEL);  }
+
+    /**
+     * Resolve the image to send. One of {@code ML_SERVICE_TEST_IMAGE_URI}
+     * (a URL the ml-service can fetch) or {@code ML_SERVICE_TEST_IMAGE_FILE}
+     * (a local path that gets inlined as a base64 {@code data:} URI) must
+     * be set. There is no built-in default URL: any hardcoded URL would
+     * either leak deployment-specific information into the repo or fail
+     * silently at runtime (e.g. Wikimedia 403s default httpx UAs).
+     */
     private static String imageUri() {
-        // Precedence: explicit URI env > local file env (encoded as data
-        // URI) > built-in Wikimedia default.
         String uri = System.getenv("ML_SERVICE_TEST_IMAGE_URI");
         if (uri != null && !uri.isEmpty()) return uri;
         String file = System.getenv("ML_SERVICE_TEST_IMAGE_FILE");
         if (file != null && !file.isEmpty()) return imageFileAsDataUri(file);
-        return DEFAULT_IMAGE_URI;
+        throw new IllegalStateException(
+            "Set ML_SERVICE_TEST_IMAGE_URI=<url> or ML_SERVICE_TEST_IMAGE_FILE=<local path> "
+            + "to run this test. The image must be reachable by the ml-service (or inlined "
+            + "via _FILE) and >=500x500 pixels for the fixed /extract/ bbox.");
     }
 
     private static String imageFileAsDataUri(String path) {
@@ -138,9 +150,9 @@ class MlServiceLiveIntegrationTest {
     private static JSONObject zebraConfig() {
         return new JSONObject()
             .put("api_endpoint", baseUrl())
-            .put("predict_model_id", PREDICT_MODEL)
-            .put("classify_model_id", CLASSIFY_MODEL)
-            .put("extract_model_id", EXTRACT_MODEL);
+            .put("predict_model_id", predictModel())
+            .put("classify_model_id", classifyModel())
+            .put("extract_model_id", extractModel());
     }
 
     @Test
