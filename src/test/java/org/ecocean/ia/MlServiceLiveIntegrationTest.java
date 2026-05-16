@@ -48,6 +48,10 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  *   <li>WBIA registration polling.</li>
  * </ul>
  *
+ * <p>Test image requirements: the {@code /extract/} test uses a fixed
+ * bbox at {@code (100, 100, 400, 400)}, so the chosen image must be at
+ * least 500&times;500 pixels for the bbox to land inside bounds.</p>
+ *
  * <p>Failure modes worth understanding:</p>
  * <ul>
  *   <li>{@code IAException(code=INVALID, "/pipeline/ response missing
@@ -66,8 +70,10 @@ class MlServiceLiveIntegrationTest {
 
     /**
      * Default test image. Public-domain plains zebra photo from Wikimedia
-     * Commons. Override via {@code ML_SERVICE_TEST_IMAGE_URI} env var if
-     * the deployment can't reach Wikimedia (e.g., firewalled environment).
+     * Commons. Override via {@code ML_SERVICE_TEST_IMAGE_URI} env var to
+     * point at any other URL, or {@code ML_SERVICE_TEST_IMAGE_FILE} to
+     * inline a local file as a base64 {@code data:} URI (useful when the
+     * ml-service can't reach Wikimedia — they 403 default httpx UAs).
      */
     private static final String DEFAULT_IMAGE_URI =
         "https://upload.wikimedia.org/wikipedia/commons/9/9e/Plains_Zebra_Equus_quagga.jpg";
@@ -83,8 +89,50 @@ class MlServiceLiveIntegrationTest {
     }
 
     private static String imageUri() {
-        String v = System.getenv("ML_SERVICE_TEST_IMAGE_URI");
-        return (v == null || v.isEmpty()) ? DEFAULT_IMAGE_URI : v;
+        // Precedence: explicit URI env > local file env (encoded as data
+        // URI) > built-in Wikimedia default.
+        String uri = System.getenv("ML_SERVICE_TEST_IMAGE_URI");
+        if (uri != null && !uri.isEmpty()) return uri;
+        String file = System.getenv("ML_SERVICE_TEST_IMAGE_FILE");
+        if (file != null && !file.isEmpty()) return imageFileAsDataUri(file);
+        return DEFAULT_IMAGE_URI;
+    }
+
+    private static String imageFileAsDataUri(String path) {
+        try {
+            byte[] bytes = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(path));
+            String mime = mimeForPath(path);
+            return "data:" + mime + ";base64," +
+                java.util.Base64.getEncoder().encodeToString(bytes);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Failed reading test image at " + path + ": " + e, e);
+        }
+    }
+
+    private static String mimeForPath(String path) {
+        String lower = path.toLowerCase();
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".webp")) return "image/webp";
+        if (lower.endsWith(".tif") || lower.endsWith(".tiff")) return "image/tiff";
+        if (lower.endsWith(".gif")) return "image/gif";
+        // Fall back to JPEG rather than throw; an operator pointing at an
+        // unsupported file will see a clearer error from the ml-service
+        // (e.g. "could not decode image") than from this helper.
+        return "image/jpeg";
+    }
+
+    /**
+     * Redact a possibly-huge {@code data:} URI before logging. base64 of a
+     * 1 MB image is ~1.4 MB of text — emitting it to stdout pollutes the
+     * Surefire report and leaks the test image's bytes into log files.
+     */
+    private static String forLog(String uri) {
+        if (uri == null) return "(null)";
+        if (!uri.startsWith("data:")) return uri;
+        int comma = uri.indexOf(',');
+        String header = (comma > 0) ? uri.substring(0, comma + 1) : "data:";
+        return header + "[" + uri.length() + " chars, redacted]";
     }
 
     private static JSONObject zebraConfig() {
@@ -98,11 +146,14 @@ class MlServiceLiveIntegrationTest {
     @Test
     @DisplayName("/pipeline/ round-trip: response satisfies v2 contract")
     void pipelineRoundTrip() throws Exception {
+        // Resolve image once: imageFileAsDataUri reads + base64-encodes
+        // the file each call, so caching also avoids redundant I/O.
+        String image = imageUri();
         MlServiceClient client = new MlServiceClient();
         long t0 = System.currentTimeMillis();
         JSONObject response;
         try {
-            response = client.pipeline(baseUrl(), imageUri(), zebraConfig());
+            response = client.pipeline(baseUrl(), image, zebraConfig());
         } catch (IAException ex) {
             fail("MlServiceClient.pipeline threw " + ex.getCode() + ": " + ex.getMessage(), ex);
             return;
@@ -122,7 +173,7 @@ class MlServiceLiveIntegrationTest {
 
         System.out.println("---- /pipeline/ response summary ----");
         System.out.println("  base_url      : " + baseUrl());
-        System.out.println("  image_uri     : " + imageUri());
+        System.out.println("  image_uri     : " + forLog(image));
         System.out.println("  models        : " + response.optJSONObject("models_used"));
         System.out.println("  round-trip    : " + elapsedMs + " ms");
         System.out.println("  results count : " + results.length());
@@ -148,17 +199,20 @@ class MlServiceLiveIntegrationTest {
     @Test
     @DisplayName("/extract/ round-trip: response satisfies v2 contract")
     void extractRoundTrip() throws Exception {
-        // Use a small fixed bbox in the upper-left quadrant of the image.
-        // The /extract/ endpoint accepts either ints or doubles; we send
-        // doubles to mirror what MlServiceClient does in production.
+        // Hardcoded bbox at (100,100,400,400). The test image must be at
+        // least 500x500 for this to land inside bounds. The Wikimedia
+        // default and the recommended ML_SERVICE_TEST_IMAGE_FILE both
+        // satisfy that; smaller test images would need ML_SERVICE_TEST_BBOX
+        // support (not yet implemented).
         double[] bbox = new double[] { 100.0, 100.0, 400.0, 400.0 };
         double theta = 0.0;
 
+        String image = imageUri();
         MlServiceClient client = new MlServiceClient();
         long t0 = System.currentTimeMillis();
         JSONObject response;
         try {
-            response = client.extract(baseUrl(), imageUri(), bbox, theta, zebraConfig());
+            response = client.extract(baseUrl(), image, bbox, theta, zebraConfig());
         } catch (IAException ex) {
             fail("MlServiceClient.extract threw " + ex.getCode() + ": " + ex.getMessage(), ex);
             return;
@@ -174,7 +228,7 @@ class MlServiceLiveIntegrationTest {
 
         System.out.println("---- /extract/ response summary ----");
         System.out.println("  base_url      : " + baseUrl());
-        System.out.println("  image_uri     : " + imageUri());
+        System.out.println("  image_uri     : " + forLog(image));
         System.out.println("  bbox          : " + java.util.Arrays.toString(bbox));
         System.out.println("  theta         : " + theta);
         System.out.println("  round-trip    : " + elapsedMs + " ms");
@@ -188,9 +242,10 @@ class MlServiceLiveIntegrationTest {
     @DisplayName("dimension stability: two /extract/ calls return same embedding dim")
     void dimensionStability() throws Exception {
         double[] bbox = new double[] { 100.0, 100.0, 400.0, 400.0 };
+        String image = imageUri();
         MlServiceClient client = new MlServiceClient();
-        JSONObject r1 = client.extract(baseUrl(), imageUri(), bbox, 0.0, zebraConfig());
-        JSONObject r2 = client.extract(baseUrl(), imageUri(), bbox, 0.0, zebraConfig());
+        JSONObject r1 = client.extract(baseUrl(), image, bbox, 0.0, zebraConfig());
+        JSONObject r2 = client.extract(baseUrl(), image, bbox, 0.0, zebraConfig());
         int dim1 = r1.optJSONArray("embedding").length();
         int dim2 = r2.optJSONArray("embedding").length();
         assertEquals(dim1, dim2,
