@@ -14,13 +14,15 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 /**
  * Live end-to-end wire-contract probe for {@link MlServiceClient}.
  *
- * <p>Opt-in only. Runs only when both {@code ML_SERVICE_BASE_URL} and one
- * of the image-source env vars below are set. CI does not set them, so
- * this test never fires by accident. Run locally with:</p>
+ * <p>Opt-in only. The JUnit condition skips the entire class unless
+ * {@code ML_SERVICE_BASE_URL} is set. Each individual test also throws
+ * {@link IllegalStateException} at runtime if neither image-source env
+ * var is provided. CI does not set any of these, so the test never
+ * fires by accident. Run locally with:</p>
  *
  * <pre>
  * # Required:
- * ML_SERVICE_BASE_URL=&lt;ml-service-host&gt;:&lt;port&gt; \
+ * ML_SERVICE_BASE_URL=http://&lt;ml-service-host&gt;:&lt;port&gt; \
  * # One of:
  * ML_SERVICE_TEST_IMAGE_URI=&lt;url ml-service can fetch&gt; \
  * #   OR
@@ -212,10 +214,9 @@ class MlServiceLiveIntegrationTest {
     @DisplayName("/extract/ round-trip: response satisfies v2 contract")
     void extractRoundTrip() throws Exception {
         // Hardcoded bbox at (100,100,400,400). The test image must be at
-        // least 500x500 for this to land inside bounds. The Wikimedia
-        // default and the recommended ML_SERVICE_TEST_IMAGE_FILE both
-        // satisfy that; smaller test images would need ML_SERVICE_TEST_BBOX
-        // support (not yet implemented).
+        // least 500x500 for this to land inside bounds (this is also
+        // documented in the class javadoc). Smaller test images would
+        // need ML_SERVICE_TEST_BBOX support (not yet implemented).
         double[] bbox = new double[] { 100.0, 100.0, 400.0, 400.0 };
         double theta = 0.0;
 
