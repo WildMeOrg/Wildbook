@@ -155,16 +155,22 @@ class WildbookIAMRegisterTest {
         JSONArray jids = new JSONArray()
             .put(makeFancy("u1"))
             .put("not-an-object");
-        assertThrows(IOException.class,
+        IOException ex = assertThrows(IOException.class,
             () -> WildbookIAM.parseAnnotationIdsArrayStrict(jids));
+        // Guards against accidental wrapper-label swap with parseImageIdsArrayStrict
+        // after the C4 shared-helper extraction.
+        assertTrue(ex.getMessage().startsWith("iaAnnotationIds entry 1"),
+            "expected iaAnnotationIds label, got: " + ex.getMessage());
     }
 
     @Test void parseAnnotationIdsArrayStrictThrowsOnUndecodableEntry() {
         JSONArray jids = new JSONArray()
             .put(makeFancy("u1"))
             .put(new JSONObject().put("not_uuid_key", "x"));
-        assertThrows(IOException.class,
+        IOException ex = assertThrows(IOException.class,
             () -> WildbookIAM.parseAnnotationIdsArrayStrict(jids));
+        assertTrue(ex.getMessage().startsWith("iaAnnotationIds entry 1"),
+            "expected iaAnnotationIds label, got: " + ex.getMessage());
     }
 
     // --- helpers ---------------------------------------------------------

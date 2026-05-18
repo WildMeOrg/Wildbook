@@ -528,18 +528,7 @@ public class WildbookIAM extends IAPlugin {
      * registered" in the polling thread's already-present check.
      */
     static List<String> parseAnnotationIdsArrayStrict(JSONArray jids) throws IOException {
-        List<String> ids = new ArrayList<String>();
-        if (jids == null) return ids;
-        for (int i = 0; i < jids.length(); i++) {
-            JSONObject jo = jids.optJSONObject(i);
-            if (jo == null)
-                throw new IOException("iaAnnotationIds entry " + i + " is not a JSONObject");
-            String decoded = fromFancyUUID(jo);
-            if (decoded == null)
-                throw new IOException("iaAnnotationIds entry " + i + " could not be decoded: " + jo);
-            ids.add(decoded);
-        }
-        return ids;
+        return parseFancyUuidArrayStrict(jids, "iaAnnotationIds");
     }
 
     static List<String> parseAnnotationIdsArray(JSONArray jids) {
@@ -613,20 +602,37 @@ public class WildbookIAM extends IAPlugin {
     /**
      * Strict element parser: throws IOException if any element is not a
      * decodable fancy-UUID. Symmetric with {@link #parseAnnotationIdsArrayStrict};
-     * a future commit (C4) extracts the common
-     * {@code parseFancyUuidArrayStrict(JSONArray, String)} body, but
-     * keeping the two named entry points preserves grep-friendly call sites.
+     * both delegate to {@link #parseFancyUuidArrayStrict(JSONArray, String)}
+     * with the appropriate label for error-message clarity.
      */
     static List<String> parseImageIdsArrayStrict(JSONArray jids) throws IOException {
+        return parseFancyUuidArrayStrict(jids, "iaImageIds");
+    }
+
+    /**
+     * Shared body for {@link #parseAnnotationIdsArrayStrict} and
+     * {@link #parseImageIdsArrayStrict}. The {@code label} is the
+     * source-array name (e.g. {@code "iaAnnotationIds"},
+     * {@code "iaImageIds"}); it appears in IOException messages so
+     * operators can tell which WBIA endpoint a malformed response
+     * came from.
+     *
+     * <p>(Empty-match-prospects design Track 1 C4: extracted from
+     * duplicated parser bodies on Codex's round-1 C2 review
+     * recommendation; the two named entry points stay so call sites
+     * grep cleanly.)</p>
+     */
+    static List<String> parseFancyUuidArrayStrict(JSONArray jids, String label)
+    throws IOException {
         List<String> ids = new ArrayList<String>();
         if (jids == null) return ids;
         for (int i = 0; i < jids.length(); i++) {
             JSONObject jo = jids.optJSONObject(i);
             if (jo == null)
-                throw new IOException("iaImageIds entry " + i + " is not a JSONObject");
+                throw new IOException(label + " entry " + i + " is not a JSONObject");
             String decoded = fromFancyUUID(jo);
             if (decoded == null)
-                throw new IOException("iaImageIds entry " + i + " could not be decoded: " + jo);
+                throw new IOException(label + " entry " + i + " could not be decoded: " + jo);
             ids.add(decoded);
         }
         return ids;
