@@ -553,6 +553,86 @@ public class WildbookIAM extends IAPlugin {
     }
 
     /**
+     * Strict variant of {@link #iaImageIds(String)}: throws on fetch
+     * failure rather than returning an empty list. The new Phase 0 of
+     * the v2 WBIA registration polling thread needs this so a network
+     * failure during the "is the image already registered with WBIA?"
+     * check is not silently treated as "go ahead and POST".
+     *
+     * <p>Honors a 15-minute QueryCache under the key {@code "iaImageIds"}
+     * (same pattern as {@link #iaAnnotationIdsStrict(String)} sharing
+     * {@code "iaAnnotationIds"}). The lenient {@link #iaImageIds(String)}
+     * variant remains cache-free. (Empty-match-prospects design Track 1 C3.)</p>
+     */
+    public static List<String> iaImageIdsStrict(String context) throws IOException {
+        String cacheName = "iaImageIds";
+        // QueryCacheFactory.getQueryCache(context) can return null on a
+        // context that has never been initialized; treat that as "no cache"
+        // rather than NPE-ing out and aborting the poll cycle.
+        QueryCache qc = null;
+        try {
+            qc = QueryCacheFactory.getQueryCache(context);
+        } catch (Exception ex) {
+            // Defensive: cache factory init can fail; degrade to no-cache.
+        }
+        if (qc != null && qc.getQueryByName(cacheName) != null &&
+            System.currentTimeMillis() <
+            qc.getQueryByName(cacheName).getNextExpirationTimeout()) {
+            try {
+                org.datanucleus.api.rest.orgjson.JSONObject jobj = Util.toggleJSONObject(
+                    qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
+                JSONArray cached = Util.toggleJSONArray(jobj.getJSONArray("iaImageIds"));
+                return parseImageIdsArrayStrict(cached);
+            } catch (Exception ex) {
+                IA.log("WARNING: WildbookIAM.iaImageIdsStrict() cache parse failed; refetching: "
+                    + ex.getMessage());
+            }
+        }
+        JSONArray jids;
+        try {
+            jids = apiGetJSONArray("/api/image/json/", context);
+        } catch (Exception ex) {
+            throw new IOException("WBIA /api/image/json/ fetch failed: " + ex.getMessage(), ex);
+        }
+        if (jids == null) throw new IOException("WBIA /api/image/json/ returned null");
+        if (qc != null) {
+            try {
+                org.datanucleus.api.rest.orgjson.JSONObject jobj =
+                    new org.datanucleus.api.rest.orgjson.JSONObject();
+                jobj.put("iaImageIds", Util.toggleJSONArray(jids));
+                CachedQuery cq = new CachedQuery(cacheName, Util.toggleJSONObject(jobj));
+                cq.nextExpirationTimeout = System.currentTimeMillis() + (15 * 60 * 1000);
+                qc.addCachedQuery(cq);
+            } catch (Exception cacheEx) {
+                // Cache store failure is non-fatal; we still have the ids.
+            }
+        }
+        return parseImageIdsArrayStrict(jids);
+    }
+
+    /**
+     * Strict element parser: throws IOException if any element is not a
+     * decodable fancy-UUID. Symmetric with {@link #parseAnnotationIdsArrayStrict};
+     * a future commit (C4) extracts the common
+     * {@code parseFancyUuidArrayStrict(JSONArray, String)} body, but
+     * keeping the two named entry points preserves grep-friendly call sites.
+     */
+    static List<String> parseImageIdsArrayStrict(JSONArray jids) throws IOException {
+        List<String> ids = new ArrayList<String>();
+        if (jids == null) return ids;
+        for (int i = 0; i < jids.length(); i++) {
+            JSONObject jo = jids.optJSONObject(i);
+            if (jo == null)
+                throw new IOException("iaImageIds entry " + i + " is not a JSONObject");
+            String decoded = fromFancyUUID(jo);
+            if (decoded == null)
+                throw new IOException("iaImageIds entry " + i + " could not be decoded: " + jo);
+            ids.add(decoded);
+        }
+        return ids;
+    }
+
+    /**
      * Build the forced-id POST body for a single DTO. Pure function;
      * factored out so unit tests can verify the request shape without
      * a network round trip.
