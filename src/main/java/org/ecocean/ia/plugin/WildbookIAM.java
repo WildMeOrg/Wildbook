@@ -801,21 +801,27 @@ public class WildbookIAM extends IAPlugin {
         return j;
     }
 
-    private static Object mediaAssetToUri(MediaAsset ma) {
+    /**
+     * Build the URL string WBIA expects in {@code image_uri_list}. The
+     * double-encoded "?" pattern preserves filenames that contain "?" so
+     * WBIA's HTTP layer doesn't truncate them at the query boundary.
+     *
+     * <p>Returns {@code null} when {@link MediaAsset#webURL()} returns
+     * {@code null}. Promoted from {@code private Object} to
+     * {@code public String} (and the leading-NPE on {@code curl.toString()}
+     * tightened) so the ml-service v2 WBIA registration polling thread
+     * can call it from Phase A while building the {@link WbiaRegisterRequest}
+     * DTO. (Empty-match-prospects design Track 1 C2.)</p>
+     */
+    public static String mediaAssetToUri(MediaAsset ma) {
+        if (ma == null) return null;
         URL curl = ma.webURL();
+        if (curl == null) return null;
         String urlStr = curl.toString();
-
+        if (urlStr == null) return null;
         // THIS WILL BREAK if you need to append a query to the filename...
         // we are double encoding the '?' in order to allow filenames that contain it to go to IA
-        if (urlStr != null) {
-            urlStr = urlStr.replaceAll("\\?", "%3F");
-            if (ma.getStore() instanceof LocalAssetStore) {
-                return urlStr;
-            } else {
-                return urlStr;
-            }
-        }
-        return null;
+        return urlStr.replaceAll("\\?", "%3F");
     }
 
     // basically "should we send to IA?"
