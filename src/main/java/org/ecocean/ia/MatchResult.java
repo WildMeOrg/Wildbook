@@ -207,7 +207,9 @@ public class MatchResult implements java.io.Serializable {
         if (this.prospects == null)
             this.prospects = new HashSet<MatchResultProspect>();
         if (scoreByIndividual) {
-            // the scores for these are calculated weighted by indiv count
+            // C19: per-individual scores are now the best per-annotation
+            // cosine within the group (same scale as the annot tab), and
+            // un-ID'd candidates are emitted as singletons.
             _populateProspectsByIndividual(annots, myShepherd);
         } else {
             // these scores are direct from opensearch
@@ -220,40 +222,83 @@ public class MatchResult implements java.io.Serializable {
         return this.numberProspects;
     }
 
+    /**
+     * Build indiv-tab prospects (scoreType "indiv") from the knn
+     * candidate annotations. C19 changes from the prior count-based
+     * scoring of identified-only individuals to a uniform best-cosine
+     * scoring that also surfaces un-ID'd candidates as singleton
+     * "individuals" — matching the legacy WBIA HotSpotter behavior of
+     * assigning placeholder name {@code "____"} to un-ID'd
+     * annotations.
+     *
+     * <p>For each MarkedIndividual that owns one or more candidate
+     * annotations, the prospect carries the best-cosine annotation
+     * within that group and score = its cosine similarity (raw OS
+     * knn score, post-C17 transform). For each candidate whose
+     * encounter has no MarkedIndividual, a singleton prospect carries
+     * that annotation and its own cosine. All entries sort by score
+     * descending — the indiv tab and the image tab now use the same
+     * scoring scale.</p>
+     */
     private void _populateProspectsByIndividual(List<Annotation> annots, Shepherd myShepherd) {
-        Map<MarkedIndividual, List<Annotation> > tally = new HashMap<MarkedIndividual,
-            List<Annotation> >();
+        // Key by individual ID (String), NOT by MarkedIndividual object.
+        // Base.equals() compares by id but Base does not override
+        // hashCode(), so two distinct MarkedIndividual instances with
+        // the same id would hash to different buckets and emit
+        // duplicate indiv prospects. Keying by id avoids that
+        // (Codex C19 review Medium).
+        Map<String, List<Annotation> > tally =
+            new HashMap<String, List<Annotation> >();
+        List<Annotation> singletons = new ArrayList<Annotation>();
 
         for (Annotation ann : annots) {
             Encounter enc = ann.findEncounter(myShepherd);
-            // i think we just ignore if no enc/indiv
+            // No encounter at all: skip (no individual axis possible).
             if (enc == null) continue;
             MarkedIndividual indiv = enc.getIndividual();
-            if (indiv == null) continue;
-            if (!tally.containsKey(indiv)) tally.put(indiv, new ArrayList<Annotation>());
-            tally.get(indiv).add(ann);
-        }
-        if (tally.size() < 1) return; // no individuals i guess?
-
-        // this sorts by most annots (per indiv) highest to lowest
-        List<Map.Entry<MarkedIndividual,
-            List<Annotation> > > sorted = new ArrayList<>(tally.entrySet());
-        // Collections.sort(sorted, new Comparator<Map.Entry<MarkedIndividual, List<Annotation>>>() {
-        sorted.sort(new Comparator<Map.Entry<MarkedIndividual, List<Annotation> > >() {
-            public int compare(Map.Entry<MarkedIndividual, List<Annotation> > one,
-            Map.Entry<MarkedIndividual, List<Annotation> > two) {
-                // we reverse order here so we get largest first
-                return Integer.compare(two.getValue().size(), one.getValue().size());
+            if (indiv == null || indiv.getId() == null) {
+                // Un-ID'd (no MarkedIndividual or its id is null):
+                // treat as a singleton "individual" so the indiv tab
+                // still shows it, matching legacy WBIA behavior (C19).
+                // The annotation is the singleton's own representative;
+                // the frontend renders these as "potential new
+                // individual" rows since the annotation.encounter.
+                // individual link is null.
+                singletons.add(ann);
+            } else {
+                String key = indiv.getId();
+                if (!tally.containsKey(key))
+                    tally.put(key, new ArrayList<Annotation>());
+                tally.get(key).add(ann);
             }
-        });
-        int most = sorted.get(0).getValue().size(); // top num of annots
-        for (Map.Entry<MarkedIndividual, List<Annotation> > ent : sorted) {
-            double score = new Double(ent.getValue().size()) / new Double(most);
-            // the ent value (annot List) should always have at least one annot, so we use first one.
-            // Inspection MediaAsset attached later by MatchInspectionPairxEnricher
-            // (empty-match-prospects design Track 2 C13).
-            this.prospects.add(new MatchResultProspect(ent.getValue().get(0), score, "indiv",
-                null));
+        }
+        if (tally.isEmpty() && singletons.isEmpty()) return;
+
+        // For each ID'd individual: pick the highest-cosine annotation
+        // within its candidate group. That becomes the rep prospect.
+        // Multi-annotation individuals no longer get a count-based
+        // boost — score is per-annotation cosine, same scale as the
+        // image tab. prospectsSorted(...) handles final ordering, so
+        // we don't pre-sort here.
+        for (Map.Entry<String, List<Annotation> > ent : tally.entrySet()) {
+            Annotation best = null;
+            double bestScore = -Double.MAX_VALUE;
+            for (Annotation cand : ent.getValue()) {
+                double s = cand.getOpensearchScore();
+                if (best == null || s > bestScore) {
+                    best = cand;
+                    bestScore = s;
+                }
+            }
+            if (best != null) {
+                this.prospects.add(new MatchResultProspect(best, bestScore, "indiv", null));
+            }
+        }
+        // Singletons: one prospect per un-ID'd annotation, scored by
+        // its own cosine.
+        for (Annotation ann : singletons) {
+            this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(),
+                "indiv", null));
         }
     }
 

@@ -451,7 +451,14 @@ const MatchProspectTable = ({
                           }}
                         >
                           {candidateIndividualDisplayName ||
-                            candidateIndividualId}
+                            candidateIndividualId || (
+                              <em style={{ opacity: 0.6 }}>
+                                <FormattedMessage
+                                  id="MATCH_PROSPECT_UNIDENTIFIED"
+                                  defaultMessage="unidentified"
+                                />
+                              </em>
+                            )}
                         </button>
 
                         {(isRowHovered || isRowSelected) && (
