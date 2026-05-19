@@ -330,12 +330,23 @@ public class MatchResult implements java.io.Serializable {
         payload.put("image2_uris", new JSONArray(new String[] { ma2.webURL().toString() }));
         payload.put("theta1", new JSONArray(new Double[] { ann1.getTheta() }));
         payload.put("theta2", new JSONArray(new Double[] { ann2.getTheta() }));
-        // this needs an array of array(s)
-        JSONArray tmpArr = new JSONArray();
-        tmpArr.put(0, ann1.getBbox());
-        payload.put("bb1", tmpArr);
-        tmpArr.put(0, ann2.getBbox());
-        payload.put("bb2", tmpArr);
+        // bb1 / bb2 payload construction. See addBboxPayload Javadoc for
+        // the two bugs this fixes (shared-array + negative-bbox-rejection,
+        // empty-match-prospects design Track 2 C12). If either clamped
+        // bbox has zero width or height, skip the POST entirely — PairX
+        // also rejects degenerate boxes.
+        int[] clamped1 = clampBbox(ann1.getBbox());
+        int[] clamped2 = clampBbox(ann2.getBbox());
+        if (isDegenerateBbox(clamped1) || isDegenerateBbox(clamped2)) {
+            System.out.println(
+                "[INFO] createInspectionPairxAsset() skipping PairX for ann1=" +
+                ann1.getId() + " ann2=" + ann2.getId() +
+                ": degenerate clamped bbox " +
+                java.util.Arrays.toString(clamped1) + " / " +
+                java.util.Arrays.toString(clamped2));
+            return null;
+        }
+        addBboxPayload(payload, clamped1, clamped2);
 
         // get the image data from pairx endpoint
         JSONObject res = null;
@@ -373,6 +384,82 @@ public class MatchResult implements java.io.Serializable {
             ex.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * Clamp negative bbox values to the in-image portion. ml-service
+     * detections sometimes produce bboxes whose top-left extends past
+     * the image edge (e.g., {@code [-80, 42, 1786, 2228]}); the PairX
+     * {@code /explain/} endpoint rejects those with HTTP 400. Shifting
+     * x or y to 0 alone would translate the box; we also shrink the
+     * dimension by the same amount so the result covers the same in-
+     * image pixels the embedding model actually consumed after
+     * edge-cropping.
+     *
+     * <p>Package-visible for unit testing. (Empty-match-prospects
+     * design Track 2 C12.)</p>
+     */
+    static int[] clampBbox(int[] bbox) {
+        if (bbox == null || bbox.length < 4) return bbox;
+        int x = bbox[0], y = bbox[1], w = bbox[2], h = bbox[3];
+        if (x < 0) {
+            w = Math.max(0, w + x);
+            x = 0;
+        }
+        if (y < 0) {
+            h = Math.max(0, h + y);
+            y = 0;
+        }
+        return new int[] { x, y, w, h };
+    }
+
+    /**
+     * Convert an int[] bbox to a JSONArray of ints. {@code JSONArray.put(Object)}
+     * doesn't auto-convert int[] reliably across org.json versions, so we
+     * box explicitly.
+     */
+    static JSONArray bboxToJsonArray(int[] bbox) {
+        JSONArray arr = new JSONArray();
+        if (bbox == null) return arr;
+        for (int v : bbox) arr.put(v);
+        return arr;
+    }
+
+    /**
+     * True when a bbox has zero or negative width/height (the typical
+     * shape after {@link #clampBbox} on a box that lies entirely off-
+     * image). PairX rejects such boxes the same way it rejects negative
+     * x/y, so callers should skip the POST entirely.
+     */
+    static boolean isDegenerateBbox(int[] bbox) {
+        if (bbox == null || bbox.length < 4) return true;
+        return bbox[2] <= 0 || bbox[3] <= 0;
+    }
+
+    /**
+     * Build the bb1/bb2 payload for {@code /explain/}: each key gets
+     * its own outer JSONArray of one [x, y, w, h] inner array.
+     *
+     * <p>Two bugs in the previous implementation are addressed
+     * together (empty-match-prospects design Track 2 C12):</p>
+     * <ol>
+     *   <li>The previous code reused one tmpArr for both keys, so
+     *       {@code tmpArr.put(0, ann2)} after {@code payload.put("bb1", tmpArr)}
+     *       mutated the shared array and made {@code bb2 == bb1}.
+     *       Building two outer arrays here keeps the references
+     *       distinct.</li>
+     *   <li>{@link #clampBbox} (called by the production entry point
+     *       before this method) prevents negative x/y from being
+     *       sent to PairX, which would return HTTP 400
+     *       "Bounding box values should be positive".</li>
+     * </ol>
+     *
+     * <p>Package-visible so {@code MatchResultPairxPayloadTest} can
+     * assert the JSON shape without spinning up a real Annotation.</p>
+     */
+    static void addBboxPayload(JSONObject payload, int[] bbox1, int[] bbox2) {
+        payload.put("bb1", new JSONArray().put(bboxToJsonArray(bbox1)));
+        payload.put("bb2", new JSONArray().put(bboxToJsonArray(bbox2)));
     }
 
     public static URL _getPairxUrl(String txStr)
