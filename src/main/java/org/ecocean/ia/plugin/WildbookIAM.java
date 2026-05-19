@@ -452,16 +452,44 @@ public class WildbookIAM extends IAPlugin {
         public final String iaClass;            // species/class string
         public final String individualName;     // "____" if absent
 
+        // Image-side fields. Phase 0 (image registration) sends these into
+        // WBIA's /api/image/json/ payload when the image isn't already
+        // known to WBIA. Captured under Shepherd in Phase A so Phase B has
+        // no JDO touchpoints. (Empty-match-prospects design Track 1 C5.)
+        public final String imageUri;            // double-encoded URL string; from mediaAssetToUri(ma)
+        public final Double imageLatitude;       // nullable; ma.getLatitude()
+        public final Double imageLongitude;      // nullable; ma.getLongitude()
+        public final Long   imageDateTimeMillis; // nullable epoch-ms; ma.getDateTime().getMillis()
+
+        public WbiaRegisterRequest(String annotationId, String annotationAcmId,
+            String mediaAssetAcmId, int[] bbox, double theta, String iaClass,
+            String individualName, String imageUri, Double imageLatitude,
+            Double imageLongitude, Long imageDateTimeMillis) {
+            this.annotationId        = annotationId;
+            this.annotationAcmId     = annotationAcmId;
+            this.mediaAssetAcmId     = mediaAssetAcmId;
+            this.bbox                = bbox;
+            this.theta               = theta;
+            this.iaClass             = iaClass;
+            this.individualName      = individualName;
+            this.imageUri            = imageUri;
+            this.imageLatitude       = imageLatitude;
+            this.imageLongitude      = imageLongitude;
+            this.imageDateTimeMillis = imageDateTimeMillis;
+        }
+
+        /**
+         * Pre-C5 constructor preserved for backward-compatibility with
+         * test fixtures that don't exercise the Phase 0 image-registration
+         * path. Equivalent to the 11-arg constructor with all four
+         * image fields null. New production callers should use the
+         * 11-arg form.
+         */
         public WbiaRegisterRequest(String annotationId, String annotationAcmId,
             String mediaAssetAcmId, int[] bbox, double theta, String iaClass,
             String individualName) {
-            this.annotationId    = annotationId;
-            this.annotationAcmId = annotationAcmId;
-            this.mediaAssetAcmId = mediaAssetAcmId;
-            this.bbox            = bbox;
-            this.theta           = theta;
-            this.iaClass         = iaClass;
-            this.individualName  = individualName;
+            this(annotationId, annotationAcmId, mediaAssetAcmId, bbox, theta,
+                iaClass, individualName, null, null, null, null);
         }
     }
 

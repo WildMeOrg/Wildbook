@@ -772,6 +772,18 @@ public class StartupWildbook implements ServletContextListener {
             else if (!Util.stringExists(ann.getId())) reason = "annotation has no id";
             else if (!org.ecocean.identity.IBEISIA.validForIdentification(ann))
                 reason = "validForIdentification returned false (bbox/iaClass/etc.)";
+            // Image-side eligibility for the new Phase 0 image-registration
+            // path. Order mirrors sendMediaAssetsForceId in WildbookIAM (the
+            // isValidImageForIA + validMediaAsset pair, in that order), so
+            // the polling thread parks the same media assets the legacy
+            // batch path would skip. Phase B trusts Phase A's verdict —
+            // these are not re-checked against the DB after the Shepherd
+            // closes. (Empty-match-prospects design Track 1 C5: WBIA
+            // Phase 0 eligibility extension.)
+            else if (ma.isValidImageForIA() != null && !ma.isValidImageForIA())
+                reason = "MediaAsset.isValidImageForIA() == false (corrupt/invalid)";
+            else if (!org.ecocean.ia.plugin.WildbookIAM.validMediaAsset(ma))
+                reason = "MediaAsset failed validMediaAsset (mime/dims/url)";
             if (reason != null) {
                 System.out.println("WARN: WbiaRegistrationPoll parking " + annId +
                     " (ineligible: " + reason + ")");
@@ -785,10 +797,20 @@ public class StartupWildbook implements ServletContextListener {
             // Copy bbox into a fresh array so the DTO is fully detached.
             int[] bb = ann.getBbox();
             int[] bbCopy = (bb == null) ? null : new int[] { bb[0], bb[1], bb[2], bb[3] };
+            // Capture image-side fields for Phase 0 (image registration).
+            // mediaAssetToUri returns null on null webURL — Phase A's
+            // validMediaAsset check above already rejected that case, so a
+            // null here would be a contract violation we'd want to see.
+            String imageUri = org.ecocean.ia.plugin.WildbookIAM.mediaAssetToUri(ma);
+            Double imageLatitude = ma.getLatitude();
+            Double imageLongitude = ma.getLongitude();
+            org.joda.time.DateTime dt = ma.getDateTime();
+            Long imageDateTimeMillis = (dt == null) ? null : dt.getMillis();
             org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterRequest dto =
                 new org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterRequest(
                     ann.getId(), ann.getAcmId(), ma.getAcmId(), bbCopy,
-                    ann.getTheta(), ann.getIAClass(), name);
+                    ann.getTheta(), ann.getIAClass(), name,
+                    imageUri, imageLatitude, imageLongitude, imageDateTimeMillis);
             shep.commitDBTransaction();
             return dto;
         } catch (Exception ex) {
