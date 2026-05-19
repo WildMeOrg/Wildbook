@@ -714,24 +714,50 @@ public class WildbookIAM extends IAPlugin {
     }
 
     /**
-     * Phase B entry point. Does the already-present check, builds the
-     * forced-id POST, fires it, and classifies the outcome. Does NOT
-     * touch any Shepherd or JDO state; callers must hand it a DTO that
-     * was pre-validated and detached in Phase A.
+     * Phase B entry point. Sequence:
+     * <ol>
+     *   <li><b>Phase 0</b> (image registration, new in C6): GET the
+     *       WBIA-known image-ids; if the DTO's mediaAssetAcmId isn't
+     *       in the list, POST the image to /api/image/json/ and
+     *       invalidate the {@code "iaImageIds"} cache on success.
+     *       Without this, the legacy v2 routing path that skips
+     *       sendMediaAssets leaves WBIA unaware of the image, and
+     *       Phase 1's annotation POST returns HTTP 500 with
+     *       {@code image_uuid_list has invalid values [(0, None)]}.</li>
+     *   <li><b>Phase 1</b> (annotation registration, existing): the
+     *       already-present check, the forced-id POST, classification.</li>
+     * </ol>
+     *
+     * Does NOT touch any Shepherd or JDO state; callers must hand it
+     * a DTO that was pre-validated and detached in Phase A.
+     * (Empty-match-prospects design Track 1 C6.)
      */
     public WbiaRegisterOutcome registerOneByDto(WbiaRegisterRequest dto) {
         if (dto == null) return WbiaRegisterOutcome.RESPONSE_BAD;
+        // Phase 0: image registration. If the image isn't already at
+        // WBIA, POST it before attempting the annotation POST.
+        WbiaRegisterOutcome phase0 = registerImageIfMissing(dto);
+        if (phase0 != null && phase0 != WbiaRegisterOutcome.REGISTERED_OK &&
+            phase0 != WbiaRegisterOutcome.REGISTERED_ALREADY_PRESENT) {
+            // NETWORK_FAIL or RESPONSE_BAD; propagate so the polling
+            // thread retries / parks (Codex round-2 #6: no new outcome
+            // enum needed — Phase C log line distinguishes phase).
+            return phase0;
+        }
+        // Phase 1: annotation registration. Property check first since
+        // a missing property is a config error, not a network error.
         String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
         if (u == null) {
-            IA.log("WARNING: WildbookIAM.registerOneByDto() property IBEISIARestUrlAddAnnotations not set");
+            IA.log("WARNING: WildbookIAM.registerOneByDto() Phase 1 property IBEISIARestUrlAddAnnotations not set for ann=" +
+                dto.annotationId);
             return WbiaRegisterOutcome.NETWORK_FAIL;
         }
         List<String> known;
         try {
             known = iaAnnotationIdsStrict(context);
         } catch (IOException ex) {
-            IA.log("WARNING: WildbookIAM.registerOneByDto() iaAnnotationIds fetch failed: " +
-                ex.getMessage());
+            IA.log("WARNING: WildbookIAM.registerOneByDto() Phase 1 iaAnnotationIds fetch failed for ann=" +
+                dto.annotationId + ": " + ex.getMessage());
             return WbiaRegisterOutcome.NETWORK_FAIL;
         }
         // iaAnnotationIds returns ANNOTATION uuids (not image uuids), so
@@ -746,7 +772,8 @@ public class WildbookIAM extends IAPlugin {
         try {
             url = new URL(u);
         } catch (MalformedURLException ex) {
-            IA.log("WARNING: WildbookIAM.registerOneByDto() malformed URL " + u);
+            IA.log("WARNING: WildbookIAM.registerOneByDto() Phase 1 malformed URL " + u +
+                " for ann=" + dto.annotationId);
             return WbiaRegisterOutcome.NETWORK_FAIL;
         }
         HashMap<String, ArrayList> map = buildForcedRequestMap(dto);
@@ -754,16 +781,166 @@ public class WildbookIAM extends IAPlugin {
         try {
             rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
         } catch (Exception ex) {
-            IA.log("WARNING: WildbookIAM.registerOneByDto() POST failed: " + ex.getMessage());
+            IA.log("WARNING: WildbookIAM.registerOneByDto() Phase 1 POST failed for " +
+                dto.annotationId + ": " + ex.getMessage());
             return WbiaRegisterOutcome.NETWORK_FAIL;
         }
+        // POST landed at WBIA. Invalidate the cache BEFORE classifying so
+        // a RESPONSE_BAD verdict on a successful POST doesn't leave the
+        // retry path looking at a stale "annotation absent" cache and
+        // POSTing the same annotation again (Codex round 2 of C6 review:
+        // Finding 1, applied to both phases).
+        QueryCacheFactory.safeInvalidate(context, "iaAnnotationIds");
         try {
             validateForcedResponse(dto.annotationId, rtn);
         } catch (IOException ex) {
-            IA.log("WARNING: WildbookIAM.registerOneByDto() response invalid: " + ex.getMessage());
+            IA.log("WARNING: WildbookIAM.registerOneByDto() Phase 1 response invalid for " +
+                dto.annotationId + ": " + ex.getMessage());
             return WbiaRegisterOutcome.RESPONSE_BAD;
         }
         return WbiaRegisterOutcome.REGISTERED_OK;
+    }
+
+    /**
+     * Phase 0 of registerOneByDto: ensure the image referenced by
+     * {@code dto.mediaAssetAcmId} is registered with WBIA before the
+     * Phase 1 annotation POST.
+     *
+     * <p>Returns:</p>
+     * <ul>
+     *   <li>{@link WbiaRegisterOutcome#REGISTERED_ALREADY_PRESENT} if the
+     *       image is already in WBIA's id list (no POST done).</li>
+     *   <li>{@link WbiaRegisterOutcome#REGISTERED_OK} if the image was
+     *       not present and the POST succeeded. Also invalidates the
+     *       {@code "iaImageIds"} cache so the next caller sees the
+     *       image as already present.</li>
+     *   <li>{@link WbiaRegisterOutcome#NETWORK_FAIL} on missing
+     *       {@code IBEISIARestUrlAddImages} property, fetch failure,
+     *       or POST exception.</li>
+     *   <li>{@link WbiaRegisterOutcome#RESPONSE_BAD} if the POST
+     *       returned an unexpected response shape.</li>
+     * </ul>
+     *
+     * Package-visible so unit tests can cover it without going
+     * through {@link #registerOneByDto(WbiaRegisterRequest)}.
+     */
+    WbiaRegisterOutcome registerImageIfMissing(WbiaRegisterRequest dto) {
+        if (dto == null) return WbiaRegisterOutcome.RESPONSE_BAD;
+        if (!Util.stringExists(dto.mediaAssetAcmId)) {
+            // Phase A required mediaAssetAcmId; a null here is a contract
+            // bug, not a state we should silently work around.
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 null mediaAssetAcmId in DTO for ann=" +
+                dto.annotationId);
+            return WbiaRegisterOutcome.RESPONSE_BAD;
+        }
+        if (!Util.stringExists(dto.imageUri)) {
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 null/empty imageUri in DTO for ann=" +
+                dto.annotationId);
+            return WbiaRegisterOutcome.RESPONSE_BAD;
+        }
+        String urlProp = IA.getProperty(context, "IBEISIARestUrlAddImages");
+        if (urlProp == null) {
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 property IBEISIARestUrlAddImages not set for ann=" +
+                dto.annotationId);
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        List<String> knownImages;
+        try {
+            knownImages = iaImageIdsStrict(context);
+        } catch (IOException ex) {
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 iaImageIds fetch failed for ann=" +
+                dto.annotationId + ": " + ex.getMessage());
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        if (knownImages.contains(dto.mediaAssetAcmId)) {
+            return WbiaRegisterOutcome.REGISTERED_ALREADY_PRESENT;
+        }
+        URL url;
+        try {
+            url = new URL(urlProp);
+        } catch (MalformedURLException ex) {
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 malformed URL " + urlProp +
+                " for ann=" + dto.annotationId);
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        HashMap<String, ArrayList> map = buildImageRequestMap(dto);
+        JSONObject rtn;
+        try {
+            rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
+        } catch (Exception ex) {
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 POST failed for ann=" +
+                dto.annotationId + " ma=" + dto.mediaAssetAcmId + ": " + ex.getMessage());
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        // POST landed at WBIA. Invalidate the cache BEFORE classifying
+        // so a RESPONSE_BAD verdict on a successful POST doesn't leave
+        // the retry path looking at a stale "image absent" cache and
+        // POSTing the same image again (Codex C6 review Finding 1).
+        QueryCacheFactory.safeInvalidate(context, "iaImageIds");
+        try {
+            validateImageResponse(dto.mediaAssetAcmId, rtn);
+        } catch (IOException ex) {
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 response invalid for ann=" +
+                dto.annotationId + " ma=" + dto.mediaAssetAcmId + ": " + ex.getMessage());
+            return WbiaRegisterOutcome.RESPONSE_BAD;
+        }
+        return WbiaRegisterOutcome.REGISTERED_OK;
+    }
+
+    /**
+     * Build the WBIA /api/image/json/ POST body for a single DTO.
+     * Pure function; factored out so unit tests can verify the request
+     * shape without a network round trip. Mirrors the same field-set
+     * {@link #sendMediaAssetsForceId} populates per asset (uri, fancy
+     * uuid, unix-seconds time, lat, lon).
+     */
+    static HashMap<String, ArrayList> buildImageRequestMap(WbiaRegisterRequest dto) {
+        HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
+        map.put("image_uri_list", new ArrayList<String>());
+        map.put("image_uuid_list", new ArrayList<JSONObject>());
+        map.put("image_unixtime_list", new ArrayList<Integer>());
+        map.put("image_gps_lat_list", new ArrayList<Double>());
+        map.put("image_gps_lon_list", new ArrayList<Double>());
+        map.get("image_uri_list").add(dto.imageUri);
+        map.get("image_uuid_list").add(toFancyUUID(dto.mediaAssetAcmId));
+        if (dto.imageDateTimeMillis == null) {
+            map.get("image_unixtime_list").add(null);
+        } else {
+            // IA expects seconds since epoch, not milliseconds.
+            map.get("image_unixtime_list").add(
+                (int)Math.floor(dto.imageDateTimeMillis / 1000));
+        }
+        map.get("image_gps_lat_list").add(dto.imageLatitude);
+        map.get("image_gps_lon_list").add(dto.imageLongitude);
+        return map;
+    }
+
+    /**
+     * Validate a /api/image/json/ response. Mirrors
+     * {@link #validateForcedResponse} in shape: expect a length-1
+     * response array whose first element decodes via fromFancyUUID to
+     * exactly the {@code sentImageUuid} we sent.
+     */
+    static void validateImageResponse(String sentImageUuid, JSONObject resp)
+    throws IOException {
+        if (resp == null) throw new IOException("null image response");
+        if (resp.has("status")) {
+            JSONObject status = resp.optJSONObject("status");
+            if (status != null && status.has("success") &&
+                !status.optBoolean("success", true)) {
+                throw new IOException("image response status.success=false: " + resp);
+            }
+        }
+        JSONArray respArr = resp.optJSONArray("response");
+        if (respArr == null) throw new IOException("no response array: " + resp);
+        if (respArr.length() != 1)
+            throw new IOException("expected response array length 1, got " + respArr.length());
+        JSONObject jid = respArr.optJSONObject(0);
+        if (jid == null) throw new IOException("response[0] is not a JSONObject: " + respArr);
+        String respId = fromFancyUUID(jid);
+        if (respId == null) throw new IOException("response[0] could not be decoded: " + jid);
+        if (!respId.equals(sentImageUuid))
+            throw new IOException("image-id mismatch: sent=" + sentImageUuid + " got=" + respId);
     }
 
     private static void checkForcedIds(List<JSONObject> sentIds, JSONArray respArr)
