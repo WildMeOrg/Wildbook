@@ -990,17 +990,57 @@ public class WildbookIAM extends IAPlugin {
         JSONArray jids = null;
         String cacheName = "iaAnnotationIds";
 
+        // Cache-hit attempt first. Wrapped in its own try-catch so a
+        // parse failure (e.g., the cache entry exists but its serialized
+        // JSON is null after invalidateByName) falls through to a fresh
+        // network refetch instead of bubbling out as "return empty"
+        // (C18: regression fix for the safeInvalidate call C6 added —
+        // CachedQuery.invalidate() leaves the entry present with null
+        // JSON, and the prior outer-only catch returned empty, breaking
+        // the legacy HotSpotter sendAnnotationsAsNeeded path).
+        QueryCache qc = null;
         try {
-            QueryCache qc = QueryCacheFactory.getQueryCache(context);
-            if (qc.getQueryByName(cacheName) != null &&
-                System.currentTimeMillis() <
-                qc.getQueryByName(cacheName).getNextExpirationTimeout()) {
-                org.datanucleus.api.rest.orgjson.JSONObject jobj = Util.toggleJSONObject(
-                    qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
-                jids = Util.toggleJSONArray(jobj.getJSONArray("iaAnnotationIds"));
-            } else {
+            qc = QueryCacheFactory.getQueryCache(context);
+        } catch (Exception ex) {
+            // Defensive: cache factory init can fail; degrade to no-cache.
+        }
+        if (qc != null) {
+            // Lookup + expiration check inside the cache-attempt try so
+            // even a lazy loadQueries() failure inside getQueryByName
+            // falls through to the network refetch rather than escaping
+            // the method (Codex C18 Low 1).
+            try {
+                CachedQuery cached = qc.getQueryByName(cacheName);
+                if (cached != null &&
+                    System.currentTimeMillis() < cached.getNextExpirationTimeout()) {
+                    org.datanucleus.api.rest.orgjson.JSONObject jobj =
+                        Util.toggleJSONObject(cached.getJSONSerializedQueryResult());
+                    if (jobj != null) {
+                        jids = Util.toggleJSONArray(jobj.getJSONArray("iaAnnotationIds"));
+                    } else {
+                        // Invalidated entry: present but serialized JSON
+                        // nulled by CachedQuery.invalidate(). Log so ops
+                        // can correlate WARN noise with safeInvalidate
+                        // calls (Codex C18 Low 2).
+                        IA.log("WARNING: WildbookIAM.iaAnnotationIds() cache entry " +
+                            "present but serialized JSON is null (likely after " +
+                            "safeInvalidate); refetching");
+                    }
+                }
+            } catch (Exception ex) {
+                IA.log("WARNING: WildbookIAM.iaAnnotationIds() cache parse failed; refetching: "
+                    + ex.getMessage());
+                // jids remains null → falls through to the network refetch below.
+            }
+        }
+        // Cache miss or parse failure → refetch from WBIA. Wrapped in
+        // its own try-catch so a network error still returns the empty
+        // list per the original lenient contract (callers may treat
+        // empty as "no annotations registered yet").
+        if (jids == null) {
+            try {
                 jids = apiGetJSONArray("/api/annot/json/", context);
-                if (jids != null) {
+                if ((jids != null) && (qc != null)) {
                     org.datanucleus.api.rest.orgjson.JSONObject jobj =
                         new org.datanucleus.api.rest.orgjson.JSONObject();
                     jobj.put("iaAnnotationIds", Util.toggleJSONArray(jids));
@@ -1008,11 +1048,11 @@ public class WildbookIAM extends IAPlugin {
                     cq.nextExpirationTimeout = System.currentTimeMillis() + (15 * 60 * 1000);
                     qc.addCachedQuery(cq);
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                IA.log("ERROR: WildbookIAM.iaAnnotationIds() returning empty; failed due to " +
+                    ex.toString());
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            IA.log("ERROR: WildbookIAM.iaAnnotationIds() returning empty; failed due to " +
-                ex.toString());
         }
         if (jids != null) {
             try {
