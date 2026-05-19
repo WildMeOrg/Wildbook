@@ -193,6 +193,13 @@ public class MatchResult implements java.io.Serializable {
     // we just have a list of annots which matched (e.g. via vectors in opensearch)
     // NOTE: currently does not check MAXIMUM_PROSPECTS_STORED because vector search
     // tends to return relatively few prospects. TODO adjust later if this proves untrue.
+    //
+    // Empty-match-prospects design Track 2 C13: prospects are created with
+    // {@code asset=null}. The PairX inspection image is populated later by
+    // {@link MatchInspectionPairxEnricher} in a Phase A/B/C flow so the
+    // outer Shepherd is never held across the PairX HTTP call. Holding a
+    // Shepherd across that ~10-30s POST would risk connection-pool
+    // exhaustion under load (Codex C12 review High).
     private int populateProspects(List<Annotation> annots, boolean scoreByIndividual,
         Shepherd myShepherd)
     throws IOException {
@@ -205,9 +212,8 @@ public class MatchResult implements java.io.Serializable {
         } else {
             // these scores are direct from opensearch
             for (Annotation ann : annots) {
-                MediaAsset ma = createInspectionPairxAsset(this.queryAnnotation, ann, myShepherd);
                 this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(), "annot",
-                    ma));
+                    null));
             }
         }
         this.numberProspects = this.prospects.size();
@@ -243,11 +249,37 @@ public class MatchResult implements java.io.Serializable {
         int most = sorted.get(0).getValue().size(); // top num of annots
         for (Map.Entry<MarkedIndividual, List<Annotation> > ent : sorted) {
             double score = new Double(ent.getValue().size()) / new Double(most);
-            // the ent value (annot List) should always have at least one annot, so we use first one
-            MediaAsset ma = createInspectionPairxAsset(this.queryAnnotation, ent.getValue().get(0),
-                myShepherd);
-            this.prospects.add(new MatchResultProspect(ent.getValue().get(0), score, "indiv", ma));
+            // the ent value (annot List) should always have at least one annot, so we use first one.
+            // Inspection MediaAsset attached later by MatchInspectionPairxEnricher
+            // (empty-match-prospects design Track 2 C13).
+            this.prospects.add(new MatchResultProspect(ent.getValue().get(0), score, "indiv",
+                null));
         }
+    }
+
+    /**
+     * Public read-only view of the prospects collection so the
+     * {@link MatchInspectionPairxEnricher} can iterate them in Phase A
+     * and Phase C without reaching into private state. Returns the
+     * underlying Set; callers must not mutate.
+     */
+    public Set<MatchResultProspect> getProspects() {
+        return this.prospects;
+    }
+
+    /**
+     * Public accessor for the queryAnnotation field. Returns whatever
+     * value was set by {@link #setQueryAnnotationFromTask()} or
+     * {@link #createFromJsonResult(JSONObject, Shepherd)} — may be null
+     * if neither has run.
+     */
+    public Annotation getQueryAnnotation() {
+        return this.queryAnnotation;
+    }
+
+    /** Public accessor for the JDO primary key. */
+    public String getId() {
+        return this.id;
     }
 
     private Annotation getAnnotationFromAcmId(String acmId, Shepherd myShepherd) {

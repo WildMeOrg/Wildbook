@@ -542,7 +542,16 @@ public class MlServiceProcessor {
                 return MlServiceJobOutcome.validationError("INVALID_MATCH_CONFIG",
                     "no usable vector match config");
             }
+            String matchTaskId = matchTask.getId();
             shep.commitDBTransaction();
+            shep.rollbackAndClose();  // close BEFORE PairX enrichment (Track 2 C13)
+            // Phase 4 (C13): PairX inspection-image enrichment. The
+            // MatchResult + prospects are already persisted with
+            // null inspection MediaAssets; the enricher fills them in
+            // out-of-transaction via a Phase A/B/C flow per prospect.
+            // Per-prospect failure is non-blocking — UI render works
+            // either way, just without the inspection image.
+            enrichPairxAssetsForMatchTask(matchTaskId);
             return MlServiceJobOutcome.ok(annotationIds);
         } catch (Exception ex) {
             markTaskError(taskId, "MATCH", "findMatchProspects failed: " + ex.getMessage());
@@ -550,6 +559,71 @@ public class MlServiceProcessor {
         } finally {
             shep.rollbackAndClose();
         }
+    }
+
+    /**
+     * Phase 4: drive {@link MatchInspectionPairxEnricher} for every
+     * MatchResult attached to a child of {@code matchTaskId}. Runs
+     * after the main runMatchProspects transaction has closed, so the
+     * PairX HTTP work doesn't hold a Shepherd. (Empty-match-prospects
+     * design Track 2 C13.)
+     */
+    void enrichPairxAssetsForMatchTask(String matchTaskId) {
+        if (matchTaskId == null) return;
+        List<String> mrIds = collectMatchResultIds(matchTaskId);
+        if (mrIds.isEmpty()) return;
+        MatchInspectionPairxEnricher enricher =
+            new MatchInspectionPairxEnricher(context);
+        for (String mrId : mrIds) {
+            try {
+                enricher.enrichMatchResult(mrId);
+            } catch (Exception ex) {
+                System.out.println(
+                    "[WARN] MlServiceProcessor.enrichPairxAssetsForMatchTask " +
+                    "mr=" + mrId + " failed (non-blocking): " + ex);
+            }
+        }
+    }
+
+    /**
+     * Open a short Shepherd, list MatchResult IDs attached to children
+     * of {@code matchTaskId}, close. Returns scalar IDs only so
+     * subsequent enrichment runs without DB state.
+     */
+    private List<String> collectMatchResultIds(String matchTaskId) {
+        List<String> out = new ArrayList<String>();
+        Shepherd shep = new Shepherd(context);
+        shep.setAction(ACTION_PREFIX + "collectMatchResultIds." + matchTaskId);
+        try {
+            shep.beginDBTransaction();
+            Task matchTask = Task.load(matchTaskId, shep);
+            if (matchTask == null) {
+                shep.commitDBTransaction();
+                return out;
+            }
+            List<Task> children = matchTask.getChildren();
+            if (children != null) {
+                for (Task child : children) {
+                    if (child == null) continue;
+                    List<MatchResult> mrs = shep.getMatchResults(child);
+                    if (mrs == null) continue;
+                    for (MatchResult mr : mrs) {
+                        if (mr != null && mr.getId() != null) {
+                            out.add(mr.getId());
+                        }
+                    }
+                }
+            }
+            shep.commitDBTransaction();
+        } catch (Exception ex) {
+            shep.rollbackDBTransaction();
+            System.out.println(
+                "[WARN] MlServiceProcessor.collectMatchResultIds failed for " +
+                matchTaskId + ": " + ex);
+        } finally {
+            shep.closeDBTransaction();
+        }
+        return out;
     }
 
     static MlServiceJobOutcome mapNonRetryableError(IAException ex) {
