@@ -548,6 +548,119 @@ public class OpenSearch {
         return query;
     }
 
+    // ml-service migration v2 / empty-match-prospects design Track 2 C8.
+    //
+    // Stronger visibility predicate than waitForVisibility for the annotation
+    // index. A doc that exists by _id but is missing nested
+    // embeddings.method/methodVersion would pass _id-only and then knn-fail
+    // at match time. This helper polls a predicate that mirrors the matching
+    // constraints in Annotation.getMatchQuery: id ∈ ids AND matchAgainst=true
+    // AND acmId exists AND a nested embedding for this method/version is
+    // indexed. Scope is intentionally narrower than getMatchingSetQuery
+    // (no taxonomy/viewpoint/encounter/dead-animal filters) — this helper
+    // answers "doc has fresh embedding metadata", which is the visibility
+    // race the Track 2 batch gate cares about.
+    //
+    // method/methodVersion follow the strict-when-present convention of
+    // Annotation.getMatchQuery at Annotation.java:1205-1209: if either is
+    // null/blank, the corresponding nested predicate is omitted.
+    //
+    // Like waitForVisibility: _refresh on entry, then exponential-backoff
+    // poll of _count until count >= |normalized ids| OR timeout. Empty
+    // wait set short-circuits to true.
+    public boolean waitForAnnotationMatchableIds(Collection<String> ids,
+        String method, String methodVersion, long timeoutMs)
+    throws IOException {
+        if (ids == null || ids.isEmpty()) return true;
+
+        Set<String> targetIds = new LinkedHashSet<String>();
+        for (String id : ids) {
+            if (id != null) targetIds.add(id);
+        }
+        if (targetIds.isEmpty()) return true;
+
+        if (skipAutoIndexing()) {
+            System.out.println(
+                "WARN: OpenSearch.waitForAnnotationMatchableIds called with " +
+                "/tmp/skipAutoIndexing set — every poll will return zero hits " +
+                "regardless of wait time.");
+        }
+
+        indexRefresh("annotation");
+
+        JSONObject query = buildAnnotationMatchableQuery(targetIds, method,
+            methodVersion);
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        long sleepMs = 100;
+        while (true) {
+            int seen = queryCount("annotation", query);
+            if (seen >= targetIds.size()) return true;
+            long remaining = deadline - System.currentTimeMillis();
+            if (remaining <= 0) return false;
+            try {
+                Thread.sleep(Math.min(sleepMs, remaining));
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+            sleepMs = Math.min(sleepMs * 2, 1000);
+        }
+    }
+
+    // Package-visible for testing. Returns the _count-shaped query body
+    // matching the annotation-matchable predicate documented on
+    // waitForAnnotationMatchableIds. Uses the same `ids` query shape as
+    // buildIdEligibilityQuery for consistency with queryCount's
+    // expectations (no `size`, no `track_total_hits`).
+    static JSONObject buildAnnotationMatchableQuery(Set<String> ids,
+        String method, String methodVersion) {
+        JSONArray idArr = new JSONArray();
+        for (String id : ids) idArr.put(id);
+
+        JSONArray filterArr = new JSONArray();
+        filterArr.put(new JSONObject().put("ids",
+            new JSONObject().put("values", idArr)));
+        filterArr.put(new JSONObject().put("term",
+            new JSONObject().put("matchAgainst", true)));
+        filterArr.put(new JSONObject().put("exists",
+            new JSONObject().put("field", "acmId")));
+
+        // Nested embedding clause. Match Annotation.getMatchQuery at
+        // Annotation.java:1205-1209 exactly: omit a predicate only when
+        // the value is `null`. A non-null blank string would be a strict
+        // term on "" (matching no docs), preserving consistency with the
+        // matcher rather than silently broadening the wait predicate.
+        // Codex round-1 C8 review surfaced this — empty vs null asymmetry
+        // would let the gate green-light docs the matcher then rejects.
+        JSONArray nestedMust = new JSONArray();
+        if (method != null) {
+            nestedMust.put(new JSONObject().put("term",
+                new JSONObject().put("embeddings.method", method)));
+        }
+        if (methodVersion != null) {
+            nestedMust.put(new JSONObject().put("term",
+                new JSONObject().put("embeddings.methodVersion", methodVersion)));
+        }
+        JSONObject nestedQuery;
+        if (nestedMust.length() == 0) {
+            // Both null — wait only on the existence of any nested
+            // embedding entry. (Legacy api_endpoint-only configs that
+            // can't derive a method.)
+            nestedQuery = new JSONObject().put("match_all", new JSONObject());
+        } else {
+            nestedQuery = new JSONObject().put("bool",
+                new JSONObject().put("must", nestedMust));
+        }
+        filterArr.put(new JSONObject().put("nested",
+            new JSONObject().put("path", "embeddings").put("query", nestedQuery)));
+
+        JSONObject query = new JSONObject();
+        query.put("query",
+            new JSONObject().put("bool",
+                new JSONObject().put("filter", filterArr)));
+        return query;
+    }
+
     // when you only care about how many this would return
     public int queryCount(String indexName, final JSONObject query)
     throws IOException {
