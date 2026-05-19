@@ -835,34 +835,40 @@ public class Task implements java.io.Serializable {
             rtn.put("__taskAnnotations", annotArr);
         }
         JSONObject methodInfo = getIdentificationMethodInfo();
-        // we basically use this to determine if we are "identification-like" enough
-        // to display extended details
+        // methodInfo gates the "identification-like" extras (method label,
+        // matchingSetFilter, legacy WBIA log-based MR generation). The v2
+        // ml-service path doesn't persist `ibeis.identification` on its
+        // match tasks, so methodInfo is null even though the MatchResult
+        // is correctly persisted in the DB. Without the decoupling below,
+        // the API silently drops the matchResults field from the JSON
+        // tree and the React match-results page renders empty
+        // (empty-match-prospects design Track 2 C15).
         if (methodInfo != null) {
             rtn.put("method", methodInfo);
             rtn.put("matchingSetFilter", getMatchingSetFilter());
-/*
-            1. we only care about (and importantly try to generate) MatchResults for ident type *with no children*
-               (as there may be non-leaf nodes with methodInfo)
- * note: we try getting it regardless of children ("just in case"); but only try to generate if none
-            2. getLatestMatchResult() and generateMatchResults() only pertain to log-based (wbia) results,
-               as vector results should have generated their MatchResult upon completion
- */
-            MatchResult mr = getLatestMatchResult(myShepherd);
-            if ((mr == null) && !hasChildren()) {
-                System.out.println(
-                    "[DEBUG] matchResultsJson() found no MatchResults; generating on (leaf) Task " +
-                    this.getId());
-                List<MatchResult> mrs = generateMatchResults(myShepherd);
-                rtn.put("_generatedMatchResultsSize", mrs.size()); // leave a clue that we did the work!
-                if (mrs.size() > 0) {
-                    mr = mrs.get(mrs.size() - 1);
-                    // this hack is important cuz it forces a db commit even though we are a GET api call sorrynotsorry
-                    rtn.put("_commitShepherd", true);
-                }
-            }
-            if (mr != null)
-                rtn.put("matchResults", mr.jsonForApiGet(cutoff, projectIds, myShepherd));
         }
+        // Always serialize an existing MatchResult regardless of methodInfo.
+        // Vector (v2) results generate their MatchResult eagerly during
+        // matching, so getLatestMatchResult will find one whenever the
+        // pipeline ran successfully. Legacy WBIA results still rely on
+        // generateMatchResults (log-based) to construct the MR on demand,
+        // and that path stays gated by methodInfo since it interprets
+        // identification-method-specific log JSON.
+        MatchResult mr = getLatestMatchResult(myShepherd);
+        if ((mr == null) && (methodInfo != null) && !hasChildren()) {
+            System.out.println(
+                "[DEBUG] matchResultsJson() found no MatchResults; generating on (leaf) Task " +
+                this.getId());
+            List<MatchResult> mrs = generateMatchResults(myShepherd);
+            rtn.put("_generatedMatchResultsSize", mrs.size()); // leave a clue that we did the work!
+            if (mrs.size() > 0) {
+                mr = mrs.get(mrs.size() - 1);
+                // this hack is important cuz it forces a db commit even though we are a GET api call sorrynotsorry
+                rtn.put("_commitShepherd", true);
+            }
+        }
+        if (mr != null)
+            rtn.put("matchResults", mr.jsonForApiGet(cutoff, projectIds, myShepherd));
         // now we recurse thru children if applicable
         if (hasChildren()) {
             JSONArray charr = new JSONArray();
