@@ -594,6 +594,20 @@ public class Task implements java.io.Serializable {
         return complete;
     }
 
+    /**
+     * Read the raw persisted status field without the timed-out-task
+     * mutation side-effect that {@link #getStatus(Shepherd)} performs.
+     * Callers gating read-only decisions on status (e.g., the
+     * empty-match-prospects Track 2 batch gate) need this so a read of
+     * a sibling task's status doesn't mutate that task as a side
+     * effect.
+     *
+     * <p>(Empty-match-prospects design Track 2 C7.)</p>
+     */
+    public String getStoredStatus() {
+        return this.status;
+    }
+
     public String getStatus(Shepherd myShepherd) {
         // see if we might be dead in the water
         // TODO skipping status==null cuz i cant figure out what this means and there are so many of them
