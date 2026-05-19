@@ -1,6 +1,5 @@
 package org.ecocean.ia;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +9,6 @@ import org.ecocean.Annotation;
 import org.ecocean.Embedding;
 import org.ecocean.Encounter;
 import org.ecocean.IAJsonProperties;
-import org.ecocean.OpenSearch;
 import org.ecocean.Taxonomy;
 import org.ecocean.Util;
 import org.ecocean.identity.IBEISIA;
@@ -33,18 +31,37 @@ import org.json.JSONObject;
 public class MlServiceProcessor {
     private static final String ACTION_PREFIX = "MlServiceProcessor.";
     private static final String BOUNDING_BOX_FEATURE = "org.ecocean.boundingBox";
-    private static final long VISIBILITY_TIMEOUT_MS = 5000L;
 
     private final String context;
     private final MlServiceClient client;
+    private final MatchVisibilityGate visibilityGate;
+    private final DeferredMatchPublisher deferredPublisher;
 
     public MlServiceProcessor(String context) {
-        this(context, new MlServiceClient());
+        this(context, new MlServiceClient(),
+            new MatchVisibilityGateImpl(context),
+            new IAGatewayDeferredMatchPublisher());
     }
 
     public MlServiceProcessor(String context, MlServiceClient client) {
+        this(context, client, new MatchVisibilityGateImpl(context),
+            new IAGatewayDeferredMatchPublisher());
+    }
+
+    /**
+     * Test-friendly constructor that accepts injected
+     * {@link MatchVisibilityGate} and {@link DeferredMatchPublisher}.
+     * Production code should use the no-arg or single-arg constructor
+     * above. (Empty-match-prospects design Track 2 C11 testability
+     * seam — Codex round-4 Medium.)
+     */
+    MlServiceProcessor(String context, MlServiceClient client,
+        MatchVisibilityGate visibilityGate,
+        DeferredMatchPublisher deferredPublisher) {
         this.context = context;
         this.client = client;
+        this.visibilityGate = visibilityGate;
+        this.deferredPublisher = deferredPublisher;
     }
 
     /** Process one ml-service queue job. Returns the outcome. */
@@ -417,17 +434,41 @@ public class MlServiceProcessor {
 
     private MlServiceJobOutcome waitAndRunMatch(List<String> annotationIds, String taskId,
         JSONObject matchConfig) {
-        try {
-            OpenSearch os = new OpenSearch();
-            if (!os.waitForVisibility("annotation", annotationIds, VISIBILITY_TIMEOUT_MS)) {
-                enqueueDeferredMatch(annotationIds, taskId);
-                return MlServiceJobOutcome.ok(annotationIds);
-            }
-        } catch (IOException ex) {
-            enqueueDeferredMatch(annotationIds, taskId);
+        // Initial invocation: attempt=1, firstDeferredAt=null (the
+        // gate stamps `now` so age-out is measured from this first
+        // call, not from later re-fires).
+        return waitAndRunMatchInternal(annotationIds, taskId, matchConfig, 1, null);
+    }
+
+    /**
+     * Shared body for the initial {@link #waitAndRunMatch} call and
+     * the re-gated {@link #runDeferredMatch} path. Drives the
+     * {@link MatchVisibilityGate}: READY → run match; DEFER → publish
+     * a deferred-match job through the publisher; GIVE_UP → log WARN
+     * and run match against whatever is visible (partial results are
+     * better than silently no match task; Codex round-2 #2).
+     *
+     * <p>(Empty-match-prospects design Track 2 C11.)</p>
+     */
+    private MlServiceJobOutcome waitAndRunMatchInternal(List<String> annotationIds,
+        String taskId, JSONObject matchConfig, int attempt, Long firstDeferredAt) {
+        MatchVisibilityGate.GateOutcome gate = visibilityGate.gateForBatch(
+            annotationIds, taskId, matchConfig, attempt, firstDeferredAt);
+        switch (gate.kind) {
+          case READY:
+            return runMatchProspects(annotationIds, taskId, matchConfig);
+          case DEFER:
+            enqueueDeferredMatch(annotationIds, taskId, matchConfig, gate);
             return MlServiceJobOutcome.ok(annotationIds);
+          case GIVE_UP:
+          default:
+            System.out.println(
+                "WARN: MatchVisibilityGate aged out for task " + taskId +
+                " after attempt=" + gate.attempt + " elapsed=" +
+                gate.elapsedMillis + "ms reason=" + gate.reason +
+                "; running match against current visible corpus");
+            return runMatchProspects(annotationIds, taskId, matchConfig);
         }
-        return runMatchProspects(annotationIds, taskId, matchConfig);
     }
 
     public MlServiceJobOutcome runDeferredMatch(JSONObject jobData) {
@@ -438,7 +479,17 @@ public class MlServiceProcessor {
         String taskId = jobData.optString("taskId", null);
         JSONObject matchConfig = jobData.optJSONObject("matchConfig");
         if (matchConfig == null) matchConfig = inferMatchConfig(annotationIds);
-        return runMatchProspects(annotationIds, taskId, matchConfig);
+        // Carry forward attempt + firstDeferredAt so age-out is
+        // measured by elapsed wall-clock from the original DEFER, not
+        // by attempt count (Codex round-4 OQ #1).
+        int attempt = jobData.optInt("attempt", 2);
+        Long firstDeferredAt = jobData.has("firstDeferredAt")
+            ? Long.valueOf(jobData.optLong("firstDeferredAt")) : null;
+        // Re-gate; deferred match earns the same protection as the
+        // initial call (Codex round-2 Major: don't degrade back to
+        // today's bug on the first deferral).
+        return waitAndRunMatchInternal(annotationIds, taskId, matchConfig,
+            attempt, firstDeferredAt);
     }
 
     public MlServiceJobOutcome runMatchProspects(List<String> annotationIds, String taskId,
@@ -678,20 +729,53 @@ public class MlServiceProcessor {
         task.setCompletionDateInMilliseconds();
     }
 
-    private void enqueueDeferredMatch(List<String> annotationIds, String parentTaskId) {
+    /**
+     * Build and publish a deferred-match payload via the injected
+     * {@link DeferredMatchPublisher}. The real publisher wraps
+     * {@link IAGateway#requeueJob} with {@code increment=true} so the
+     * 30s fixed delay applies (Codex round-4 Blocker: setting
+     * {@code __queueRetries} alone does not create the delay).
+     *
+     * <p>Routing flags: {@code mlServiceV2: true} (IAGateway v2
+     * dispatch) AND {@code deferredMatch: true} (MlServiceProcessor
+     * deferred branch). Both required — Codex round-5 Blocker
+     * documented the dispatch contract.</p>
+     *
+     * <p>Gate metadata on the payload: {@code attempt} (incremented
+     * per DEFER), {@code firstDeferredAt} (epoch-ms of the first
+     * DEFER, preserved across re-fires for elapsed-time age-out),
+     * {@code lastGateReason} (Codex round-2 #6 diagnostic).</p>
+     */
+    private void enqueueDeferredMatch(List<String> annotationIds, String parentTaskId,
+        JSONObject matchConfig, MatchVisibilityGate.GateOutcome gate) {
         JSONObject payload = new JSONObject();
+        // Routing flags — both required for the dispatcher to land
+        // the requeue back on MlServiceProcessor's deferred entry
+        // point (Codex round-5 Blocker).
         payload.put("mlServiceV2", true);
         payload.put("deferredMatch", true);
+        // Diagnostic marker — not the routing contract.
+        payload.put("mlServiceV2DeferredMatch", true);
         payload.put("annotationIds", new JSONArray(annotationIds));
         if (Util.stringExists(parentTaskId)) payload.put("taskId", parentTaskId);
+        if (matchConfig != null) payload.put("matchConfig", matchConfig);
         // Carry __context in the payload so the dispatcher's
-        // jobj.optString("__context", "context0") fallback at IAGateway.java
-        // doesn't silently route the deferred-match into context0 when this
-        // processor is running in a non-default context.
+        // jobj.optString("__context", "context0") fallback at
+        // IAGateway.java doesn't silently route the deferred-match
+        // into context0 when this processor is running in a non-default
+        // context.
         payload.put("__context", context);
+        // Gate metadata — incremented for next attempt; firstDeferredAt
+        // preserved across re-fires (Codex round-4 OQ #1).
+        payload.put("attempt", gate.attempt + 1);
+        payload.put("firstDeferredAt", gate.firstDeferredAt);
+        if (gate.reason != null) payload.put("lastGateReason", gate.reason);
         try {
-            IAGateway.addToDetectionQueue(context, payload.toString());
-        } catch (IOException ex) {
+            deferredPublisher.publish(payload);
+        } catch (Exception ex) {
+            // requeueJob doesn't throw declared exceptions, but a future
+            // publisher impl might. Don't let publish-failure leak past
+            // the orchestrator.
             System.out.println("MlServiceProcessor.enqueueDeferredMatch failed: " + ex);
         }
     }
