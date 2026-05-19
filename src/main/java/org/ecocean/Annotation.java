@@ -1196,25 +1196,64 @@ public class Annotation extends Base implements java.io.Serializable {
         if (emb == null) return null;
         JSONObject nested = new JSONObject(
             "{\"nested\": {\"path\": \"embeddings\", \"query\": {\"bool\": {}}}}");
+        // Inside the nested bool, keep ONLY the knn clause in `must` so the
+        // per-hit score is exactly the OS knn similarity (no spurious
+        // +1.0-per-term-clause offset). method/methodVersion become
+        // `filter` clauses — they still constrain results but contribute
+        // 0 to score. (Empty-match-prospects C17: MiewID score parity.)
         JSONArray must = new JSONArray();
         JSONObject knn = new JSONObject("{\"knn\": {\"embeddings.vector\": {}}}");
         knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("vector",
             new JSONArray(emb.vectorToFloatArray()));
         knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("k", KNN_K_DISTANCE_VALUE);
         must.put(knn);
+        JSONArray filter = new JSONArray();
         if (method != null)
-            must.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
+            filter.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
         if (methodVersion != null)
-            must.put(new JSONObject("{\"term\": {\"embeddings.methodVersion\":\"" + methodVersion +
+            filter.put(new JSONObject("{\"term\": {\"embeddings.methodVersion\":\"" + methodVersion +
                 "\"}}"));
         nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("must",
             must);
+        if (filter.length() > 0) {
+            nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put(
+                "filter", filter);
+        }
 
         // we put nested under its own top-level must, that way its score counts (whereas filter does not)
         JSONArray nestedMust = new JSONArray();
         nestedMust.put(nested);
         matchingSetQuery.getJSONObject("query").getJSONObject("bool").put("must", nestedMust);
         return matchingSetQuery;
+    }
+
+    /**
+     * Transform an OpenSearch knn score to raw cosine similarity in
+     * [-1, 1] — the value the MiewID pipeline itself reports. Public
+     * so tests and any future scoring consumers use the same
+     * conversion. (Empty-match-prospects C17.)
+     *
+     * <p><b>OS engine assumption:</b> this formula assumes the
+     * annotation index uses the <b>Lucene</b> {@code knn_vector}
+     * engine, which scores {@code cosinesimil} as
+     * {@code score = (1 + cos) / 2} (equivalently {@code (2 - d) / 2}
+     * where {@code d = 1 - cos}). This holds for OpenSearch 3.1's
+     * default engine and any 2.x deployment that pins
+     * {@code method.engine = "lucene"} in the index mapping.</p>
+     *
+     * <p>The OpenSearch 2.15 NMSLIB and Faiss engines score
+     * {@code cosinesimil} differently ({@code 1 / (1 + d)} —
+     * {@link <a href="https://opensearch.org/docs/2.15/search-plugins/knn/knn-score-script/#spaces">OS 2.15 knn spaces</a>}).
+     * If a deployment opts into a non-Lucene engine, this conversion
+     * will produce wrong cosine values. To use a non-Lucene engine
+     * safely, either pin the engine globally (recommended) or add an
+     * engine-aware conversion variant here.</p>
+     */
+    public static double openSearchScoreToCosine(double osScore) {
+        double cos = 2.0 * osScore - 1.0;
+        if (cos > 1.0) return 1.0;
+        if (cos < -1.0) return -1.0;
+        return cos;
     }
 
     // finds annotations based on embedding vector matches
@@ -1251,7 +1290,12 @@ public class Annotation extends Base implements java.io.Serializable {
             if (hit == null) continue;
             Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
             if (ann != null) {
-                ann.setOpensearchScore(hit.optDouble("_score", 0.0d));
+                // OS Lucene knn with cosinesimil returns (1 + cos) / 2 in
+                // [0, 1]. Convert to raw cosine in [-1, 1] so the score
+                // matches the MiewID pipeline's native output.
+                // (Empty-match-prospects C17.)
+                double osScore = hit.optDouble("_score", 0.0d);
+                ann.setOpensearchScore(openSearchScoreToCosine(osScore));
                 anns.add(ann);
             }
         }
