@@ -1475,8 +1475,17 @@
 					"locationID":[]
 				},
 				{
-					"name": "Zingela Nature Reserve",
-					"id": "Zingela Nature Reserve",
+					"name": "Zingela Nature Reserve KZN",
+					"id": "Zingela Nature Reserve KZN",
+					"geospatialInfo":{
+						"lat": -28.716889,
+						"long": 30.062940
+					},
+					"locationID":[]
+				},
+				{
+					"name": "Zingela Nature Reserve LP",
+					"id": "Zingela Nature Reserve LP",
 					"locationID":[]
 				}
 			 ]
