@@ -490,6 +490,23 @@
 					]
 				},
 				{
+					"name": "Paderborn",
+					"id": "Paderborn",
+					"locationID":[
+						{
+							"name": "Buke",
+							"id": "Buke",
+							"prefix": "PBB-",
+							"prefixDigitPadding": 4,
+							"geospatialInfo":{
+								"lat": 51.720105,
+								"long": 8.957474
+							},
+							"locationID":[]
+						}
+					]
+				},
+				{
 					"name": "Ratinger Wald",
 					"id": "Ratinger Wald",
 					"geospatialInfo": {
