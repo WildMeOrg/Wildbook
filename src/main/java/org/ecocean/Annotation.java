@@ -29,7 +29,13 @@ import org.json.JSONObject;
 public class Annotation extends Base implements java.io.Serializable {
     public Annotation() {}
     private String id;
-    public static final int KNN_K_DISTANCE_VALUE = 4;
+    // Number of nearest neighbors the OpenSearch knn query returns
+    // for vector matching. Was 4, which after self-encounter exclusion
+    // produced only ~3 prospects regardless of how large the matching
+    // set was — far fewer than the legacy WBIA paths. Bumped to 50 so
+    // vector matching can populate the match-results page comparably
+    // to MiewID's 12-default and HotSpotter's larger result sets.
+    public static final int KNN_K_DISTANCE_VALUE = 50;
     private static final String[][] VALID_VIEWPOINTS = new String[][] {
         { "up", "up", "up", "up", "up", "up", "up", "up", }, {
             "upfront", "upfrontright", "upright", "upbackright", "upback", "upbackleft", "upleft",
