@@ -447,9 +447,14 @@ public class IAGateway extends HttpServlet {
                 String errorMsg = sent.optString("error", "(unknown error)");
                 System.out.println("beginIdentifyAnnotations() was unsuccessful due to " +
                     errorMsg + "; hopefully we requeue");
-                // set the status as complete as we faithfully completed the query but nothing to match against
+                // sendIdentify failed before WBIA accepted the job; surface this as an
+                // error rather than "completed" so the import page doesn't falsely
+                // report the task as done. (Mirrors the sibling error path ~30 lines
+                // below that already sets status="error" on a different failure mode.)
                 if (task != null) {
-                    task.setStatus("completed");
+                    task.setStatus("error");
+                    task.setStatusDetailsAddError("SEND_FAILED",
+                        "beginIdentifyAnnotations() failed: " + errorMsg);
                     task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
                     myShepherd.updateDBTransaction();
                 }
