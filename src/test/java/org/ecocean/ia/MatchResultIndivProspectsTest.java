@@ -23,13 +23,15 @@ import org.junit.jupiter.api.Test;
  *
  * Three behaviors are pinned here:
  * <ol>
- * <li>Multi-annotation individuals get one prospect at the best-cosine
+ * <li>Multi-annotation individuals get one prospect at the best-score
  *     score within their candidate group, not a count-based score.</li>
  * <li>Annotations whose encounter has no MarkedIndividual are emitted
  *     as singleton prospects in the indiv tab (legacy WBIA parity —
  *     un-ID'd encounters used the placeholder name {@code "____"}).</li>
- * <li>The indiv and annot tabs use the same scoring scale (raw cosine
- *     post-C17 transform) so users can compare across tabs.</li>
+ * <li>The indiv and annot tabs use the same scoring scale (OpenSearch
+ *     Lucene knn cosinesimil score {@code (1+cos)/2} in [0, 1], which
+ *     also happens to be WBIA-MiewID's stored score scale, giving
+ *     cross-pipeline parity) so users can compare across tabs.</li>
  * </ol>
  */
 class MatchResultIndivProspectsTest {
@@ -72,7 +74,7 @@ class MatchResultIndivProspectsTest {
         return new MatchResult(task, candidates, candidates.size(), shepherd);
     }
 
-    // ---- Behavior 1: best-cosine wins within a multi-annotation indiv -----
+    // ---- Behavior 1: best-score wins within a multi-annotation indiv -----
 
     @Test void multiAnnIndividual_scoredByBestCosine()
     throws Exception {
@@ -93,7 +95,7 @@ class MatchResultIndivProspectsTest {
         List<MatchResultProspect> indivPros = mr.prospectsSorted("indiv", -1, null, s);
         assertEquals(1, indivPros.size(), "expected exactly 1 indiv prospect for one ID'd indiv");
         assertEquals(0.81, indivPros.get(0).getScore(), EPS,
-            "indiv prospect should use best-cosine score, not count");
+            "indiv prospect should use best-score score, not count");
     }
 
     // ---- Behavior 2: un-ID'd singletons appear in the indiv tab ----------
@@ -112,7 +114,7 @@ class MatchResultIndivProspectsTest {
         assertEquals(1, indivPros.size(),
             "un-ID'd annotation should still appear in indiv tab as a singleton");
         assertEquals(0.7, indivPros.get(0).getScore(), EPS,
-            "singleton score should equal annotation's own cosine");
+            "singleton score should equal annotation's own OS knn score");
     }
 
     @Test void mixedIdentifiedAndUnidentified_bothPresent()
@@ -256,7 +258,7 @@ class MatchResultIndivProspectsTest {
         assertEquals(1, indivPros.size(),
             "two equal-by-id MarkedIndividual instances should group into 1 indiv prospect");
         assertEquals(0.8, indivPros.get(0).getScore(), EPS,
-            "grouped prospect should carry the best cosine across both candidate annotations");
+            "grouped prospect should carry the highest score across both candidate annotations");
     }
 
     @Test void markedIndividualWithNullId_treatedAsSingleton()

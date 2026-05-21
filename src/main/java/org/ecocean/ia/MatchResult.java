@@ -207,9 +207,9 @@ public class MatchResult implements java.io.Serializable {
         if (this.prospects == null)
             this.prospects = new HashSet<MatchResultProspect>();
         if (scoreByIndividual) {
-            // C19: per-individual scores are now the best per-annotation
-            // cosine within the group (same scale as the annot tab), and
-            // un-ID'd candidates are emitted as singletons.
+            // C19: per-individual scores are now the highest per-annotation
+            // OS knn score within the group (same scale as the annot tab),
+            // and un-ID'd candidates are emitted as singletons.
             _populateProspectsByIndividual(annots, myShepherd);
         } else {
             // these scores are direct from opensearch
@@ -225,20 +225,22 @@ public class MatchResult implements java.io.Serializable {
     /**
      * Build indiv-tab prospects (scoreType "indiv") from the knn
      * candidate annotations. C19 changes from the prior count-based
-     * scoring of identified-only individuals to a uniform best-cosine
-     * scoring that also surfaces un-ID'd candidates as singleton
+     * scoring of identified-only individuals to a uniform highest-score
+     * (within group) scoring that also surfaces un-ID'd candidates as
+     * singleton
      * "individuals" — matching the legacy WBIA HotSpotter behavior of
      * assigning placeholder name {@code "____"} to un-ID'd
      * annotations.
      *
      * <p>For each MarkedIndividual that owns one or more candidate
-     * annotations, the prospect carries the best-cosine annotation
-     * within that group and score = its cosine similarity (raw OS
-     * knn score, post-C17 transform). For each candidate whose
-     * encounter has no MarkedIndividual, a singleton prospect carries
-     * that annotation and its own cosine. All entries sort by score
-     * descending — the indiv tab and the image tab now use the same
-     * scoring scale.</p>
+     * annotations, the prospect carries the highest-scoring annotation
+     * within that group and score = its OpenSearch Lucene knn
+     * cosinesimil score {@code (1+cos)/2} in [0, 1] (which matches
+     * WBIA-MiewID's stored score scale for cross-pipeline parity).
+     * For each candidate whose encounter has no MarkedIndividual, a
+     * singleton prospect carries that annotation and its own score.
+     * All entries sort by score descending — the indiv tab and the
+     * image tab use the same scoring scale.</p>
      */
     private void _populateProspectsByIndividual(List<Annotation> annots, Shepherd myShepherd) {
         // Key by individual ID (String), NOT by MarkedIndividual object.
@@ -274,12 +276,13 @@ public class MatchResult implements java.io.Serializable {
         }
         if (tally.isEmpty() && singletons.isEmpty()) return;
 
-        // For each ID'd individual: pick the highest-cosine annotation
+        // For each ID'd individual: pick the highest-scoring annotation
         // within its candidate group. That becomes the rep prospect.
         // Multi-annotation individuals no longer get a count-based
-        // boost — score is per-annotation cosine, same scale as the
-        // image tab. prospectsSorted(...) handles final ordering, so
-        // we don't pre-sort here.
+        // boost — score is the per-annotation OS knn score (same scale
+        // as the image tab and as WBIA-MiewID's stored score).
+        // prospectsSorted(...) handles final ordering, so we don't
+        // pre-sort here.
         for (Map.Entry<String, List<Annotation> > ent : tally.entrySet()) {
             Annotation best = null;
             double bestScore = -Double.MAX_VALUE;
@@ -295,7 +298,7 @@ public class MatchResult implements java.io.Serializable {
             }
         }
         // Singletons: one prospect per un-ID'd annotation, scored by
-        // its own cosine.
+        // its own OS knn score (same scale as the annot tab).
         for (Annotation ann : singletons) {
             this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(),
                 "indiv", null));

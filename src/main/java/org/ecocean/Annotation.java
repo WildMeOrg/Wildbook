@@ -1234,32 +1234,26 @@ public class Annotation extends Base implements java.io.Serializable {
     }
 
     /**
-     * Transform an OpenSearch knn score to raw cosine similarity in
-     * [-1, 1] — the value the MiewID pipeline itself reports. Public
-     * so tests and any future scoring consumers use the same
-     * conversion. (Empty-match-prospects C17.)
+     * Maps an OpenSearch knn hit to the score we persist on the
+     * matched Annotation. Identity mapping by design: OS Lucene knn
+     * with {@code cosinesimil} emits {@code score = (1 + cos) / 2},
+     * which is also the formula WBIA-MiewID's
+     * {@code distance_to_score = (2 - distance) / 2} uses
+     * (with {@code distance = 1 - cos}). Storing the OS score
+     * unchanged gives vector prospects the same [0, 1] scale as
+     * legacy MiewID-via-WBIA prospects, so the two pipelines
+     * agree numerically per (query, candidate) pair.
      *
-     * <p><b>OS engine assumption:</b> this formula assumes the
-     * annotation index uses the <b>Lucene</b> {@code knn_vector}
-     * engine, which scores {@code cosinesimil} as
-     * {@code score = (1 + cos) / 2} (equivalently {@code (2 - d) / 2}
-     * where {@code d = 1 - cos}). This holds for OpenSearch 3.1's
-     * default engine and any 2.x deployment that pins
-     * {@code method.engine = "lucene"} in the index mapping.</p>
-     *
-     * <p>The OpenSearch 2.15 NMSLIB and Faiss engines score
-     * {@code cosinesimil} differently ({@code 1 / (1 + d)} —
-     * {@link <a href="https://opensearch.org/docs/2.15/search-plugins/knn/knn-score-script/#spaces">OS 2.15 knn spaces</a>}).
-     * If a deployment opts into a non-Lucene engine, this conversion
-     * will produce wrong cosine values. To use a non-Lucene engine
-     * safely, either pin the engine globally (recommended) or add an
-     * engine-aware conversion variant here.</p>
+     * <p>If a future deployment opts into a non-Lucene knn engine
+     * that scores {@code cosinesimil} differently (OS 2.15 NMSLIB
+     * and Faiss return {@code 1 / (1 + d)} per the OS knn-spaces
+     * docs), this is the single call site to adjust. The unit test
+     * {@code osHitScore_isIdentity_noBackTransform} pins the
+     * identity-mapping contract so an accidental re-introduction
+     * of the C17 {@code 2*x - 1} back-transform trips a failure.</p>
      */
-    public static double openSearchScoreToCosine(double osScore) {
-        double cos = 2.0 * osScore - 1.0;
-        if (cos > 1.0) return 1.0;
-        if (cos < -1.0) return -1.0;
-        return cos;
+    static double osHitScore(org.json.JSONObject hit) {
+        return hit.optDouble("_score", 0.0d);
     }
 
     // finds annotations based on embedding vector matches
@@ -1296,12 +1290,9 @@ public class Annotation extends Base implements java.io.Serializable {
             if (hit == null) continue;
             Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
             if (ann != null) {
-                // OS Lucene knn with cosinesimil returns (1 + cos) / 2 in
-                // [0, 1]. Convert to raw cosine in [-1, 1] so the score
-                // matches the MiewID pipeline's native output.
-                // (Empty-match-prospects C17.)
-                double osScore = hit.optDouble("_score", 0.0d);
-                ann.setOpensearchScore(openSearchScoreToCosine(osScore));
+                // See osHitScore javadoc for why the OS score is
+                // persisted unchanged (vector ↔ WBIA-MiewID parity).
+                ann.setOpensearchScore(osHitScore(hit));
                 anns.add(ann);
             }
         }

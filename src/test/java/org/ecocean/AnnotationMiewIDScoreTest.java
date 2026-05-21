@@ -7,81 +7,64 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for the {@link Annotation#openSearchScoreToCosine} helper
- * introduced in C17 to translate OpenSearch Lucene knn cosinesimil
- * scores (range [0, 1], formula {@code (1 + cos) / 2}) back to raw
- * cosine similarity in [-1, 1] — the native MiewID pipeline output.
- * (Empty-match-prospects design C17.)
+ * Tests pinning the {@code getMatchQuery} JSON shape that the C17
+ * commit established: knn clause in the nested {@code must} array,
+ * method/methodVersion term clauses in the nested {@code filter}
+ * array. This eliminates the spurious +2.0 score offset that the
+ * original (pre-C17) layout introduced when method/methodVersion
+ * terms were in {@code must}.
+ *
+ * <p>The earlier "openSearchScoreToCosine" tests have been removed
+ * along with the back-transform itself (parity-fix). OpenSearch
+ * Lucene knn returns {@code (1+cos)/2}; the stored prospect score
+ * is now that value directly, which happens to match WBIA-MiewID's
+ * {@code distance_to_score = (2 - distance) / 2} formula and gives
+ * cross-pipeline score-scale parity.</p>
  */
 class AnnotationMiewIDScoreTest {
 
     private static final double EPS = 1e-9;
 
-    @Test void identicalVectors_scoresExactlyOne() {
-        // cos(a, a) = 1 → OS score = (1 + 1) / 2 = 1.0 → raw = 1.0
-        assertEquals(1.0, Annotation.openSearchScoreToCosine(1.0), EPS);
+    // --- score-storage contract: OS score persisted unchanged ----------
+    // Pins Annotation.osHitScore as identity-mapping so an accidental
+    // re-introduction of the C17 back-transform (2*x - 1) trips a unit
+    // failure. This is what gives vector prospects the same [0, 1]
+    // score scale as WBIA-MiewID's distance_to_score formula. (Codex
+    // Stage 2 Medium finding.)
+
+    @Test void osHitScore_isIdentity_noBackTransform() {
+        // Half-way OS score → 0.5. If the back-transform crept back,
+        // this would return 0.0 (= 2*0.5 - 1) and fail.
+        org.json.JSONObject hit = new org.json.JSONObject().put("_score", 0.5d);
+        assertEquals(0.5d, Annotation.osHitScore(hit), EPS,
+            "OS hit _score must be persisted unchanged for vector ↔ "
+            + "WBIA-MiewID parity; back-transforming to 2*x-1 reintroduces "
+            + "the C17 regression.");
     }
 
-    @Test void perpendicularVectors_scoresExactlyZero() {
-        // cos(a, b) = 0 → OS score = 0.5 → raw = 0.0
-        assertEquals(0.0, Annotation.openSearchScoreToCosine(0.5), EPS);
-    }
-
-    @Test void oppositeVectors_scoresExactlyNegativeOne() {
-        // cos(a, -a) = -1 → OS score = 0 → raw = -1.0
-        assertEquals(-1.0, Annotation.openSearchScoreToCosine(0.0), EPS);
-    }
-
-    @Test void midRangeMatchesObservedDeploymentValues() {
-        // The live test showed OS scores 1.0, 0.86, 0.78, 0.76 (after
-        // the +2.0 offset is removed). Convert each to raw cosine and
-        // verify the transform is correct.
-        assertEquals(1.0,  Annotation.openSearchScoreToCosine(1.0),  EPS);
-        assertEquals(0.72, Annotation.openSearchScoreToCosine(0.86), EPS);
-        assertEquals(0.56, Annotation.openSearchScoreToCosine(0.78), EPS);
-        assertEquals(0.52, Annotation.openSearchScoreToCosine(0.76), EPS);
-    }
-
-    @Test void clampsAboveOne_defensiveAgainstScoringDrift() {
-        // If OS returns >1.0 for any reason (different engine, scoring
-        // bug, etc.) the transform should clamp to 1.0 rather than
-        // produce raw cosines outside the valid range.
-        assertEquals(1.0, Annotation.openSearchScoreToCosine(1.5), EPS);
-        assertEquals(1.0, Annotation.openSearchScoreToCosine(100.0), EPS);
-    }
-
-    @Test void clampsBelowMinusOne_defensiveAgainstScoringDrift() {
-        // OS shouldn't return negative scores from cosinesimil but
-        // defense-in-depth: clamp to -1.0 rather than overflow.
-        assertEquals(-1.0, Annotation.openSearchScoreToCosine(-0.5), EPS);
-        assertEquals(-1.0, Annotation.openSearchScoreToCosine(-100.0), EPS);
-    }
-
-    @Test void zeroScoreStaysAtMinusOne_notNaN() {
-        // Edge case: OS returns exactly 0.0 (perpendicular or
-        // missing-score-default-to-0). Transform: 2*0 - 1 = -1.
-        assertEquals(-1.0, Annotation.openSearchScoreToCosine(0.0), EPS);
-    }
-
-    @Test void invertibleAcrossKnownPoints() {
-        // For OS scores 0.0 through 1.0 in 0.1 steps, the raw cosine
-        // should be monotonically increasing and span [-1, 1].
-        double prev = -2.0;
-        for (int i = 0; i <= 10; i++) {
-            double osScore = i / 10.0;
-            double cos = Annotation.openSearchScoreToCosine(osScore);
-            assertTrue(cos > prev, "expected monotonic increase at i=" + i + " (" + cos + ")");
-            assertTrue(cos >= -1.0 && cos <= 1.0,
-                "expected cos in [-1, 1] at i=" + i + " (" + cos + ")");
-            prev = cos;
+    @Test void osHitScore_passesThroughKnownDeploymentValues() {
+        // Sample values observed on the amphibian-reptile deployment
+        // post-must→filter. All should round-trip exactly.
+        for (double s : new double[] { 0.0, 0.5, 0.736172, 0.7365, 0.86, 1.0 }) {
+            org.json.JSONObject hit = new org.json.JSONObject().put("_score", s);
+            assertEquals(s, Annotation.osHitScore(hit), EPS,
+                "score=" + s + " must pass through unchanged");
         }
+    }
+
+    @Test void osHitScore_missingScore_defaultsToZero() {
+        // Defensive: malformed/empty hit shouldn't NPE. opt-with-default
+        // returns 0.0 (treated as perpendicular vectors).
+        org.json.JSONObject hit = new org.json.JSONObject();
+        assertEquals(0.0d, Annotation.osHitScore(hit), EPS,
+            "missing _score should default to 0.0, not crash");
     }
 
     // --- getMatchQuery shape regression guard (Codex C17 Medium) --------
     // If a future refactor moves embeddings.method/methodVersion back
-    // into the nested `must` list, the score-helper tests still pass
-    // but the +2.0 offset returns. This test pins the JSON shape so
-    // that drift is caught.
+    // into the nested `must` list, callers will start seeing scores
+    // offset by +2.0 again. This test pins the JSON shape so that
+    // drift is caught.
 
     @Test void getMatchQuery_putsKnnInMust_termsInFilter() {
         org.ecocean.Annotation ann = new org.ecocean.Annotation();
