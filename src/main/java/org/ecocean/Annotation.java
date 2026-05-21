@@ -1120,9 +1120,12 @@ public class Annotation extends Base implements java.io.Serializable {
     // this version if you already have matchingSetQuery
     public JSONObject getMatchQuery(String method, String methodVersion,
         JSONObject matchingSetQuery) {
+        if (matchingSetQuery == null) return null;
         Embedding emb = getEmbeddingByMethod(method, methodVersion);
 
         if (emb == null) return null;
+        // we work on a copy here so we dont modify matchingSetQuery
+        JSONObject mq = new JSONObject(matchingSetQuery.toString());
         JSONObject nested = new JSONObject(
             "{\"nested\": {\"path\": \"embeddings\", \"query\": {\"bool\": {}}}}");
         JSONArray must = new JSONArray();
@@ -1142,8 +1145,8 @@ public class Annotation extends Base implements java.io.Serializable {
         // we put nested under its own top-level must, that way its score counts (whereas filter does not)
         JSONArray nestedMust = new JSONArray();
         nestedMust.put(nested);
-        matchingSetQuery.getJSONObject("query").getJSONObject("bool").put("must", nestedMust);
-        return matchingSetQuery;
+        mq.getJSONObject("query").getJSONObject("bool").put("must", nestedMust);
+        return mq;
     }
 
     // finds annotations based on embedding vector matches
