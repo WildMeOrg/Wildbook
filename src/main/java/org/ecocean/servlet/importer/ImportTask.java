@@ -399,8 +399,24 @@ public class ImportTask implements java.io.Serializable {
                 continue;
             }
             sa.put(ann.getId(), Util.collectionSize(atm.get(ann)));
+            // Annotation exists but has no task yet (e.g., its match was
+            // gate-deferred and runMatchProspects has not fired yet).
+            // Count it as a pending "latest task" so the aggregate
+            // identificationStatus in iaSummaryJson stays "sent" until
+            // every annotation actually has a completed task. Without
+            // this, the FIRST completed task makes
+            // numLatestTask_completed >= numLatestTasks and the import
+            // flips to "complete" before the deferred matches even
+            // run — frontend polling stops too early.
+            List<Task> annTasks = atm.get(ann);
+            if ((annTasks == null) || annTasks.isEmpty()) {
+                String latestStatus = "numLatestTask_pending";
+                sa.put(latestStatus, sa.optInt(latestStatus, 0) + 1);
+                numLatestTasks++;
+                continue;
+            }
             boolean latestTask = true; // only for first (most recent) task
-            for (Task atask : atm.get(ann)) {
+            for (Task atask : annTasks) {
                 String status = atask.getStatus(myShepherd);
                 if (sa.has(status)) {
                     sa.put(status, sa.optInt(status, 0) + 1);
