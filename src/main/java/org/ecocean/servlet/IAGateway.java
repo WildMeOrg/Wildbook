@@ -776,13 +776,33 @@ public class IAGateway extends HttpServlet {
         jobj.put("__queueActualRetries", actualRetries);
 
         // now we fork background thread to *wait* and then add this to queue
+        //
+        // Gate-defer requeues (deferredMatch:true) poll for sibling
+        // visibility/indexing settle and benefit from a tight cadence on
+        // the FIRST attempt -- those polls normally resolve in seconds.
+        // The 30-second backoff is still appropriate for genuine
+        // ml-service network retries that need rate-limiting, AND for
+        // any retry that follows a queue-publish failure (the catch
+        // block below sets 30000 deliberately to throttle a struggling
+        // queue/backend; we preserve that for deferred jobs too).
+        final boolean isGateDefer = jobj.optBoolean("deferredMatch", false);
         Runnable r = new Runnable() {
             public void run() {
                 boolean requeueSuccess = false;
                 long whileSleepMillis = 1000;
+                boolean firstAttempt = true;
                 while (!requeueSuccess) {
                     try {
-                        if (increment) whileSleepMillis = 30000;
+                        if (increment) {
+                            // First attempt: gate-defer payloads use the
+                            // tight 5s cadence; everything else uses 30s.
+                            // Subsequent attempts (after a catch) always
+                            // use 30s so a struggling queue doesn't get
+                            // hammered every 5s.
+                            whileSleepMillis = (firstAttempt && isGateDefer)
+                                ? 5000 : 30000;
+                        }
+                        firstAttempt = false;
                         System.out.println("requeueJob(): backgrounding taskId=" + taskId);
                         try {
                             Thread.sleep(whileSleepMillis);
