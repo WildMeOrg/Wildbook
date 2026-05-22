@@ -96,7 +96,8 @@ public class MlServiceProcessor {
         try {
             det = loadDetectionContext(taxonomyString, taskId, encounterId, maId);
         } catch (Exception ex) {
-            markTaskError(taskId, "PERSIST", "load/revalidate failed: " + ex.getMessage());
+            markDetectionFailure(maId, taskId, "PERSIST",
+                "load/revalidate failed: " + ex.getMessage());
             return MlServiceJobOutcome.persistError("PERSIST", ex.getMessage());
         }
         if (det.outcome != null) return det.outcome;
@@ -109,7 +110,7 @@ public class MlServiceProcessor {
                 IAGateway.requeueJob(jobData, ex.shouldIncrement());
                 return MlServiceJobOutcome.requeue();
             }
-            markTaskError(taskId, ex.getCode(), ex.getMessage());
+            markDetectionFailure(maId, taskId, ex.getCode(), ex.getMessage());
             return mapNonRetryableError(ex);
         }
 
@@ -194,6 +195,12 @@ public class MlServiceProcessor {
             if (!Util.stringExists(configs.mlConfig.optString("predict_model_id", null))) {
                 markTaskError(task, "INVALID",
                     "_mlservice_conf missing predict_model_id for " + effectiveTaxonomy);
+                // Mark the MA terminal so bulk-import polling completes. Note:
+                // this case is an admin/config error (not a per-asset failure)
+                // and ideally would have its own MediaAsset status. Using
+                // STATUS_ERROR keeps the polling tally honest pending a richer
+                // status model.
+                ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
                 shep.commitDBTransaction();
                 return DetectionContext.done(MlServiceJobOutcome.validationError("INVALID",
                     "_mlservice_conf missing predict_model_id"));
@@ -203,6 +210,7 @@ public class MlServiceProcessor {
             if (webUrl == null) {
                 markTaskError(task, "INVALID_IMAGE_URI",
                     "MediaAsset " + maId + " has no webURL");
+                ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
                 shep.commitDBTransaction();
                 return DetectionContext.done(MlServiceJobOutcome.validationError(
                     "INVALID_IMAGE_URI", "MediaAsset " + maId + " has no webURL"));
@@ -297,10 +305,31 @@ public class MlServiceProcessor {
             shep.commitDBTransaction();
             return MlServiceJobOutcome.okZeroDetections();
         } catch (Exception ex) {
-            markTaskError(taskId, "PERSIST", "zero-detection finalize failed: " + ex.getMessage());
+            // Best-effort rollback so markDetectionFailure (which opens a
+            // second Shepherd on the same MA row) doesn't block on locks.
+            // Swallow rollback exceptions — they must not shadow the
+            // original failure outcome.
+            try {
+                shep.rollbackDBTransaction();
+            } catch (Exception rbEx) {
+                System.out.println(
+                    "[WARN] MlServiceProcessor.finalizeZeroDetections rollback " +
+                    "before cleanup failed: " + rbEx);
+            }
+            markDetectionFailure(maId, taskId, "PERSIST",
+                "zero-detection finalize failed: " + ex.getMessage());
             return MlServiceJobOutcome.persistError("PERSIST", ex.getMessage());
         } finally {
-            shep.rollbackAndClose();
+            // Guarded close — if rollbackAndClose throws here (e.g., the
+            // PM is already closed from a deeper bug), the deliberate
+            // persistError return above must not be shadowed.
+            try {
+                shep.rollbackAndClose();
+            } catch (Exception ex) {
+                System.out.println(
+                    "[WARN] MlServiceProcessor.finalizeZeroDetections " +
+                    "rollbackAndClose failed: " + ex);
+            }
         }
     }
 
@@ -385,11 +414,30 @@ public class MlServiceProcessor {
             shep.commitDBTransaction();
             return PersistResult.ok(annotationIds);
         } catch (Exception ex) {
-            markTaskError(taskId, "PERSIST", "detection persist failed: " + ex.getMessage());
+            // Release locks on the MA before markDetectionFailure (which
+            // opens a second Shepherd on the same MA row) — swallow the
+            // rollback exception so it can't shadow the original failure.
+            try {
+                shep.rollbackDBTransaction();
+            } catch (Exception rbEx) {
+                System.out.println(
+                    "[WARN] MlServiceProcessor.persistDetections rollback before " +
+                    "cleanup failed: " + rbEx);
+            }
+            markDetectionFailure(maId, taskId, "PERSIST",
+                "detection persist failed: " + ex.getMessage());
             return PersistResult.done(MlServiceJobOutcome.persistError("PERSIST",
                 ex.getMessage()));
         } finally {
-            shep.rollbackAndClose();
+            // Guarded close so the deliberate persistError return is
+            // never shadowed by a rollbackAndClose throw.
+            try {
+                shep.rollbackAndClose();
+            } catch (Exception ex) {
+                System.out.println(
+                    "[WARN] MlServiceProcessor.persistDetections " +
+                    "rollbackAndClose failed: " + ex);
+            }
         }
     }
 
@@ -841,6 +889,58 @@ public class MlServiceProcessor {
             shep.commitDBTransaction();
         } finally {
             shep.rollbackAndClose();
+        }
+    }
+
+    /**
+     * Detection-only failure marker: transitions both the Task and the
+     * MediaAsset to terminal error states in one short Shepherd
+     * transaction. Use ONLY from detection paths; generic markTaskError
+     * is the right helper for extraction/match paths that must leave
+     * the MediaAsset alone (bulk-import polling reads MA detectionStatus
+     * to decide when detection is done, and an extraction/match failure
+     * must not retroactively flip a successfully-detected MA to error).
+     *
+     * <p>The MA transition uses the {@link IBEISIA#STATUS_ERROR}
+     * terminal status. Caller must ensure any prior open transaction
+     * on the same MA has been rolled back before invoking, to avoid
+     * lock conflicts on the row.</p>
+     *
+     * <p>If the cleanup transaction itself fails (MA since deleted,
+     * DB unavailable), the original failure outcome is preserved and
+     * a WARN is logged — do NOT shadow the upstream error.</p>
+     */
+    private void markDetectionFailure(String maId, String taskId, String code, String message) {
+        // Whole-helper try so that nothing in here can shadow the upstream
+        // failure outcome — Shepherd construction, setAction, the
+        // transaction body, AND the final rollbackAndClose are all guarded.
+        Shepherd shep = null;
+        try {
+            shep = new Shepherd(context);
+            shep.setAction(ACTION_PREFIX + "markDetectionFailure");
+            shep.beginDBTransaction();
+            Task task = Task.load(taskId, shep);
+            markTaskError(task, code, message);
+            if (Util.stringExists(maId)) {
+                MediaAsset ma = shep.getMediaAsset(maId);
+                if (ma != null) ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
+            }
+            shep.commitDBTransaction();
+        } catch (Exception ex) {
+            System.out.println(
+                "[WARN] MlServiceProcessor.markDetectionFailure cleanup failed for " +
+                "maId=" + maId + " taskId=" + taskId + ": " + ex);
+        } finally {
+            if (shep != null) {
+                try {
+                    shep.rollbackAndClose();
+                } catch (Exception ex) {
+                    System.out.println(
+                        "[WARN] MlServiceProcessor.markDetectionFailure " +
+                        "rollbackAndClose failed for maId=" + maId +
+                        " taskId=" + taskId + ": " + ex);
+                }
+            }
         }
     }
 
