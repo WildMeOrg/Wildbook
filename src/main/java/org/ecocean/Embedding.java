@@ -331,12 +331,10 @@ public class Embedding implements java.io.Serializable {
                 subtasksFailed++;
                 continue;
             }
-            // Count eligible candidates BEFORE getMatchQuery, which mutates
-            // matchingSetQuery in place (Annotation.java:1203). The previous
-            // order returned the knn result count instead of the candidate
-            // count. Defense in depth: also pass a deep clone of
-            // matchingSetQuery to getMatchQuery so the eligible-set object
-            // never silently changes shape if a future caller relies on it.
+            // PR #1582 fixed the in-place mutation that getMatchQuery used
+            // to perform on matchingSetQuery. The ordering-before-getMatchQuery
+            // here and the deep clone passed below are now belt-and-suspenders
+            // against regression.
             OpenSearch os = new OpenSearch();
             int numberCandidates = -2;
             try {
