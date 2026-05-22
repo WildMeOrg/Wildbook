@@ -87,5 +87,100 @@ class ImportTaskTest {
         assertEquals(sum.optInt("numberAnnotations"), 9);
         assertEquals(sum.optInt("numberMediaAssets"), 1);
         assertEquals(sum.optInt("detectionNumberComplete"), 1);
+        assertEquals(sum.optInt("detectionNumberError"), 0);
+    }
+
+    // pending-species is a taxonomy-pending terminal status set by
+    // MlServiceProcessor.loadDetectionContext when configs are
+    // unavailable for the upload's taxonomy. Pre-fix, this status was
+    // not counted as detection-terminal, so the frontend polled forever.
+    // Also asserts the aggregate detectionStatus == "complete" so the
+    // polling-stop signal is verified end-to-end (Codex C2 round-1).
+    @Test void testIaSummary_pendingSpecies() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        MediaAsset mockMA = mock(MediaAsset.class);
+        when(mockMA.getDetectionStatus()).thenReturn("pending-species");
+        List<MediaAsset> someMAs = new ArrayList<MediaAsset>();
+        someMAs.add(mockMA);
+        when(itask.getMediaAssets()).thenReturn(someMAs);
+        when(itask.getIATask()).thenReturn(mock(Task.class));
+        // Required so iaSummaryJson enters the non-legacy aggregate
+        // status branch — otherwise detectionStatus is never set and
+        // the frontend's polling whitelist would keep polling.
+        when(itask.iaTaskStarted()).thenReturn(true);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals(sum.optInt("detectionNumberComplete"), 1);
+        assertEquals(sum.optInt("detectionNumberError"), 0);
+        assertEquals(sum.optString("detectionStatus"), "complete");
+    }
+
+    // STATUS_ERROR is the terminal status set by markDetectionFailure
+    // on non-retryable detection failures. Counted as terminal AND
+    // surfaced separately via detectionNumberError so the UI can
+    // distinguish "complete with errors" from "complete cleanly".
+    @Test void testIaSummary_error() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        MediaAsset mockMA = mock(MediaAsset.class);
+        when(mockMA.getDetectionStatus()).thenReturn("error");
+        List<MediaAsset> someMAs = new ArrayList<MediaAsset>();
+        someMAs.add(mockMA);
+        when(itask.getMediaAssets()).thenReturn(someMAs);
+        when(itask.getIATask()).thenReturn(mock(Task.class));
+        when(itask.iaTaskStarted()).thenReturn(true);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals(sum.optInt("detectionNumberComplete"), 1);
+        assertEquals(sum.optInt("detectionNumberError"), 1);
+        // Aggregate still "complete" — the error count is a separate
+        // signal, so the frontend's polling whitelist still terminates.
+        assertEquals(sum.optString("detectionStatus"), "complete");
+    }
+
+    // Mixed bag: one complete + one errored. Both count as terminal;
+    // detectionNumberError tracks only the failure.
+    @Test void testIaSummary_mixedCompleteAndError() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        MediaAsset okMA = mock(MediaAsset.class);
+        when(okMA.getDetectionStatus()).thenReturn("complete-mlservice");
+        MediaAsset errMA = mock(MediaAsset.class);
+        when(errMA.getDetectionStatus()).thenReturn("error");
+        List<MediaAsset> someMAs = new ArrayList<MediaAsset>();
+        someMAs.add(okMA);
+        someMAs.add(errMA);
+        when(itask.getMediaAssets()).thenReturn(someMAs);
+        when(itask.getIATask()).thenReturn(mock(Task.class));
+        when(itask.iaTaskStarted()).thenReturn(true);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals(sum.optInt("detectionNumberComplete"), 2);
+        assertEquals(sum.optInt("detectionNumberError"), 1);
+        assertEquals(sum.optString("detectionStatus"), "complete");
+    }
+
+    // Legacy flavor (getIATask() == null) hits the second `>=`
+    // predicate. The original `==` would have stranded the import at
+    // "sent" if any terminal-but-non-IA-eligible MA showed up.
+    @Test void testIaSummary_legacyError() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        MediaAsset errMA = mock(MediaAsset.class);
+        when(errMA.getDetectionStatus()).thenReturn("error");
+        List<MediaAsset> someMAs = new ArrayList<MediaAsset>();
+        someMAs.add(errMA);
+        when(itask.getMediaAssets()).thenReturn(someMAs);
+        when(itask.getIATask()).thenReturn(null);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals(sum.optInt("detectionNumberComplete"), 1);
+        assertEquals(sum.optInt("detectionNumberError"), 1);
+        assertEquals(sum.optString("detectionStatus"), "complete");
     }
 }

@@ -15,6 +15,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
+import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
@@ -635,6 +636,7 @@ public class ImportTask implements java.io.Serializable {
     // messes up the status :(
     public JSONObject iaSummaryJson(Shepherd myShepherd) {
         int numDetectionComplete = 0;
+        int numDetectionError = 0;
         int numAcmId = 0;
         int numAllowedIA = 0;
         int numAssets = 0;
@@ -659,14 +661,23 @@ public class ImportTask implements java.io.Serializable {
                     invalidMediaAssets.add(asset);
                 }
  */
-            // ml-service migration v2 (commit #5): "complete-mlservice" is
-            // terminal alongside "complete" and "pending" for the bulk-import
-            // detection-complete tally. Without this, an ml-service-routed
-            // bulk import never reports 100% detection complete in the UI.
-            if ((ma.getDetectionStatus() != null) &&
-                (ma.getDetectionStatus().equals("complete") ||
-                ma.getDetectionStatus().equals("complete-mlservice") ||
-                ma.getDetectionStatus().equals("pending"))) numDetectionComplete++;
+            // Terminal detection statuses include the completion states
+            // (complete, complete-mlservice, pending — needs user review)
+            // plus the failure/blocked terminal states (pending-species —
+            // taxonomy not yet PATCHed; error — non-retryable failure from
+            // ml-service or pre-flight validation). Without counting the
+            // terminal-failure states, an import with config or non-
+            // retryable errors never reports 100% detection complete and
+            // the frontend polls forever.
+            String ds = ma.getDetectionStatus();
+            if (IBEISIA.STATUS_COMPLETE.equals(ds) ||
+                IBEISIA.STATUS_COMPLETE_MLSERVICE.equals(ds) ||
+                IBEISIA.STATUS_PENDING.equals(ds) ||
+                IBEISIA.STATUS_PENDING_SPECIES.equals(ds) ||
+                IBEISIA.STATUS_ERROR.equals(ds)) {
+                numDetectionComplete++;
+                if (IBEISIA.STATUS_ERROR.equals(ds)) numDetectionError++;
+            }
         }
         JSONObject pj = new JSONObject();
         pj.put("statsMediaAssets", statsMA);
@@ -676,10 +687,17 @@ public class ImportTask implements java.io.Serializable {
         pj.put("numberMediaAssetACMIds", numAcmId);
         pj.put("numberMediaAssetValidIA", numAllowedIA);
         pj.put("detectionNumberComplete", numDetectionComplete);
+        // Backend signal for "detection finished, but some assets errored".
+        // Aggregate detectionStatus stays "complete" (so frontend polling
+        // stops). UI can read detectionNumberError to render a separate
+        // indicator if it wants to.
+        pj.put("detectionNumberError", numDetectionError);
         // non-legacy flavor
         if ((this.getIATask() != null) && this.iaTaskStarted()) {
             pipelineStarted = true;
-            if (numDetectionComplete == numAllowedIA) {
+            // `>=` rather than `==` so non-IA-eligible MAs that land in a
+            // terminal detection state don't strand the import at "sent".
+            if (numDetectionComplete >= numAllowedIA) {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
@@ -716,7 +734,7 @@ public class ImportTask implements java.io.Serializable {
             // legacy flavor
         } else if ((this.getIATask() == null) && (numDetectionComplete > 0)) {
             pipelineStarted = true;
-            if (numDetectionComplete == numAssets) {
+            if (numDetectionComplete >= numAssets) {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
