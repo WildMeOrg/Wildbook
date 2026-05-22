@@ -300,6 +300,10 @@ public class ImportIA extends HttpServlet {
                         myShepherd.storeNewAnnotation(ann);
                     }
                     myShepherd.commitDBTransaction();
+                    // GH-1514: post-commit deep reindex so sibling encounters on
+                    // the named individual pick up refreshed individualNumberEncounters.
+                    org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(
+                        myShepherd, java.util.Collections.singleton(name));
 
                     String annLog = "";
                     String annWeb = "";

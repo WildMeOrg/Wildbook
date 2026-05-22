@@ -143,6 +143,9 @@ public class BulkImport extends ApiBase {
         JSONObject matchingSetFilter = new JSONObject();
         JSONObject encAssets = null;
         String dupId = null; // gets set as bulkImporId to be used in finally block
+        // GH-1514: hoisted so the finally block can queue a post-commit deep
+        // reindex of individuals the foreground importer touched.
+        BulkImporter fgImporter = null;
         long startProcess = System.currentTimeMillis();
         Shepherd myShepherd = new Shepherd(context);
 
@@ -425,6 +428,9 @@ public class BulkImport extends ApiBase {
 
                             JSONObject bgEncAssets = null;
                             boolean success = false;
+                            // GH-1514: hoisted so the finally block can queue
+                            // post-commit deep reindex of touched individuals.
+                            BulkImporter bgImporter = null;
                             try {
                                 User bgUser = bgShepherd.getUser(currentUsername);
                                 initializeImportTask(bulkImportId, bgUser, payload,
@@ -448,6 +454,7 @@ public class BulkImport extends ApiBase {
                                 rtn.put("numberMediaAssetsCreated", maMap.size());
                                 BulkImporter importer = new BulkImporter(bulkImportId,
                                     validatedRows, maMap, bgUser, bgShepherd);
+                                bgImporter = importer;
                                 JSONObject results = null;
                                 if (!blockedByMAErrors) {
                                     try {
@@ -518,6 +525,15 @@ public class BulkImport extends ApiBase {
                                     bgShepherd.rollbackDBTransaction();
                                 }
                                 bgShepherd.closeDBTransaction();
+                                // GH-1514: post-commit, queue deep reindex of touched
+                                // individuals so sibling encounters pick up refreshed
+                                // individualNumberEncounters. The bulkOpensearchIndex
+                                // pass only does shallow individual doc indexing.
+                                if (success && bgImporter != null) {
+                                    org.ecocean.IndexingManager
+                                        .queueIndividualsByIdForDeepReindex(bgShepherd,
+                                            bgImporter.getTouchedIndividualIds());
+                                }
                                 if (success && !bgSkipDetection)
                                     initiateIA(bulkImportId, bgSkipIdentification, bgEncAssets,
                                         matchingSetFilter);
@@ -562,6 +578,7 @@ public class BulkImport extends ApiBase {
                     } else {
                         BulkImporter importer = new BulkImporter(bulkImportId, validatedRows, maMap,
                             currentUser, myShepherd);
+                        fgImporter = importer;
                         BulkImporter.logProgress(bulkImportId, "doPost: fg pre-createImport()",
                             startTime);
                         JSONObject results = importer.createImport();
@@ -624,6 +641,12 @@ public class BulkImport extends ApiBase {
                 myShepherd.rollbackDBTransaction();
             }
             myShepherd.closeDBTransaction();
+            // GH-1514: post-commit, queue deep reindex of individuals touched by
+            // the foreground import so sibling encounters refresh individualNumberEncounters.
+            if ((statusCode == 200) && !validateOnly && fgImporter != null) {
+                org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
+                    fgImporter.getTouchedIndividualIds());
+            }
             if ((statusCode == 200) && !skipDetection)
                 initiateIA(dupId, skipIdentification, encAssets, matchingSetFilter);
         }
@@ -647,6 +670,8 @@ public class BulkImport extends ApiBase {
         Shepherd myShepherd = new Shepherd(context);
 
         myShepherd.setAction("api.Bulk.doDelete");
+        java.util.Set<String> touchedSurvivingIndividualIds =
+            new java.util.LinkedHashSet<String>();
         myShepherd.beginDBTransaction();
         try {
             User currentUser = myShepherd.getUser(request);
@@ -655,7 +680,8 @@ public class BulkImport extends ApiBase {
             if (args.length < 2) throw new ServletException("bad api path");
             String bulkImportId = args[1];
             // this may throw IOException (and will if currentUser is null or cannot delete)
-            ImportTask.deleteWithRelated(bulkImportId, currentUser, myShepherd);
+            touchedSurvivingIndividualIds = ImportTask.deleteWithRelated(bulkImportId,
+                currentUser, myShepherd);
             statusCode = 204;
             rtn.put("success", true);
         } catch (IOException ex) {
@@ -675,6 +701,12 @@ public class BulkImport extends ApiBase {
                 myShepherd.rollbackDBTransaction();
             }
             myShepherd.closeDBTransaction();
+        }
+        // GH-1514: post-commit, queue deep reindex of individuals that survived
+        // the bulk-import delete so their remaining encounters refresh in OpenSearch.
+        if (statusCode == 204) {
+            org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
+                touchedSurvivingIndividualIds);
         }
         response.setStatus(statusCode);
         response.setCharacterEncoding("UTF-8");

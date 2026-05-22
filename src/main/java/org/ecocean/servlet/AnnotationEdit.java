@@ -2,6 +2,8 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -11,6 +13,7 @@ import javax.servlet.ServletException;
 import org.ecocean.AccessControl;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
+import org.ecocean.IndexingManager;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
@@ -52,6 +55,10 @@ public class AnnotationEdit extends HttpServlet {
             out.println("access denied");
         }
         JSONObject rtn = new JSONObject("{\"success\": false}");
+        // GH-1514: collect individual ids touched during this request so we can
+        // queue a post-commit deep reindex, refreshing individualNumberEncounters
+        // (and related denormalized fields) on every sibling encounter.
+        Set<String> touchedIndividualIds = new LinkedHashSet<>();
         String annId = jsonIn.optString("id", null);
         Annotation annot = myShepherd.getAnnotation(annId);
         if (annot == null) {
@@ -82,6 +89,7 @@ public class AnnotationEdit extends HttpServlet {
                             if (indiv != null) {
                                 indiv.removeEncounter(enc1);
                                 indiv.addEncounter(enc2);
+                                touchedIndividualIds.add(indivId1);
                             }
                         }
                         if (indivId2 != null) {
@@ -89,6 +97,7 @@ public class AnnotationEdit extends HttpServlet {
                             if (indiv != null) {
                                 indiv.removeEncounter(enc2);
                                 indiv.addEncounter(enc1);
+                                touchedIndividualIds.add(indivId2);
                             }
                         }
                         // enc2.setIndividualID(indivId1);
@@ -181,9 +190,12 @@ public class AnnotationEdit extends HttpServlet {
             } else if (Util.stringExists(assignIndivId)) {
                 Encounter enc = annot.findEncounter(myShepherd);
                 if (enc.hasMarkedIndividual()) {
-                    MarkedIndividual oldIndiv = myShepherd.getMarkedIndividualQuiet(
-                        enc.getIndividualID());
-                    oldIndiv.removeEncounter(enc);
+                    String oldIndivId = enc.getIndividualID();
+                    MarkedIndividual oldIndiv = myShepherd.getMarkedIndividualQuiet(oldIndivId);
+                    if (oldIndiv != null) {
+                        oldIndiv.removeEncounter(enc);
+                        touchedIndividualIds.add(oldIndivId);
+                    }
                 }
                 boolean newIndiv = false;
                 MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(assignIndivId);
@@ -193,6 +205,7 @@ public class AnnotationEdit extends HttpServlet {
                 } else {
                     indiv.addEncounter(enc);
                 }
+                touchedIndividualIds.add(assignIndivId);
                 // enc.setIndividualID(assignIndivId);
                 System.out.println("INFO: AnnotationEdit assigned " + indiv + " on " + enc +
                     " via " + annot);
@@ -204,6 +217,10 @@ public class AnnotationEdit extends HttpServlet {
         }
         if (rtn.optBoolean("success", false)) {
             myShepherd.commitDBTransaction();
+            // GH-1514: post-commit, queue deep reindex of affected individuals so
+            // sibling encounters pick up refreshed individualNumberEncounters etc.
+            IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
+                touchedIndividualIds);
         } else {
             myShepherd.rollbackDBTransaction();
         }

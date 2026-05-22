@@ -21,6 +21,8 @@ String langCode=ServletUtilities.getLanguageCode(request);
 String indIdA = request.getParameter("individualA");
 String indIdB = request.getParameter("individualB");
 String[] encIds = request.getParameterValues("encounterId");
+// GH-1514: tracks whether the merge succeeded; only then queue deep reindex.
+boolean mergeSuccess = false;
 props = ShepherdProperties.getProperties("merge.properties", langCode,context);
 myShepherd.setAction("merge.jsp");
 myShepherd.beginDBTransaction();
@@ -583,14 +585,23 @@ table.compareZone tr th {
             if (enc == null) throw new RuntimeException("Bad Encounter id=" + encId);
             enc.setIndividual(markA);
         }
+        // GH-1514: flag success so we queue deep reindex only on the happy path.
+        mergeSuccess = true;
 
-    } 
+    }
 	catch (Exception e) {
     	System.out.println("Exception on merge.jsp! indIdA="+indIdA+" indIdB="+indIdB);
     	myShepherd.rollbackDBTransaction();
     } finally {
         myShepherd.commitDBTransaction();
     	myShepherd.closeDBTransaction();
+        // GH-1514: post-commit (success path only) queue a deep reindex of the
+        // retained individual so sibling encounters pick up refreshed
+        // individualNumberEncounters.
+        if (mergeSuccess && indIdA != null) {
+            org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
+                java.util.Collections.singleton(indIdA));
+        }
     }
     %>
   </div>
