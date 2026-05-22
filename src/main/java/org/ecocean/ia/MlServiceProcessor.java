@@ -373,8 +373,9 @@ public class MlServiceProcessor {
                 shep.getPM().makePersistent(feature);
                 shep.getPM().makePersistent(ann);
 
-                Embedding emb = new Embedding(ann, result.getString("embedding_model_id"),
-                    result.getString("embedding_model_version"), result.getJSONArray("embedding"));
+                String[] mv = parseEmbeddingMethodVersion(result);
+                Embedding emb = new Embedding(ann, mv[0], mv[1],
+                    result.getJSONArray("embedding"));
                 shep.getPM().makePersistent(emb);
                 annotationIds.add(ann.getId());
             }
@@ -416,8 +417,9 @@ public class MlServiceProcessor {
             }
 
             ann.setIdentificationStatus(IBEISIA.STATUS_COMPLETE_MLSERVICE);
-            Embedding emb = new Embedding(ann, response.getString("embedding_model_id"),
-                response.getString("embedding_model_version"), response.getJSONArray("embedding"));
+            String[] mv = parseEmbeddingMethodVersion(response);
+            Embedding emb = new Embedding(ann, mv[0], mv[1],
+                response.getJSONArray("embedding"));
             shep.getPM().makePersistent(emb);
             markTaskCompleted(task);
             annotationIds.add(ann.getId());
@@ -722,18 +724,80 @@ public class MlServiceProcessor {
         }
     }
 
+    /**
+     * Derive the {@code (method, methodVersion)} pair that Wildbook stamps
+     * on Embedding rows and uses in matchConfig from an ml-service
+     * {@code /extract/} response.
+     *
+     * <p>Wildbook's vector-matching pipeline (configured via IA.json
+     * {@code pipeline_root="vector"} entries) filters embeddings on
+     * {@code METHOD}/{@code METHODVERSION}. IA.json sets these as
+     * {@code method="miewid"}, {@code version="msv4.1"}, derived by
+     * dash-splitting the ml-service {@code model_id}. The same
+     * derivation is done by the legacy v1 path
+     * ({@code MLService.getMethodValues}) so existing rows written by
+     * {@code importMiewidEmbeddings.jsp} and the v1 send path use this
+     * shape. Writing raw {@code embedding_model_id} /
+     * {@code embedding_model_version} from the response instead would
+     * stamp {@code ("miewid-msv4.1", "4.1")}, which never satisfies the
+     * matchConfig filter and renders the embedding unfindable.</p>
+     *
+     * <p>Rules: read {@code embedding_model_id} (the v2 contract field).
+     * If it contains a {@code -} with non-empty text on both sides, split
+     * on the first dash and use the left side as method, the right side
+     * as version. If there is no dash, or the dash is leading/trailing
+     * (leaving one side empty), treat the ID as a single token and fall
+     * back to the explicit {@code embedding_model_version} field for the
+     * version. Throws {@link IllegalStateException} when either
+     * component cannot be derived, mirroring the
+     * "missing-required-field" failure mode of the previous
+     * {@code getString} calls but with a clearer message.</p>
+     */
+    static String[] parseEmbeddingMethodVersion(JSONObject response) {
+        if (response == null) {
+            throw new IllegalStateException(
+                "ml-service response missing: cannot derive (method, version)");
+        }
+        String embeddingModelId = response.optString("embedding_model_id", null);
+        if (!Util.stringExists(embeddingModelId)) {
+            throw new IllegalStateException(
+                "ml-service response missing embedding_model_id");
+        }
+        String method;
+        String version;
+        int dash = embeddingModelId.indexOf('-');
+        if (dash > 0 && dash < embeddingModelId.length() - 1) {
+            method = embeddingModelId.substring(0, dash);
+            version = embeddingModelId.substring(dash + 1);
+        } else {
+            method = embeddingModelId;
+            version = response.optString("embedding_model_version", null);
+        }
+        if (!Util.stringExists(method) || !Util.stringExists(version)) {
+            throw new IllegalStateException(
+                "ml-service response yields incomplete (method=" + method
+                    + ", version=" + version + ") from embedding_model_id="
+                    + embeddingModelId + ", embedding_model_version="
+                    + response.optString("embedding_model_version", null));
+        }
+        return new String[] { method, version };
+    }
+
     private JSONObject ensureMatchConfig(JSONObject matchConfig, JSONObject embeddingSource,
         JSONObject mlConfig) {
         JSONObject config = (matchConfig == null) ? new JSONObject()
             : new JSONObject(matchConfig.toString());
         if (embeddingSource != null) {
-            if (!Util.stringExists(config.optString("method", null))
+            boolean needMethod = !Util.stringExists(config.optString("method", null));
+            boolean needVersion = !Util.stringExists(config.optString("version", null));
+            // Only parse if we'd actually consume the fallback. The parser
+            // throws on malformed input; we don't want to surface that
+            // when matchConfig is already fully populated from IA.json.
+            if ((needMethod || needVersion)
                 && Util.stringExists(embeddingSource.optString("embedding_model_id", null))) {
-                config.put("method", embeddingSource.optString("embedding_model_id"));
-            }
-            if (!Util.stringExists(config.optString("version", null))
-                && Util.stringExists(embeddingSource.optString("embedding_model_version", null))) {
-                config.put("version", embeddingSource.optString("embedding_model_version"));
+                String[] mv = parseEmbeddingMethodVersion(embeddingSource);
+                if (needMethod) config.put("method", mv[0]);
+                if (needVersion) config.put("version", mv[1]);
             }
         }
         if (!Util.stringExists(config.optString("api_endpoint", null)) && mlConfig != null

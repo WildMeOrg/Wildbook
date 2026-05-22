@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.json.JSONObject;
@@ -25,6 +26,9 @@ import org.junit.jupiter.api.Test;
  *   <li>{@code bboxKey}/{@code thetaKey} formatting (rounding and
  *       string-format invariants).</li>
  *   <li>{@code findExistingAnnotation} dedupe matching.</li>
+ *   <li>{@code parseEmbeddingMethodVersion} dash-split derivation of
+ *       embedding {@code (METHOD, METHODVERSION)} from the ml-service
+ *       {@code /extract/} response.</li>
  * </ul>
  */
 class MlServiceProcessorTest {
@@ -134,5 +138,95 @@ class MlServiceProcessorTest {
         String k = MlServiceProcessor.thetaKey(-0.0);
         assertTrue(k.equals("0.0000") || k.equals("-0.0000"),
             "unexpected thetaKey for -0.0: " + k);
+    }
+
+    // --- parseEmbeddingMethodVersion ----------------------------------
+
+    @Test void parseEmbeddingMethodVersionSplitsOnDash() {
+        // The canonical case: ml-service returns model_id=miewid-msv4.1
+        // and we must stamp METHOD=miewid, METHODVERSION=msv4.1 so the
+        // matchConfig built from IA.json finds the row.
+        JSONObject resp = new JSONObject()
+            .put("embedding_model_id", "miewid-msv4.1")
+            .put("embedding_model_version", "4.1");
+        String[] mv = MlServiceProcessor.parseEmbeddingMethodVersion(resp);
+        assertEquals("miewid", mv[0]);
+        assertEquals("msv4.1", mv[1]);
+    }
+
+    @Test void parseEmbeddingMethodVersionMsv3() {
+        // Older deployments still use msv3; same dash-split rule applies.
+        JSONObject resp = new JSONObject()
+            .put("embedding_model_id", "miewid-msv3")
+            .put("embedding_model_version", "3.0");
+        String[] mv = MlServiceProcessor.parseEmbeddingMethodVersion(resp);
+        assertEquals("miewid", mv[0]);
+        assertEquals("msv3", mv[1]);
+    }
+
+    @Test void parseEmbeddingMethodVersionMultiDashTakesEverythingAfterFirst() {
+        // Multi-dash IDs are not embedding models in practice today but
+        // the split rule must be deterministic: first dash is the
+        // method/version boundary, the remainder is the version.
+        JSONObject resp = new JSONObject()
+            .put("embedding_model_id", "miewid-msv4.1-beta")
+            .put("embedding_model_version", "4.1-beta");
+        String[] mv = MlServiceProcessor.parseEmbeddingMethodVersion(resp);
+        assertEquals("miewid", mv[0]);
+        assertEquals("msv4.1-beta", mv[1]);
+    }
+
+    @Test void parseEmbeddingMethodVersionNoDashFallsBackToVersionField() {
+        // If the ID has no dash, version must come from the explicit
+        // embedding_model_version field.
+        JSONObject resp = new JSONObject()
+            .put("embedding_model_id", "miewid")
+            .put("embedding_model_version", "msv4.1");
+        String[] mv = MlServiceProcessor.parseEmbeddingMethodVersion(resp);
+        assertEquals("miewid", mv[0]);
+        assertEquals("msv4.1", mv[1]);
+    }
+
+    @Test void parseEmbeddingMethodVersionThrowsOnMissingId() {
+        JSONObject resp = new JSONObject()
+            .put("embedding_model_version", "msv4.1");
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+            () -> MlServiceProcessor.parseEmbeddingMethodVersion(resp));
+        assertTrue(ex.getMessage().contains("embedding_model_id"),
+            "message should mention the missing field: " + ex.getMessage());
+    }
+
+    @Test void parseEmbeddingMethodVersionThrowsOnNoDashNoVersion() {
+        // No dash AND no embedding_model_version => cannot derive version
+        // => throw rather than write a null tag (matches the prior
+        // getString() NPE behavior, with a clearer message).
+        JSONObject resp = new JSONObject()
+            .put("embedding_model_id", "miewid");
+        assertThrows(IllegalStateException.class,
+            () -> MlServiceProcessor.parseEmbeddingMethodVersion(resp));
+    }
+
+    @Test void parseEmbeddingMethodVersionThrowsOnNullResponse() {
+        assertThrows(IllegalStateException.class,
+            () -> MlServiceProcessor.parseEmbeddingMethodVersion(null));
+    }
+
+    @Test void parseEmbeddingMethodVersionLeadingOrTrailingDashTreatedAsNoDash() {
+        // A leading or trailing dash leaves either method or version
+        // empty after split, so treat the ID as a single token and fall
+        // back to the explicit version field.
+        JSONObject leading = new JSONObject()
+            .put("embedding_model_id", "-msv4.1")
+            .put("embedding_model_version", "msv4.1");
+        String[] mv = MlServiceProcessor.parseEmbeddingMethodVersion(leading);
+        assertEquals("-msv4.1", mv[0]);
+        assertEquals("msv4.1", mv[1]);
+
+        JSONObject trailing = new JSONObject()
+            .put("embedding_model_id", "miewid-")
+            .put("embedding_model_version", "msv4.1");
+        mv = MlServiceProcessor.parseEmbeddingMethodVersion(trailing);
+        assertEquals("miewid-", mv[0]);
+        assertEquals("msv4.1", mv[1]);
     }
 }
