@@ -501,6 +501,7 @@ public class MlServiceProcessor {
             return MlServiceJobOutcome.ok(new ArrayList<String>());
         }
 
+        String matchTaskId = null;
         Shepherd shep = new Shepherd(context);
         shep.setAction(ACTION_PREFIX + "runMatchProspects");
         try {
@@ -544,23 +545,31 @@ public class MlServiceProcessor {
                 return MlServiceJobOutcome.validationError("INVALID_MATCH_CONFIG",
                     "no usable vector match config");
             }
-            String matchTaskId = matchTask.getId();
+            matchTaskId = matchTask.getId();
             shep.commitDBTransaction();
-            shep.rollbackAndClose();  // close BEFORE PairX enrichment (Track 2 C13)
-            // Phase 4 (C13): PairX inspection-image enrichment. The
-            // MatchResult + prospects are already persisted with
-            // null inspection MediaAssets; the enricher fills them in
-            // out-of-transaction via a Phase A/B/C flow per prospect.
-            // Per-prospect failure is non-blocking — UI render works
-            // either way, just without the inspection image.
-            enrichPairxAssetsForMatchTask(matchTaskId);
-            return MlServiceJobOutcome.ok(annotationIds);
         } catch (Exception ex) {
             markTaskError(taskId, "MATCH", "findMatchProspects failed: " + ex.getMessage());
             return MlServiceJobOutcome.persistError("MATCH", ex.getMessage());
         } finally {
             shep.rollbackAndClose();
         }
+        // Phase 4 (C13): PairX inspection-image enrichment. Runs after
+        // the Shepherd above has been closed by the finally — the
+        // enricher opens its own short transactions per prospect and
+        // does its HTTP work without holding our PM. Per-prospect
+        // failure is non-blocking — UI render works either way, just
+        // without the inspection image. The outer try/catch guards
+        // against unexpected setup failures (constructor / unhandled
+        // NPE) so this stays strictly non-blocking on the success path.
+        try {
+            enrichPairxAssetsForMatchTask(matchTaskId);
+        } catch (Exception ex) {
+            System.out.println(
+                "[WARN] MlServiceProcessor.enrichPairxAssetsForMatchTask " +
+                "setup failed (non-blocking) for matchTaskId=" + matchTaskId +
+                ": " + ex);
+        }
+        return MlServiceJobOutcome.ok(annotationIds);
     }
 
     /**
