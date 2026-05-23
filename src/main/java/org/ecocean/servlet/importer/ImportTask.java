@@ -436,31 +436,20 @@ public class ImportTask implements java.io.Serializable {
                     }
                     numLatestTasks++;
                 }
-                if (encId != null) {
-                    // this is temporary storage to use to populate encounterTaskInfo later
-                    // this status is wrong: needs to be "overall status"
-                    // taskTmp.put(atask.getId() + ".status", status);
-                    taskTmp.put(atask.getId() + ".iaClass", ann.getIAClass());
-                    // the logic for deciding when to add a task is based on
-                    // mystical knowledge found originally in import.jsp
-                    if ((atask.getParent() != null) &&
-                        (atask.getParent().getChildren().size() == 1) &&
-                        (atask.getParameters() != null) &&
-                        atask.getParameters().has("ibeis.identification")) {
-                        // task with only one algorithm
-                        encTasks.get(encId).add(atask);
-                    } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 0) &&
-                        (atask.getParent() != null) &&
-                        (atask.getParent().getChildren().size() <= 1)) {
-                        // task with child ident tasks
-                        encTasks.get(encId).add(atask);
-                    } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 2) &&
-                        (atask.getParent() == null)) {
-                        // task with child ident tasks (also?)
-                        encTasks.get(encId).add(atask);
-                    }
-                }
                 latestTask = false;
+            }
+            // C15: pick the bulk-import-scoped match task via the shared
+            // selector so this page and the encounter page agree on which
+            // task they link to. Filtering by importTaskId keeps the
+            // bulk-import link frozen on this import's task even if the
+            // user re-runs ID later from the encounter page.
+            if (encId != null) {
+                Task preferred = Task.getPreferredMatchResultsTaskForAnnotation(
+                    ann, this.getId(), myShepherd);
+                if (preferred != null) {
+                    encTasks.get(encId).add(preferred);
+                    taskTmp.put(preferred.getId() + ".iaClass", ann.getIAClass());
+                }
             }
         }
         sa.put("numTasks", numTasks);

@@ -1843,6 +1843,13 @@ public class Annotation extends Base implements java.io.Serializable {
         return Task.getRootTasksFor(this, myShepherd);
     }
 
+    // C15: pick the single task to surface as "Match Results" for this
+    // annotation. Used by Encounter.jsonForApiGet so the encounter page
+    // and bulk-import page agree on which task they link to.
+    public Task getPreferredMatchResultsTask(Shepherd myShepherd) {
+        return Task.getPreferredMatchResultsTaskForAnnotation(this, myShepherd);
+    }
+
     public int detachFromTasks(Shepherd myShepherd) {
         List<Task> tasks = Task.getTasksFor(this, myShepherd);
 

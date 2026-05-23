@@ -550,6 +550,105 @@ public class Task implements java.io.Serializable {
         return onlyRoots(getTasksFor(ann, myShepherd));
     }
 
+    /**
+     * Pick the single best task to surface as "Match Results" for an
+     * annotation. Used by both the encounter page and the bulk-import
+     * page so they cannot disagree about which task they link to.
+     *
+     * Precedence — single most-recent-first pass over direct tasks,
+     * checking both renderability tests on each candidate before
+     * moving on (so a newer v2 task wins over an older structural
+     * task, not the other way around):
+     *   1. Most recent direct task that EITHER matches the bulk-
+     *      import structural criteria OR has
+     *      parameters.mlServiceV2Match=true. Covers v2 prospects-
+     *      bearing tasks (even before children exist) and legacy
+     *      WBIA orchestration tasks.
+     *   2. Most recent root task. Legacy behavior for callers whose
+     *      direct tasks predate the structural-criteria pattern.
+     *
+     * When {@code importTaskId} is non-null, candidates are first
+     * restricted to tasks whose parameters.importTaskId matches.
+     * The bulk-import page passes its own id so the link stays
+     * frozen on the task from that import even if the user re-runs
+     * ID later from the encounter page.
+     *
+     * Returns null if no renderable task exists.
+     */
+    public static Task getPreferredMatchResultsTaskForAnnotation(Annotation ann,
+        String importTaskId, Shepherd myShepherd) {
+        List<Task> tasks = getTasksFor(ann, myShepherd, "created DESC");
+
+        if (Util.collectionIsEmptyOrNull(tasks)) return null;
+        if (importTaskId != null) {
+            List<Task> filtered = new ArrayList<Task>();
+            for (Task t : tasks) {
+                JSONObject p = t.getParameters();
+                if ((p != null) && importTaskId.equals(p.optString("importTaskId", null))) {
+                    filtered.add(t);
+                }
+            }
+            tasks = filtered;
+            if (tasks.isEmpty()) return null;
+        }
+
+        // Single most-recent-first pass: check BOTH renderability
+        // tests on each candidate before moving on. Codex C15 round-1
+        // Major: a per-tier pass returned an older structural task
+        // when a newer v2 task without children yet (e.g., pre-PairX)
+        // existed — wrong for the "encounter page advances on re-ID"
+        // contract.
+        for (Task t : tasks) {
+            if (isRenderableMatchTask(t) || isV2MatchTask(t)) return t;
+        }
+        List<Task> roots = onlyRoots(tasks);
+        if (!roots.isEmpty()) return roots.get(0);
+        return null;
+    }
+
+    // A bare mlServiceV2Match=true flag isn't enough — Task(Task p)
+    // inherits the parent's parameters into the child, so every sub-
+    // task (faea174f post-processing, pairx enricher, etc.) carries
+    // the flag too. Guard by parent==null so we only match the root
+    // v2 request task, never an inherited child. Round-2 Codex
+    // Blocker.
+    private static boolean isV2MatchTask(Task t) {
+        JSONObject p = t.getParameters();
+
+        return (t.getParent() == null) &&
+               (p != null) && p.optBoolean("mlServiceV2Match", false);
+    }
+
+    public static Task getPreferredMatchResultsTaskForAnnotation(Annotation ann,
+        Shepherd myShepherd) {
+        return getPreferredMatchResultsTaskForAnnotation(ann, null, myShepherd);
+    }
+
+    // Structural criteria mirroring ImportTask.statsAnnotations:446-461 — a
+    // task is "renderable" as a match result if it is shaped like a task
+    // that owns prospects: single-algo legacy WBIA task, task with child
+    // algorithm sub-tasks under a thin parent, or a 3+-children root.
+    private static boolean isRenderableMatchTask(Task t) {
+        Task parent = t.getParent();
+        List<Task> children = t.getChildren();
+        JSONObject params = t.getParameters();
+
+        if ((parent != null) && (parent.getChildren() != null) &&
+            (parent.getChildren().size() == 1) &&
+            (params != null) && params.has("ibeis.identification")) {
+            return true;
+        }
+        if ((children != null) && !children.isEmpty() &&
+            (parent != null) && (parent.getChildren() != null) &&
+            (parent.getChildren().size() <= 1)) {
+            return true;
+        }
+        if ((children != null) && (children.size() > 2) && (parent == null)) {
+            return true;
+        }
+        return false;
+    }
+
     public static List<Task> getTasksFor(MediaAsset ma, Shepherd myShepherd) {
         String qstr =
             "SELECT FROM org.ecocean.ia.Task WHERE objectMediaAssets.contains(obj) && obj.id == " +
