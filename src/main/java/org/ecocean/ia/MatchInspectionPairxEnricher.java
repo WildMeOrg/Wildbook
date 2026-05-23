@@ -17,31 +17,25 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Phase A/B/C orchestrator that enriches a persisted
- * {@link MatchResult}'s prospects with PairX inspection MediaAssets.
- * Replaces the previous in-{@link MatchResult}-constructor PairX calls
- * that violated the "never hold a Shepherd across HTTP" convention.
+ * Phase A/B/C orchestrator that enriches one of a {@link MatchResult}'s
+ * prospects with a PairX inspection MediaAsset, on demand.
  *
- * <p>Per-prospect flow:</p>
+ * <p>Per-prospect flow (invoked via
+ * {@link #enrichOneProspect(String, String)} from
+ * {@link org.ecocean.api.MatchInspection}):</p>
  * <ol>
  *   <li><b>Phase A (Shepherd open, short tx):</b>
  *       {@link #loadDtos(String)} loads the MatchResult, walks its
- *       prospects, and builds a list of {@link PairxDto} carrying every
- *       scalar Phase B and Phase C need. Shepherd closes before any HTTP.</li>
+ *       prospects, and builds {@link PairxDto} entries carrying every
+ *       scalar Phase B + C need. Shepherd closes before any HTTP.</li>
  *   <li><b>Phase B (no Shepherd):</b>
  *       {@link #postPairxAndExtractBase64(PairxDto)} runs the
- *       {@code /explain/} HTTP POST. No JDO state held.</li>
+ *       {@code /explain/} HTTP POST.</li>
  *   <li><b>Phase C (fresh Shepherd, per prospect):</b>
  *       {@link #persistInspectionAsset(PairxDto, String)} opens a fresh
  *       short-lived Shepherd, creates a MediaAsset from the base64
  *       payload, attaches it to the prospect, commits.</li>
  * </ol>
- *
- * <p>Per-prospect failure is non-blocking: an HTTP timeout or persist
- * error on one prospect logs and continues; other prospects in the
- * same MatchResult still get processed.</p>
- *
- * <p>(Empty-match-prospects design Track 2 C13.)</p>
  */
 public final class MatchInspectionPairxEnricher {
 
@@ -49,50 +43,6 @@ public final class MatchInspectionPairxEnricher {
 
     public MatchInspectionPairxEnricher(String context) {
         this.context = context;
-    }
-
-    /**
-     * For each prospect of the named MatchResult that lacks an
-     * inspection MediaAsset, run PairX out-of-transaction and attach
-     * the resulting image.
-     *
-     * <p>Returns the number of prospects that received a new inspection
-     * MediaAsset.</p>
-     */
-    public int enrichMatchResult(String matchResultId) {
-        if (matchResultId == null) return 0;
-        List<PairxDto> dtos;
-        try {
-            dtos = loadDtos(matchResultId);
-        } catch (Exception ex) {
-            System.out.println(
-                "[WARN] MatchInspectionPairxEnricher.loadDtos failed for mr=" +
-                matchResultId + ": " + ex);
-            return 0;
-        }
-        int enriched = 0;
-        for (PairxDto dto : dtos) {
-            String b64;
-            try {
-                b64 = postPairxAndExtractBase64(dto);
-            } catch (Exception ex) {
-                System.out.println(
-                    "[WARN] MatchInspectionPairxEnricher Phase B HTTP failed for ann=" +
-                    dto.prospectAnnotationId + " mr=" + matchResultId + ": " + ex);
-                continue;
-            }
-            if (b64 == null) continue;
-            try {
-                if (persistInspectionAsset(dto, b64)) enriched++;
-            } catch (Exception ex) {
-                System.out.println(
-                    "[WARN] MatchInspectionPairxEnricher Phase C persist failed for ann=" +
-                    dto.prospectAnnotationId + " mr=" + matchResultId + ": " + ex);
-            }
-        }
-        System.out.println("[INFO] MatchInspectionPairxEnricher enriched " + enriched +
-            "/" + dtos.size() + " prospects on mr=" + matchResultId);
-        return enriched;
     }
 
     /**
@@ -281,9 +231,7 @@ public final class MatchInspectionPairxEnricher {
     /**
      * Outcome of a single-prospect enrichment attempt. Used by the
      * on-demand REST endpoint (see {@link org.ecocean.api.MatchInspection})
-     * to map enrichment results to HTTP status codes. The existing
-     * batch path ({@link #enrichMatchResult(String)}) still uses the
-     * legacy log-and-skip pattern.
+     * to map enrichment results to HTTP status codes.
      */
     public static enum ProspectEnrichmentResult {
         /** prospect already had an inspection asset (idempotent hit). */
@@ -347,10 +295,9 @@ public final class MatchInspectionPairxEnricher {
     }
 
     /**
-     * On-demand enrichment for a single prospect. Used by the REST
+     * On-demand enrichment for a single prospect. Invoked by the REST
      * endpoint that lazy-generates inspection images on the user's
-     * first inspector-open. Distinct from {@link #enrichMatchResult}
-     * which is the batch / eager path.
+     * first inspector-open.
      *
      * <p>Concurrency: relies on the existing idempotency guard inside
      * {@link #persistInspectionAsset} — a second concurrent call that

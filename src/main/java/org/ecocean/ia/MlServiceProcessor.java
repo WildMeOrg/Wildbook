@@ -549,7 +549,6 @@ public class MlServiceProcessor {
             return MlServiceJobOutcome.ok(new ArrayList<String>());
         }
 
-        String matchTaskId = null;
         Shepherd shep = new Shepherd(context);
         shep.setAction(ACTION_PREFIX + "runMatchProspects");
         try {
@@ -593,7 +592,6 @@ public class MlServiceProcessor {
                 return MlServiceJobOutcome.validationError("INVALID_MATCH_CONFIG",
                     "no usable vector match config");
             }
-            matchTaskId = matchTask.getId();
             shep.commitDBTransaction();
         } catch (Exception ex) {
             markTaskError(taskId, "MATCH", "findMatchProspects failed: " + ex.getMessage());
@@ -601,88 +599,12 @@ public class MlServiceProcessor {
         } finally {
             shep.rollbackAndClose();
         }
-        // Phase 4 (C13): PairX inspection-image enrichment. Runs after
-        // the Shepherd above has been closed by the finally — the
-        // enricher opens its own short transactions per prospect and
-        // does its HTTP work without holding our PM. Per-prospect
-        // failure is non-blocking — UI render works either way, just
-        // without the inspection image. The outer try/catch guards
-        // against unexpected setup failures (constructor / unhandled
-        // NPE) so this stays strictly non-blocking on the success path.
-        try {
-            enrichPairxAssetsForMatchTask(matchTaskId);
-        } catch (Exception ex) {
-            System.out.println(
-                "[WARN] MlServiceProcessor.enrichPairxAssetsForMatchTask " +
-                "setup failed (non-blocking) for matchTaskId=" + matchTaskId +
-                ": " + ex);
-        }
+        // PairX inspection-image generation is intentionally OFF the
+        // synchronous match path. The UI lazy-fetches each prospect's
+        // inspection asset via POST /api/v3/match-inspection/{mrId}/{annId}
+        // when the inspector opens — see api/MatchInspection and the
+        // lazy-fetch in MatchProspectTable.jsx.
         return MlServiceJobOutcome.ok(annotationIds);
-    }
-
-    /**
-     * Phase 4: drive {@link MatchInspectionPairxEnricher} for every
-     * MatchResult attached to a child of {@code matchTaskId}. Runs
-     * after the main runMatchProspects transaction has closed, so the
-     * PairX HTTP work doesn't hold a Shepherd. (Empty-match-prospects
-     * design Track 2 C13.)
-     */
-    void enrichPairxAssetsForMatchTask(String matchTaskId) {
-        if (matchTaskId == null) return;
-        List<String> mrIds = collectMatchResultIds(matchTaskId);
-        if (mrIds.isEmpty()) return;
-        MatchInspectionPairxEnricher enricher =
-            new MatchInspectionPairxEnricher(context);
-        for (String mrId : mrIds) {
-            try {
-                enricher.enrichMatchResult(mrId);
-            } catch (Exception ex) {
-                System.out.println(
-                    "[WARN] MlServiceProcessor.enrichPairxAssetsForMatchTask " +
-                    "mr=" + mrId + " failed (non-blocking): " + ex);
-            }
-        }
-    }
-
-    /**
-     * Open a short Shepherd, list MatchResult IDs attached to children
-     * of {@code matchTaskId}, close. Returns scalar IDs only so
-     * subsequent enrichment runs without DB state.
-     */
-    private List<String> collectMatchResultIds(String matchTaskId) {
-        List<String> out = new ArrayList<String>();
-        Shepherd shep = new Shepherd(context);
-        shep.setAction(ACTION_PREFIX + "collectMatchResultIds." + matchTaskId);
-        try {
-            shep.beginDBTransaction();
-            Task matchTask = Task.load(matchTaskId, shep);
-            if (matchTask == null) {
-                shep.commitDBTransaction();
-                return out;
-            }
-            List<Task> children = matchTask.getChildren();
-            if (children != null) {
-                for (Task child : children) {
-                    if (child == null) continue;
-                    List<MatchResult> mrs = shep.getMatchResults(child);
-                    if (mrs == null) continue;
-                    for (MatchResult mr : mrs) {
-                        if (mr != null && mr.getId() != null) {
-                            out.add(mr.getId());
-                        }
-                    }
-                }
-            }
-            shep.commitDBTransaction();
-        } catch (Exception ex) {
-            shep.rollbackDBTransaction();
-            System.out.println(
-                "[WARN] MlServiceProcessor.collectMatchResultIds failed for " +
-                matchTaskId + ": " + ex);
-        } finally {
-            shep.closeDBTransaction();
-        }
-        return out;
     }
 
     static MlServiceJobOutcome mapNonRetryableError(IAException ex) {
