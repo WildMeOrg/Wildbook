@@ -57,6 +57,32 @@ export default function useGetBulkImportTask(taskId) {
         if (isInFlight(task.status)) return 5000;
         if (isInFlight(task.iaSummary?.detectionStatus)) return 5000;
         if (isInFlight(task.iaSummary?.identificationStatus)) return 5000;
+        // Early-phase polling: bulk-import row persistence runs in the
+        // background (BulkImport.java#createImport [background]) before
+        // IA queueing. If we hit the page in that window task exists
+        // but task.encounters is empty AND no IA phase has fired yet,
+        // and task.status is one of the early CSV-import strings
+        // ("started", "Importing N", "imported", "complete") none of
+        // which match the in-flight whitelist. Without this branch the
+        // page strands on "There are no records to display" and never
+        // refreshes. Bound: stop if the task is older than 5 min
+        // (degenerate import, 0 MAs, IA never fires) or if task.status
+        // is already terminal-error.
+        const hasEncounters = Array.isArray(task.encounters) &&
+          task.encounters.length > 0;
+        const pipelineStarted = task.iaSummary?.pipelineStarted === true;
+        if (!hasEncounters && !pipelineStarted) {
+          const TERMINAL_ERROR_STATUSES = new Set(["error", "failed"]);
+          if (task.status && TERMINAL_ERROR_STATUSES.has(task.status)) {
+            return false;
+          }
+          const createdMillis = task.dateCreated
+            ? new Date(task.dateCreated).getTime()
+            : null;
+          const ageMillis = createdMillis ? Date.now() - createdMillis : 0;
+          const EARLY_PHASE_BUDGET_MS = 5 * 60 * 1000;
+          if (ageMillis < EARLY_PHASE_BUDGET_MS) return 5000;
+        }
         return false;
       },
       // Pause polling when the browser tab is hidden. Polling resumes
