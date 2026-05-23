@@ -9,6 +9,7 @@ import org.ecocean.Annotation;
 import org.ecocean.Embedding;
 import org.ecocean.Encounter;
 import org.ecocean.IAJsonProperties;
+import org.ecocean.Occurrence;
 import org.ecocean.Taxonomy;
 import org.ecocean.Util;
 import org.ecocean.identity.IBEISIA;
@@ -16,6 +17,7 @@ import org.ecocean.media.Feature;
 import org.ecocean.media.FeatureType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.IAGateway;
+import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -398,7 +400,15 @@ public class MlServiceProcessor {
                 ma.addFeature(feature);
                 feature.setAnnotation(ann);
                 ann.addFeature(feature);
-                if (enc != null) enc.addAnnotation(ann);
+                // Intentionally do NOT add ann to enc here. Encounter
+                // linkage is deferred to assignEncounters() below so
+                // it can clone the encounter per detection — the
+                // "one Encounter = one animal" domain rule. Pre-
+                // assigning all detections to enc here makes
+                // assignEncounters' needsEncounter set empty and the
+                // cloning skips. Mirrors legacy IBEISIA flow where
+                // createAnnotationFromIAResult also creates the
+                // Annotation "with no Encounter" (IBEISIA.java:1127).
                 shep.getPM().makePersistent(feature);
                 shep.getPM().makePersistent(ann);
 
@@ -407,6 +417,39 @@ public class MlServiceProcessor {
                     result.getJSONArray("embedding"));
                 shep.getPM().makePersistent(emb);
                 annotationIds.add(ann.getId());
+            }
+
+            // Capture originating bulk-import context BEFORE assignEncounters
+            // so cloned encounters inherit it. enc may be null (non-import
+            // detection path); guard accordingly.
+            ImportTask originatingTask = (enc != null) ? enc.getImportTask(shep) : null;
+            Occurrence originatingOcc = (enc != null) ? shep.getOccurrence(enc) : null;
+
+            // Mirror legacy IBEISIA detection-callback (IBEISIA.java:1671):
+            // assignEncounters walks the MA's annotations and either replaces
+            // trivial placeholders with detections, or clones the originating
+            // encounter once per additional non-first detection. Without this,
+            // ml-service detections of multiple animals on one image all land
+            // on the same Encounter, violating "one Encounter = one animal".
+            List<Encounter> assignedEncs = ma.assignEncounters(shep);
+
+            // Wire any newly-cloned encounters into the same ImportTask and
+            // Occurrence as the originating encounter (mirrors legacy
+            // IBEISIA.java:1677-1700). Skipped when there is no originating
+            // bulk-import context.
+            if ((assignedEncs != null) && (enc != null)) {
+                for (Encounter cloneOrTouched : assignedEncs) {
+                    if (cloneOrTouched == null || cloneOrTouched == enc) continue;
+                    if ((originatingTask != null) &&
+                        (cloneOrTouched.getImportTask(shep) == null)) {
+                        originatingTask.addEncounter(cloneOrTouched);
+                    }
+                    if ((originatingOcc != null) &&
+                        (shep.getOccurrence(cloneOrTouched) == null)) {
+                        originatingOcc.addEncounter(cloneOrTouched);
+                        cloneOrTouched.setOccurrenceID(originatingOcc.getOccurrenceID());
+                    }
+                }
             }
 
             ma.setDetectionStatus(IBEISIA.STATUS_COMPLETE_MLSERVICE);
