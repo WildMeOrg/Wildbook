@@ -68,11 +68,33 @@ registerRoute(
   }),
 );
 
-// Never cache API endpoints — responses are not idempotent and stale data
-// (e.g. boundingBox, detectionStatus) breaks polling-driven UI updates.
+// Runtime cache for same-origin GETs not covered by the precache or a
+// more specific route. Intentionally narrow:
+//   - sameOrigin only — cross-origin fetches (cdn.jsdelivr.net Bootstrap
+//     icons, js.prosopo.io procaptcha, etc.) return opaque responses
+//     that NetworkFirst rejects, producing "FetchEvent for ... resulted
+//     in a Network error response" console noise and (worse) failing
+//     the request to the page. The browser handles cross-origin
+//     resources fine on its own.
+//   - GET only — POST/PUT/DELETE to legacy /servlet/* are mutating and
+//     should never be served from cache on a slow-network fallback.
+//   - /api/ excluded — responses are not idempotent (boundingBox,
+//     detectionStatus mutate during polling), so a stale cache reply
+//     would break the UI.
+//   - /servlet/ excluded — same reason; legacy mutating endpoints.
+//   - networkTimeoutSeconds:10 — bound how long the SW waits on a slow
+//     upstream before falling back to cache, rather than hanging the
+//     page indefinitely.
 registerRoute(
-  ({ url }) => !url.pathname.startsWith("/api/"),
-  new NetworkFirst(),
+  ({ url, request, sameOrigin }) =>
+    sameOrigin &&
+    request.method === "GET" &&
+    !url.pathname.startsWith("/api/") &&
+    !url.pathname.startsWith("/servlet/"),
+  new NetworkFirst({
+    cacheName: "wb-runtime",
+    networkTimeoutSeconds: 10,
+  }),
 );
 
 // self.addEventListener('fetch', function(event) {
