@@ -28,6 +28,28 @@ public class QueueUtil {
         final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
             int count = 0;
             public void run() {
+                // Outer Throwable catch is the survival boundary for this
+                // scheduled consumer. ScheduledExecutorService.scheduleWithFixedDelay
+                // silently cancels the future if the Runnable throws an uncaught
+                // exception — observed in production when an unexpected
+                // RuntimeException/Error escaped the handler and permanently
+                // killed the consumer thread with no log line and no restart.
+                // Anything inside this method (queue polling, the message
+                // handler, logging, shutdown signalling, even toString() calls)
+                // must NOT be allowed to propagate out, or the consumer dies.
+                try {
+                    runOnce();
+                } catch (Throwable outer) {
+                    // OOM-tolerant: static message first, no concatenation, so
+                    // the catch survives even when the heap is exhausted.
+                    try {
+                        System.err.println(
+                            "ERROR: QueueUtil consumer survived an outer Throwable");
+                        outer.printStackTrace(System.err);
+                    } catch (Throwable ignored) { /* last-resort */ }
+                }
+            }
+            private void runOnce() {
                 ++count;
                 String message = null;
                 boolean cont = true;
@@ -49,6 +71,18 @@ public class QueueUtil {
                     } catch (IOException ioex) {
                         System.out.println("WARNING: swallowed IOException from message handler: " +
                         ioex.toString());
+                    } catch (Throwable t) {
+                        // Per-message survival: log + continue. The outer
+                        // catch (Throwable) wraps this block too, but
+                        // handling here lets us continue the same iteration
+                        // (cont/shutdown logic below) without aborting it.
+                        // OOM-tolerant logging: static message first, no
+                        // concatenation, then best-effort details.
+                        try {
+                            System.err.println(
+                                "ERROR: QueueUtil swallowed Throwable from message handler; message dropped");
+                            t.printStackTrace(System.err);
+                        } catch (Throwable ignored) { /* last-resort */ }
                     }
                 }
 // System.out.println("count=" + count + "; handled-ok=" + ok + "; cont=" + cont + "; msg=" + message);
