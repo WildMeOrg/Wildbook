@@ -569,6 +569,22 @@ public class MlServiceProcessor {
             Task matchTask = (parent == null) ? new Task() : new Task(parent);
             matchTask.setObjectAnnotations(anns);
             matchTask.addParameter("mlServiceV2Match", true);
+            // Stamp the chosen _id_conf entry's description into an
+            // ibeis.identification block so Task.getIdentificationMethodInfo
+            // surfaces a method/description for the React match-results page
+            // header. Pure-v2 imports (no legacy WBIA in the chain) leave the
+            // task tree without any ibeis.identification anywhere, which
+            // causes matchResultsJson to omit `method` from the API tree —
+            // the React header reads `method?.name ?? method?.description`
+            // and renders blank. Stamp unconditionally — even the error
+            // branch below (matchConfig == null / findMatchProspects rejects)
+            // persists this task and the user can hit its match-results page.
+            String desc = (matchConfig == null) ? null
+                : matchConfig.optString("description", null);
+            JSONObject identBlock = new JSONObject();
+            identBlock.put("description",
+                (desc == null || desc.isEmpty()) ? "ml-service vector matching" : desc);
+            matchTask.addParameter("ibeis.identification", identBlock);
             shep.getPM().makePersistent(matchTask);
             // findMatchProspects returns false when the match config is not
             // a vector config or matchConfig is null. Don't leave the match
