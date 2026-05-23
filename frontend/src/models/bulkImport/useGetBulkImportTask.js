@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { client } from "../../api/client";
 import { useQuery } from "react-query";
 
@@ -21,11 +22,37 @@ const IN_FLIGHT_STATUSES = new Set([
 
 const isInFlight = (status) => IN_FLIGHT_STATUSES.has(status);
 
+// Polling time budget from task creation. Used to bound the
+// early-phase poll (encounters not yet persisted) and the
+// post-ident-complete poll (encounterTaskInfo aggregation lagging
+// the identificationStatus flip). A degenerate import that never
+// progresses past creation, or an import whose taskInfo never
+// finishes aggregating, would otherwise poll forever.
+const PHASE_POLL_BUDGET_MS = 5 * 60 * 1000;
+const TERMINAL_ERROR_STATUSES = new Set(["error", "failed"]);
+
+// Fail-closed: if task.dateCreated is missing or unparseable, return
+// Infinity so any "is this within budget" check evaluates false and
+// polling stops. The alternative — returning 0 — would poll forever
+// on a degenerate response shape (Codex C8 round-1 Minor).
+const taskAgeMillis = (task) => {
+  if (!task?.dateCreated) return Infinity;
+  const created = new Date(task.dateCreated).getTime();
+  return Number.isFinite(created) ? Date.now() - created : Infinity;
+};
+
 export default function useGetBulkImportTask(taskId) {
   const fetchTask = async () => {
     const { data } = await client.get(`/bulk-import/${taskId}`);
     return data;
   };
+
+  // Client-side timestamp of the first response where
+  // identificationStatus first became "complete" with any encounter
+  // still missing its taskInfo entry. Drives the post-ident tail
+  // bound separately from task.dateCreated, which can be older than
+  // the 5-min budget on long imports (Codex C8 round-1 Major).
+  const taskInfoLagFirstSeenRef = useRef(null);
 
   const { data, isLoading, error, refetch } = useQuery(
     ["bulkImportTask", taskId],
@@ -72,16 +99,45 @@ export default function useGetBulkImportTask(taskId) {
           task.encounters.length > 0;
         const pipelineStarted = task.iaSummary?.pipelineStarted === true;
         if (!hasEncounters && !pipelineStarted) {
-          const TERMINAL_ERROR_STATUSES = new Set(["error", "failed"]);
           if (task.status && TERMINAL_ERROR_STATUSES.has(task.status)) {
             return false;
           }
-          const createdMillis = task.dateCreated
-            ? new Date(task.dateCreated).getTime()
-            : null;
-          const ageMillis = createdMillis ? Date.now() - createdMillis : 0;
-          const EARLY_PHASE_BUDGET_MS = 5 * 60 * 1000;
-          if (ageMillis < EARLY_PHASE_BUDGET_MS) return 5000;
+          if (taskAgeMillis(task) < PHASE_POLL_BUDGET_MS) return 5000;
+        }
+        // Post-ident-complete polling: encounterTaskInfo (which drives
+        // the per-encounter "Class" column match-result links) is
+        // aggregated lazily and can lag the identificationStatus flip
+        // by one or more polls. Keep polling while ident is complete
+        // but any encounter still lacks its taskInfo entry — the
+        // alternative is the page goes static and the user has to
+        // manually refresh to see the links.
+        //
+        // Bound by elapsed-since-we-first-observed-the-lag, NOT task
+        // age. A long bulk import that takes >5 min to complete IA
+        // would otherwise skip this branch entirely, which is the
+        // exact case where the lag is most user-visible.
+        if (task.iaSummary?.identificationStatus === "complete") {
+          const encs = hasEncounters ? task.encounters : [];
+          const taskInfo =
+            task.iaSummary?.statsAnnotations?.encounterTaskInfo || {};
+          const anyMissing =
+            encs.length > 0 &&
+            encs.some(
+              (e) =>
+                !Array.isArray(taskInfo[e.id]) || taskInfo[e.id].length === 0,
+            );
+          if (anyMissing) {
+            if (taskInfoLagFirstSeenRef.current === null) {
+              taskInfoLagFirstSeenRef.current = Date.now();
+            }
+            const elapsed = Date.now() - taskInfoLagFirstSeenRef.current;
+            if (elapsed < PHASE_POLL_BUDGET_MS) return 5000;
+          } else {
+            // taskInfo populated — clear the ref so a future lag
+            // (e.g. operator re-runs identification on this task)
+            // gets a fresh 5-min budget.
+            taskInfoLagFirstSeenRef.current = null;
+          }
         }
         return false;
       },
