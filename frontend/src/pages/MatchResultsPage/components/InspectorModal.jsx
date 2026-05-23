@@ -83,6 +83,10 @@ const styles = {
     padding: 24,
     textAlign: "center",
     zIndex: 90,
+    // Clicks must pass through to the toolbar (zoom + X close at
+    // zIndex 80) so the user can still close the modal when an
+    // error overlay is showing.
+    pointerEvents: "none",
   },
 };
 
