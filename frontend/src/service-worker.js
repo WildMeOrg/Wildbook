@@ -70,12 +70,13 @@ registerRoute(
 
 // Runtime cache for same-origin GETs not covered by the precache or a
 // more specific route. Intentionally narrow:
-//   - sameOrigin only — cross-origin fetches (cdn.jsdelivr.net Bootstrap
-//     icons, js.prosopo.io procaptcha, etc.) return opaque responses
-//     that NetworkFirst rejects, producing "FetchEvent for ... resulted
-//     in a Network error response" console noise and (worse) failing
-//     the request to the page. The browser handles cross-origin
-//     resources fine on its own.
+//   - sameOrigin only — do not let the catch-all runtime route take
+//     ownership of cross-origin assets (cdn.jsdelivr.net Bootstrap
+//     icons, js.prosopo.io procaptcha, woff2 fonts). Those may be
+//     opaque/no-cors responses, and failures inside the Workbox
+//     strategy surface as "FetchEvent for ... resulted in a Network
+//     error response" — the browser handles cross-origin resources
+//     fine on its own without our SW intermediation.
 //   - GET only — POST/PUT/DELETE to legacy /servlet/* are mutating and
 //     should never be served from cache on a slow-network fallback.
 //   - /api/ excluded — responses are not idempotent (boundingBox,
