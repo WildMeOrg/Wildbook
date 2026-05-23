@@ -724,16 +724,24 @@ public class ImportTask implements java.io.Serializable {
             }
             if (this.iaTaskRequestedIdentification()) {
                 int numIdentificationComplete = 0;
+                int numIdentificationError = 0;
                 int numIdentificationTotal = 0;
-                // getOverallStatus() in imports.jsp is a nightmare. attempt to replicate here.
-                if (statsAnn.optInt("numLatestTasks", -1) >= 0)
-                    numIdentificationTotal = statsAnn.optInt("numLatestTasks");
                 // who is the genius who made this be 'completed' versus the (seemingly universal?) 'complete'
                 // (it may well have been me)
-                if (statsAnn.optInt("numLatestTask_completed", -1) >= 0)
-                    numIdentificationComplete = statsAnn.optInt("numLatestTask_completed");
-                // TODO do we have to deal with errors as "completed" somehow?
+                if (statsAnn.optInt("numLatestTasks", -1) >= 0)
+                    numIdentificationTotal = statsAnn.optInt("numLatestTasks");
+                // Terminal identification statuses: "completed" (happy
+                // path) AND "error" (match task threw or failed validation).
+                // numIdentificationComplete here means "terminal" not
+                // "successful"; identificationNumberError is the separate
+                // failure-count signal.
+                int numLatestCompleted = Math.max(0,
+                    statsAnn.optInt("numLatestTask_completed", 0));
+                numIdentificationError = Math.max(0,
+                    statsAnn.optInt("numLatestTask_error", 0));
+                numIdentificationComplete = numLatestCompleted + numIdentificationError;
                 pj.put("identificationNumberComplete", numIdentificationComplete);
+                pj.put("identificationNumberError", numIdentificationError);
                 pj.put("identificationNumTotal", numIdentificationTotal);
                 if (numIdentificationTotal == 0) {
                     pj.put("identificationStatus", "identification not started");

@@ -164,6 +164,92 @@ class ImportTaskTest {
         assertEquals(sum.optString("detectionStatus"), "complete");
     }
 
+    // Identification-side mirror of testIaSummary_error: a match task
+    // landing in status "error" must count as identification-terminal,
+    // otherwise the import strands at identificationStatus="sent" and
+    // the frontend polls forever even when nothing's running.
+    @Test void testIaSummary_identificationError() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        MediaAsset mockMA = mock(MediaAsset.class);
+        when(mockMA.getDetectionStatus()).thenReturn("complete");
+        List<MediaAsset> someMAs = new ArrayList<MediaAsset>();
+        someMAs.add(mockMA);
+        when(itask.getMediaAssets()).thenReturn(someMAs);
+        when(itask.getIATask()).thenReturn(mock(Task.class));
+        when(itask.iaTaskStarted()).thenReturn(true);
+        when(itask.iaTaskRequestedIdentification()).thenReturn(true);
+        JSONObject statsAnn = new JSONObject();
+        statsAnn.put("numLatestTasks", 1);
+        statsAnn.put("numLatestTask_error", 1);
+        when(itask.statsAnnotations(any(Shepherd.class))).thenReturn(statsAnn);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals(sum.optInt("identificationNumberComplete"), 1);
+        assertEquals(sum.optInt("identificationNumberError"), 1);
+        // Aggregate still "complete" — error count is the separate UI
+        // signal; polling whitelist still terminates.
+        assertEquals(sum.optString("identificationStatus"), "complete");
+    }
+
+    // Mixed: 3 match tasks completed, 1 errored. All 4 are terminal, so
+    // the aggregate should flip to "complete" and identificationNumberError
+    // tracks just the failure.
+    @Test void testIaSummary_identificationMixedCompleteAndError() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        MediaAsset mockMA = mock(MediaAsset.class);
+        when(mockMA.getDetectionStatus()).thenReturn("complete");
+        List<MediaAsset> someMAs = new ArrayList<MediaAsset>();
+        someMAs.add(mockMA);
+        when(itask.getMediaAssets()).thenReturn(someMAs);
+        when(itask.getIATask()).thenReturn(mock(Task.class));
+        when(itask.iaTaskStarted()).thenReturn(true);
+        when(itask.iaTaskRequestedIdentification()).thenReturn(true);
+        JSONObject statsAnn = new JSONObject();
+        statsAnn.put("numLatestTasks", 4);
+        statsAnn.put("numLatestTask_completed", 3);
+        statsAnn.put("numLatestTask_error", 1);
+        when(itask.statsAnnotations(any(Shepherd.class))).thenReturn(statsAnn);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals(sum.optInt("identificationNumberComplete"), 4);
+        assertEquals(sum.optInt("identificationNumberError"), 1);
+        assertEquals(sum.optString("identificationStatus"), "complete");
+    }
+
+    // Negative case: 1 completed + 1 errored out of 4 — still in flight
+    // (2 pending). Aggregate must stay "sent" so the frontend keeps
+    // polling. Without including error in the terminal count, the
+    // pre-fix behavior would still be "sent" via a different path —
+    // but with the fix, we must explicitly check that error doesn't
+    // OVER-count and prematurely flip to "complete".
+    @Test void testIaSummary_identificationInProgressDoesntOvercount() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        MediaAsset mockMA = mock(MediaAsset.class);
+        when(mockMA.getDetectionStatus()).thenReturn("complete");
+        List<MediaAsset> someMAs = new ArrayList<MediaAsset>();
+        someMAs.add(mockMA);
+        when(itask.getMediaAssets()).thenReturn(someMAs);
+        when(itask.getIATask()).thenReturn(mock(Task.class));
+        when(itask.iaTaskStarted()).thenReturn(true);
+        when(itask.iaTaskRequestedIdentification()).thenReturn(true);
+        JSONObject statsAnn = new JSONObject();
+        statsAnn.put("numLatestTasks", 4);
+        statsAnn.put("numLatestTask_completed", 1);
+        statsAnn.put("numLatestTask_error", 1);
+        when(itask.statsAnnotations(any(Shepherd.class))).thenReturn(statsAnn);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals(sum.optInt("identificationNumberComplete"), 2);
+        assertEquals(sum.optInt("identificationNumberError"), 1);
+        assertEquals(sum.optString("identificationStatus"), "sent");
+    }
+
     // Legacy flavor (getIATask() == null) hits the second `>=`
     // predicate. The original `==` would have stranded the import at
     // "sent" if any terminal-but-non-IA-eligible MA showed up.
