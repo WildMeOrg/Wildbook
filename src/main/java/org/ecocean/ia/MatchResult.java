@@ -164,10 +164,44 @@ public class MatchResult implements java.io.Serializable {
             throw new IOException("mismatch in size of annotIds/scores");
         if (this.prospects == null)
             this.prospects = new HashSet<MatchResultProspect>();
-        int num = 0;
         this.numberProspects += annotIds.length(); // true number of prospects
-        for (int i = 0; i < annotIds.length(); i++) {
-            double score = scores.optDouble(i, -Double.MAX_VALUE);
+
+        // Sort (index, score) pairs by score DESC, ties broken by original
+        // index ASC, before applying the MAXIMUM_PROSPECTS_STORED cap.
+        // WBIA's response (dannot_uuid_list, score_list, annot_score_list)
+        // is NOT ordered by score, so iterating the first 500 and breaking
+        // would drop the actual top-K matches when the strongest are past
+        // index 500. WBIA also serializes float('-inf') as the literal
+        // string "-Infinity" which is not parseable as a JSON number;
+        // parseScore() handles that and missing/non-numeric values by
+        // returning Double.NEGATIVE_INFINITY so they sort to the bottom.
+        int n = annotIds.length();
+        Integer[] order = new Integer[n];
+        double[] parsed = new double[n];
+        for (int i = 0; i < n; i++) {
+            order[i] = Integer.valueOf(i);
+            parsed[i] = parseScore(scores.opt(i));
+        }
+        java.util.Arrays.sort(order, new java.util.Comparator<Integer>() {
+            @Override public int compare(Integer a, Integer b) {
+                int c = Double.compare(parsed[b.intValue()], parsed[a.intValue()]);
+                if (c != 0) return c;
+                return Integer.compare(a.intValue(), b.intValue());
+            }
+        });
+
+        int num = 0;
+        for (int k = 0; k < n; k++) {
+            int i = order[k].intValue();
+            double score = parsed[i];
+            // Skip non-finite scores: WBIA's "-Infinity" / "Infinity" /
+            // "NaN" signal "no valid score for this candidate", and
+            // org.json refuses to serialize non-finite numbers later
+            // when prospects render as JSON. Drop them outright so they
+            // never reach MatchResultProspect, regardless of where they
+            // landed in the sort (NaN coerced to -Infinity above, but
+            // raw +/-Infinity can land anywhere).
+            if (!Double.isFinite(score)) continue;
             String id = IBEISIA.fromFancyUUID(annotIds.optJSONObject(i));
             Annotation ann = getAnnotationFromAcmId(id, myShepherd);
             if (ann == null) {
@@ -188,6 +222,34 @@ public class MatchResult implements java.io.Serializable {
             }
         }
         return num;
+    }
+
+    /**
+     * Parse a score value from WBIA's response that may be a JSON number,
+     * a JSON null, or the literal string "-Infinity" / "Infinity" / "NaN"
+     * (Python's default serialization for non-finite floats). Missing,
+     * null, unparseable, or NaN values map to
+     * {@link Double#NEGATIVE_INFINITY} so they sort to the bottom of the
+     * prospect list. NaN must be coerced explicitly because
+     * {@link Double#compare} sorts NaN ABOVE finite values, which would
+     * push invalid scores to the top of a DESC sort.
+     */
+    public static double parseScore(Object raw) {
+        double v;
+        if (raw == null || raw == JSONObject.NULL) {
+            v = Double.NEGATIVE_INFINITY;
+        } else if (raw instanceof Number) {
+            v = ((Number) raw).doubleValue();
+        } else if (raw instanceof String) {
+            try {
+                v = Double.parseDouble((String) raw);
+            } catch (NumberFormatException ex) {
+                v = Double.NEGATIVE_INFINITY;
+            }
+        } else {
+            v = Double.NEGATIVE_INFINITY;
+        }
+        return Double.isNaN(v) ? Double.NEGATIVE_INFINITY : v;
     }
 
     // we just have a list of annots which matched (e.g. via vectors in opensearch)
