@@ -33,6 +33,23 @@ import java.util.List;
 import java.util.UUID;
 
 public class IAGateway extends HttpServlet {
+    // Shared scheduled executor for requeueJob() — replaces the
+    // previous "new Thread(r).start()" per gate-defer that just slept
+    // and re-published. With 200+ defers in a typical bulk import the
+    // old pattern spawned hundreds of throwaway threads (each ~0.5-2MB
+    // stack). ScheduledExecutorService doesn't consume a worker thread
+    // during the delay, so a tiny daemon pool is plenty. Daemon =
+    // doesn't block Tomcat shutdown.
+    private static final java.util.concurrent.atomic.AtomicInteger REQUEUE_THREAD_SEQ
+        = new java.util.concurrent.atomic.AtomicInteger();
+    private static final java.util.concurrent.ScheduledExecutorService REQUEUE_EXEC
+        = java.util.concurrent.Executors.newScheduledThreadPool(2,
+            r -> {
+                Thread t = new Thread(r, "IAGateway-requeue-" + REQUEUE_THREAD_SEQ.incrementAndGet());
+                t.setDaemon(true);
+                return t;
+            });
+
     // Per-context queue caches. Previously these were single static
     // Queue fields that every get*Queue() call reassigned via
     // QueueUtil.getBest() — defeating the cache and printing
@@ -69,6 +86,22 @@ public class IAGateway extends HttpServlet {
     public void init(ServletConfig config)
     throws ServletException {
         super.init(config);
+    }
+
+    // Shut down the requeue executor when the servlet is undeployed
+    // (e.g. Tomcat webapp reload). Without this, the static daemon
+    // pool would survive the undeploy and keep the previous webapp's
+    // classloader reachable via pending Runnables' anonymous-inner-
+    // class refs, causing a classloader leak across reloads (Codex
+    // review Major on Phase A).
+    @Override
+    public void destroy() {
+        try {
+            REQUEUE_EXEC.shutdownNow();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        super.destroy();
     }
 
     public void doOptions(HttpServletRequest request, HttpServletResponse response)
@@ -799,63 +832,73 @@ public class IAGateway extends HttpServlet {
         jobj.put("__queueRetries", retries);
         jobj.put("__queueActualRetries", actualRetries);
 
-        // now we fork background thread to *wait* and then add this to queue
+        // Schedule the requeue on the shared REQUEUE_EXEC. Replaces
+        // the previous "new Thread() + Thread.sleep() + while-loop"
+        // pattern that spawned hundreds of throwaway threads during a
+        // bulk import. Sleep delay is computed up-front; the
+        // ScheduledExecutorService does not consume a worker during
+        // the delay.
         //
         // Gate-defer requeues (deferredMatch:true) poll for sibling
-        // visibility/indexing settle and benefit from a tight cadence on
-        // the FIRST attempt -- those polls normally resolve in seconds.
-        // The 30-second backoff is still appropriate for genuine
-        // ml-service network retries that need rate-limiting, AND for
-        // any retry that follows a queue-publish failure (the catch
-        // block below sets 30000 deliberately to throttle a struggling
-        // queue/backend; we preserve that for deferred jobs too).
+        // visibility/indexing settle and benefit from a tight 5s
+        // cadence on the FIRST attempt — those polls normally resolve
+        // in seconds. The 30-second backoff is still appropriate for
+        // genuine ml-service network retries that need rate-limiting,
+        // AND for any retry that follows a queue-publish failure
+        // (scheduleRequeueRetry() uses 30000 deliberately to throttle
+        // a struggling queue/backend).
         final boolean isGateDefer = jobj.optBoolean("deferredMatch", false);
-        Runnable r = new Runnable() {
-            public void run() {
-                boolean requeueSuccess = false;
-                long whileSleepMillis = 1000;
-                boolean firstAttempt = true;
-                while (!requeueSuccess) {
-                    try {
-                        if (increment) {
-                            // First attempt: gate-defer payloads use the
-                            // tight 5s cadence; everything else uses 30s.
-                            // Subsequent attempts (after a catch) always
-                            // use 30s so a struggling queue doesn't get
-                            // hammered every 5s.
-                            whileSleepMillis = (firstAttempt && isGateDefer)
-                                ? 5000 : 30000;
-                        }
-                        firstAttempt = false;
-                        System.out.println("requeueJob(): backgrounding taskId=" + taskId);
-                        try {
-                            Thread.sleep(whileSleepMillis);
-                        } catch (java.lang.InterruptedException ex) {}
-                        if (jobj.optJSONObject("detect") != null || jobj.optBoolean("fastlane",
-                            false) || jobj.optBoolean("MLService", false) ||
-                            jobj.optBoolean("mlServiceV2", false)) {
-                            // mlServiceV2 retries must land on the detection
-                            // queue, not the generic IA queue. Without this,
-                            // a retryable ml-service failure would never be
-                            // re-dispatched to MlServiceProcessor.
-                            addToDetectionQueue(context, jobj.toString());
-                        } else {
-                            addToQueue(context, jobj.toString());
-                        }
-                        requeueSuccess = true;
-                    } catch (Exception ex) {
-                        whileSleepMillis = 30000;
-                        System.out.println(
-                            ".....requeueJob() looping: failed to requeue addTo_Queue() taskId=" +
-                            taskId + " due to " + ex.toString());
-                        ex.printStackTrace();
-                    }
-                } // end while
-            } // end run
-        }; // end Runnable
-        new Thread(r).start();
+        final long initialDelayMillis;
+        if (increment) {
+            initialDelayMillis = isGateDefer ? 5000L : 30000L;
+        } else {
+            initialDelayMillis = 1000L;
+        }
+        // Log at schedule time (not at fire time) to match the
+        // previous code's "logged before sleeping" timing for any
+        // operators tailing for this string.
+        System.out.println("requeueJob(): backgrounding taskId=" + taskId);
+        scheduleRequeuePublish(jobj, context, taskId, initialDelayMillis);
 
         return true;
+    }
+
+    // Schedules a single attempt to publish jobj onto the appropriate
+    // queue after delayMillis. On publish failure, reschedules itself
+    // with a 30s backoff — preserving the original code's "retry
+    // forever on addToQueue/addToDetectionQueue failure" semantics
+    // without an unbounded busy loop on a dedicated thread.
+    private static void scheduleRequeuePublish(final JSONObject jobj, final String context,
+        final String taskId, long delayMillis) {
+        REQUEUE_EXEC.schedule(new Runnable() {
+            public void run() {
+                try {
+                    if (jobj.optJSONObject("detect") != null ||
+                        jobj.optBoolean("fastlane", false) ||
+                        jobj.optBoolean("MLService", false) ||
+                        jobj.optBoolean("mlServiceV2", false)) {
+                        // mlServiceV2 retries must land on the
+                        // detection queue, not the generic IA queue.
+                        // Without this, a retryable ml-service failure
+                        // would never be re-dispatched to
+                        // MlServiceProcessor.
+                        addToDetectionQueue(context, jobj.toString());
+                    } else {
+                        addToQueue(context, jobj.toString());
+                    }
+                } catch (Throwable t) {
+                    System.out.println(
+                        ".....requeueJob() looping: failed to requeue addTo_Queue() taskId=" +
+                        taskId + " due to " + t.toString());
+                    t.printStackTrace();
+                    // Indefinite retry on publish failure, 30s backoff.
+                    // Catching Throwable (not Exception) ensures even
+                    // unexpected Errors during publish don't kill the
+                    // executor worker silently.
+                    scheduleRequeuePublish(jobj, context, taskId, 30000L);
+                }
+            }
+        }, delayMillis, java.util.concurrent.TimeUnit.MILLISECONDS);
     }
 
     public static void processCallbackQueueMessage(String message) {
