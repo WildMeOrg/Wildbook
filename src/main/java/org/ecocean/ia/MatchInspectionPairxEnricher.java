@@ -393,17 +393,22 @@ public final class MatchInspectionPairxEnricher {
                 shep.commitDBTransaction();
                 return null;
             }
-            MatchResultProspect p = null;
+            // A single annotationId can appear on multiple prospects
+            // across scoreTypes ("annot" vs "indiv"). Return the first
+            // matching prospect with a non-null asset so the readback
+            // sees enrichment that landed on any sibling.
+            MediaAsset asset = null;
             if (mr.getProspects() != null) {
                 for (MatchResultProspect candidate : mr.getProspects()) {
                     Annotation a = (candidate == null) ? null : candidate.getAnnotation();
-                    if ((a != null) && prospectAnnotationId.equals(a.getId())) {
-                        p = candidate;
+                    if ((a == null) || !prospectAnnotationId.equals(a.getId())) continue;
+                    MediaAsset candidateAsset = candidate.getAsset();
+                    if (candidateAsset != null) {
+                        asset = candidateAsset;
                         break;
                     }
                 }
             }
-            MediaAsset asset = (p == null) ? null : p.getAsset();
             if (asset == null) {
                 shep.commitDBTransaction();
                 return null;
