@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal } from "react-bootstrap";
+import { Modal, Spinner } from "react-bootstrap";
 import ZoomInIcon from "../icons/ZoomInIcon";
 import ZoomOutIcon from "../icons/ZoomOutIcon";
 import InteractiveAnnotationOverlay from "../../../components/AnnotationOverlay";
@@ -57,6 +57,33 @@ const styles = {
     width: "100%",
     height: "100%",
   },
+  loadingOverlay: {
+    position: "absolute",
+    inset: 0,
+    background: "rgba(17,17,17,0.85)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#eee",
+    gap: 12,
+    zIndex: 90,
+    pointerEvents: "none",
+  },
+  errorBanner: {
+    position: "absolute",
+    inset: 0,
+    background: "rgba(17,17,17,0.85)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#f88",
+    gap: 8,
+    padding: 24,
+    textAlign: "center",
+    zIndex: 90,
+  },
 };
 
 const CloseIcon = () => (
@@ -82,6 +109,8 @@ export default function InspectorModal({
   imageUrl,
   originalWidth,
   originalHeight,
+  loading = false,
+  errorMessage = null,
 }) {
   const overlayRef = React.useRef(null);
 
@@ -177,6 +206,24 @@ export default function InspectorModal({
                     objectFit: "contain",
                   }}
                 />
+                {loading && (
+                  <div
+                    style={styles.loadingOverlay}
+                    data-testid="inspector-modal-loading"
+                  >
+                    <Spinner animation="border" variant="light" />
+                    <div>Generating inspection image…</div>
+                  </div>
+                )}
+                {!loading && errorMessage && (
+                  <div
+                    style={styles.errorBanner}
+                    data-testid="inspector-modal-error"
+                  >
+                    <div>Failed to generate inspection image.</div>
+                    <div style={{ fontSize: 12, opacity: 0.75 }}>{errorMessage}</div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
