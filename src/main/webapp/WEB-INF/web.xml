@@ -103,6 +103,7 @@
 				/api/v3/bulk-import/** = authc
 				/api/v3/bulk-export = authc
 				/api/v3/bulk-export/** = authc
+				/api/v3/match-inspection/** = authc
 
 				# ===== Appadmin =====
 				/appadmin/dataIntegrity.jsp = authc
@@ -521,6 +522,16 @@
 	<servlet-mapping>
 		<servlet-name>BulkImport</servlet-name>
 		<url-pattern>/api/v3/bulk-import/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>MatchInspection</servlet-name>
+		<servlet-class>org.ecocean.api.MatchInspection</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>MatchInspection</servlet-name>
+		<url-pattern>/api/v3/match-inspection/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
