@@ -33,10 +33,38 @@ import java.util.List;
 import java.util.UUID;
 
 public class IAGateway extends HttpServlet {
-    private static Queue IAQueue = null;
-    private static Queue detectionQueue = null;
-    private static Queue acmIdQueue = null;
-    private static Queue IACallbackQueue = null;
+    // Per-context queue caches. Previously these were single static
+    // Queue fields that every get*Queue() call reassigned via
+    // QueueUtil.getBest() — defeating the cache and printing
+    // "[INFO] FileQueue.init(context0) complete" to stdout on every
+    // detection schedule (observed 180+ times in 5 minutes during a
+    // 200-row bulk import). Queue lifecycle is JVM-scoped (no
+    // destroy/close API), so caching by context is safe.
+    private static final java.util.concurrent.ConcurrentHashMap<String, Queue> IA_QUEUE_CACHE
+        = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
+    private static final java.util.concurrent.ConcurrentHashMap<String, Queue> DETECTION_QUEUE_CACHE
+        = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
+    private static final java.util.concurrent.ConcurrentHashMap<String, Queue> ACMID_QUEUE_CACHE
+        = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
+    private static final java.util.concurrent.ConcurrentHashMap<String, Queue> IACALLBACK_QUEUE_CACHE
+        = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
+
+    private static Queue cachedQueue(
+        java.util.concurrent.ConcurrentHashMap<String, Queue> cache,
+        String context, String name)
+    throws IOException {
+        // Preserve the legacy null-context path. QueueUtil.getBest
+        // gracefully returns null when FileQueue.isAvailable(null)
+        // is false; ConcurrentHashMap rejects null keys, so we bypass
+        // the cache for the null case entirely.
+        if (context == null) return QueueUtil.getBest(context, name);
+        Queue q = cache.get(context);
+        if (q != null) return q;
+        q = QueueUtil.getBest(context, name);
+        if (q == null) return null; // don't cache null returns
+        Queue existing = cache.putIfAbsent(context, q);
+        return (existing != null) ? existing : q;
+    }
 
     public void init(ServletConfig config)
     throws ServletException {
@@ -582,26 +610,22 @@ public class IAGateway extends HttpServlet {
 
     public static Queue getIAQueue(String context)
     throws IOException {
-        IAQueue = QueueUtil.getBest(context, "IA");
-        return IAQueue;
+        return cachedQueue(IA_QUEUE_CACHE, context, "IA");
     }
 
     public static Queue getDetectionQueue(String context)
     throws IOException {
-        detectionQueue = QueueUtil.getBest(context, "detection");
-        return detectionQueue;
+        return cachedQueue(DETECTION_QUEUE_CACHE, context, "detection");
     }
 
     public static Queue getAcmIdQueue(String context)
     throws IOException {
-        acmIdQueue = QueueUtil.getBest(context, "acmid");
-        return acmIdQueue;
+        return cachedQueue(ACMID_QUEUE_CACHE, context, "acmid");
     }
 
     public static Queue getIACallbackQueue(String context)
     throws IOException {
-        IACallbackQueue = QueueUtil.getBest(context, "IACallback");
-        return IACallbackQueue;
+        return cachedQueue(IACALLBACK_QUEUE_CACHE, context, "IACallback");
     }
 
     public static void processQueueMessage(String message) {
