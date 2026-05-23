@@ -9,6 +9,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.jdo.Query;
+
 import org.ecocean.OpenSearch;
 import org.ecocean.Util;
 import org.ecocean.identity.IBEISIA;
@@ -241,21 +243,23 @@ public final class MatchVisibilityGateImpl implements MatchVisibilityGate {
                 shep.commitDBTransaction();
                 return Phase12Result.ready(new LinkedHashSet<String>(normalizedCaller));
             }
-            List<Task> children = topTask.getChildren();
-            // Phase 1: sibling terminal-state check.
-            for (MediaAsset siblingMa : siblingMas) {
-                if (siblingMa == null) continue;
-                String maStatus = siblingMa.getDetectionStatus();
-                Task siblingChild = findChildTaskForSibling(children, siblingMa);
-                String childStatus = (siblingChild == null) ? null
-                    : siblingChild.getStoredStatus();
-                if (!isSiblingTerminal(maStatus, childStatus)) {
-                    shep.commitDBTransaction();
-                    return Phase12Result.defer(
-                        "sibling MA " + siblingMa.getId() +
-                        " non-terminal (ma=" + maStatus + ", task=" +
-                        childStatus + ")");
-                }
+            // Phase 1: sibling terminal-state check via single native
+            // SQL query. Replaces the previous JDO graph fan-out
+            // (topTask.getChildren() + per-child
+            // getObjectMediaAssets() + per-sibling status access),
+            // which on bulk imports cost ~10-20 SELECTs per gate
+            // cycle × hundreds of defer cycles × 200+ annotations.
+            // The native SQL faithfully models findChildTaskForSibling
+            // (single-MA child rule: HAVING count == 1) and
+            // isSiblingTerminal (terminal iff MA detectionStatus is
+            // in TERMINAL_MA_STATUSES OR child task status is in
+            // TERMINAL_TASK_STATUSES) so the gate semantics are
+            // unchanged.
+            String deferReason = firstNonTerminalSiblingReason(shep,
+                topTask.getId());
+            if (deferReason != null) {
+                shep.commitDBTransaction();
+                return Phase12Result.defer(deferReason);
             }
             // Phase 2: eligibility resolution. Only siblings whose MAs
             // actually contributed annotations (complete/complete-mlservice)
@@ -326,5 +330,135 @@ public final class MatchVisibilityGateImpl implements MatchVisibilityGate {
         if (childTaskStatus != null &&
             TERMINAL_TASK_STATUSES.contains(childTaskStatus)) return true;
         return false;
+    }
+
+    /**
+     * Native-SQL implementation of the Phase 1 sibling-terminal
+     * check. Single round-trip per gate cycle replaces the JDO
+     * graph fan-out described in the caller.
+     *
+     * Returns null when all siblings of {@code topTaskId} are
+     * terminal (gate may proceed). Returns a defer-reason string
+     * matching the legacy log format
+     * ({@code "sibling MA X non-terminal (ma=Y, task=Z)"}) when at
+     * least one sibling is non-terminal.
+     *
+     * <p>The CTE {@code single_ma_children} models
+     * {@link #findChildTaskForSibling}: only children of topTask
+     * with EXACTLY one row in their {@code TASK_OBJECTMEDIAASSETS}
+     * count, and that MA must be the sibling MA. This excludes
+     * match tasks and any other non-detection children of topTask
+     * (Codex Phase-1-SQL design review Blocker — preserved
+     * exactly).</p>
+     *
+     * <p>Terminal status values are bound as positional parameters
+     * sourced from {@link #TERMINAL_MA_STATUSES} and
+     * {@link #TERMINAL_TASK_STATUSES} — no string-concat — so the
+     * SQL stays in sync if those constants change (Codex Phase-1-
+     * SQL Major).</p>
+     *
+     * <p><b>Multi-match edge case</b>: under healthy data the
+     * model guarantees at most one single-MA detection child per
+     * sibling MA. If malformed data ever produces multiple such
+     * children, the SQL is existential — ANY matching child whose
+     * status is non-terminal causes a defer. The Java
+     * implementation returned the first child via
+     * {@code topTask.getChildren()} iteration order, so behavior
+     * could differ on bad data. The SQL is the safer direction
+     * (over-defer, never under-defer) (Codex Phase-1-SQL Minor).</p>
+     */
+    static String firstNonTerminalSiblingReason(Shepherd shep, String topTaskId) {
+        List<String> maStatuses = new ArrayList<String>(TERMINAL_MA_STATUSES);
+        List<String> taskStatuses = new ArrayList<String>(TERMINAL_TASK_STATUSES);
+        String sql = buildSiblingTerminalCheckSql(maStatuses.size(), taskStatuses.size());
+        // Bind order (positional, matching the SQL):
+        //   1. topTaskId — CTE WHERE
+        //   2. topTaskId — main WHERE
+        //   3..N MA terminal statuses
+        //   N+1..M Task terminal statuses
+        Object[] params = new Object[2 + maStatuses.size() + taskStatuses.size()];
+        int p = 0;
+        params[p++] = topTaskId;
+        params[p++] = topTaskId;
+        for (String s : maStatuses) params[p++] = s;
+        for (String s : taskStatuses) params[p++] = s;
+
+        Query q = null;
+        try {
+            q = shep.getPM().newQuery("javax.jdo.query.SQL", sql);
+            @SuppressWarnings("rawtypes")
+            List rows = (List) q.executeWithArray(params);
+            if (rows == null || rows.isEmpty()) return null;
+            Object first = rows.get(0);
+            // Native SQL returning >1 column gives Object[]; single
+            // column gives a scalar. We always select 3 columns.
+            Object[] row = (first instanceof Object[]) ? (Object[]) first
+                : new Object[] { first, null, null };
+            return "sibling MA " + row[0] +
+                " non-terminal (ma=" + row[1] + ", task=" + row[2] + ")";
+        } finally {
+            if (q != null) q.closeAll();
+        }
+    }
+
+    /**
+     * Builds the parameterized SQL string for
+     * {@link #firstNonTerminalSiblingReason}. Placeholders for the
+     * terminal-status IN-lists are generated from the actual size
+     * of the constant sets at call time so the SQL stays in sync
+     * with {@link #TERMINAL_MA_STATUSES} /
+     * {@link #TERMINAL_TASK_STATUSES}.
+     */
+    static String buildSiblingTerminalCheckSql(int numMaStatuses, int numTaskStatuses) {
+        // Guard against empty IN-lists: "NOT IN ()" would be a SQL
+        // syntax error. The constant sets are non-empty by design,
+        // but a future refactor that empties one would otherwise
+        // fail at runtime, not build (Codex Phase-1-SQL Nit).
+        if (numMaStatuses <= 0 || numTaskStatuses <= 0) {
+            throw new IllegalArgumentException(
+                "buildSiblingTerminalCheckSql requires non-empty status sets: ma=" +
+                numMaStatuses + " task=" + numTaskStatuses);
+        }
+        StringBuilder maPh = new StringBuilder();
+        for (int i = 0; i < numMaStatuses; i++) {
+            if (i > 0) maPh.append(",");
+            maPh.append("?");
+        }
+        StringBuilder taskPh = new StringBuilder();
+        for (int i = 0; i < numTaskStatuses; i++) {
+            if (i > 0) taskPh.append(",");
+            taskPh.append("?");
+        }
+        // PostgreSQL-targeted SQL (CTE + LIMIT 1). Wildbook ships
+        // against PostgreSQL 13 only; tests use Testcontainers with
+        // a real PostgreSQL. If a non-Postgres backend is ever
+        // introduced, this query needs portable rewriting (Codex
+        // Phase-1-SQL Major).
+        return "WITH single_ma_children AS (" +
+            "  SELECT tc.\"ID_EID\" AS child_id," +
+            "         max(childOma.\"ID_EID\") AS sole_ma_id" +
+            "  FROM \"TASK_CHILDREN\" tc" +
+            "  JOIN \"TASK_OBJECTMEDIAASSETS\" childOma" +
+            "    ON childOma.\"ID_OID\" = tc.\"ID_EID\"" +
+            "  WHERE tc.\"ID_OID\" = ?" +
+            "  GROUP BY tc.\"ID_EID\"" +
+            "  HAVING count(*) = 1" +
+            ") " +
+            "SELECT topOma.\"ID_EID\" AS ma_id," +
+            "       siblingMa.\"DETECTIONSTATUS\" AS ma_status," +
+            "       childTask.\"STATUS\" AS child_status " +
+            "FROM \"TASK_OBJECTMEDIAASSETS\" topOma " +
+            "JOIN \"MEDIAASSET\" siblingMa" +
+            "  ON siblingMa.\"ID\" = topOma.\"ID_EID\" " +
+            "LEFT JOIN single_ma_children smc" +
+            "  ON smc.sole_ma_id = topOma.\"ID_EID\" " +
+            "LEFT JOIN \"TASK\" childTask" +
+            "  ON childTask.\"ID\" = smc.child_id " +
+            "WHERE topOma.\"ID_OID\" = ? " +
+            "  AND (siblingMa.\"DETECTIONSTATUS\" IS NULL" +
+            "       OR siblingMa.\"DETECTIONSTATUS\" NOT IN (" + maPh + ")) " +
+            "  AND (childTask.\"STATUS\" IS NULL" +
+            "       OR childTask.\"STATUS\" NOT IN (" + taskPh + ")) " +
+            "LIMIT 1";
     }
 }
