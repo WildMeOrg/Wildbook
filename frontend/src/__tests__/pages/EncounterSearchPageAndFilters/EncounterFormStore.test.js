@@ -1,5 +1,22 @@
 import EncounterFormStore from "../../../pages/SearchPages/stores/EncounterFormStore";
 
+const mockSessionStorage = (() => {
+  let store = {};
+  return {
+    getItem: jest.fn((key) => store[key] || null),
+    setItem: jest.fn((key, value) => {
+      store[key] = value.toString();
+    }),
+    removeItem: jest.fn((key) => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    }),
+  };
+})();
+Object.defineProperty(window, "sessionStorage", { value: mockSessionStorage });
+
 describe("EncounterFormStore", () => {
   let store;
 
@@ -72,5 +89,53 @@ describe("EncounterFormStore", () => {
     store.resetFilters();
 
     expect(store.formFilters).toEqual([]);
+    expect(store.appliedFilters).toEqual([]);
+  });
+
+  test("applyFilters deep copies formFilters to appliedFilters and saves to storage", () => {
+    const mockFilter = {
+      filterId: "f1",
+      clause: "AND",
+      query: "q1",
+      filterKey: "k1",
+      path: "",
+    };
+    store.addFilter(
+      mockFilter.filterId,
+      mockFilter.clause,
+      mockFilter.query,
+      mockFilter.filterKey,
+    );
+
+    store.applyFilters();
+
+    expect(store.appliedFilters).toHaveLength(1);
+    expect(store.appliedFilters[0]).toEqual(mockFilter);
+
+    expect(store.appliedFilters).not.toBe(store.formFilters);
+
+    expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+      store.FILTER_STORAGE_KEY,
+      JSON.stringify([mockFilter]),
+    );
+  });
+
+  test("getFiltersFromStorage loads valid JSON into formFilters and appliedFilters", () => {
+    const mockFilter = {
+      filterId: "f1",
+      clause: "AND",
+      query: "q1",
+      filterKey: "k1",
+      path: "",
+    };
+    const savedData = JSON.stringify([mockFilter]);
+    mockSessionStorage.getItem = jest.fn(() => savedData);
+
+    store.getFiltersFromStorage();
+
+    expect(window.sessionStorage.getItem).toHaveBeenCalledTimes(1);
+
+    expect(store.formFilters).toHaveLength(1);
+    expect(store.appliedFilters).toHaveLength(1);
   });
 });

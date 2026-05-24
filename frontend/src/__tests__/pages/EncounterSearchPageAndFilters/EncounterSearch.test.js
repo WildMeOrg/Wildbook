@@ -18,6 +18,7 @@ import axios from "axios";
 jest.mock("../../../pages/SearchPages/stores/EncounterFormStore", () => ({
   globalEncounterFormStore: {
     formFilters: [],
+    appliedFilters: [],
     mediaAssetsSearchQuery: [],
     pageSize: 20,
     start: 0,
@@ -32,6 +33,7 @@ jest.mock("../../../pages/SearchPages/stores/EncounterFormStore", () => ({
     setGalleryLoading: jest.fn(),
     setLoadingAll: jest.fn(),
     setGalleryExhausted: jest.fn(),
+    getFiltersFromStorage: jest.fn(),
   },
 }));
 
@@ -120,6 +122,7 @@ describe("EncounterSearch", () => {
     jest.clearAllMocks();
 
     globalEncounterFormStore.formFilters = [];
+    globalEncounterFormStore.appliedFilters = [];
     globalEncounterFormStore.mediaAssetsSearchQuery = [];
     globalEncounterFormStore.pageSize = 20;
     globalEncounterFormStore.start = 0;
@@ -676,5 +679,21 @@ describe("EncounterSearch", () => {
       expect(items[0]).toMatchObject({ id: "asset1", encounterId: "enc1" });
       expect(globalEncounterFormStore.setAssetOffset).toHaveBeenCalled();
     });
+  });
+
+  it("calls getFiltersFromStorage on mount if no queryID is present", () => {
+    renderWithProviders("/search");
+
+    expect(
+      globalEncounterFormStore.getFiltersFromStorage,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it("does NOT call getFiltersFromStorage if a queryID is present in the URL", () => {
+    renderWithProviders("/search?searchQueryId=abc123");
+
+    expect(
+      globalEncounterFormStore.getFiltersFromStorage,
+    ).not.toHaveBeenCalled();
   });
 });
