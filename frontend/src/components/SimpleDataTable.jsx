@@ -89,6 +89,11 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
         fixedHeader
         fixedHeaderScrollHeight="85vh"
         striped
+        noDataComponent={
+          <div className="p-3 text-center text-muted">
+            There are no records to display yet. Page will refresh.
+          </div>
+        }
       />
       <Row className="mt-3 d-flex justify-content-center">
         <Col xs="auto">
