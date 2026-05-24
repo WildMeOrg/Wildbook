@@ -42,7 +42,6 @@ const EncounterSearch = observer(() => {
   const [encounterSortOrder, setEncounterSortOrder] = useState("desc");
   const [searchIdSortName, setSearchIdSortName] = useState("date");
   const [searchIdSortOrder, setSearchIdSortOrder] = useState("desc");
-  const [tempFormFilters, setTempFormFilters] = useState([]);
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
   useEffect(() => {
@@ -50,10 +49,26 @@ const EncounterSearch = observer(() => {
       searchParams,
       store,
       setFilterPanel,
-      setTempFormFilters,
+      // setTempFormFilters,
       encounterData,
     );
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!queryID) {
+      const savedFiltersJson = sessionStorage.getItem("formData");
+      if (savedFiltersJson) {
+        try {
+          const parsedFilters = JSON.parse(savedFiltersJson);
+          if (parsedFilters && parsedFilters.length > 0) {
+            store.setFormFilters(parsedFilters);
+          }
+        } catch (e) {
+          console.error("Failed to parse formData from session storage", e);
+        }
+      }
+    }
+  }, [queryID, store]);
 
   useEffect(() => {
     if (!queryID) {
@@ -309,7 +324,7 @@ const EncounterSearch = observer(() => {
         handleSearch={handleSearch}
         setQueryID={setQueryID}
         refetch={refetch}
-        setTempFormFilters={setTempFormFilters}
+        // setTempFormFilters={setTempFormFilters}
         store={store}
       />
       <DataTable
@@ -362,7 +377,6 @@ const EncounterSearch = observer(() => {
         searchQueryId={searchQueryId}
         queryID={false}
         store={store}
-        tempFormFilters={tempFormFilters}
       />
       <ExportModal
         open={exportModalOpen}

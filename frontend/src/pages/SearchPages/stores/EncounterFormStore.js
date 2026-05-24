@@ -238,6 +238,10 @@ class EncounterFormStore {
     }
   }
 
+  setFormFilters(filters) {
+    this._formFilters = filters;
+  }
+
   removeFilter(filterId) {
     this.formFilters = this.formFilters.filter((f) => f.filterId !== filterId);
   }
@@ -250,6 +254,7 @@ class EncounterFormStore {
 
   resetFilters() {
     this.formFilters = [];
+    sessionStorage.removeItem("formData");
   }
 
   async addEncountersToProject() {

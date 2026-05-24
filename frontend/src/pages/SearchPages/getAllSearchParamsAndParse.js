@@ -1,9 +1,4 @@
-const helperFunction = async (
-  searchParams,
-  store,
-  setFilterPanel,
-  setTempFormFilters = () => {},
-) => {
+const helperFunction = async (searchParams, store, setFilterPanel) => {
   const params = Object.fromEntries(searchParams.entries()) || {};
   if (Object.keys(params).length === 0) {
     return;
@@ -50,7 +45,6 @@ const helperFunction = async (
       );
     }
   }
-  setTempFormFilters([...store.formFilters]);
   setFilterPanel(false);
   return;
 };

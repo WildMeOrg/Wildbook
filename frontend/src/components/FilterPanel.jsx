@@ -15,7 +15,6 @@ export default function FilterPanel({
   style = {},
   handleSearch = () => {},
   refetch = () => {},
-  setTempFormFilters = () => {},
   store,
 }) {
   const { data } = useSiteSettings();
@@ -143,7 +142,7 @@ export default function FilterPanel({
                 backgroundColor={theme.primaryColors.primary700}
                 borderColor={theme.primaryColors.primary700}
                 onClick={() => {
-                  setTempFormFilters([...store.formFilters]);
+                  // setTempFormFilters([...store.formFilters]);
                   refetch().then(({ data }) => {
                     console.log("Refetched data:", data);
                   });

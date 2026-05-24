@@ -9,7 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 
 const Sidebar = observer(
-  ({ setFilterPanel, searchQueryId, queryID, tempFormFilters = [], store }) => {
+  ({ setFilterPanel, searchQueryId, queryID = [], store }) => {
     const theme = React.useContext(ThemeContext);
     const [show, setShow] = useState(false);
     const sidebarWidth = 400;
@@ -18,7 +18,7 @@ const Sidebar = observer(
     const handleShow = () => setShow(true);
     const [, setSearchParams] = useSearchParams();
 
-    const num = () => (queryID ? 1 : tempFormFilters.length);
+    const num = () => (queryID ? 1 : store.formFilters.length);
 
     const handleCopy = () => {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -111,7 +111,7 @@ const Sidebar = observer(
               </div>
             ) : (
               <div style={{ overflowY: "auto" }}>
-                {tempFormFilters.map((filter, index) => (
+                {store.formFilters.map((filter, index) => (
                   <Chip key={index}>{filter}</Chip>
                 ))}
               </div>
