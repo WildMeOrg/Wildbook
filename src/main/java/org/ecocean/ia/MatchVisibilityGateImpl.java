@@ -429,12 +429,27 @@ public final class MatchVisibilityGateImpl implements MatchVisibilityGate {
             if (i > 0) taskPh.append(",");
             taskPh.append("?");
         }
-        // PostgreSQL-targeted SQL (CTE + LIMIT 1). Wildbook ships
-        // against PostgreSQL 13 only; tests use Testcontainers with
-        // a real PostgreSQL. If a non-Postgres backend is ever
-        // introduced, this query needs portable rewriting (Codex
-        // Phase-1-SQL Major).
-        return "WITH single_ma_children AS (" +
+        // PostgreSQL-targeted SQL. Wildbook ships against PostgreSQL
+        // 13 only; tests use Testcontainers with a real PostgreSQL.
+        // If a non-Postgres backend is ever introduced, this query
+        // needs portable rewriting (Codex Phase-1-SQL Major).
+        //
+        // The single-MA child filter is expressed as an inline
+        // subquery, NOT a CTE. DataNucleus' native-SQL gateway
+        // rejects statements that don't start with "SELECT" (it
+        // refuses "WITH ..." outright with
+        // "You have specified an SQL statement (..) that doesnt
+        // start with SELECT. This is invalid.") — observed in a
+        // bulk-import run as a 100% gate-defer cascade. The
+        // subquery form is semantically identical and starts with
+        // SELECT (Codex Phase-1-SQL hotfix).
+        return "SELECT topOma.\"ID_EID\" AS ma_id," +
+            "       siblingMa.\"DETECTIONSTATUS\" AS ma_status," +
+            "       childTask.\"STATUS\" AS child_status " +
+            "FROM \"TASK_OBJECTMEDIAASSETS\" topOma " +
+            "JOIN \"MEDIAASSET\" siblingMa" +
+            "  ON siblingMa.\"ID\" = topOma.\"ID_EID\" " +
+            "LEFT JOIN (" +
             "  SELECT tc.\"ID_EID\" AS child_id," +
             "         max(childOma.\"ID_EID\") AS sole_ma_id" +
             "  FROM \"TASK_CHILDREN\" tc" +
@@ -443,14 +458,7 @@ public final class MatchVisibilityGateImpl implements MatchVisibilityGate {
             "  WHERE tc.\"ID_OID\" = ?" +
             "  GROUP BY tc.\"ID_EID\"" +
             "  HAVING count(*) = 1" +
-            ") " +
-            "SELECT topOma.\"ID_EID\" AS ma_id," +
-            "       siblingMa.\"DETECTIONSTATUS\" AS ma_status," +
-            "       childTask.\"STATUS\" AS child_status " +
-            "FROM \"TASK_OBJECTMEDIAASSETS\" topOma " +
-            "JOIN \"MEDIAASSET\" siblingMa" +
-            "  ON siblingMa.\"ID\" = topOma.\"ID_EID\" " +
-            "LEFT JOIN single_ma_children smc" +
+            ") smc" +
             "  ON smc.sole_ma_id = topOma.\"ID_EID\" " +
             "LEFT JOIN \"TASK\" childTask" +
             "  ON childTask.\"ID\" = smc.child_id " +
