@@ -850,27 +850,7 @@ public class IAGateway extends HttpServlet {
         final boolean isGateDefer = jobj.optBoolean("deferredMatch", false);
         final long initialDelayMillis;
         if (increment) {
-            if (isGateDefer) {
-                // 2000ms ±20% jitter (1600-2400ms inclusive). Tighter
-                // than the previous 5000ms gate-defer cadence so the
-                // deferred-match tail finishes proportionally sooner;
-                // random jitter avoids synchronized polling stampedes
-                // when many defers wake at once. DB cost of more
-                // frequent polling is offset by the single-SQL
-                // sibling-terminal check (commit 0efaec3f7).
-                //
-                // Conservative starting point per Codex Phase-B-lite
-                // design review — observe production before any
-                // further tightening (e.g. 1000ms ±20%).
-                initialDelayMillis =
-                    java.util.concurrent.ThreadLocalRandom.current()
-                        .nextLong(1600L, 2401L);
-            } else {
-                // Genuine ml-service network retry path — leave at
-                // 30s to respect rate-limit-like backoff. Out of
-                // scope for this tail-latency change.
-                initialDelayMillis = 30000L;
-            }
+            initialDelayMillis = isGateDefer ? 5000L : 30000L;
         } else {
             initialDelayMillis = 1000L;
         }
