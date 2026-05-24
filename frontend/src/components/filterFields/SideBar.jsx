@@ -18,7 +18,7 @@ const Sidebar = observer(
     const handleShow = () => setShow(true);
     const [, setSearchParams] = useSearchParams();
 
-    const num = () => (queryID ? 1 : store.formFilters.length);
+    const num = () => (queryID ? 1 : store.appliedFilters.length);
 
     const handleCopy = () => {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -111,7 +111,7 @@ const Sidebar = observer(
               </div>
             ) : (
               <div style={{ overflowY: "auto" }}>
-                {store.formFilters.map((filter, index) => (
+                {store.appliedFilters.map((filter, index) => (
                   <Chip key={index}>{filter}</Chip>
                 ))}
               </div>

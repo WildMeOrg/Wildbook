@@ -45,28 +45,12 @@ const EncounterSearch = observer(() => {
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
   useEffect(() => {
-    helperFunction(
-      searchParams,
-      store,
-      setFilterPanel,
-      // setTempFormFilters,
-      encounterData,
-    );
+    helperFunction(searchParams, store, setFilterPanel, encounterData);
   }, [searchParams]);
 
   useEffect(() => {
     if (!queryID) {
-      const savedFiltersJson = sessionStorage.getItem("formData");
-      if (savedFiltersJson) {
-        try {
-          const parsedFilters = JSON.parse(savedFiltersJson);
-          if (parsedFilters && parsedFilters.length > 0) {
-            store.setFormFilters(parsedFilters);
-          }
-        } catch (e) {
-          console.error("Failed to parse formData from session storage", e);
-        }
-      }
+      store.getFiltersFromStorage();
     }
   }, [queryID, store]);
 
@@ -85,7 +69,7 @@ const EncounterSearch = observer(() => {
     loading,
     refetch,
   } = useFilterEncounters({
-    queries: store.formFilters,
+    queries: store.appliedFilters,
     params: {
       sort: encounterSortName,
       sortOrder: encounterSortOrder,
@@ -324,7 +308,6 @@ const EncounterSearch = observer(() => {
         handleSearch={handleSearch}
         setQueryID={setQueryID}
         refetch={refetch}
-        // setTempFormFilters={setTempFormFilters}
         store={store}
       />
       <DataTable

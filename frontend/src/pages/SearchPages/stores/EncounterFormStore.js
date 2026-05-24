@@ -6,6 +6,7 @@ import { action } from "mobx";
 
 class EncounterFormStore {
   _formFilters;
+  _appliedFilters;
   _activeStep = 0;
 
   _siteSettingsData = null;
@@ -33,8 +34,11 @@ class EncounterFormStore {
 
   imageModalStore;
 
+  FILTER_STORAGE_KEY = "formData";
+
   constructor() {
     this.formFilters = [];
+    this.appliedFilters = [];
     this.imageModalStore = new ImageModalStore(this);
 
     makeAutoObservable(
@@ -65,6 +69,13 @@ class EncounterFormStore {
   }
   set formFilters(newFilters) {
     this._formFilters = newFilters;
+  }
+
+  get appliedFilters() {
+    return this._appliedFilters;
+  }
+  set appliedFilters(filters) {
+    this._appliedFilters = filters;
   }
 
   get activeStep() {
@@ -166,7 +177,7 @@ class EncounterFormStore {
       filterKey: "Number Media Assets",
       path: "",
     };
-    const base = this.formFilters || [];
+    const base = this.appliedFilters || [];
     const has = base.some((f) => f.filterId === "numberMediaAssets");
     if (!has) {
       return [...base, filterOnMediaAssets];
@@ -252,9 +263,39 @@ class EncounterFormStore {
     );
   }
 
+  setFiltersInSessionStorage() {
+    if (this.appliedFilters.length > 0) {
+      sessionStorage.setItem(
+        this.FILTER_STORAGE_KEY,
+        JSON.stringify(this.appliedFilters),
+      );
+    }
+  }
+
+  applyFilters() {
+    this.appliedFilters = toJS(this.formFilters);
+    this.setFiltersInSessionStorage();
+  }
+
+  getFiltersFromStorage() {
+    const savedJson = sessionStorage.getItem(this.FILTER_STORAGE_KEY);
+    if (savedJson) {
+      try {
+        const parsed = JSON.parse(savedJson);
+        if (parsed && parsed.length > 0) {
+          this.formFilters = parsed;
+          this.appliedFilters = parsed;
+        }
+      } catch (e) {
+        console.error("Failed to load filters:", e);
+      }
+    }
+  }
+
   resetFilters() {
     this.formFilters = [];
-    sessionStorage.removeItem("formData");
+    this.appliedFilters = [];
+    sessionStorage.removeItem(this.FILTER_STORAGE_KEY);
   }
 
   async addEncountersToProject() {
