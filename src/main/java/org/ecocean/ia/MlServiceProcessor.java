@@ -541,10 +541,26 @@ public class MlServiceProcessor {
      * and run match against whatever is visible (partial results are
      * better than silently no match task; Codex round-2 #2).
      *
+     * <p>Bulk-import "Skip identification" honored here, before the
+     * gate runs. The flag is stamped onto the IA Task parameters by
+     * {@link org.ecocean.api.BulkImport#initiateIA} and inherited by
+     * each per-MA child Task ({@link Task#Task(Task)} copies
+     * parameters). Reading it at this single chokepoint covers the
+     * detection and extraction entry paths AND the deferred re-fire
+     * path (which goes straight to this method via
+     * {@link #runDeferredMatch}). The legacy WBIA path has its own
+     * skipIdent gate in {@code IBEISIA.processCallback}.</p>
+     *
      * <p>(Empty-match-prospects design Track 2 C11.)</p>
      */
     private MlServiceJobOutcome waitAndRunMatchInternal(List<String> annotationIds,
         String taskId, JSONObject matchConfig, int attempt, Long firstDeferredAt) {
+        if (readSkipIdent(taskId)) {
+            System.out.println(
+                "NOTICE: MlServiceProcessor skipped identification for task " + taskId +
+                " (skipIdent=true); annotationIds=" + annotationIds);
+            return MlServiceJobOutcome.ok(annotationIds);
+        }
         MatchVisibilityGate.GateOutcome gate = visibilityGate.gateForBatch(
             annotationIds, taskId, matchConfig, attempt, firstDeferredAt);
         switch (gate.kind) {
@@ -570,6 +586,16 @@ public class MlServiceProcessor {
         }
         List<String> annotationIds = jsonArrayToStringList(jobData.optJSONArray("annotationIds"));
         String taskId = jobData.optString("taskId", null);
+        // Honor skipIdent before inferMatchConfig, which opens a Shepherd
+        // to inspect existing embeddings (matchConfig fallback path).
+        // A skipIdent task should do no match-side DB work at all
+        // (Codex code-review Low #1).
+        if (readSkipIdent(taskId)) {
+            System.out.println(
+                "NOTICE: MlServiceProcessor.runDeferredMatch skipped identification for task " +
+                taskId + " (skipIdent=true); annotationIds=" + annotationIds);
+            return MlServiceJobOutcome.ok(annotationIds);
+        }
         JSONObject matchConfig = jobData.optJSONObject("matchConfig");
         if (matchConfig == null) matchConfig = inferMatchConfig(annotationIds);
         // Carry forward attempt + firstDeferredAt so age-out is
@@ -934,6 +960,47 @@ public class MlServiceProcessor {
             shep.commitDBTransaction();
         } finally {
             shep.rollbackAndClose();
+        }
+    }
+
+    /**
+     * Read {@code skipIdent} from the IA Task's parameters. Returns
+     * {@code false} on any failure — null/blank task id, Task not
+     * loadable, Shepherd construction failure, etc. — so the default
+     * posture is always "run identification."
+     *
+     * <p>Package-private so tests can override via an anonymous
+     * subclass without needing a live database. Production code should
+     * not call this directly; gate from
+     * {@link #waitAndRunMatchInternal}.</p>
+     */
+    boolean readSkipIdent(String taskId) {
+        if (!Util.stringExists(taskId)) return false;
+        Shepherd shep = null;
+        try {
+            shep = new Shepherd(context);
+            shep.setAction(ACTION_PREFIX + "readSkipIdent");
+            shep.beginDBTransaction();
+            Task task = Task.load(taskId, shep);
+            return IBEISIA.taskParametersSkipIdent(task);
+        } catch (Exception ex) {
+            System.out.println(
+                "WARN: MlServiceProcessor.readSkipIdent failed for task " + taskId +
+                ": " + ex + " — defaulting to skipIdent=false");
+            return false;
+        } finally {
+            // Guarded close so a rollback/close throw cannot break this
+            // helper's "false on any failure" contract (Codex code-review
+            // Low #2).
+            if (shep != null) {
+                try {
+                    shep.rollbackAndClose();
+                } catch (Exception ex) {
+                    System.out.println(
+                        "WARN: MlServiceProcessor.readSkipIdent rollbackAndClose " +
+                        "failed for task " + taskId + ": " + ex);
+                }
+            }
         }
     }
 

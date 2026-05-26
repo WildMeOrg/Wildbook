@@ -48,8 +48,14 @@ class MlServiceProcessorGateTest {
 
     private static MlServiceProcessor processorWith(MatchVisibilityGate gate,
         DeferredMatchPublisher publisher) {
+        // Override readSkipIdent to false so existing gate tests don't
+        // exercise the no-DB fallback path (which logs a PMF warning).
+        // The two skipIdent-specific tests below override this seam with
+        // their own values via processorWithSkipIdent.
         return new MlServiceProcessor("context0", new MlServiceClient(),
-            gate, publisher);
+            gate, publisher) {
+            @Override boolean readSkipIdent(String taskId) { return false; }
+        };
     }
 
     private static JSONObject deferredJobPayload(int attempt,
@@ -182,5 +188,73 @@ class MlServiceProcessorGateTest {
         assertEquals(MlServiceJobOutcome.Kind.ERROR_VALIDATION, out.getKind());
         assertEquals(0, publisher.published.size(),
             "publisher should not fire on validation error");
+    }
+
+    // --- skipIdent honored on bulk-import "Skip identification" ---------
+
+    /** Recording gate so we can assert whether gateForBatch was invoked. */
+    private static final class RecordingGate implements MatchVisibilityGate {
+        final GateOutcome fixed;
+        int calls = 0;
+        RecordingGate(GateOutcome fixed) { this.fixed = fixed; }
+        @Override public GateOutcome gateForBatch(
+            Collection<String> callerAnnotationIds, String childTaskId,
+            JSONObject matchConfig, int attempt, Long firstDeferredAt) {
+            calls++;
+            return fixed;
+        }
+    }
+
+    /** Processor whose skipIdent read is forced to a fixed value. */
+    private static MlServiceProcessor processorWithSkipIdent(
+        MatchVisibilityGate gate, DeferredMatchPublisher publisher,
+        boolean skipIdent) {
+        return new MlServiceProcessor("context0", new MlServiceClient(),
+            gate, publisher) {
+            @Override boolean readSkipIdent(String taskId) { return skipIdent; }
+        };
+    }
+
+    // When the IA Task's params carry skipIdent=true (the bulk-import
+    // "Skip identification" checkbox), waitAndRunMatchInternal must
+    // short-circuit BEFORE the visibility gate runs. No deferred match
+    // is published, no match task is created. Asserting on
+    // gate.calls==0 is the proof — if the gate runs, we'd then proceed
+    // to runMatchProspects which would create a match Task.
+    @Test void waitAndRunMatchInternal_skipIdentTrue_skipsBeforeGate() {
+        long firstDeferred = System.currentTimeMillis();
+        RecordingGate gate = new RecordingGate(
+            MatchVisibilityGate.GateOutcome.ready(1, firstDeferred));
+        RecordingPublisher publisher = new RecordingPublisher();
+        MlServiceProcessor p = processorWithSkipIdent(gate, publisher, true);
+
+        MlServiceJobOutcome out = p.runDeferredMatch(
+            deferredJobPayload(2, firstDeferred));
+
+        assertEquals(MlServiceJobOutcome.Kind.OK, out.getKind(),
+            "skipIdent must yield OK outcome");
+        assertEquals(0, gate.calls,
+            "visibility gate must not run when skipIdent=true");
+        assertEquals(0, publisher.published.size(),
+            "no deferred-match payload should be published when skipIdent=true");
+    }
+
+    // Negative case: skipIdent=false must let the gate run normally.
+    // Pairs with the test above to prove the override is the only
+    // thing suppressing the gate (not some unrelated short-circuit).
+    @Test void waitAndRunMatchInternal_skipIdentFalse_runsGate() {
+        long firstDeferred = System.currentTimeMillis();
+        RecordingGate gate = new RecordingGate(
+            MatchVisibilityGate.GateOutcome.defer(2, firstDeferred,
+                "sibling pending"));
+        RecordingPublisher publisher = new RecordingPublisher();
+        MlServiceProcessor p = processorWithSkipIdent(gate, publisher, false);
+
+        p.runDeferredMatch(deferredJobPayload(2, firstDeferred));
+
+        assertEquals(1, gate.calls,
+            "visibility gate must run when skipIdent=false");
+        assertEquals(1, publisher.published.size(),
+            "DEFER outcome must publish a payload when skipIdent=false");
     }
 }

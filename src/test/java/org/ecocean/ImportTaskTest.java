@@ -250,6 +250,39 @@ class ImportTaskTest {
         assertEquals(sum.optString("identificationStatus"), "sent");
     }
 
+    // Locks the polling contract for "Skip identification": when the
+    // bulk-import user checks Skip ID, MlServiceProcessor short-circuits
+    // before any match Task is created, so iaTaskRequestedIdentification
+    // returns false AND skippedIdentification returns true.
+    // iaSummaryJson must then emit identificationStatus="skipped"
+    // (not in the frontend in-flight whitelist, so polling stops) AND
+    // refrain from setting identificationNumberComplete / numTotal —
+    // identification didn't run, so there's nothing to count.
+    @Test void testIaSummary_skipIdentificationYieldsSkippedStatus() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        MediaAsset mockMA = mock(MediaAsset.class);
+        when(mockMA.getDetectionStatus()).thenReturn("complete-mlservice");
+        List<MediaAsset> someMAs = new ArrayList<MediaAsset>();
+        someMAs.add(mockMA);
+        when(itask.getMediaAssets()).thenReturn(someMAs);
+        when(itask.getIATask()).thenReturn(mock(Task.class));
+        when(itask.iaTaskStarted()).thenReturn(true);
+        // skipIdent path: iaTaskRequestedIdentification is FALSE (Skip
+        // ID was checked), and skippedIdentification stamps the
+        // "skipped" status explicitly.
+        when(itask.iaTaskRequestedIdentification()).thenReturn(false);
+        when(itask.skippedIdentification()).thenReturn(true);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals(sum.optString("detectionStatus"), "complete");
+        assertEquals(sum.optString("identificationStatus"), "skipped");
+        // pipelineComplete must be true when detection complete + ident skipped
+        // (otherwise frontend polling would not stop).
+        assertEquals(true, sum.optBoolean("pipelineComplete"));
+    }
+
     // Legacy flavor (getIATask() == null) hits the second `>=`
     // predicate. The original `==` would have stranded the import at
     // "sent" if any terminal-but-non-IA-eligible MA showed up.
