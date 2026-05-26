@@ -380,10 +380,17 @@ public class ImportTask implements java.io.Serializable {
         Map<String, Set<Task> > encTasks = new HashMap<String, Set<Task> >();
         Map<String, String> taskTmp = new HashMap<String, String>();
 
+        // Bulk-resolve annotation -> encounter catalogNumber via the join table.
+        // Replaces per-annotation Encounter.findByAnnotation() JDOQL, which on
+        // encounters with photographers/submitters/informOthers populated triggers
+        // a DataNucleus 5.2.7 SQL-generation bug that produces malformed SQL.
+        Map<String, String> annIdToEncId = annotationIdsToEncounterIds(atm.keySet(),
+            myShepherd);
+
         for (Annotation ann : atm.keySet()) {
-            Encounter enc = ann.findEncounter(myShepherd);
-            if ((enc != null) && !encTasks.containsKey(enc.getId()))
-                encTasks.put(enc.getId(), new HashSet<Task>());
+            String encId = annIdToEncId.get(ann.getId());
+            if ((encId != null) && !encTasks.containsKey(encId))
+                encTasks.put(encId, new HashSet<Task>());
             // trivial annots will not be sent correctly to ident (no iaClass etc)
             // so we skip them in counts as if not sent
             if (ann.isTrivial()) {
@@ -403,7 +410,8 @@ public class ImportTask implements java.io.Serializable {
                 // this records only most recent task statuses like: numLatestTask_complete
                 if (latestTask) {
                     String latestStatus = "numLatestTask_" + atask.getStatus(myShepherd);
-                    System.out.println("[DEBUG] (ImportTask " + this.getId() + ") latestStatus for Task " + atask.getId() + ": " + latestStatus);
+                    System.out.println("[DEBUG] (ImportTask " + this.getId() +
+                        ") latestStatus for Task " + atask.getId() + ": " + latestStatus);
                     if (sa.has(latestStatus)) {
                         sa.put(latestStatus, sa.optInt(latestStatus, 0) + 1);
                     } else {
@@ -411,7 +419,7 @@ public class ImportTask implements java.io.Serializable {
                     }
                     numLatestTasks++;
                 }
-                if (enc != null) {
+                if (encId != null) {
                     // this is temporary storage to use to populate encounterTaskInfo later
                     // this status is wrong: needs to be "overall status"
                     // taskTmp.put(atask.getId() + ".status", status);
@@ -423,16 +431,16 @@ public class ImportTask implements java.io.Serializable {
                         (atask.getParameters() != null) &&
                         atask.getParameters().has("ibeis.identification")) {
                         // task with only one algorithm
-                        encTasks.get(enc.getId()).add(atask);
+                        encTasks.get(encId).add(atask);
                     } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 0) &&
                         (atask.getParent() != null) &&
                         (atask.getParent().getChildren().size() <= 1)) {
                         // task with child ident tasks
-                        encTasks.get(enc.getId()).add(atask);
+                        encTasks.get(encId).add(atask);
                     } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 2) &&
                         (atask.getParent() == null)) {
                         // task with child ident tasks (also?)
-                        encTasks.get(enc.getId()).add(atask);
+                        encTasks.get(encId).add(atask);
                     }
                 }
                 latestTask = false;
@@ -465,6 +473,47 @@ public class ImportTask implements java.io.Serializable {
         }
         sa.put("encounterTaskInfo", encData);
         return sa;
+    }
+
+    // Returns {annotationId -> encounter catalogNumber} via one SQL pass through
+    // ENCOUNTER_ANNOTATIONS. Annotations not attached to any encounter are absent
+    // from the result. Used by statsAnnotations to avoid Encounter.findByAnnotation,
+    // whose JDOQL triggers a DataNucleus 5.2.7 SQL-generation bug.
+    private static Map<String, String> annotationIdsToEncounterIds(
+        java.util.Collection<Annotation> anns, Shepherd myShepherd) {
+        Map<String, String> result = new HashMap<String, String>();
+
+        if ((anns == null) || anns.isEmpty()) return result;
+        StringBuilder inList = new StringBuilder();
+        int n = 0;
+        for (Annotation ann : anns) {
+            if ((ann == null) || (ann.getId() == null)) continue;
+            if (n > 0) inList.append(",");
+            inList.append("'").append(ann.getId().replace("'", "''")).append("'");
+            n++;
+        }
+        if (n == 0) return result;
+        String sql =
+            "SELECT \"ID_EID\", \"CATALOGNUMBER_OID\" FROM \"ENCOUNTER_ANNOTATIONS\" WHERE \"ID_EID\" IN ("
+            + inList.toString() + ")";
+        Query q = null;
+        try {
+            q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+            List rows = (List)q.execute();
+            for (Object row : rows) {
+                Object[] r = (Object[])row;
+                String annId = (String)r[0];
+                String catNum = (String)r[1];
+                if ((annId != null) && (catNum != null)) result.put(annId, catNum);
+            }
+        } catch (Exception ex) {
+            System.out.println(
+                "[ERROR] ImportTask.annotationIdsToEncounterIds() failed: " + ex);
+            ex.printStackTrace();
+        } finally {
+            if (q != null) q.closeAll();
+        }
+        return result;
     }
 
 /*
@@ -509,17 +558,8 @@ public class ImportTask implements java.io.Serializable {
                 List<Project> projects = myShepherd.getProjectsForEncounter(enc);
                 ArrayList<Annotation> anns = enc.getAnnotations();
                 for (Annotation ann : anns) {
-                    enc.removeAnnotation(ann);
-                    // myShepherd.updateDBTransaction();
-                    List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
-                    if (iaTasks != null && !iaTasks.isEmpty()) {
-                        for (Task iaTask : iaTasks) {
-                            iaTask.removeObject(ann);
-                            // myShepherd.updateDBTransaction();
-                        }
-                    }
+                    ann.prepareForDeletion(myShepherd, enc);
                     myShepherd.throwAwayAnnotation(ann);
-                    // myShepherd.updateDBTransaction();
                 }
                 // handle occurrences
                 if (occ != null) {
@@ -638,7 +678,9 @@ public class ImportTask implements java.io.Serializable {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
-                if (numAssets > 0) pj.put("detectionPercent", new Double(numDetectionComplete) / new Double(numAssets));
+                if (numAssets > 0)
+                    pj.put("detectionPercent",
+                        new Double(numDetectionComplete) / new Double(numAssets));
                 pj.put("detectionStatus", "sent");
             }
             if (this.iaTaskRequestedIdentification()) {
@@ -695,11 +737,12 @@ public class ImportTask implements java.io.Serializable {
 
     static Map<String, Integer> parseSqlCountResults(Query query) {
         Map<String, Integer> map = new HashMap<>();
+
         try {
             List<?> results = query.executeList();
             for (Object row : results) {
-                Object[] cols = (Object[]) row;
-                map.put((String) cols[0], ((Number) cols[1]).intValue());
+                Object[] cols = (Object[])row;
+                map.put((String)cols[0], ((Number)cols[1]).intValue());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -712,28 +755,28 @@ public class ImportTask implements java.io.Serializable {
     public static Map<String, Integer> getAllEncounterCounts(Shepherd myShepherd) {
         Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
             "SELECT \"ID_OID\", count(*) FROM \"IMPORTTASK_ENCOUNTERS\" GROUP BY \"ID_OID\"");
+
         return parseSqlCountResults(query);
     }
 
     public static Map<String, Integer> getAllIndividualCounts(Shepherd myShepherd) {
         Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
             "SELECT ie.\"ID_OID\", count(distinct me.\"INDIVIDUALID_OID\") " +
-            "FROM \"IMPORTTASK_ENCOUNTERS\" ie " +
-            "JOIN \"MARKEDINDIVIDUAL_ENCOUNTERS\" me " +
-            "ON ie.\"CATALOGNUMBER_EID\" = me.\"CATALOGNUMBER_EID\" " +
-            "GROUP BY ie.\"ID_OID\"");
+            "FROM \"IMPORTTASK_ENCOUNTERS\" ie " + "JOIN \"MARKEDINDIVIDUAL_ENCOUNTERS\" me " +
+            "ON ie.\"CATALOGNUMBER_EID\" = me.\"CATALOGNUMBER_EID\" " + "GROUP BY ie.\"ID_OID\"");
+
         return parseSqlCountResults(query);
     }
 
     public static Map<String, Integer> getAllMediaAssetCounts(Shepherd myShepherd) {
         Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
             "SELECT ie.\"ID_OID\", count(distinct mf.\"ID_OID\") " +
-            "FROM \"IMPORTTASK_ENCOUNTERS\" ie " +
-            "JOIN \"ENCOUNTER_ANNOTATIONS\" ea " +
+            "FROM \"IMPORTTASK_ENCOUNTERS\" ie " + "JOIN \"ENCOUNTER_ANNOTATIONS\" ea " +
             "ON ie.\"CATALOGNUMBER_EID\" = ea.\"CATALOGNUMBER_OID\" " +
             "JOIN \"ANNOTATION_FEATURES\" af ON ea.\"ID_EID\" = af.\"ID_OID\" " +
             "JOIN \"MEDIAASSET_FEATURES\" mf ON af.\"ID_EID\" = mf.\"ID_EID\" " +
             "GROUP BY ie.\"ID_OID\"");
+
         return parseSqlCountResults(query);
     }
 }

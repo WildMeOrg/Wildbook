@@ -38,12 +38,18 @@ public class MatchResult implements java.io.Serializable {
     private Set<MatchResultProspect> prospects;
     private Annotation queryAnnotation;
     private int numberCandidates = 0;
+    // we store *actual* count here, but they may not all exist
+    // via .prospects due to MAXIMUM_PROSPECTS_STORED (see below)
+    private int numberProspects = 0;
     // not sure we really *need* true fk link to these annots
     // they might be gone now and will we ever use this?
     // so for now we just populate numberCandidates
     private Set<Annotation> candidates;
     // fallback number to cutoff number of prospects to return
     public static final int DEFAULT_PROSPECTS_CUTOFF = 100;
+    // number of MatchResultProspects [per type] to actually store (hotspotter
+    // results can produce thousands, but storing them all is excessive)
+    public static final int MAXIMUM_PROSPECTS_STORED = 500;
 
     public MatchResult() {
         id = Util.generateUUID();
@@ -159,6 +165,7 @@ public class MatchResult implements java.io.Serializable {
         if (this.prospects == null)
             this.prospects = new HashSet<MatchResultProspect>();
         int num = 0;
+        this.numberProspects += annotIds.length(); // true number of prospects
         for (int i = 0; i < annotIds.length(); i++) {
             double score = scores.optDouble(i, -Double.MAX_VALUE);
             String id = IBEISIA.fromFancyUUID(annotIds.optJSONObject(i));
@@ -174,11 +181,18 @@ public class MatchResult implements java.io.Serializable {
                 ma = createInspectionHeatmapAsset(externRef, id, myShepherd);
             this.prospects.add(new MatchResultProspect(ann, score, type, ma));
             num++;
+            if (num >= MAXIMUM_PROSPECTS_STORED) {
+                System.out.println("[DEBUG] hit max (" + MAXIMUM_PROSPECTS_STORED +
+                    ") number storable prospects on " + this);
+                break;
+            }
         }
         return num;
     }
 
     // we just have a list of annots which matched (e.g. via vectors in opensearch)
+    // NOTE: currently does not check MAXIMUM_PROSPECTS_STORED because vector search
+    // tends to return relatively few prospects. TODO adjust later if this proves untrue.
     private int populateProspects(List<Annotation> annots, boolean scoreByIndividual,
         Shepherd myShepherd)
     throws IOException {
@@ -192,10 +206,12 @@ public class MatchResult implements java.io.Serializable {
             // these scores are direct from opensearch
             for (Annotation ann : annots) {
                 MediaAsset ma = createInspectionPairxAsset(this.queryAnnotation, ann, myShepherd);
-                this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(), "annot", ma));
+                this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(), "annot",
+                    ma));
             }
         }
-        return this.prospects.size();
+        this.numberProspects = this.prospects.size();
+        return this.numberProspects;
     }
 
     private void _populateProspectsByIndividual(List<Annotation> annots, Shepherd myShepherd) {
@@ -394,7 +410,7 @@ public class MatchResult implements java.io.Serializable {
     }
  */
     public int numberProspects() {
-        return Util.collectionSize(prospects);
+        return this.numberProspects;
     }
 
     public Set<String> prospectScoreTypes() {
