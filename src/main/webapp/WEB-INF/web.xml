@@ -295,6 +295,7 @@
 				/ProjectGet = authc
 				/ProjectUpdate = authc
 				/ProjectIA = authc, roles[researcher]
+				/GetCurrentIAInfo = authc, roles[researcher]
 
 				# ===== User Management =====
 				/welcome.jsp = authc
