@@ -92,8 +92,8 @@
 				# ===== v3 API Security =====
 				/api/v3/bulk-import = authc
 				/api/v3/bulk-import/** = authc
-				/api/v3/bulk-export = authc
-				/api/v3/bulk-export/** = authc
+				/api/v3/bulk-export = authc, roles[researcher]
+				/api/v3/bulk-export/** = authc, roles[researcher]
 
 				# ===== Appadmin =====
 				/appadmin/dataIntegrity.jsp = authc
