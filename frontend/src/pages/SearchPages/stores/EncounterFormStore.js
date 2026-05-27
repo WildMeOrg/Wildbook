@@ -269,6 +269,8 @@ class EncounterFormStore {
         this.FILTER_STORAGE_KEY,
         JSON.stringify(this.appliedFilters),
       );
+    } else {
+      sessionStorage.removeItem(this.FILTER_STORAGE_KEY);
     }
   }
 
@@ -282,12 +284,15 @@ class EncounterFormStore {
     if (savedJson) {
       try {
         const parsed = JSON.parse(savedJson);
-        if (parsed && parsed.length > 0) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           this.formFilters = parsed;
           this.appliedFilters = parsed;
+        } else {
+          sessionStorage.removeItem(this.FILTER_STORAGE_KEY);
         }
       } catch (e) {
         console.error("Failed to load filters:", e);
+        sessionStorage.removeItem(this.FILTER_STORAGE_KEY);
       }
     }
   }
