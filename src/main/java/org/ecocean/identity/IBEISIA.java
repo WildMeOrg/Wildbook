@@ -3496,8 +3496,8 @@ public class IBEISIA {
                 statusResponse.has("response") &&
                 statusResponse.getJSONObject("response").has("status") &&
                 "ok".equals(statusResponse.getJSONObject("response").getString("status")) &&
-                "completed".equals(statusResponse.getJSONObject("response").getString(
-                "jobstatus"))) {
+                ("completed".equals(statusResponse.getJSONObject("response").getString("jobstatus")) ||
+                "publishing".equals(statusResponse.getJSONObject("response").getString("jobstatus")))) {
                 System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobId + ")");
                 JSONObject resultResponse = getJobResult(jobId, context);
                 JSONObject rlog = new JSONObject();
