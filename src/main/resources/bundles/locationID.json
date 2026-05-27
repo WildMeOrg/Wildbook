@@ -1088,6 +1088,35 @@
 			"id":"Italy",
 			"locationID": []
 		},
+				{
+			"name": "Mauritius",
+			"id": "Mauritius",
+			"locationID":[
+				{
+					"name": "Ebony Forest",
+					"id": "Ebony Forest",
+					"prefix": "EBF-",
+					"prefixDigitPadding": 4,
+					"locationID":[
+						{
+							"name": "Flycatcher",
+							"id": "Flycatcher",
+							"locationID":[]
+						},
+						{
+							"name": "Office",
+							"id": "Office",
+							"locationID":[]
+						},
+						{
+							"name": "Ridgeline",
+							"id": "Ridgeline",
+							"locationID":[]
+						}
+					]
+				}
+			]
+		},
 		{
 			"name": "Montenegro",
 			"id": "Montenegro",
