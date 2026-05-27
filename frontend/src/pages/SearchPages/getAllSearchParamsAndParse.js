@@ -30,7 +30,7 @@ const helperFunction = async (searchParams, store, setFilterPanel) => {
       );
     }
     if (key === "searchQueryId") {
-      store.formFilters = JSON.parse(sessionStorage.getItem("formData")) || [];
+      store.getFiltersFromStorage();
     }
     if (key === "individualIDExact") {
       store.addFilter(
@@ -45,6 +45,7 @@ const helperFunction = async (searchParams, store, setFilterPanel) => {
       );
     }
   }
+  store.applyFilters();
   setFilterPanel(false);
   return;
 };
