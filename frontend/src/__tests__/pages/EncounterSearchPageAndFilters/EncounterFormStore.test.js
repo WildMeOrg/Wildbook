@@ -1,27 +1,34 @@
 import EncounterFormStore from "../../../pages/SearchPages/stores/EncounterFormStore";
 
-const mockSessionStorage = (() => {
-  let store = {};
-  return {
-    getItem: jest.fn((key) => store[key] || null),
-    setItem: jest.fn((key, value) => {
-      store[key] = value.toString();
-    }),
-    removeItem: jest.fn((key) => {
-      delete store[key];
-    }),
-    clear: jest.fn(() => {
-      store = {};
-    }),
-  };
-})();
-Object.defineProperty(window, "sessionStorage", { value: mockSessionStorage });
-
 describe("EncounterFormStore", () => {
   let store;
+  let mockStorage = {};
+
+  beforeAll(() => {
+    jest
+      .spyOn(Storage.prototype, "getItem")
+      .mockImplementation((key) => mockStorage[key] || null);
+    jest
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation((key, value) => {
+        mockStorage[key] = value ? value.toString() : "";
+      });
+    jest.spyOn(Storage.prototype, "removeItem").mockImplementation((key) => {
+      delete mockStorage[key];
+    });
+    jest.spyOn(Storage.prototype, "clear").mockImplementation(() => {
+      mockStorage = {};
+    });
+  });
 
   beforeEach(() => {
     store = new EncounterFormStore();
+    mockStorage = {};
+    jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
   });
 
   test("initializes with empty formFilters", () => {
@@ -90,6 +97,7 @@ describe("EncounterFormStore", () => {
 
     expect(store.formFilters).toEqual([]);
     expect(store.appliedFilters).toEqual([]);
+    expect(window.sessionStorage.removeItem).toHaveBeenCalledWith("formData");
   });
 
   test("applyFilters deep copies formFilters to appliedFilters and saves to storage", () => {
@@ -129,7 +137,7 @@ describe("EncounterFormStore", () => {
       path: "",
     };
     const savedData = JSON.stringify([mockFilter]);
-    mockSessionStorage.getItem = jest.fn(() => savedData);
+    window.sessionStorage.setItem("formData", savedData);
 
     store.getFiltersFromStorage();
 
@@ -137,5 +145,43 @@ describe("EncounterFormStore", () => {
 
     expect(store.formFilters).toHaveLength(1);
     expect(store.appliedFilters).toHaveLength(1);
+  });
+
+  test("getFiltersFromStorage ignores strings/non-arrays and clears storage", () => {
+    window.sessionStorage.setItem("formData", JSON.stringify("abc"));
+    store.getFiltersFromStorage();
+
+    expect(store.formFilters).toEqual([]);
+    expect(window.sessionStorage.removeItem).toHaveBeenCalledWith("formData");
+  });
+
+  test("setFiltersInSessionStorage clears the storage data when called with no data", () => {
+    const mockFilter = {
+      filterId: "f1",
+      clause: "AND",
+      query: "q1",
+      filterKey: "k1",
+      path: "",
+    };
+    window.sessionStorage.setItem("formData", JSON.stringify(mockFilter));
+    store.setFiltersInSessionStorage();
+
+    expect(store.formFilters).toEqual([]);
+    expect(window.sessionStorage.removeItem).toHaveBeenCalledWith("formData");
+  });
+
+  test("getFiltersFromStorage handles malformed JSON gracefully and clears storage", () => {
+    const consoleSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    window.sessionStorage.setItem("formData", "{ bad_json ]");
+
+    store.getFiltersFromStorage();
+
+    expect(store.formFilters).toEqual([]);
+    expect(consoleSpy).toHaveBeenCalled();
+    expect(window.sessionStorage.removeItem).toHaveBeenCalledWith("formData");
+
+    consoleSpy.mockRestore();
   });
 });

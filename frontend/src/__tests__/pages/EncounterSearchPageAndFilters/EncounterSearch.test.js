@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react";
 import EncounterSearch from "../../../pages/SearchPages/EncounterSearch";
 import { MemoryRouter } from "react-router-dom";
-import * as useFilterEncountersHook from "../../../models/encounters/useFilterEncounters";
+import useFilterEncounters, * as useFilterEncountersHook from "../../../models/encounters/useFilterEncounters";
 import * as useFilterEncountersWithMediaAssetsHook from "../../../models/encounters/useFilterEncountersWithMediaAssets";
 import * as useEncounterSearchSchemasHook from "../../../models/encounters/useEncounterSearchSchemas";
 import * as getAllSearchParams from "../../../pages/SearchPages/getAllSearchParamsAndParse";
@@ -682,11 +682,33 @@ describe("EncounterSearch", () => {
   });
 
   it("calls getFiltersFromStorage on mount if no queryID is present", () => {
+    const params = {
+      from: 0,
+      size: 20,
+      sort: "date",
+      sortOrder: "desc",
+    };
+    const mockFilter = [
+      {
+        filterId: "f1",
+        clause: "AND",
+        query: "q1",
+        filterKey: "k1",
+        path: "",
+      },
+    ];
+
+    globalEncounterFormStore.appliedFilters = mockFilter;
+
     renderWithProviders("/search");
 
     expect(
       globalEncounterFormStore.getFiltersFromStorage,
     ).toHaveBeenCalledTimes(1);
+    expect(useFilterEncounters).toHaveBeenCalledWith({
+      queries: mockFilter,
+      params: params,
+    });
   });
 
   it("does NOT call getFiltersFromStorage if a queryID is present in the URL", () => {
