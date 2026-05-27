@@ -9,7 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 
 const Sidebar = observer(
-  ({ setFilterPanel, searchQueryId, queryID = [], store }) => {
+  ({ setFilterPanel, searchQueryId, queryID = false, store }) => {
     const theme = React.useContext(ThemeContext);
     const [show, setShow] = useState(false);
     const sidebarWidth = 400;
