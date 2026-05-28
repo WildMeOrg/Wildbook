@@ -1,50 +1,41 @@
--- ml-service migration v2 (commit #4): annotation idempotency + WBIA-registration backfill
+-- ml-service migration v2: WBIA-registration columns + supporting indexes
 --
 -- This script complements the JDO mapping in src/main/resources/org/ecocean/package.jdo.
--- DataNucleus auto-creates the new ANNOTATION columns (PREDICTMODELID, BBOXKEY, THETAKEY,
--- WBIAREGISTERED, WBIAREGISTERATTEMPTS) on next startup. This file adds the parts
--- DataNucleus cannot auto-create: a Postgres partial unique index for ml-service
--- idempotency, a CHECK constraint that the composite columns are populated together,
--- and a one-time backfill marking legacy annotations as already-registered with WBIA.
+-- DataNucleus auto-creates the new ANNOTATION columns (WBIAREGISTERED,
+-- WBIAREGISTERATTEMPTS) on next startup. This file adds the parts DataNucleus
+-- cannot auto-create: a one-time backfill marking legacy annotations as
+-- already-registered with WBIA, and partial indexes for the registration poller
+-- and the stale-mlservice reconciler.
+--
+-- Duplicate-detection idempotency does NOT need any DB support: it is handled
+-- in-memory via Feature geometry (MlServiceProcessor.findExistingAnnotation),
+-- the same way the legacy WBIA detection path does it. There is therefore no
+-- idempotency unique index or composite CHECK constraint.
 --
 -- Safe to re-run. Each statement is either idempotent (CREATE INDEX IF NOT
--- EXISTS, ALTER COLUMN, ADD CONSTRAINT guarded by pg_constraint lookup) or
--- filters on the pre-backfill state (UPDATEs touching only NULL rows).
+-- EXISTS, ALTER COLUMN) or filters on the pre-backfill state (UPDATEs touching
+-- only NULL rows).
 
 BEGIN;
 
--- (1) Partial unique index: idempotency for ml-service-created annotations.
---     Filters on PREDICTMODELID IS NOT NULL so legacy WBIA-era rows are unaffected.
---     NOTE: Postgres unique indexes treat NULL as distinct, so any of the four
---     composite columns being NULL would defeat the constraint. The CHECK
---     constraint below guarantees the other three are also non-null when
---     PREDICTMODELID is non-null.
-CREATE UNIQUE INDEX IF NOT EXISTS "ANNOTATION_MLSERVICE_IDEM_idx"
-ON "ANNOTATION" ("MEDIAASSET_ID_OID", "PREDICTMODELID", "BBOXKEY", "THETAKEY")
-WHERE "PREDICTMODELID" IS NOT NULL;
+-- (0) Clean up superseded idempotency objects from the earlier version of
+--     this script / JDO mapping, if a deployment already applied them.
+--     Duplicate detection is now in-memory (Feature geometry), so the
+--     composite unique index, its CHECK constraint, the predictModelId
+--     index, and the three idempotency columns are no longer used.
+--     All guarded with IF EXISTS, so this is a no-op on environments that
+--     never created them. Indexes on a column are dropped automatically
+--     when the column is dropped, but we drop them explicitly first for
+--     clarity. The columns are safe to drop because DataNucleus no longer
+--     maps them (fields removed from package.jdo).
+ALTER TABLE "ANNOTATION" DROP CONSTRAINT IF EXISTS annotation_mlservice_composite_check;
+DROP INDEX IF EXISTS "ANNOTATION_MLSERVICE_IDEM_idx";
+DROP INDEX IF EXISTS "ANNOTATION_PREDICTMODELID_IDX";
+ALTER TABLE "ANNOTATION" DROP COLUMN IF EXISTS "PREDICTMODELID";
+ALTER TABLE "ANNOTATION" DROP COLUMN IF EXISTS "BBOXKEY";
+ALTER TABLE "ANNOTATION" DROP COLUMN IF EXISTS "THETAKEY";
 
--- (2) CHECK constraint: when PREDICTMODELID is non-null, the other composite
---     columns must also be non-null. Defense in depth against partial fills
---     that would silently bypass the partial unique index.
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint
-        WHERE conname = 'annotation_mlservice_composite_check'
-          AND conrelid = '"ANNOTATION"'::regclass
-    ) THEN
-        ALTER TABLE "ANNOTATION" ADD CONSTRAINT annotation_mlservice_composite_check
-            CHECK (
-                "PREDICTMODELID" IS NULL OR (
-                    "MEDIAASSET_ID_OID" IS NOT NULL AND
-                    "BBOXKEY" IS NOT NULL AND
-                    "THETAKEY" IS NOT NULL
-                )
-            );
-    END IF;
-END $$;
-
--- (3) Harden WBIAREGISTERATTEMPTS at the SQL level. DataNucleus creates the
+-- (1) Harden WBIAREGISTERATTEMPTS at the SQL level. DataNucleus creates the
 --     column from package.jdo with allows-null=false + default 0, but if an
 --     older DataNucleus run on this deployment already created it without
 --     those properties (rare but possible), this block repairs it idempotently.
@@ -61,7 +52,7 @@ WHERE "WBIAREGISTERATTEMPTS" IS NULL;
 ALTER TABLE "ANNOTATION"
     ALTER COLUMN "WBIAREGISTERATTEMPTS" SET NOT NULL;
 
--- (4) One-time WBIA-registration backfill: legacy annotations that already
+-- (2) One-time WBIA-registration backfill: legacy annotations that already
 --     have an acmId were registered with WBIA via the historical IBEISIA
 --     flow. Mark them as registered so the new background-polling thread
 --     does NOT re-register them.
@@ -75,7 +66,7 @@ SET "WBIAREGISTERED" = TRUE,
     "VERSION" = (EXTRACT(EPOCH FROM now()) * 1000)::bigint
 WHERE "ACMID" IS NOT NULL AND "WBIAREGISTERED" IS NULL;
 
--- (5) Partial index for the WBIA-registration polling thread (commit #11
+-- (3) Partial index for the WBIA-registration polling thread (commit #11
 --     fix-pass). The poller's JDOQL filter is
 --         wbiaRegistered == false AND wbiaRegisterAttempts < 10
 --     ordered by wbiaRegisterAttempts ASC. Partial-on-FALSE keeps the
@@ -88,7 +79,7 @@ CREATE INDEX IF NOT EXISTS "ANNOTATION_WBIAREGISTER_PENDING_IDX"
 ON "ANNOTATION" ("WBIAREGISTERATTEMPTS")
 WHERE "WBIAREGISTERED" = FALSE AND "WBIAREGISTERATTEMPTS" < 10;
 
--- (6) Partial index for the startup stale-mlservice reconciler (commit
+-- (4) Partial index for the startup stale-mlservice reconciler (commit
 --     #12 fix-pass). The reconciler's JDOQL filter is
 --         detectionStatus == 'processing-mlservice' AND revision < <cutoff>
 --     run once at startup. Partial-on-detectionStatus keeps the index

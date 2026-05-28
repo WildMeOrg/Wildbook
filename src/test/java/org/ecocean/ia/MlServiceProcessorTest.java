@@ -7,6 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.ecocean.Annotation;
+import org.ecocean.media.Feature;
+import org.ecocean.media.FeatureType;
+import org.ecocean.media.MediaAsset;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -23,9 +27,8 @@ import org.junit.jupiter.api.Test;
  *       missing-payload-fields branches).</li>
  *   <li>{@code mapNonRetryableError(IAException)} maps each typed code
  *       to the right outcome Kind.</li>
- *   <li>{@code bboxKey}/{@code thetaKey} formatting (rounding and
- *       string-format invariants).</li>
- *   <li>{@code findExistingAnnotation} dedupe matching.</li>
+ *   <li>{@code findExistingAnnotation} Feature-based bbox+theta dedupe
+ *       matching (model-agnostic; needs no Shepherd).</li>
  *   <li>{@code parseEmbeddingMethodVersion} dash-split derivation of
  *       embedding {@code (METHOD, METHODVERSION)} from the ml-service
  *       {@code /extract/} response.</li>
@@ -112,32 +115,73 @@ class MlServiceProcessorTest {
         assertEquals(MlServiceJobOutcome.Kind.ERROR_NETWORK, out.getKind());
     }
 
-    // --- bboxKey / thetaKey -------------------------------------------
+    // --- findExistingAnnotation (Feature-based bbox+theta dedup) -------
 
-    @Test void bboxKeyRoundsToInts() {
-        // The composite-unique-index columns are literal strings so we get
-        // debugability over hash opacity. Rounded ints from a 4-element double[].
-        assertEquals("10:20:30:40",
-            MlServiceProcessor.bboxKey(new double[] { 10.0, 20.0, 30.0, 40.0 }));
-        assertEquals("10:20:30:40",
-            MlServiceProcessor.bboxKey(new double[] { 10.4, 20.4, 30.4, 40.4 }));
-        assertEquals("11:21:31:41",
-            MlServiceProcessor.bboxKey(new double[] { 10.5, 20.5, 30.5, 40.5 }));
+    // Build a MediaAsset carrying one bounding-box Feature with the given
+    // geometry, wired to an Annotation the same way MlServiceProcessor and
+    // the legacy detection path do (Feature is the authoritative link).
+    private static MediaAsset maWithBox(JSONObject params) {
+        MediaAsset ma = new MediaAsset(null, null);
+        Feature ft = new Feature(new FeatureType("org.ecocean.boundingBox"), params);
+        Annotation ann = new Annotation("Rhincodon typus", ft);
+        ft.setAnnotation(ann);
+        ma.addFeature(ft);
+        return ma;
     }
 
-    @Test void thetaKeyRoundsToFourDecimals() {
-        assertEquals("0.0000", MlServiceProcessor.thetaKey(0.0));
-        assertEquals("3.1416", MlServiceProcessor.thetaKey(3.1415926));
-        // Negative angles round symmetrically.
-        assertEquals("-1.5708", MlServiceProcessor.thetaKey(-1.5707963));
+    private static JSONObject boxParams(double x, double y, double w, double h, Double theta) {
+        JSONObject p = new JSONObject();
+        p.put("x", x);
+        p.put("y", y);
+        p.put("width", w);
+        p.put("height", h);
+        if (theta != null) p.put("theta", theta.doubleValue());
+        return p;
     }
 
-    @Test void thetaKeyHandlesNegativeZero() {
-        // Negative zero formats the same as positive zero, matching the
-        // expected key for "theta is zero".
-        String k = MlServiceProcessor.thetaKey(-0.0);
-        assertTrue(k.equals("0.0000") || k.equals("-0.0000"),
-            "unexpected thetaKey for -0.0: " + k);
+    @Test void findExistingAnnotationMatchesEqualBboxAndTheta() {
+        MediaAsset ma = maWithBox(boxParams(10, 20, 30, 40, 0.5));
+        assertNotNull(MlServiceProcessor.findExistingAnnotation(ma,
+            new double[] { 10, 20, 30, 40 }, 0.5));
+    }
+
+    @Test void findExistingAnnotationRoundsBboxToInts() {
+        // Stored 10.4 and incoming 10.0 both round to 10 → match.
+        MediaAsset ma = maWithBox(boxParams(10.4, 20.4, 30.4, 40.4, 0.0));
+        assertNotNull(MlServiceProcessor.findExistingAnnotation(ma,
+            new double[] { 10.0, 20.0, 30.0, 40.0 }, 0.0));
+    }
+
+    @Test void findExistingAnnotationNullOnDifferentBbox() {
+        MediaAsset ma = maWithBox(boxParams(10, 20, 30, 40, 0.0));
+        assertNull(MlServiceProcessor.findExistingAnnotation(ma,
+            new double[] { 99, 20, 30, 40 }, 0.0));
+    }
+
+    @Test void findExistingAnnotationNullOnDifferentTheta() {
+        MediaAsset ma = maWithBox(boxParams(10, 20, 30, 40, 0.0));
+        assertNull(MlServiceProcessor.findExistingAnnotation(ma,
+            new double[] { 10, 20, 30, 40 }, 1.5));
+    }
+
+    @Test void findExistingAnnotationTreatsNegativeZeroThetaAsZero() {
+        MediaAsset ma = maWithBox(boxParams(10, 20, 30, 40, -0.0));
+        assertNotNull(MlServiceProcessor.findExistingAnnotation(ma,
+            new double[] { 10, 20, 30, 40 }, 0.0));
+    }
+
+    @Test void findExistingAnnotationTreatsMissingThetaAsZero() {
+        // Legacy WBIA Features may have no theta param; treat as 0.0 so an
+        // incoming theta=0 box still dedups against them.
+        MediaAsset ma = maWithBox(boxParams(10, 20, 30, 40, null));
+        assertNotNull(MlServiceProcessor.findExistingAnnotation(ma,
+            new double[] { 10, 20, 30, 40 }, 0.0));
+    }
+
+    @Test void findExistingAnnotationNullWhenNoFeatures() {
+        MediaAsset ma = new MediaAsset(null, null);
+        assertNull(MlServiceProcessor.findExistingAnnotation(ma,
+            new double[] { 10, 20, 30, 40 }, 0.0));
     }
 
     // --- parseEmbeddingMethodVersion ----------------------------------

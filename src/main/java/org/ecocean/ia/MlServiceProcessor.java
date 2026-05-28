@@ -3,7 +3,6 @@ package org.ecocean.ia;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import org.ecocean.Annotation;
 import org.ecocean.Embedding;
@@ -358,13 +357,23 @@ public class MlServiceProcessor {
                 JSONObject result = results.getJSONObject(i);
                 double[] bbox = parseBbox(result.getJSONArray("bbox"));
                 double theta = result.getDouble("theta");
-                String bboxKey = bboxKey(bbox);
-                String thetaKey = thetaKey(theta);
-                String predictModelId = result.optString("predict_model_id",
-                    det.mlConfig.optString("predict_model_id", null));
-                Annotation existing = findExistingAnnotation(ma, predictModelId, bboxKey,
-                    thetaKey);
+                String[] mv = parseEmbeddingMethodVersion(result);
+                Annotation existing = findExistingAnnotation(ma, bbox, theta);
                 if (existing != null) {
+                    // Dedup hit: an annotation with this bbox+theta already
+                    // exists on the MediaAsset (idempotent retry, or another
+                    // model produced an identical box). Reuse it. If it has no
+                    // embedding for THIS (method, version), attach one so a
+                    // later model run does not leave the box unmatchable for
+                    // that method. setVersion() forces the parent Annotation to
+                    // reindex its nested embeddings — the Embedding persist and
+                    // Annotation.addEmbedding alone do not bump the parent.
+                    if (existing.getEmbeddingByMethod(mv[0], mv[1]) == null) {
+                        Embedding emb = new Embedding(existing, mv[0], mv[1],
+                            result.getJSONArray("embedding"));
+                        shep.getPM().makePersistent(emb);
+                        existing.setVersion();
+                    }
                     annotationIds.add(existing.getId());
                     continue;
                 }
@@ -375,13 +384,9 @@ public class MlServiceProcessor {
                 String iaClass = result.optString("iaClass",
                     result.optString("class_name", result.optString("class", null)));
                 Annotation ann = new Annotation(null, feature, iaClass);
-                ann.__setMediaAsset(ma);
                 ann.setAcmId(ann.getId());
                 ann.setMatchAgainst(true);
                 ann.setIdentificationStatus(IBEISIA.STATUS_COMPLETE_MLSERVICE);
-                ann.setPredictModelId(predictModelId);
-                ann.setBboxKey(bboxKey);
-                ann.setThetaKey(thetaKey);
                 ann.setWbiaRegistered(Boolean.FALSE);
                 ann.setWbiaRegisterAttempts(0);
                 ann.setViewpoint(result.optString("viewpoint", null));
@@ -412,7 +417,6 @@ public class MlServiceProcessor {
                 shep.getPM().makePersistent(feature);
                 shep.getPM().makePersistent(ann);
 
-                String[] mv = parseEmbeddingMethodVersion(result);
                 Embedding emb = new Embedding(ann, mv[0], mv[1],
                     result.getJSONArray("embedding"));
                 shep.getPM().makePersistent(emb);
@@ -705,25 +709,36 @@ public class MlServiceProcessor {
         return MlServiceJobOutcome.networkError("UNKNOWN", message);
     }
 
-    static String bboxKey(double[] bbox) {
-        if (bbox == null || bbox.length != 4) return null;
-        return Math.round(bbox[0]) + ":" + Math.round(bbox[1]) + ":" + Math.round(bbox[2]) +
-            ":" + Math.round(bbox[3]);
-    }
-
-    static String thetaKey(double theta) {
-        return String.format(Locale.US, "%.4f", theta);
-    }
-
-    static Annotation findExistingAnnotation(MediaAsset ma, String predictModelId,
-        String bboxKey, String thetaKey) {
-        if (ma == null) return null;
-        for (Annotation ann : ma.getAnnotations()) {
+    /**
+     * Returns an existing bounding-box Annotation on this MediaAsset whose
+     * geometry matches the given bbox (rounded to ints) and theta (to 4
+     * decimals), else null. Feature-based — the authoritative
+     * Annotation&#8596;MediaAsset link — mirroring the legacy
+     * {@code IBEISIA.duplicateDetection} approach but also comparing theta.
+     *
+     * <p>Model-agnostic by design: we do not want a second annotation for the
+     * same region regardless of which model (or legacy WBIA flow) produced it.
+     * Missing theta on a legacy Feature is treated as 0.0 so legacy boxes still
+     * dedup. The numeric theta comparison also normalizes {@code -0.0} vs
+     * {@code 0.0}.</p>
+     */
+    static Annotation findExistingAnnotation(MediaAsset ma, double[] bbox, double theta) {
+        if (ma == null || bbox == null || bbox.length != 4) return null;
+        List<Feature> fts = ma.getFeatures();
+        if (fts == null) return null;
+        for (Feature ft : fts) {
+            if (ft == null || !ft.isType(BOUNDING_BOX_FEATURE)) continue;
+            Annotation ann = ft.getAnnotation();
             if (ann == null) continue;
-            if (!sameString(predictModelId, ann.getPredictModelId())) continue;
-            if (!sameString(bboxKey, ann.getBboxKey())) continue;
-            if (!sameString(thetaKey, ann.getThetaKey())) continue;
-            return ann;
+            JSONObject p = ft.getParameters();
+            if (p == null) continue;
+            if (Math.round(p.optDouble("x", 0)) == Math.round(bbox[0])
+                && Math.round(p.optDouble("y", 0)) == Math.round(bbox[1])
+                && Math.round(p.optDouble("width", 0)) == Math.round(bbox[2])
+                && Math.round(p.optDouble("height", 0)) == Math.round(bbox[3])
+                && Math.abs(p.optDouble("theta", 0.0d) - theta) < 1.0e-4) {
+                return ann;
+            }
         }
         return null;
     }
@@ -1120,11 +1135,6 @@ public class MlServiceProcessor {
         String version = matchConfig.optString("version", null);
         if (!Util.stringExists(method)) return ann.numberEmbeddings() > 0;
         return ann.getEmbeddingByMethod(method, version) != null;
-    }
-
-    private static boolean sameString(String a, String b) {
-        if (a == null) return b == null;
-        return a.equals(b);
     }
 
     private static final class ConfigPair {

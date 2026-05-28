@@ -541,10 +541,10 @@ public class StartupWildbook implements ServletContextListener {
      *       Shepherd's current state; if another worker has already
      *       progressed the asset, the status will no longer be
      *       {@code processing-mlservice} and the reconciler skips.</li>
-     *   <li>MlServiceProcessor's Phase 4 idempotency check (composite of
-     *       mediaAsset + predictModelId + bboxKey + thetaKey) prevents
-     *       duplicate annotation creation if the dead worker had already
-     *       persisted some results.</li>
+     *   <li>MlServiceProcessor's persist-time duplicate check
+     *       (findExistingAnnotation: Feature bbox + theta on the
+     *       MediaAsset) prevents duplicate annotation creation if the
+     *       dead worker had already persisted some results.</li>
      *   <li>The reconciler intentionally does NOT bump REVISION after a
      *       successful re-enqueue, because doing so from the stale
      *       managed MediaAsset instance could overwrite progress made by
@@ -552,8 +552,9 @@ public class StartupWildbook implements ServletContextListener {
      *       advances naturally when MlServiceProcessor's Phase 1 calls
      *       setDetectionStatus on the picked-up job. A restart that
      *       happens between enqueue and consumer pickup can re-enqueue
-     *       a duplicate job; Phase 4 idempotency (see previous bullet)
-     *       bounds the impact to wasted work, not data corruption.</li>
+     *       a duplicate job; the persist-time duplicate check (see
+     *       previous bullet) bounds the impact to wasted work, not data
+     *       corruption.</li>
      * </ul>
      *
      * <p>Threshold default: 1 hour. Longer than any healthy detection

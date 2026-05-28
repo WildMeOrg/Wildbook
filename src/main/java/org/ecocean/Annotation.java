@@ -58,18 +58,9 @@ public class Annotation extends Base implements java.io.Serializable {
     private Set<Embedding> embeddings;
     protected String acmId;
 
-    // ----- ml-service migration v2: idempotency + WBIA registration -----
+    // ----- ml-service migration v2: WBIA registration -----
     // (commit #4 of the v2 plan)
     //
-    // predictModelId / bboxKey / thetaKey form the composite that uniquely
-    // identifies an ml-service-created detection. The partial unique index
-    // in archive/sql/ml_service_idempotency.sql guards against concurrent
-    // retry creating duplicates. Null on legacy WBIA-era rows and on
-    // manually-drawn annotations.
-    protected String predictModelId;
-    protected String bboxKey;   // literal "x:y:w:h" of rounded ints
-    protected String thetaKey;  // theta rounded to 4 decimals, as String
-
     // wbiaRegistered drives the DB-backed background poller that tells WBIA
     // about ml-service-created annotations so HotSpotter remains available.
     //
@@ -328,16 +319,7 @@ public class Annotation extends Base implements java.io.Serializable {
         return (this.acmId != null);
     }
 
-    // ----- ml-service migration v2 idempotency / WBIA-registration accessors -----
-
-    public String getPredictModelId() { return predictModelId; }
-    public void setPredictModelId(String s) { this.predictModelId = s; this.setVersion(); }
-
-    public String getBboxKey() { return bboxKey; }
-    public void setBboxKey(String s) { this.bboxKey = s; this.setVersion(); }
-
-    public String getThetaKey() { return thetaKey; }
-    public void setThetaKey(String s) { this.thetaKey = s; this.setVersion(); }
+    // ----- ml-service migration v2 WBIA-registration accessors -----
 
     public Boolean getWbiaRegistered() { return wbiaRegistered; }
     public void setWbiaRegistered(Boolean b) { this.wbiaRegistered = b; this.setVersion(); }
@@ -600,21 +582,6 @@ public class Annotation extends Base implements java.io.Serializable {
 // TODO: Deprecate "all of this" now that deployed sites are migrated
     public MediaAsset __getMediaAsset() {
         return mediaAsset;
-    }
-
-    /**
-     * Direct setter for the {@code mediaAsset} field — populates the
-     * underlying {@code ANNOTATION.MEDIAASSET_ID_OID} column. The plan v2
-     * partial unique index on (mediaAsset, predictModelId, bboxKey, thetaKey)
-     * needs this column to be populated on ml-service-created annotations.
-     * Bumps version for OpenSearch reindex pickup. Mirrors the
-     * {@link #__getMediaAsset} naming convention used by infrastructure
-     * code (use {@link #getMediaAsset()} when you want the proper
-     * Feature-based linkage).
-     */
-    public void __setMediaAsset(MediaAsset ma) {
-        this.mediaAsset = ma;
-        this.setVersion();
     }
 
     public MediaAsset getMediaAsset() {

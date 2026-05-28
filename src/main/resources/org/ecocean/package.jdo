@@ -548,20 +548,10 @@
 		<column length="100"/>
 	</field>
 
-	<!-- ml-service migration v2 (commit #4): idempotency + WBIA registration.
-	     The partial unique index on (mediaAsset, predictModelId, bboxKey,
-	     thetaKey) WHERE predictModelId IS NOT NULL is applied by
-	     archive/sql/ml_service_idempotency.sql. -->
-	<field name="predictModelId">
-		<column length="100" allows-null="true"/>
-		<index name="ANNOTATION_PREDICTMODELID_IDX"/>
-	</field>
-	<field name="bboxKey">
-		<column length="64" allows-null="true"/>
-	</field>
-	<field name="thetaKey">
-		<column length="20" allows-null="true"/>
-	</field>
+	<!-- ml-service migration v2 (commit #4): WBIA registration state.
+	     Duplicate-detection idempotency is handled in-memory via Feature
+	     geometry (MlServiceProcessor.findExistingAnnotation), so no extra
+	     idempotency columns or unique index are needed. -->
 	<field name="wbiaRegistered">
 		<column allows-null="true"/>
 	</field>
