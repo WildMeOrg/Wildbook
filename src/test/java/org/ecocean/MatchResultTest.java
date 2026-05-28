@@ -174,6 +174,11 @@ class MatchResultTest {
         dannot.append("]");
         annotScore.append("]");
         scoreList.append("]");
+        // Stub the query-annot lookup too — createFromJsonResult resolves the
+        // query annotation by acmId before it reads any candidates.
+        ArrayList<Annotation> queryList = new ArrayList<Annotation>();
+        queryList.add(mock(Annotation.class));
+        when(myShepherd.getAnnotationsWithACMId("query-annot-id", true)).thenReturn(queryList);
 
         JSONObject res = new JSONObject();
         res.put("query_annot_uuid_list",
@@ -235,6 +240,11 @@ class MatchResultTest {
         when(myShepherd.getAnnotationsWithACMId("id0", true)).thenReturn(list0);
         when(myShepherd.getAnnotationsWithACMId("id1", true)).thenReturn(list1);
         when(myShepherd.getAnnotationsWithACMId("id2", true)).thenReturn(list2);
+        // Stub the query-annot lookup too — createFromJsonResult resolves the
+        // query annotation by acmId before it reads any candidates.
+        ArrayList<Annotation> queryList = new ArrayList<Annotation>();
+        queryList.add(mock(Annotation.class));
+        when(myShepherd.getAnnotationsWithACMId("query-annot-id", true)).thenReturn(queryList);
 
         JSONObject res = new JSONObject();
         res.put("query_annot_uuid_list",
