@@ -4889,16 +4889,22 @@ public class Encounter extends Base implements java.io.Serializable {
                                 rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
                                     "annotations").getJSONObject(j).put("embeddingCounts",
                                     new org.json.JSONObject(ann.getEmbeddingCounts()));
-                                // annTasks are in chron order so most recent will be at end
-                                List<Task> annTasks = ann.getRootIATasks(myShepherd);
-                                int ntasks = Util.collectionSize(annTasks);
-                                if (ntasks > 0) {
+                                // C15: shared selector picks the single task to
+                                // surface as Match Results, matching what the
+                                // bulk-import page shows. Was previously
+                                // ann.getRootIATasks().get(last), which on deep
+                                // v2 task hierarchies climbed past prospects-
+                                // bearing tasks into mid-chain WBIA orchestration
+                                // tasks (recursion-depth=3 on Task.parent caps
+                                // the in-memory ancestor walk).
+                                Task matchTask = ann.getPreferredMatchResultsTask(myShepherd);
+                                if (matchTask != null) {
                                     rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
                                         "annotations").getJSONObject(j).put("iaTaskId",
-                                        annTasks.get(ntasks - 1).getId());
+                                        matchTask.getId());
                                     rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
                                         "annotations").getJSONObject(j).put("iaTaskParameters",
-                                        annTasks.get(ntasks - 1).getParameters());
+                                        matchTask.getParameters());
                                 }
                             }
                         }

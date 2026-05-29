@@ -263,7 +263,13 @@ public class Embedding implements java.io.Serializable {
     }
 
     public static boolean findMatchProspects(JSONObject iaConfig, Task task, Shepherd myShepherd) {
-        if ((iaConfig == null) || (iaConfig.optString("api_endpoint", null) == null)) return false;
+        // Migration plan v2 §commit #3: gate accepts the new _id_conf
+        // contract (entries with `method`/`version`/`pipeline_root` and no
+        // api_endpoint) as well as legacy entries (with `api_endpoint`).
+        if (iaConfig == null) return false;
+        boolean isVectorConfig = Util.stringExists(iaConfig.optString("method", null))
+            || Util.stringExists(iaConfig.optString("api_endpoint", null));
+        if (!isVectorConfig) return false;
         // from here on out we should return true since this is a vector match, even when something goes wrong
         // and we should also set status on the task (and subtasks)
         if (task == null) return true; // cant really set status on this :(
@@ -274,6 +280,11 @@ public class Embedding implements java.io.Serializable {
         }
         System.out.println("findMatchProspects() (task " + task.getId() + ", " +
             task.numberAnnotations() + " annots) has embedding match: " + iaConfig);
+        // Track per-subtask outcomes so the parent task's terminal state
+        // reflects reality (plan v2 §commit #3: previous code unconditionally
+        // marked the parent "completed" even if every subtask failed).
+        int subtasksOk = 0;
+        int subtasksFailed = 0;
         for (Annotation ann : task.getObjectAnnotations()) {
             // every ann gets a subTask
             Task subTask = new Task(task);
@@ -300,17 +311,48 @@ public class Embedding implements java.io.Serializable {
                         "no suitable embeddings for getMatches()");
                     subTask.setCompletionDateInMilliseconds();
                     myShepherd.getPM().makePersistent(subTask);
+                    subtasksFailed++;
                     continue;
                 }
             }
-            // first we get matchingSetQuery to find number of candidates
+            // Build matchingSetQuery for the candidate count.
             boolean useClauses = false; // TODO how??
             JSONObject matchingSetQuery = ann.getMatchingSetQuery(myShepherd, task.getParameters(),
                 useClauses);
-            // then we use matchingSetQuery to get matchQuery (to find prospect matches)
-            String[] methodValues = MLService.getMethodValues(iaConfig);
-            JSONObject matchQuery = ann.getMatchQuery(methodValues[0], methodValues[1],
-                matchingSetQuery);
+            // getMatchingSetQuery can return null (e.g. encounter missing,
+            // taxonomy filtered out). Skip this subtask cleanly rather than
+            // NPE'ing on the queryCount/getMatchQuery below.
+            if (matchingSetQuery == null) {
+                System.out.println("findMatchProspects() null matchingSetQuery for " + ann);
+                subTask.setStatus("error");
+                subTask.setStatusDetailsAddError("REQUIRED", "null matchingSetQuery");
+                subTask.setCompletionDateInMilliseconds();
+                myShepherd.getPM().makePersistent(subTask);
+                subtasksFailed++;
+                continue;
+            }
+            // PR #1582 fixed the in-place mutation that getMatchQuery used
+            // to perform on matchingSetQuery. The ordering-before-getMatchQuery
+            // here and the deep clone passed below are now belt-and-suspenders
+            // against regression.
+            OpenSearch os = new OpenSearch();
+            int numberCandidates = -2;
+            try {
+                numberCandidates = os.queryCount("annotation", matchingSetQuery);
+            } catch (IOException ex) {
+                System.out.println("findMatchProspects() numCandidates query failed with " + ex);
+            }
+            // Read method/version directly from the new _id_conf contract;
+            // fall back to splitting model_id for legacy configs.
+            String method = iaConfig.optString("method", null);
+            String version = iaConfig.optString("version", null);
+            if (!Util.stringExists(method)) {
+                String[] mv = MLService.getMethodValues(iaConfig);
+                method = mv[0];
+                version = mv[1];
+            }
+            JSONObject matchQuery = ann.getMatchQuery(method, version,
+                new JSONObject(matchingSetQuery.toString()));
             // i think this will never happen now, due to on-the-fly fix above; but leaving to be safe
             if (matchQuery == null) {
                 System.out.println("findMatchProspects() cannot getMatches() on " + ann +
@@ -320,19 +362,14 @@ public class Embedding implements java.io.Serializable {
                     "no suitable embeddings for getMatches()");
                 subTask.setCompletionDateInMilliseconds();
                 myShepherd.getPM().makePersistent(subTask);
+                subtasksFailed++;
                 continue; // on to next ann
-            }
-            OpenSearch os = new OpenSearch();
-            int numberCandidates = -2;
-            try {
-                numberCandidates = os.queryCount("annotation", matchingSetQuery);
-            } catch (IOException ex) {
-                System.out.println("findMatchProspects() numCandidates query failed with " + ex);
             }
             List<Annotation> prospects = ann.getMatches(myShepherd, matchQuery);
             System.out.println("findMatchProspects() on " + ann + " found " +
                 Util.collectionSize(prospects) + " prospects (in " + numberCandidates +
                 " candidates) for subTask " + subTask.getId());
+            boolean mrOk = true;
             try {
                 // we build this even if empty, cuz that means we got results; just not nice ones
                 MatchResult mr = new MatchResult(subTask, prospects, numberCandidates, myShepherd);
@@ -342,13 +379,32 @@ public class Embedding implements java.io.Serializable {
                 System.out.println("findMatchProspects() MatchResult creation failed on " +
                     subTask + ": " + ex);
                 ex.printStackTrace();
+                mrOk = false;
             }
-            subTask.setStatus("completed");
+            if (mrOk) {
+                subTask.setStatus("completed");
+                subtasksOk++;
+            } else {
+                subTask.setStatus("error");
+                subTask.setStatusDetailsAddError("UNKNOWN",
+                    "MatchResult persistence failed");
+                subtasksFailed++;
+            }
             subTask.setCompletionDateInMilliseconds();
             myShepherd.getPM().makePersistent(subTask);
         }
-        // TODO is this correct for the toplevel even if some subTasks failed?
-        task.setStatus("completed");
+        // Reflect subtask outcomes on the parent. Any failure marks the
+        // parent "error" with a PARTIAL detail; otherwise "completed".
+        // No "partial" terminal status is introduced — Task.statusInEndState
+        // only recognizes completed/error, so adding one would ripple into
+        // polling/UI semantics.
+        if (subtasksFailed == 0) {
+            task.setStatus("completed");
+        } else {
+            task.setStatus("error");
+            task.setStatusDetailsAddError("PARTIAL",
+                subtasksFailed + " of " + (subtasksOk + subtasksFailed) + " subtasks failed");
+        }
         task.setCompletionDateInMilliseconds();
         return true;
     }

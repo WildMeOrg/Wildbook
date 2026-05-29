@@ -14,18 +14,16 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
   const pageCount = Math.ceil(data.length / safePerPage);
 
   useEffect(() => {
-    if (dataset.length === 0) {
-      const indexedData = data.map((row, index) => ({
-        ...row,
-        tableID: row.tableID ?? index + 1,
-      }));
-      setDataset(indexedData);
-      setCurrentPage(0);
-      setPagedData([...indexedData].slice(0, safePerPage));
-    } else {
-      setCurrentPage(0);
-      setPagedData([...dataset].slice(0, safePerPage));
-    }
+    // Always rebuild dataset from the incoming `data` prop so updates
+    // (e.g. polling progress) are reflected. Any active user sort is
+    // discarded on each new snapshot.
+    const indexedData = data.map((row, index) => ({
+      ...row,
+      tableID: row.tableID ?? index + 1,
+    }));
+    setDataset(indexedData);
+    setCurrentPage(0);
+    setPagedData([...indexedData].slice(0, safePerPage));
   }, [data, safePerPage]);
 
   useEffect(() => {
@@ -91,6 +89,11 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
         fixedHeader
         fixedHeaderScrollHeight="85vh"
         striped
+        noDataComponent={
+          <div className="p-3 text-center text-muted">
+            There are no records to display yet. Page will refresh.
+          </div>
+        }
       />
       <Row className="mt-3 d-flex justify-content-center">
         <Col xs="auto">

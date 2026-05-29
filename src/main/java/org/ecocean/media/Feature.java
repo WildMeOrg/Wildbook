@@ -87,6 +87,20 @@ public class Feature implements java.io.Serializable {
         return annotation;
     }
 
+    /**
+     * Explicitly sets the owning Annotation. The {@code Annotation.features}
+     * collection is {@code mapped-by="annotation"} in the JDO mapping, so the
+     * Annotation side is the inverse and this side is the owner; the owner
+     * must be set for the {@code ANNOTATION_FEATURES} relationship to
+     * populate reliably without depending on DataNucleus relationship
+     * management. {@code MediaAsset.addFeature(f)} already sets
+     * {@code Feature.asset}; this method is the symmetric setter for the
+     * Annotation side.
+     */
+    public void setAnnotation(Annotation ann) {
+        this.annotation = ann;
+    }
+
     public MediaAsset getMediaAsset() {
         return asset;
     }
