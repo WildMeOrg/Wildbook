@@ -4214,9 +4214,17 @@ public class Encounter extends Base implements java.io.Serializable {
                 org.json.JSONArray viewUsers = new org.json.JSONArray();
                 String uid = usernameToId.get(submitterId);
                 if (uid == null) {
-                    // see issue 939 for example :(
                     System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
-                        submitterId + " on enc " + id);
+                        submitterId + " on enc " + id + " -> full reindex to clear stale ACL fields");
+                    try {
+                        Encounter staleEnc = myShepherd.getEncounter(id);
+                        if (staleEnc != null) {
+                            IndexingManager im = IndexingManagerFactory.getIndexingManager();
+                            im.addIndexingQueueEntry(staleEnc, false); // full reindex: drops submitterUserId + viewUsers
+                        }
+                    } catch (Exception ex) {
+                        System.out.println("  invalid-owner reindex enqueue failed for " + id + ": " + ex);
+                    }
                     continue;
                 }
                 encCount++;
@@ -4258,14 +4266,11 @@ public class Encounter extends Base implements java.io.Serializable {
                         viewUsers.put(localUid);
                     }
                 }
-                if (viewUsers.length() > 0) {
-                    updateData.put("viewUsers", viewUsers);
-                    try {
-                        os.indexUpdate("encounter", id, updateData);
-                    } catch (Exception ex) {
-                        // keeping this quiet cuz it can get noise while index builds
-                        // System.out.println("opensearchIndexPermissions(): WARNING failed to update viewUsers on enc " + enc.getId() + "; likely has not been indexed yet: " + ex);
-                    }
+                updateData.put("viewUsers", viewUsers); // always write, incl [] so revocation propagates
+                try {
+                    os.indexUpdate("encounter", id, updateData);
+                } catch (Exception ex) {
+                    // quiet during initial index build
                 }
             }
         } catch (Exception ex) {
