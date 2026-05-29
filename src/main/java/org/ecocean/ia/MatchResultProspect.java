@@ -34,6 +34,25 @@ public class MatchResultProspect implements java.io.Serializable, Comparable<Mat
         this.asset = asset;
     }
 
+    /**
+     * Attach a PairX inspection MediaAsset to this prospect. Used by
+     * {@link MatchInspectionPairxEnricher} in Phase C to enrich
+     * prospects after the MatchResult has been persisted (empty-match-
+     * prospects design Track 2 C13: PairX is now non-blocking and
+     * runs without holding the outer Shepherd across HTTP).
+     */
+    public void setAsset(MediaAsset asset) {
+        this.asset = asset;
+    }
+
+    public MediaAsset getAsset() {
+        return asset;
+    }
+
+    public Annotation getAnnotation() {
+        return annotation;
+    }
+
     public double getScore() {
         return score;
     }
@@ -57,7 +76,7 @@ public class MatchResultProspect implements java.io.Serializable, Comparable<Mat
     }
 
     public String toString() {
-        return scoreType + ": " + score + " on " + annotation;
+        return scoreType + "=" + score + " on " + annotation + " for " + matchResult;
     }
 
     public JSONObject jsonForApiGet(Shepherd myShepherd) {

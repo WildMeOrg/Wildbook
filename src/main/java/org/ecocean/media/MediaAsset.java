@@ -216,6 +216,11 @@ public class MediaAsset extends Base implements java.io.Serializable {
 
     public void setDetectionStatus(String status) {
         this.detectionStatus = status;
+        // ml-service migration v2 (commit #5): bump revision so the
+        // OpenSearch reindexer picks up detection-status changes and so the
+        // stale-job reconciler in commit #12 has a real "when did this
+        // detectionStatus change" timestamp via REVISION.
+        this.setRevision();
     }
 
     public String getIdentificationStatus() {
@@ -661,6 +666,25 @@ public class MediaAsset extends Base implements java.io.Serializable {
         @Override public int compare(Annotation annA, Annotation annB) {
             return annA.comparePositional(annB);
         }
+    }
+
+    // will find one with same qualities on this asset (will not return self!)
+    public Annotation findAnnotation(Annotation match, boolean shapeOnly) {
+        if (match == null) return null;
+        if (numAnnotations() < 1) return null;
+        Annotation found = null;
+        for (Annotation ann : getAnnotations()) {
+            if (ann.equals(match)) continue;
+            if (ann.equalsShape(match)) {
+                found = ann;
+                break;
+            }
+        }
+        if (shapeOnly || (found == null)) return found;
+        // TODO what else do we want to compare here?
+        if (!found.equalsIAClass(match)) return null;
+        if (!found.equalsViewpoint(match)) return null;
+        return found;
     }
 
     /**

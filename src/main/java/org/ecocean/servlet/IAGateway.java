@@ -4,6 +4,7 @@ import org.ecocean.AccessControl;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.*;
 import org.ecocean.media.*;
@@ -32,14 +33,75 @@ import java.util.List;
 import java.util.UUID;
 
 public class IAGateway extends HttpServlet {
-    private static Queue IAQueue = null;
-    private static Queue detectionQueue = null;
-    private static Queue acmIdQueue = null;
-    private static Queue IACallbackQueue = null;
+    // Shared scheduled executor for requeueJob() — replaces the
+    // previous "new Thread(r).start()" per gate-defer that just slept
+    // and re-published. With 200+ defers in a typical bulk import the
+    // old pattern spawned hundreds of throwaway threads (each ~0.5-2MB
+    // stack). ScheduledExecutorService doesn't consume a worker thread
+    // during the delay, so a tiny daemon pool is plenty. Daemon =
+    // doesn't block Tomcat shutdown.
+    private static final java.util.concurrent.atomic.AtomicInteger REQUEUE_THREAD_SEQ
+        = new java.util.concurrent.atomic.AtomicInteger();
+    private static final java.util.concurrent.ScheduledExecutorService REQUEUE_EXEC
+        = java.util.concurrent.Executors.newScheduledThreadPool(2,
+            r -> {
+                Thread t = new Thread(r, "IAGateway-requeue-" + REQUEUE_THREAD_SEQ.incrementAndGet());
+                t.setDaemon(true);
+                return t;
+            });
+
+    // Per-context queue caches. Previously these were single static
+    // Queue fields that every get*Queue() call reassigned via
+    // QueueUtil.getBest() — defeating the cache and printing
+    // "[INFO] FileQueue.init(context0) complete" to stdout on every
+    // detection schedule (observed 180+ times in 5 minutes during a
+    // 200-row bulk import). Queue lifecycle is JVM-scoped (no
+    // destroy/close API), so caching by context is safe.
+    private static final java.util.concurrent.ConcurrentHashMap<String, Queue> IA_QUEUE_CACHE
+        = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
+    private static final java.util.concurrent.ConcurrentHashMap<String, Queue> DETECTION_QUEUE_CACHE
+        = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
+    private static final java.util.concurrent.ConcurrentHashMap<String, Queue> ACMID_QUEUE_CACHE
+        = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
+    private static final java.util.concurrent.ConcurrentHashMap<String, Queue> IACALLBACK_QUEUE_CACHE
+        = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
+
+    private static Queue cachedQueue(
+        java.util.concurrent.ConcurrentHashMap<String, Queue> cache,
+        String context, String name)
+    throws IOException {
+        // Preserve the legacy null-context path. QueueUtil.getBest
+        // gracefully returns null when FileQueue.isAvailable(null)
+        // is false; ConcurrentHashMap rejects null keys, so we bypass
+        // the cache for the null case entirely.
+        if (context == null) return QueueUtil.getBest(context, name);
+        Queue q = cache.get(context);
+        if (q != null) return q;
+        q = QueueUtil.getBest(context, name);
+        if (q == null) return null; // don't cache null returns
+        Queue existing = cache.putIfAbsent(context, q);
+        return (existing != null) ? existing : q;
+    }
 
     public void init(ServletConfig config)
     throws ServletException {
         super.init(config);
+    }
+
+    // Shut down the requeue executor when the servlet is undeployed
+    // (e.g. Tomcat webapp reload). Without this, the static daemon
+    // pool would survive the undeploy and keep the previous webapp's
+    // classloader reachable via pending Runnables' anonymous-inner-
+    // class refs, causing a classloader leak across reloads (Codex
+    // review Major on Phase A).
+    @Override
+    public void destroy() {
+        try {
+            REQUEUE_EXEC.shutdownNow();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        super.destroy();
     }
 
     public void doOptions(HttpServletRequest request, HttpServletResponse response)
@@ -446,9 +508,14 @@ public class IAGateway extends HttpServlet {
                 String errorMsg = sent.optString("error", "(unknown error)");
                 System.out.println("beginIdentifyAnnotations() was unsuccessful due to " +
                     errorMsg + "; hopefully we requeue");
-                // set the status as complete as we faithfully completed the query but nothing to match against
+                // sendIdentify failed before WBIA accepted the job; surface this as an
+                // error rather than "completed" so the import page doesn't falsely
+                // report the task as done. (Mirrors the sibling error path ~30 lines
+                // below that already sets status="error" on a different failure mode.)
                 if (task != null) {
-                    task.setStatus("completed");
+                    task.setStatus("error");
+                    task.setStatusDetailsAddError("SEND_FAILED",
+                        "beginIdentifyAnnotations() failed: " + errorMsg);
                     task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
                     myShepherd.updateDBTransaction();
                 }
@@ -581,26 +648,22 @@ public class IAGateway extends HttpServlet {
 
     public static Queue getIAQueue(String context)
     throws IOException {
-        IAQueue = QueueUtil.getBest(context, "IA");
-        return IAQueue;
+        return cachedQueue(IA_QUEUE_CACHE, context, "IA");
     }
 
     public static Queue getDetectionQueue(String context)
     throws IOException {
-        detectionQueue = QueueUtil.getBest(context, "detection");
-        return detectionQueue;
+        return cachedQueue(DETECTION_QUEUE_CACHE, context, "detection");
     }
 
     public static Queue getAcmIdQueue(String context)
     throws IOException {
-        acmIdQueue = QueueUtil.getBest(context, "acmid");
-        return acmIdQueue;
+        return cachedQueue(ACMID_QUEUE_CACHE, context, "acmid");
     }
 
     public static Queue getIACallbackQueue(String context)
     throws IOException {
-        IACallbackQueue = QueueUtil.getBest(context, "IACallback");
-        return IACallbackQueue;
+        return cachedQueue(IACALLBACK_QUEUE_CACHE, context, "IACallback");
     }
 
     public static void processQueueMessage(String message) {
@@ -620,6 +683,27 @@ public class IAGateway extends HttpServlet {
         // __context and __baseUrl should be set -- this is done automatically in IAGateway, but if getting here by some other method, do the work!
         if (jobj.optBoolean("v2", false)) { // lets "new world" ia package do its thing
             IA.handleRest(jobj);
+            return;
+        }
+        if (jobj.optBoolean("MLService", false)) {
+            MLService mlserv = new MLService();
+            mlserv.processQueueJob(jobj);
+            return;
+        }
+        // Migration plan v2 §commit #10a: ml-service v2 dispatcher branch.
+        // The new processor takes context in its constructor (no hardcoded
+        // "context0") and returns a typed outcome. Both the detection +
+        // extraction lifecycle (Phases 1-5) and the deferred-match path
+        // route here; MlServiceProcessor.process(jobj) handles routing
+        // internally based on the payload's flags.
+        if (jobj.optBoolean("mlServiceV2", false)) {
+            String mlContext = jobj.optString("__context", "context0");
+            org.ecocean.ia.MlServiceProcessor processor =
+                new org.ecocean.ia.MlServiceProcessor(mlContext);
+            org.ecocean.ia.MlServiceJobOutcome outcome = processor.process(jobj);
+            System.out.println("IAGateway: mlServiceV2 job " +
+                jobj.optString("taskId", "?") + " → " + outcome.getKind() +
+                (outcome.getCode() == null ? "" : " [" + outcome.getCode() + "]"));
             return;
         }
         boolean requeue = false;
@@ -753,38 +837,73 @@ public class IAGateway extends HttpServlet {
         jobj.put("__queueRetries", retries);
         jobj.put("__queueActualRetries", actualRetries);
 
-        // now we fork background thread to *wait* and then add this to queue
-        Runnable r = new Runnable() {
-            public void run() {
-                boolean requeueSuccess = false;
-                long whileSleepMillis = 1000;
-                while (!requeueSuccess) {
-                    try {
-                        if (increment) whileSleepMillis = 30000;
-                        System.out.println("requeueJob(): backgrounding taskId=" + taskId);
-                        try {
-                            Thread.sleep(whileSleepMillis);
-                        } catch (java.lang.InterruptedException ex) {}
-                        if (jobj.optJSONObject("detect") != null || jobj.optBoolean("fastlane",
-                            false)) {
-                            addToDetectionQueue(context, jobj.toString());
-                        } else {
-                            addToQueue(context, jobj.toString());
-                        }
-                        requeueSuccess = true;
-                    } catch (Exception ex) {
-                        whileSleepMillis = 30000;
-                        System.out.println(
-                            ".....requeueJob() looping: failed to requeue addTo_Queue() taskId=" +
-                            taskId + " due to " + ex.toString());
-                        ex.printStackTrace();
-                    }
-                } // end while
-            } // end run
-        }; // end Runnable
-        new Thread(r).start();
+        // Schedule the requeue on the shared REQUEUE_EXEC. Replaces
+        // the previous "new Thread() + Thread.sleep() + while-loop"
+        // pattern that spawned hundreds of throwaway threads during a
+        // bulk import. Sleep delay is computed up-front; the
+        // ScheduledExecutorService does not consume a worker during
+        // the delay.
+        //
+        // Gate-defer requeues (deferredMatch:true) poll for sibling
+        // visibility/indexing settle and benefit from a tight 5s
+        // cadence on the FIRST attempt — those polls normally resolve
+        // in seconds. The 30-second backoff is still appropriate for
+        // genuine ml-service network retries that need rate-limiting,
+        // AND for any retry that follows a queue-publish failure
+        // (scheduleRequeueRetry() uses 30000 deliberately to throttle
+        // a struggling queue/backend).
+        final boolean isGateDefer = jobj.optBoolean("deferredMatch", false);
+        final long initialDelayMillis;
+        if (increment) {
+            initialDelayMillis = isGateDefer ? 5000L : 30000L;
+        } else {
+            initialDelayMillis = 1000L;
+        }
+        // Log at schedule time (not at fire time) to match the
+        // previous code's "logged before sleeping" timing for any
+        // operators tailing for this string.
+        System.out.println("requeueJob(): backgrounding taskId=" + taskId);
+        scheduleRequeuePublish(jobj, context, taskId, initialDelayMillis);
 
         return true;
+    }
+
+    // Schedules a single attempt to publish jobj onto the appropriate
+    // queue after delayMillis. On publish failure, reschedules itself
+    // with a 30s backoff — preserving the original code's "retry
+    // forever on addToQueue/addToDetectionQueue failure" semantics
+    // without an unbounded busy loop on a dedicated thread.
+    private static void scheduleRequeuePublish(final JSONObject jobj, final String context,
+        final String taskId, long delayMillis) {
+        REQUEUE_EXEC.schedule(new Runnable() {
+            public void run() {
+                try {
+                    if (jobj.optJSONObject("detect") != null ||
+                        jobj.optBoolean("fastlane", false) ||
+                        jobj.optBoolean("MLService", false) ||
+                        jobj.optBoolean("mlServiceV2", false)) {
+                        // mlServiceV2 retries must land on the
+                        // detection queue, not the generic IA queue.
+                        // Without this, a retryable ml-service failure
+                        // would never be re-dispatched to
+                        // MlServiceProcessor.
+                        addToDetectionQueue(context, jobj.toString());
+                    } else {
+                        addToQueue(context, jobj.toString());
+                    }
+                } catch (Throwable t) {
+                    System.out.println(
+                        ".....requeueJob() looping: failed to requeue addTo_Queue() taskId=" +
+                        taskId + " due to " + t.toString());
+                    t.printStackTrace();
+                    // Indefinite retry on publish failure, 30s backoff.
+                    // Catching Throwable (not Exception) ensures even
+                    // unexpected Errors during publish don't kill the
+                    // executor worker silently.
+                    scheduleRequeuePublish(jobj, context, taskId, 30000L);
+                }
+            }
+        }, delayMillis, java.util.concurrent.TimeUnit.MILLISECONDS);
     }
 
     public static void processCallbackQueueMessage(String message) {

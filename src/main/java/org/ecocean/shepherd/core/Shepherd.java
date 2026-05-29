@@ -17,6 +17,7 @@ import org.ecocean.genetics.*;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.ia.MatchResult;
+import org.ecocean.ia.MatchResultProspect;
 import org.ecocean.ia.Task;
 import org.ecocean.media.*;
 import org.ecocean.movement.Path;
@@ -2772,6 +2773,7 @@ public class Shepherd {
     }
 
     public Task getTask(String id) {
+        if (id == null) return null; // save us some trouble
         Task theTask = null;
 
         try {
@@ -2825,6 +2827,46 @@ public class Shepherd {
         query.setOrdering("created DESC");
         Collection c = (Collection)query.execute();
         if (c != null) all = new ArrayList<MatchResult>(c);
+        query.closeAll();
+        return all;
+    }
+
+    public List<MatchResult> getMatchResults(Annotation ann) {
+        List<MatchResult> all = new ArrayList<MatchResult>();
+
+        if (ann == null) return all;
+        String filter = "SELECT FROM org.ecocean.ia.MatchResult WHERE queryAnnotation.id == '" +
+            ann.getId() + "'";
+        Query query = pm.newQuery(filter);
+        query.setOrdering("created DESC");
+        Collection c = (Collection)query.execute();
+        if (c != null) all = new ArrayList<MatchResult>(c);
+        query.closeAll();
+        return all;
+    }
+
+    // faster deletion of all MatchResults associated with Annotation
+    public long deleteMatchResults(Annotation ann) {
+        if (ann == null) return 0l;
+        long t = System.currentTimeMillis();
+        String filter = "SELECT FROM org.ecocean.ia.MatchResult WHERE queryAnnotation.id == '" +
+            ann.getId() + "'";
+        Query query = pm.newQuery(filter);
+        long ct = query.deletePersistentAll(); 
+        query.closeAll();
+        System.out.println("[DEBUG] deleteMatchResults() deleted " + ct + " [" + (System.currentTimeMillis() - t) + "ms] on " + ann);
+        return ct;
+    }
+
+    public List<MatchResultProspect> getMatchResultProspects(Annotation ann) {
+        List<MatchResultProspect> all = new ArrayList<MatchResultProspect>();
+
+        if (ann == null) return all;
+        String filter = "SELECT FROM org.ecocean.ia.MatchResultProspect WHERE annotation.id == '" +
+            ann.getId() + "'";
+        Query query = pm.newQuery(filter);
+        Collection c = (Collection)query.execute();
+        if (c != null) all = new ArrayList<MatchResultProspect>(c);
         query.closeAll();
         return all;
     }
