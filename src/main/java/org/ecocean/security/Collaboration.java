@@ -169,6 +169,22 @@ public class Collaboration implements java.io.Serializable {
         return collaborationsForUser(myShepherd, username, null);
     }
 
+    // Like collaborationsForUser but WITHOUT injecting assumed orgAdmin
+    // collaborations. Used by Encounter.computeViewUsers, which handles
+    // orgAdmin visibility explicitly and in the correct direction.
+    @SuppressWarnings("unchecked")
+    public static List<Collaboration> persistedCollaborationsForUser(Shepherd myShepherd,
+        String username) {
+        String queryString =
+            "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username +
+            "') || (username2 == '" + username + "'))";
+        Query query = myShepherd.getPM().newQuery(queryString);
+        Collection c = (Collection)(query.execute());
+        ArrayList<Collaboration> returnMe = new ArrayList<Collaboration>(c);
+        query.closeAll();
+        return returnMe;
+    }
+
     // copied with Shepherd instead of context in hopes this fixes the issue where we couldn't save an updated collab with another shepherd
     @SuppressWarnings("unchecked") public static List<Collaboration> collaborationsForUser(
         Shepherd myShepherd, String username, String state) {

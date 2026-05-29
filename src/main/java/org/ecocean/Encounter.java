@@ -3342,6 +3342,51 @@ public class Encounter extends Base implements java.io.Serializable {
         return false;
     }
 
+    /**
+     * Correct per-encounter ACL: the set of user UUIDs permitted to view this
+     * encounter. Single source of visibility truth for the full-index path.
+     * See docs/superpowers/plans/2026-05-29-viewusers-acl-hardening.md.
+     *
+     * - Public/anonymous-owner encounters and encounters with an invalid owner
+     *   yield [] (admin-only via opensearchAccess' isAdmin branch).
+     * - Otherwise: the other party of every PERSISTED approved/edit
+     *   collaboration with the submitter, plus orgAdmins of the submitter's
+     *   organization(s) (one-way).
+     */
+    public List<String> computeViewUsers(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+        if (this.isPubliclyReadable()) return ids;
+        String submitter = this.getSubmitterID();
+        User submitterUser = (submitter == null) ? null : myShepherd.getUser(submitter);
+        if (submitterUser == null) return ids; // fail closed: admin-only
+        java.util.Set<String> seen = new java.util.HashSet<String>();
+        // 1. persisted approved/edit collaborators (mutual view), correct direction
+        for (Collaboration col : Collaboration.persistedCollaborationsForUser(myShepherd, submitter)) {
+            if (!col.isApproved() && !col.isEditApproved()) continue;
+            String otherUsername = col.getOtherUsername(submitter);
+            User other = (otherUsername == null) ? null : myShepherd.getUser(otherUsername);
+            if (other != null && other.getId() != null && seen.add(other.getId())) {
+                ids.add(other.getId());
+            }
+        }
+        // 2. orgAdmins of the submitter's organization(s) can view (one-way)
+        String context = myShepherd.getContext();
+        List<Organization> orgs = myShepherd.getAllOrganizationsForUser(submitterUser);
+        if (orgs != null) {
+            for (Organization org : orgs) {
+                List<User> members = org.getMembers();
+                if (members == null) continue;
+                for (User m : members) {
+                    if (m == null || m.getUsername() == null) continue;
+                    if (m.getUsername().equals(submitter)) continue; // not self
+                    if (!myShepherd.doesUserHaveRole(m.getUsername(), Organization.ROLE_MANAGER, context)) continue;
+                    if (m.getId() != null && seen.add(m.getId())) ids.add(m.getId());
+                }
+            }
+        }
+        return ids;
+    }
+
     // new logic means we only need users who are in collab with submitting user
     // and if public, we dont need to do this at all
     public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
