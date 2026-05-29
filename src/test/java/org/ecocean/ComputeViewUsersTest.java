@@ -181,6 +181,25 @@ class ComputeViewUsersTest {
         }
     }
 
+    @Test void userIdsWithViewAccess_delegatesToComputeViewUsers() {
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("owner");
+        Shepherd myShepherd = mock(Shepherd.class);
+        when(myShepherd.getContext()).thenReturn("context0");
+        User owner = user("owner", "owner-uuid");
+        when(myShepherd.getUser("owner")).thenReturn(owner);
+        when(myShepherd.getUser("rejectedU")).thenReturn(user("rejectedU", "uuid-R"));
+        when(myShepherd.getAllOrganizationsForUser(owner)).thenReturn(new ArrayList<Organization>());
+        Collaboration cRejected = new Collaboration("owner", "rejectedU"); cRejected.setState(Collaboration.STATE_REJECTED);
+        try (MockedStatic<Collaboration> mc = mockStatic(Collaboration.class, Answers.CALLS_REAL_METHODS)) {
+            mc.when(() -> Collaboration.securityEnabled(anyString())).thenReturn(true);
+            mc.when(() -> Collaboration.persistedCollaborationsForUser(eq(myShepherd), eq("owner")))
+              .thenReturn(Arrays.asList(cRejected));
+            assertTrue(enc.userIdsWithViewAccess(myShepherd).isEmpty(),
+                "legacy path must no longer admit rejected collaborators");
+        }
+    }
+
     @Test void orgAdminOwner_withRealCollabs_doesNotInvert() {
         Shepherd myShepherd = mock(Shepherd.class);
         when(myShepherd.getContext()).thenReturn("context0");

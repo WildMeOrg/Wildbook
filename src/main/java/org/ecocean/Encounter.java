@@ -3387,19 +3387,11 @@ public class Encounter extends Base implements java.io.Serializable {
         return ids;
     }
 
-    // new logic means we only need users who are in collab with submitting user
-    // and if public, we dont need to do this at all
     public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
-        List<String> ids = new ArrayList<String>();
-
-        if (this.isPubliclyReadable()) return ids;
-        List<Collaboration> collabs = Collaboration.collaborationsForUser(myShepherd,
-            this.getSubmitterID());
-        for (Collaboration collab : collabs) {
-            User user = myShepherd.getUser(collab.getOtherUsername(this.getSubmitterID()));
-            if (user != null) ids.add(user.getId());
-        }
-        return ids;
+        // Delegates to the single correct ACL computation. Retained as a named
+        // method because the full-index serializer and any external callers
+        // reference it. See computeViewUsers().
+        return computeViewUsers(myShepherd);
     }
 
 /*
@@ -4653,7 +4645,6 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeFieldName("viewUsers");
             jgen.writeStartArray();
             for (String id : this.userIdsWithViewAccess(myShepherd)) {
-                System.out.println("opensearch whhhh: " + id);
                 jgen.writeString(id);
             }
             jgen.writeEndArray();
