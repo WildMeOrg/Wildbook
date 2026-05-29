@@ -52,9 +52,18 @@
 		<url-pattern>/react</url-pattern>
 	</servlet-mapping>
 
+	<!--
+	  SPA fallback: route unmatched paths through ReactAppServlet
+	  (mapped at /react) rather than serving /react/index.html
+	  directly. The servlet explicitly resets the response status
+	  to 200 so PWA service workers (NetworkFirst caching) accept
+	  the body. Forwarding to /react/index.html directly preserved
+	  Tomcat's 404 status, which Workbox rejects as no-response,
+	  blanking the React match-results page.
+	-->
 	<error-page>
 		<error-code>404</error-code>
-		<location>/react/index.html</location>
+		<location>/react</location>
 	</error-page>
 
 	<servlet>
@@ -94,6 +103,7 @@
 				/api/v3/bulk-import/** = authc
 				/api/v3/bulk-export = authc
 				/api/v3/bulk-export/** = authc
+				/api/v3/match-inspection/** = authc
 
 				# ===== Appadmin =====
 				/appadmin/dataIntegrity.jsp = authc
@@ -512,6 +522,16 @@
 	<servlet-mapping>
 		<servlet-name>BulkImport</servlet-name>
 		<url-pattern>/api/v3/bulk-import/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>MatchInspection</servlet-name>
+		<servlet-class>org.ecocean.api.MatchInspection</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>MatchInspection</servlet-name>
+		<url-pattern>/api/v3/match-inspection/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>

@@ -11,6 +11,7 @@ import InspectorModal from "./InspectorModal";
 import ExitFullScreenIcon from "../icons/ExitFullScreenIcon";
 import EncounterIcon from "../../../components/icons/EncounterIcon";
 import EmptyMatchPlaceholder from "./EmptyMatchPlaceholder";
+import { client } from "../../../api/client";
 
 const styles = {
   matchRow: (selected, themeColor) => ({
@@ -213,9 +214,75 @@ const MatchProspectTable = ({
   });
 
   const [inspectorOpen, setInspectorOpen] = useState(false);
-  const inspectorUrl = previewedRow?.asset?.url;
-  const inspectorOrigW = previewedRow?.asset?.width;
-  const inspectorOrigH = previewedRow?.asset?.height;
+  // Lazy-fetched inspection assets / per-prospect loading + error keyed
+  // by `${matchResultId}:${annotationId}`. Per-key state (not a single
+  // shared mutation) so a fetch for prospect A in-flight cannot block
+  // or contaminate a click on prospect B (Codex C7b round-1 Major).
+  // New MatchResults (post commit 2943d2181's enricher removal) ship
+  // with prospect.asset == null and the asset is generated on first
+  // inspector-open via POST /api/v3/match-inspection/{mrId}/{annId}.
+  // Legacy matches with prospect.asset populated never hit the network.
+  const [inspectionAssets, setInspectionAssets] = useState({});
+  const [inspectionLoading, setInspectionLoading] = useState({});
+  const [inspectionErrors, setInspectionErrors] = useState({});
+  const inspectionAssetKey =
+    previewedRow?.matchResultId && previewedRow?.annotation?.id
+      ? `${previewedRow.matchResultId}:${previewedRow.annotation.id}`
+      : null;
+  const lazyAsset = inspectionAssetKey ? inspectionAssets[inspectionAssetKey] : null;
+  const inspectorAsset = previewedRow?.asset ?? lazyAsset ?? null;
+  const inspectorUrl = inspectorAsset?.url ?? null;
+  const inspectorOrigW = inspectorAsset?.width;
+  const inspectorOrigH = inspectorAsset?.height;
+  const isInspectorLoading =
+    inspectorOpen && !inspectorUrl && inspectionAssetKey
+      ? Boolean(inspectionLoading[inspectionAssetKey])
+      : false;
+  const inspectorErrorMessage =
+    inspectorOpen && !inspectorUrl && inspectionAssetKey
+      ? inspectionErrors[inspectionAssetKey] ?? null
+      : null;
+  // Can the prospect produce an inspection image on demand? True when
+  // we have the inputs needed for the endpoint OR an already-populated
+  // asset (legacy path).
+  const canFetchInspection = Boolean(
+    inspectorAsset || (previewedRow?.matchResultId && previewedRow?.annotation?.id),
+  );
+  const fetchInspectionAsset = async (matchResultId, prospectAnnotationId) => {
+    const key = `${matchResultId}:${prospectAnnotationId}`;
+    if (inspectionLoading[key]) return;
+    setInspectionLoading((prev) => ({ ...prev, [key]: true }));
+    setInspectionErrors((prev) => ({ ...prev, [key]: null }));
+    try {
+      const { data } = await client.post(
+        `/match-inspection/${matchResultId}/${prospectAnnotationId}`,
+      );
+      if (!data?.success) {
+        throw new Error(data?.message || "match-inspection request failed");
+      }
+      const asset = data.asset || null;
+      if (!asset) {
+        // Backend C7a contract says assetJson is non-null on EXISTS/CREATED.
+        // Defensive: surface an error if the response shape ever drifts so
+        // the user sees a banner instead of a silent empty modal.
+        throw new Error("response missing asset");
+      }
+      setInspectionAssets((prev) => ({ ...prev, [key]: asset }));
+    } catch (err) {
+      setInspectionErrors((prev) => ({
+        ...prev,
+        [key]: err?.response?.data?.message || err?.message || "Failed to load",
+      }));
+    } finally {
+      setInspectionLoading((prev) => ({ ...prev, [key]: false }));
+    }
+  };
+  const openInspector = () => {
+    if (!canFetchInspection) return;
+    setInspectorOpen(true);
+    if (inspectorUrl || !inspectionAssetKey) return;
+    fetchInspectionAsset(previewedRow.matchResultId, previewedRow.annotation.id);
+  };
 
   React.useEffect(() => {
     const flat = columns.flatMap((columnData) => columnData);
@@ -451,7 +518,14 @@ const MatchProspectTable = ({
                           }}
                         >
                           {candidateIndividualDisplayName ||
-                            candidateIndividualId}
+                            candidateIndividualId || (
+                              <em style={{ opacity: 0.6 }}>
+                                <FormattedMessage
+                                  id="MATCH_PROSPECT_UNIDENTIFIED"
+                                  defaultMessage="unidentified"
+                                />
+                              </em>
+                            )}
                         </button>
 
                         {(isRowHovered || isRowSelected) && (
@@ -765,24 +839,24 @@ const MatchProspectTable = ({
                   : styles.iconButtonDisabled
               }
               title={
-                inspectorUrl
+                canFetchInspection && hasRightImage
                   ? "View inspection visualization"
                   : "No visualization available"
               }
               role="button"
-              tabIndex={inspectorUrl && hasRightImage ? 0 : -1}
+              tabIndex={canFetchInspection && hasRightImage ? 0 : -1}
               onKeyDown={(e) => {
-                if (!inspectorUrl || !hasRightImage) return;
+                if (!canFetchInspection || !hasRightImage) return;
                 if (e.key === "Enter" || e.key === " ") {
-                  setInspectorOpen(true);
+                  openInspector();
                 }
               }}
               onClick={() => {
-                if (inspectorUrl && hasRightImage) setInspectorOpen(true);
+                if (canFetchInspection && hasRightImage) openInspector();
               }}
               id={`match-prospect-inspector-open-${sectionId}`}
               data-testid={`match-prospect-inspector-open-${sectionId}`}
-              aria-disabled={!inspectorUrl || !hasRightImage}
+              aria-disabled={!canFetchInspection || !hasRightImage}
             >
               <HatchMarkIcon />
             </div>
@@ -987,18 +1061,17 @@ const MatchProspectTable = ({
                           : "No visualization available"
                       }
                       role="button"
-                      tabIndex={inspectorUrl ? 0 : -1}
+                      tabIndex={canFetchInspection ? 0 : -1}
                       onKeyDown={(e) => {
-                        if (!inspectorUrl) return;
-                        if (e.key === "Enter" || e.key === " ")
-                          setInspectorOpen(true);
+                        if (!canFetchInspection) return;
+                        if (e.key === "Enter" || e.key === " ") openInspector();
                       }}
                       onClick={() => {
-                        if (inspectorUrl) setInspectorOpen(true);
+                        if (canFetchInspection) openInspector();
                       }}
                       id={`match-prospect-fullscreen-inspector-open-${sectionId}`}
                       data-testid={`match-prospect-fullscreen-inspector-open-${sectionId}`}
-                      aria-disabled={!inspectorUrl}
+                      aria-disabled={!canFetchInspection}
                     >
                       <HatchMarkIcon />
                     </div>
@@ -1065,6 +1138,8 @@ const MatchProspectTable = ({
         imageUrl={inspectorUrl}
         originalWidth={inspectorOrigW}
         originalHeight={inspectorOrigH}
+        loading={isInspectorLoading}
+        errorMessage={inspectorErrorMessage}
       />
     </div>
   );

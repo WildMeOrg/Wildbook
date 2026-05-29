@@ -85,6 +85,10 @@ public class Task implements java.io.Serializable {
     public boolean statusInEndState() {
         if ("completed".equals(status)) return true;
         if ("error".equals(status)) return true;
+        // ml-service migration v2: "dropped-stale" is terminal — the task's
+        // target was deleted before the queued job ran. Neither success nor
+        // error; the inactivity-timeout watchdog must not flip it to error.
+        if ("dropped-stale".equals(status)) return true;
         return false;
     }
 
@@ -546,6 +550,105 @@ public class Task implements java.io.Serializable {
         return onlyRoots(getTasksFor(ann, myShepherd));
     }
 
+    /**
+     * Pick the single best task to surface as "Match Results" for an
+     * annotation. Used by both the encounter page and the bulk-import
+     * page so they cannot disagree about which task they link to.
+     *
+     * Precedence — single most-recent-first pass over direct tasks,
+     * checking both renderability tests on each candidate before
+     * moving on (so a newer v2 task wins over an older structural
+     * task, not the other way around):
+     *   1. Most recent direct task that EITHER matches the bulk-
+     *      import structural criteria OR has
+     *      parameters.mlServiceV2Match=true. Covers v2 prospects-
+     *      bearing tasks (even before children exist) and legacy
+     *      WBIA orchestration tasks.
+     *   2. Most recent root task. Legacy behavior for callers whose
+     *      direct tasks predate the structural-criteria pattern.
+     *
+     * When {@code importTaskId} is non-null, candidates are first
+     * restricted to tasks whose parameters.importTaskId matches.
+     * The bulk-import page passes its own id so the link stays
+     * frozen on the task from that import even if the user re-runs
+     * ID later from the encounter page.
+     *
+     * Returns null if no renderable task exists.
+     */
+    public static Task getPreferredMatchResultsTaskForAnnotation(Annotation ann,
+        String importTaskId, Shepherd myShepherd) {
+        List<Task> tasks = getTasksFor(ann, myShepherd, "created DESC");
+
+        if (Util.collectionIsEmptyOrNull(tasks)) return null;
+        if (importTaskId != null) {
+            List<Task> filtered = new ArrayList<Task>();
+            for (Task t : tasks) {
+                JSONObject p = t.getParameters();
+                if ((p != null) && importTaskId.equals(p.optString("importTaskId", null))) {
+                    filtered.add(t);
+                }
+            }
+            tasks = filtered;
+            if (tasks.isEmpty()) return null;
+        }
+
+        // Single most-recent-first pass: check BOTH renderability
+        // tests on each candidate before moving on. Codex C15 round-1
+        // Major: a per-tier pass returned an older structural task
+        // when a newer v2 task without children yet (e.g., pre-PairX)
+        // existed — wrong for the "encounter page advances on re-ID"
+        // contract.
+        for (Task t : tasks) {
+            if (isRenderableMatchTask(t) || isV2MatchTask(t)) return t;
+        }
+        List<Task> roots = onlyRoots(tasks);
+        if (!roots.isEmpty()) return roots.get(0);
+        return null;
+    }
+
+    // A bare mlServiceV2Match=true flag isn't enough — Task(Task p)
+    // inherits the parent's parameters into the child, so every sub-
+    // task (faea174f post-processing, pairx enricher, etc.) carries
+    // the flag too. Guard by parent==null so we only match the root
+    // v2 request task, never an inherited child. Round-2 Codex
+    // Blocker.
+    private static boolean isV2MatchTask(Task t) {
+        JSONObject p = t.getParameters();
+
+        return (t.getParent() == null) &&
+               (p != null) && p.optBoolean("mlServiceV2Match", false);
+    }
+
+    public static Task getPreferredMatchResultsTaskForAnnotation(Annotation ann,
+        Shepherd myShepherd) {
+        return getPreferredMatchResultsTaskForAnnotation(ann, null, myShepherd);
+    }
+
+    // Structural criteria mirroring ImportTask.statsAnnotations:446-461 — a
+    // task is "renderable" as a match result if it is shaped like a task
+    // that owns prospects: single-algo legacy WBIA task, task with child
+    // algorithm sub-tasks under a thin parent, or a 3+-children root.
+    private static boolean isRenderableMatchTask(Task t) {
+        Task parent = t.getParent();
+        List<Task> children = t.getChildren();
+        JSONObject params = t.getParameters();
+
+        if ((parent != null) && (parent.getChildren() != null) &&
+            (parent.getChildren().size() == 1) &&
+            (params != null) && params.has("ibeis.identification")) {
+            return true;
+        }
+        if ((children != null) && !children.isEmpty() &&
+            (parent != null) && (parent.getChildren() != null) &&
+            (parent.getChildren().size() <= 1)) {
+            return true;
+        }
+        if ((children != null) && (children.size() > 2) && (parent == null)) {
+            return true;
+        }
+        return false;
+    }
+
     public static List<Task> getTasksFor(MediaAsset ma, Shepherd myShepherd) {
         String qstr =
             "SELECT FROM org.ecocean.ia.Task WHERE objectMediaAssets.contains(obj) && obj.id == " +
@@ -588,6 +691,20 @@ public class Task implements java.io.Serializable {
             }
         }
         return complete;
+    }
+
+    /**
+     * Read the raw persisted status field without the timed-out-task
+     * mutation side-effect that {@link #getStatus(Shepherd)} performs.
+     * Callers gating read-only decisions on status (e.g., the
+     * empty-match-prospects Track 2 batch gate) need this so a read of
+     * a sibling task's status doesn't mutate that task as a side
+     * effect.
+     *
+     * <p>(Empty-match-prospects design Track 2 C7.)</p>
+     */
+    public String getStoredStatus() {
+        return this.status;
     }
 
     public String getStatus(Shepherd myShepherd) {
@@ -817,34 +934,40 @@ public class Task implements java.io.Serializable {
             rtn.put("__taskAnnotations", annotArr);
         }
         JSONObject methodInfo = getIdentificationMethodInfo();
-        // we basically use this to determine if we are "identification-like" enough
-        // to display extended details
+        // methodInfo gates the "identification-like" extras (method label,
+        // matchingSetFilter, legacy WBIA log-based MR generation). The v2
+        // ml-service path doesn't persist `ibeis.identification` on its
+        // match tasks, so methodInfo is null even though the MatchResult
+        // is correctly persisted in the DB. Without the decoupling below,
+        // the API silently drops the matchResults field from the JSON
+        // tree and the React match-results page renders empty
+        // (empty-match-prospects design Track 2 C15).
         if (methodInfo != null) {
             rtn.put("method", methodInfo);
             rtn.put("matchingSetFilter", getMatchingSetFilter());
-/*
-            1. we only care about (and importantly try to generate) MatchResults for ident type *with no children*
-               (as there may be non-leaf nodes with methodInfo)
- * note: we try getting it regardless of children ("just in case"); but only try to generate if none
-            2. getLatestMatchResult() and generateMatchResults() only pertain to log-based (wbia) results,
-               as vector results should have generated their MatchResult upon completion
- */
-            MatchResult mr = getLatestMatchResult(myShepherd);
-            if ((mr == null) && !hasChildren()) {
-                System.out.println(
-                    "[DEBUG] matchResultsJson() found no MatchResults; generating on (leaf) Task " +
-                    this.getId());
-                List<MatchResult> mrs = generateMatchResults(myShepherd);
-                rtn.put("_generatedMatchResultsSize", mrs.size()); // leave a clue that we did the work!
-                if (mrs.size() > 0) {
-                    mr = mrs.get(mrs.size() - 1);
-                    // this hack is important cuz it forces a db commit even though we are a GET api call sorrynotsorry
-                    rtn.put("_commitShepherd", true);
-                }
-            }
-            if (mr != null)
-                rtn.put("matchResults", mr.jsonForApiGet(cutoff, projectIds, myShepherd));
         }
+        // Always serialize an existing MatchResult regardless of methodInfo.
+        // Vector (v2) results generate their MatchResult eagerly during
+        // matching, so getLatestMatchResult will find one whenever the
+        // pipeline ran successfully. Legacy WBIA results still rely on
+        // generateMatchResults (log-based) to construct the MR on demand,
+        // and that path stays gated by methodInfo since it interprets
+        // identification-method-specific log JSON.
+        MatchResult mr = getLatestMatchResult(myShepherd);
+        if ((mr == null) && (methodInfo != null) && !hasChildren()) {
+            System.out.println(
+                "[DEBUG] matchResultsJson() found no MatchResults; generating on (leaf) Task " +
+                this.getId());
+            List<MatchResult> mrs = generateMatchResults(myShepherd);
+            rtn.put("_generatedMatchResultsSize", mrs.size()); // leave a clue that we did the work!
+            if (mrs.size() > 0) {
+                mr = mrs.get(mrs.size() - 1);
+                // this hack is important cuz it forces a db commit even though we are a GET api call sorrynotsorry
+                rtn.put("_commitShepherd", true);
+            }
+        }
+        if (mr != null)
+            rtn.put("matchResults", mr.jsonForApiGet(cutoff, projectIds, myShepherd));
         // now we recurse thru children if applicable
         if (hasChildren()) {
             JSONArray charr = new JSONArray();

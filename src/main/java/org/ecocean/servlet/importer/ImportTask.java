@@ -15,6 +15,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
+import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
@@ -398,8 +399,24 @@ public class ImportTask implements java.io.Serializable {
                 continue;
             }
             sa.put(ann.getId(), Util.collectionSize(atm.get(ann)));
+            // Annotation exists but has no task yet (e.g., its match was
+            // gate-deferred and runMatchProspects has not fired yet).
+            // Count it as a pending "latest task" so the aggregate
+            // identificationStatus in iaSummaryJson stays "sent" until
+            // every annotation actually has a completed task. Without
+            // this, the FIRST completed task makes
+            // numLatestTask_completed >= numLatestTasks and the import
+            // flips to "complete" before the deferred matches even
+            // run — frontend polling stops too early.
+            List<Task> annTasks = atm.get(ann);
+            if ((annTasks == null) || annTasks.isEmpty()) {
+                String latestStatus = "numLatestTask_pending";
+                sa.put(latestStatus, sa.optInt(latestStatus, 0) + 1);
+                numLatestTasks++;
+                continue;
+            }
             boolean latestTask = true; // only for first (most recent) task
-            for (Task atask : atm.get(ann)) {
+            for (Task atask : annTasks) {
                 String status = atask.getStatus(myShepherd);
                 if (sa.has(status)) {
                     sa.put(status, sa.optInt(status, 0) + 1);
@@ -419,31 +436,20 @@ public class ImportTask implements java.io.Serializable {
                     }
                     numLatestTasks++;
                 }
-                if (encId != null) {
-                    // this is temporary storage to use to populate encounterTaskInfo later
-                    // this status is wrong: needs to be "overall status"
-                    // taskTmp.put(atask.getId() + ".status", status);
-                    taskTmp.put(atask.getId() + ".iaClass", ann.getIAClass());
-                    // the logic for deciding when to add a task is based on
-                    // mystical knowledge found originally in import.jsp
-                    if ((atask.getParent() != null) &&
-                        (atask.getParent().getChildren().size() == 1) &&
-                        (atask.getParameters() != null) &&
-                        atask.getParameters().has("ibeis.identification")) {
-                        // task with only one algorithm
-                        encTasks.get(encId).add(atask);
-                    } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 0) &&
-                        (atask.getParent() != null) &&
-                        (atask.getParent().getChildren().size() <= 1)) {
-                        // task with child ident tasks
-                        encTasks.get(encId).add(atask);
-                    } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 2) &&
-                        (atask.getParent() == null)) {
-                        // task with child ident tasks (also?)
-                        encTasks.get(encId).add(atask);
-                    }
-                }
                 latestTask = false;
+            }
+            // C15: pick the bulk-import-scoped match task via the shared
+            // selector so this page and the encounter page agree on which
+            // task they link to. Filtering by importTaskId keeps the
+            // bulk-import link frozen on this import's task even if the
+            // user re-runs ID later from the encounter page.
+            if (encId != null) {
+                Task preferred = Task.getPreferredMatchResultsTaskForAnnotation(
+                    ann, this.getId(), myShepherd);
+                if (preferred != null) {
+                    encTasks.get(encId).add(preferred);
+                    taskTmp.put(preferred.getId() + ".iaClass", ann.getIAClass());
+                }
             }
         }
         sa.put("numTasks", numTasks);
@@ -635,6 +641,7 @@ public class ImportTask implements java.io.Serializable {
     // messes up the status :(
     public JSONObject iaSummaryJson(Shepherd myShepherd) {
         int numDetectionComplete = 0;
+        int numDetectionError = 0;
         int numAcmId = 0;
         int numAllowedIA = 0;
         int numAssets = 0;
@@ -659,9 +666,23 @@ public class ImportTask implements java.io.Serializable {
                     invalidMediaAssets.add(asset);
                 }
  */
-            if ((ma.getDetectionStatus() != null) &&
-                (ma.getDetectionStatus().equals("complete") ||
-                ma.getDetectionStatus().equals("pending"))) numDetectionComplete++;
+            // Terminal detection statuses include the completion states
+            // (complete, complete-mlservice, pending — needs user review)
+            // plus the failure/blocked terminal states (pending-species —
+            // taxonomy not yet PATCHed; error — non-retryable failure from
+            // ml-service or pre-flight validation). Without counting the
+            // terminal-failure states, an import with config or non-
+            // retryable errors never reports 100% detection complete and
+            // the frontend polls forever.
+            String ds = ma.getDetectionStatus();
+            if (IBEISIA.STATUS_COMPLETE.equals(ds) ||
+                IBEISIA.STATUS_COMPLETE_MLSERVICE.equals(ds) ||
+                IBEISIA.STATUS_PENDING.equals(ds) ||
+                IBEISIA.STATUS_PENDING_SPECIES.equals(ds) ||
+                IBEISIA.STATUS_ERROR.equals(ds)) {
+                numDetectionComplete++;
+                if (IBEISIA.STATUS_ERROR.equals(ds)) numDetectionError++;
+            }
         }
         JSONObject pj = new JSONObject();
         pj.put("statsMediaAssets", statsMA);
@@ -671,10 +692,17 @@ public class ImportTask implements java.io.Serializable {
         pj.put("numberMediaAssetACMIds", numAcmId);
         pj.put("numberMediaAssetValidIA", numAllowedIA);
         pj.put("detectionNumberComplete", numDetectionComplete);
+        // Backend signal for "detection finished, but some assets errored".
+        // Aggregate detectionStatus stays "complete" (so frontend polling
+        // stops). UI can read detectionNumberError to render a separate
+        // indicator if it wants to.
+        pj.put("detectionNumberError", numDetectionError);
         // non-legacy flavor
         if ((this.getIATask() != null) && this.iaTaskStarted()) {
             pipelineStarted = true;
-            if (numDetectionComplete == numAllowedIA) {
+            // `>=` rather than `==` so non-IA-eligible MAs that land in a
+            // terminal detection state don't strand the import at "sent".
+            if (numDetectionComplete >= numAllowedIA) {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
@@ -685,16 +713,24 @@ public class ImportTask implements java.io.Serializable {
             }
             if (this.iaTaskRequestedIdentification()) {
                 int numIdentificationComplete = 0;
+                int numIdentificationError = 0;
                 int numIdentificationTotal = 0;
-                // getOverallStatus() in imports.jsp is a nightmare. attempt to replicate here.
-                if (statsAnn.optInt("numLatestTasks", -1) >= 0)
-                    numIdentificationTotal = statsAnn.optInt("numLatestTasks");
                 // who is the genius who made this be 'completed' versus the (seemingly universal?) 'complete'
                 // (it may well have been me)
-                if (statsAnn.optInt("numLatestTask_completed", -1) >= 0)
-                    numIdentificationComplete = statsAnn.optInt("numLatestTask_completed");
-                // TODO do we have to deal with errors as "completed" somehow?
+                if (statsAnn.optInt("numLatestTasks", -1) >= 0)
+                    numIdentificationTotal = statsAnn.optInt("numLatestTasks");
+                // Terminal identification statuses: "completed" (happy
+                // path) AND "error" (match task threw or failed validation).
+                // numIdentificationComplete here means "terminal" not
+                // "successful"; identificationNumberError is the separate
+                // failure-count signal.
+                int numLatestCompleted = Math.max(0,
+                    statsAnn.optInt("numLatestTask_completed", 0));
+                numIdentificationError = Math.max(0,
+                    statsAnn.optInt("numLatestTask_error", 0));
+                numIdentificationComplete = numLatestCompleted + numIdentificationError;
                 pj.put("identificationNumberComplete", numIdentificationComplete);
+                pj.put("identificationNumberError", numIdentificationError);
                 pj.put("identificationNumTotal", numIdentificationTotal);
                 if (numIdentificationTotal == 0) {
                     pj.put("identificationStatus", "identification not started");
@@ -711,7 +747,7 @@ public class ImportTask implements java.io.Serializable {
             // legacy flavor
         } else if ((this.getIATask() == null) && (numDetectionComplete > 0)) {
             pipelineStarted = true;
-            if (numDetectionComplete == numAssets) {
+            if (numDetectionComplete >= numAssets) {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
