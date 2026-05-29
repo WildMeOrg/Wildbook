@@ -30,7 +30,9 @@ For a non-public encounter owned by submitter username `S`, `viewUsers` = the se
 Public encounters (`isPubliclyReadable()`), and non-public encounters with an invalid/missing owner, contribute **no** viewers and must be written as `[]` (admin-only via the `user.isAdmin()` branch in `opensearchAccess`).
 
 ### Design decision: full reindex omits viewUsers → fail-closed (resolves Codex High #1/#2)
-A full-document reindex with `opensearchProcessPermissions==false` will **omit** `viewUsers` (the serializer only emits it when the flag is set). On a full index (document replace) this **drops** the field, which `opensearchAccess` treats as "no viewUsers" ⇒ **admin-only** until the background pass repairs it. This is intentionally **fail-closed** (briefly over-restrictive, never over-permissive) and is why we do **not** pay the per-document ACL cost on every full index (the previously-removed "too expensive" computation, `Base.java:214–216`). We never re-emit the *stale* value: it is either computed fresh (flag set, Task 2) or dropped and repaired by the always-write bulk pass (Task 3). The bulk pass is the "bulk ACL service" the spec calls for; the per-encounter `computeViewUsers` is the single-encounter path. A consistency test (Task 6) and the runbook (Task 5) cover the repair.
+A full-document reindex with `opensearchProcessPermissions==false` will **omit** `viewUsers` (the serializer only emits it when the flag is set). On a full index (document replace) this **drops** the field, which `opensearchAccess` treats as "no viewUsers" ⇒ **admin-only** until the background pass repairs it. This is intentionally **fail-closed** (briefly over-restrictive, never over-permissive) and is why we do **not** pay the per-document ACL cost on every full index (the previously-removed "too expensive" computation, `Base.java:214–216`). We never re-emit the *stale* value: it is either computed fresh (flag set, Task 2) or dropped and repaired by the always-write bulk pass (Task 3). The bulk pass is the "bulk ACL service" the spec calls for; the per-encounter `computeViewUsers` is the single-encounter path.
+
+**Bounding the denial window (Codex Medium #5):** the cases where permissions actually *change* are already gap-free — the edit servlets that alter an encounter's owner/visibility set `opensearchProcessPermissions=true`, so `viewUsers` is written fresh in the same index op (Task 2 makes that write correct). For other full reindexes (where permissions did **not** change), `viewUsers` is briefly dropped and restored on the next bulk pass — fail-closed, and the restored value is identical. To keep that window short after a *bulk/full catalog re-sync*, the operator/runbook sets `OpenSearch.setPermissionsNeeded(true)` so the next background tick recomputes immediately rather than waiting for `BACKGROUND_PERMISSIONS_MAX_FORCE_MINUTES` (Task 5 runbook). We deliberately do **not** flip `permissionsNeeded` on every individual encounter index (that would run the bulk pass almost continuously).
 
 ## File structure
 
@@ -81,9 +83,11 @@ import org.mockito.MockedStatic;
 
 class ComputeViewUsersTest {
 
+    // User has no public setId; use the single-arg uuid constructor (User.java:118)
+    // then set the username. getId() returns that uuid (User.java:173).
     private User user(String username, String id) {
-        User u = new User(username, null, null);
-        u.setId(id);
+        User u = new User(id);     // constructor sets uuid = id
+        u.setUsername(username);
         return u;
     }
 
@@ -317,11 +321,73 @@ Insert before `return ids;` in `computeViewUsers`:
 Run: `mvn test -Dtest=ComputeViewUsersTest -DargLine="--add-opens java.base/java.lang=ALL-UNNAMED -Xmx2g"`
 Expected: PASS (all four tests).
 
-- [ ] **Step 16: Commit**
+- [ ] **Step 16: Add the two regression-prone edge cases (multi-org orgAdmin; orgAdmin with real collabs)**
+
+Add to `ComputeViewUsersTest.java`. These are exactly where bulk-vs-single divergence would hide (Codex Low):
+
+```java
+    @Test void orgAdmin_multiOrg_seesMembersOfAllOrgs() {
+        Shepherd myShepherd = mock(Shepherd.class);
+        when(myShepherd.getContext()).thenReturn("context0");
+        User m1 = user("m1", "m1-uuid");
+        User m2 = user("m2", "m2-uuid");
+        User admin = user("admin", "admin-uuid");
+        when(myShepherd.getUser("m1")).thenReturn(m1);
+        Organization orgA = mock(Organization.class);
+        Organization orgB = mock(Organization.class);
+        when(orgA.getMembers()).thenReturn(Arrays.asList(m1, admin));
+        when(orgB.getMembers()).thenReturn(Arrays.asList(m2, admin));
+        // m1 belongs to orgA only; admin is orgAdmin in both
+        when(myShepherd.getAllOrganizationsForUser(m1)).thenReturn(Arrays.asList(orgA));
+        when(myShepherd.doesUserHaveRole("admin", Organization.ROLE_MANAGER, "context0")).thenReturn(true);
+        when(myShepherd.doesUserHaveRole("m1", Organization.ROLE_MANAGER, "context0")).thenReturn(false);
+        try (MockedStatic<Collaboration> mc = mockStatic(Collaboration.class, org.mockito.Answers.CALLS_REAL_METHODS)) {
+            mc.when(() -> Collaboration.persistedCollaborationsForUser(any(Shepherd.class), anyString()))
+              .thenReturn(new ArrayList<Collaboration>());
+            Encounter enc = new Encounter(); enc.setSubmitterID("m1");
+            assertTrue(enc.computeViewUsers(myShepherd).contains("admin-uuid"),
+                "orgAdmin sees member's encounter even when admin spans multiple orgs");
+        }
+    }
+
+    @Test void orgAdminOwner_withRealCollabs_doesNotInvert() {
+        // owner is itself an orgAdmin AND has a real approved collab.
+        // The real collaborator is a viewer; org members must NOT become viewers
+        // of the orgAdmin-owner's encounter (no inversion).
+        Shepherd myShepherd = mock(Shepherd.class);
+        when(myShepherd.getContext()).thenReturn("context0");
+        User owner = user("owner", "owner-uuid");   // orgAdmin
+        User member = user("member", "member-uuid");
+        User friend = user("friend", "friend-uuid");
+        when(myShepherd.getUser("owner")).thenReturn(owner);
+        when(myShepherd.getUser("friend")).thenReturn(friend);
+        Organization org = mock(Organization.class);
+        when(org.getMembers()).thenReturn(Arrays.asList(owner, member));
+        when(myShepherd.getAllOrganizationsForUser(owner)).thenReturn(Arrays.asList(org));
+        when(myShepherd.doesUserHaveRole("owner", Organization.ROLE_MANAGER, "context0")).thenReturn(true);
+        when(myShepherd.doesUserHaveRole("member", Organization.ROLE_MANAGER, "context0")).thenReturn(false);
+        Collaboration cFriend = new Collaboration("owner", "friend"); cFriend.setState(Collaboration.STATE_APPROVED);
+        try (MockedStatic<Collaboration> mc = mockStatic(Collaboration.class, org.mockito.Answers.CALLS_REAL_METHODS)) {
+            mc.when(() -> Collaboration.persistedCollaborationsForUser(eq(myShepherd), eq("owner")))
+              .thenReturn(Arrays.asList(cFriend));
+            Set<String> ids = new java.util.HashSet<String>(new Encounter() {{ setSubmitterID("owner"); }}.computeViewUsers(myShepherd));
+            assertTrue(ids.contains("friend-uuid"), "real approved collaborator is a viewer");
+            assertTrue(!ids.contains("member-uuid"),
+                "org member must NOT view the orgAdmin-owner's encounter (no inversion)");
+            // owner itself excluded (self), members who aren't orgAdmins excluded
+            assertEquals(1, ids.size());
+        }
+    }
+```
+
+- [ ] **Step 17: Run all Task 1 tests; then commit**
+
+Run: `mvn test -Dtest=ComputeViewUsersTest -DargLine="--add-opens java.base/java.lang=ALL-UNNAMED -Xmx2g"`
+Expected: PASS (all six tests).
 
 ```bash
 git add src/main/java/org/ecocean/Encounter.java src/test/java/org/ecocean/ComputeViewUsersTest.java
-git commit -m "feat(security): computeViewUsers adds one-way orgAdmin visibility"
+git commit -m "feat(security): computeViewUsers orgAdmin visibility + edge-case tests"
 ```
 
 ---
@@ -423,18 +489,26 @@ to (always write, including empty array):
                 }
 ```
 
-- [ ] **Step 2: Write `[]` for invalid-owner encounters instead of skipping**
+- [ ] **Step 2: Repair invalid-owner encounters with a FULL reindex, not a partial clear**
 
-In the same method, the loop currently `continue`s when `usernameToId.get(submitterId) == null` (`~4178–4184`). Change that branch to write an empty `viewUsers` (so a previously-indexed stale array is cleared) before continuing:
+The bulk pass uses a partial `_update` (`OpenSearch.indexUpdate`, `OpenSearch.java:765`), so writing only `viewUsers=[]` would **leave a stale `submitterUserId` behind** — and `opensearchAccess` grants owner access via `submitterUserId` *before* it ever checks `viewUsers` (`Encounter.java:4695`). A renamed/deleted owner whose old UUID is still indexed in `submitterUserId` would therefore retain access (Codex High #1). So an invalid-owner encounter must be **fully re-serialized** (a full index drops `submitterUserId` — only written when the submitter resolves, `Encounter.java:4344` — and omits `viewUsers`), yielding admin-only.
+
+In the loop branch where `usernameToId.get(submitterId) == null` (`~4178–4184`), enqueue a full reindex instead of skipping:
 
 ```java
                 String uid = usernameToId.get(submitterId);
                 if (uid == null) {
                     System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
-                        submitterId + " on enc " + id + " -> writing viewUsers=[] (admin-only)");
-                    org.json.JSONObject clearData = new org.json.JSONObject();
-                    clearData.put("viewUsers", new org.json.JSONArray());
-                    try { os.indexUpdate("encounter", id, clearData); } catch (Exception ex) {}
+                        submitterId + " on enc " + id + " -> full reindex to clear stale ACL fields");
+                    try {
+                        Encounter staleEnc = myShepherd.getEncounter(id);
+                        if (staleEnc != null) {
+                            IndexingManager im = IndexingManagerFactory.getIndexingManager();
+                            im.addIndexingQueueEntry(staleEnc, false); // full reindex: drops submitterUserId + viewUsers
+                        }
+                    } catch (Exception ex) {
+                        System.out.println("  invalid-owner reindex enqueue failed for " + id + ": " + ex);
+                    }
                     continue;
                 }
 ```
@@ -453,58 +527,81 @@ git commit -m "fix(security): bulk permissions pass always writes viewUsers incl
 
 ---
 
-## Task 4: Add the missing revocation triggers (org membership / orgAdmin role / user deletion)
+## Task 4: Add the missing revocation triggers (collab delete / org / orgAdmin role / user deletion)
 
 **Files:**
 - Modify: `src/main/java/org/ecocean/WildbookLifecycleListener.java`
-- Modify (discovery): the servlet(s) that add/remove the `orgAdmin` role and org membership, and delete users.
+- Modify: `src/main/java/org/ecocean/servlet/UserDelete.java`, `UserConsolidate.java`, `OrganizationEdit.java`, `src/main/webapp/editOrg.jsp`
 
-The existing mechanism: a `Collaboration` `postStore` calls `OpenSearch.setPermissionsNeeded(true)`, and the background pass recomputes all encounters. Org/role/user-deletion changes do not currently flip that flag.
+The existing mechanism: a `Collaboration` `postStore` calls `OpenSearch.setPermissionsNeeded(true)`; the background pass then recomputes. Gaps Codex confirmed:
+- **`postDelete` never triggers** — only handles `Base`, so `throwAwayCollaboration` (`Shepherd.java:454`, called by `UserConsolidate.java:265`) silently fails to recompute (Codex High #2).
+- Org membership/hierarchy (`Organization`, JDO-persistent `package.jdo:1008`), **orgAdmin role** changes (`Role`, `package.jdo:882`), and user deletes/consolidations don't flip the flag (Codex High #3).
 
-- [ ] **Step 1: Trigger permissionsNeeded on Organization store/delete**
+Strategy: add robust **lifecycle hooks** for the three permission-relevant persistent types (Collaboration on delete; Organization and Role on both store and delete), plus explicit `setPermissionsNeeded(true)` at the user delete/consolidate servlets (where objects are removed outside those types).
 
-In `WildbookLifecycleListener.postStore`, extend the `else if` chain (after the `Collaboration` branch, ~line 65–69):
+- [ ] **Step 1: Verify the listener receives Organization/Role events**
+
+Run: `grep -rnE "addInstanceLifecycleListener|WildbookLifecycleListener" src/main/java | head`
+Inspect the registration: confirm it is registered with `null` classes (all persistent classes) rather than a fixed class list. If it is class-scoped and excludes `Organization`/`Role`, add them to the registration array. Expected: global registration (the listener already filters by `instanceof`).
+
+- [ ] **Step 2: Add Collaboration to postDelete; add Organization + Role to postStore and postDelete**
+
+In `WildbookLifecycleListener.postStore`, extend the chain after the `Collaboration` branch (~65–69):
 
 ```java
         } else if (Collaboration.class.isInstance(obj)) {
-            System.out.println("WildbookLifecycleListener postStore() event on " + obj +
-                " triggering permissionsNeeded=true");
+            System.out.println("WildbookLifecycleListener postStore() Collaboration -> permissionsNeeded=true");
             OpenSearch.setPermissionsNeeded(true);
-        } else if (org.ecocean.Organization.class.isInstance(obj)) {
-            // org membership / orgAdmin hierarchy changes affect viewUsers
-            System.out.println("WildbookLifecycleListener postStore() Organization change" +
-                " triggering permissionsNeeded=true");
+        } else if (org.ecocean.Organization.class.isInstance(obj)
+                   || org.ecocean.Role.class.isInstance(obj)) {
+            System.out.println("WildbookLifecycleListener postStore() " +
+                obj.getClass().getSimpleName() + " -> permissionsNeeded=true");
             OpenSearch.setPermissionsNeeded(true);
         }
 ```
 
-Add the same `Organization` branch to `postDelete` (which currently only handles `Base`). Add an import for `org.ecocean.Organization` if not already qualified.
+In `postDelete`, after the existing `Base` block, add (note: per the existing comment, deleted-object fields can't be read, so do NOT call `getClass()`/accessors on `obj` — just detect type and flip the flag):
 
-- [ ] **Step 2: Discovery — find role-mutation and user-deletion paths**
+```java
+        if (Collaboration.class.isInstance(obj) || org.ecocean.Organization.class.isInstance(obj)
+            || org.ecocean.Role.class.isInstance(obj)) {
+            System.out.println("WildbookLifecycleListener postDelete() permissions-relevant delete" +
+                " -> permissionsNeeded=true");
+            OpenSearch.setPermissionsNeeded(true);
+        }
+```
 
-Run: `grep -rnE "addRole|removeRole|setRole|ROLE_MANAGER|\"orgAdmin\"|deletePersistent\(.*[Uu]ser|removeUser" src/main/java/org/ecocean/servlet src/main/java/org/ecocean/api | grep -viE "test" | head -40`
-Expected: locate where the `orgAdmin` role is granted/removed (e.g. `UserCreate`, an org-admin servlet) and where users are deleted.
+Add imports for `org.ecocean.Organization` and `org.ecocean.Role` if not already present/qualified.
 
-- [ ] **Step 3: Call setPermissionsNeeded at each mutation site**
+- [ ] **Step 3: Add explicit triggers at the user delete/consolidate servlets (belt-and-suspenders)**
 
-At each site found in Step 2 that adds/removes the `orgAdmin` role, changes org membership, or deletes a user, add after the mutation commits:
+The lifecycle hooks above should cover Role/Collaboration/Organization deletions, but user deletion/consolidation orchestrate several removals; add an explicit flag flip after each commits, at the sites Codex enumerated:
+- `src/main/java/org/ecocean/servlet/UserDelete.java` (after role/user deletion, ~lines 55, 86)
+- `src/main/java/org/ecocean/servlet/UserConsolidate.java` (after role/org/user moves and `throwAwayCollaboration`, ~lines 79, 143, 265)
+- `src/main/java/org/ecocean/servlet/OrganizationEdit.java` (membership/delete paths, ~lines 150, 263)
+- `src/main/webapp/editOrg.jsp` (~line 77)
+
+At each, after the mutating commit, add:
 
 ```java
 org.ecocean.OpenSearch.setPermissionsNeeded(true);
 ```
-
-(Use the no-arg static if available, matching the lifecycle listener's `OpenSearch.setPermissionsNeeded(true)` call signature.)
 
 - [ ] **Step 4: Build**
 
 Run: `mvn -q -DskipTests compile`
 Expected: BUILD SUCCESS.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Normalize line endings on every touched file, then commit**
 
 ```bash
-git add src/main/java/org/ecocean/WildbookLifecycleListener.java src/main/java/org/ecocean/servlet src/main/java/org/ecocean/api
-git commit -m "fix(security): trigger viewUsers recompute on org/role/user-deletion changes"
+for f in src/main/java/org/ecocean/WildbookLifecycleListener.java \
+         src/main/java/org/ecocean/servlet/UserDelete.java \
+         src/main/java/org/ecocean/servlet/UserConsolidate.java \
+         src/main/java/org/ecocean/servlet/OrganizationEdit.java \
+         src/main/webapp/editOrg.jsp; do perl -i -pe 's/\r\n/\n/g' "$f"; done
+git add -A
+git commit -m "fix(security): trigger viewUsers recompute on collab/org/role delete and user delete/consolidate"
 ```
 
 ---
@@ -554,6 +651,8 @@ git commit -m "docs(security): runbook for one-time viewUsers corrective reindex
 
 Run: `mvn test -Dtest=ComputeViewUsersTest -DargLine="--add-opens java.base/java.lang=ALL-UNNAMED -Xmx2g"`
 Expected: PASS (all tests).
+
+> Bulk-vs-single equivalence (Codex Low #6): a true integration test would need a live OpenSearch + DB, which this codebase does not unit-test (see `OpenSearchVisibilityTest`'s rationale). Instead, the equivalence is covered at the unit level by the `computeViewUsers` cases that exercise exactly where divergence would hide — `orgAdmin_multiOrg_seesMembersOfAllOrgs` and `orgAdminOwner_withRealCollabs_doesNotInvert` (Task 1, Step 16) — since `computeViewUsers` computes the direct inverse of the bulk pass's map. Live equivalence is validated by the corrective-reindex runbook's spot checks (Task 5).
 
 - [ ] **Step 2: Run the existing permission/visibility tests for regressions**
 
