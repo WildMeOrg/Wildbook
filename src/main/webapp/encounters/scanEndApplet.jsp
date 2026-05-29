@@ -35,33 +35,35 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 	Shepherd myShepherd=new Shepherd(context);
 	myShepherd.setAction("scanEndApplet.jsp");
 	myShepherd.beginDBTransaction();
-	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
-  		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
-	}
+	try {
+		if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
+	  		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+		}
 
-	//get any scantask locationID lists and check scan status
-        String taskID = request.getParameter("taskID");
-        boolean isRightSide = (request.getParameter("rightSide") != null) && request.getParameter("rightSide").equals("true");
-        if (taskID == null) taskID = "scan" + (isRightSide ? "R" : "L") + num;
-	if(taskID != null) {
-		ScanTask st=myShepherd.getScanTask(taskID);
-		if(st!=null){
-			scanTaskExists = true;
-			if(st.getLocationIDFilters()!=null){
-				locationIDs=st.getLocationIDFilters();
-			}
-			if(!st.hasFinished()){
-				scanInProgress = true;
-				scanTaskStartTime = st.getStartTime();
-				// Check how much work is done via GridManager
-				GridManager gm = GridManagerFactory.getGridManager();
-				numComplete = gm.getNumWorkItemsCompleteForTask(taskID);
-				numTotal = numComplete + gm.getNumWorkItemsIncompleteForTask(taskID);
+		//get any scantask locationID lists and check scan status
+	        String taskID = request.getParameter("taskID");
+	        boolean isRightSide = (request.getParameter("rightSide") != null) && request.getParameter("rightSide").equals("true");
+	        if (taskID == null) taskID = "scan" + (isRightSide ? "R" : "L") + num;
+		if(taskID != null) {
+			ScanTask st=myShepherd.getScanTask(taskID);
+			if(st!=null){
+				scanTaskExists = true;
+				if(st.getLocationIDFilters()!=null){
+					locationIDs=st.getLocationIDFilters();
+				}
+				if(!st.hasFinished()){
+					scanInProgress = true;
+					scanTaskStartTime = st.getStartTime();
+					// Check how much work is done via GridManager
+					GridManager gm = GridManagerFactory.getGridManager();
+					numComplete = gm.getNumWorkItemsCompleteForTask(taskID);
+					numTotal = numComplete + gm.getNumWorkItemsIncompleteForTask(taskID);
+				}
 			}
 		}
+	} finally {
+		myShepherd.rollbackAndClose();
 	}
-	myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
   }
   String encSubdir = Encounter.subdir(num);
 
@@ -603,6 +605,7 @@ function fitRightImage() {
           Shepherd indShepherd = new Shepherd(context);
           indShepherd.setAction("scanEndApplet.jsp_displayNames");
           indShepherd.beginDBTransaction();
+          try {
           java.util.HashMap<String, String> displayNameCache = new java.util.HashMap<>();
 
           if (!xmlOK) {
@@ -782,10 +785,9 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
 
 
   <%
-          indShepherd.rollbackDBTransaction();
-          indShepherd.closeDBTransaction();
-
-
+          } finally {
+              indShepherd.rollbackAndClose();
+          }
 
 	//myShepherd.closeDBTransaction();
     //myShepherd = null;

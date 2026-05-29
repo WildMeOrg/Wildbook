@@ -422,6 +422,7 @@ public class RestServlet extends HttpServlet {
     throws ServletException, IOException {
         resp.setHeader("Access-Control-Allow-Origin", "*");
         String servletID = Util.generateUUID();
+        try {
         getPMF(req, servletID);
         if (req.getContentLength() < 1) {
             resp.setContentLength(0);
@@ -525,12 +526,16 @@ public class RestServlet extends HttpServlet {
             pm.close();
         }
         resp.setStatus(201); // created
+        } finally {
+            ShepherdState.removeShepherdState("RestServlet.class" + "_" + servletID);
+        }
     }
 
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException {
         String servletID = Util.generateUUID();
 
+        try {
         getPMF(req, servletID);
         PersistenceManager pm = pmf.getPersistenceManager();
         try {
@@ -607,12 +612,16 @@ public class RestServlet extends HttpServlet {
         }
         resp.setContentLength(0);
         resp.setStatus(204); // created
+        } finally {
+            ShepherdState.removeShepherdState("RestServlet.class" + "_" + servletID);
+        }
     }
 
     protected void doHead(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException {
         String servletID = Util.generateUUID();
 
+        try {
         getPMF(req, servletID);
         String className = getNextTokenAfterSlash(req);
         ClassLoaderResolver clr = nucCtx.getClassLoaderResolver(RestServlet.class.getClassLoader());
@@ -676,6 +685,9 @@ public class RestServlet extends HttpServlet {
                 pm.currentTransaction().rollback();
             }
             pm.close();
+        }
+        } finally {
+            ShepherdState.removeShepherdState("RestServlet.class" + "_" + servletID);
         }
     }
 
