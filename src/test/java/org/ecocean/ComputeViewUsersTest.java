@@ -131,6 +131,7 @@ class ComputeViewUsersTest {
 
         User m1    = user("m1",    "m1-uuid");
         User m2    = user("m2",    "m2-uuid");
+        User m3    = user("m3",    "m3-uuid");
         User admin = user("admin", "admin-uuid");
 
         Organization orgA = new Organization("orgA");
@@ -142,20 +143,41 @@ class ComputeViewUsersTest {
         orgB.addMember(admin);
 
         when(myShepherd.getUser("m1")).thenReturn(m1);
+        when(myShepherd.getUser("m2")).thenReturn(m2);
+        when(myShepherd.getUser("m3")).thenReturn(m3);
         when(myShepherd.getUser("admin")).thenReturn(admin);
         when(myShepherd.getAllOrganizationsForUser(m1)).thenReturn(Arrays.asList(orgA));
+        when(myShepherd.getAllOrganizationsForUser(m2)).thenReturn(Arrays.asList(orgB));
+        // m3 belongs to both orgs so admin appears via two org paths (dedupe check)
+        when(myShepherd.getAllOrganizationsForUser(m3)).thenReturn(Arrays.asList(orgA, orgB));
         when(myShepherd.doesUserHaveRole(eq("admin"), eq(Organization.ROLE_MANAGER), eq("context0"))).thenReturn(true);
         when(myShepherd.doesUserHaveRole(eq("m1"),    eq(Organization.ROLE_MANAGER), eq("context0"))).thenReturn(false);
+        when(myShepherd.doesUserHaveRole(eq("m2"),    eq(Organization.ROLE_MANAGER), eq("context0"))).thenReturn(false);
+        when(myShepherd.doesUserHaveRole(eq("m3"),    eq(Organization.ROLE_MANAGER), eq("context0"))).thenReturn(false);
 
         try (MockedStatic<Collaboration> mc = mockStatic(Collaboration.class, Answers.CALLS_REAL_METHODS)) {
             mc.when(() -> Collaboration.securityEnabled(anyString())).thenReturn(true);
             mc.when(() -> Collaboration.persistedCollaborationsForUser(any(Shepherd.class), anyString()))
               .thenReturn(new ArrayList<Collaboration>());
 
-            Encounter enc = new Encounter();
-            enc.setSubmitterID("m1");
-            List<String> ids = enc.computeViewUsers(myShepherd);
-            assertTrue(ids.contains("admin-uuid"), "admin in same org must see m1's encounter");
+            // orgA path: encounter owned by m1 → admin must be a viewer
+            Encounter encM1 = new Encounter();
+            encM1.setSubmitterID("m1");
+            List<String> idsM1 = encM1.computeViewUsers(myShepherd);
+            assertTrue(idsM1.contains("admin-uuid"), "admin in same org must see m1's encounter (orgA path)");
+
+            // orgB path: encounter owned by m2 → admin must be a viewer
+            Encounter encM2 = new Encounter();
+            encM2.setSubmitterID("m2");
+            List<String> idsM2 = encM2.computeViewUsers(myShepherd);
+            assertTrue(idsM2.contains("admin-uuid"), "admin must see m2's encounter via orgB path");
+
+            // dedupe: m3 is in both orgA and orgB; admin must appear exactly once
+            Encounter encM3 = new Encounter();
+            encM3.setSubmitterID("m3");
+            List<String> idsM3 = encM3.computeViewUsers(myShepherd);
+            long adminCount = idsM3.stream().filter("admin-uuid"::equals).count();
+            assertEquals(1L, adminCount, "admin-uuid must appear exactly once (no duplicate via two orgs)");
         }
     }
 
