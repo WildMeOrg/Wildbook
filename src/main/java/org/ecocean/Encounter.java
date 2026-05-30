@@ -4140,11 +4140,17 @@ public class Encounter extends Base implements java.io.Serializable {
             System.out.println("opensearchIndexPermissionsBackground: running not required; done");
             return;
         }
-        // i think we should set these first... tho they may not get persisted til after?
-        OpenSearch.setPermissionsTimestamp(myShepherd);
-        OpenSearch.setPermissionsNeeded(myShepherd, false);
-        opensearchIndexPermissions();
-        System.out.println("opensearchIndexPermissionsBackground: running completed");
+        boolean completed = opensearchIndexPermissions();
+        if (completed) {
+            // advance timestamp + clear the needed flag ONLY on success, so an aborted
+            // run (e.g. precompute failure) is retried on the next tick rather than being
+            // masked by a staged needed=false that myShepherd commits after the abort.
+            OpenSearch.setPermissionsTimestamp(myShepherd);
+            OpenSearch.setPermissionsNeeded(myShepherd, false);
+            System.out.println("opensearchIndexPermissionsBackground: running completed");
+        } else {
+            System.out.println("opensearchIndexPermissionsBackground: ABORTED — leaving permissionsNeeded set for retry next tick");
+        }
     }
 
 /*  note: there are a great deal of users with *no username* that seem to appear in enc.submitters array.
@@ -4164,12 +4170,12 @@ public class Encounter extends Base implements java.io.Serializable {
     encounters with submitterID in (NULL, "public", "", "N/A" [ugh]) is readable by anyone; so we will
     skip these from processing as they should be flagged with the boolean isPubliclyReadable in indexing
  */
-    public static void opensearchIndexPermissions() {
+    public static boolean opensearchIndexPermissions() {
         Util.mark("perm start");
         long startT = System.currentTimeMillis();
         System.out.println("opensearchIndexPermissions(): begin...");
         // no security => everything publiclyReadable - saves us work, no?
-        if (!Collaboration.securityEnabled("context0")) return;
+        if (!Collaboration.securityEnabled("context0")) return true;
         OpenSearch os = new OpenSearch();
         Map<String, Set<String> > collab = new HashMap<String, Set<String> >();
         Map<String, String> usernameToId = new HashMap<String, String>();
@@ -4193,9 +4199,8 @@ public class Encounter extends Base implements java.io.Serializable {
         } catch (Exception ex) {
             System.out.println("opensearchIndexPermissions(): ABORT — user/collab precompute failed; will retry next tick");
             ex.printStackTrace();
-            OpenSearch.setPermissionsNeeded(true);
             myShepherd.rollbackAndClose();
-            return;
+            return false;
         }
         Util.mark("perm: user build done", startT);
         System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
@@ -4293,6 +4298,7 @@ public class Encounter extends Base implements java.io.Serializable {
         if (viewUsersWriteFailures > 0)
             System.out.println("opensearchIndexPermissions(): WARNING " + viewUsersWriteFailures +
                 " viewUsers writes FAILED — revocation may not have propagated for those encounters");
+        return true;
     }
 
     public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
