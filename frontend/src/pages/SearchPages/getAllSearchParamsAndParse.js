@@ -4,6 +4,8 @@ const helperFunction = async (searchParams, store, setFilterPanel) => {
     return;
   }
 
+  let didAddFilter = false;
+
   for (const [key, _] of Object.entries(params)) {
     if (key === "username") {
       store.addFilter(
@@ -16,6 +18,7 @@ const helperFunction = async (searchParams, store, setFilterPanel) => {
         },
         "Assigned User",
       );
+      didAddFilter = true;
     }
     if (key === "state") {
       store.addFilter(
@@ -28,6 +31,7 @@ const helperFunction = async (searchParams, store, setFilterPanel) => {
         },
         "Encounter State",
       );
+      didAddFilter = true;
     }
     if (key === "searchQueryId") {
       store.getFiltersFromStorage();
@@ -43,10 +47,14 @@ const helperFunction = async (searchParams, store, setFilterPanel) => {
         },
         "Individual ID",
       );
+      didAddFilter = true;
     }
   }
-  store.applyFilters();
-  setFilterPanel(false);
+  if (didAddFilter) {
+    store.applyFilters();
+    setFilterPanel(false);
+  }
+
   return;
 };
 
