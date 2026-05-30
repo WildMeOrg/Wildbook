@@ -1,7 +1,8 @@
 package org.ecocean.api;
 
-import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -63,7 +64,8 @@ public class CanUserAccess extends ApiBase {
             } catch (BodyTooLargeException ex) {
                 writeError(response, 413, "request body too large");
                 return;
-            } catch (Exception ex) {
+            }
+            if (body == null) {
                 writeError(response, 400, "invalid JSON body");
                 return;
             }
@@ -109,22 +111,29 @@ public class CanUserAccess extends ApiBase {
     }
 
     /**
-     * Fix 2 (Medium): read body in chunks, counting ALL bytes read (not just
-     * newline-stripped line lengths). Throws BodyTooLargeException on overflow
-     * (maps to 413) and JSONException on bad JSON (maps to 400).
+     * Fix 2 (Medium): read raw bytes from the input stream, counting actual bytes
+     * against MAX_BODY_BYTES so multibyte UTF-8 sequences cannot evade the cap.
+     * Throws BodyTooLargeException on overflow (maps to 413); returns null on any
+     * other read/parse error (maps to 400 in doPost).
      */
-    private JSONObject readBody(HttpServletRequest request) throws IOException, BodyTooLargeException {
-        StringBuilder sb = new StringBuilder();
-        BufferedReader r = request.getReader();
-        char[] buf = new char[8192];
-        long total = 0;
-        int n;
-        while ((n = r.read(buf)) != -1) {
-            total += n;
-            if (total > MAX_BODY_BYTES) throw new BodyTooLargeException();
-            sb.append(buf, 0, n);
+    private JSONObject readBody(HttpServletRequest request) throws BodyTooLargeException {
+        try {
+            InputStream in = request.getInputStream();
+            java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+            byte[] buf = new byte[8192];
+            long total = 0;
+            int n;
+            while ((n = in.read(buf)) != -1) {
+                total += n;
+                if (total > MAX_BODY_BYTES) throw new BodyTooLargeException();
+                bos.write(buf, 0, n);
+            }
+            return new JSONObject(new String(bos.toByteArray(), StandardCharsets.UTF_8));
+        } catch (BodyTooLargeException e) {
+            throw e;                 // -> 413 in doPost
+        } catch (Exception ex) {
+            return null;             // -> 400 invalid JSON in doPost
         }
-        return new JSONObject(sb.toString()); // throws JSONException on invalid input
     }
 
     private void writeError(HttpServletResponse response, int code, String message)

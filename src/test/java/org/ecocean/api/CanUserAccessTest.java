@@ -5,12 +5,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -30,6 +32,17 @@ class CanUserAccessTest {
     HttpServletResponse mockResponse;
     StringWriter responseOut;
     PrintWriter writer;
+
+    /** Wraps a byte array as a ServletInputStream for mocking getInputStream(). */
+    private static ServletInputStream servletInputStreamOf(byte[] bytes) {
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+        return new ServletInputStream() {
+            @Override public int read() throws IOException { return bais.read(); }
+            @Override public boolean isFinished() { return bais.available() == 0; }
+            @Override public boolean isReady() { return true; }
+            @Override public void setReadListener(ReadListener rl) {}
+        };
+    }
 
     @BeforeEach
     void setUp() throws IOException {
@@ -96,8 +109,8 @@ class CanUserAccessTest {
         reqBody.put("userUuid", targetUuid);
         reqBody.put("encounterIds", new JSONArray().put(enc1Id).put(enc2Id));
 
-        when(mockRequest.getReader()).thenReturn(
-            new BufferedReader(new StringReader(reqBody.toString())));
+        when(mockRequest.getInputStream()).thenReturn(
+            servletInputStreamOf(reqBody.toString().getBytes(StandardCharsets.UTF_8)));
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, ctx) -> {
@@ -138,8 +151,8 @@ class CanUserAccessTest {
         reqBody.put("userUuid", unknownUuid);
         reqBody.put("encounterIds", new JSONArray().put("enc-aaa").put("enc-bbb"));
 
-        when(mockRequest.getReader()).thenReturn(
-            new BufferedReader(new StringReader(reqBody.toString())));
+        when(mockRequest.getInputStream()).thenReturn(
+            servletInputStreamOf(reqBody.toString().getBytes(StandardCharsets.UTF_8)));
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, ctx) -> {
