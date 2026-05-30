@@ -179,10 +179,12 @@ public class Collaboration implements java.io.Serializable {
             "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username +
             "') || (username2 == '" + username + "'))";
         Query query = myShepherd.getPM().newQuery(queryString);
-        Collection c = (Collection)(query.execute());
-        ArrayList<Collaboration> returnMe = new ArrayList<Collaboration>(c);
-        query.closeAll();
-        return returnMe;
+        try {
+            Collection c = (Collection)(query.execute());
+            return new ArrayList<Collaboration>(c);
+        } finally {
+            query.closeAll();
+        }
     }
 
     // copied with Shepherd instead of context in hopes this fixes the issue where we couldn't save an updated collab with another shepherd

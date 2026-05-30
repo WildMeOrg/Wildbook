@@ -200,6 +200,27 @@ class ComputeViewUsersTest {
         }
     }
 
+    @Test void selfCollaboration_excluded() {
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("owner");
+        Shepherd myShepherd = mock(Shepherd.class);
+        when(myShepherd.getContext()).thenReturn("context0");
+        User owner = user("owner", "owner-uuid");
+        when(myShepherd.getUser("owner")).thenReturn(owner);
+        when(myShepherd.getAllOrganizationsForUser(owner)).thenReturn(new ArrayList<Organization>());
+        // Self-collab: both parties are "owner"
+        Collaboration selfCollab = new Collaboration("owner", "owner");
+        selfCollab.setState(Collaboration.STATE_APPROVED);
+        try (MockedStatic<Collaboration> mc = mockStatic(Collaboration.class, Answers.CALLS_REAL_METHODS)) {
+            mc.when(() -> Collaboration.securityEnabled(anyString())).thenReturn(true);
+            mc.when(() -> Collaboration.persistedCollaborationsForUser(eq(myShepherd), eq("owner")))
+              .thenReturn(Arrays.asList(selfCollab));
+            List<String> ids = enc.computeViewUsers(myShepherd);
+            assertTrue(!ids.contains("owner-uuid"), "self-collab must NOT add owner-uuid to viewUsers");
+            assertTrue(ids.isEmpty(), "viewUsers must be empty for self-collab-only case");
+        }
+    }
+
     @Test void orgAdminOwner_withRealCollabs_doesNotInvert() {
         Shepherd myShepherd = mock(Shepherd.class);
         when(myShepherd.getContext()).thenReturn("context0");

@@ -3364,7 +3364,8 @@ public class Encounter extends Base implements java.io.Serializable {
         for (Collaboration col : Collaboration.persistedCollaborationsForUser(myShepherd, submitter)) {
             if (!col.isApproved() && !col.isEditApproved()) continue;
             String otherUsername = col.getOtherUsername(submitter);
-            User other = (otherUsername == null) ? null : myShepherd.getUser(otherUsername);
+            if (otherUsername == null || otherUsername.equals(submitter)) continue; // skip self-collab
+            User other = myShepherd.getUser(otherUsername);
             if (other != null && other.getId() != null && seen.add(other.getId())) {
                 ids.add(other.getId());
             }
@@ -4190,7 +4191,11 @@ public class Encounter extends Base implements java.io.Serializable {
                 }
             }
         } catch (Exception ex) {
+            System.out.println("opensearchIndexPermissions(): ABORT — user/collab precompute failed; will retry next tick");
             ex.printStackTrace();
+            OpenSearch.setPermissionsNeeded(true);
+            myShepherd.rollbackAndClose();
+            return;
         }
         Util.mark("perm: user build done", startT);
         System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
@@ -4262,8 +4267,9 @@ public class Encounter extends Base implements java.io.Serializable {
                     // get the list of usernames in this entry
                     Set<String> localCollabs = collab.get(localUid);
                     // evaluate if the submitterId (a username) of this encounter is in this list
-                    if (localCollabs.contains(submitterId)) {
+                    if (localCollabs.contains(submitterId) && !localUid.equals(uid)) {
                         // if the submitterId is in the list, put the uid of the user in viewUsers for OpenSearch
+                        // (skip self-collab: localUid == uid means the collaborator IS the owner)
                         viewUsers.put(localUid);
                     }
                 }
@@ -4646,6 +4652,11 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNumberField(type, bmeas.get(type).getValue());
         }
         jgen.writeEndObject();
+        // NOTE: opensearchProcessPermissions is a transient (non-persisted) flag and is
+        // lost when IndexingManager reloads the entity before async indexing, so this
+        // fresh-compute path is best-effort. ACL correctness does NOT depend on it:
+        // permission-relevant changes call OpenSearch.setPermissionsNeeded(true), and the
+        // background permissions pass (opensearchIndexPermissions) is the authoritative writer.
         // this gets set on specific single-encounter-only actions, when extra expense is okay
         // otherwise this will be computed by permissions backgrounding
         if (this.getOpensearchProcessPermissions()) {
