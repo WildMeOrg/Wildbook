@@ -147,6 +147,45 @@ class JwtServiceTest {
             "HS256-with-RSA-public-key forged token must be rejected");
     }
 
+    // ------------------------------------------------------------------ //
+    // Key-ID (kid) header tests (key-rotation support, Fix 2)            //
+    // ------------------------------------------------------------------ //
+
+    /**
+     * When a keyId is supplied via the 5-arg overload, the signed token must
+     * carry a `kid` header that survives round-trip verification.
+     */
+    @Test void keyIdHeader_setWhenProvided() throws Exception {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048);
+        KeyPair kp = kpg.generateKeyPair();
+        String privB64 = Base64.getEncoder().encodeToString(kp.getPrivate().getEncoded());
+        String pubB64  = Base64.getEncoder().encodeToString(kp.getPublic().getEncoded());
+
+        JwtService svc = JwtService.fromBase64Keys(privB64, pubB64, "wildbook", "wildbook-scoped-api", "key-1");
+        String token = svc.sign("kid-user", "context0", 60_000L);
+        Jws<Claims> jws = svc.verify(token);
+
+        // kid header must be propagated
+        assertEquals("key-1", jws.getHeader().getKeyId(), "kid header must equal supplied keyId");
+
+        // round-trip claims must still be correct
+        Claims c = jws.getPayload();
+        assertEquals("kid-user", c.getSubject(), "subject preserved with kid header");
+        assertEquals("wildbook", c.getIssuer(), "issuer preserved with kid header");
+    }
+
+    /**
+     * When no keyId is provided (4-arg overload), the `kid` header must be
+     * absent (null) — confirming the header is not injected spuriously.
+     */
+    @Test void keyIdHeader_absentWhenNotProvided() throws Exception {
+        JwtService svc = serviceWithFreshKeys();
+        String token = svc.sign("no-kid-user", "context0", 60_000L);
+        Jws<Claims> jws = svc.verify(token);
+        assertNull(jws.getHeader().getKeyId(), "kid header must be absent when no keyId supplied");
+    }
+
     /**
      * A token signed with RS384 using the SAME RSA private key must be rejected
      * once the verifier is pinned to RS256.  (This is the test that should FAIL
