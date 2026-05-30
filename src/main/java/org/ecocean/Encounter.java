@@ -4197,6 +4197,7 @@ public class Encounter extends Base implements java.io.Serializable {
             " total users; " + collab.size() + " have active collab");
         // now iterated over (non-public) encounters
         int encCount = 0;
+        int viewUsersWriteFailures = 0;
         org.json.JSONObject updateData = new org.json.JSONObject();
         // we do not need full Encounter objects here to update index docs, so lets do this via sql/fields - much faster
         String sql =
@@ -4270,7 +4271,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 try {
                     os.indexUpdate("encounter", id, updateData);
                 } catch (Exception ex) {
-                    // quiet during initial index build
+                    viewUsersWriteFailures++; // aggregate only — no per-doc noise during index build
                 }
             }
         } catch (Exception ex) {
@@ -4283,6 +4284,9 @@ public class Encounter extends Base implements java.io.Serializable {
         myShepherd.rollbackAndClose();
         System.out.println("opensearchIndexPermissions(): ...end [" + encCount + " encs; " +
             Math.round((System.currentTimeMillis() - startT) / 1000) + "sec]");
+        if (viewUsersWriteFailures > 0)
+            System.out.println("opensearchIndexPermissions(): WARNING " + viewUsersWriteFailures +
+                " viewUsers writes FAILED — revocation may not have propagated for those encounters");
     }
 
     public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
