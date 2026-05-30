@@ -140,11 +140,23 @@ class JwtServiceTest {
     }
 
     @Test void wrongAudienceOrIssuer_rejected() throws Exception {
-        JwtService a = serviceWithFreshKeys();
-        String token = a.sign("u", "context0", 60_000L);
-        // a different service (different keys) cannot verify a's token
-        JwtService b = serviceWithFreshKeys();
-        assertThrows(JwtException.class, () -> b.verify(token), "token signed by other key must fail");
+        // SAME keypair (valid signature), but the verifier requires a different
+        // issuer/audience — this genuinely exercises requireIssuer/requireAudience
+        // (a different-key test would pass even if those checks were removed).
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048);
+        KeyPair kp = kpg.generateKeyPair();
+        String privB64 = Base64.getEncoder().encodeToString(kp.getPrivate().getEncoded());
+        String pubB64 = Base64.getEncoder().encodeToString(kp.getPublic().getEncoded());
+
+        JwtService signer = JwtService.fromBase64Keys(privB64, pubB64, "wildbook", "wildbook-scoped-api");
+        String token = signer.sign("u", "context0", 60_000L);
+
+        JwtService wrongIssuer = JwtService.fromBase64Keys(privB64, pubB64, "evil-issuer", "wildbook-scoped-api");
+        assertThrows(JwtException.class, () -> wrongIssuer.verify(token), "mismatched issuer must be rejected");
+
+        JwtService wrongAudience = JwtService.fromBase64Keys(privB64, pubB64, "wildbook", "some-other-aud");
+        assertThrows(JwtException.class, () -> wrongAudience.verify(token), "mismatched audience must be rejected");
     }
 
     @Test void disabledWhenKeysMissing() {
@@ -202,16 +214,25 @@ public class JwtService {
     private final PublicKey publicKey;
     private final String issuer;
     private final String audience;
+    private final String keyId; // JWT header 'kid' for key rotation (Codex Medium); may be null
 
-    private JwtService(PrivateKey priv, PublicKey pub, String issuer, String audience) {
+    private JwtService(PrivateKey priv, PublicKey pub, String issuer, String audience,
+        String keyId) {
         this.privateKey = priv;
         this.publicKey = pub;
         this.issuer = issuer;
         this.audience = audience;
+        this.keyId = keyId;
+    }
+
+    // test/explicit overload without a keyId
+    public static JwtService fromBase64Keys(String privB64, String pubB64, String issuer,
+        String audience) {
+        return fromBase64Keys(privB64, pubB64, issuer, audience, null);
     }
 
     public static JwtService fromBase64Keys(String privB64, String pubB64, String issuer,
-        String audience) {
+        String audience, String keyId) {
         PrivateKey priv = null;
         PublicKey pub = null;
         try {
@@ -227,7 +248,7 @@ public class JwtService {
         } catch (Exception ex) {
             System.out.println("JwtService: failed to load keys: " + ex);
         }
-        return new JwtService(priv, pub, issuer, audience);
+        return new JwtService(priv, pub, issuer, audience, keyId);
     }
 
     public static JwtService fromConfig(String context) {
@@ -236,7 +257,8 @@ public class JwtService {
             CommonConfiguration.getProperty("jwtPublicKeyBase64", context),
             orDefault(CommonConfiguration.getProperty("jwtIssuer", context), "wildbook"),
             orDefault(CommonConfiguration.getProperty("jwtAudience", context),
-                "wildbook-scoped-api"));
+                "wildbook-scoped-api"),
+            CommonConfiguration.getProperty("jwtKeyId", context)); // may be null
     }
 
     private static String orDefault(String v, String d) {
@@ -250,16 +272,16 @@ public class JwtService {
     public String sign(String userUuid, String context, long ttlMillis) {
         if (!isEnabled()) throw new IllegalStateException("JwtService not enabled (no private key)");
         long now = System.currentTimeMillis();
-        return Jwts.builder()
+        io.jsonwebtoken.JwtBuilder b = Jwts.builder()
             .issuer(issuer)
             .audience().add(audience).and()
             .subject(userUuid)
             .claim("context", context)
             .id(Util.generateUUID())
             .issuedAt(new Date(now))
-            .expiration(new Date(now + ttlMillis))
-            .signWith(privateKey, Jwts.SIG.RS256)
-            .compact();
+            .expiration(new Date(now + ttlMillis));
+        if (Util.stringExists(keyId)) b.header().keyId(keyId).and(); // 'kid' for rotation
+        return b.signWith(privateKey, Jwts.SIG.RS256).compact();
     }
 
     public Jws<Claims> verify(String token) {
@@ -332,13 +354,20 @@ public class AuthToken extends ApiBase {
                 writeError(response, 401, "unauthenticated");
                 return;
             }
-            JwtService jwt = JwtService.fromConfig(context);
+            // SECURITY (Codex High #1): pin the token context SERVER-SIDE. Do NOT
+            // sign ServletUtilities.getContext(request) — it honors a caller's
+            // ?context=, while Basic auth authenticates only against context0, so a
+            // caller-influenced context claim would let a user mint a token for a
+            // context they didn't authenticate in. v1 is single-context.
+            String tokenContext = org.ecocean.CommonConfiguration.getProperty("jwtContext", context);
+            if (!Util.stringExists(tokenContext)) tokenContext = "context0";
+            JwtService jwt = JwtService.fromConfig(tokenContext);
             if (!jwt.isEnabled()) {
                 writeError(response, 503, "token issuance not configured");
                 return;
             }
-            long ttl = ttlFromConfig(context);
-            String token = jwt.sign(user.getId(), context, ttl);
+            long ttl = ttlFromConfig(tokenContext);
+            String token = jwt.sign(user.getId(), tokenContext, ttl);
             JSONObject out = new JSONObject();
             out.put("token", token);
             out.put("tokenType", "Bearer");
@@ -357,7 +386,12 @@ public class AuthToken extends ApiBase {
     private long ttlFromConfig(String context) {
         String v = org.ecocean.CommonConfiguration.getProperty("jwtTtlSeconds", context);
         if (Util.stringExists(v)) {
-            try { return Long.parseLong(v.trim()) * 1000L; } catch (NumberFormatException ignore) {}
+            try {
+                long secs = Long.parseLong(v.trim());
+                // Codex Low: clamp to a sane range (1 min .. 24 h)
+                secs = Math.max(60L, Math.min(secs, 24L * 3600L));
+                return secs * 1000L;
+            } catch (NumberFormatException ignore) {}
         }
         return DEFAULT_TTL_MILLIS;
     }
@@ -444,6 +478,7 @@ import org.json.JSONObject;
  */
 public class CanUserAccess extends ApiBase {
     private static final int MAX_IDS = 200;
+    private static final long MAX_BODY_BYTES = 64L * 1024L; // cap request body (Codex Medium)
 
     @Override protected void doPost(HttpServletRequest request, HttpServletResponse response)
         throws IOException {
@@ -459,6 +494,16 @@ public class CanUserAccess extends ApiBase {
             }
             if (!caller.isAdmin(myShepherd)) {
                 writeError(response, 403, "admin required");
+                return;
+            }
+            // Codex Medium: validate content-type + cap body size BEFORE reading/parsing.
+            String ctype = request.getContentType();
+            if (ctype == null || !ctype.toLowerCase().contains("application/json")) {
+                writeError(response, 415, "Content-Type must be application/json");
+                return;
+            }
+            if (request.getContentLengthLong() > MAX_BODY_BYTES) {
+                writeError(response, 413, "request body too large");
                 return;
             }
             JSONObject body = readBody(request);
@@ -504,7 +549,10 @@ public class CanUserAccess extends ApiBase {
             StringBuilder sb = new StringBuilder();
             BufferedReader r = request.getReader();
             String line;
-            while ((line = r.readLine()) != null) sb.append(line);
+            while ((line = r.readLine()) != null) {
+                sb.append(line);
+                if (sb.length() > MAX_BODY_BYTES) return null; // cap even if Content-Length lied
+            }
             return new JSONObject(sb.toString());
         } catch (Exception ex) {
             return null;
@@ -571,18 +619,19 @@ Create `docs/superpowers/runbooks/jwt-keypair-setup.md` documenting:
   openssl pkcs8 -topk8 -nocrypt -in jwt_private.pem -outform DER | base64 -w0   # -> jwtPrivateKeyBase64
   openssl rsa -in jwt_private.pem -pubout -outform DER | base64 -w0             # -> jwtPublicKeyBase64
   ```
-- The `commonConfiguration.properties` keys: `jwtPrivateKeyBase64`, `jwtPublicKeyBase64`, `jwtIssuer` (default `wildbook`), `jwtAudience` (default `wildbook-scoped-api`), `jwtTtlSeconds` (default 1800).
+- The `commonConfiguration.properties` keys: `jwtPrivateKeyBase64`, `jwtPublicKeyBase64`, `jwtIssuer` (default `wildbook`), `jwtAudience` (default `wildbook-scoped-api`), `jwtTtlSeconds` (default 1800, clamped to [60, 86400]), `jwtKeyId` (optional, sets the JWT `kid` header for rotation), `jwtContext` (optional, default `context0` — the single context tokens are pinned to; do NOT derive from the request).
 - Wildbook needs the PRIVATE key (to sign); the external kernel is given the PUBLIC key only. If `jwtPrivateKeyBase64` is unset, `/api/v3/auth/token` returns 503.
-- Key rotation note (swap keys; old tokens expire within TTL).
+- **Key rotation:** set a distinct `jwtKeyId` per key. To rotate: deploy the new private key + bump `jwtKeyId`; the kernel keeps BOTH old and new public keys (selected by `kid`) for at least one TTL so in-flight tokens keep verifying, then drops the old one.
+- **Secret hygiene (Codex Low):** the private key (and any `.pem`/Base64 form) must NEVER be committed to git or written to logs. If stored as a file, restrict perms (`chmod 600`). The Base64 value lives only in the Docker-mounted `commonConfiguration.properties`. Never log token strings.
 
 - [ ] **Step 2: Add test auth rules**
 
-In `src/test/resources/shiro.ini` `[urls]`, add (matching the file's style) so tests exercise the auth gates:
+In `src/test/resources/shiro.ini` `[urls]`, add these — **and they MUST be inserted BEFORE the `/** = anon` catch-all** (Shiro `[urls]` is first-match-wins; rules placed after `/**` are dead, Codex Medium):
 ```
 /api/v3/auth/token = authcBasicWildbook
 /api/v3/can-user-access = authcBasicWildbook, roles[admin]
 ```
-(Read the existing test shiro.ini to use the exact filter names defined there; if `authcBasicWildbook` isn't defined in the test ini, use the test ini's available auth filter equivalent.)
+Read the existing test shiro.ini to (a) use the exact filter names defined there (if `authcBasicWildbook` isn't defined in the test ini, use the test ini's available auth filter equivalent), and (b) place these lines physically above the `/** = anon` line. After editing, eyeball the ordering to confirm the catch-all is last.
 
 - [ ] **Step 3: Normalize + commit**
 
@@ -611,7 +660,14 @@ Expected: BUILD SUCCESS.
 Run: `cd /mnt/c/Wildbook-integration-b && for f in $(git diff --name-only main); do n=$(grep -cP '\r$' "$f" 2>/dev/null||echo 0); [ "$n" != "0" ] && echo "CRLF: $f"; done; echo done`
 Expected: only "done".
 
-- [ ] **Step 4: Confirm no stray files staged across commits**
+- [ ] **Step 4: Wiring-assertion test (Codex High #2 — Mockito can't prove the gate)**
+
+Because new paths are OPEN unless matched by a Shiro `[urls]` rule, and the unit tests do not load `web.xml`, add a guard test `src/test/java/org/ecocean/api/EndpointAuthWiringTest.java` that reads `src/main/webapp/WEB-INF/web.xml` and asserts: (a) both servlets + mappings exist for `/api/v3/auth/token` and `/api/v3/can-user-access`; (b) the Shiro `[urls]` section contains a non-`anon` constraint for each, with `roles[admin]` on can-user-access, positioned before any `/** ` catch-all. This is a cheap regression guard against the open-by-default footgun. (The PRIMARY enforcement is the in-code check in each endpoint — B1 returns 401 when `getUser(request)==null`, B2 returns 403 unless `caller.isAdmin` — so the endpoints are self-protecting even if Shiro is misconfigured; this test guards the defense-in-depth layer.)
+
+Run: `cd /mnt/c/Wildbook-integration-b && mvn test -Dtest=EndpointAuthWiringTest -DargLine="--add-opens java.base/java.lang=ALL-UNNAMED -Xmx2g"`
+Expected: PASS.
+
+- [ ] **Step 5: Confirm no stray files staged across commits**
 
 Run: `cd /mnt/c/Wildbook-integration-b && git diff --name-only main..HEAD`
 Expected: only the intended source/test/doc/pom/web.xml files; NO logs/ or runtime artifacts.
