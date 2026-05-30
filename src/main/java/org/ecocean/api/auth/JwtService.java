@@ -10,6 +10,7 @@ import java.util.Date;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 
 import org.ecocean.CommonConfiguration;
@@ -107,11 +108,19 @@ public class JwtService {
 
     public Jws<Claims> verify(String token) {
         if (publicKey == null) throw new IllegalStateException("JwtService cannot verify (no public key)");
-        return Jwts.parser()
+        Jws<Claims> jws = Jwts.parser()
             .requireIssuer(issuer)
             .requireAudience(audience)
             .verifyWith(publicKey)
             .build()
             .parseSignedClaims(token);
+        // Pin to RS256: reject same-key tokens signed with a different RSA/PSS variant.
+        // jjwt 0.12.6's sig().clear().add() API throws IAE before build(), so we check
+        // the algorithm header explicitly after a successful signature verification.
+        String alg = jws.getHeader().getAlgorithm();
+        if (!Jwts.SIG.RS256.getId().equals(alg)) {
+            throw new JwtException("JWT algorithm '" + alg + "' is not accepted; only RS256 is allowed");
+        }
+        return jws;
     }
 }

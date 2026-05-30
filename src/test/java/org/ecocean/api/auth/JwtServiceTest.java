@@ -2,24 +2,41 @@ package org.ecocean.api.auth;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.util.Base64;
+import java.util.Date;
+
+import javax.crypto.spec.SecretKeySpec;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.Test;
 
 class JwtServiceTest {
 
+    /** Generates a fresh RSA-2048 keypair and returns a JwtService wired to it. */
     private JwtService serviceWithFreshKeys() throws Exception {
+        return serviceWithFreshKeys("wildbook", "wildbook-scoped-api");
+    }
+
+    private JwtService serviceWithFreshKeys(String issuer, String audience) throws Exception {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
         KeyPair kp = kpg.generateKeyPair();
         String privB64 = Base64.getEncoder().encodeToString(kp.getPrivate().getEncoded()); // PKCS8
         String pubB64 = Base64.getEncoder().encodeToString(kp.getPublic().getEncoded());   // X.509
-        return JwtService.fromBase64Keys(privB64, pubB64, "wildbook", "wildbook-scoped-api");
+        return JwtService.fromBase64Keys(privB64, pubB64, issuer, audience);
+    }
+
+    /** Returns a fresh RSA-2048 KeyPair (used by algorithm-confusion tests). */
+    private KeyPair freshKeyPair() throws Exception {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048);
+        return kpg.generateKeyPair();
     }
 
     @Test void signThenVerify_roundTrip() throws Exception {
@@ -74,5 +91,85 @@ class JwtServiceTest {
         assertFalse(svc.isEnabled(), "service disabled without keys");
         assertThrows(IllegalStateException.class, () -> svc.sign("u", "context0", 1000L),
             "signing while disabled must throw");
+    }
+
+    // ------------------------------------------------------------------ //
+    // Algorithm-confusion regression tests (defence-in-depth, Fix 1)      //
+    // ------------------------------------------------------------------ //
+
+    /**
+     * alg=none UNSECURED JWT must be rejected.
+     * jjwt 0.12.x will not emit alg=none via its builder, so we craft the
+     * token string manually: base64url(header) + "." + base64url(payload) + "."
+     * (empty signature part) — which is the canonical unsecured-JWT form.
+     */
+    @Test void algNone_rejected() throws Exception {
+        JwtService svc = serviceWithFreshKeys();
+
+        Base64.Encoder b64url = Base64.getUrlEncoder().withoutPadding();
+        String header  = b64url.encodeToString(
+            "{\"alg\":\"none\",\"typ\":\"JWT\"}".getBytes(StandardCharsets.UTF_8));
+        long now = System.currentTimeMillis() / 1000;
+        String payload = b64url.encodeToString(
+            ("{\"iss\":\"wildbook\",\"aud\":\"wildbook-scoped-api\","
+                + "\"sub\":\"u\",\"iat\":" + now + ",\"exp\":" + (now + 3600) + "}")
+            .getBytes(StandardCharsets.UTF_8));
+        // canonical unsecured JWT: header.payload. (empty signature)
+        String unsecuredToken = header + "." + payload + ".";
+
+        assertThrows(JwtException.class, () -> svc.verify(unsecuredToken),
+            "alg=none token must be rejected");
+    }
+
+    /**
+     * HS256 token signed with the RSA public key's raw bytes as the HMAC secret
+     * must be rejected (algorithm-confusion / symmetric-with-asymmetric attack).
+     */
+    @Test void hs256ForgedWithPublicKey_rejected() throws Exception {
+        KeyPair kp = freshKeyPair();
+        String privB64 = Base64.getEncoder().encodeToString(kp.getPrivate().getEncoded());
+        String pubB64  = Base64.getEncoder().encodeToString(kp.getPublic().getEncoded());
+        JwtService svc = JwtService.fromBase64Keys(privB64, pubB64, "wildbook", "wildbook-scoped-api");
+
+        // forge: sign with HS256 using the RSA public key bytes as HMAC secret
+        SecretKeySpec hmacKey = new SecretKeySpec(kp.getPublic().getEncoded(), "HmacSHA256");
+        long now = System.currentTimeMillis();
+        String forged = Jwts.builder()
+            .issuer("wildbook")
+            .audience().add("wildbook-scoped-api").and()
+            .subject("u")
+            .issuedAt(new Date(now))
+            .expiration(new Date(now + 3_600_000L))
+            .signWith(hmacKey, Jwts.SIG.HS256)
+            .compact();
+
+        assertThrows(JwtException.class, () -> svc.verify(forged),
+            "HS256-with-RSA-public-key forged token must be rejected");
+    }
+
+    /**
+     * A token signed with RS384 using the SAME RSA private key must be rejected
+     * once the verifier is pinned to RS256.  (This is the test that should FAIL
+     * before Fix 1 is applied and PASS after.)
+     */
+    @Test void rs384SameKey_rejected() throws Exception {
+        KeyPair kp = freshKeyPair();
+        String privB64 = Base64.getEncoder().encodeToString(kp.getPrivate().getEncoded());
+        String pubB64  = Base64.getEncoder().encodeToString(kp.getPublic().getEncoded());
+        JwtService svc = JwtService.fromBase64Keys(privB64, pubB64, "wildbook", "wildbook-scoped-api");
+
+        // forge: sign with RS384 (stronger but wrong algorithm)
+        long now = System.currentTimeMillis();
+        String rs384Token = Jwts.builder()
+            .issuer("wildbook")
+            .audience().add("wildbook-scoped-api").and()
+            .subject("u")
+            .issuedAt(new Date(now))
+            .expiration(new Date(now + 3_600_000L))
+            .signWith(kp.getPrivate(), Jwts.SIG.RS384)
+            .compact();
+
+        assertThrows(JwtException.class, () -> svc.verify(rs384Token),
+            "RS384-signed token must be rejected when verifier is pinned to RS256");
     }
 }
