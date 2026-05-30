@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.api.auth.JwtService;
-import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
@@ -22,7 +21,11 @@ public class AuthToken extends ApiBase {
 
     @Override protected void doPost(HttpServletRequest request, HttpServletResponse response)
         throws IOException {
-        String context = ServletUtilities.getContext(request);
+        // SECURITY (Codex High): pin to the fixed auth context. Basic auth authenticates
+        // against context0 (WildbookBasicHttpAuthenticationFilter), so the user lookup,
+        // signing key/config, and the token's context claim must ALL come from context0 —
+        // never from ServletUtilities.getContext(request), which honors ?context=.
+        final String context = "context0";
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("api.AuthToken.doPost");
         myShepherd.beginDBTransaction();
@@ -32,11 +35,6 @@ public class AuthToken extends ApiBase {
                 writeError(response, 401, "unauthenticated");
                 return;
             }
-            // SECURITY (Codex High #1): pin the token context SERVER-SIDE. Do NOT
-            // sign ServletUtilities.getContext(request) — it honors a caller's
-            // ?context=, while Basic auth authenticates only against context0, so a
-            // caller-influenced context claim would let a user mint a token for a
-            // context they didn't authenticate in. v1 is single-context.
             String tokenContext = org.ecocean.CommonConfiguration.getProperty("jwtContext", context);
             if (!Util.stringExists(tokenContext)) tokenContext = "context0";
             JwtService jwt = JwtService.fromConfig(tokenContext);

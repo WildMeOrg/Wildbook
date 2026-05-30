@@ -2,8 +2,6 @@ package org.ecocean.api;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -42,18 +40,33 @@ public class CanUserAccess extends ApiBase {
                 writeError(response, 403, "admin required");
                 return;
             }
-            // Codex Medium: validate content-type + cap body size BEFORE reading/parsing.
+            // Fix 3 (Low): parse media type before ';' for an exact match — reject
+            // types like "text/application/json" or "application/json-patch+json".
             String ctype = request.getContentType();
-            if (ctype == null || !ctype.toLowerCase().contains("application/json")) {
+            if (ctype == null) {
                 writeError(response, 415, "Content-Type must be application/json");
                 return;
             }
+            String mediaType = ctype.split(";")[0].trim().toLowerCase();
+            if (!mediaType.equals("application/json")) {
+                writeError(response, 415, "Content-Type must be application/json");
+                return;
+            }
+            // Fix 2 (Medium): pre-flight Content-Length guard.
             if (request.getContentLengthLong() > MAX_BODY_BYTES) {
                 writeError(response, 413, "request body too large");
                 return;
             }
-            JSONObject body = readBody(request);
-            if (body == null) { writeError(response, 400, "invalid JSON body"); return; }
+            JSONObject body;
+            try {
+                body = readBody(request);
+            } catch (BodyTooLargeException ex) {
+                writeError(response, 413, "request body too large");
+                return;
+            } catch (Exception ex) {
+                writeError(response, 400, "invalid JSON body");
+                return;
+            }
             String userUuid = body.optString("userUuid", null);
             JSONArray idsArr = body.optJSONArray("encounterIds");
             if (!Util.stringExists(userUuid) || idsArr == null) {
@@ -90,19 +103,28 @@ public class CanUserAccess extends ApiBase {
         }
     }
 
-    private JSONObject readBody(HttpServletRequest request) {
-        try {
-            StringBuilder sb = new StringBuilder();
-            BufferedReader r = request.getReader();
-            String line;
-            while ((line = r.readLine()) != null) {
-                sb.append(line);
-                if (sb.length() > MAX_BODY_BYTES) return null; // cap even if Content-Length lied
-            }
-            return new JSONObject(sb.toString());
-        } catch (Exception ex) {
-            return null;
+    /** Thrown by readBody when the request body exceeds MAX_BODY_BYTES. */
+    private static final class BodyTooLargeException extends Exception {
+        BodyTooLargeException() { super("request body too large"); }
+    }
+
+    /**
+     * Fix 2 (Medium): read body in chunks, counting ALL bytes read (not just
+     * newline-stripped line lengths). Throws BodyTooLargeException on overflow
+     * (maps to 413) and JSONException on bad JSON (maps to 400).
+     */
+    private JSONObject readBody(HttpServletRequest request) throws IOException, BodyTooLargeException {
+        StringBuilder sb = new StringBuilder();
+        BufferedReader r = request.getReader();
+        char[] buf = new char[8192];
+        long total = 0;
+        int n;
+        while ((n = r.read(buf)) != -1) {
+            total += n;
+            if (total > MAX_BODY_BYTES) throw new BodyTooLargeException();
+            sb.append(buf, 0, n);
         }
+        return new JSONObject(sb.toString()); // throws JSONException on invalid input
     }
 
     private void writeError(HttpServletResponse response, int code, String message)

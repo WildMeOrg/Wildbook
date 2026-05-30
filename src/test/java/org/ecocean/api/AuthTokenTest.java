@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -63,6 +64,46 @@ class AuthTokenTest {
             JSONObject json = new JSONObject(body);
             assertFalse(json.optBoolean("success", true), "success must be false");
             assertEquals("unauthenticated", json.optString("error"), "error message");
+        }
+    }
+
+    /**
+     * SECURITY regression: the Shepherd must always be constructed with "context0",
+     * regardless of ?context= or any other request parameter.
+     * A caller supplying context=evilcontext must not shift user lookup or key config
+     * to another context. We capture the first constructor arg via MockedConstruction
+     * and assert it equals "context0".
+     * The request is also unauthenticated (getUser→null) so we get a 401, confirming
+     * the servlet completed the pinned construction path before returning.
+     */
+    @Test
+    void requestContextParamIgnored() throws Exception {
+        // Make the request look like it carries a context override
+        when(mockRequest.getParameter("context")).thenReturn("evilcontext");
+
+        AtomicReference<String> capturedCtorArg = new AtomicReference<>();
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, ctx) -> {
+                    // ctx.arguments() holds the constructor args; first arg is the context String
+                    if (!ctx.arguments().isEmpty()) {
+                        capturedCtorArg.set(String.valueOf(ctx.arguments().get(0)));
+                    }
+                    doNothing().when(mock).beginDBTransaction();
+                    doNothing().when(mock).setAction(anyString());
+                    doNothing().when(mock).rollbackAndClose();
+                    // unauthenticated → servlet returns 401 without attempting to sign
+                    when(mock.getUser(any(HttpServletRequest.class))).thenReturn(null);
+                })) {
+            AuthToken servlet = new AuthToken();
+            servlet.doPost(mockRequest, mockResponse);
+
+            writer.flush();
+            // Shepherd must have been constructed with the pinned context, not "evilcontext"
+            assertEquals("context0", capturedCtorArg.get(),
+                "Shepherd must be constructed with pinned context0, not a request-derived value");
+            // Unauthenticated → 401 (confirms the code path ran fully through construction)
+            verify(mockResponse).setStatus(401);
         }
     }
 
