@@ -135,21 +135,25 @@ const Sidebar = observer(
               >
                 <FormattedMessage id="FILTER_COPY" defaultMessage={"Copy"} />
               </BrutalismButton>
-              <BrutalismButton
-                onClick={() => {
-                  setFilterPanel(true);
-                  handleClose();
-                }}
-                backgroundColor={theme.primaryColors.primary700}
-                borderColor={theme.primaryColors.primary700}
-                color="white"
-                noArrow={true}
-              >
-                <FormattedMessage
-                  id="FILTER_EDIT_FILTER"
-                  defaultMessage={"Edit"}
-                />
-              </BrutalismButton>
+
+              {!queryID && (
+                <BrutalismButton
+                  onClick={() => {
+                    setFilterPanel(true);
+                    handleClose();
+                  }}
+                  backgroundColor={theme.primaryColors.primary700}
+                  borderColor={theme.primaryColors.primary700}
+                  color="white"
+                  noArrow={true}
+                >
+                  <FormattedMessage
+                    id="FILTER_EDIT_FILTER"
+                    defaultMessage={"Edit"}
+                  />
+                </BrutalismButton>
+              )}
+
               <BrutalismButton
                 borderColor={theme.primaryColors.primary700}
                 color={theme.primaryColors.primary700}

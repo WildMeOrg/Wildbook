@@ -259,6 +259,10 @@ const EncounterSearch = observer(() => {
         })
         .catch((error) => {
           console.error("Error fetching search data:", error);
+          alert(`Query ID: ${queryID} could not be found!`);
+          setQueryID(false);
+          setSearchParams(new URLSearchParams());
+          setFilterPanel(true);
         });
     }
   }, [
@@ -358,7 +362,7 @@ const EncounterSearch = observer(() => {
       <SideBar
         setFilterPanel={setFilterPanel}
         searchQueryId={searchQueryId}
-        queryID={false}
+        queryID={queryID}
         store={store}
       />
       <ExportModal
