@@ -9,6 +9,50 @@ export const ImageGalleryModal = observer(
     const imgRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
+    const [pan, setPan] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [dragStart, setDragStart] = useState(null);
+
+    const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
+    const a = assets[safeIndex] || {};
+
+    useEffect(() => {
+      setPan({ x: 0, y: 0 });
+    }, [zoom, safeIndex]);
+
+    const onMouseDown = (e) => {
+      if (e.button !== 0) return;
+      if (zoom <= 1) return;
+      e.preventDefault();
+      setDragStart({ x: e.clientX, y: e.clientY, startPan: pan });
+    };
+
+    useEffect(() => {
+      if (!dragStart) return;
+
+      const handleMouseMove = (e) => {
+        const dx = e.clientX - dragStart.x;
+        const dy = e.clientY - dragStart.y;
+        setPan({
+          x: dragStart.startPan.x + dx,
+          y: dragStart.startPan.y + dy,
+        });
+      };
+
+      const handleMouseUp = () => {
+        setDragStart(null);
+      };
+
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+      document.body.style.userSelect = "none";
+
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+        document.body.style.userSelect = "";
+      };
+    }, [dragStart]);
 
     const encounterData = assets[index] || {};
 
@@ -27,9 +71,6 @@ export const ImageGalleryModal = observer(
     }, [index, assets.length]);
 
     if (!open || !assets.length) return null;
-
-    const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
-    const a = assets[safeIndex] || {};
 
     return (
       <div
@@ -73,6 +114,34 @@ export const ImageGalleryModal = observer(
                     marginLeft: "auto",
                   }}
                 >
+                  <button
+                    type="button"
+                    className="btn btn-sm rounded-circle"
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.5)",
+                      marginRight: "8px",
+                      color: "white",
+                    }}
+                    onClick={() => setZoom((z) => Math.min(3, z + 0.25))}
+                    title="Zoom In"
+                  >
+                    <i className="bi bi-zoom-in"></i>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-sm rounded-circle"
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.5)",
+                      marginRight: "8px",
+                      color: "white",
+                    }}
+                    onClick={() => setZoom(1)}
+                    title="Reset Zoom"
+                  >
+                    <i className="bi bi-zoom-out"></i>
+                  </button>
+
                   <button
                     type="button"
                     className="btn btn-sm rounded-circle"
@@ -144,6 +213,7 @@ export const ImageGalleryModal = observer(
                     id="image-modal-main-image"
                     src={a.url}
                     ref={imgRef}
+                    onMouseDown={onMouseDown}
                     alt={`asset-${a.id ?? safeIndex}`}
                     className="img-fluid"
                     style={{
@@ -154,6 +224,17 @@ export const ImageGalleryModal = observer(
                       height: "auto",
                       objectFit: "contain",
                       margin: "0 auto",
+                      transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                      transformOrigin: "center center",
+                      transition: dragStart ? "none" : "transform 0.2s ease",
+                      position: "relative",
+                      overflow: "hidden",
+                      cursor:
+                        zoom > 1
+                          ? dragStart
+                            ? "grabbing"
+                            : "grab"
+                          : "default",
                     }}
                     onLoad={() => {
                       const iw = imgRef.current?.clientWidth || 1;
