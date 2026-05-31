@@ -29,7 +29,13 @@ import org.json.JSONObject;
 public class Annotation extends Base implements java.io.Serializable {
     public Annotation() {}
     private String id;
-    public static final int KNN_K_DISTANCE_VALUE = 4;
+    // Number of nearest neighbors the OpenSearch knn query returns
+    // for vector matching. Was 4, which after self-encounter exclusion
+    // produced only ~3 prospects regardless of how large the matching
+    // set was — far fewer than the legacy WBIA paths. Bumped to 50 so
+    // vector matching can populate the match-results page comparably
+    // to MiewID's 12-default and HotSpotter's larger result sets.
+    public static final int KNN_K_DISTANCE_VALUE = 50;
     private static final String[][] VALID_VIEWPOINTS = new String[][] {
         { "up", "up", "up", "up", "up", "up", "up", "up", }, {
             "upfront", "upfrontright", "upright", "upbackright", "upback", "upbackleft", "upleft",
@@ -51,6 +57,28 @@ public class Annotation extends Base implements java.io.Serializable {
     private ArrayList<Feature> features;
     private Set<Embedding> embeddings;
     protected String acmId;
+
+    // ----- ml-service migration v2: WBIA registration -----
+    // (commit #4 of the v2 plan)
+    //
+    // wbiaRegistered drives the DB-backed background poller that tells WBIA
+    // about ml-service-created annotations so HotSpotter remains available.
+    //
+    //   null  — legacy annotation (column is new; starts null on existing
+    //           rows). The DDL migration sets nulls to TRUE wherever
+    //           acmId IS NOT NULL ("already registered via the historical
+    //           IBEISIA flow"). Excluded from polling.
+    //   false — new ml-service annotation awaiting WBIA registration.
+    //           Polling thread picks these up.
+    //   true  — WBIA acknowledged. Terminal success.
+    //
+    // Contract: MlServiceProcessor MUST set this to false (not null) on
+    // new ml-service annotations.
+    protected Boolean wbiaRegistered;
+
+    // Failed-attempt counter. Polling filters wbiaRegisterAttempts < MAX so
+    // chronically-failing rows park rather than spin forever.
+    protected int wbiaRegisterAttempts = 0;
 
     // this is used to decide "should we match against this"  problem is: that is not very (IA-)algorithm agnostic
     // TODO: was this made obsolete by ACM and friends?
@@ -289,6 +317,22 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public boolean hasAcmId() {
         return (this.acmId != null);
+    }
+
+    // ----- ml-service migration v2 WBIA-registration accessors -----
+
+    public Boolean getWbiaRegistered() { return wbiaRegistered; }
+    public void setWbiaRegistered(Boolean b) { this.wbiaRegistered = b; this.setVersion(); }
+
+    // Convenience: hides the tri-state from frontend JSON. Returns true only
+    // when the column is explicitly TRUE.
+    public boolean isWbiaRegistered() { return Boolean.TRUE.equals(this.wbiaRegistered); }
+
+    public int getWbiaRegisterAttempts() { return wbiaRegisterAttempts; }
+    public void setWbiaRegisterAttempts(int n) { this.wbiaRegisterAttempts = n; this.setVersion(); }
+    public void incrementWbiaRegisterAttempts() {
+        this.wbiaRegisterAttempts++;
+        this.setVersion();
     }
 
     public ArrayList<Feature> getFeatures() {
@@ -1120,30 +1164,66 @@ public class Annotation extends Base implements java.io.Serializable {
     // this version if you already have matchingSetQuery
     public JSONObject getMatchQuery(String method, String methodVersion,
         JSONObject matchingSetQuery) {
+        if (matchingSetQuery == null) return null;
         Embedding emb = getEmbeddingByMethod(method, methodVersion);
 
         if (emb == null) return null;
+        // we work on a copy here so we dont modify matchingSetQuery
+        JSONObject mq = new JSONObject(matchingSetQuery.toString());
         JSONObject nested = new JSONObject(
             "{\"nested\": {\"path\": \"embeddings\", \"query\": {\"bool\": {}}}}");
+        // Inside the nested bool, keep ONLY the knn clause in `must` so the
+        // per-hit score is exactly the OS knn similarity (no spurious
+        // +1.0-per-term-clause offset). method/methodVersion become
+        // `filter` clauses — they still constrain results but contribute
+        // 0 to score. (Empty-match-prospects C17: MiewID score parity.)
         JSONArray must = new JSONArray();
         JSONObject knn = new JSONObject("{\"knn\": {\"embeddings.vector\": {}}}");
         knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("vector",
             new JSONArray(emb.vectorToFloatArray()));
         knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("k", KNN_K_DISTANCE_VALUE);
         must.put(knn);
+        JSONArray filter = new JSONArray();
         if (method != null)
-            must.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
+            filter.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
         if (methodVersion != null)
-            must.put(new JSONObject("{\"term\": {\"embeddings.methodVersion\":\"" + methodVersion +
+            filter.put(new JSONObject("{\"term\": {\"embeddings.methodVersion\":\"" + methodVersion +
                 "\"}}"));
         nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("must",
             must);
+        if (filter.length() > 0) {
+            nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put(
+                "filter", filter);
+        }
 
         // we put nested under its own top-level must, that way its score counts (whereas filter does not)
         JSONArray nestedMust = new JSONArray();
         nestedMust.put(nested);
-        matchingSetQuery.getJSONObject("query").getJSONObject("bool").put("must", nestedMust);
-        return matchingSetQuery;
+        mq.getJSONObject("query").getJSONObject("bool").put("must", nestedMust);
+        return mq;
+    }
+
+    /**
+     * Maps an OpenSearch knn hit to the score we persist on the
+     * matched Annotation. Identity mapping by design: OS Lucene knn
+     * with {@code cosinesimil} emits {@code score = (1 + cos) / 2},
+     * which is also the formula WBIA-MiewID's
+     * {@code distance_to_score = (2 - distance) / 2} uses
+     * (with {@code distance = 1 - cos}). Storing the OS score
+     * unchanged gives vector prospects the same [0, 1] scale as
+     * legacy MiewID-via-WBIA prospects, so the two pipelines
+     * agree numerically per (query, candidate) pair.
+     *
+     * <p>If a future deployment opts into a non-Lucene knn engine
+     * that scores {@code cosinesimil} differently (OS 2.15 NMSLIB
+     * and Faiss return {@code 1 / (1 + d)} per the OS knn-spaces
+     * docs), this is the single call site to adjust. The unit test
+     * {@code osHitScore_isIdentity_noBackTransform} pins the
+     * identity-mapping contract so an accidental re-introduction
+     * of the C17 {@code 2*x - 1} back-transform trips a failure.</p>
+     */
+    static double osHitScore(org.json.JSONObject hit) {
+        return hit.optDouble("_score", 0.0d);
     }
 
     // finds annotations based on embedding vector matches
@@ -1180,7 +1260,9 @@ public class Annotation extends Base implements java.io.Serializable {
             if (hit == null) continue;
             Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
             if (ann != null) {
-                ann.setOpensearchScore(hit.optDouble("_score", 0.0d));
+                // See osHitScore javadoc for why the OS score is
+                // persisted unchanged (vector ↔ WBIA-MiewID parity).
+                ann.setOpensearchScore(osHitScore(hit));
                 anns.add(ann);
             }
         }
@@ -1726,6 +1808,13 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public List<Task> getRootIATasks(Shepherd myShepherd) { // convenience
         return Task.getRootTasksFor(this, myShepherd);
+    }
+
+    // C15: pick the single task to surface as "Match Results" for this
+    // annotation. Used by Encounter.jsonForApiGet so the encounter page
+    // and bulk-import page agree on which task they link to.
+    public Task getPreferredMatchResultsTask(Shepherd myShepherd) {
+        return Task.getPreferredMatchResultsTaskForAnnotation(this, myShepherd);
     }
 
     public int detachFromTasks(Shepherd myShepherd) {

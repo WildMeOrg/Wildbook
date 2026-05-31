@@ -130,10 +130,22 @@ export default class MatchResultsStore {
       return;
     }
 
-    if (!this._annotResults || this._annotResults.length === 0) {
+    // Default-view selection. Use hasResults (true when a row carries
+    // real prospect data) instead of raw array length, because
+    // getAllAnnots / getAllIndiv add a placeholder row for terminal
+    // tasks whose prospect list is empty. With raw length, a fresh
+    // import that produced only annot prospects (typical when newly
+    // imported animals have no individual yet) would land on the
+    // "individual" tab and display only the placeholder, hiding the
+    // real annot prospects on the "image" tab.
+    // (Empty-match-prospects design Track 2 C16, per Codex RCA
+    // secondary finding.)
+    const annotHasResults = (this._annotResults || []).some((r) => r?.hasResults);
+    const indivHasResults = (this._indivResults || []).some((r) => r?.hasResults);
+    if (!annotHasResults) {
       this._viewMode = "individual";
     }
-    if (!this._indivResults || this._indivResults.length === 0) {
+    if (!indivHasResults) {
       this._viewMode = "image";
     }
 
