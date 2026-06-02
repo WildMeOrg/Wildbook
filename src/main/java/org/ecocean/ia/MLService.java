@@ -306,9 +306,14 @@ public class MLService {
                 payload);
             // got results, now we try to use them
             JSONObject logRes = new JSONObject(res.toString());
+            // for some reason we know have both embeddings and embedding (which are both huge)
             if (logRes.optJSONArray("embeddings") != null)
                 logRes.put("embeddings",
                     "TRUNCATED [length=" + logRes.getJSONArray("embeddings").toString().length() +
+                    "]");
+            if (logRes.optJSONArray("embedding") != null)
+                logRes.put("embedding",
+                    "TRUNCATED [length=" + logRes.getJSONArray("embedding").toString().length() +
                     "]");
             System.out.println("MLService.send() conf=" + conf + "; payload=" + payload +
                 "; RESPONSE => " + logRes);

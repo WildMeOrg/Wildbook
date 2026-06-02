@@ -7,9 +7,14 @@ const MAX_POLL_CYCLES = 100; // 100 cycles * 3s = ~5 minutes
 
 const isAnnotationTrivial = (a) => a?.isTrivial === true || a?.trivial === true;
 
+// ml-service migration v2 (commit #5): "complete-mlservice" is the terminal
+// state produced by the ml-service detection path (legacy WBIA path still
+// emits plain "complete"). Both are terminal; the UI should stop polling on
+// either.
 export const isTerminalDetectionStatus = (status) =>
   !status ||
   status === "complete" ||
+  status === "complete-mlservice" ||
   status === "error" ||
   status === "pending";
 
