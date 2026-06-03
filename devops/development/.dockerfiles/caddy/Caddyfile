@@ -17,12 +17,15 @@
     @isReactBare path /react
     redir @isReactBare /react/ permanent
 
-    # React static files + SPA fallback
-    # Strips /react/ prefix so /react/static/... maps to /srv/react/static/...
-    handle_path /react/* {
-        root * /srv/react
-        try_files {path} {path}/ /index.html
-        file_server
+    # React CRA dev server (livereload via WebSocket)
+    # Using handle NOT handle_path — CRA dev server with PUBLIC_URL=/react/
+    # needs to receive the full path including /react/ prefix.
+    handle /react* {
+        reverse_proxy frontend:3000 {
+            header_up Host {host}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
     }
 
     # Legacy JSPs and everything else -> Tomcat

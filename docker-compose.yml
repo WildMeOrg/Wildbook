@@ -9,6 +9,26 @@ services:
       - intranet
     depends_on:
       - wildbook
+      - frontend
+
+  frontend:
+    build:
+      context: .
+      dockerfile: devops/development/.dockerfiles/frontend/Dockerfile
+    volumes:
+      - ./frontend/src:/frontend/src
+      - ./frontend/config-overrides.js:/frontend/config-overrides.js
+      - ./src/main/webapp/javascript/tablesorter:/src/main/webapp/javascript/tablesorter
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - DANGEROUSLY_DISABLE_HOST_CHECK=true
+      - WDS_SOCKET_PORT=3000
+    ports:
+      - "3000:3000"
+    networks:
+      - intranet
+    depends_on:
+      - wildbook
 
   db:
     image: postgres:13.4
