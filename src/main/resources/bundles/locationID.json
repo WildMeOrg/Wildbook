@@ -129,6 +129,17 @@
 			]
 		},
 		{
+			"name": "Central African Republic",
+			"id": "Central African Republic",
+			"locationID":[
+				{
+					"name": "Bamingui-Bangoran National Park",
+					"id": "Bamingui-Bangoran National Park",
+					"locationID":[]
+				}
+			]
+		},
+		{
 			"name": "Chad",
 			"id": "Chad",
 			"locationID": [
