@@ -6,8 +6,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 60
-    labels:
-      - autoheal=true
     user: postgres
     volumes:
       - db-pgdata-var:/var/lib/postgresql/data
@@ -17,7 +15,6 @@ services:
     networks:
       - intranet
     ports:
-      # development exposure, not exposed in production
       - 5433:5432
     command: -c config_file=/etc/postgresql/postgresql.conf
     env_file: .env
@@ -35,8 +32,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    labels:
-      - autoheal=true
     volumes:
       # Persist uploaded images and data on host filesystem
       - "./wildbook-data:/usr/local/tomcat/webapps/wildbook_data_dir"
@@ -61,8 +56,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 60
-    labels:
-      - autoheal=true
     volumes:
       - opensearch-var1:/usr/share/opensearch/data
     ulimits:
@@ -72,16 +65,12 @@ services:
     networks:
       - intranet
     ports:
-      # development exposure, not exposed in production
       - 9200:9200
       - 9300:9300
     env_file: .env
     environment:
       - plugins.security.disabled=true
       - node.name=opensearch
-      #- discovery.seed_hosts=elasticsearch2,elasticsearch3
-      #- cluster.initial_master_nodes=elasticsearch,elasticsearch2,elasticsearch3
-      #- discovery.seed_hosts=opensearch2
       - cluster.initial_master_nodes=opensearch
       - bootstrap.memory_lock=true
       - cluster.routing.allocation.disk.threshold_enabled=${ES_THRESHOLD:-true}
@@ -97,41 +86,7 @@ services:
       - "1025:1025"  # SMTP port
       - "8025:8025"  # Web UI port
 
-  wbia:
-    # https://github.com/WildMeOrg/wildbook-ia
-    image: wildme/wbia:nightly
-    command: ["--db-uri", "${WBIA_DB_URI}"]
-    depends_on:
-      db:
-        condition: service_healthy
-    # healthcheck:  # WBIA defines it's own health check and is already labeled for autoheal
-    # labels:
-    #   - autoheal=true
-    volumes:
-      - wbia-database-var:/data/db
-      - wbia-cache-var:/cache
-    networks:
-      - intranet
-    ports:
-      - "82:5000"
-    env_file: .env
-    environment:
-      WBIA_DB_URI: "${WBIA_DB_URI}"
-      HOUSTON_CLIENT_ID: "${HOUSTON_CLIENT_ID}"
-      HOUSTON_CLIENT_SECRET: "${HOUSTON_CLIENT_SECRET}"
-
-  autoheal:
-    image: willfarrell/autoheal
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      AUTOHEAL_CONTAINER_LABEL: "autoheal"
-      AUTOHEAL_INTERVAL: 15
-      AUTOHEAL_START_PERIOD: 600
-      AUTOHEAL_DEFAULT_STOP_TIMEOUT: 60
-    restart: always
-
-networks:
+ networks:
   intranet:
 
 volumes:
