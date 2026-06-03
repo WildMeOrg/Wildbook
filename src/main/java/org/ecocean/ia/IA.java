@@ -284,6 +284,15 @@ public class IA {
         ArrayList<MediaAsset> singleton = new ArrayList<MediaAsset>();
         singleton.add(ma);
         childTask.setObjectMediaAssets(singleton);
+        // Tag as a detection task so the /metrics detection gauges
+        // (MetricsBot.addTasksToCsv + appadmin/wildbookIAQueueStats.jsp) count
+        // ml-service v2 detection volume. Mirrors the legacy path, which sets
+        // task.addParameter("ibeis.detection", true) in IAGateway. Must be set
+        // before storeNewTask so it persists with the new row. The downstream
+        // match task is created via new Task(parent) and would inherit this
+        // flag, so MlServiceProcessor.runMatchProspects strips it back off
+        // (mirror of IBEISIA's params.remove("ibeis.detection")).
+        childTask.addParameter("ibeis.detection", true);
         myShepherd.storeNewTask(childTask);
 
         // Best-effort encounterId via existing annotations on the MA.
