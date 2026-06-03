@@ -19,6 +19,9 @@ mkdir -p /data
 ln -sf "$DATA_DIR" /data/wildbook_data_dir
 mkdir -p "$DATA_DIR/WEB-IN"
 
+# Symlink legacy "wildbook" context to ROOT (watermark path, etc.)
+ln -sf /usr/local/tomcat/webapps/ROOT /usr/local/tomcat/webapps/wildbook
+
 # Create required runtime directories on persisted volume
 mkdir -p "$DATA_DIR/encounters"
 mkdir -p "$DATA_DIR/users"

@@ -1,4 +1,15 @@
 services:
+  proxy:
+    build:
+      context: .
+      dockerfile: devops/development/.dockerfiles/caddy/Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - intranet
+    depends_on:
+      - wildbook
+
   db:
     image: postgres:13.4
     healthcheck:
@@ -38,8 +49,9 @@ services:
       - "./logs/:/usr/local/tomcat/logs/"
     networks:
       - intranet
-    ports:
-      - "8080:8080"
+    # Port 8080 is no longer bound to the host; Caddy proxies to it internally.
+    # ports:
+    #   - "8080:8080"
     env_file: .env
     environment:
       SITE_NAME: "${SITE_NAME:-wildbook}"
