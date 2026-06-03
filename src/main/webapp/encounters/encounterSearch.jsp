@@ -8,6 +8,7 @@
 <%@ page import="org.ecocean.FormUtilities" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+<%! String reactBase = org.ecocean.servlet.ReactRouter.getBasePath(); %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%!
@@ -227,7 +228,7 @@ $(".search-collapse-header a").click(function(){
 
 
   Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("/react/encounter-search");
+  myShepherd.setAction(request.getContextPath() + reactBase + "/encounter-search");
   myShepherd.beginDBTransaction();
   boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
 

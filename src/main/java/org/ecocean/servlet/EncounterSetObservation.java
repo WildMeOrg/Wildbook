@@ -15,6 +15,7 @@ import org.ecocean.Encounter;
 import org.ecocean.Observation;
 import org.ecocean.Occurrence;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.servlet.ReactRouter;
 
 public class EncounterSetObservation extends HttpServlet {
     /**
@@ -126,7 +127,7 @@ public class EncounterSetObservation extends HttpServlet {
                 if (allStatesSize > 0) {
                     for (int i = 0; i < allStatesSize; i++) {
                         String stateName = allStates.get(i);
-                        out.println("<p><a href=\"/react/encounter-search?state=" + stateName +
+                        out.println("<p><a href=\"" + ReactRouter.path("/encounter-search?state=" + stateName) +
                             "\">View all " + stateName + " Encounters</a></font></p>");
                     }
                 }
@@ -149,8 +150,8 @@ public class EncounterSetObservation extends HttpServlet {
                 if (allStatesSize > 0) {
                     for (int i = 0; i < allStatesSize; i++) {
                         String stateName = allStates.get(i);
-                        out.println("<p><a href=\"/react/encounter-search?state=" + stateName +
-                            "\">View all " + stateName + " encounters</a></font></p>");
+                    out.println("<p><a href=\"" + ReactRouter.path("/encounter-search?state=" + stateName) +
+                        "\">View all " + stateName + " encounters</a></font></p>");
                     }
                 }
                 out.println(ServletUtilities.getFooter(context));

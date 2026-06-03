@@ -18,7 +18,8 @@
   --%>
 <!DOCTYPE html>
 <html>
-<%@ page contentType="text/html; charset=utf-8" language="java"
+<%@
+      page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.shepherd.core.ShepherdProperties,
              org.ecocean.servlet.ServletUtilities,
              org.ecocean.CommonConfiguration,
@@ -36,7 +37,7 @@
              org.apache.logging.log4j.Logger
               "
 %>
-
+<%! String reactBase = org.ecocean.servlet.ReactRouter.getBasePath(); %>
 <%
     if ("logout".equals(request.getParameter("action"))) {
         System.out.println("Logging out");
@@ -52,7 +53,7 @@
         }
         session.invalidate();
 
-        response.sendRedirect(request.getContextPath() + "/react/login/");
+        response.sendRedirect(request.getContextPath() + reactBase + "/login/");
         return;
     }
 %>
@@ -404,7 +405,7 @@ if(request.getUserPrincipal()!=null){
                 var action = $(element).data('action');
 
                 if (action === 'login'){
-                     window.open('<%=urlLoc %>/react/login/', '_blank');
+                     window.open('<%= urlLoc + reactBase %>/login/', '_blank');
                 }
                 else {
 
@@ -580,7 +581,7 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
-                            <li><a href="<%=urlLoc %>/react/report" ><%=props.getProperty("report")%></a></li>
+                            <li><a href="<%= urlLoc + reactBase %>/report" ><%=props.getProperty("report")%></a></li>
 <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicSubmit", context))) { %>
                             <li><a href="<%=urlLoc %>/submit.jsp" ><%=props.getProperty("reportClassic")%></a></li>
 <% } %>
@@ -589,30 +590,30 @@ if(request.getUserPrincipal()!=null){
                               <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
                             -->
 
-                            <li class="dropdown"><a href="<%=urlLoc %>/react/bulk-import"><%=props.getProperty("bulkImport")%></a></li>
+                            <li class="dropdown"><a href="<%= urlLoc + reactBase %>/bulk-import"><%=props.getProperty("bulkImport")%></a></li>
                         </ul>
                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("Resources")%><span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">  
                            <li><a href="https://wildbook.docs.wildme.org/"><%=props.getProperty("WildbookDocumentation")%></a></li>
-                          <li><a href="<%=urlLoc %>/react/about-us"><%=props.getProperty("AboutUs")%></a></li>
+                          <li><a href="<%= urlLoc + reactBase %>/about-us"><%=props.getProperty("AboutUs")%></a></li>
                           <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
                           <li class="dropdown-submenu">
-                            <a href="<%=urlLoc %>/react/policies-and-data?section=privacy_policy">
+                            <a href="<%= urlLoc + reactBase %>/policies-and-data?section=privacy_policy">
                               <%=props.getProperty("policiesAndData")%>
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
                               </svg>
                             </a>
                             <ul class="dropdown-menu">
-                              <li><a href="<%=urlLoc %>/react/policies-and-data?section=privacy_policy"><%=props.getProperty("privacyPolicy")%></a></li>
-                              <li><a href="<%=urlLoc %>/react/policies-and-data?section=terms_of_use"><%=props.getProperty("termsOfUse")%></a></li>
-                              <li><a href="<%=urlLoc %>/react/policies-and-data?section=citing_wildbook"><%=props.getProperty("citingWildbook")%></a></li>
+                              <li><a href="<%= urlLoc + reactBase %>/policies-and-data?section=privacy_policy"><%=props.getProperty("privacyPolicy")%></a></li>
+                              <li><a href="<%= urlLoc + reactBase %>/policies-and-data?section=terms_of_use"><%=props.getProperty("termsOfUse")%></a></li>
+                              <li><a href="<%= urlLoc + reactBase %>/policies-and-data?section=citing_wildbook"><%=props.getProperty("citingWildbook")%></a></li>
                             </ul>
                           </li>
                           <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showHowToPhotograph", context))) { %>
-                            <li><a href="<%=urlLoc %>/react/how-to-photograph"><%=props.getProperty("howToPhotograph")%></a></li>
+                            <li><a href="<%= urlLoc + reactBase %>/how-to-photograph"><%=props.getProperty("howToPhotograph")%></a></li>
                           <% } %>
                           <%-- <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li> --%>
                                                   <%-- <li class="divider"></li> --%>
@@ -623,16 +624,16 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("Data")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li class="dropdown-submenu">
-                            <a class="d-flex align-items-center justify-space-between" tabindex="-1" href="<%=urlLoc %>/react/encounter-search?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myEncounters")%>
+                            <a class="d-flex align-items-center justify-space-between" tabindex="-1" href="<%= urlLoc + reactBase %>/encounter-search?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myEncounters")%>
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
                               <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
                             </svg>
                             </a>
                             
                             <ul class="dropdown-menu">
-                                <li><a href="<%=urlLoc %>/react/encounter-search?username=<%=request.getRemoteUser()%>&state=approved"><%=props.getProperty("myApprovedAnimals")%></a></li>
-                                <li><a href="<%=urlLoc %>/react/encounter-search?username=<%=request.getRemoteUser()%>&state=unapproved"><%=props.getProperty("myUnapprovedAnimals")%></a></li>
-                                <li><a href="<%=urlLoc %>/react/encounter-search?username=<%=request.getRemoteUser()%>&state=unidentifiable"><%=props.getProperty("myUnidentifiableAnimals")%></a></li> 
+                                <li><a href="<%= urlLoc + reactBase %>/encounter-search?username=<%=request.getRemoteUser()%>&state=approved"><%=props.getProperty("myApprovedAnimals")%></a></li>
+                                <li><a href="<%= urlLoc + reactBase %>/encounter-search?username=<%=request.getRemoteUser()%>&state=unapproved"><%=props.getProperty("myUnapprovedAnimals")%></a></li>
+                                <li><a href="<%= urlLoc + reactBase %>/encounter-search?username=<%=request.getRemoteUser()%>&state=unidentifiable"><%=props.getProperty("myUnidentifiableAnimals")%></a></li> 
                           
                             </ul>
                             </li>
@@ -640,16 +641,16 @@ if(request.getUserPrincipal()!=null){
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myIndividuals")%></a></li>
                           <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp?submitterID=<%=request.getRemoteUser()%>"><%=props.getProperty("mySightings")%></a></li>
                           <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("myBulkImports")%></a></li>
-                          <li><a href="<%=urlLoc %>/react/projects/overview"><%=props.getProperty("myProjects")%></a></li>
+                          <li><a href="<%= urlLoc + reactBase %>/projects/overview"><%=props.getProperty("myProjects")%></a></li>
                           <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("individualGallery")%></a></li>
-                          <li><a href="<%=urlLoc %>/react/encounter-search?calendar=true"><%=props.getProperty("encounterCalendar")%></a></li>    
+                          <li><a href="<%= urlLoc + reactBase %>/encounter-search?calendar=true"><%=props.getProperty("encounterCalendar")%></a></li>    
 
                         </ul>
                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
-                          <li><a href="<%=urlLoc %>/react/encounter-search"><%=props.getProperty("encounters")%></a></li>
+                          <li><a href="<%= urlLoc + reactBase %>/encounter-search"><%=props.getProperty("encounters")%></a></li>
 <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncounters", context))) { %>
                             <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp" ><%=props.getProperty("encountersClassic")%></a></li>
 <% } %>
@@ -664,7 +665,7 @@ if(request.getUserPrincipal()!=null){
 
                           <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("libraryAdministration")%></a></li>
-                          <li><a href="<%=urlLoc %>/react/admin/logs"><%=props.getProperty("logs")%></a></li>
+                          <li><a href="<%= urlLoc + reactBase %>/admin/logs"><%=props.getProperty("logs")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/kwAdmin.jsp"><%=props.getProperty("photoKeywords")%></a></li>
                           <li><a href="https://wildbook.docs.wildme.org"><%=props.getProperty("softwareDocumentation")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
@@ -787,7 +788,7 @@ if(request.getUserPrincipal()!=null){
                                   <div class="profile-icon" style="background-image: url('<%=profilePhotoURL %>');"></div>
                                   
                                   <ul class="dropdown-menu">
-                                      <li><a href="<%=urlLoc %>/react/">Landing Page</a></li>
+                                      <li><a href="<%= urlLoc + reactBase %>/">Landing Page</a></li>
                                       <li><a href="<%=urlLoc %>/myAccount.jsp">User Profile</a></li>
                                       <li><a href="#" onclick="logoutAndRedirect()">Logout</a></li>
                                   </ul>   
@@ -799,7 +800,7 @@ if(request.getUserPrincipal()!=null){
                           }
                           else{
                             %>
-                              <a href="<%= request.getContextPath() %>/react/login/" title="" style="white-space: nowrap"><%= props.getProperty("login") %></a>
+                              <a href="<%= request.getContextPath() + reactBase %>/login/" title="" style="white-space: nowrap"><%= props.getProperty("login") %></a>
                         <%
                           }
 

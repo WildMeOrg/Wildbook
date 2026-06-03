@@ -18,6 +18,7 @@ java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdPMF" %>
+<%! String reactBase = org.ecocean.servlet.ReactRouter.getBasePath(); %>
 
 
 <%
@@ -2009,7 +2010,7 @@ function isProjectSelected() {
 
 $('#projectDropdown').on('change', function() {
 	let taskId = '<%=taskId%>';
-	let reloadURL = "../react/match-results?taskId="+taskId;
+	let reloadURL = "..<%= reactBase %>/match-results?taskId="+taskId;
 	let selectedProject = $("#projectDropdown").val();
 	// replace reserved pound sign in incremental ID's
 	selectedProject = selectedProject.replaceAll("#", "%23");

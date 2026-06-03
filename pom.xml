@@ -711,24 +711,9 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2</version>
-        <executions>
-          <execution>
-            <id>Build React Directory</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>${basedir}/frontend/maven-build.sh</executable>
-              <workingDirectory>${basedir}</workingDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+      <!-- NOTE: exec-maven-plugin that ran frontend/maven-build.sh during clean phase has been removed in Phase 0.
+           The frontend build is now independent (see frontend-build stage in Dockerfile).
+           This allows the Maven build to run without Node.js or the frontend directory present. -->
 
       <plugin>
         <groupId>org.datanucleus</groupId>

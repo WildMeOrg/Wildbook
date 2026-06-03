@@ -5,6 +5,7 @@ javax.servlet.http.HttpSession,
 java.io.*" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+<%! String reactBase = org.ecocean.servlet.ReactRouter.getBasePath(); %>
 
 
 <%
@@ -599,7 +600,7 @@ java.io.*" %>
 		<p><strong><%=props.getProperty("links2mydata") %></strong></p>
 		<p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
 
-		<p class="caption"><a href="/react/encounter-search?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>
+		<p class="caption"><a href="<%= request.getContextPath() + reactBase %>/encounter-search?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>
 
 
 			<%

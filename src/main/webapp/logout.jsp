@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+<%! String reactBase = org.ecocean.servlet.ReactRouter.getBasePath(); %>
 <%
 
 String context="context0";
@@ -36,7 +37,7 @@ context=ServletUtilities.getContext(request);
         
 
         <p><%=props.getProperty("loggedOut") %></p>
-        <p><a href="<%= request.getContextPath() %>/react/login/"><%=props.getProperty("clickHere") %></a></p>
+        <p><a href="<%= request.getContextPath() + reactBase %>/login/"><%=props.getProperty("clickHere") %></a></p>
         
 
         <p>&nbsp;</p>

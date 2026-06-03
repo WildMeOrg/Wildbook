@@ -14,6 +14,7 @@
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%! String reactBase = org.ecocean.servlet.ReactRouter.getBasePath(); %>
 
 <%
   String context="context0";
@@ -69,7 +70,7 @@
 	      		<div class="row">
 	        		<div class="col-xs-10 col-sm-10 col-md-10 col-lg-10 col-xl-10">
 	          			<h3><%= projectProps.getProperty("ProjectColon")%> <%=project.getResearchProjectName()%></h3>
-	          			<p><%= projectProps.getProperty("EncounterDirectionsPt1")%><a target="_new" href="/react/encounter-search"> <%= projectProps.getProperty("EncounterDirectionsPt2")%></a><%= projectProps.getProperty("EncounterDirectionsPt3")%></p>
+	          			<p><%= projectProps.getProperty("EncounterDirectionsPt1")%><a target="_new" href="<%= request.getContextPath() + reactBase %>/encounter-search"> <%= projectProps.getProperty("EncounterDirectionsPt2")%></a><%= projectProps.getProperty("EncounterDirectionsPt3")%></p>
 	        		</div>
 	        	<div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 col-xl-10">
 	          	<span id="editButtonSpan"></span>
@@ -550,7 +551,7 @@ function removeEncounterFromProjectAjax(el) {
 
 function goToIAResults(taskId) {
 	  let projectIdPrefix = '<%= project.getProjectIdPrefix()%>';
-	  window.open('/react/match-results?taskId='+taskId+'&projectIdPrefix='+encodeURIComponent(projIdPrefix), "_blank");
+	  window.open('<%= request.getContextPath() + reactBase %>/match-results?taskId='+taskId+'&projectIdPrefix='+encodeURIComponent(projIdPrefix), "_blank");
 }
 
 function generateIALinkingMenu(json, encId) {

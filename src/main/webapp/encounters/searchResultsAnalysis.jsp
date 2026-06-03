@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+<%! String reactBase = org.ecocean.servlet.ReactRouter.getBasePath(); %>
 
 <%
 String context="context0";
@@ -129,7 +130,7 @@ td.tdw:hover div {
 
  <ul id="tabmenu">
 
-   <li><a href="/react/encounter-search?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
+   <li><a href="<%= request.getContextPath() + reactBase %>/encounter-search?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
    </a></li>
 
  </ul>

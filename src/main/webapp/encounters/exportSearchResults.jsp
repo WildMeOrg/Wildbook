@@ -2,6 +2,7 @@
          import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+<%! String reactBase = org.ecocean.servlet.ReactRouter.getBasePath(); %>
 
 
 <%
@@ -119,7 +120,7 @@
 
 		 <ul id="tabmenu">
 
-		   <li><a href="/react/encounter-search?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
+		   <li><a href="<%= request.getContextPath() + reactBase %>/encounter-search?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
 		   </a></li>
        <li><a
          href="projectManagement.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("projectManagement")%>

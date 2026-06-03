@@ -13,6 +13,7 @@ org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManage
 
 
 <%!
+  String reactBase = org.ecocean.servlet.ReactRouter.getBasePath();
   public static ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImagesFast(MarkedIndividual thisIndiv, Shepherd myShepherd, HttpServletRequest req, int numResults, String imageSize) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
 
@@ -1211,7 +1212,7 @@ if (sharky.getNames() != null) {
         -1px 1px 0 #000,
         1px 1px 0 #000;
     ">
-    <p class="viewAllImgs"><a style="color:white;" href="/react/encounter-search?individualIDExact=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
+    <p class="viewAllImgs"><a style="color:white;" href="<%= request.getContextPath() + reactBase %>/encounter-search?individualIDExact=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
 
 
     <div class="slider col-sm-6 center-slider">

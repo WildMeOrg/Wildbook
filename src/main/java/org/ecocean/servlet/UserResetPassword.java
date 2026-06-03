@@ -2,6 +2,7 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.servlet.ReactRouter;
 
 // import com.oreilly.servlet.multipart.FilePart;
 // import com.oreilly.servlet.multipart.MultipartParser;
@@ -94,7 +95,7 @@ public class UserResetPassword extends HttpServlet {
                             out.println("<strong>Success:</strong> Password successfully reset.");
 
                             out.println("<p><a href=\"" + request.getScheme() + "://" +
-                                CommonConfiguration.getURLLocation(request) + "/react/login" +
+                                CommonConfiguration.getURLLocation(request) + ReactRouter.path("/login") +
                                 "\">Return to login page" + "</a></p>\n");
                             out.println(ServletUtilities.getFooter(context));
                         } else {

@@ -21,6 +21,7 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.importutils.*;
 import org.ecocean.media.*;
 import org.ecocean.servlet.*;
+import org.ecocean.servlet.ReactRouter;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
@@ -506,7 +507,7 @@ public class StandardImport extends HttpServlet {
 
         String uName = request.getUserPrincipal().getName();
         if (committing && uName != null)
-            out.println("<p><a href=\"..//react/encounter-search?username=" + uName +
+            out.println("<p><a href=\"" + ReactRouter.path(request, "/encounter-search?username=" + uName) +
                 "\">Search encounters owned by current user \"" + uName + "\"</a></p>");
         out.println("</div>"); // close column
         if (!committing) {

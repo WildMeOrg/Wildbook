@@ -2,6 +2,7 @@ package org.ecocean.servlet;
 
 import org.ecocean.MarkedIndividual;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.servlet.ReactRouter;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -120,7 +121,8 @@ public class IndividualSetSex extends HttpServlet {
                if(allStatesSize>0){
                for(int i=0;i<allStatesSize;i++){
                 String stateName=allStates.get(i);
-                out.println("<p><a href=\"/react/encounter-search?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");
+                    out.println("<p><a href=\"" + ReactRouter.path("/encounter-search?state=" + stateName) +
+                        "\">View all " + stateName + " encounters</a></font></p>");
                }
                }*/
             // out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");

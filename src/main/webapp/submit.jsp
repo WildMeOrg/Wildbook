@@ -7,6 +7,7 @@
                  java.util.Locale" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+<%! String reactBase = org.ecocean.servlet.ReactRouter.getBasePath(); %>
 
 
 <!-- Add reCAPTCHA -->
@@ -1447,7 +1448,7 @@ function sendButtonClicked() {
           <label for="agreeToTerms" style="font-weight: normal; margin: 0;">
             I agree to
             <a
-              href="<%=request.getContextPath()%>/react/policies-and-data?section=terms_of_use"
+              href="<%=request.getContextPath()%><%= reactBase %>/policies-and-data?section=terms_of_use"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -1455,7 +1456,7 @@ function sendButtonClicked() {
             </a>
             and
             <a
-              href="<%=request.getContextPath()%>/react/policies-and-data?section=privacy_policy"
+              href="<%=request.getContextPath()%><%= reactBase %>/policies-and-data?section=privacy_policy"
               target="_blank"
               rel="noopener noreferrer"
             >

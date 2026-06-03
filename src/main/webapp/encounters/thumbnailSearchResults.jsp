@@ -2,6 +2,7 @@
 		language="java"
  		import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration, java.io.FileInputStream, javax.jdo.Extent" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+<%! String reactBase = org.ecocean.servlet.ReactRouter.getBasePath(); %>
 <%
 
   String context="context0";
@@ -210,7 +211,7 @@
 <ul id="tabmenu">
 
   <li><a
-    href="/react/encounter-search?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
+    href="<%= request.getContextPath() + reactBase %>/encounter-search?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
   </a></li>
 	<li><a
     href="projectManagement.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
