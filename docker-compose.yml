@@ -86,7 +86,7 @@ services:
       - "1025:1025"  # SMTP port
       - "8025:8025"  # Web UI port
 
- networks:
+networks:
   intranet:
 
 volumes:
