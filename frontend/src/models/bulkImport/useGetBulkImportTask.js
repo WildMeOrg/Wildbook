@@ -1,45 +1,166 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { client } from "../../api/client";
 import { useQuery } from "react-query";
 
-// Whitelist of statuses that mean "work is in flight — keep polling."
-// Anything else (terminal, unknown, missing) stops polling. Chose a
-// whitelist over a terminal-blacklist because the backend emits a
-// somewhat open-ended set of statuses (e.g. ImportTask.java emits
-// "complete", "sent", "skipped", "identification not started",
-// "unknown"; BulkImport.java overlays "processing-pipeline" at the
-// task level) and the safe failure mode is "stop polling on an
-// unrecognized status" rather than "poll forever waiting for a
-// status string we'll never recognize."
-const IN_FLIGHT_STATUSES = new Set([
-  // Task-level transient states (see BulkImport.java:892,
-  // ImportTask.java)
-  "processing-pipeline",
-  // IA phase transient state — queued/running, not yet terminal
-  // (ImportTask.java:689, :711, :726)
-  "sent",
-]);
+// Statuses that mean "work is actively in flight" — poll UNBOUNDED while any of
+// these is present. Only the IA-phase "sent" signal qualifies: a running
+// detection/identification task already polled forever under the old "sent"
+// path, so this is not a new infinite-poll risk. Task-level overlay statuses
+// (e.g. "processing-pipeline") are deliberately NOT here — that overlay
+// persists whenever the IA phase settles incomplete (e.g. re-ID on an
+// already-"complete" task whose identification ends "unknown"/zero-annotation),
+// and treating it as unbounded-active would poll forever. Everything not in
+// this set is routed through the bounded handoff branch below, so an
+// unrecognized or settled-but-incomplete status can never poll forever.
+const IN_FLIGHT_STATUSES = new Set(["sent"]);
 
 const isInFlight = (status) => IN_FLIGHT_STATUSES.has(status);
 
-// Polling time budget from task creation. Used to bound the
-// early-phase poll (encounters not yet persisted) and the
-// post-ident-complete poll (encounterTaskInfo aggregation lagging
-// the identificationStatus flip). A degenerate import that never
-// progresses past creation, or an import whose taskInfo never
-// finishes aggregating, would otherwise poll forever.
-const PHASE_POLL_BUDGET_MS = 5 * 60 * 1000;
+// Terminal failure statuses — stop polling immediately and unconditionally,
+// even if a stale iaSummary field still looks in-flight. Must run before any
+// structural/in-flight check.
 const TERMINAL_ERROR_STATUSES = new Set(["error", "failed"]);
 
-// Fail-closed: if task.dateCreated is missing or unparseable, return
-// Infinity so any "is this within budget" check evaluates false and
-// polling stops. The alternative — returning 0 — would poll forever
-// on a degenerate response shape (Codex C8 round-1 Minor).
-const taskAgeMillis = (task) => {
-  if (!task?.dateCreated) return Infinity;
-  const created = new Date(task.dateCreated).getTime();
-  return Number.isFinite(created) ? Date.now() - created : Infinity;
-};
+// Poll cadence while work is in flight.
+const POLL_INTERVAL_MS = 5000;
+
+// Bound for both bounded polls: (a) the handoff / pre-pipeline gap and (b) the
+// post-ident encounterTaskInfo-aggregation lag. Measured from the first poll on
+// which we OBSERVED the gap — never from task.dateCreated. A long import can be
+// older than this budget by the time it reaches a handoff window, which is
+// exactly when the gap is most user-visible.
+const PHASE_POLL_BUDGET_MS = 5 * 60 * 1000;
+
+// Initial state for the per-gap "first observed" clocks the bounded polls use.
+export const initialPollClocks = () => ({
+  handoffFirstSeen: null,
+  taskInfoLagFirstSeen: null,
+  lastImportPercent: null,
+});
+
+// Pure polling-cadence decision, extracted from the hook so every branch is
+// unit-testable without driving react-query timers. Reads and updates the
+// `clocks` object in place; `now` is injectable for deterministic tests.
+// Returns POLL_INTERVAL_MS to keep polling or false to stop.
+export function computeBulkImportPollInterval(
+  response,
+  clocks,
+  now = Date.now(),
+) {
+  // react-query passes `undefined` before the first successful response. Poll
+  // so we pick up the initial state.
+  if (response === undefined) return POLL_INTERVAL_MS;
+
+  // Response came back but no task — backend returned an empty or malformed
+  // body (invalid/deleted task id). Re-polling cannot make it re-materialize.
+  const task = response?.task;
+  if (!task) {
+    clocks.handoffFirstSeen = null;
+    clocks.taskInfoLagFirstSeen = null;
+    return false;
+  }
+
+  // Global terminal-error stop: a failed/errored task never makes further
+  // progress; ignore any lingering in-flight-looking iaSummary fields.
+  if (task.status && TERMINAL_ERROR_STATUSES.has(task.status)) {
+    clocks.handoffFirstSeen = null;
+    clocks.taskInfoLagFirstSeen = null;
+    return false;
+  }
+
+  const ia = task.iaSummary || {};
+
+  // Explicit in-flight signal → unbounded poll (detection/identification
+  // running). Reset BOTH clocks: a fresh active phase invalidates any earlier
+  // handoff gap AND any earlier taskInfo-lag timeout (so a re-run's later
+  // aggregation lag gets a fresh budget rather than an already-expired one).
+  if (
+    isInFlight(task.status) ||
+    isInFlight(ia.detectionStatus) ||
+    isInFlight(ia.identificationStatus)
+  ) {
+    clocks.handoffFirstSeen = null;
+    clocks.taskInfoLagFirstSeen = null;
+    return POLL_INTERVAL_MS;
+  }
+
+  // Pipeline finished. The only reason to keep polling now is the
+  // encounterTaskInfo aggregation lagging the identificationStatus flip (it
+  // drives the per-encounter "Class" match-result links and can trail by one
+  // or more polls). Bounded by elapsed-since-first-observed-lag.
+  if (ia.pipelineComplete === true) {
+    clocks.handoffFirstSeen = null;
+    if (ia.identificationStatus === "complete") {
+      const encs = Array.isArray(task.encounters) ? task.encounters : [];
+      const taskInfo = ia.statsAnnotations?.encounterTaskInfo || {};
+      const anyMissing =
+        encs.length > 0 &&
+        encs.some(
+          (e) => !Array.isArray(taskInfo[e.id]) || taskInfo[e.id].length === 0,
+        );
+      if (anyMissing) {
+        if (clocks.taskInfoLagFirstSeen === null) {
+          clocks.taskInfoLagFirstSeen = now;
+        }
+        if (now - clocks.taskInfoLagFirstSeen < PHASE_POLL_BUDGET_MS) {
+          return POLL_INTERVAL_MS;
+        }
+      } else {
+        // taskInfo populated — clear so a future lag gets a fresh budget.
+        clocks.taskInfoLagFirstSeen = null;
+      }
+    } else {
+      // identification "skipped" (or otherwise non-"complete") has no match
+      // results to wait on — clear the lag clock and stop.
+      clocks.taskInfoLagFirstSeen = null;
+    }
+    return false;
+  }
+
+  // Handoff / pre-pipeline gap: not explicitly in-flight, not terminal-error,
+  // pipeline not yet complete. Covers every un-statused transition window the
+  // backend leaves between phases:
+  //   - "processing-background" / "processing-foreground" (active CSV import,
+  //     encounters not yet persisted)
+  //   - "imported": import committed but initiateIA() hasn't started the IA
+  //     task yet (BulkImport.java commits "imported" at :516, then initiateIA()
+  //     flips it to "processing-detection" + registers the IA task only after
+  //     the handleBulkImport round-trip at :824)
+  //   - "processing-detection" before detectionStatus="sent" appears
+  //   - detection complete before identificationStatus="sent" appears
+  //   - "processing-pipeline" overlay (re-ID) when identification is not "sent"
+  // It also catches SETTLED non-complete states (legacy
+  // identificationStatus="unknown" at ImportTask.java:759; "identification not
+  // started" with zero match tasks at :736). A single snapshot can't tell
+  // transient from settled, so bound this poll by elapsed-since-first-observed:
+  // worst case a settled state over-polls one budget window, then stops —
+  // never infinite.
+  //
+  // We're pre-completion, so any earlier taskInfo-lag timeout is stale; clear
+  // it so a later completion gets a fresh lag budget.
+  clocks.taskInfoLagFirstSeen = null;
+
+  // Active CSV import reports a monotonically-increasing importPercent. Treat
+  // forward progress as liveness: reset the handoff budget whenever
+  // importPercent advances, so a legitimately long import is never cut off,
+  // while a genuinely wedged one (no progress for a full budget window) still
+  // stops. importPercent is bounded [0,1], so this cannot reset forever.
+  const pct =
+    typeof task.importPercent === "number" ? task.importPercent : null;
+  if (
+    pct !== null &&
+    (clocks.lastImportPercent === null || pct > clocks.lastImportPercent)
+  ) {
+    clocks.lastImportPercent = pct;
+    clocks.handoffFirstSeen = now;
+  }
+
+  if (clocks.handoffFirstSeen === null) clocks.handoffFirstSeen = now;
+  if (now - clocks.handoffFirstSeen < PHASE_POLL_BUDGET_MS) {
+    return POLL_INTERVAL_MS;
+  }
+  return false;
+}
 
 export default function useGetBulkImportTask(taskId) {
   const fetchTask = async () => {
@@ -47,105 +168,38 @@ export default function useGetBulkImportTask(taskId) {
     return data;
   };
 
-  // Client-side timestamp of the first response where
-  // identificationStatus first became "complete" with any encounter
-  // still missing its taskInfo entry. Drives the post-ident tail
-  // bound separately from task.dateCreated, which can be older than
-  // the 5-min budget on long imports (Codex C8 round-1 Major).
-  const taskInfoLagFirstSeenRef = useRef(null);
+  // Per-gap "first observed" timestamps backing the two bounded polls, held in
+  // a ref so they persist across re-renders without re-triggering the query.
+  const clocksRef = useRef(initialPollClocks());
+
+  // Reset the clocks when the observed task changes (the hook is reused for
+  // different task ids, e.g. the unfinished-task probe on the import landing
+  // page); otherwise a prior task's expired budget would carry over and stop
+  // the new task's polling immediately.
+  useEffect(() => {
+    clocksRef.current = initialPollClocks();
+  }, [taskId]);
 
   const { data, isLoading, error, refetch } = useQuery(
     ["bulkImportTask", taskId],
     fetchTask,
     {
       enabled: Boolean(taskId),
-      refetchOnWindowFocus: false,
       retry: false,
       select: (d) => d ?? [],
-      // Poll every 5s while ANY of the three observable phase
-      // statuses (task.status, iaSummary.detectionStatus,
-      // iaSummary.identificationStatus) is in flight. Stop polling
-      // once none of them is in flight. The IA phases run after task
-      // upload completes (BulkImportTask.jsx:498 gates the re-ID
-      // button on both task.status and iaSummary.detectionStatus
-      // being complete), so we cannot stop on task.status alone.
-      refetchInterval: (response) => {
-        // First load not complete yet — react-query passes `undefined`
-        // before the first successful response. Poll so we pick up
-        // the initial state.
-        if (response === undefined) return 5000;
-        // Response came back but no task — backend returned an empty
-        // or malformed body (e.g. the task id is invalid or was
-        // deleted). Stop polling; re-polling cannot make the task
-        // re-materialize, and infinite polling on a 200-with-no-task
-        // would hammer the API.
-        const task = response?.task;
-        if (!task) return false;
-        if (isInFlight(task.status)) return 5000;
-        if (isInFlight(task.iaSummary?.detectionStatus)) return 5000;
-        if (isInFlight(task.iaSummary?.identificationStatus)) return 5000;
-        // Early-phase polling: bulk-import row persistence runs in the
-        // background (BulkImport.java#createImport [background]) before
-        // IA queueing. If we hit the page in that window task exists
-        // but task.encounters is empty AND no IA phase has fired yet,
-        // and task.status is one of the early CSV-import strings
-        // ("started", "Importing N", "imported", "complete") none of
-        // which match the in-flight whitelist. Without this branch the
-        // page strands on "There are no records to display" and never
-        // refreshes. Bound: stop if the task is older than 5 min
-        // (degenerate import, 0 MAs, IA never fires) or if task.status
-        // is already terminal-error.
-        const hasEncounters = Array.isArray(task.encounters) &&
-          task.encounters.length > 0;
-        const pipelineStarted = task.iaSummary?.pipelineStarted === true;
-        if (!hasEncounters && !pipelineStarted) {
-          if (task.status && TERMINAL_ERROR_STATUSES.has(task.status)) {
-            return false;
-          }
-          if (taskAgeMillis(task) < PHASE_POLL_BUDGET_MS) return 5000;
-        }
-        // Post-ident-complete polling: encounterTaskInfo (which drives
-        // the per-encounter "Class" column match-result links) is
-        // aggregated lazily and can lag the identificationStatus flip
-        // by one or more polls. Keep polling while ident is complete
-        // but any encounter still lacks its taskInfo entry — the
-        // alternative is the page goes static and the user has to
-        // manually refresh to see the links.
-        //
-        // Bound by elapsed-since-we-first-observed-the-lag, NOT task
-        // age. A long bulk import that takes >5 min to complete IA
-        // would otherwise skip this branch entirely, which is the
-        // exact case where the lag is most user-visible.
-        if (task.iaSummary?.identificationStatus === "complete") {
-          const encs = hasEncounters ? task.encounters : [];
-          const taskInfo =
-            task.iaSummary?.statsAnnotations?.encounterTaskInfo || {};
-          const anyMissing =
-            encs.length > 0 &&
-            encs.some(
-              (e) =>
-                !Array.isArray(taskInfo[e.id]) || taskInfo[e.id].length === 0,
-            );
-          if (anyMissing) {
-            if (taskInfoLagFirstSeenRef.current === null) {
-              taskInfoLagFirstSeenRef.current = Date.now();
-            }
-            const elapsed = Date.now() - taskInfoLagFirstSeenRef.current;
-            if (elapsed < PHASE_POLL_BUDGET_MS) return 5000;
-          } else {
-            // taskInfo populated — clear the ref so a future lag
-            // (e.g. operator re-runs identification on this task)
-            // gets a fresh 5-min budget.
-            taskInfoLagFirstSeenRef.current = null;
-          }
-        }
-        return false;
-      },
-      // Pause polling when the browser tab is hidden. Polling resumes
-      // on the next scheduled interval after the tab regains focus
-      // (refetchOnWindowFocus stays false so we do not double-fetch
-      // the instant the tab is restored).
+      refetchInterval: (response) =>
+        computeBulkImportPollInterval(response, clocksRef.current),
+      // Do not fetch on a hidden tab: the interval keeps firing but skips the
+      // fetch, so the last data + last interval value freeze.
       refetchIntervalInBackground: false,
+      // Refetch when the tab regains focus. With refetchIntervalInBackground
+      // false a backgrounded tab's polling is suspended; in react-query v3 a
+      // refetchInterval that returned `false` clears the timer and nothing
+      // re-arms it on its own. A focus refetch re-samples the backend the
+      // instant the user returns and re-arms polling if work is still in
+      // flight — turning a terminal stall into a self-healing one. Cost is one
+      // extra GET on focus, which is the desired "refresh on return" behavior.
+      refetchOnWindowFocus: true,
     },
   );
 
