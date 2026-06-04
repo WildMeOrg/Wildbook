@@ -147,7 +147,7 @@ const authenticatedMenu = (
             defaultMessage="My Individuals"
           />
         ),
-        href: `/individualSearchResults.jsp?username=${username}`,
+        href: `${process.env.PUBLIC_URL}/individual-search?mine=true`,
       },
       {
         name: (
@@ -227,7 +227,7 @@ const authenticatedMenu = (
             defaultMessage="Individuals"
           />
         ),
-        href: "/individualSearch.jsp",
+        href: `${process.env.PUBLIC_URL}/individual-search`,
       },
       {
         name: (
