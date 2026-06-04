@@ -2095,9 +2095,30 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return minDistance;
     }
 
-    // convenience function to Collaboration permissions
     public boolean canUserAccess(HttpServletRequest request) {
         return Collaboration.canUserAccessMarkedIndividual(this, request);
+    }
+
+    @Override public boolean canUserView(User user, Shepherd myShepherd) {
+        if (user == null) return false;
+        if (user.isAdmin(myShepherd)) return true;
+        Vector<Encounter> encs = getEncounters();
+        if ((encs == null) || encs.isEmpty()) return true;
+        for (Encounter enc : encs) {
+            if (enc.canUserView(user, myShepherd)) return true;
+        }
+        return false;
+    }
+
+    @Override public boolean canUserEdit(User user, Shepherd myShepherd) {
+        if (user == null) return false;
+        if (user.isAdmin(myShepherd)) return true;
+        Vector<Encounter> encs = getEncounters();
+        if (encs == null) return false;
+        for (Encounter enc : encs) {
+            if (enc.canUserEdit(user, myShepherd)) return true;
+        }
+        return false;
     }
 
     // see note on Base class
