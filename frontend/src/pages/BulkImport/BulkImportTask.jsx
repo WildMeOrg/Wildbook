@@ -283,32 +283,31 @@ const BulkImportTask = observer(() => {
       <Row className="g-2">
         <div className="d-flex flex-row gap-3">
           {[
-            {
-              title: intl.formatMessage({
-                id: "IMPORT",
-              }),
-              progress:
-                task?.importPercent ||
+            (() => {
+              // Import is "done" once it hits 100%, or once a later phase
+              // proves it finished (task complete, detection complete, or the
+              // pipeline overlay is running). Compute once so progress and
+              // status stay consistent. NOTE: the bar must show the *actual*
+              // fractional importPercent while in progress — guarding only
+              // against `=== 1` here, not any truthy value, otherwise a 30%
+              // import renders as a full bar.
+              const importComplete =
+                task?.importPercent === 1 ||
                 task?.status === "complete" ||
                 task?.iaSummary?.detectionStatus === "complete" ||
-                task?.status === "processing-pipeline"
-                  ? 1
-                  : 0,
-              status: (() => {
-                if (
-                  task?.importPercent === 1 ||
-                  task?.status === "complete" ||
-                  task?.iaSummary?.detectionStatus === "complete" ||
-                  task?.status === "processing-pipeline"
-                ) {
-                  return "complete";
-                } else if (task?.importPercent) {
-                  return "in_progress";
-                } else {
-                  return "not_started";
-                }
-              })(),
-            },
+                task?.status === "processing-pipeline";
+              return {
+                title: intl.formatMessage({
+                  id: "IMPORT",
+                }),
+                progress: importComplete ? 1 : task?.importPercent || 0,
+                status: importComplete
+                  ? "complete"
+                  : task?.importPercent
+                    ? "in_progress"
+                    : "not_started",
+              };
+            })(),
             {
               title: intl.formatMessage({
                 id: "DETECTION",
