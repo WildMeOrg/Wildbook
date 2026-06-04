@@ -14,7 +14,7 @@ export const IdentifySectionReview = observer(({ store }) => {
         {!!store.getFieldValue("identify", "individualDisplayName") &&
           !!store.getFieldValue("identify", "individualId") && (
             <a
-              href={`/individuals.jsp?id=${store.getFieldValue("identify", "individualId")}`}
+              href={`/react/individual/${store.getFieldValue("identify", "individualId")}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-decoration-none"

@@ -192,7 +192,7 @@ const BulkImportTask = observer(() => {
       cell: (row) =>
         row.individualName !== "-" ? (
           <a
-            href={`/individuals.jsp?id=${row.individualID}`}
+            href={`/react/individual/${row.individualID}`}
             target="_blank"
             rel="noreferrer"
           >

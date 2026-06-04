@@ -227,7 +227,7 @@ const Encounter = observer(() => {
               <FormattedMessage id="ENCOUNTER" />{" "}
               {store.encounterData?.individualDisplayName ? (
                 <a
-                  href={`/individuals.jsp?id=${store.encounterData.individualId}`}
+                  href={`/react/individual/${store.encounterData.individualId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ textDecoration: "none", color: "inherit" }}
@@ -416,7 +416,7 @@ const Encounter = observer(() => {
             <FormattedMessage id="ENCOUNTER" />{" "}
             {store.encounterData?.individualDisplayName ? (
               <a
-                href={`/individuals.jsp?id=${store.encounterData.individualId}`}
+                href={`/react/individual/${store.encounterData.individualId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ textDecoration: "none", color: "inherit" }}

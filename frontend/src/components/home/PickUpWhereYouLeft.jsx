@@ -45,7 +45,7 @@ const PickUp = ({ data }) => {
           date={formatDate(data?.latestIndividual?.dateTimeCreated, true)}
           text={data?.latestIndividual}
           disabled={!data?.latestIndividual}
-          latestId={`/individuals.jsp?id=${data?.latestIndividual?.id}`}
+          latestId={`/react/individual/${data?.latestIndividual?.id}`}
         />
         <LatestActivityItem
           name="HOME_LATEST_MATCHING_ACTION"

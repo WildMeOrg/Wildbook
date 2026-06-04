@@ -987,7 +987,7 @@ export const ImageModal = observer(
                 <dd className="col-7 mb-0">
                   {imageStore.encounterData.individualId ? (
                     <a
-                      href={`/individuals.jsp?id=${imageStore.encounterData.individualId}`}
+                      href={`/react/individual/${imageStore.encounterData.individualId}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-decoration-none"

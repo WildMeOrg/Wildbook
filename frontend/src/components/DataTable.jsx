@@ -127,7 +127,7 @@ const MyDataTable = observer(
                   style={{ color: "inherit" }}
                   href={
                     row[col.selector]
-                      ? `/individuals.jsp?id=${row["individualId"]}`
+                      ? `/react/individual/${row["individualId"]}`
                       : null
                   }
                   rel="noreferrer"

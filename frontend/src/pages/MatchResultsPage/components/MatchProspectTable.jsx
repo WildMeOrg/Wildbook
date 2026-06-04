@@ -513,7 +513,7 @@ const MatchProspectTable = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!canOpenIndividual) return;
-                            const url = `/individuals.jsp?id=${encodeURIComponent(candidateIndividualId)}`;
+                            const url = `/react/individual/${encodeURIComponent(candidateIndividualId)}`;
                             window.open(url, "_blank");
                           }}
                         >

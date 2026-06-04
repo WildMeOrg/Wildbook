@@ -12,6 +12,7 @@ const AboutUs = lazy(() => import("./pages/AboutUs"));
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
+const Individual = lazy(() => import("./pages/Individual"));
 const Unauthorized = lazy(() => import("./pages/errorPages/Unauthorized"));
 const ReportEncounter = lazy(
   () => import("./pages/ReportsAndManagamentPages/ReportEncounter"),
@@ -67,6 +68,7 @@ export default function UnAuthenticatedSwitch({
               element={<Unauthorized setHeader={setHeader} />}
             />
             <Route path="/encounter" element={<EncounterPageViewOnly />} />
+            <Route path="/individual/:id" element={<Individual />} />
             <Route path="/policies-and-data" element={<PoliciesAndData />} />
             <Route path="/about-us" element={<AboutUs />} />
             <Route

@@ -96,7 +96,7 @@ const MatchResultsBottomBar = observer(
                 <a
                   id="match-bottombar-individual-link"
                   data-testid="match-bottombar-individual-link"
-                  href={`/individuals.jsp?id=${encodeURIComponent(
+                  href={`/react/individual/${encodeURIComponent(
                     store.individualId,
                   )}`}
                   target="_blank"
@@ -183,7 +183,7 @@ const MatchResultsBottomBar = observer(
                 <a
                   id="match-bottombar-single-individual-link"
                   data-testid="match-bottombar-single-individual-link"
-                  href={`/individuals.jsp?id=${encodeURIComponent(
+                  href={`/react/individual/${encodeURIComponent(
                     individualItem?.individualId,
                   )}`}
                   target="_blank"
@@ -275,7 +275,7 @@ const MatchResultsBottomBar = observer(
                 <a
                   id="match-bottombar-two-individual-a-link"
                   data-testid="match-bottombar-two-individual-a-link"
-                  href={`/individuals.jsp?id=${encodeURIComponent(
+                  href={`/react/individual/${encodeURIComponent(
                     a?.individualId,
                   )}`}
                   target="_blank"
@@ -291,7 +291,7 @@ const MatchResultsBottomBar = observer(
                 <a
                   id="match-bottombar-two-individual-b-link"
                   data-testid="match-bottombar-two-individual-b-link"
-                  href={`/individuals.jsp?id=${encodeURIComponent(
+                  href={`/react/individual/${encodeURIComponent(
                     b?.individualId,
                   )}`}
                   target="_blank"
@@ -380,7 +380,7 @@ const MatchResultsBottomBar = observer(
                     <a
                       id="match-bottombar-no-action-individual-link"
                       data-testid="match-bottombar-no-action-individual-link"
-                      href={`/individuals.jsp?id=${encodeURIComponent(
+                      href={`/react/individual/${encodeURIComponent(
                         store.individualId,
                       )}`}
                       target="_blank"

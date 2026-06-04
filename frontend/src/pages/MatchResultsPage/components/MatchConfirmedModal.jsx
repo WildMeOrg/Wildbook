@@ -77,7 +77,7 @@ const MatchConfirmedModal = ({
           <a
             id="match-confirmed-individual-link"
             data-testid="match-confirmed-individual-link"
-            href={`/individuals.jsp?id=${encodeURIComponent(individualId)}`}
+            href={`/react/individual/${encodeURIComponent(individualId)}`}
             target="_blank"
             rel="noopener noreferrer"
           >

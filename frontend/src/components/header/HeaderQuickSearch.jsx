@@ -103,7 +103,7 @@ export default function HeaderQuickSearch() {
                     rel="noopener noreferrer"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      window.open(`/individuals.jsp?id=${result.id}`);
+                      window.open(`/react/individual/${result.id}`);
                     }}
                   >
                     <div

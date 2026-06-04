@@ -8,6 +8,7 @@ import LoadingScreen from "./components/LoadingScreen";
 import useGetMe from "./models/auth/users/useGetMe";
 const HowToPhotograph = lazy(() => import("./pages/HowToPhotograph"));
 const AboutUs = lazy(() => import("./pages/AboutUs"));
+const Individual = lazy(() => import("./pages/Individual"));
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
@@ -105,6 +106,7 @@ export default function AuthenticatedSwitch({
             <Route path="/report" element={<ReportEncounter />} />
             <Route path="/reportConfirm" element={<ReportConfirm />} />
             <Route path="/encounter" element={<Encounter />} />
+            <Route path="/individual/:id" element={<Individual />} />
 
             <Route path="/encounter-search" element={<EncounterSearch />} />
             <Route path="/admin/logs" element={<AdminLogs />} />
