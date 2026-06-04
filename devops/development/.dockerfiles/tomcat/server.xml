@@ -161,7 +161,7 @@
       <Host name="localhost"  appBase="webapps"
             unpackWARs="true" deployOnStartup="false" autoDeploy="false">
 
-	      <Context path="" docBase="wildbook"></Context>
+        <Context path="" docBase="ROOT"></Context>
 
 	      <Context docBase="/usr/local/tomcat/webapps/wildbook_data_dir" path="/wildbook_data_dir" />
 
