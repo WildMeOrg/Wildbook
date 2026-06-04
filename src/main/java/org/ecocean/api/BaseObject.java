@@ -250,18 +250,12 @@ public class BaseObject extends ApiBase {
         try {
             User currentUser = myShepherd.getUser(request);
             Base obj = null;
-            if (args.length > 0) obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
+            if (args.length > 1) obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
             if (obj == null) {
                 rtn.put("statusCode", 404);
                 rtn.put("error", "not found");
-/*
-    we now let jsonForApiGet() handle this, as some objects non-logged-in users can see
-    part of. therefore, jsonForApiGet() must set statusCode/error as needed.
-
-            } else if (!obj.canUserView(currentUser, myShepherd)) {
-                rtn.put("statusCode", 401);
-                rtn.put("error", "access denied");
- */
+            } else if (args.length >= 3) {
+                rtn = processGetSubResource(obj, args[2], currentUser, myShepherd);
             } else {
                 rtn = obj.jsonForApiGet(myShepherd, currentUser);
             }
@@ -271,6 +265,19 @@ public class BaseObject extends ApiBase {
         } finally {
             myShepherd.rollbackAndClose();
         }
+        return rtn;
+    }
+
+    private JSONObject processGetSubResource(Base obj, String subResource, User currentUser,
+        Shepherd myShepherd)
+    throws ServletException, IOException {
+        if (obj instanceof MarkedIndividual && "encounters".equals(subResource)) {
+            return ((MarkedIndividual)obj).encountersJsonForApiGet(myShepherd, currentUser);
+        }
+        JSONObject rtn = new JSONObject();
+        rtn.put("statusCode", 404);
+        rtn.put("success", false);
+        rtn.put("error", "unknown sub-resource: " + subResource);
         return rtn;
     }
 

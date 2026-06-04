@@ -2935,6 +2935,164 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                    .toString();
     }
 
+    // ── API: GET /api/v3/individuals/{id}/encounters ──────────────────────────────
+
+    public org.json.JSONObject encountersJsonForApiGet(Shepherd myShepherd, User currentUser)
+    throws IOException {
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        if (currentUser == null) {
+            rtn.put("statusCode", 401);
+            rtn.put("success", false);
+            rtn.put("error", "login required");
+            return rtn;
+        }
+        org.json.JSONArray encArr = new org.json.JSONArray();
+        Vector<Encounter> encs = getEncounters();
+        if (encs != null) {
+            for (Encounter enc : encs) {
+                org.json.JSONObject ej = new org.json.JSONObject();
+                ej.put("id", enc.getCatalogNumber());
+                ej.put("date", Util.jsonNull(enc.getDate()));
+                ej.put("locationID", Util.jsonNull(enc.getLocationID()));
+                ej.put("state", Util.jsonNull(enc.getState()));
+                ej.put("taxonomy", Util.jsonNull(enc.getTaxonomyString()));
+                ej.put("numAnnotations", enc.numAnnotations());
+                encArr.put(ej);
+            }
+        }
+        rtn.put("encounters", encArr);
+        rtn.put("success", true);
+        rtn.put("statusCode", 200);
+        return rtn;
+    }
+
+    // ── API: PATCH /api/v3/individuals/{id} ───────────────────────────────────────
+
+    @Override public org.json.JSONObject processPatch(org.json.JSONArray patchArr, User user,
+        Shepherd myShepherd)
+    throws org.ecocean.api.ApiException {
+        if (patchArr == null)
+            throw new org.ecocean.api.ApiException("null patch array",
+                org.ecocean.api.ApiException.ERROR_RETURN_CODE_REQUIRED);
+        this.setSkipAutoIndexing(true);
+        org.json.JSONArray resArr = new org.json.JSONArray();
+        for (int i = 0; i < patchArr.length(); i++) {
+            org.json.JSONObject patch = patchArr.optJSONObject(i);
+            applyIndividualPatch(patch, user);
+            org.json.JSONObject patchRes = new org.json.JSONObject();
+            patchRes.put("_patch", patch);
+            resArr.put(patchRes);
+        }
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        rtn.put("patchResults", resArr);
+        rtn.put("success", true);
+        rtn.put("statusCode", 200);
+        this.setSkipAutoIndexing(false);
+        return rtn;
+    }
+
+    private void applyIndividualPatch(org.json.JSONObject patch, User user)
+    throws org.ecocean.api.ApiException {
+        if (patch == null)
+            throw new org.ecocean.api.ApiException("null patch object",
+                org.ecocean.api.ApiException.ERROR_RETURN_CODE_REQUIRED);
+        String op = patch.optString("op", null);
+        if (op == null || (!op.equals("add") && !op.equals("remove") && !op.equals("replace")))
+            throw new org.ecocean.api.ApiException("invalid op: " + op, "INVALID_OP");
+        String path = patch.optString("path", null);
+        if (path == null)
+            throw new org.ecocean.api.ApiException("path is required", "INVALID_PATH");
+        Object value = patch.opt("value");
+        if (patch.isNull("value")) value = null;
+
+        boolean isRemove = op.equals("remove");
+
+        switch (path) {
+        case "sex":
+            setSex(isRemove || value == null ? null : value.toString());
+            break;
+
+        case "nickName":
+            if (isRemove || value == null) {
+                if (getNames() != null) getNames().removeValues(NAMES_KEY_NICKNAME);
+            } else {
+                setNickName(value.toString());
+            }
+            break;
+
+        case "names": {
+            if (!(value instanceof org.json.JSONObject))
+                throw new org.ecocean.api.ApiException("names value must be a json object",
+                    org.ecocean.api.ApiException.ERROR_RETURN_CODE_INVALID);
+            org.json.JSONObject jval = (org.json.JSONObject)value;
+            String key = jval.optString("key", null);
+            String name = jval.optString("value", null);
+            if (key == null)
+                throw new org.ecocean.api.ApiException("names requires a key",
+                    org.ecocean.api.ApiException.ERROR_RETURN_CODE_REQUIRED);
+            if (isRemove) {
+                if (getNames() != null) getNames().removeValuesByKey(key, name);
+            } else {
+                if (name == null)
+                    throw new org.ecocean.api.ApiException("names add/replace requires a value",
+                        org.ecocean.api.ApiException.ERROR_RETURN_CODE_REQUIRED);
+                addNameByKey(key, name);
+            }
+            break;
+        }
+
+        case "timeOfBirth":
+            if (isRemove || value == null) {
+                setTimeOfBirth(0L);
+            } else {
+                setTimeOfBirth(parseEpochMs(value, path));
+            }
+            break;
+
+        case "timeOfDeath":
+            if (isRemove || value == null) {
+                setTimeOfDeath(0L);
+            } else {
+                setTimeOfDeath(parseEpochMs(value, path));
+            }
+            break;
+
+        case "alternateid":
+            if (isRemove || value == null) {
+                if (getNames() != null) getNames().removeValues(NAMES_KEY_ALTERNATEID);
+            } else {
+                setAlternateID(value.toString());
+            }
+            break;
+
+        case "comments":
+            if (isRemove)
+                throw new org.ecocean.api.ApiException("comments cannot be removed",
+                    org.ecocean.api.ApiException.ERROR_RETURN_CODE_INVALID);
+            if (value == null)
+                throw new org.ecocean.api.ApiException("comments requires a value",
+                    org.ecocean.api.ApiException.ERROR_RETURN_CODE_REQUIRED);
+            addComments(value.toString());
+            break;
+
+        default:
+            throw new org.ecocean.api.ApiException("unsupported path: " + path, "INVALID_PATH");
+        }
+    }
+
+    private long parseEpochMs(Object value, String fieldName)
+    throws org.ecocean.api.ApiException {
+        try {
+            if (value instanceof Number) return ((Number)value).longValue();
+            // accept ISO 8601 string via Joda
+            return new DateTime(value.toString()).getMillis();
+        } catch (Exception ex) {
+            throw new org.ecocean.api.ApiException(
+                fieldName + " value is not a valid date or epoch ms: " + value,
+                org.ecocean.api.ApiException.ERROR_RETURN_CODE_INVALID);
+        }
+    }
+
     @Override public Base getById(Shepherd myShepherd, String id) {
         return myShepherd.getMarkedIndividual(id);
     }
