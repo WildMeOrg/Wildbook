@@ -2956,6 +2956,18 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                    .toString();
     }
 
+    // ── API: GET /api/v3/individuals/{id} ─────────────────────────────────────────
+
+    @Override public org.json.JSONObject jsonForApiGet(Shepherd myShepherd, User currentUser)
+    throws IOException {
+        org.json.JSONObject rtn = super.jsonForApiGet(myShepherd, currentUser);
+        if (!rtn.optBoolean("success", false)) return rtn;
+        rtn.put("access", canUserEdit(currentUser, myShepherd) ? "write" : "read");
+        rtn.put("comments", Util.jsonNull(getComments()));
+        rtn.put("lifeStage", Util.jsonNull(getLastLifeStage()));
+        return rtn;
+    }
+
     // ── API: GET /api/v3/individuals/{id}/encounters ──────────────────────────────
 
     public org.json.JSONObject encountersJsonForApiGet(Shepherd myShepherd, User currentUser)
