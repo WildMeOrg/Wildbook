@@ -47,10 +47,10 @@ describe("MeasurementsReview", () => {
     render(<MeasurementsReview store={store} />);
 
     expect(screen.getByText("length")).toBeInTheDocument();
-    expect(screen.getByText("230 cm(visual)")).toBeInTheDocument();
+    expect(screen.getByText("230 cm (visual)")).toBeInTheDocument();
 
     expect(screen.getByText("weight")).toBeInTheDocument();
-    expect(screen.getByText("150 kg(scale)")).toBeInTheDocument();
+    expect(screen.getByText("150 kg (scale)")).toBeInTheDocument();
   });
 
   test("when a measurement type has no matching measurement, renders empty value", () => {
@@ -71,7 +71,7 @@ describe("MeasurementsReview", () => {
     render(<MeasurementsReview store={store} />);
 
     expect(screen.getByText("length")).toBeInTheDocument();
-    expect(screen.getByText("230 cm(visual)")).toBeInTheDocument();
+    expect(screen.getByText("230 cm (visual)")).toBeInTheDocument();
     expect(screen.getByText("girth")).toBeInTheDocument();
   });
 
@@ -116,8 +116,8 @@ describe("MeasurementsReview", () => {
 
       renderWithLocale(store, "en");
 
-      expect(screen.getByText("50 cm(estimated)")).toBeInTheDocument();
-      expect(screen.queryByText("50 cm(samplingProtocol1)")).toBeNull();
+      expect(screen.getByText("50 cm (estimated)")).toBeInTheDocument();
+      expect(screen.queryByText("50 cm (samplingProtocol1)")).toBeNull();
     });
 
     test("localizes a samplingProtocol stored as the config value (React edit)", () => {
@@ -138,7 +138,7 @@ describe("MeasurementsReview", () => {
 
       renderWithLocale(store, "en");
 
-      expect(screen.getByText("50 cm(estimated)")).toBeInTheDocument();
+      expect(screen.getByText("50 cm (estimated)")).toBeInTheDocument();
     });
 
     test("uses the active locale for the label", () => {
@@ -159,7 +159,7 @@ describe("MeasurementsReview", () => {
 
       renderWithLocale(store, "es");
 
-      expect(screen.getByText("50 cm(estimada)")).toBeInTheDocument();
+      expect(screen.getByText("50 cm (estimada)")).toBeInTheDocument();
     });
 
     test("falls back to English when the active locale has no label", () => {
@@ -180,7 +180,7 @@ describe("MeasurementsReview", () => {
 
       renderWithLocale(store, "fr");
 
-      expect(screen.getByText("50 cm(estimated)")).toBeInTheDocument();
+      expect(screen.getByText("50 cm (estimated)")).toBeInTheDocument();
     });
 
     test("falls back to the raw value when no matching protocol exists", () => {
@@ -201,7 +201,7 @@ describe("MeasurementsReview", () => {
 
       renderWithLocale(store, "en");
 
-      expect(screen.getByText("50 cm(somethingUnknown)")).toBeInTheDocument();
+      expect(screen.getByText("50 cm (somethingUnknown)")).toBeInTheDocument();
     });
   });
 });
