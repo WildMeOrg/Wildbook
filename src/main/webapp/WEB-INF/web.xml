@@ -99,6 +99,8 @@
 				/LightRest/** = authcBasicWildbook,roles[researcher]
 
 				# ===== v3 API Security =====
+				/api/v3/auth/token = authcBasicWildbook
+				/api/v3/can-user-access = authcBasicWildbook, roles[admin]
 				/api/v3/bulk-import = authc
 				/api/v3/bulk-import/** = authc
 
@@ -535,6 +537,26 @@
 	<servlet-mapping>
 		<servlet-name>MatchInspection</servlet-name>
 		<url-pattern>/api/v3/match-inspection/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>AuthToken</servlet-name>
+		<servlet-class>org.ecocean.api.AuthToken</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>AuthToken</servlet-name>
+		<url-pattern>/api/v3/auth/token</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>CanUserAccess</servlet-name>
+		<servlet-class>org.ecocean.api.CanUserAccess</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>CanUserAccess</servlet-name>
+		<url-pattern>/api/v3/can-user-access</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
