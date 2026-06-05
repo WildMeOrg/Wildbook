@@ -32,7 +32,7 @@ export const MeasurementsReview = observer(({ store ={} }) => {
                     </div>; 
                     return <div key={index}>
                         <h6>{measurement.type}</h6>
-                        <p>{`${measurement.value}${" "}${measurement.units}(${localizeSamplingProtocol(measurement.samplingProtocol)})`}</p>
+                        <p>{`${measurement.value}${" "}${measurement.units} (${localizeSamplingProtocol(measurement.samplingProtocol)})`}</p>
                     </div>
                 })
                 }
