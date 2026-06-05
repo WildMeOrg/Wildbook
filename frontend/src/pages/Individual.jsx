@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { useQueryClient } from "react-query";
 import { Container, Row, Col } from "react-bootstrap";
 import Modal from "react-bootstrap/Modal";
 import { FormattedMessage } from "react-intl";
@@ -14,6 +15,9 @@ import useDocumentTitle from "../hooks/useDocumentTitle";
 import DateIcon from "../components/icons/DateIcon";
 import AttributesIcon from "../components/icons/AttributesIcon";
 import MetadataIcon from "../components/icons/MetaDataIcon";
+import useGetIndividual from "../models/individuals/useGetIndividual";
+import useGetIndividualEncounters from "../models/individuals/useGetIndividualEncounters";
+import { getIndividualQueryKey } from "../constants/queryKeys";
 
 const SEX_OPTIONS = ["unknown", "male", "female"];
 
@@ -26,11 +30,20 @@ export default function Individual() {
   useDocumentTitle();
 
   const { id } = useParams();
+  const queryClient = useQueryClient();
 
-  const [individual, setIndividual] = useState(null);
-  const [encounters, setEncounters] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const {
+    data: individual,
+    loading: individualLoading,
+    statusCode: individualStatus,
+  } = useGetIndividual(id);
+
+  const { data: encounters, loading: encountersLoading } =
+    useGetIndividualEncounters(id);
+
+  const loading = individualLoading || encountersLoading;
+  const notFound = !loading && (!individual || individual?.success === false);
+
   const [overviewActive, setOverviewActive] = useState(true);
 
   // edit states
@@ -48,47 +61,12 @@ export default function Individual() {
 
   const canEdit = individual?.access === "write";
 
-  const fetchIndividual = useCallback(async () => {
-    try {
-      const res = await axios.get(`/api/v3/individuals/${id}`);
-      if (res.data?.success) {
-        setIndividual(res.data);
-        setNotFound(false);
-      } else {
-        setNotFound(true);
-      }
-    } catch (_err) {
-      setNotFound(true);
-    }
-  }, [id]);
-
-  const fetchEncounters = useCallback(async () => {
-    try {
-      const res = await axios.get(`/api/v3/individuals/${id}/encounters`);
-      if (res.data?.success) {
-        setEncounters(res.data.encounters || []);
-      }
-    } catch (_err) {
-      setEncounters([]);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    setLoading(true);
-    setNotFound(false);
-    setIndividual(null);
-    setEncounters([]);
-    Promise.all([fetchIndividual(), fetchEncounters()]).finally(() =>
-      setLoading(false),
-    );
-  }, [id, fetchIndividual, fetchEncounters]);
-
   const patch = useCallback(
     async (ops) => {
       await axios.patch(`/api/v3/individuals/${id}`, ops);
-      await fetchIndividual();
+      await queryClient.invalidateQueries(getIndividualQueryKey(id));
     },
-    [id, fetchIndividual],
+    [id, queryClient],
   );
 
   if (loading) return <LoadingScreen />;
@@ -214,21 +192,18 @@ export default function Individual() {
 
   const NamesReview = (
     <div>
-      <AttributesAndValueComponent
-        attributeId="NICKNAME"
-        value={nickName}
-      />
+      <AttributesAndValueComponent attributeId="NICKNAME" value={nickName} />
       <AttributesAndValueComponent
         attributeId="ALTERNATE_ID"
         value={alternateId}
       />
-      {individual?.names?.filter(
-        (n) => n !== nickName && n !== alternateId,
-      ).map((name, i) => (
-        <div key={i} className="mb-1">
-          <small className="text-muted">{name}</small>
-        </div>
-      ))}
+      {individual?.names
+        ?.filter((n) => n !== nickName && n !== alternateId)
+        .map((name, i) => (
+          <div key={i} className="mb-1">
+            <small className="text-muted">{name}</small>
+          </div>
+        ))}
     </div>
   );
 
@@ -296,10 +271,9 @@ export default function Individual() {
           ))}
         </>
       ) : null}
-      {!individual?.relationships?.length &&
-        !individual?.socialUnits?.length && (
-          <small className="text-muted">—</small>
-        )}
+      {!individual?.relationships?.length && !individual?.socialUnits?.length && (
+        <small className="text-muted">—</small>
+      )}
     </div>
   );
 
@@ -485,7 +459,7 @@ export default function Individual() {
               content={
                 <SimpleDataTable
                   columns={encounterColumns}
-                  data={encounters}
+                  data={encounters || []}
                   perPage={10}
                 />
               }
