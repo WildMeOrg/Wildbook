@@ -2990,6 +2990,45 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 ej.put("state", Util.jsonNull(enc.getState()));
                 ej.put("taxonomy", Util.jsonNull(enc.getTaxonomyString()));
                 ej.put("numAnnotations", enc.numAnnotations());
+
+                // group annotations by MediaAsset to build the mediaAssets array
+                java.util.LinkedHashMap<String, org.json.JSONObject> maMap =
+                    new java.util.LinkedHashMap<>();
+                if (enc.getAnnotations() != null) {
+                    for (Annotation ann : enc.getAnnotations()) {
+                        MediaAsset ma = ann.getMediaAsset();
+                        if (ma == null || ma.getUUID() == null) continue;
+                        String uuid = ma.getUUID();
+                        if (!maMap.containsKey(uuid)) {
+                            org.json.JSONObject maj = new org.json.JSONObject();
+                            maj.put("uuid", uuid);
+                            try {
+                                java.net.URL url = ma.safeURL(myShepherd, null, "master");
+                                if (url != null) maj.put("url", url.toString());
+                            } catch (Exception ex) {}
+                            maj.put("width", (int) ma.getWidth());
+                            maj.put("height", (int) ma.getHeight());
+                            maj.put("annotations", new org.json.JSONArray());
+                            maMap.put(uuid, maj);
+                        }
+                        if (!ann.isTrivial()) {
+                            org.json.JSONObject aj = new org.json.JSONObject();
+                            aj.put("id", ann.getId());
+                            aj.put("iaClass", Util.jsonNull(ann.getIAClass()));
+                            aj.put("viewpoint", Util.jsonNull(ann.getViewpoint()));
+                            aj.put("theta", ann.getTheta());
+                            int[] bbox = ann.getBbox();
+                            org.json.JSONArray bboxArr = new org.json.JSONArray();
+                            if (bbox != null) for (int v : bbox) bboxArr.put(v);
+                            aj.put("boundingBox", bboxArr);
+                            maMap.get(uuid).getJSONArray("annotations").put(aj);
+                        }
+                    }
+                }
+                org.json.JSONArray masArr = new org.json.JSONArray();
+                for (org.json.JSONObject maj : maMap.values()) masArr.put(maj);
+                ej.put("mediaAssets", masArr);
+
                 encArr.put(ej);
             }
         }

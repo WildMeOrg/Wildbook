@@ -21,6 +21,83 @@ import { getIndividualQueryKey } from "../constants/queryKeys";
 
 const SEX_OPTIONS = ["unknown", "male", "female"];
 
+function PhotoCarousel({ photos }) {
+  const [idx, setIdx] = useState(0);
+  if (!photos || photos.length === 0)
+    return (
+      <small className="text-muted">
+        <FormattedMessage id="NO_PHOTOS" />
+      </small>
+    );
+  const current = photos[idx];
+  return (
+    <div>
+      <div
+        style={{
+          width: "100%",
+          aspectRatio: "16/9",
+          background: "#111",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "4px",
+          overflow: "hidden",
+        }}
+      >
+        <img
+          src={current.url}
+          alt=""
+          style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+        />
+      </div>
+      {photos.length > 1 && (
+        <div
+          style={{
+            display: "flex",
+            gap: "6px",
+            marginTop: "8px",
+            overflowX: "auto",
+            paddingBottom: "4px",
+          }}
+        >
+          {photos.map((p, i) => (
+            <img
+              key={p.uuid}
+              src={p.url}
+              alt=""
+              onClick={() => setIdx(i)}
+              style={{
+                width: "60px",
+                height: "60px",
+                objectFit: "cover",
+                borderRadius: "3px",
+                cursor: "pointer",
+                border: i === idx ? "2px solid #00ACCE" : "2px solid transparent",
+                flexShrink: 0,
+              }}
+            />
+          ))}
+        </div>
+      )}
+      <small className="text-muted" style={{ fontSize: "0.75rem" }}>
+        {idx + 1} / {photos.length}
+        {current.encounterId && (
+          <>
+            {" · "}
+            <a
+              href={`/react/encounter?number=${current.encounterId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {current.encounterId.slice(0, 8)}…
+            </a>
+          </>
+        )}
+      </small>
+    </div>
+  );
+}
+
 function formatDate(isoString) {
   if (!isoString) return null;
   return isoString.slice(0, 10);
@@ -61,6 +138,19 @@ export default function Individual() {
 
   const canEdit = individual?.access === "write";
 
+  const allPhotos = (encounters || []).flatMap((enc) =>
+    (enc.mediaAssets || []).map((ma) => ({ ...ma, encounterId: enc.id })),
+  );
+
+  const allAnnotations = (encounters || []).flatMap((enc) =>
+    (enc.mediaAssets || []).flatMap((ma) =>
+      (ma.annotations || []).map((a) => ({
+        ...a,
+        encounterId: enc.id,
+      })),
+    ),
+  );
+
   const patch = useCallback(
     async (ops) => {
       await axios.patch(`/api/v3/individuals/${id}`, ops);
@@ -88,6 +178,32 @@ export default function Individual() {
 
   const nickName = individual?.nameMap?.Nickname?.[0] || null;
   const alternateId = individual?.nameMap?.["Alternate ID"]?.[0] || null;
+
+  const annotationColumns = [
+    {
+      name: <FormattedMessage id="ENCOUNTER_ID" />,
+      selector: (row) => row.encounterId,
+      cell: (row) => (
+        <a
+          href={`/react/encounter?number=${row.encounterId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {row.encounterId}
+        </a>
+      ),
+    },
+    {
+      name: <FormattedMessage id="IA_CLASS" />,
+      selector: (row) => row.iaClass,
+      cell: (row) => row.iaClass || "-",
+    },
+    {
+      name: <FormattedMessage id="VIEWPOINT" />,
+      selector: (row) => row.viewpoint,
+      cell: (row) => row.viewpoint || "-",
+    },
+  ];
 
   const encounterColumns = [
     {
@@ -352,6 +468,7 @@ export default function Individual() {
       </div>
 
       {overviewActive ? (
+        <>
         <Row className="mt-3 mb-3">
           <Col md={3}>
             {editIdentity && canEdit ? (
@@ -467,6 +584,17 @@ export default function Individual() {
             />
           </Col>
         </Row>
+        <Row className="mt-3 mb-3">
+          <Col md={12}>
+            <CardWithEditButton
+              icon={<MetadataIcon />}
+              title="PHOTOS_SECTION"
+              content={<PhotoCarousel photos={allPhotos} />}
+              showEditButton={false}
+            />
+          </Col>
+        </Row>
+        </>
       ) : (
         <Row className="mt-3 mb-3">
           <Col md={6}>
@@ -508,6 +636,26 @@ export default function Individual() {
               icon={<MetadataIcon />}
               title="METADATA"
               content={MetadataContent}
+              showEditButton={false}
+            />
+          </Col>
+          <Col md={12}>
+            <CardWithEditButton
+              icon={<MetadataIcon />}
+              title="ANNOTATIONS"
+              content={
+                allAnnotations.length > 0 ? (
+                  <SimpleDataTable
+                    columns={annotationColumns}
+                    data={allAnnotations}
+                    perPage={10}
+                  />
+                ) : (
+                  <small className="text-muted">
+                    <FormattedMessage id="NO_ANNOTATIONS" />
+                  </small>
+                )
+              }
               showEditButton={false}
             />
           </Col>

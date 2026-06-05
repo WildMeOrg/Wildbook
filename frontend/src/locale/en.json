@@ -1,6 +1,10 @@
 {
   "ENCOUNTERS": "Encounters",
   "ANNOTATIONS": "Annotations",
+  "NO_PHOTOS": "No photos available",
+  "NO_ANNOTATIONS": "No annotations",
+  "VIEWPOINT": "Viewpoint",
+  "IA_CLASS": "IA Class",
   "LOGIN_USERNAME": "Username",
   "LOGIN_PASSWORD": "Password",
   "LOGIN_SIGN_IN": "Sign In",

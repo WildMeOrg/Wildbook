@@ -1,6 +1,10 @@
 {
   "ENCOUNTERS": "Encuentros",
   "ANNOTATIONS": "Anotaciones",
+  "NO_PHOTOS": "No hay fotos disponibles",
+  "NO_ANNOTATIONS": "Sin anotaciones",
+  "VIEWPOINT": "Punto de vista",
+  "IA_CLASS": "Clase IA",
   "LOGIN_USERNAME": "Nombre de usuario",
   "LOGIN_PASSWORD": "Contraseña",
   "LOGIN_SIGN_IN": "Iniciar sesión",

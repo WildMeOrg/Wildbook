@@ -1,6 +1,10 @@
 {
   "ENCOUNTERS": "Begegnungen",
   "ANNOTATIONS": "Annotationen",
+  "NO_PHOTOS": "Keine Fotos verfügbar",
+  "NO_ANNOTATIONS": "Keine Annotationen",
+  "VIEWPOINT": "Blickwinkel",
+  "IA_CLASS": "KI-Klasse",
   "LOGIN_USERNAME": "Benutzername",
   "LOGIN_PASSWORD": "Kennwort",
   "LOGIN_SIGN_IN": "Anmelden",
