@@ -71,10 +71,10 @@ describe("MatchConfirmedModal", () => {
     expect(reload).toHaveBeenCalled();
   });
 
-  test("individual link points to individuals.jsp with correct id", () => {
+  test("individual link points to /react/individual/ with correct id", () => {
     renderModal({ individualId: "ind-xyz" });
     const link = screen.getByText("Luna").closest("a");
-    expect(link.href).toContain("individuals.jsp");
+    expect(link.href).toContain("/react/individual/");
     expect(link.href).toContain("ind-xyz");
   });
 });

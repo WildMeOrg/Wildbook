@@ -117,6 +117,6 @@ describe("HeaderQuickSearch Component", () => {
     });
     const resultItem = screen.getByText("John Doe");
     fireEvent.mouseDown(resultItem);
-    expect(window.open).toHaveBeenCalledWith("/individuals.jsp?id=123");
+    expect(window.open).toHaveBeenCalledWith("/react/individual/123");
   });
 });

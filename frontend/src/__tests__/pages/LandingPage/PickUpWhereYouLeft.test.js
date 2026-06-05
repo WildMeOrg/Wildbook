@@ -65,7 +65,7 @@ describe("PickUp Component", () => {
     expect(latestIndividualItem).toHaveTextContent(
       formatDate(mockData.latestIndividual.dateTimeCreated, true),
     );
-    expect(latestIndividualItem).toHaveTextContent("/individuals.jsp?id=101");
+    expect(latestIndividualItem).toHaveTextContent("/react/individual/101");
   });
 
   test("renders LatestActivityItem for latest matching action", () => {
