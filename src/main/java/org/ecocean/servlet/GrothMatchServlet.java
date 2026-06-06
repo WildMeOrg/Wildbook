@@ -19,7 +19,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
@@ -80,6 +84,11 @@ public class GrothMatchServlet extends HttpServlet {
 
         // Phase 1: Short DB transaction to load query encounter spots
         SuperSpot[] queryArray;
+        // Query encounter as an EncounterLite — needed by the I3S matcher (i3sScan),
+        // which is run alongside Groth below to revive I3S results. Built while the
+        // encounter is still managed; EncounterLite copies the spot data so it stays
+        // usable after the transaction closes.
+        EncounterLite queryLite;
         String encDate, encSex, encIndividualID, encLocation, encLocationID, encSize;
         {
             Shepherd myShepherd = new Shepherd(context);
@@ -104,6 +113,7 @@ public class GrothMatchServlet extends HttpServlet {
                 }
 
                 queryArray = querySpots.toArray(new SuperSpot[0]);
+                queryLite = new EncounterLite(enc);
                 encDate = enc.getDate();
                 encSex = enc.getSex() != null ? enc.getSex() : "unknown";
                 encIndividualID = ServletUtilities.handleNullString(enc.getIndividualID());
@@ -121,15 +131,53 @@ public class GrothMatchServlet extends HttpServlet {
 
         ConcurrentHashMap<String, EncounterLite> matchGraph = GridManager.getMatchGraph();
         List<MatchObject> grothResults = new ArrayList<>();
+        // Capture the exact catalog EncounterLite each I3S match was scored against, so the
+        // I3S writer indexes the same spot order i3sScan used even if the live matchGraph
+        // entry is replaced mid-scan by a concurrent spot edit.
+        Map<String, EncounterLite> scannedI3SLites = new HashMap<>();
 
         for (ConcurrentHashMap.Entry<String, EncounterLite> entry : matchGraph.entrySet()) {
             if (entry.getKey().equals(encNumber)) continue;
             EncounterLite el = entry.getValue();
 
+            // I3S: run on the same candidate as Groth so one scan produces both Groth and
+            // I3S results (I3S was lost when the async grid scan path fell out of use).
+            // Computed before Groth (both are non-mutating on the EncounterLite). Gated on
+            // the scan-side spots being present; i3sScan synthesizes fiducial points from
+            // spot bounds when reference spots are absent, so no reference-spot requirement.
+            // Wrapped so one bad candidate can't abort the whole scan.
+            Vector i3sPoints = null;
+            double i3sValue = 0;
+            try {
+                ArrayList<SuperSpot> candSpots = rightScan ? el.getRightSpots() : el.getSpots();
+                ArrayList<SuperSpot> querySideSpots = rightScan ?
+                    queryLite.getRightSpots() : queryLite.getSpots();
+                if ((candSpots != null) && !candSpots.isEmpty() &&
+                    (querySideSpots != null) && !querySideSpots.isEmpty()) {
+                    I3SMatchObject i3sResult = el.i3sScan(queryLite, rightScan);
+                    TreeMap i3sMap = i3sResult.getMap();
+                    Vector pts = new Vector();
+                    if (i3sMap != null) {
+                        for (Object pair : i3sMap.values()) {
+                            pts.add(pair);
+                        }
+                    }
+                    i3sPoints = pts;
+                    i3sValue = i3sResult.getI3SMatchValue();
+                    // remember the exact lite used, keyed by encounter number
+                    scannedI3SLites.put(entry.getKey(), el);
+                }
+            } catch (Exception i3sEx) {
+                i3sPoints = null;
+            }
+
             MatchObject mo = el.getPointsForBestMatch(
                 queryArray, epsilon, R, Sizelim, maxTriangleRotation, C,
                 true, rightScan);
             mo.encounterNumber = entry.getKey();
+            if (i3sPoints != null) {
+                mo.setI3SValues(i3sPoints, i3sValue);
+            }
             grothResults.add(mo);
         }
 
@@ -266,6 +314,13 @@ public class GrothMatchServlet extends HttpServlet {
             org.dom4j.io.XMLWriter writer = new org.dom4j.io.XMLWriter(mywriter, format);
             writer.write(document);
             writer.close();
+
+            // Also write the I3S result file from the same scan so the I3S results link
+            // populates (resultsI3SLeft/Right in the encounter API keys off this file's
+            // existence). matchArray now carries the per-candidate I3S scores/point maps
+            // set above; the writer re-sorts by I3S score and keeps only valid matches.
+            I3SResultWriter.write(matchArray, queryLite, scannedI3SLites, encNumber, encDate,
+                encSex, encIndividualID, encSize, rightScan, shepherdDataDir);
 
             // Redirect to scanEndApplet.jsp
             String redirectUrl = "encounters/scanEndApplet.jsp?number=" + encNumber +
