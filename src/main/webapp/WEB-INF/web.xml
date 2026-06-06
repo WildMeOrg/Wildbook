@@ -52,9 +52,18 @@
 		<url-pattern>/react</url-pattern>
 	</servlet-mapping>
 
+	<!--
+	  SPA fallback: route unmatched paths through ReactAppServlet
+	  (mapped at /react) rather than serving /react/index.html
+	  directly. The servlet explicitly resets the response status
+	  to 200 so PWA service workers (NetworkFirst caching) accept
+	  the body. Forwarding to /react/index.html directly preserved
+	  Tomcat's 404 status, which Workbox rejects as no-response,
+	  blanking the React match-results page.
+	-->
 	<error-page>
 		<error-code>404</error-code>
-		<location>/react/index.html</location>
+		<location>/react</location>
 	</error-page>
 
 	<servlet>
@@ -92,8 +101,11 @@
 				# ===== v3 API Security =====
 				/api/v3/bulk-import = authc
 				/api/v3/bulk-import/** = authc
-				/api/v3/bulk-export = authc
-				/api/v3/bulk-export/** = authc
+
+				/api/v3/bulk-export = authc, roles[researcher]
+				/api/v3/bulk-export/** = authc, roles[researcher]
+				/api/v3/match-inspection/** = authc
+
 
 				# ===== Appadmin =====
 				/appadmin/dataIntegrity.jsp = authc
@@ -248,6 +260,7 @@
 				/SubmitSpotsAndTransformImage = authc,roles[researcher]
 				/EncounterAddSpotFile = authc, roles[identifier]
 				/EncounterRemoveSpots = authc, roles[researcher]
+				/GrothMatch = authc, roles[researcher]
 
 				# ===== Occurrence Management =====
 				/OccurrenceCreate = authc, roles[researcher]
@@ -294,6 +307,7 @@
 				/ProjectGet = authc
 				/ProjectUpdate = authc
 				/ProjectIA = authc, roles[researcher]
+				/GetCurrentIAInfo = authc, roles[researcher]
 
 				# ===== User Management =====
 				/welcome.jsp = authc
@@ -423,6 +437,10 @@
 		<servlet-name>ApiBaseObject</servlet-name>
 		<url-pattern>/api/v3/encounters/*</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ApiGenericObject</servlet-name>
+		<url-pattern>/api/v3/tasks/*</url-pattern>
+	</servlet-mapping>
 
 	<servlet-mapping>
 		<servlet-name>ApiBaseObject</servlet-name>
@@ -447,6 +465,16 @@
 	<servlet-mapping>
 		<servlet-name>ApiGenericObject</servlet-name>
 		<url-pattern>/api/v3/media-assets/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>MarkedIndividualInfo</servlet-name>
+		<servlet-class>org.ecocean.api.MarkedIndividualInfo</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>MarkedIndividualInfo</servlet-name>
+		<url-pattern>/api/v3/individuals/info/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
@@ -497,6 +525,16 @@
 	<servlet-mapping>
 		<servlet-name>BulkImport</servlet-name>
 		<url-pattern>/api/v3/bulk-import/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>MatchInspection</servlet-name>
+		<servlet-class>org.ecocean.api.MatchInspection</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>MatchInspection</servlet-name>
+		<url-pattern>/api/v3/match-inspection/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
@@ -791,12 +829,12 @@
 		<url-pattern>/WriteOutScanTask</url-pattern>
 	</servlet-mapping>
 	<servlet>
-		<servlet-name>ScanTaskHandler</servlet-name>
-		<servlet-class>org.ecocean.servlet.ScanTaskHandlerAWS</servlet-class>
+		<servlet-name>GrothMatch</servlet-name>
+		<servlet-class>org.ecocean.servlet.GrothMatchServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>ScanTaskHandler</servlet-name>
-		<url-pattern>/ScanTaskHandler</url-pattern>
+		<servlet-name>GrothMatch</servlet-name>
+		<url-pattern>/GrothMatch</url-pattern>
 	</servlet-mapping>
 
 	<servlet>

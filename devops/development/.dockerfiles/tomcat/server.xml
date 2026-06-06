@@ -165,6 +165,16 @@
 
 	      <Context docBase="/usr/local/tomcat/webapps/wildbook_data_dir" path="/wildbook_data_dir" />
 
+        <!-- Honor X-Forwarded-* headers from a fronting nginx so request.getScheme()
+             returns "https" when the browser hit the HTTPS proxy. Mirrors the deploy
+             configuration; harmless when no proxy is in front (header absent → valve
+             is a no-op). -->
+        <Valve className="org.apache.catalina.valves.RemoteIpValve"
+               remoteIpHeader="x-forwarded-for"
+               protocolHeader="x-forwarded-proto"
+               remoteIpProxiesHeader="x-forwarded-by"
+               internalProxies="172\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|127\.0\.0\.1|::1" />
+
         <!-- SingleSignOn valve, share authentication between web applications
              Documentation at: /docs/config/valve.html -->
         <!--

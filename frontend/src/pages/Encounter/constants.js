@@ -7,6 +7,7 @@ const SECTION_FIELD_PATHS = {
     "occurrenceId",
     "sightingId",
     "individualId",
+    "individualId_suggested",
   ],
   metadata: ["id", "submitterID", "state", "observationComments"],
   location: [

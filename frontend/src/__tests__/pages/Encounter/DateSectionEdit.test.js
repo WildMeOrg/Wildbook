@@ -58,7 +58,7 @@ describe("DateSectionEdit", () => {
   test("uses values from store.getFieldValue", () => {
     const store = makeStore({
       _values: {
-        date: { date: "2024-05-01", verbatimEventDate: "May 1st, 2024" },
+        date: { dateValues: "2024-05-01", verbatimEventDate: "May 1st, 2024" },
       },
     });
     render(<DateSectionEdit store={store} />);
@@ -67,7 +67,7 @@ describe("DateSectionEdit", () => {
     expect(screen.getByTestId("text-VERBATIM_EVENT_DATE")).toHaveValue(
       "May 1st, 2024",
     );
-    expect(store.getFieldValue).toHaveBeenCalledWith("date", "date");
+    expect(store.getFieldValue).toHaveBeenCalledWith("date", "dateValues");
     expect(store.getFieldValue).toHaveBeenCalledWith(
       "date",
       "verbatimEventDate",
@@ -83,7 +83,7 @@ describe("DateSectionEdit", () => {
     });
     expect(store.setFieldValue).toHaveBeenCalledWith(
       "date",
-      "date",
+      "dateValues",
       "2025-01-02",
     );
 
@@ -101,7 +101,7 @@ describe("DateSectionEdit", () => {
     const store = makeStore({
       errors: {
         getFieldError: jest.fn((section, key) =>
-          section === "date" && key === "date" ? "Invalid date" : "",
+          section === "date" && key === "dateValues" ? "Invalid date" : "",
         ),
         hasSectionError: jest.fn(() => false),
         getSectionErrors: jest.fn(() => []),

@@ -82,7 +82,10 @@ try {
     org.removeMember(user);
     %>Successfully removed user from org! Org is now <%=org%>. hasMember(user) = <%=org.hasMember(user)%><%
   }
-  if (committing) myShepherd.commitDBTransaction();
+  if (committing) {
+    myShepherd.commitDBTransaction();
+    org.ecocean.OpenSearch.setPermissionsNeeded(true);
+  }
   myShepherd.closeDBTransaction();
   %>
   </p>

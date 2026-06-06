@@ -10,6 +10,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.ecocean.grid.GridManager;
 import org.ecocean.grid.MatchGraphCreationThread;
 import org.ecocean.grid.SharkGridThreadExecutorService;
 import org.ecocean.ia.IAPluginManager;
@@ -41,6 +42,12 @@ import java.util.concurrent.TimeUnit;
 // global variables are initialized, and do so if necessary.
 
 public class StartupWildbook implements ServletContextListener {
+    // ml-service migration v2 §commit #11: handle to the WBIA-registration
+    // poller so contextDestroyed can shut it down cleanly. Without this the
+    // executor leaks across redeploys and a new poll thread starts on top
+    // of any zombie that survived undeploy.
+    private static volatile ScheduledExecutorService wbiaRegisterExecutor;
+
     // this function is automatically run on webapp init
     // it is attached via web.xml's <listener></listener>
     public static void initializeWildbook(HttpServletRequest request, Shepherd myShepherd) {
@@ -175,7 +182,7 @@ public class StartupWildbook implements ServletContextListener {
         IAPluginManager.startup(sce);
         // NOTE! this is whaleshark-specific (and maybe other spot-matchers?) ... should be off on any other trees
         if (CommonConfiguration.useSpotPatternRecognition(context)) {
-            createMatchGraph();
+            loadMatchGraphOrRebuild(sContext, context);
         }
         // TODO: set strategy for the following (genericize starting "all" consumers, make configurable, move to WildbookIAM.startup, move to plugins, or other)
         startIAQueues(context);
@@ -188,6 +195,25 @@ public class StartupWildbook implements ServletContextListener {
 
         try {
             startWildbookScheduledTaskThread(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // ml-service migration v2 §commit #11: DB-backed WBIA registration
+        // polling. Replaces v1's plan to use a separate "wbiaRegister"
+        // FileQueue with manual reconcile servlet. The polling thread reads
+        // Annotation.wbiaRegistered/wbiaRegisterAttempts directly so state
+        // survives JVM restarts without queue infrastructure.
+        try {
+            startWbiaRegistrationPollingThread(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // ml-service migration v2 §commit #12: at-most-once delivery on the
+        // FileQueue means a JVM crash mid-detection can leave a MediaAsset
+        // in processing-mlservice forever. Once at startup, walk assets
+        // stuck past a threshold and re-enqueue them.
+        try {
+            runStaleMlServiceReconciliation(context);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -396,6 +422,463 @@ public class StartupWildbook implements ServletContextListener {
         }, 0, 1, TimeUnit.HOURS);
     }
 
+    /**
+     * ml-service migration v2 §commit #11. Background polling thread that
+     * registers ml-service-created annotations with WBIA so HotSpotter is
+     * available on demand for them. State is on the Annotation row itself
+     * ({@code wbiaRegistered} + {@code wbiaRegisterAttempts}); no separate
+     * queue or reconcile servlet is needed.
+     *
+     * <p>Per cycle (~30s): query annotations with
+     * {@code wbiaRegistered == false AND wbiaRegisterAttempts < MAX},
+     * up to a small batch limit. For each, call
+     * {@link org.ecocean.ia.plugin.WildbookIAM#sendAnnotationsForceId} in a
+     * per-annotation Shepherd transaction (so one slow WBIA call blocks
+     * only one slot, not the entire batch). On success: set
+     * {@code wbiaRegistered = TRUE} (terminal). On failure: increment
+     * {@code wbiaRegisterAttempts}; the next cycle retries until cutoff.</p>
+     *
+     * <p>Legacy annotations are excluded from the query because the DDL
+     * migration in {@code archive/sql/ml_service_idempotency.sql} backfills
+     * their {@code wbiaRegistered} to {@code TRUE} on deploy.</p>
+     */
+    private static final int WBIA_REGISTER_MAX_ATTEMPTS = 10;
+    private static final int WBIA_REGISTER_BATCH_LIMIT = 50;
+    private static final long WBIA_REGISTER_POLL_SECONDS = 30L;
+
+    private static void startWbiaRegistrationPollingThread(final String context) {
+        // Refuse to start a second poller if one is already running; this
+        // also matters when contextInitialized fires more than once for
+        // the same JVM (e.g., context reload).
+        if (wbiaRegisterExecutor != null) {
+            System.out.println(
+                "WARN: startWbiaRegistrationPollingThread() called with existing executor; skipping");
+            return;
+        }
+        System.out.println("STARTING: StartupWildbook.startWbiaRegistrationPollingThread()");
+        ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor(
+            new java.util.concurrent.ThreadFactory() {
+                @Override public Thread newThread(Runnable r) {
+                    Thread t = new Thread(r, "WbiaRegistrationPoll");
+                    t.setDaemon(true);
+                    return t;
+                }
+            });
+        ses.scheduleAtFixedRate(new Runnable() {
+            @Override public void run() {
+                try {
+                    runWbiaRegistrationPoll(context);
+                } catch (Throwable t) {
+                    // Catch Throwable here: ScheduledExecutorService silently
+                    // stops re-firing the task on any uncaught exception.
+                    // We want the thread to keep ticking through transient
+                    // failures.
+                    System.out.println("WARN: WbiaRegistrationPoll uncaught: " + t);
+                    t.printStackTrace();
+                }
+            }
+        }, WBIA_REGISTER_POLL_SECONDS, WBIA_REGISTER_POLL_SECONDS, TimeUnit.SECONDS);
+        wbiaRegisterExecutor = ses;
+    }
+
+    private static void runWbiaRegistrationPoll(String context) {
+        // Phase 1: query the pending list (Shepherd open, no network). Capture
+        // annotation IDs and release before any WBIA calls.
+        java.util.List<String> pendingIds = new ArrayList<String>();
+        Shepherd shep = new Shepherd(context);
+        shep.setAction("StartupWildbook.WbiaRegistrationPoll.fetch");
+        shep.beginDBTransaction();
+        try {
+            javax.jdo.Query q = shep.getPM().newQuery(
+                org.ecocean.Annotation.class,
+                "wbiaRegistered == false && wbiaRegisterAttempts < "
+                + WBIA_REGISTER_MAX_ATTEMPTS);
+            q.setOrdering("wbiaRegisterAttempts ascending");
+            q.setRange(0, WBIA_REGISTER_BATCH_LIMIT);
+            @SuppressWarnings("unchecked")
+            java.util.List<org.ecocean.Annotation> pending =
+                (java.util.List<org.ecocean.Annotation>) q.execute();
+            if (pending != null) {
+                for (org.ecocean.Annotation a : pending) pendingIds.add(a.getId());
+            }
+            q.closeAll();
+            shep.commitDBTransaction();
+        } catch (Exception ex) {
+            System.out.println("WARN: WbiaRegistrationPoll fetch failed: " + ex);
+            shep.rollbackDBTransaction();
+        } finally {
+            shep.closeDBTransaction();
+        }
+
+        if (pendingIds.isEmpty()) return;
+        System.out.println("[INFO] WbiaRegistrationPoll: " + pendingIds.size() + " pending");
+
+        // Phase 2: per-annotation registration. Each runs in its own short
+        // Shepherd tx so a slow WBIA call blocks only that one slot.
+        // The interrupted-check makes shutdownNow() effective at bounding
+        // the per-tick work even if the in-flight Phase B HTTP call ran
+        // past awaitTermination.
+        for (String annId : pendingIds) {
+            if (Thread.currentThread().isInterrupted() ||
+                wbiaRegisterExecutor == null) {
+                System.out.println("[INFO] WbiaRegistrationPoll: stopping mid-batch (interrupted)");
+                return;
+            }
+            registerOneAnnotationWithWbia(context, annId);
+        }
+    }
+
+    /**
+     * ml-service migration v2 §commit #12. Once-at-startup pass that
+     * detects MediaAssets stuck in {@code processing-mlservice} past a
+     * threshold (worker presumably died mid-detection due to the
+     * at-most-once FileQueue semantics) and re-enqueues them through
+     * the normal routing layer.
+     *
+     * <p>Safe under any active worker because:</p>
+     * <ul>
+     *   <li>The re-check inside reconcileOneStaleAsset uses the fresh
+     *       Shepherd's current state; if another worker has already
+     *       progressed the asset, the status will no longer be
+     *       {@code processing-mlservice} and the reconciler skips.</li>
+     *   <li>MlServiceProcessor's persist-time duplicate check
+     *       (findExistingAnnotation: Feature bbox + theta on the
+     *       MediaAsset) prevents duplicate annotation creation if the
+     *       dead worker had already persisted some results.</li>
+     *   <li>The reconciler intentionally does NOT bump REVISION after a
+     *       successful re-enqueue, because doing so from the stale
+     *       managed MediaAsset instance could overwrite progress made by
+     *       a fast queue consumer between enqueue and commit. REVISION
+     *       advances naturally when MlServiceProcessor's Phase 1 calls
+     *       setDetectionStatus on the picked-up job. A restart that
+     *       happens between enqueue and consumer pickup can re-enqueue
+     *       a duplicate job; the persist-time duplicate check (see
+     *       previous bullet) bounds the impact to wasted work, not data
+     *       corruption.</li>
+     * </ul>
+     *
+     * <p>Threshold default: 1 hour. Longer than any healthy detection
+     * job's worst-case duration; short enough that operators don't wait
+     * days for recovery.</p>
+     */
+    private static final long STALE_MLSERVICE_THRESHOLD_MS = 60L * 60L * 1000L;
+
+    private static void runStaleMlServiceReconciliation(String context) {
+        System.out.println(
+            "STARTING: StartupWildbook.runStaleMlServiceReconciliation()");
+        long revisionCutoff = System.currentTimeMillis() - STALE_MLSERVICE_THRESHOLD_MS;
+        java.util.List<String> staleIds = fetchStaleMlServiceAssetIds(context, revisionCutoff);
+        if (staleIds.isEmpty()) {
+            System.out.println(
+                "[INFO] StaleMlServiceReconciliation: no stuck assets older than threshold");
+            return;
+        }
+        System.out.println("[INFO] StaleMlServiceReconciliation: " + staleIds.size() +
+            " stuck assets older than " + STALE_MLSERVICE_THRESHOLD_MS + "ms");
+        for (String maId : staleIds) {
+            reconcileOneStaleAsset(context, maId);
+        }
+    }
+
+    private static java.util.List<String> fetchStaleMlServiceAssetIds(String context,
+        long revisionCutoff) {
+        java.util.List<String> ids = new ArrayList<String>();
+        Shepherd shep = new Shepherd(context);
+        shep.setAction("StartupWildbook.StaleMlServiceReconciliation.fetch");
+        shep.beginDBTransaction();
+        try {
+            javax.jdo.Query q = shep.getPM().newQuery(
+                org.ecocean.media.MediaAsset.class,
+                "detectionStatus == 'processing-mlservice' && revision < "
+                + revisionCutoff);
+            // Oldest-first so the most-stuck assets get recovered before
+            // newer ones in the same batch.
+            q.setOrdering("revision ascending");
+            @SuppressWarnings("unchecked")
+            java.util.List<org.ecocean.media.MediaAsset> stale =
+                (java.util.List<org.ecocean.media.MediaAsset>) q.execute();
+            if (stale != null) {
+                for (org.ecocean.media.MediaAsset ma : stale) {
+                    ids.add(String.valueOf(ma.getId()));
+                }
+            }
+            q.closeAll();
+            shep.commitDBTransaction();
+        } catch (Exception ex) {
+            System.out.println(
+                "WARN: StaleMlServiceReconciliation fetch failed: " + ex);
+            shep.rollbackDBTransaction();
+        } finally {
+            shep.closeDBTransaction();
+        }
+        return ids;
+    }
+
+    private static void reconcileOneStaleAsset(String context, String maId) {
+        Shepherd shep = new Shepherd(context);
+        shep.setAction("StartupWildbook.StaleMlServiceReconciliation." + maId);
+        shep.beginDBTransaction();
+        try {
+            org.ecocean.media.MediaAsset ma = shep.getMediaAsset(maId);
+            if (ma == null) {
+                shep.commitDBTransaction();
+                return;
+            }
+            // Re-check: another worker may have progressed it since fetch.
+            if (!org.ecocean.identity.IBEISIA.STATUS_PROCESSING_MLSERVICE.equals(
+                    ma.getDetectionStatus())) {
+                shep.commitDBTransaction();
+                return;
+            }
+            // Derive taxonomy.
+            java.util.List<org.ecocean.Taxonomy> taxies = ma.getTaxonomies(shep);
+            org.ecocean.Taxonomy taxy = null;
+            if (taxies != null && !taxies.isEmpty()) taxy = taxies.get(0);
+
+            org.ecocean.IAJsonProperties iac = org.ecocean.IAJsonProperties.iaConfig();
+            boolean stillVectorRouted = iac != null && taxy != null
+                && iac.getActiveMlServiceConfigs(taxy) != null;
+            if (!stillVectorRouted) {
+                // Species is no longer configured for ml-service (or no taxy).
+                // Flip to error so the operator sees it; don't re-enqueue.
+                ma.setDetectionStatus(org.ecocean.identity.IBEISIA.STATUS_ERROR);
+                System.out.println("[INFO] StaleMlServiceReconciliation: " + maId +
+                    " no longer vector-routed; marking error");
+                shep.commitDBTransaction();
+                return;
+            }
+            // Call the per-asset enqueue helper directly. This bypasses
+            // handleMissingAcmids (which would otherwise fire WBIA HTTP
+            // inside this Shepherd transaction) and passes null for
+            // topTask so the helper creates a root task internally. The
+            // reconciler doesn't need an aggregator parent.
+            //
+            // The helper internally calls storeNewTask, which commits the
+            // surrounding transaction. So when we get here, either:
+            //   - enqueue succeeded: the child Task + queue file are durable;
+            //   - enqueue failed: the child Task IS still persisted (orphan,
+            //     unreachable without a queued job) but the asset remains
+            //     in processing-mlservice for next-startup retry.
+            boolean enqueued = org.ecocean.ia.IA.enqueueOneAssetForMlService(
+                shep, ma, taxy, /* topTask */ null, context, /* baseUrl */ null);
+            if (!enqueued) {
+                System.out.println("WARN: StaleMlServiceReconciliation: enqueue FAILED for " +
+                    maId + "; leaving processing-mlservice intact for next-startup retry");
+                shep.rollbackDBTransaction();
+                return;
+            }
+            // No status update after a successful enqueue. The queued
+            // MlServiceProcessor job will set processing-mlservice itself
+            // (bumping REVISION) when its Phase 1 picks the work up. We
+            // intentionally do NOT mutate ma here: a fast queue consumer
+            // could already have advanced detectionStatus to
+            // complete-mlservice before our commit lands, and writing
+            // back from this stale managed instance would overwrite it.
+            //
+            // We still need a successful commit so the storeNewTask done
+            // inside the helper is finalized (it is already committed via
+            // updateDBTransaction, so this commit is essentially a no-op).
+            shep.commitDBTransaction();
+            System.out.println("[INFO] StaleMlServiceReconciliation: re-enqueued " + maId);
+        } catch (Exception ex) {
+            System.out.println("WARN: StaleMlServiceReconciliation registerOne failed for " +
+                maId + ": " + ex);
+            shep.rollbackDBTransaction();
+        } finally {
+            shep.closeDBTransaction();
+        }
+    }
+
+    /**
+     * Phase A/B/C split per Codex c11 fix-review.
+     * <ul>
+     *   <li>Phase A: Shepherd open, re-check state, build DTO, close.
+     *   <li>Phase B: no Shepherd held; WBIA HTTP via
+     *       {@link org.ecocean.ia.plugin.WildbookIAM#registerOneByDto}.
+     *   <li>Phase C: Shepherd open, re-load, persist outcome, close.
+     * </ul>
+     * Ineligible annotations (missing media asset, missing acmId, fails
+     * {@code validForIdentification}) are parked at MAX_ATTEMPTS so they
+     * fall out of the polling query.
+     */
+    private static void registerOneAnnotationWithWbia(String context, String annId) {
+        // ---- Phase A: load DTO under a short transaction. ----
+        org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterRequest dto =
+            loadWbiaRegisterDto(context, annId);
+        if (dto == null) return;  // ineligible / already registered / parked
+
+        // Bail out before starting the non-interruptible HTTP call if
+        // shutdown was requested while Phase A was running. Otherwise we
+        // would start a 300s WBIA POST that contextDestroyed can't cancel.
+        if (Thread.currentThread().isInterrupted() ||
+            wbiaRegisterExecutor == null) {
+            System.out.println("[INFO] WbiaRegistrationPoll: skipping Phase B for " + annId +
+                " (shutdown requested)");
+            return;
+        }
+
+        // ---- Phase B: no Shepherd held; call WBIA. ----
+        org.ecocean.ia.plugin.WildbookIAM iam =
+            new org.ecocean.ia.plugin.WildbookIAM(context);
+        org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterOutcome outcome =
+            iam.registerOneByDto(dto);
+
+        // Skip Phase C if shutdown has been requested while Phase B ran.
+        // RestClient is not interruptible mid-IO, so Phase B can outlive
+        // awaitTermination; this prevents Phase C from racing the rest of
+        // contextDestroyed's cleanup (Shepherd / IndexingManager / etc.).
+        if (Thread.currentThread().isInterrupted() ||
+            wbiaRegisterExecutor == null) {
+            System.out.println("[INFO] WbiaRegistrationPoll: skipping Phase C for " + annId +
+                " (shutdown requested)");
+            return;
+        }
+
+        // ---- Phase C: persist outcome under a short transaction. ----
+        persistWbiaRegisterResult(context, annId, outcome);
+    }
+
+    /**
+     * Phase A. Returns a detached DTO ready for Phase B, or null if the
+     * annotation does not need (or cannot get) a Phase-B network call.
+     * Null cases: missing annotation, already registered, parked at max
+     * attempts, or ineligible (missing media asset / acmId / bbox / etc.).
+     * Ineligible annotations are parked here so they stop being polled.
+     */
+    private static org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterRequest
+        loadWbiaRegisterDto(String context, String annId) {
+        Shepherd shep = new Shepherd(context);
+        shep.setAction("StartupWildbook.WbiaRegistrationPoll.loadDto." + annId);
+        shep.beginDBTransaction();
+        try {
+            org.ecocean.Annotation ann = shep.getAnnotation(annId);
+            if (ann == null) {
+                shep.commitDBTransaction();
+                return null;
+            }
+            if (Boolean.TRUE.equals(ann.getWbiaRegistered())) {
+                shep.commitDBTransaction();
+                return null;
+            }
+            if (ann.getWbiaRegisterAttempts() >= WBIA_REGISTER_MAX_ATTEMPTS) {
+                shep.commitDBTransaction();
+                return null;
+            }
+            // Eligibility checks. Any failure here is permanent for this
+            // annotation under its current state, so park it.
+            org.ecocean.media.MediaAsset ma = ann.getMediaAsset();
+            String reason = null;
+            if (ma == null) reason = "missing media asset";
+            else if (!Util.stringExists(ma.getAcmId())) reason = "media asset has no acmId";
+            else if (!Util.stringExists(ann.getId())) reason = "annotation has no id";
+            else if (!org.ecocean.identity.IBEISIA.validForIdentification(ann))
+                reason = "validForIdentification returned false (bbox/iaClass/etc.)";
+            // Image-side eligibility for the new Phase 0 image-registration
+            // path. Order mirrors sendMediaAssetsForceId in WildbookIAM (the
+            // isValidImageForIA + validMediaAsset pair, in that order), so
+            // the polling thread parks the same media assets the legacy
+            // batch path would skip. Phase B trusts Phase A's verdict —
+            // these are not re-checked against the DB after the Shepherd
+            // closes. (Empty-match-prospects design Track 1 C5: WBIA
+            // Phase 0 eligibility extension.)
+            else if (ma.isValidImageForIA() != null && !ma.isValidImageForIA())
+                reason = "MediaAsset.isValidImageForIA() == false (corrupt/invalid)";
+            else if (!org.ecocean.ia.plugin.WildbookIAM.validMediaAsset(ma))
+                reason = "MediaAsset failed validMediaAsset (mime/dims/url)";
+            if (reason != null) {
+                System.out.println("WARN: WbiaRegistrationPoll parking " + annId +
+                    " (ineligible: " + reason + ")");
+                ann.setWbiaRegisterAttempts(WBIA_REGISTER_MAX_ATTEMPTS);
+                shep.commitDBTransaction();
+                return null;
+            }
+            // Resolve the individual name now while the Shepherd is open;
+            // Phase B has no DB access.
+            String name = ann.findIndividualId(shep);
+            // Copy bbox into a fresh array so the DTO is fully detached.
+            int[] bb = ann.getBbox();
+            int[] bbCopy = (bb == null) ? null : new int[] { bb[0], bb[1], bb[2], bb[3] };
+            // Capture image-side fields for Phase 0 (image registration).
+            // mediaAssetToUri returns null on null webURL — Phase A's
+            // validMediaAsset check above already rejected that case, so a
+            // null here would be a contract violation we'd want to see.
+            String imageUri = org.ecocean.ia.plugin.WildbookIAM.mediaAssetToUri(ma);
+            Double imageLatitude = ma.getLatitude();
+            Double imageLongitude = ma.getLongitude();
+            org.joda.time.DateTime dt = ma.getDateTime();
+            Long imageDateTimeMillis = (dt == null) ? null : dt.getMillis();
+            org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterRequest dto =
+                new org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterRequest(
+                    ann.getId(), ann.getAcmId(), ma.getAcmId(), bbCopy,
+                    ann.getTheta(), ann.getIAClass(), name,
+                    imageUri, imageLatitude, imageLongitude, imageDateTimeMillis);
+            shep.commitDBTransaction();
+            return dto;
+        } catch (Exception ex) {
+            System.out.println("WARN: WbiaRegistrationPoll loadWbiaRegisterDto failed for " +
+                annId + ": " + ex);
+            shep.rollbackDBTransaction();
+            return null;
+        } finally {
+            shep.closeDBTransaction();
+        }
+    }
+
+    /**
+     * Phase C. Re-loads the annotation and writes the outcome of the
+     * Phase-B network call. On terminal-success outcomes the annotation
+     * is marked registered; on retryable outcomes the attempts counter
+     * is bumped and we WARN-log when we hit the abandonment threshold.
+     */
+    private static void persistWbiaRegisterResult(String context, String annId,
+        org.ecocean.ia.plugin.WildbookIAM.WbiaRegisterOutcome outcome) {
+        Shepherd shep = new Shepherd(context);
+        shep.setAction("StartupWildbook.WbiaRegistrationPoll.persist." + annId);
+        shep.beginDBTransaction();
+        try {
+            org.ecocean.Annotation ann = shep.getAnnotation(annId);
+            if (ann == null) {
+                shep.commitDBTransaction();
+                return;
+            }
+            if (Boolean.TRUE.equals(ann.getWbiaRegistered())) {
+                // Some other path flipped it while Phase B ran; respect that.
+                shep.commitDBTransaction();
+                return;
+            }
+            switch (outcome) {
+                case REGISTERED_OK:
+                case REGISTERED_ALREADY_PRESENT:
+                    // Always honor a success outcome even if the row was
+                    // parked by a racing poller: stuck-at-attempts==MAX
+                    // would otherwise become permanent.
+                    ann.setWbiaRegistered(Boolean.TRUE);
+                    break;
+                case NETWORK_FAIL:
+                case RESPONSE_BAD:
+                default:
+                    if (ann.getWbiaRegisterAttempts() >= WBIA_REGISTER_MAX_ATTEMPTS) {
+                        // Already parked by another path; do not increment past MAX.
+                        break;
+                    }
+                    ann.incrementWbiaRegisterAttempts();
+                    if (ann.getWbiaRegisterAttempts() >= WBIA_REGISTER_MAX_ATTEMPTS) {
+                        System.out.println("WARN: WbiaRegistrationPoll abandoning " + annId +
+                            " after " + WBIA_REGISTER_MAX_ATTEMPTS +
+                            " attempts (last outcome=" + outcome + "); will not retry");
+                    }
+                    break;
+            }
+            shep.commitDBTransaction();
+        } catch (Exception ex) {
+            System.out.println("WARN: WbiaRegistrationPoll persistWbiaRegisterResult failed for " +
+                annId + ": " + ex);
+            shep.rollbackDBTransaction();
+        } finally {
+            shep.closeDBTransaction();
+        }
+    }
+
     public void contextDestroyed(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
         String context = "context0";
@@ -403,6 +886,16 @@ public class StartupWildbook implements ServletContextListener {
         System.out.println("* StartupWildbook destroyed called for: " +
             servletContextInfo(sContext));
 
+        if (CommonConfiguration.useSpotPatternRecognition(context)) {
+            saveMatchGraph(sContext, context);
+        }
+        // Stop the WBIA poller first so it does not race teardown of
+        // Shepherd / IndexingManager / QueueUtil while a poll cycle is in
+        // flight. shutdownWbiaRegisterExecutor signals shutdown by
+        // nulling the executor handle and waits up to 15s for in-flight
+        // ticks; any tick still running after that gets shutdownNow().
+        // The poll loop's interrupt/null checks make subsequent work bail.
+        shutdownWbiaRegisterExecutor();
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
         MetricsBot.cleanup();
@@ -410,10 +903,63 @@ public class StartupWildbook implements ServletContextListener {
         IndexingManagerFactory.getIndexingManager().shutdown();
     }
 
+    // ml-service migration v2 §commit #11 fix-pass. The polling executor
+    // was previously held only in a local variable, which meant redeploys
+    // could leak a zombie thread that re-armed on next contextInitialized.
+    private static void shutdownWbiaRegisterExecutor() {
+        ScheduledExecutorService ses = wbiaRegisterExecutor;
+        if (ses == null) return;
+        wbiaRegisterExecutor = null;
+        System.out.println("STOPPING: StartupWildbook.wbiaRegisterExecutor");
+        ses.shutdown();
+        try {
+            // 15s gives a healthy Phase B WBIA call time to finish so we
+            // do not skip its Phase C unnecessarily. RestClient HTTP isn't
+            // truly interruptible, so a hung call will still outlive this
+            // wait; the per-id and pre-Phase-C interrupt checks in the
+            // poller handle that case by bailing out before doing more DB
+            // work.
+            if (!ses.awaitTermination(15L, TimeUnit.SECONDS)) ses.shutdownNow();
+        } catch (InterruptedException ie) {
+            ses.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
+
     public static void createMatchGraph() {
         System.out.println("Entering createMatchGraph StartupWildbook method.");
         ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
         es.execute(new MatchGraphCreationThread());
+    }
+
+    /**
+     * Try loading the matchGraph from disk cache. If the cache exists and loads
+     * successfully, use it directly. Otherwise fall back to the full DB rebuild
+     * via MatchGraphCreationThread.
+     */
+    public static void loadMatchGraphOrRebuild(ServletContext sContext, String context) {
+        try {
+            String dataDir = CommonConfiguration.getDataDirectory(sContext, context).getAbsolutePath();
+            String cacheFile = GridManager.getCacheFilePath(dataDir);
+            if (new File(cacheFile).exists() && GridManager.cacheRead(cacheFile)) {
+                System.out.println("INFO: matchGraph loaded from cache.");
+                return;
+            }
+        } catch (Exception e) {
+            System.out.println("WARNING: Could not load matchGraph cache, rebuilding from DB: " +
+                e.getMessage());
+        }
+        createMatchGraph();
+    }
+
+    public static void saveMatchGraph(ServletContext sContext, String context) {
+        try {
+            String dataDir = CommonConfiguration.getDataDirectory(sContext, context).getAbsolutePath();
+            String cacheFile = GridManager.getCacheFilePath(dataDir);
+            GridManager.cacheWrite(cacheFile);
+        } catch (Exception e) {
+            System.out.println("WARNING: Could not save matchGraph cache: " + e.getMessage());
+        }
     }
 
     public static boolean skipInit(ServletContextEvent sce, String extra) {

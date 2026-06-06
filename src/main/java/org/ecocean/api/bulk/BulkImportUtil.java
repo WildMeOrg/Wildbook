@@ -139,6 +139,29 @@ public class BulkImportUtil {
                     ApiException.ERROR_RETURN_CODE_INVALID));
             }
         }
+
+        // 1314 introduces catching incomplete project name/prefix combos
+        List<String> projectPrefixes = findIndexedFieldNames(fieldNames, "Encounter.project.projectIdPrefix");
+        List<String> projectNames = findIndexedFieldNames(fieldNames, "Encounter.project.researchProjectName");
+        // we use the bigger of these
+        int pmax = Integer.max(projectPrefixes.size(), projectNames.size());
+        for (int i = 0; i < pmax; i++) {
+            String pnameKey = "Encounter.project" + i + ".researchProjectName";
+            String pprefixKey = "Encounter.project" + i + ".projectIdPrefix";
+            Object pname = getValue(rtn, pnameKey);
+            Object pprefix = getValue(rtn, pprefixKey);
+            if ((pname == null) && (pprefix == null)) continue;
+            if ((pname != null) && (pprefix != null)) continue;
+            if (pname == null)
+                rtn.put(pnameKey,
+                    new BulkValidatorException("must have researchProjectName if given projectIdPrefix",
+                    ApiException.ERROR_RETURN_CODE_REQUIRED));
+            if (pprefix == null)
+                rtn.put(pprefixKey,
+                    new BulkValidatorException("must have projectIdPrefix if given researchProjectName",
+                    ApiException.ERROR_RETURN_CODE_REQUIRED));
+        }
+
         return rtn;
     }
 
