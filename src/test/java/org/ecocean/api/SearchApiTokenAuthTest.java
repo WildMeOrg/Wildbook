@@ -226,6 +226,26 @@ class SearchApiTokenAuthTest {
         verify(response).setStatus(405);
     }
 
+    @Test void sessionRequest_nonEncounterIndex_notBlockedByTokenGate() throws Exception {
+        // non-token (session) request: no Bearer, no token marker -> all tokenAuth gates skip,
+        // and the encounter-only index gate must NOT apply. /individual proceeds to execution.
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/individual");
+        when(request.getHeader("Authorization")).thenReturn(null); // no bearer
+        when(request.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR))
+            .thenReturn(null); // not a token request
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedConstruction<OpenSearch> os = mockConstruction(OpenSearch.class, (m, c) -> {
+                doNothing().when(m).deletePit(anyString());
+                when(m.queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(),
+                    any(), any())).thenReturn(EMPTY_HITS);
+            })) {
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(200); // session path unaffected by token gates
+    }
+
     @Test void storedQuery_ownEncounter_succeeds() throws Exception {
         when(request.getMethod()).thenReturn("GET");
         when(request.getPathInfo()).thenReturn("/11111111-1111-1111-1111-111111111111");

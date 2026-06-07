@@ -44,6 +44,7 @@ public class SearchApi extends ApiBase {
             response.setStatus(401);
             res.put("error", "token auth misconfiguration");
         } else {
+            boolean isAdmin = currentUser.isAdmin(myShepherd);
             String arg = request.getPathInfo();
             if ((arg == null) || arg.equals("/")) {
                 // for multisearch later maybe?
@@ -75,19 +76,18 @@ public class SearchApi extends ApiBase {
                 } else if ((searchQueryId == null) && !OpenSearch.isValidIndexName(indexName)) {
                     response.setStatus(404);
                     res.put("error", "unknown index");
-                } else if ("annotation".equals(indexName) && !currentUser.isAdmin(myShepherd)) {
+                } else if ("annotation".equals(indexName) && !isAdmin) {
                     // per discussion with jh today, api exposure of annotations admin-only currently
                     response.setStatus(403);
                     res.put("error", 403);
                 // --- token encounter-only index gate + stored-query owner check ---
                 } else if (tokenAuth && !"encounter".equals(
-                    (searchQueryId != null) ? (query != null ? query.optString("indexName", null) : null)
-                                            : indexName)) {
+                    (searchQueryId != null) ? query.optString("indexName", null) : indexName)) {
                     // covers stored queries whose real index is read from the stored doc, not the URL
                     response.setStatus(403);
                     res.put("error", "token search is limited to the encounter index");
                 } else if (tokenAuth && (searchQueryId != null) && (query != null)
-                    && !currentUser.isAdmin(myShepherd)
+                    && !isAdmin
                     && !currentUser.getId().equals(query.optString("creator", null))) {
                     // replaying someone else's stored query is not allowed (admin bypasses)
                     response.setStatus(403);
@@ -117,7 +117,7 @@ public class SearchApi extends ApiBase {
                         query = OpenSearch.queryScrubStored(query);
                     }
                     query = OpenSearch.querySanitize(query, currentUser, myShepherd);
-                    if (tokenAuth && !currentUser.isAdmin(myShepherd)) {
+                    if (tokenAuth && !isAdmin) {
                         // Java is the hard boundary: scope totals + pagination + hits before execution
                         query = OpenSearch.applyEncounterAclFilter(query, currentUser.getId());
                     }
