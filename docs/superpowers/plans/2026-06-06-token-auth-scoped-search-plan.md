@@ -634,11 +634,11 @@ Then change the top-level auth branch (currently `if ((currentUser == null) || (
         } else {
 ```
 
-Next, inside the `else` block, add the token-path guards as new `else if` branches in the existing guard ladder. **Order matters (Codex):** the method allowlist must come **first** — before the invalid-id (404), index (403), and owner (403) checks — so a wrong-method request returns 405 and never leaks via a 403/404 whether a stored query exists or who owns it. Insert these branches **immediately after** the top-level `if/else if (bearerPresent && !tokenAuth)` opening and the existing `(searchQueryId != null) && (query == null)` invalid-id branch is *re-sequenced after* the method gates. Concretely, replace the head of the guard ladder (the branches from the invalid-id 404 down to the existing 405) so it reads:
+Next, inside the `else` block, add the token-path guards as new `else if` branches in the existing guard ladder. **Order matters (Codex):** the method allowlist must come **first** — before the invalid-id (404), index (403), and owner (403) checks — so a wrong-method request returns 405 and never leaks via a 403/404 whether a stored query exists or who owns it. Insert these branches **immediately after** the top-level `if/else if (bearerPresent && !tokenAuth)` opening and the existing `(searchQueryId != null) && (query == null)` invalid-id branch is *re-sequenced after* the method gates. Concretely, replace the head of the guard ladder (the branches from the invalid-id 404 down to the existing 405) so it reads. **Note the first branch is `if` (it is the head of the ladder, immediately following the `Util.isUUID(...)`/`queryLoad` block), not `} else if`:**
 
 ```java
             // --- token method allowlist FIRST (no existence/ownership leak via 403/404) ---
-            } else if (tokenAuth && (searchQueryId != null)
+            if (tokenAuth && (searchQueryId != null)
                 && !"GET".equals(request.getMethod())) {
                 // stored-query replay is GET-only on the token path
                 response.setStatus(405);
