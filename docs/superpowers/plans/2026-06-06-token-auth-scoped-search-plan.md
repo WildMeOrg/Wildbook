@@ -124,6 +124,11 @@ Insert this method immediately after `querySanitize` (after `OpenSearch.java:923
      * encounter ACL (mirrors Encounter.opensearchAccess for a non-admin user). Applied on the
      * token-authenticated path BEFORE execution so totals, pagination, and hits are all scoped.
      * Admins are not passed through here (caller skips the call for admins).
+     *
+     * Decision (documented, safe): a request with no inner "query" yields a filter-only bool,
+     * i.e. "all encounters this user may see" — still fully scoped, never a bypass. A truly
+     * malformed (non-JSON) body fails earlier in ServletUtilities.jsonFromHttpServletRequest,
+     * before reaching this method, so the spec's "fail closed on malformed" is satisfied upstream.
      */
     public static JSONObject applyEncounterAclFilter(JSONObject query, String userId)
     throws IOException {
@@ -282,7 +287,8 @@ public class WildbookTokenAuthenticationFilter extends OncePerRequestFilter {
         HttpServletResponse response = (HttpServletResponse) resp;
 
         String authz = request.getHeader("Authorization");
-        if ((authz == null) || !authz.startsWith("Bearer ")) {
+        // HTTP auth scheme tokens are case-insensitive: accept "Bearer"/"bearer"/etc.
+        if ((authz == null) || !authz.regionMatches(true, 0, "Bearer ", 0, 7)) {
             chain.doFilter(request, response); // no token: leave session/anon path intact
             return;
         }
@@ -292,7 +298,7 @@ public class WildbookTokenAuthenticationFilter extends OncePerRequestFilter {
             deny(response, 405, "method not allowed");
             return;
         }
-        String token = authz.substring("Bearer ".length()).trim();
+        String token = authz.substring(7).trim();
         String expected = expectedContext();
 
         JwtService jwt = jwtService(expected);
@@ -533,14 +539,47 @@ class WildbookTokenAuthenticationFilterTest {
         verify(response).setStatus(401);
         verify(chain, never()).doFilter(any(), any());
     }
+
+    @Test void lowercaseBearerScheme_stillAuthenticates() throws Exception {
+        String token = realService.sign("user-uuid-1", "context0", 60_000L);
+        when(request.getHeader("Authorization")).thenReturn("bearer " + token); // lowercase scheme
+        when(request.getMethod()).thenReturn("POST");
+        filterFor("context0", "alice").doFilterInternal(request, response, chain);
+        verify(chain).doFilter(any(), eq(response)); // wrapped + forwarded, not treated as no-token
+        verify(response, never()).setStatus(anyInt());
+    }
+
+    @Test void notConfigured_returns503() throws Exception {
+        JwtService noKeys = JwtService.fromBase64Keys(null, null, "wildbook", "wildbook-scoped-api");
+        String token = realService.sign("user-uuid-1", "context0", 60_000L);
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+        when(request.getMethod()).thenReturn("POST");
+        WildbookTokenAuthenticationFilter f = new WildbookTokenAuthenticationFilter() {
+            @Override protected String expectedContext() {
+                return "context0";
+            }
+            @Override protected String requestContext(HttpServletRequest r) {
+                return "context0";
+            }
+            @Override protected JwtService jwtService(String context) {
+                return noKeys; // canVerify() == false
+            }
+            @Override protected String lookupUsername(String context, String uuid) {
+                return "alice";
+            }
+        };
+        f.doFilterInternal(request, response, chain);
+        verify(response).setStatus(503);
+        verify(chain, never()).doFilter(any(), any());
+    }
 }
 ```
 
 - [ ] **Step 3: Run the test to verify it fails (then passes)**
 
 Run: `mvn test -Dtest=WildbookTokenAuthenticationFilterTest`
-Expected first run: the test compiles against the Step-1 class. If Step 1 was committed, this should PASS directly. If any assertion fails, fix the filter (not the test) until all 8 tests pass.
-Expected: PASS (8 tests).
+Expected first run: the test compiles against the Step-1 class. If Step 1 was committed, this should PASS directly. If any assertion fails, fix the filter (not the test) until all tests pass.
+Expected: PASS (10 tests).
 
 > Note: `doFilterInternal` is `protected`; the test is in the same package (`org.ecocean.security`), so it can call it directly.
 
@@ -577,7 +616,9 @@ Edit `SearchApi.java`. First, just after the user is resolved and the `JSONObjec
         boolean tokenAuth = Boolean.TRUE.equals(
             request.getAttribute(org.ecocean.security.WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR));
         String authzHeader = request.getHeader("Authorization");
-        boolean bearerPresent = (authzHeader != null) && authzHeader.startsWith("Bearer ");
+        // case-insensitive scheme match (matches the filter); avoids fall-through on "bearer ..."
+        boolean bearerPresent = (authzHeader != null)
+            && authzHeader.regionMatches(true, 0, "Bearer ", 0, 7);
 ```
 
 Then change the top-level auth branch (currently `if ((currentUser == null) || (currentUser.getId() == null)) { 401 } else { ... }` at `:33`) to fail closed when a Bearer arrived unmarked:
@@ -609,6 +650,11 @@ Next, inside the `else` block, add the encounter-only index gate and stored-quer
                 // replaying someone else's stored query is not allowed (admin bypasses)
                 response.setStatus(403);
                 res.put("error", "not the owner of this stored query");
+            } else if (tokenAuth && (searchQueryId != null) && !"GET".equals(request.getMethod())) {
+                // token method allowlist: stored-query replay is GET-only (direct index is
+                // POST-only, already enforced by the existing query==null && !POST -> 405 branch)
+                response.setStatus(405);
+                res.put("error", "method not allowed");
             } else if ((query == null) && !"POST".equals(request.getMethod())) {
 ```
 
@@ -651,17 +697,23 @@ import javax.servlet.http.HttpServletResponse;
 import org.ecocean.OpenSearch;
 import org.ecocean.User;
 import org.ecocean.security.WildbookTokenAuthenticationFilter;
+import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
 class SearchApiTokenAuthTest {
 
     HttpServletRequest request;
     HttpServletResponse response;
     StringWriter out;
+    // getContext() on a Mockito request would NPE (reads serverName/cookies/context props);
+    // stub it for ALL tests. jsonFromHttpServletRequest is stubbed per-test as needed.
+    MockedStatic<ServletUtilities> su;
 
     @BeforeEach void setUp() throws Exception {
         request = mock(HttpServletRequest.class);
@@ -670,28 +722,46 @@ class SearchApiTokenAuthTest {
         when(response.getWriter()).thenReturn(new PrintWriter(out));
         when(request.getServletContext()).thenReturn(null);
         when(request.getContextPath()).thenReturn("");
+        when(request.getParameter(anyString())).thenReturn(null);
+        when(request.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR))
+            .thenReturn(Boolean.TRUE); // default: token request (override per-test where needed)
+        su = mockStatic(ServletUtilities.class);
+        su.when(() -> ServletUtilities.getContext(any())).thenReturn("context0");
+        su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+            .thenReturn(new JSONObject("{\"query\":{\"match_all\":{}}}"));
+    }
+
+    @AfterEach void tearDown() {
+        su.close();
     }
 
     private User mockUser(String id, boolean admin) {
         User u = mock(User.class);
         when(u.getId()).thenReturn(id);
+        when(u.getUUID()).thenReturn(id); // queryStore reads getUUID(); == getId() in source
         return u;
     }
+
+    /** Shepherd mock with the standard tx stubs + a resolved user. */
+    private MockedConstruction<Shepherd> shepherdReturning(User user, boolean admin) {
+        return mockConstruction(Shepherd.class, (m, c) -> {
+            doNothing().when(m).beginDBTransaction();
+            doNothing().when(m).setAction(anyString());
+            doNothing().when(m).rollbackAndClose();
+            when(m.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(user.isAdmin(m)).thenReturn(admin);
+        });
+    }
+
+    private static final JSONObject EMPTY_HITS =
+        new JSONObject("{\"hits\":{\"total\":{\"value\":0},\"hits\":[]}}");
 
     @Test void tokenRequest_nonEncounterIndex_returns403() throws Exception {
         when(request.getMethod()).thenReturn("POST");
         when(request.getPathInfo()).thenReturn("/individual");
         when(request.getHeader("Authorization")).thenReturn("Bearer x");
-        when(request.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR))
-            .thenReturn(Boolean.TRUE);
         User user = mockUser("u1", false);
-        try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
-            doNothing().when(m).beginDBTransaction();
-            doNothing().when(m).setAction(anyString());
-            doNothing().when(m).rollbackAndClose();
-            when(m.getUser(any(HttpServletRequest.class))).thenReturn(user);
-            when(user.isAdmin(m)).thenReturn(false);
-        })) {
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false)) {
             new SearchApi().doPost(request, response);
         }
         verify(response).setStatus(403);
@@ -704,12 +774,21 @@ class SearchApiTokenAuthTest {
         when(request.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR))
             .thenReturn(null); // filter did NOT mark it
         User user = mockUser("u1", false);
-        try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
-            doNothing().when(m).beginDBTransaction();
-            doNothing().when(m).setAction(anyString());
-            doNothing().when(m).rollbackAndClose();
-            when(m.getUser(any(HttpServletRequest.class))).thenReturn(user);
-        })) {
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false)) {
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(401);
+    }
+
+    @Test void lowercaseBearerWithoutMarker_returns401() throws Exception {
+        // case-insensitive bearerPresent: "bearer ..." with no marker must still fail closed
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/encounter");
+        when(request.getHeader("Authorization")).thenReturn("bearer x");
+        when(request.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR))
+            .thenReturn(null);
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false)) {
             new SearchApi().doPost(request, response);
         }
         verify(response).setStatus(401);
@@ -719,44 +798,19 @@ class SearchApiTokenAuthTest {
         when(request.getMethod()).thenReturn("POST");
         when(request.getPathInfo()).thenReturn("/encounter");
         when(request.getHeader("Authorization")).thenReturn("Bearer x");
-        when(request.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR))
-            .thenReturn(Boolean.TRUE);
-        when(request.getParameter(anyString())).thenReturn(null);
         User user = mockUser("u1", false);
-
-        // capture the query passed to queryPit
-        JSONObject queryResponse = new JSONObject(
-            "{\"hits\":{\"total\":{\"value\":0},\"hits\":[]}}");
-        try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
-                doNothing().when(m).beginDBTransaction();
-                doNothing().when(m).setAction(anyString());
-                doNothing().when(m).rollbackAndClose();
-                when(m.getUser(any(HttpServletRequest.class))).thenReturn(user);
-                when(user.isAdmin(m)).thenReturn(false);
-            });
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
             MockedConstruction<OpenSearch> os = mockConstruction(OpenSearch.class, (m, c) -> {
                 doNothing().when(m).deletePit(anyString());
                 when(m.queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(),
                     any(), any())).thenAnswer(inv -> {
                         JSONObject q = inv.getArgument(1);
-                        // ACL filter must be present BEFORE execution
                         JSONObject bool = q.getJSONObject("query").getJSONObject("bool");
                         assertTrue(bool.has("filter"), "ACL filter injected before queryPit");
-                        return queryResponse;
+                        return EMPTY_HITS;
                     });
             })) {
-            // request body provides the inner query
-            org.mockito.MockedStatic<org.ecocean.servlet.ServletUtilities> su =
-                mockStatic(org.ecocean.servlet.ServletUtilities.class);
-            su.when(() -> org.ecocean.servlet.ServletUtilities.getContext(any()))
-                .thenReturn("context0");
-            su.when(() -> org.ecocean.servlet.ServletUtilities.jsonFromHttpServletRequest(any()))
-                .thenReturn(new JSONObject("{\"query\":{\"match_all\":{}}}"));
-            try {
-                new SearchApi().doPost(request, response);
-            } finally {
-                su.close();
-            }
+            new SearchApi().doPost(request, response);
         }
         verify(response).setStatus(200);
     }
@@ -765,19 +819,8 @@ class SearchApiTokenAuthTest {
         when(request.getMethod()).thenReturn("POST");
         when(request.getPathInfo()).thenReturn("/encounter");
         when(request.getHeader("Authorization")).thenReturn("Bearer x");
-        when(request.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR))
-            .thenReturn(Boolean.TRUE);
-        when(request.getParameter(anyString())).thenReturn(null);
         User user = mockUser("admin1", true);
-        JSONObject queryResponse = new JSONObject(
-            "{\"hits\":{\"total\":{\"value\":0},\"hits\":[]}}");
-        try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
-                doNothing().when(m).beginDBTransaction();
-                doNothing().when(m).setAction(anyString());
-                doNothing().when(m).rollbackAndClose();
-                when(m.getUser(any(HttpServletRequest.class))).thenReturn(user);
-                when(user.isAdmin(m)).thenReturn(true);
-            });
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, true);
             MockedConstruction<OpenSearch> os = mockConstruction(OpenSearch.class, (m, c) -> {
                 doNothing().when(m).deletePit(anyString());
                 when(m.queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(),
@@ -786,32 +829,102 @@ class SearchApiTokenAuthTest {
                         JSONObject inner = q.getJSONObject("query");
                         assertFalse(inner.has("bool") && inner.getJSONObject("bool").has("filter"),
                             "admin token must NOT have an injected ACL filter");
-                        return queryResponse;
+                        return EMPTY_HITS;
                     });
             })) {
-            org.mockito.MockedStatic<org.ecocean.servlet.ServletUtilities> su =
-                mockStatic(org.ecocean.servlet.ServletUtilities.class);
-            su.when(() -> org.ecocean.servlet.ServletUtilities.getContext(any()))
-                .thenReturn("context0");
-            su.when(() -> org.ecocean.servlet.ServletUtilities.jsonFromHttpServletRequest(any()))
-                .thenReturn(new JSONObject("{\"query\":{\"match_all\":{}}}"));
-            try {
-                new SearchApi().doPost(request, response);
-            } finally {
-                su.close();
-            }
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(200);
+    }
+
+    // ---- stored-query gating (token path) ----
+
+    /** Stub OpenSearch.queryLoad to return a stored-query doc (with indexName + creator). */
+    private MockedStatic<OpenSearch> storedQuery(String indexName, String creator) {
+        MockedStatic<OpenSearch> osStatic = mockStatic(OpenSearch.class);
+        osStatic.when(() -> OpenSearch.queryLoad(anyString())).thenReturn(
+            new JSONObject().put("indexName", indexName).put("creator", creator)
+                .put("query", new JSONObject().put("match_all", new JSONObject())));
+        osStatic.when(() -> OpenSearch.isValidIndexName(anyString())).thenReturn(true);
+        return osStatic;
+    }
+
+    @Test void storedQuery_otherOwner_returns403() throws Exception {
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getPathInfo()).thenReturn("/11111111-1111-1111-1111-111111111111");
+        when(request.getHeader("Authorization")).thenReturn("Bearer x");
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedStatic<OpenSearch> osStatic = storedQuery("encounter", "someoneElse")) {
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(403);
+    }
+
+    @Test void storedQuery_nonEncounterIndex_returns403() throws Exception {
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getPathInfo()).thenReturn("/11111111-1111-1111-1111-111111111111");
+        when(request.getHeader("Authorization")).thenReturn("Bearer x");
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedStatic<OpenSearch> osStatic = storedQuery("individual", "u1")) {
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(403); // own query, but wrong index
+    }
+
+    @Test void storedQuery_postMethod_returns405() throws Exception {
+        // token stored-query replay is GET-only
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/11111111-1111-1111-1111-111111111111");
+        when(request.getHeader("Authorization")).thenReturn("Bearer x");
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedStatic<OpenSearch> osStatic = storedQuery("encounter", "u1")) {
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(405);
+    }
+
+    @Test void storedQuery_ownEncounter_succeeds() throws Exception {
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getPathInfo()).thenReturn("/11111111-1111-1111-1111-111111111111");
+        when(request.getHeader("Authorization")).thenReturn("Bearer x");
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedStatic<OpenSearch> osStatic = storedQuery("encounter", "u1");
+            MockedConstruction<OpenSearch> os = mockConstruction(OpenSearch.class, (m, c) -> {
+                doNothing().when(m).deletePit(anyString());
+                when(m.queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(),
+                    any(), any())).thenAnswer(inv -> {
+                        JSONObject q = inv.getArgument(1);
+                        assertTrue(q.getJSONObject("query").getJSONObject("bool").has("filter"),
+                            "own stored encounter query is ACL-scoped before execution");
+                        return EMPTY_HITS;
+                    });
+            })) {
+            // queryScrubStored is static too; stub it to extract the inner query
+            osStatic.when(() -> OpenSearch.queryScrubStored(any())).thenAnswer(inv -> {
+                JSONObject stored = inv.getArgument(0);
+                return new JSONObject().put("query", stored.optJSONObject("query"));
+            });
+            osStatic.when(() -> OpenSearch.querySanitize(any(), any(), any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+            osStatic.when(() -> OpenSearch.applyEncounterAclFilter(any(), anyString()))
+                .thenCallRealMethod();
+            new SearchApi().doPost(request, response);
         }
         verify(response).setStatus(200);
     }
 }
 ```
 
-> Note on `queryStore`: the ACL-injection test relies on `OpenSearch.queryStore` writing to `/tmp` (its default `QUERY_STORAGE_DIR`). If `queryStore` (a static, not on the mocked instance) interferes in CI, additionally `mockStatic(OpenSearch.class, CALLS_REAL_METHODS)` and stub `queryStore`/`querySanitize` to pass-through, or assert via the `applyEncounterAclFilter` unit test (Task 1) plus a lighter SearchApi test that stops at the 403/401 branches. Keep the instance-method capture as the primary assertion.
+> Note on combining `mockStatic(OpenSearch)` + `mockConstruction(OpenSearch)`: Mockito supports both on one class concurrently (static-method mock vs constructed-instance mock are independent). In `storedQuery_ownEncounter_succeeds`, the static mock must explicitly stub `queryScrubStored`/`querySanitize`/`applyEncounterAclFilter` (they're static and otherwise return null/Mockito-default when the class is statically mocked). For the direct-query tests (no `mockStatic(OpenSearch)`), `queryStore`/`querySanitize`/`applyEncounterAclFilter` run for real — `queryStore` writes to `/tmp` (writable in the test env) and `applyEncounterAclFilter` is the real builder, which is what the assertion captures.
 
 - [ ] **Step 5: Run the test**
 
 Run: `mvn test -Dtest=SearchApiTokenAuthTest`
-Expected: PASS (4 tests). Iterate on the SearchApi edits (not the tests) until green. Also re-run any existing SearchApi test to confirm no regression: `mvn test -Dtest=SearchApi*`.
+Expected: PASS (9 tests: direct non-encounter 403, unmarked Bearer 401, lowercase-Bearer-unmarked 401, ACL injection, admin no-injection, stored other-owner 403, stored non-encounter 403, stored POST 405, stored own-encounter scoped 200). Iterate on the SearchApi edits (not the tests) until green. Also re-run any existing SearchApi test to confirm no regression: `mvn test -Dtest=SearchApi*`.
 
 - [ ] **Step 6: Normalize and commit**
 
@@ -899,7 +1012,7 @@ Prove the scoping for real: a token-authenticated `/api/v3/search/encounter` ret
 
 **Files:**
 - Modify: `src/test/resources/shiro.ini` — add the same `[main]`/`[urls]` token-filter wiring as `web.xml`.
-- Modify/Create: `src/test/java/org/ecocean/api/SearchTokenScopeIT.java` (new, or a method group in `EncounterExportImagesTest`).
+- Modify/Create: `src/test/java/org/ecocean/api/SearchTokenScopeTest.java` (new, or a method group in `EncounterExportImagesTest`).
 
 - [ ] **Step 1: Mirror the Shiro wiring into the test `shiro.ini`**
 
@@ -917,7 +1030,7 @@ and to `[urls]` (before any catch-all):
 
 - [ ] **Step 2: Write the integration test**
 
-Create `src/test/java/org/ecocean/api/SearchTokenScopeIT.java` modeled on `EncounterExportImagesTest`'s `@BeforeAll` server/Testcontainers setup (copy its server bring-up: `Server`, `ServletContextHandler`, `IniShiroFilter` from `classpath:shiro.ini`, register `new SearchApi()` at `/api/v3/search/*`, REST Assured base URI/port). Seed data + token, then assert scoping:
+Create `src/test/java/org/ecocean/api/SearchTokenScopeTest.java` modeled on `EncounterExportImagesTest`'s `@BeforeAll` server/Testcontainers setup (copy its server bring-up: `Server`, `ServletContextHandler`, `IniShiroFilter` from `classpath:shiro.ini`, register `new SearchApi()` at `/api/v3/search/*`, REST Assured base URI/port). Seed data + token, then assert scoping:
 
 ```java
     @Test void tokenSearch_scopesToPermittedEncountersAndTotals() throws Exception {
@@ -970,21 +1083,37 @@ Create `src/test/java/org/ecocean/api/SearchTokenScopeIT.java` modeled on `Encou
             .when().post("/api/v3/search/individual")
             .then().statusCode(403);
     }
+
+    // Real-stack context-drift: token says context0, but the wildbookContext cookie aims
+    // elsewhere. This drives the REAL ServletUtilities.getContext (the cookie branch returns
+    // the cookie value unconditionally — ServletUtilities.java:786-794), so it reliably forces
+    // a non-context0 resolved context without needing context1 configured in the test env.
+    // (The ?context= branch only honors *configured* contexts, so the cookie is the robust
+    // trigger; query-param/host drift logic is also covered by the filter seam unit tests.)
+    @Test void tokenSearch_contextDriftViaCookie_401() throws Exception {
+        String token = testJwtService.sign(aliceUuid, "context0", 60_000L);
+        given().header("Authorization", "Bearer " + token)
+            .cookie("wildbookContext", "context1")
+            .contentType(io.restassured.http.ContentType.JSON)
+            .body("{\"query\":{\"match_all\":{}}}")
+            .when().post("/api/v3/search/encounter")
+            .then().statusCode(401);
+    }
 ```
 
 The JwtService keypair must match between the filter (loads from `CommonConfiguration` `jwtPublicKeyBase64`) and the test signer. Set the test config keys (`jwtPrivateKeyBase64`/`jwtPublicKeyBase64`/`jwtIssuer`/`jwtAudience`) to a generated test keypair in `@BeforeAll` (the harness already loads a test `commonConfiguration.properties`; write the test keys there or via the same mechanism `AuthTokenTest`/the B integration tests use). Reuse the keypair-generation snippet from `JwtServiceTest`/Task 3.
 
 - [ ] **Step 3: Run the integration test**
 
-Run: `mvn test -Dtest=SearchTokenScopeIT`
-Expected: PASS (3 tests). This pulls the Testcontainers OpenSearch image; allow time on first run. If the environment cannot run Testcontainers, mark this class `@org.junit.jupiter.api.Disabled("requires Docker/Testcontainers")` with a comment and rely on Tasks 1/3/4 unit tests + a manual run note — but do not delete it.
+Run: `mvn test -Dtest=SearchTokenScopeTest`
+Expected: PASS (4 tests: scoped non-admin, admin unscoped, non-encounter 403, context-drift-via-cookie 401). This pulls the Testcontainers OpenSearch image; allow time on first run. The `*Test` suffix means a plain `mvn test` also runs it (matching the repo's `EncounterExportImagesTest` convention). If the environment cannot run Testcontainers, mark this class `@org.junit.jupiter.api.Disabled("requires Docker/Testcontainers")` with a comment and rely on Tasks 1/3/4 unit tests + a manual run note — but do not delete it.
 
 - [ ] **Step 4: Normalize and commit**
 
 ```bash
 cd /mnt/c/Wildbook-token-auth
-grep -lU $'\r' src/test/resources/shiro.ini src/test/java/org/ecocean/api/SearchTokenScopeIT.java | xargs -r sed -i 's/\r$//'
-git add src/test/resources/shiro.ini src/test/java/org/ecocean/api/SearchTokenScopeIT.java
+grep -lU $'\r' src/test/resources/shiro.ini src/test/java/org/ecocean/api/SearchTokenScopeTest.java | xargs -r sed -i 's/\r$//'
+git add src/test/resources/shiro.ini src/test/java/org/ecocean/api/SearchTokenScopeTest.java
 git commit -m "test(search): end-to-end token-scoped encounter search enforcement"
 ```
 
@@ -1000,7 +1129,7 @@ cd /mnt/c/Wildbook-token-auth
 mvn -q -DskipTests compile
 mvn test -Dtest=OpenSearchAclFilterTest,JwtServiceTest,WildbookTokenAuthenticationFilterTest,SearchApiTokenAuthTest,EndpointAuthWiringTest
 ```
-Expected: BUILD SUCCESS; all tests green. (Run `SearchTokenScopeIT` separately if Docker is available.)
+Expected: BUILD SUCCESS; all tests green. (Run `SearchTokenScopeTest` separately if Docker is available.)
 
 - [ ] **Step 2: Verify no CRLF crept in across all touched files**
 
