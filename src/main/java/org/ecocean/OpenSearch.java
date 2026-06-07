@@ -922,6 +922,44 @@ public class OpenSearch {
         return query;
     }
 
+    /**
+     * Wrap a search query's top-level "query" clause in a bool whose filter enforces the
+     * encounter ACL (mirrors Encounter.opensearchAccess for a non-admin user). Applied on the
+     * token-authenticated path BEFORE execution so totals, pagination, and hits are all scoped.
+     * Admins are not passed through here (caller skips the call for admins).
+     *
+     * Decision (documented, safe): a request with no inner "query" yields a filter-only bool,
+     * i.e. "all encounters this user may see" — still fully scoped, never a bypass. A truly
+     * malformed (non-JSON) body fails earlier in ServletUtilities.jsonFromHttpServletRequest,
+     * before reaching this method, so the spec's "fail closed on malformed" is satisfied upstream.
+     */
+    public static JSONObject applyEncounterAclFilter(JSONObject query, String userId)
+    throws IOException {
+        if ((query == null) || !Util.stringExists(userId))
+            throw new IOException("applyEncounterAclFilter: null query or userId");
+        JSONArray should = new JSONArray();
+        should.put(new JSONObject().put("term", new JSONObject().put("publiclyReadable", true)));
+        should.put(new JSONObject().put("term", new JSONObject().put("submitterUserId", userId)));
+        should.put(new JSONObject().put("term", new JSONObject().put("viewUsers", userId)));
+        JSONObject aclBool = new JSONObject();
+        aclBool.put("should", should);
+        aclBool.put("minimum_should_match", 1);
+        JSONObject acl = new JSONObject().put("bool", aclBool);
+
+        JSONObject wrapBool = new JSONObject();
+        JSONObject inner = query.optJSONObject("query");
+        if (inner != null) {
+            JSONArray must = new JSONArray();
+            must.put(inner);
+            wrapBool.put("must", must);
+        }
+        wrapBool.put("filter", new JSONArray().put(acl));
+
+        JSONObject out = new JSONObject(query.toString()); // shallow copy via re-parse
+        out.put("query", new JSONObject().put("bool", wrapBool));
+        return out;
+    }
+
     // takes raw search result doc and presents only data user should see
     public static JSONObject sanitizeDoc(final JSONObject sourceDoc, String indexName,
         Shepherd myShepherd, User user)
