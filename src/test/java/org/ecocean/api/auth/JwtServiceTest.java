@@ -55,7 +55,7 @@ class JwtServiceTest {
 
     @Test void expiredToken_rejected() throws Exception {
         JwtService svc = serviceWithFreshKeys();
-        String token = svc.sign("u", "context0", -1000L); // already expired
+        String token = svc.sign("u", "context0", -60_000L); // expired 60s ago (avoids sub-second boundary flake)
         assertThrows(JwtException.class, () -> svc.verify(token), "expired token must be rejected");
     }
 

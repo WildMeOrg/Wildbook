@@ -84,7 +84,7 @@ class WildbookTokenAuthenticationFilterTest {
     }
 
     @Test void expiredToken_returns401() throws Exception {
-        String token = realService.sign("user-uuid-1", "context0", -1_000L); // already expired
+        String token = realService.sign("user-uuid-1", "context0", -60_000L); // expired 60s ago (avoids sub-second boundary flake)
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(request.getMethod()).thenReturn("POST");
         filterFor("context0", "alice").doFilterInternal(request, response, chain);
