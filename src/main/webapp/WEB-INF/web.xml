@@ -85,6 +85,7 @@
 				realmA = org.ecocean.security.ShepherdRealm
 				roles.unauthorizedUrl = /accessDenied.jsp
 				authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
+				tokenAuthSearch = org.ecocean.security.WildbookTokenAuthenticationFilter
 				authc.loginUrl = /react/login
 
 				[filters]
@@ -107,6 +108,9 @@
 				/api/v3/bulk-export = authc, roles[researcher]
 				/api/v3/bulk-export/** = authc, roles[researcher]
 				/api/v3/match-inspection/** = authc
+				# token-authenticated scoped search (Artifact D): token filter ONLY, no authc/roles chained.
+				# No Bearer => falls through to SearchApi (which self-401s if no session). Filter handles auth.
+				/api/v3/search/** = tokenAuthSearch
 
 
 				# ===== Appadmin =====

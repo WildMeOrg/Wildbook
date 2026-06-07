@@ -173,4 +173,34 @@ class EndpointAuthWiringTest {
                 "Shiro rule for /api/v3/can-user-access (line " + (canAccessRuleIdx + 1)
                         + ") must appear before the /** catch-all (line " + (catchAllIdx + 1) + ")");
     }
+
+    // -----------------------------------------------------------------------
+    // Assertion 6 — /api/v3/search/** wired to tokenAuthSearch ONLY
+    // -----------------------------------------------------------------------
+
+    @Test
+    void searchPath_wiredToTokenFilterOnly() {
+        // token filter declared in [main]
+        assertTrue(fullText().contains(
+            "tokenAuthSearch = org.ecocean.security.WildbookTokenAuthenticationFilter"),
+            "web.xml [main] must declare tokenAuthSearch = WildbookTokenAuthenticationFilter");
+
+        // search path mapped to the token filter (find the non-comment rule line)
+        String ruleLine = lines.stream()
+            .filter(l -> {
+                String t = l.stripLeading();
+                return !t.startsWith("#") && t.contains("/api/v3/search/**");
+            })
+            .findFirst()
+            .orElse(null);
+        assertNotNull(ruleLine,
+            "Shiro [urls] must contain a rule for /api/v3/search/**");
+
+        String value = ruleLine.substring(
+            ruleLine.indexOf("/api/v3/search/**") + "/api/v3/search/**".length()).trim();
+        if (value.startsWith("=")) value = value.substring(1).trim();
+        assertEquals("tokenAuthSearch", value,
+            "search path must map to tokenAuthSearch ONLY (no authc/roles chained); was: '"
+                + value + "'");
+    }
 }
