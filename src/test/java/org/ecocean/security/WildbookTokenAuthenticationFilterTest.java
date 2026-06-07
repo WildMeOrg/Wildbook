@@ -147,6 +147,31 @@ class WildbookTokenAuthenticationFilterTest {
         verify(response, never()).setStatus(anyInt());
     }
 
+    @Test void blankBearerToken_returns401() throws Exception {
+        // "Bearer " with no token -> token becomes "" -> jjwt throws IllegalArgumentException
+        when(request.getHeader("Authorization")).thenReturn("Bearer ");
+        when(request.getMethod()).thenReturn("POST");
+        filterFor("context0", "alice").doFilterInternal(request, response, chain);
+        verify(response).setStatus(401);
+        verify(chain, never()).doFilter(any(), any());
+    }
+
+    @Test void validBearerGet_wrapsRequestWithUsernamePrincipal() throws Exception {
+        String token = realService.sign("user-uuid-1", "context0", 60_000L);
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+        when(request.getMethod()).thenReturn("GET");
+
+        org.mockito.ArgumentCaptor<javax.servlet.ServletRequest> cap =
+            org.mockito.ArgumentCaptor.forClass(javax.servlet.ServletRequest.class);
+        filterFor("context0", "alice").doFilterInternal(request, response, chain);
+        verify(chain).doFilter(cap.capture(), eq(response));
+        javax.servlet.http.HttpServletRequest wrapped =
+            (javax.servlet.http.HttpServletRequest) cap.getValue();
+        assertEquals("alice", wrapped.getUserPrincipal().getName(), "getName() == username");
+        assertEquals("alice", wrapped.getUserPrincipal().toString(), "toString() == username");
+        verify(response, never()).setStatus(anyInt());
+    }
+
     @Test void notConfigured_returns503() throws Exception {
         JwtService noKeys = JwtService.fromBase64Keys(null, null, "wildbook", "wildbook-scoped-api");
         String token = realService.sign("user-uuid-1", "context0", 60_000L);

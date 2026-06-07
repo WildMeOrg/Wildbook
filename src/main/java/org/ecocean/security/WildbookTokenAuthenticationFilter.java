@@ -66,7 +66,7 @@ public class WildbookTokenAuthenticationFilter extends OncePerRequestFilter {
         try {
             Jws<Claims> jws = jwt.verify(token);
             claims = jws.getPayload();
-        } catch (JwtException | IllegalStateException ex) {
+        } catch (JwtException | IllegalArgumentException ex) {
             deny(response, 401, "invalid token");
             return;
         }
@@ -155,12 +155,12 @@ public class WildbookTokenAuthenticationFilter extends OncePerRequestFilter {
     private void deny(HttpServletResponse response, int status, String message)
     throws IOException {
         response.setStatus(status);
-        response.setHeader("Content-Type", "application/json");
-        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
         JSONObject err = new JSONObject();
         err.put("success", false);
         err.put("error", message);
-        response.getWriter().write(err.toString());
-        response.getWriter().close();
+        java.io.PrintWriter w = response.getWriter();
+        w.write(err.toString());
+        w.close();
     }
 }
