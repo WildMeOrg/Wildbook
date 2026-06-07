@@ -634,14 +634,35 @@ Then change the top-level auth branch (currently `if ((currentUser == null) || (
         } else {
 ```
 
-Next, inside the `else` block, add the encounter-only index gate and stored-query owner check as two new `else if` branches in the existing guard ladder — insert them **immediately after** the existing `"annotation".equals(indexName) && !currentUser.isAdmin(...)` branch (after `SearchApi:56`) and **before** the `((query == null) && !"POST".equals(...))` 405 branch (`:59`). At this point in the ladder, for a stored query `query` is the loaded full object (it still has `indexName`/`creator`; scrubbing happens later in the execute block), and for a direct query `query` is null:
+Next, inside the `else` block, add the token-path guards as new `else if` branches in the existing guard ladder. **Order matters (Codex):** the method allowlist must come **first** — before the invalid-id (404), index (403), and owner (403) checks — so a wrong-method request returns 405 and never leaks via a 403/404 whether a stored query exists or who owns it. Insert these branches **immediately after** the top-level `if/else if (bearerPresent && !tokenAuth)` opening and the existing `(searchQueryId != null) && (query == null)` invalid-id branch is *re-sequenced after* the method gates. Concretely, replace the head of the guard ladder (the branches from the invalid-id 404 down to the existing 405) so it reads:
 
 ```java
+            // --- token method allowlist FIRST (no existence/ownership leak via 403/404) ---
+            } else if (tokenAuth && (searchQueryId != null)
+                && !"GET".equals(request.getMethod())) {
+                // stored-query replay is GET-only on the token path
+                response.setStatus(405);
+                res.put("error", "method not allowed");
+            } else if (tokenAuth && (searchQueryId == null)
+                && !"POST".equals(request.getMethod())) {
+                // direct index search is POST-only on the token path
+                response.setStatus(405);
+                res.put("error", "method not allowed");
+            // --- existing validity checks ---
+            } else if ((searchQueryId != null) && (query == null)) {
+                response.setStatus(404);
+                res.put("error", "invalid searchQueryId " + searchQueryId);
+            } else if ((searchQueryId == null) && !OpenSearch.isValidIndexName(indexName)) {
+                response.setStatus(404);
+                res.put("error", "unknown index");
+            } else if ("annotation".equals(indexName) && !currentUser.isAdmin(myShepherd)) {
+                response.setStatus(403);
+                res.put("error", 403);
+            // --- token encounter-only index gate + stored-query owner check ---
             } else if (tokenAuth && !"encounter".equals(
                 (searchQueryId != null) ? (query != null ? query.optString("indexName", null) : null)
                                         : indexName)) {
-                // token search is encounter-index only (covers stored queries whose real index
-                // is read from the stored doc, not from the {uuid} URL)
+                // covers stored queries whose real index is read from the stored doc, not the URL
                 response.setStatus(403);
                 res.put("error", "token search is limited to the encounter index");
             } else if (tokenAuth && (searchQueryId != null) && (query != null)
@@ -650,15 +671,15 @@ Next, inside the `else` block, add the encounter-only index gate and stored-quer
                 // replaying someone else's stored query is not allowed (admin bypasses)
                 response.setStatus(403);
                 res.put("error", "not the owner of this stored query");
-            } else if (tokenAuth && (searchQueryId != null) && !"GET".equals(request.getMethod())) {
-                // token method allowlist: stored-query replay is GET-only (direct index is
-                // POST-only, already enforced by the existing query==null && !POST -> 405 branch)
+            } else if ((query == null) && !"POST".equals(request.getMethod())) {
                 response.setStatus(405);
                 res.put("error", "method not allowed");
-            } else if ((query == null) && !"POST".equals(request.getMethod())) {
+            } else {
+                // ... existing execute block (query parse/store/scrub, sanitize, ACL inject, queryPit) ...
+            }
 ```
 
-(The last line is the existing 405 branch — shown for placement; do not duplicate it.)
+This re-sequences the *existing* invalid-id / unknown-index / annotation-admin / 405 branches (do not duplicate them elsewhere) and inserts the four new token branches in the shown order. The method gates fire first; the index/owner gates fire before execution; the execute block is unchanged except for Step 3's ACL injection.
 
 - [ ] **Step 3: Inject the ACL pre-filter after sanitize**
 
@@ -886,6 +907,32 @@ class SearchApiTokenAuthTest {
         verify(response).setStatus(405);
     }
 
+    @Test void storedQuery_postOtherOwner_is405NotOwnership403() throws Exception {
+        // method gate fires FIRST: wrong method must not leak ownership via a 403
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/11111111-1111-1111-1111-111111111111");
+        when(request.getHeader("Authorization")).thenReturn("Bearer x");
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedStatic<OpenSearch> osStatic = storedQuery("encounter", "someoneElse")) {
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(405);
+        verify(response, never()).setStatus(403);
+    }
+
+    @Test void directIndex_getMethod_returns405() throws Exception {
+        // token direct index search is POST-only; a GET to /encounter must be 405
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getPathInfo()).thenReturn("/encounter");
+        when(request.getHeader("Authorization")).thenReturn("Bearer x");
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false)) {
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(405);
+    }
+
     @Test void storedQuery_ownEncounter_succeeds() throws Exception {
         when(request.getMethod()).thenReturn("GET");
         when(request.getPathInfo()).thenReturn("/11111111-1111-1111-1111-111111111111");
@@ -924,7 +971,7 @@ class SearchApiTokenAuthTest {
 - [ ] **Step 5: Run the test**
 
 Run: `mvn test -Dtest=SearchApiTokenAuthTest`
-Expected: PASS (9 tests: direct non-encounter 403, unmarked Bearer 401, lowercase-Bearer-unmarked 401, ACL injection, admin no-injection, stored other-owner 403, stored non-encounter 403, stored POST 405, stored own-encounter scoped 200). Iterate on the SearchApi edits (not the tests) until green. Also re-run any existing SearchApi test to confirm no regression: `mvn test -Dtest=SearchApi*`.
+Expected: PASS (11 tests: direct non-encounter 403, unmarked Bearer 401, lowercase-Bearer-unmarked 401, ACL injection, admin no-injection, stored other-owner GET 403, stored non-encounter GET 403, stored POST 405, stored POST other-owner 405-not-403, direct GET 405, stored own-encounter scoped 200). Iterate on the SearchApi edits (not the tests) until green. Also re-run any existing SearchApi test to confirm no regression: `mvn test -Dtest=SearchApi*`.
 
 - [ ] **Step 6: Normalize and commit**
 
@@ -965,11 +1012,11 @@ This is the only rule for the search path; no `authc`/`roles` is chained (the fi
 
 - [ ] **Step 3: Update / add the wiring-guard test**
 
-If `src/test/java/org/ecocean/api/EndpointAuthWiringTest.java` exists (added by Artifact B to assert `web.xml` Shiro rules), add an assertion that the search rule is present and maps only to `tokenAuthSearch`. Mirror the existing assertion style in that file. Representative addition:
+If `src/test/java/org/ecocean/api/EndpointAuthWiringTest.java` exists (added by Artifact B to assert `web.xml` Shiro rules), add an assertion that the search rule is present and maps only to `tokenAuthSearch`. Mirror the existing assertion style in that file — it exposes the `web.xml` contents via a helper named **`fullText()`** (`EndpointAuthWiringTest.java:35-36`), so use that (not a new `readWebXml()`):
 
 ```java
     @Test void searchPath_wiredToTokenFilterOnly() throws Exception {
-        String webXml = readWebXml(); // existing helper in this test
+        String webXml = fullText(); // existing helper in EndpointAuthWiringTest
         assertTrue(webXml.contains("tokenAuthSearch = org.ecocean.security.WildbookTokenAuthenticationFilter"),
             "token filter declared in [main]");
         assertTrue(webXml.contains("/api/v3/search/** = tokenAuthSearch"),
@@ -980,10 +1027,10 @@ If `src/test/java/org/ecocean/api/EndpointAuthWiringTest.java` exists (added by 
     }
 ```
 
-If `EndpointAuthWiringTest` does not exist, create `src/test/java/org/ecocean/api/SearchWiringTest.java` with the same assertions and a `readWebXml()` helper that reads `src/main/webapp/WEB-INF/web.xml` from the project basedir:
+If `EndpointAuthWiringTest` does not exist (verify first with a quick `ls src/test/java/org/ecocean/api/`), create `src/test/java/org/ecocean/api/SearchWiringTest.java` with the same assertions and a local `fullText()` helper that reads `src/main/webapp/WEB-INF/web.xml` from the project basedir:
 
 ```java
-    private String readWebXml() throws Exception {
+    private String fullText() throws Exception {
         return new String(java.nio.file.Files.readAllBytes(
             java.nio.file.Paths.get("src/main/webapp/WEB-INF/web.xml")),
             java.nio.charset.StandardCharsets.UTF_8);
@@ -1099,6 +1146,36 @@ Create `src/test/java/org/ecocean/api/SearchTokenScopeTest.java` modeled on `Enc
             .when().post("/api/v3/search/encounter")
             .then().statusCode(401);
     }
+
+    // Spec Critical: a token request must NOT mint a session, so it can never be parlayed
+    // into a write. Assert no JSESSIONID is set, and a follow-up no-Bearer request on the
+    // same client is unauthenticated (does not inherit the token user).
+    @Test void tokenSearch_mintsNoSession() throws Exception {
+        String token = testJwtService.sign(aliceUuid, "context0", 60_000L);
+        io.restassured.response.Response r = given()
+            .header("Authorization", "Bearer " + token)
+            .contentType(io.restassured.http.ContentType.JSON)
+            .body("{\"query\":{\"match_all\":{}}}")
+            .when().post("/api/v3/search/encounter")
+            .then().statusCode(200)
+            .extract().response();
+
+        // no session cookie minted
+        String setCookie = r.header("Set-Cookie");
+        assertFalse((setCookie != null) && setCookie.contains("JSESSIONID"),
+            "token search must not mint a JSESSIONID");
+        assertTrue(r.getCookies() == null || r.getCookie("JSESSIONID") == null,
+            "no JSESSIONID cookie returned");
+
+        // a follow-up request with no Bearer (and any cookies the prior response set) is anon:
+        // SearchApi self-401s because there is no session principal
+        given()
+            .cookies(r.getCookies() == null ? new java.util.HashMap<>() : r.getCookies())
+            .contentType(io.restassured.http.ContentType.JSON)
+            .body("{\"query\":{\"match_all\":{}}}")
+            .when().post("/api/v3/search/encounter")
+            .then().statusCode(401);
+    }
 ```
 
 The JwtService keypair must match between the filter (loads from `CommonConfiguration` `jwtPublicKeyBase64`) and the test signer. Set the test config keys (`jwtPrivateKeyBase64`/`jwtPublicKeyBase64`/`jwtIssuer`/`jwtAudience`) to a generated test keypair in `@BeforeAll` (the harness already loads a test `commonConfiguration.properties`; write the test keys there or via the same mechanism `AuthTokenTest`/the B integration tests use). Reuse the keypair-generation snippet from `JwtServiceTest`/Task 3.
@@ -1106,7 +1183,7 @@ The JwtService keypair must match between the filter (loads from `CommonConfigur
 - [ ] **Step 3: Run the integration test**
 
 Run: `mvn test -Dtest=SearchTokenScopeTest`
-Expected: PASS (4 tests: scoped non-admin, admin unscoped, non-encounter 403, context-drift-via-cookie 401). This pulls the Testcontainers OpenSearch image; allow time on first run. The `*Test` suffix means a plain `mvn test` also runs it (matching the repo's `EncounterExportImagesTest` convention). If the environment cannot run Testcontainers, mark this class `@org.junit.jupiter.api.Disabled("requires Docker/Testcontainers")` with a comment and rely on Tasks 1/3/4 unit tests + a manual run note — but do not delete it.
+Expected: PASS (5 tests: scoped non-admin, admin unscoped, non-encounter 403, context-drift-via-cookie 401, no-session-minted). This pulls the Testcontainers OpenSearch image; allow time on first run. The `*Test` suffix means a plain `mvn test` also runs it (matching the repo's `EncounterExportImagesTest` convention). If the environment cannot run Testcontainers, mark this class `@org.junit.jupiter.api.Disabled("requires Docker/Testcontainers")` with a comment and rely on Tasks 1/3/4 unit tests + a manual run note — but do not delete it.
 
 - [ ] **Step 4: Normalize and commit**
 
