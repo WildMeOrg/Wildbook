@@ -91,6 +91,10 @@ public class JwtService {
         return privateKey != null;
     }
 
+    public boolean canVerify() {
+        return publicKey != null;
+    }
+
     public String sign(String userUuid, String context, long ttlMillis) {
         if (!isEnabled()) throw new IllegalStateException("JwtService not enabled (no private key)");
         long now = System.currentTimeMillis();

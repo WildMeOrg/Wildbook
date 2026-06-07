@@ -186,6 +186,20 @@ class JwtServiceTest {
         assertNull(jws.getHeader().getKeyId(), "kid header must be absent when no keyId supplied");
     }
 
+    // ------------------------------------------------------------------ //
+    // canVerify() predicate tests (Task 2)                               //
+    // ------------------------------------------------------------------ //
+
+    @Test void canVerify_trueWhenPublicKeyPresent() throws Exception {
+        JwtService svc = serviceWithFreshKeys();
+        assertTrue(svc.canVerify(), "service built with a keypair can verify");
+    }
+
+    @Test void canVerify_falseWhenNoKeys() {
+        JwtService svc = JwtService.fromBase64Keys(null, null, "wildbook", "wildbook-scoped-api");
+        assertFalse(svc.canVerify(), "service with no public key cannot verify");
+    }
+
     /**
      * A token signed with RS384 using the SAME RSA private key must be rejected
      * once the verifier is pinned to RS256.  (This is the test that should FAIL
