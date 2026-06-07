@@ -35,6 +35,8 @@ import org.json.JSONObject;
 public class WildbookTokenAuthenticationFilter extends OncePerRequestFilter {
 
     public static final String TOKEN_AUTH_ATTR = "org.ecocean.tokenAuth";
+    /** Filter-verified context, passed to SearchApi so it does not re-resolve from caller-controlled inputs. */
+    public static final String TOKEN_CONTEXT_ATTR = "org.ecocean.tokenAuthContext";
 
     @Override
     protected void doFilterInternal(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -62,22 +64,26 @@ public class WildbookTokenAuthenticationFilter extends OncePerRequestFilter {
             deny(response, 503, "token auth not configured");
             return;
         }
-        Claims claims;
+        // Extract claims INSIDE the catch: jjwt typed-claim access (get(..., String.class),
+        // getSubject) can throw JwtException subclasses for ill-typed claims -> treat as 401,
+        // never let it escape as a 500.
+        String tokenContext;
+        String uuid;
         try {
             Jws<Claims> jws = jwt.verify(token);
-            claims = jws.getPayload();
+            Claims claims = jws.getPayload();
+            tokenContext = claims.get("context", String.class);
+            uuid = claims.getSubject();
         } catch (JwtException | IllegalArgumentException ex) {
             deny(response, 401, "invalid token");
             return;
         }
         // context claim must equal server context, AND request-resolved context must not drift
-        String tokenContext = claims.get("context", String.class);
         String reqContext = requestContext(request);
         if (!expected.equals(tokenContext) || !expected.equals(reqContext)) {
             deny(response, 401, "context mismatch");
             return;
         }
-        String uuid = claims.getSubject();
         if (!Util.stringExists(uuid)) {
             deny(response, 401, "invalid token subject");
             return;
@@ -122,6 +128,7 @@ public class WildbookTokenAuthenticationFilter extends OncePerRequestFilter {
             }
         };
         wrapped.setAttribute(TOKEN_AUTH_ATTR, Boolean.TRUE);
+        wrapped.setAttribute(TOKEN_CONTEXT_ATTR, expected);
         chain.doFilter(wrapped, response);
     }
 

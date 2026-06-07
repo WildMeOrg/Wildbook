@@ -83,6 +83,21 @@ class WildbookTokenAuthenticationFilterTest {
             WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR), "token-auth marker set");
     }
 
+    @Test void validBearer_setsVerifiedContextAttribute() throws Exception {
+        String token = realService.sign("user-uuid-1", "context0", 60_000L);
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+        when(request.getMethod()).thenReturn("POST");
+        org.mockito.ArgumentCaptor<javax.servlet.ServletRequest> cap =
+            org.mockito.ArgumentCaptor.forClass(javax.servlet.ServletRequest.class);
+        filterFor("context0", "alice").doFilterInternal(request, response, chain);
+        verify(chain).doFilter(cap.capture(), eq(response));
+        javax.servlet.http.HttpServletRequest wrapped =
+            (javax.servlet.http.HttpServletRequest) cap.getValue();
+        assertEquals("context0",
+            wrapped.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_CONTEXT_ATTR),
+            "filter sets the verified context attribute for SearchApi");
+    }
+
     @Test void expiredToken_returns401() throws Exception {
         String token = realService.sign("user-uuid-1", "context0", -60_000L); // expired 60s ago (avoids sub-second boundary flake)
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);

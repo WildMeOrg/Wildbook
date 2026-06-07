@@ -22,16 +22,22 @@ public class SearchApi extends ApiBase {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        String context = ServletUtilities.getContext(request);
+        boolean tokenAuth = Boolean.TRUE.equals(
+            request.getAttribute(org.ecocean.security.WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR));
+        String tokenContext = (String) request.getAttribute(
+            org.ecocean.security.WildbookTokenAuthenticationFilter.TOKEN_CONTEXT_ATTR);
+        // On the token path use the filter-VERIFIED context, not request-derived context (which a
+        // caller can steer via ?context=/cookie/host). Session path resolves context as before.
+        String context = (tokenAuth && (tokenContext != null))
+            ? tokenContext : ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
 
         myShepherd.setAction("api.SearchApi.POST");
         myShepherd.beginDBTransaction();
 
+        try {
         User currentUser = myShepherd.getUser(request);
         JSONObject res = new JSONObject();
-        boolean tokenAuth = Boolean.TRUE.equals(
-            request.getAttribute(org.ecocean.security.WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR));
         String authzHeader = request.getHeader("Authorization");
         // case-insensitive scheme match (matches the filter); avoids fall-through on "bearer ..."
         boolean bearerPresent = (authzHeader != null)
@@ -80,18 +86,19 @@ public class SearchApi extends ApiBase {
                     // per discussion with jh today, api exposure of annotations admin-only currently
                     response.setStatus(403);
                     res.put("error", 403);
-                // --- token encounter-only index gate + stored-query owner check ---
+                // --- token stored-query OWNER check FIRST: a non-owner must not learn the
+                // index/existence of someone else's stored query (admin bypasses) ---
+                } else if (tokenAuth && (searchQueryId != null) && (query != null)
+                    && !isAdmin
+                    && !currentUser.getId().equals(query.optString("creator", null))) {
+                    response.setStatus(403);
+                    res.put("error", "not the owner of this stored query");
+                // --- token encounter-only index gate (own stored queries / direct index) ---
                 } else if (tokenAuth && !"encounter".equals(
                     (searchQueryId != null) ? query.optString("indexName", null) : indexName)) {
                     // covers stored queries whose real index is read from the stored doc, not the URL
                     response.setStatus(403);
                     res.put("error", "token search is limited to the encounter index");
-                } else if (tokenAuth && (searchQueryId != null) && (query != null)
-                    && !isAdmin
-                    && !currentUser.getId().equals(query.optString("creator", null))) {
-                    // replaying someone else's stored query is not allowed (admin bypasses)
-                    response.setStatus(403);
-                    res.put("error", "not the owner of this stored query");
                 } else if ((query == null) && !"POST".equals(request.getMethod())) {
                     response.setStatus(405);
                     res.put("error", "method not allowed");
@@ -121,8 +128,9 @@ public class SearchApi extends ApiBase {
                         // Java is the hard boundary: scope totals + pagination + hits before execution
                         query = OpenSearch.applyEncounterAclFilter(query, currentUser.getId());
                     }
-                    System.out.println("SearchApi (sanitized) indexName=" + indexName + "; query=" +
-                        query);
+                    // do not log the full (possibly ACL-scoped) query body / user identifiers
+                    System.out.println("SearchApi search indexName=" + indexName
+                        + " tokenAuth=" + tokenAuth);
 
                     OpenSearch os = new OpenSearch();
                     try {
@@ -168,6 +176,8 @@ public class SearchApi extends ApiBase {
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(res.toString());
         response.getWriter().close();
-        myShepherd.rollbackAndClose();
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
     }
 }
