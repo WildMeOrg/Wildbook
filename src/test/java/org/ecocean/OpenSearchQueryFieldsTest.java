@@ -96,4 +96,19 @@ class OpenSearchQueryFieldsTest {
         assertTrue(OpenSearch.queryReferencesOnlyAllowedFields(
             new JSONObject("{\"query\":{\"match_all\":{}}}"), ALLOW));
     }
+    @Test void termsLookupForm_isRejected() {
+        // terms lookup: field key "id" is allowlisted but the lookup object references hidden "path"
+        assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(new JSONObject(
+            "{\"query\":{\"terms\":{\"id\":{\"index\":\"individual\",\"id\":\"x\",\"path\":\"cooccurrenceIndividualIds\"}}}}"),
+            ALLOW));
+    }
+    @Test void termsPlainArray_onAllowedField_isAllowed() {
+        assertTrue(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"terms\":{\"sex\":[\"f\",\"m\"]}}}"), ALLOW));
+    }
+    @Test void termsLookup_evenOnAllowedFieldName_isRejected() {
+        // any object-valued terms entry is the lookup form -> reject regardless of field name
+        assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"terms\":{\"names\":{\"index\":\"x\",\"path\":\"y\"}}}}"), ALLOW));
+    }
 }

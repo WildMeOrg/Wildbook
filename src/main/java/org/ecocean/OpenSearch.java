@@ -1013,8 +1013,10 @@ public class OpenSearch {
         "term","terms","match","match_phrase","match_phrase_prefix","range",
         "prefix","wildcard","regexp","fuzzy","ids","exists"));
     // Leaf-operator keys whose CHILD OBJECT's keys ARE field names (e.g. term/range/match -> {field:...}).
+    // NOTE: "terms" is intentionally absent — it is handled separately in nodeAllowed because the
+    // terms-lookup form (object value) must be rejected while the plain-array form is allowed.
     private static final java.util.Set<String> FIELD_BEARING = new java.util.HashSet<>(java.util.Arrays.asList(
-        "term","terms","match","match_phrase","match_phrase_prefix","range","prefix","wildcard","regexp","fuzzy"));
+        "term","match","match_phrase","match_phrase_prefix","range","prefix","wildcard","regexp","fuzzy"));
     // Keys that are DISALLOWED outright (can reference arbitrary fields / execute code).
     private static final java.util.Set<String> DENY_FEATURES = new java.util.HashSet<>(java.util.Arrays.asList(
         "script","script_score","aggs","aggregations","sort","_source","fields","docvalue_fields",
@@ -1063,6 +1065,18 @@ public class OpenSearch {
                 // current level keys are FIELD NAMES
                 if (!allowed.contains(rootField(key))) return false;
                 // values under a field (e.g. range bounds) are leaf params; don't recurse for fields
+            } else if ("terms".equals(key)) {
+                // Special-case: the terms operator has two legal forms:
+                //   plain:  {"terms": {"field": ["v1","v2"]}}   -> array/scalar value  -> allowed (if field allowlisted)
+                //   lookup: {"terms": {"field": {"index":"...","path":"..."}}} -> object value -> REJECT
+                // The lookup form lets a caller probe hidden nested fields via "path"; reject it fail-closed.
+                Object tv = obj.opt(key);
+                if (!(tv instanceof JSONObject)) return false; // terms body must be a JSONObject
+                JSONObject to = (JSONObject) tv;
+                for (String f : to.keySet()) {
+                    if (!allowed.contains(rootField(f))) return false; // field must be allowlisted
+                    if (to.opt(f) instanceof JSONObject) return false;  // object value = terms-lookup -> reject
+                }
             } else if (FIELD_BEARING.contains(key)) {
                 // the child object's keys are field names
                 if (!nodeAllowed(obj.opt(key), allowed, true)) return false;
