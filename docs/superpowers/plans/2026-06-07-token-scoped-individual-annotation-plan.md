@@ -133,6 +133,9 @@ Add to `Encounter.java` (near `computeViewUsers`, ~`:3389`):
      * submitterUserId is the resolved owner's UUID (absent if the owner is invalid/deleted ->
      * admin-only/fail-closed), and viewUsers is computeViewUsers() (approved/edit collaborators +
      * submitter-org orgAdmins). Anonymous-owned -> public; invalid/deleted non-anonymous owner -> closed.
+     * Semantically equivalent to (not byte-identical with) the encounter index's own serialization
+     * (e.g. for a public encounter we omit submitterUserId since publiclyReadable=true already grants);
+     * the ACCESS DECISION is identical, only the stored field set differs harmlessly.
      */
     public org.json.JSONObject opensearchAclFields(Shepherd myShepherd) {
         org.json.JSONObject acl = new org.json.JSONObject();
@@ -167,7 +170,9 @@ git commit -m "feat(acl): single-source Encounter.opensearchAclFields for child-
 
 ---
 
-### Task 2: Annotation index — ACL fields (union over parent encounter(s))
+### Task 2: Annotation index — ACL fields (single parent's ACL; 0 or >1 parents → fail-closed)
+
+> **Codex High — do NOT union over parents.** The annotation doc carries parent-encounter *metadata* (`encounterId`, `encounterSubmitterId`, `encounterLocationId`, `encounterTaxonomy`, `encounterUserUuid`, `encounterProjectIds`, `encounterIndividualTimeOfDeath`) from `findEncounter()` = the **first** parent. If we granted access by union over all parents, a user authorized via parent B would receive parent A's metadata. So: an annotation gets **its single parent encounter's ACL**; if it has **0 or >1 parents**, fail closed (admin-only) and log. Normal single-parent annotations work; anomalous multi-parent ones are admin-only (admins bypass anyway, and the first-parent metadata is then only ever shown to admins).
 
 **Files:**
 - Modify: `src/main/java/org/ecocean/Encounter.java` (add `findAllByAnnotation`), `src/main/java/org/ecocean/Annotation.java`
@@ -225,19 +230,16 @@ class AnnotationAclSerializerTest {
         return new JSONObject(sw.toString());
     }
 
-    @Test void unionOverParents_privatePlusPublic() throws Exception {
+    @Test void singleParent_usesItsAcl() throws Exception {
         Annotation ann = spy(new Annotation());
         Shepherd sh = mock(Shepherd.class);
-        Encounter encPrivate = mock(Encounter.class);
-        Encounter encPublic = mock(Encounter.class);
-        when(encPrivate.opensearchAclFields(sh)).thenReturn(new JSONObject(
+        Encounter parent = mock(Encounter.class);
+        when(parent.opensearchAclFields(sh)).thenReturn(new JSONObject(
             "{\"publiclyReadable\":false,\"submitterUserId\":\"u1\",\"viewUsers\":[\"v1\"]}"));
-        when(encPublic.opensearchAclFields(sh)).thenReturn(new JSONObject(
-            "{\"publiclyReadable\":true,\"viewUsers\":[]}"));
-        doReturn(Arrays.asList(encPrivate, encPublic)).when(ann).parentEncounters(sh);
+        doReturn(Arrays.asList(parent)).when(ann).parentEncounters(sh);
 
         JSONObject out = serialize(ann, sh);
-        assertTrue(out.getBoolean("publiclyReadable"), "any public parent -> public");
+        assertFalse(out.getBoolean("publiclyReadable"));
         assertTrue(out.getJSONArray("submitterUserIds").toList().contains("u1"));
         assertTrue(out.getJSONArray("viewUsers").toList().contains("v1"));
     }
@@ -250,6 +252,19 @@ class AnnotationAclSerializerTest {
         assertFalse(out.getBoolean("publiclyReadable"), "no parent -> not public");
         assertEquals(0, out.getJSONArray("submitterUserIds").length(), "no parent -> admin-only");
         assertEquals(0, out.getJSONArray("viewUsers").length(), "no parent -> admin-only");
+    }
+
+    @Test void multipleParents_failsClosed() throws Exception {
+        // anomalous: >1 parent -> admin-only (avoids leaking first-parent metadata to a B-authorized user)
+        Annotation ann = spy(new Annotation());
+        Shepherd sh = mock(Shepherd.class);
+        Encounter a = mock(Encounter.class);
+        Encounter b = mock(Encounter.class);
+        doReturn(Arrays.asList(a, b)).when(ann).parentEncounters(sh);
+        JSONObject out = serialize(ann, sh);
+        assertFalse(out.getBoolean("publiclyReadable"), ">1 parent -> not public");
+        assertEquals(0, out.getJSONArray("submitterUserIds").length(), ">1 parent -> admin-only");
+        assertEquals(0, out.getJSONArray("viewUsers").length(), ">1 parent -> admin-only");
     }
 }
 ```
@@ -269,21 +284,30 @@ In `Annotation.java`, add:
         return Encounter.findAllByAnnotation(this, myShepherd);
     }
 
-    /** Write the denormalized ACL union over parent encounter(s); 0 parents -> fail closed (admin-only). */
+    /**
+     * Write the denormalized ACL from this annotation's SINGLE parent encounter.
+     * 0 parents (orphan) or >1 parents (anomalous) -> fail closed (admin-only), because the doc's
+     * encounter* metadata fields come from only the first parent and must not be exposed to a user
+     * authorized via a different parent.
+     */
     public void writeAclFields(com.fasterxml.jackson.core.JsonGenerator jgen, Shepherd myShepherd)
     throws java.io.IOException {
         boolean pub = false;
         java.util.Set<String> submitters = new java.util.LinkedHashSet<String>();
         java.util.Set<String> viewers = new java.util.LinkedHashSet<String>();
-        for (Encounter enc : this.parentEncounters(myShepherd)) {
-            org.json.JSONObject acl = enc.opensearchAclFields(myShepherd);
+        java.util.List<Encounter> parents = this.parentEncounters(myShepherd);
+        if (parents.size() == 1) { // exactly one parent: use its ACL
+            org.json.JSONObject acl = parents.get(0).opensearchAclFields(myShepherd);
             if (acl.optBoolean("publiclyReadable", false)) pub = true;
             String sid = acl.optString("submitterUserId", null);
             if (sid != null) submitters.add(sid);
             org.json.JSONArray vu = acl.optJSONArray("viewUsers");
             if (vu != null) for (int i = 0; i < vu.length(); i++) viewers.add(vu.optString(i));
+        } else if (parents.size() > 1) {
+            System.out.println("Annotation.writeAclFields: " + this.getId() + " has " + parents.size()
+                + " parent encounters -> indexing admin-only (fail closed)");
         }
-        jgen.writeBooleanField("publiclyReadable", pub);
+        jgen.writeBooleanField("publiclyReadable", pub); // false for 0/many parents
         jgen.writeArrayFieldStart("submitterUserIds");
         for (String s : submitters) jgen.writeString(s);
         jgen.writeEndArray();
@@ -299,12 +323,11 @@ Then call it inside `opensearchDocumentSerializer` (after the `encounter*` field
         this.writeAclFields(jgen, myShepherd);
 ```
 
-And add the mapping fields in `opensearchMapping()` (before the `embeddings` block, ~`:182`):
+And add the mapping fields in `opensearchMapping()` (before the `embeddings` block, ~`:182`). `viewUsers` is **already** mapped (keyword) by `Base.opensearchMapping()`, so add only:
 
 ```java
         map.put("publiclyReadable", new JSONObject("{\"type\": \"boolean\"}"));
         map.put("submitterUserIds", keywordType);
-        map.put("viewUsers", keywordType);
 ```
 
 - [ ] **Step 5: Run to verify it passes**
@@ -365,7 +388,8 @@ class MarkedIndividualAclSerializerTest {
             "{\"publiclyReadable\":false,\"submitterUserId\":\"u1\",\"viewUsers\":[\"v1\"]}"));
         when(e2.opensearchAclFields(sh)).thenReturn(new JSONObject(
             "{\"publiclyReadable\":false,\"submitterUserId\":\"u2\",\"viewUsers\":[\"v2\"]}"));
-        doReturn(java.util.Arrays.asList(e1, e2)).when(mi).getEncounters();
+        // getEncounters() returns Vector<Encounter>, not List — stub with a Vector
+        doReturn(new java.util.Vector<Encounter>(java.util.Arrays.asList(e1, e2))).when(mi).getEncounters();
 
         JSONObject out = serialize(mi, sh);
         assertFalse(out.getBoolean("publiclyReadable"));
@@ -376,7 +400,7 @@ class MarkedIndividualAclSerializerTest {
     @Test void zeroEncounters_worldReadable() throws Exception {
         MarkedIndividual mi = spy(new MarkedIndividual());
         Shepherd sh = mock(Shepherd.class);
-        doReturn(java.util.Collections.emptyList()).when(mi).getEncounters();
+        doReturn(new java.util.Vector<Encounter>()).when(mi).getEncounters();
         JSONObject out = serialize(mi, sh);
         assertTrue(out.getBoolean("publiclyReadable"),
             "encounterless individual -> visible to anyone (matches canUserAccessMarkedIndividual)");
@@ -627,6 +651,32 @@ class OpenSearchSanitizeDocTest {
         assertEquals(42, out.getInt("numberEncounters"), "admin keeps aggregates");
         assertFalse(out.has("viewUsers"), "ACL still scrubbed even for admin");
     }
+
+    // Allowlist completeness (Codex High): a doc carrying EVERY field the real individual serializer
+    // emits must, for a non-admin token, retain ONLY the keep-list and drop all aggregates/relations.
+    @Test void individualToken_allowlistDropsAllSerializerAggregates() throws Exception {
+        // every field MarkedIndividual.opensearchDocumentSerializer can emit (pin against current source)
+        JSONObject doc = new JSONObject("{"
+            + "\"id\":\"i1\",\"version\":1,\"indexTimestamp\":1,\"displayName\":\"F\",\"names\":[\"F\"],"
+            + "\"nameMap\":{},\"sex\":\"female\",\"taxonomy\":\"t\",\"timeOfBirth\":\"x\",\"timeOfDeath\":\"y\","
+            + "\"numberEncounters\":5,\"encounterIds\":[\"e\"],\"users\":[\"u\"],\"numberOccurrences\":2,"
+            + "\"cooccurrenceIndividualIds\":[\"c\"],\"cooccurrenceIndividualMap\":{},\"locationGeoPoints\":[{}],"
+            + "\"numberMediaAssets\":3,\"socialUnits\":[{}],\"relationships\":[{}],"
+            + "\"publiclyReadable\":false,\"submitterUserIds\":[\"s\"],\"viewUsers\":[\"v\"]}");
+        Shepherd sh = mock(Shepherd.class);
+        User u = user(false);
+        when(u.isAdmin(sh)).thenReturn(false);
+        JSONObject out = OpenSearch.sanitizeDoc(doc, "individual", sh, u, true);
+        java.util.Set<String> keep = new java.util.HashSet<>(java.util.Arrays.asList(
+            "id","version","indexTimestamp","displayName","names","nameMap","sex","taxonomy",
+            "timeOfBirth","timeOfDeath"));
+        for (String k : out.keySet()) assertTrue(keep.contains(k), "leaked non-allowlisted field: " + k);
+        for (String dropped : new String[]{"numberEncounters","encounterIds","users","numberOccurrences",
+            "cooccurrenceIndividualIds","cooccurrenceIndividualMap","locationGeoPoints","numberMediaAssets",
+            "socialUnits","relationships","publiclyReadable","submitterUserIds","viewUsers"}) {
+            assertFalse(out.has(dropped), "must drop " + dropped);
+        }
+    }
 }
 ```
 
@@ -648,6 +698,13 @@ In `OpenSearch.java`, add the constants + a universal scrub + the allowlist, and
         "id", "version", "indexTimestamp", "displayName", "names", "nameMap",
         "sex", "taxonomy", "timeOfBirth", "timeOfDeath"
     };
+    // NOTE (Codex Medium): the individual serializer also emits socialUnits, relationships,
+    // cooccurrenceIndividualIds/Map, users, encounterIds, numberEncounters/Occurrences/MediaAssets,
+    // locationGeoPoints. These are DELIBERATELY excluded from the keep-list: they are cross-encounter
+    // aggregates and/or reveal connections to OTHER individuals (social/relationship/cooccurrence) that
+    // may be derived from encounters the viewer can't see. They are out of scope for the v1 token
+    // individual view (the agent gets per-viewer detail via the scoped encounter index). If a future
+    // need arises, expose them only with per-viewer filtering — a separate design decision.
 
     private static void scrubAclFields(JSONObject doc) {
         for (String f : ACL_FIELDS) doc.remove(f);
@@ -756,6 +813,16 @@ git commit -m "feat(search): universal ACL-field scrub + token individual allowl
 
 where `EFFECTIVE_INDEX` is the resolved index expression already used there: `(searchQueryId != null) ? query.optString("indexName", null) : indexName`. Introduce a local `String effectiveIndex = (searchQueryId != null) ? query.optString("indexName", null) : indexName;` right after the stored query is loaded (before the guard ladder) and use it in BOTH this gate and the annotation-admin gate (Edit B).
 
+**Edit A.1 — guard a missing/invalid effective index (Codex Medium).** A stored query whose saved `indexName` is null or not a valid index currently slips past the validity checks and 500s at `queryPit`. Add, as an early branch in the ladder (after the token method gates, before the annotation/token gates):
+
+```java
+                } else if (!OpenSearch.isValidIndexName(effectiveIndex)) {
+                    response.setStatus(404);
+                    res.put("error", "unknown index");
+```
+
+(For a direct request `effectiveIndex == indexName`, so this also subsumes the existing `(searchQueryId == null) && !isValidIndexName(indexName)` check — keep one, not both.)
+
 - [ ] **Step 3: Edit B — resolve effective index before the annotation-admin gate (Codex Medium).** Change the existing annotation-admin gate (`:85`) so it (a) uses `effectiveIndex` not the raw `indexName`, and (b) applies only on the **non-token** path (token path is governed by the ACL filter):
 
 ```java
@@ -829,45 +896,51 @@ When an encounter's ACL changes, its annotations + individual must reindex. When
 - Modify: `src/main/java/org/ecocean/Encounter.java` (`setIndividual`), `src/main/java/org/ecocean/MarkedIndividual.java` (`addEncounter`/`removeEncounter`/`mergeIndividual`), `src/main/java/org/ecocean/servlet/IndividualRemoveEncounter.java`, and the ACL-change path (`Encounter.opensearchIndexPermissions` or its enqueue points).
 - Test: `src/test/java/org/ecocean/ChildReindexTriggerTest.java` (create)
 
-- [ ] **Step 1: Add a reindex-fanout helper on `Encounter`.** In `Encounter.java`:
+**Key facts (verified):** `IndexingManager.addIndexingQueueEntry(base,false)` schedules `base.opensearchIndexDeep()` (DEEP). `Encounter.opensearchIndexDeep()` reindexes the encounter **plus its individual and all its annotations** (shallow re-serialize of each — recomputing their ACL). `MarkedIndividual.opensearchIndexDeep()` reindexes the individual + all its member encounters. Deep-index does NOT re-enqueue, so there is no recursion — but enqueuing an individual fans out to all its encounters, so prefer enqueuing the **encounter** (smaller fan-out: encounter → its individual + its annotations) and only enqueue an individual directly for the old-individual-after-reassignment case. `Base.getSkipAutoIndexing()` (and the global auto-index-disabled flag the `WildbookLifecycleListener` already checks) must be honored so bulk import doesn't storm.
+
+- [ ] **Step 1: Add guarded enqueue helpers.** In `Encounter.java`:
 
 ```java
-    /** Enqueue reindex of this encounter's individual + annotations (children whose denormalized ACL derives from it). */
-    public void enqueueChildAclReindex(Shepherd myShepherd) {
+    /** Enqueue a (deep) reindex of this encounter — which re-serializes its individual + annotations
+     *  with fresh ACL. Honors skipAutoIndexing so bulk import / deserialization don't storm. */
+    public void enqueueAclReindex() {
+        if (this.getSkipAutoIndexing()) return;
         try {
-            IndexingManager im = IndexingManagerFactory.getIndexingManager();
-            MarkedIndividual ind = this.getIndividual();
-            if (ind != null) im.addIndexingQueueEntry(ind, false);
-            if (this.getAnnotations() != null)
-                for (Annotation ann : this.getAnnotations()) im.addIndexingQueueEntry(ann, false);
+            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
         } catch (Exception ex) {
-            System.out.println("enqueueChildAclReindex failed for enc " + this.getId() + ": " + ex);
+            System.out.println("Encounter.enqueueAclReindex failed for " + this.getId() + ": " + ex);
         }
     }
 ```
 
-- [ ] **Step 2: ACL-change propagation.** In `Encounter.opensearchIndexPermissions` (the bulk pass that updates encounter `viewUsers`, `Encounter.java:~4281`), after a successful `os.indexUpdate("encounter", id, updateData)` for an encounter whose `viewUsers` changed, also enqueue child reindex for that encounter (resolve the `Encounter` object as the invalid-owner branch already does at `:4231`). Because the permissions pass is bulk and may touch many encounters, enqueue child reindex only when the computed `viewUsers`/public actually changed for that doc (compare against the prior indexed value if available, else enqueue). Document this as best-effort, consistent with A.
-
-> Implementation note for the engineer: verify whether `IndexingManager.scheduleIndexingJob` reindexes shallowly (`opensearchIndex()`) or deeply. If shallow, enqueuing the `MarkedIndividual` + each `Annotation` (as above) is correct (each re-serializes itself, recomputing its own ACL union). If it deep-indexes, guard against redundant fan-out. Confirm against `IndexingManager.java` before finalizing.
-
-- [ ] **Step 3: Membership-change hooks (capture OLD + NEW).** At each mutation site, enqueue reindex of the old and new individual (+ the encounter's annotations):
-  - `Encounter.setIndividual(MarkedIndividual indiv)` (`:1245`): capture `MarkedIndividual old = this.individual;` before reassigning; after, enqueue reindex for both `old` and `indiv` (if non-null) and this encounter's annotations.
-  - `MarkedIndividual.removeEncounter` (`:513`) and `addEncounter` (`:468`): enqueue reindex of `this` individual + the encounter's annotations.
-  - `MarkedIndividual.mergeIndividual` (`:2608`): after the merge loop, enqueue reindex of `this` (primary) and `other` (secondary, now empty) + all moved encounters' annotations.
-  - `IndividualRemoveEncounter.java` (`:60`,`:74`): the servlet already mutates via `setIndividual(null)`/`removeEncounter`; ensure the enqueue fires (it will, if the hooks are in the model methods — prefer hooking the model methods over the servlet so all callers are covered).
-
-  Each hook calls a small helper, e.g. on `MarkedIndividual`:
+  In `MarkedIndividual.java` (used only for the OLD individual after an encounter leaves it):
 
 ```java
-    void enqueueAclReindex() {
-        try { IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false); }
-        catch (Exception ex) { System.out.println("MarkedIndividual.enqueueAclReindex failed " + this.getId() + ": " + ex); }
+    public void enqueueAclReindex() {
+        if (this.getSkipAutoIndexing()) return;
+        try {
+            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+        } catch (Exception ex) {
+            System.out.println("MarkedIndividual.enqueueAclReindex failed for " + this.getId() + ": " + ex);
+        }
     }
 ```
 
-  Prefer placing enqueues in the **model** methods (`setIndividual`/`add`/`removeEncounter`/`mergeIndividual`) so every caller (servlets, bulk import, merge tools) is covered, not just `IndividualRemoveEncounter`.
+- [ ] **Step 2: ACL-change propagation (collaboration/role/org changes).** These flow through `setPermissionsNeeded(true)` → the bulk `Encounter.opensearchIndexPermissions` pass, which `indexUpdate`s the encounter's `viewUsers` but leaves children stale. Extend that pass so that, for each encounter whose `viewUsers` (or publiclyReadable) it computes, it **detects a change vs the currently-indexed value and, on a diff, enqueues that encounter for deep reindex** (which refreshes its individual + annotations):
+  - The pass already fetches the `Encounter` in the invalid-owner branch (`:4231`); do the same on the change path: `Encounter changed = myShepherd.getEncounter(id); if (changed != null) changed.enqueueAclReindex();`.
+  - Change detection: before `os.indexUpdate(...)`, read the doc's current `viewUsers` (the pass holds an `OpenSearch os`; add a small `os.getViewUsers("encounter", id)` helper, or read via the existing client) and compare to the freshly computed list. Enqueue only on diff to avoid a full child reindex every pass.
+  - This is the highest-risk step; document it as best-effort (a missed propagation is recovered by the periodic reconciler + the corrective reindex), consistent with A.
 
-- [ ] **Step 4: Test (model-level, Mockito).** `ChildReindexTriggerTest` — use `mockStatic(IndexingManagerFactory)` returning a mock `IndexingManager`; call `Encounter.setIndividual(newInd)` on an encounter whose old individual is `oldInd`; verify `addIndexingQueueEntry(oldInd,false)` AND `addIndexingQueueEntry(newInd,false)` were called. Similar for `removeEncounter`/`mergeIndividual`. (Where a method's internals make pure unit testing hard, assert the helper is invoked and cover the end-to-end propagation in Task 9's integration test.)
+- [ ] **Step 3: Membership-change hooks (capture OLD + NEW), in the MODEL methods so all callers are covered.** Enqueue at:
+  - `Encounter.setIndividual(MarkedIndividual indiv)` (`:1245`): `MarkedIndividual old = this.individual;` BEFORE reassigning; after, `this.enqueueAclReindex();` (covers the encounter + its NEW individual + its annotations) and `if (old != null && old != indiv) old.enqueueAclReindex();` (old individual's union shrinks).
+  - `MarkedIndividual.removeEncounter` (`:513`): after removal, `this.enqueueAclReindex();` and `getRidOfMe.enqueueAclReindex();` (the encounter, now individual-less, refreshes its own + annotation ACL).
+  - `MarkedIndividual.addEncounter` (`:468`): after add, `newEncounter.enqueueAclReindex();` (covers the encounter + this individual + annotations).
+  - `MarkedIndividual.mergeIndividual` (`:2608`): after the loop, `this.enqueueAclReindex();` (primary) and `other.enqueueAclReindex();` (secondary, now empty).
+  - `IndividualRemoveEncounter.java` (`:60`,`:74`): no change needed — it calls `setIndividual(null)` + `removeEncounter`, both now hooked.
+
+  Hooking the model methods (not the servlets) ensures bulk import, merge tools, and API paths are all covered. The `skipAutoIndexing` guard in the helpers prevents bulk-import storms; confirm bulk import sets skip on the encounters/individuals it mutates (`BulkImporter` does — verify the flag is set on the objects these methods see).
+
+- [ ] **Step 4: Test (model-level, Mockito).** `ChildReindexTriggerTest` — `mockStatic(IndexingManagerFactory)` returning a mock `IndexingManager`; build an `Encounter enc` (spy) whose current individual is `oldInd` (spy) with `skipAutoIndexing=false`; call `enc.setIndividual(newInd)`. Verify `im.addIndexingQueueEntry(enc, false)` AND `im.addIndexingQueueEntry(oldInd, false)` were called (the encounter covers `newInd` + annotations via deep index; `oldInd` is enqueued directly). Add a `skipAutoIndexing=true` case asserting **no** enqueue. Similar coverage for `removeEncounter`/`mergeIndividual`. (Where a method's internals resist pure unit testing, assert the helper is invoked and rely on Task 9's integration test for end-to-end propagation.)
 
 - [ ] **Step 5: Run + commit**
 
