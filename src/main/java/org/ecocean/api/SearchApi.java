@@ -64,6 +64,11 @@ public class SearchApi extends ApiBase {
                     searchQueryId = indexName;
                     query = OpenSearch.queryLoad(searchQueryId);
                 }
+                // effective index: a stored query's real index comes from the loaded doc, not the {uuid} URL.
+                // null-safe: null when a stored query failed to load (handled by the missing-stored-query branch).
+                String effectiveIndex = (searchQueryId != null)
+                    ? (query != null ? query.optString("indexName", null) : null)
+                    : indexName;
                 // --- token method allowlist FIRST (no existence/ownership leak via 403/404) ---
                 if (tokenAuth && (searchQueryId != null)
                     && !"GET".equals(request.getMethod())) {
@@ -75,30 +80,31 @@ public class SearchApi extends ApiBase {
                     // direct index search is POST-only on the token path
                     response.setStatus(405);
                     res.put("error", "method not allowed");
-                // --- existing validity checks ---
+                // --- missing stored query (failed load): before index validity ---
                 } else if ((searchQueryId != null) && (query == null)) {
                     response.setStatus(404);
                     res.put("error", "invalid searchQueryId " + searchQueryId);
-                } else if ((searchQueryId == null) && !OpenSearch.isValidIndexName(indexName)) {
-                    response.setStatus(404);
-                    res.put("error", "unknown index");
-                } else if ("annotation".equals(indexName) && !isAdmin) {
-                    // per discussion with jh today, api exposure of annotations admin-only currently
-                    response.setStatus(403);
-                    res.put("error", 403);
-                // --- token stored-query OWNER check FIRST: a non-owner must not learn the
-                // index/existence of someone else's stored query (admin bypasses) ---
+                // --- token stored-query OWNER check: before index validity so a non-owner can't probe it ---
                 } else if (tokenAuth && (searchQueryId != null) && (query != null)
                     && !isAdmin
                     && !currentUser.getId().equals(query.optString("creator", null))) {
                     response.setStatus(403);
                     res.put("error", "not the owner of this stored query");
-                // --- token encounter-only index gate (own stored queries / direct index) ---
-                } else if (tokenAuth && !"encounter".equals(
-                    (searchQueryId != null) ? query.optString("indexName", null) : indexName)) {
-                    // covers stored queries whose real index is read from the stored doc, not the URL
+                // --- effective-index validity (subsumes the old direct unknown-index check) ---
+                } else if (!OpenSearch.isValidIndexName(effectiveIndex)) {
+                    response.setStatus(404);
+                    res.put("error", "unknown index");
+                // --- session-path annotation gate stays admin-only; token path uses the ACL filter instead ---
+                } else if (!tokenAuth && "annotation".equals(effectiveIndex) && !isAdmin) {
+                    // per discussion with jh: api exposure of annotations admin-only on the session path
                     response.setStatus(403);
-                    res.put("error", "token search is limited to the encounter index");
+                    res.put("error", 403);
+                // --- token index allowlist: encounter, annotation, individual (others 403) ---
+                } else if (tokenAuth && !"encounter".equals(effectiveIndex)
+                    && !"annotation".equals(effectiveIndex)
+                    && !"individual".equals(effectiveIndex)) {
+                    response.setStatus(403);
+                    res.put("error", "token search is limited to encounter, annotation, individual");
                 } else if ((query == null) && !"POST".equals(request.getMethod())) {
                     response.setStatus(405);
                     res.put("error", "method not allowed");
@@ -126,7 +132,7 @@ public class SearchApi extends ApiBase {
                     query = OpenSearch.querySanitize(query, currentUser, myShepherd);
                     if (tokenAuth && !isAdmin) {
                         // Java is the hard boundary: scope totals + pagination + hits before execution
-                        query = OpenSearch.applyEncounterAclFilter(query, currentUser.getId());
+                        query = OpenSearch.applyAclFilter(query, currentUser.getId(), indexName);
                     }
                     // do not log the full (possibly ACL-scoped) query body / user identifiers
                     System.out.println("SearchApi search indexName=" + indexName
@@ -153,7 +159,7 @@ public class SearchApi extends ApiBase {
                             if (doc == null)
                                 throw new IOException("failed to parse doc in hits[" + i + "]");
                             hitsArr.put(OpenSearch.sanitizeDoc(doc, indexName, myShepherd,
-                                currentUser));
+                                currentUser, tokenAuth));
                         }
                         response.setHeader("X-Wildbook-Total-Hits", Integer.toString(totalHits));
                         response.setHeader("X-Wildbook-Search-Query-Id", searchQueryId);

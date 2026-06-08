@@ -70,9 +70,10 @@ class SearchApiTokenAuthTest {
     private static final JSONObject EMPTY_HITS =
         new JSONObject("{\"hits\":{\"total\":{\"value\":0},\"hits\":[]}}");
 
-    @Test void tokenRequest_nonEncounterIndex_returns403() throws Exception {
+    @Test void tokenRequest_nonAllowlistedIndex_returns403() throws Exception {
+        // token index allowlist is {encounter, annotation, individual}; occurrence is outside it
         when(request.getMethod()).thenReturn("POST");
-        when(request.getPathInfo()).thenReturn("/individual");
+        when(request.getPathInfo()).thenReturn("/occurrence");
         when(request.getHeader("Authorization")).thenReturn("Bearer x");
         User user = mockUser("u1", false);
         try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false)) {
@@ -175,16 +176,16 @@ class SearchApiTokenAuthTest {
         verify(response).setStatus(403);
     }
 
-    @Test void storedQuery_nonEncounterIndex_returns403() throws Exception {
+    @Test void storedQuery_nonAllowlistedIndex_returns403() throws Exception {
         when(request.getMethod()).thenReturn("GET");
         when(request.getPathInfo()).thenReturn("/11111111-1111-1111-1111-111111111111");
         when(request.getHeader("Authorization")).thenReturn("Bearer x");
         User user = mockUser("u1", false);
         try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
-            MockedStatic<OpenSearch> osStatic = storedQuery("individual", "u1")) {
+            MockedStatic<OpenSearch> osStatic = storedQuery("occurrence", "u1")) {
             new SearchApi().doPost(request, response);
         }
-        verify(response).setStatus(403); // own query, but wrong index
+        verify(response).setStatus(403); // own query, but index outside the token allowlist
     }
 
     @Test void storedQuery_postMethod_returns405() throws Exception {
@@ -270,7 +271,7 @@ class SearchApiTokenAuthTest {
             });
             osStatic.when(() -> OpenSearch.querySanitize(any(), any(), any()))
                 .thenAnswer(inv -> inv.getArgument(0));
-            osStatic.when(() -> OpenSearch.applyEncounterAclFilter(any(), anyString()))
+            osStatic.when(() -> OpenSearch.applyAclFilter(any(), anyString(), anyString()))
                 .thenCallRealMethod();
             new SearchApi().doPost(request, response);
         }
