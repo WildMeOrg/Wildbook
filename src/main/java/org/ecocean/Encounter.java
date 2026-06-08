@@ -1242,9 +1242,25 @@ public class Encounter extends Base implements java.io.Serializable {
         setIndividual(indiv);
     }
 
+    /** Enqueue a (deep) reindex of this encounter — refreshes its individual + annotations' ACL.
+     *  Honors skipAutoIndexing so bulk import / deserialization don't storm. */
+    public void enqueueAclReindex() {
+        if (this.getSkipAutoIndexing()) return;
+        try {
+            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+        } catch (Exception ex) {
+            System.out.println("Encounter.enqueueAclReindex failed for " + this.getId() + ": " + ex);
+        }
+    }
+
     public void setIndividual(MarkedIndividual indiv) {
+        MarkedIndividual old = this.individual;
         if (indiv == null) { this.individual = null; } else { this.individual = indiv; }
         this.refreshAnnotationLiteIndividual();
+        // membership change: refresh this encounter (deep -> its new individual + annotations)
+        // and the OLD individual it left (so the departed encounter is dropped from its ACL).
+        this.enqueueAclReindex();
+        if (old != null && old != indiv) old.enqueueAclReindex();
     }
 
     public MarkedIndividual getIndividual() {
@@ -4321,10 +4337,37 @@ public class Encounter extends Base implements java.io.Serializable {
                     }
                 }
                 updateData.put("viewUsers", viewUsers); // always write, incl [] so revocation propagates
+                // Change-detection: compare freshly computed viewUsers (as a set) to what is
+                // CURRENTLY indexed. On a real difference (or if the current value can't be read),
+                // deep-reindex THIS encounter so its individual + annotations get the new ACL.
+                // Best-effort: a missed propagation is recovered by the reconciler / corrective reindex.
+                boolean viewUsersChanged = true; // default to "changed" when current state is unknown
+                try {
+                    org.json.JSONArray current = os.getIndexedViewUsers("encounter", id);
+                    if (current != null) {
+                        Set<String> currentSet = new java.util.HashSet<String>();
+                        for (int ci = 0; ci < current.length(); ci++) currentSet.add(current.optString(ci, null));
+                        currentSet.remove(null);
+                        Set<String> newSet = new java.util.HashSet<String>();
+                        for (int ni = 0; ni < viewUsers.length(); ni++) newSet.add(viewUsers.optString(ni, null));
+                        newSet.remove(null);
+                        viewUsersChanged = !currentSet.equals(newSet);
+                    }
+                } catch (Exception ex) {
+                    viewUsersChanged = true; // unknown -> propagate to be safe
+                }
                 try {
                     os.indexUpdate("encounter", id, updateData);
                 } catch (Exception ex) {
                     viewUsersWriteFailures++; // aggregate only — no per-doc noise during index build
+                }
+                if (viewUsersChanged) {
+                    try {
+                        Encounter enc = myShepherd.getEncounter(id);
+                        if (enc != null) enc.enqueueAclReindex(); // refresh individual + annotations
+                    } catch (Exception ex) {
+                        // best-effort; reconciler / corrective reindex recovers a missed child refresh
+                    }
                 }
             }
         } catch (Exception ex) {

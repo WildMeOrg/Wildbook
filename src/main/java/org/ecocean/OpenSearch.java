@@ -774,6 +774,30 @@ public class OpenSearch {
         getRestResponse(updateRequest);
     }
 
+    // Reads the CURRENT indexed viewUsers array for a single doc. Returns the array
+    // (possibly empty) on success, or null if the doc/field cannot be read (missing doc,
+    // index not present, parse failure). Callers should treat null as "unknown" — i.e.
+    // assume a change so propagation is not silently skipped.
+    public org.json.JSONArray getIndexedViewUsers(String index, String id) {
+        if ((index == null) || (id == null)) return null;
+        try {
+            if (!existsIndex(index)) return null;
+            // _source filtered to just viewUsers keeps the response tiny.
+            Request getRequest = new Request("GET", index + "/_doc/" + id + "?_source=viewUsers");
+            String body = getRestResponse(getRequest);
+            if (body == null) return null;
+            org.json.JSONObject parsed = new org.json.JSONObject(body);
+            if (!parsed.optBoolean("found", false)) return null;
+            org.json.JSONObject source = parsed.optJSONObject("_source");
+            if (source == null) return new org.json.JSONArray(); // doc exists, no viewUsers yet -> empty
+            org.json.JSONArray arr = source.optJSONArray("viewUsers");
+            return (arr == null) ? new org.json.JSONArray() : arr;
+        } catch (Exception ex) {
+            // 404 (doc not found) surfaces as ResponseException here; treat as unknown.
+            return null;
+        }
+    }
+
     // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
     public static List<List<String> > resolveVersions(Map<String, Long> objVersions,
         Map<String, Long> indexVersions) {

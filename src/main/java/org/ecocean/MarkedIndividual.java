@@ -465,6 +465,17 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     // Adds a new encounter to this MarkedIndividual.
+    /** Enqueue a (deep) reindex of this individual — refreshes the individual + its member
+     *  encounters. Honors skipAutoIndexing so bulk import / deserialization don't storm. */
+    public void enqueueAclReindex() {
+        if (this.getSkipAutoIndexing()) return;
+        try {
+            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+        } catch (Exception ex) {
+            System.out.println("MarkedIndividual.enqueueAclReindex failed for " + this.getId() + ": " + ex);
+        }
+    }
+
     public boolean addEncounter(Encounter newEncounter) {
         // get and therefore set the haplotype if necessary
         getHaplotype();
@@ -485,6 +496,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         }
         setTaxonomyFromEncounters(); // will only set if has no value
         setSexFromEncounters(); // likewise
+        // membership change: the joining encounter's ACL must reflect this individual.
+        // Deep-reindexing the encounter also refreshes this individual + its annotations.
+        if (newEncounter != null) newEncounter.enqueueAclReindex();
         return isNew;
     }
 
@@ -528,6 +542,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         getHaplotype();
 
         setVersion();
+        // membership change: refresh this individual (drops the departed encounter from its ACL)
+        // and the departed encounter itself (its individual link is now gone).
+        this.enqueueAclReindex();
+        if (getRidOfMe != null) getRidOfMe.enqueueAclReindex();
         return changed;
     }
 
@@ -2653,6 +2671,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             myShepherd.updateDBTransaction();
         }
         refreshDependentProperties();
+        // merge moved every encounter from other -> this (per-encounter hooks already fired via
+        // removeEncounter/setIndividual). Enqueue both individuals as a safety net; the indexing
+        // queue dedups by id so this does not multiply work.
+        this.enqueueAclReindex();
+        if (other != null) other.enqueueAclReindex();
     }
 
     public String getMergedComments(MarkedIndividual other, HttpServletRequest request,
