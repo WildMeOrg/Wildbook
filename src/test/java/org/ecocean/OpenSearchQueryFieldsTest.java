@@ -64,4 +64,36 @@ class OpenSearchQueryFieldsTest {
         assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(
             new JSONObject("{\"query\":{\"multi_match\":{\"query\":\"x\",\"fields\":[\"users\"]}}}"), ALLOW));
     }
+    @Test void postFilterIsRejected() {
+        assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"match_all\":{}},\"post_filter\":{\"range\":{\"numberEncounters\":{\"gte\":1}}}}"), ALLOW));
+    }
+    @Test void collapseIsRejected() {
+        assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"match_all\":{}},\"collapse\":{\"field\":\"users\"}}"), ALLOW));
+    }
+    @Test void rescoreIsRejected() {
+        assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"match_all\":{}},\"rescore\":{}}"), ALLOW));
+    }
+    @Test void aggsTopLevelRejected() {
+        assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"match_all\":{}},\"aggs\":{\"a\":{\"max\":{\"field\":\"numberEncounters\"}}}}"), ALLOW));
+    }
+    @Test void sortInBodyRejected() {
+        assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"match_all\":{}},\"sort\":[{\"numberEncounters\":\"asc\"}]}"), ALLOW));
+    }
+    @Test void nestedIsRejected() {
+        assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"nested\":{\"path\":\"socialUnits\",\"query\":{\"match_all\":{}}}}}"), ALLOW));
+    }
+    @Test void fromSizeAreAllowed() {
+        assertTrue(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"term\":{\"sex\":\"f\"}},\"from\":0,\"size\":10}"), ALLOW));
+    }
+    @Test void matchAllAlone_stillAllowed() {
+        assertTrue(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"match_all\":{}}}"), ALLOW));
+    }
 }

@@ -174,6 +174,52 @@ class SearchApiChildIndexTest {
         verify(response).setStatus(200);
     }
 
+    // token POST /individual (non-admin), identity query but a DISALLOWED url sort param
+    // -> 400 and queryPit is NEVER called (sort applied by queryPit, validated up-front).
+    @Test void tokenIndividualSearch_disallowedUrlSort_returns400() throws Exception {
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/individual");
+        when(request.getHeader("Authorization")).thenReturn("Bearer x");
+        when(request.getParameter("sort")).thenReturn("numberEncounters");
+        // body is identity-only (default match_all), so only the sort param is offending
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedConstruction<OpenSearch> os = mockConstruction(OpenSearch.class, (m, c) -> {
+                doNothing().when(m).deletePit(anyString());
+                when(m.queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(),
+                    any(), any())).thenReturn(EMPTY_HITS);
+            })) {
+            new SearchApi().doPost(request, response);
+            for (OpenSearch m : os.constructed()) {
+                verify(m, never()).queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(),
+                    any(), any());
+            }
+        }
+        verify(response).setStatus(400);
+        assertTrue(out.toString().contains("identity fields"),
+            "rejection mentions identity-field restriction");
+    }
+
+    // token POST /individual (non-admin), identity query + ALLOWLISTED url sort -> allowed, 200.
+    @Test void tokenIndividualSearch_identityUrlSort_ok() throws Exception {
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/individual");
+        when(request.getHeader("Authorization")).thenReturn("Bearer x");
+        when(request.getParameter("sort")).thenReturn("names");
+        su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+            .thenReturn(new JSONObject("{\"query\":{\"term\":{\"sex\":\"female\"}}}"));
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedConstruction<OpenSearch> os = mockConstruction(OpenSearch.class, (m, c) -> {
+                doNothing().when(m).deletePit(anyString());
+                when(m.queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(),
+                    any(), any())).thenReturn(EMPTY_HITS);
+            })) {
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(200);
+    }
+
     // token POST /occurrence -> still 403
     @Test void tokenOccurrenceSearch_returns403() throws Exception {
         when(request.getMethod()).thenReturn("POST");

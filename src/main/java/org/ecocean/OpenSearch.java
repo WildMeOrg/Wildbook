@@ -1011,7 +1011,7 @@ public class OpenSearch {
         "query","bool","must","should","filter","must_not","minimum_should_match","boost",
         "match_all","match_none","constant_score","dis_max","queries","tie_breaker",
         "term","terms","match","match_phrase","match_phrase_prefix","range",
-        "prefix","wildcard","regexp","fuzzy","ids","exists","nested","path"));
+        "prefix","wildcard","regexp","fuzzy","ids","exists"));
     // Leaf-operator keys whose CHILD OBJECT's keys ARE field names (e.g. term/range/match -> {field:...}).
     private static final java.util.Set<String> FIELD_BEARING = new java.util.HashSet<>(java.util.Arrays.asList(
         "term","terms","match","match_phrase","match_phrase_prefix","range","prefix","wildcard","regexp","fuzzy"));
@@ -1019,8 +1019,16 @@ public class OpenSearch {
     private static final java.util.Set<String> DENY_FEATURES = new java.util.HashSet<>(java.util.Arrays.asList(
         "script","script_score","aggs","aggregations","sort","_source","fields","docvalue_fields",
         "runtime_mappings","function_score","more_like_this","percolate","field",
+        // nested/path let a caller probe nested aggregate fields (socialUnits/relationships) -> deny
+        "nested","path",
         // free-text/Lucene operators carry field references the validator can't parse -> fail-closed
         "query_string","simple_query_string","multi_match"));
+
+    // The ONLY top-level body keys a non-admin token individual search may carry.
+    // Anything else (post_filter, collapse, rescore, suggest, highlight, aggs, sort, _source,
+    // fields, script_fields, search_after, pit, runtime_mappings, ...) is rejected fail-closed.
+    private static final java.util.Set<String> ALLOWED_TOP_LEVEL_KEYS =
+        new java.util.HashSet<>(java.util.Arrays.asList("query", "from", "size"));
 
     /**
      * Fail-closed: returns true ONLY if every field the query/sort/aggs could reference is in `allowed`.
@@ -1029,8 +1037,13 @@ public class OpenSearch {
      */
     public static boolean queryReferencesOnlyAllowedFields(JSONObject body, java.util.Set<String> allowed) {
         if (body == null) return true;
-        // reject disallowed top-level features outright
-        for (String f : DENY_FEATURES) if (body.has(f)) return false;
+        // Strict top-level allowlist (fail-closed): ONLY query/from/size are permitted. Any other
+        // top-level key (post_filter, collapse, rescore, suggest, highlight, aggs, sort, _source,
+        // fields, script_fields, search_after, pit, ...) is an unvetted field-bearing/feature key.
+        for (String key : body.keySet()) {
+            if (!ALLOWED_TOP_LEVEL_KEYS.contains(key)) return false;
+        }
+        // from/size are pagination scalars; only `query` needs recursive field validation.
         return nodeAllowed(body.opt("query"), allowed, false);
     }
 

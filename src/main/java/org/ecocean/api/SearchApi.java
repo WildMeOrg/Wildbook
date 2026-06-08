@@ -136,11 +136,15 @@ public class SearchApi extends ApiBase {
                     // aggregates (numberEncounters, users, encounterIds, ...) via range/sort/aggs.
                     // Checked on the scrubbed query, so it covers BOTH a direct body and a stored
                     // individual query replay.
+                    // The URL `sort` param is applied by queryPit() (not present in the body),
+                    // so validate it here too: it may only sort on an allowlisted identity field.
+                    boolean badSort = (sort != null) && !sort.trim().isEmpty()
+                        && !OpenSearch.INDIVIDUAL_TOKEN_KEEP_SET.contains(sort.trim());
                     if (tokenAuth && !isAdmin && "individual".equals(indexName)
-                        && !OpenSearch.queryReferencesOnlyAllowedFields(query,
-                            OpenSearch.INDIVIDUAL_TOKEN_KEEP_SET)) {
+                        && (!OpenSearch.queryReferencesOnlyAllowedFields(query,
+                            OpenSearch.INDIVIDUAL_TOKEN_KEEP_SET) || badSort)) {
                         response.setStatus(400);
-                        res.put("error", "individual token search may only query identity fields");
+                        res.put("error", "individual token search may only query/sort identity fields");
                     } else {
                     if (tokenAuth && !isAdmin) {
                         // Java is the hard boundary: scope totals + pagination + hits before execution
