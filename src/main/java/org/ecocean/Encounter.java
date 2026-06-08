@@ -1245,7 +1245,7 @@ public class Encounter extends Base implements java.io.Serializable {
     /** Enqueue a (deep) reindex of this encounter — refreshes its individual + annotations' ACL.
      *  Honors skipAutoIndexing so bulk import / deserialization don't storm. */
     public void enqueueAclReindex() {
-        if (this.getSkipAutoIndexing()) return;
+        if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
         try {
             IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
         } catch (Exception ex) {

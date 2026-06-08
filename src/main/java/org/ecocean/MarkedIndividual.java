@@ -468,7 +468,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     /** Enqueue a (deep) reindex of this individual — refreshes the individual + its member
      *  encounters. Honors skipAutoIndexing so bulk import / deserialization don't storm. */
     public void enqueueAclReindex() {
-        if (this.getSkipAutoIndexing()) return;
+        if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
         try {
             IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
         } catch (Exception ex) {
