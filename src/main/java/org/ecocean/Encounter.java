@@ -3395,6 +3395,32 @@ public class Encounter extends Base implements java.io.Serializable {
         return computeViewUsers(myShepherd);
     }
 
+    /**
+     * Single source of this encounter's OpenSearch ACL fields, reused by the encounter,
+     * annotation, and individual indexing so all three agree. publiclyReadable mirrors
+     * isPubliclyReadable() (security-disabled OR anonymous owner). For a non-public encounter:
+     * submitterUserId is the resolved owner's UUID (absent if the owner is invalid/deleted ->
+     * admin-only/fail-closed), and viewUsers is computeViewUsers() (approved/edit collaborators +
+     * submitter-org orgAdmins). Anonymous-owned -> public; invalid/deleted non-anonymous owner -> closed.
+     * Semantically equivalent to (not byte-identical with) the encounter index's own serialization
+     * (e.g. for a public encounter we omit submitterUserId since publiclyReadable=true already grants);
+     * the ACCESS DECISION is identical, only the stored field set differs harmlessly.
+     */
+    public org.json.JSONObject opensearchAclFields(Shepherd myShepherd) {
+        org.json.JSONObject acl = new org.json.JSONObject();
+        boolean pub = this.isPubliclyReadable();
+        acl.put("publiclyReadable", pub);
+        org.json.JSONArray vu = new org.json.JSONArray();
+        if (!pub) {
+            User submitter = this.getSubmitterUser(myShepherd);
+            if ((submitter != null) && (submitter.getId() != null))
+                acl.put("submitterUserId", submitter.getId());
+            for (String id : this.computeViewUsers(myShepherd)) vu.put(id);
+        }
+        acl.put("viewUsers", vu);
+        return acl;
+    }
+
 /*
     public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
