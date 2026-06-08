@@ -180,6 +180,10 @@ public class Annotation extends Base implements java.io.Serializable {
         map.put("encounterTaxonomy", keywordType);
         map.put("encounterProjectIds", keywordType);
 
+        // ACL fields (viewUsers is inherited from Base.opensearchMapping())
+        map.put("publiclyReadable", new JSONObject("{\"type\": \"boolean\"}"));
+        map.put("submitterUserIds", keywordType);
+
         // all case-insensitive keyword-ish types
         // map.put("fubar", keywordNormalType);
 
@@ -238,6 +242,7 @@ public class Annotation extends Base implements java.io.Serializable {
                 if (tod > 0) jgen.writeNumberField("encounterIndividualTimeOfDeath", tod);
             }
         }
+        this.writeAclFields(jgen, myShepherd);
         jgen.writeArrayFieldStart("embeddings");
         if (this.embeddings != null)
             for (Embedding emb : this.embeddings) {
@@ -1329,6 +1334,43 @@ public class Annotation extends Base implements java.io.Serializable {
     // convenience!
     public Encounter findEncounter(Shepherd myShepherd) {
         return Encounter.findByAnnotation(this, myShepherd);
+    }
+
+    /** All parent encounters of this annotation (0 = orphan; >1 = anomalous). */
+    public java.util.List<Encounter> parentEncounters(Shepherd myShepherd) {
+        return Encounter.findAllByAnnotation(this, myShepherd);
+    }
+
+    /**
+     * Write the denormalized ACL from this annotation's SINGLE parent encounter.
+     * 0 parents (orphan) or >1 parents (anomalous) -> fail closed (admin-only), because the doc's
+     * encounter* metadata fields come from only the first parent and must not be exposed to a user
+     * authorized via a different parent.
+     */
+    public void writeAclFields(com.fasterxml.jackson.core.JsonGenerator jgen, Shepherd myShepherd)
+    throws java.io.IOException {
+        boolean pub = false;
+        java.util.Set<String> submitters = new java.util.LinkedHashSet<String>();
+        java.util.Set<String> viewers = new java.util.LinkedHashSet<String>();
+        java.util.List<Encounter> parents = this.parentEncounters(myShepherd);
+        if (parents.size() == 1) { // exactly one parent: use its ACL
+            org.json.JSONObject acl = parents.get(0).opensearchAclFields(myShepherd);
+            if (acl.optBoolean("publiclyReadable", false)) pub = true;
+            String sid = acl.optString("submitterUserId", null);
+            if (sid != null) submitters.add(sid);
+            org.json.JSONArray vu = acl.optJSONArray("viewUsers");
+            if (vu != null) for (int i = 0; i < vu.length(); i++) viewers.add(vu.optString(i));
+        } else if (parents.size() > 1) {
+            System.out.println("Annotation.writeAclFields: " + this.getId() + " has " + parents.size()
+                + " parent encounters -> indexing admin-only (fail closed)");
+        }
+        jgen.writeBooleanField("publiclyReadable", pub); // false for 0/many parents
+        jgen.writeArrayFieldStart("submitterUserIds");
+        for (String s : submitters) jgen.writeString(s);
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("viewUsers");
+        for (String v : viewers) jgen.writeString(v);
+        jgen.writeEndArray();
     }
 
     // this is a little tricky. the idea is the end result will get us an Encounter, which *may* be new
