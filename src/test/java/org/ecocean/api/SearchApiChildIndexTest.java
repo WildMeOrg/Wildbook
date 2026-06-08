@@ -129,6 +129,51 @@ class SearchApiChildIndexTest {
         verify(response).setStatus(200);
     }
 
+    // token POST /individual (non-admin) with a query referencing a hidden aggregate field
+    // -> 400 and queryPit is NEVER called (rejected before execution).
+    @Test void tokenIndividualSearch_disallowedQueryField_returns400() throws Exception {
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/individual");
+        when(request.getHeader("Authorization")).thenReturn("Bearer x");
+        su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+            .thenReturn(new JSONObject("{\"query\":{\"range\":{\"numberEncounters\":{\"gte\":1}}}}"));
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedConstruction<OpenSearch> os = mockConstruction(OpenSearch.class, (m, c) -> {
+                doNothing().when(m).deletePit(anyString());
+                when(m.queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(),
+                    any(), any())).thenReturn(EMPTY_HITS);
+            })) {
+            new SearchApi().doPost(request, response);
+            for (OpenSearch m : os.constructed()) {
+                verify(m, never()).queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(),
+                    any(), any());
+            }
+        }
+        verify(response).setStatus(400);
+        assertTrue(out.toString().contains("identity fields"),
+            "rejection mentions identity-field restriction");
+    }
+
+    // token POST /individual (non-admin) querying an identity field -> allowed, 200.
+    @Test void tokenIndividualSearch_identityQueryField_ok() throws Exception {
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/individual");
+        when(request.getHeader("Authorization")).thenReturn("Bearer x");
+        su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+            .thenReturn(new JSONObject("{\"query\":{\"term\":{\"sex\":\"female\"}}}"));
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedConstruction<OpenSearch> os = mockConstruction(OpenSearch.class, (m, c) -> {
+                doNothing().when(m).deletePit(anyString());
+                when(m.queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(),
+                    any(), any())).thenReturn(EMPTY_HITS);
+            })) {
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(200);
+    }
+
     // token POST /occurrence -> still 403
     @Test void tokenOccurrenceSearch_returns403() throws Exception {
         when(request.getMethod()).thenReturn("POST");

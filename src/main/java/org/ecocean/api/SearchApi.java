@@ -130,6 +130,18 @@ public class SearchApi extends ApiBase {
                         query = OpenSearch.queryScrubStored(query);
                     }
                     query = OpenSearch.querySanitize(query, currentUser, myShepherd);
+                    // Non-admin token individual search may only QUERY/SORT identity fields.
+                    // Fail-closed: if we cannot prove the query touches only allowlisted fields,
+                    // reject (400) BEFORE execution so it can't probe hidden cross-encounter
+                    // aggregates (numberEncounters, users, encounterIds, ...) via range/sort/aggs.
+                    // Checked on the scrubbed query, so it covers BOTH a direct body and a stored
+                    // individual query replay.
+                    if (tokenAuth && !isAdmin && "individual".equals(indexName)
+                        && !OpenSearch.queryReferencesOnlyAllowedFields(query,
+                            OpenSearch.INDIVIDUAL_TOKEN_KEEP_SET)) {
+                        response.setStatus(400);
+                        res.put("error", "individual token search may only query identity fields");
+                    } else {
                     if (tokenAuth && !isAdmin) {
                         // Java is the hard boundary: scope totals + pagination + hits before execution
                         query = OpenSearch.applyAclFilter(query, currentUser.getId(), indexName);
@@ -175,6 +187,7 @@ public class SearchApi extends ApiBase {
                         res.put("error", "query failed");
                         ex.printStackTrace();
                     }
+                    } // end individual-token field-gate else
                 }
             }
         }

@@ -1002,6 +1002,70 @@ public class OpenSearch {
         "id", "version", "indexTimestamp", "displayName", "names", "nameMap",
         "sex", "taxonomy", "timeOfBirth", "timeOfDeath"
     };
+    // Set form of the individual identity allowlist, for query-side field validation.
+    public static final java.util.Set<String> INDIVIDUAL_TOKEN_KEEP_SET =
+        new java.util.HashSet<>(java.util.Arrays.asList(INDIVIDUAL_TOKEN_KEEP));
+
+    // Structural/operator keys in the OpenSearch query DSL whose CHILD object keys are NOT field names.
+    private static final java.util.Set<String> DSL_STRUCTURAL = new java.util.HashSet<>(java.util.Arrays.asList(
+        "query","bool","must","should","filter","must_not","minimum_should_match","boost",
+        "match_all","match_none","constant_score","dis_max","queries","tie_breaker",
+        "term","terms","match","match_phrase","match_phrase_prefix","multi_match","range",
+        "prefix","wildcard","regexp","fuzzy","ids","exists","nested","path","query_string","simple_query_string"));
+    // Leaf-operator keys whose CHILD OBJECT's keys ARE field names (e.g. term/range/match -> {field:...}).
+    private static final java.util.Set<String> FIELD_BEARING = new java.util.HashSet<>(java.util.Arrays.asList(
+        "term","terms","match","match_phrase","match_phrase_prefix","range","prefix","wildcard","regexp","fuzzy"));
+    // Keys that are DISALLOWED outright (can reference arbitrary fields / execute code).
+    private static final java.util.Set<String> DENY_FEATURES = new java.util.HashSet<>(java.util.Arrays.asList(
+        "script","script_score","aggs","aggregations","sort","_source","fields","docvalue_fields",
+        "runtime_mappings","function_score","more_like_this","percolate","field"));
+
+    /**
+     * Fail-closed: returns true ONLY if every field the query/sort/aggs could reference is in `allowed`.
+     * Used to constrain non-admin token individual searches to identity fields (so a caller can't
+     * probe hidden cross-encounter aggregates via range/sort/aggs/etc.).
+     */
+    public static boolean queryReferencesOnlyAllowedFields(JSONObject body, java.util.Set<String> allowed) {
+        if (body == null) return true;
+        // reject disallowed top-level features outright
+        for (String f : DENY_FEATURES) if (body.has(f)) return false;
+        return nodeAllowed(body.opt("query"), allowed, false);
+    }
+
+    // expectField=true means: the CURRENT object's KEYS are field names to check against the allowlist.
+    private static boolean nodeAllowed(Object node, java.util.Set<String> allowed, boolean expectField) {
+        if (node == null) return true;
+        if (node instanceof org.json.JSONArray) {
+            org.json.JSONArray arr = (org.json.JSONArray) node;
+            for (int i = 0; i < arr.length(); i++) if (!nodeAllowed(arr.opt(i), allowed, expectField)) return false;
+            return true;
+        }
+        if (!(node instanceof JSONObject)) return true; // scalar value
+        JSONObject obj = (JSONObject) node;
+        for (String key : obj.keySet()) {
+            if (DENY_FEATURES.contains(key)) return false; // script/field/etc. anywhere -> reject
+            if (expectField) {
+                // current level keys are FIELD NAMES
+                if (!allowed.contains(rootField(key))) return false;
+                // values under a field (e.g. range bounds) are leaf params; don't recurse for fields
+            } else if (FIELD_BEARING.contains(key)) {
+                // the child object's keys are field names
+                if (!nodeAllowed(obj.opt(key), allowed, true)) return false;
+            } else if (DSL_STRUCTURAL.contains(key)) {
+                if (!nodeAllowed(obj.opt(key), allowed, false)) return false;
+            } else {
+                // unknown key in a structural position -> fail closed
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // allow nested subfields under an allowlisted root (e.g. nameMap.foo, names.keyword)
+    private static String rootField(String field) {
+        int dot = field.indexOf('.');
+        return (dot >= 0) ? field.substring(0, dot) : field;
+    }
 
     private static void scrubAclFields(JSONObject doc) {
         for (String f : ACL_FIELDS) doc.remove(f);
