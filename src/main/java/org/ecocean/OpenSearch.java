@@ -5,10 +5,13 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -32,6 +35,7 @@ import org.opensearch.client.transport.rest_client.RestClientTransport;
 import org.opensearch.client.opensearch.core.IndexRequest;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
+import org.opensearch.client.opensearch.indices.IndexSettings;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.transport.OpenSearchTransport;
 
@@ -207,11 +211,17 @@ public class OpenSearch {
     public void createIndex(String indexName, JSONObject mapping)
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        IndexSettings indexSettings = null;
+        // a little hacky but meh
+        if (indexName.equals("annotation")) {
+            // also? "knn.algo_param.ef_search": 100
+            indexSettings = IndexSettings.of(is -> is.knn(true));
+        }
         CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder().index(
-            indexName).build();
+            indexName).settings(indexSettings).build();
 
         client.indices().create(createIndexRequest);
-        // ideally we would pass these as settings() in CreateIndexRequest but that is kind of a mess
+        // TODO fold in this settings-change into indexSettings above
         indexClose(indexName);
         JSONObject analysis = new JSONObject(
             "{\"analysis\": {\"normalizer\": {\"wildbook_keyword_normalizer\": {\"type\": \"custom\", \"char_filter\": [], \"filter\": [\"lowercase\", \"asciifolding\"]} } } }");
@@ -448,6 +458,227 @@ public class OpenSearch {
         searchRequest.setJsonEntity(data.toString());
         String rtn = getRestResponse(searchRequest);
         return new JSONObject(rtn);
+    }
+
+    // ml-service migration v2 (commit #7): force pending writes in `indexName`
+    // through Lucene's refresh boundary so they are searchable. Synchronous;
+    // returns after targeted shards have completed the refresh. NOT a Wildbook
+    // queue drain — IndexingManager may still have unindexed entities queued.
+    // Callers (typically waitForVisibility) follow with a visibility poll.
+    public void indexRefresh(final String indexName)
+    throws IOException {
+        if (!isValidIndexName(indexName))
+            throw new IOException("invalid index name: " + indexName);
+        Request req = new Request("POST", indexName + "/_refresh");
+        getRestResponse(req);   // discard body; non-2xx surfaces as IOException
+    }
+
+    // ml-service migration v2 (commit #7): bounded poll-and-wait until OpenSearch
+    // can see every id in `ids` in `indexName`. Used by MlServiceProcessor
+    // (commit #9) post-persist to avoid running findMatchProspects against an
+    // index that doesn't yet contain the freshly-written annotations.
+    //
+    // On entry:
+    //   - normalizes `ids` to a Set (drops nulls and duplicates so they can't
+    //     prevent the count check from ever succeeding);
+    //   - calls _refresh once (synchronous; pushes pending writes through
+    //     Lucene's refresh boundary);
+    //   - WARNs if /tmp/skipAutoIndexing is set, since that flag will make
+    //     every poll return zero hits regardless of how long we wait.
+    //
+    // Then polls a _count eligibility query with exponential backoff (start
+    // 100ms, double, cap 1s) until count >= |normalized ids| OR the total
+    // wait reaches timeoutMs. Returns true on visible-success, false on
+    // timeout. Caller decides what to do on false (e.g. enqueue a deferred-
+    // match job rather than match against a partial index).
+    //
+    // Does NOT try to drain the Wildbook IndexingManager queue. That queue
+    // may contain unrelated entities; queue-depth zero doesn't imply the
+    // specific IDs are queryable. Polling visibility IS the correctness gate.
+    public boolean waitForVisibility(String indexName, Collection<String> ids,
+        long timeoutMs)
+    throws IOException {
+        if (!isValidIndexName(indexName))
+            throw new IOException("invalid index name: " + indexName);
+        if (ids == null || ids.isEmpty()) return true;
+
+        // Normalize: drop nulls + duplicates so the count comparison is
+        // against the true number of distinct documents we expect to see.
+        Set<String> targetIds = new LinkedHashSet<String>();
+        for (String id : ids) {
+            if (id != null) targetIds.add(id);
+        }
+        if (targetIds.isEmpty()) return true;
+
+        if (skipAutoIndexing()) {
+            System.out.println(
+                "WARN: OpenSearch.waitForVisibility called with /tmp/skipAutoIndexing set " +
+                "— every poll will return zero hits regardless of wait time.");
+        }
+
+        indexRefresh(indexName);
+
+        JSONObject query = buildIdEligibilityQuery(targetIds);
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        long sleepMs = 100;
+        while (true) {
+            int seen = queryCount(indexName, query);
+            if (seen >= targetIds.size()) return true;
+            long remaining = deadline - System.currentTimeMillis();
+            if (remaining <= 0) return false;
+            try {
+                Thread.sleep(Math.min(sleepMs, remaining));
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+            sleepMs = Math.min(sleepMs * 2, 1000);
+        }
+    }
+
+    // Package-visible for testing. Returns the _count-shaped query body that
+    // filters on _id ∈ ids, using OpenSearch's idiomatic `ids` query.
+    static JSONObject buildIdEligibilityQuery(Set<String> ids) {
+        JSONArray idArr = new JSONArray();
+        for (String id : ids) idArr.put(id);
+        JSONObject query = new JSONObject();
+        query.put("query",
+            new JSONObject().put("ids",
+                new JSONObject().put("values", idArr)));
+        return query;
+    }
+
+    // ml-service migration v2 / empty-match-prospects design Track 2 C8.
+    //
+    // Stronger visibility predicate than waitForVisibility for the annotation
+    // index. A doc that exists by _id but is missing nested
+    // embeddings.method/methodVersion would pass _id-only and then knn-fail
+    // at match time. This helper polls a predicate that mirrors the matching
+    // constraints in Annotation.getMatchQuery: id ∈ ids AND matchAgainst=true
+    // AND acmId exists AND a nested embedding for this method/version is
+    // indexed. Scope is intentionally narrower than getMatchingSetQuery
+    // (no taxonomy/viewpoint/encounter/dead-animal filters) — this helper
+    // answers "doc has fresh embedding metadata", which is the visibility
+    // race the Track 2 batch gate cares about.
+    //
+    // method/methodVersion follow the strict-when-present convention of
+    // Annotation.getMatchQuery at Annotation.java:1205-1209: if either is
+    // null/blank, the corresponding nested predicate is omitted.
+    //
+    // Like waitForVisibility: _refresh on entry, then exponential-backoff
+    // poll of _count until count >= |normalized ids| OR timeout. Empty
+    // wait set short-circuits to true.
+    public boolean waitForAnnotationMatchableIds(Collection<String> ids,
+        String method, String methodVersion, long timeoutMs)
+    throws IOException {
+        if (ids == null || ids.isEmpty()) return true;
+
+        Set<String> targetIds = new LinkedHashSet<String>();
+        for (String id : ids) {
+            if (id != null) targetIds.add(id);
+        }
+        if (targetIds.isEmpty()) return true;
+
+        if (skipAutoIndexing()) {
+            System.out.println(
+                "WARN: OpenSearch.waitForAnnotationMatchableIds called with " +
+                "/tmp/skipAutoIndexing set — every poll will return zero hits " +
+                "regardless of wait time.");
+        }
+
+        indexRefresh("annotation");
+
+        JSONObject query = buildAnnotationMatchableQuery(targetIds, method,
+            methodVersion);
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        long sleepMs = 100;
+        while (true) {
+            int seen = queryCount("annotation", query);
+            if (seen >= targetIds.size()) return true;
+            long remaining = deadline - System.currentTimeMillis();
+            if (remaining <= 0) return false;
+            try {
+                Thread.sleep(Math.min(sleepMs, remaining));
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+            sleepMs = Math.min(sleepMs * 2, 1000);
+        }
+    }
+
+    // Package-visible for testing. Returns the _count-shaped query body
+    // matching the annotation-matchable predicate documented on
+    // waitForAnnotationMatchableIds. Uses the same `ids` query shape as
+    // buildIdEligibilityQuery for consistency with queryCount's
+    // expectations (no `size`, no `track_total_hits`).
+    static JSONObject buildAnnotationMatchableQuery(Set<String> ids,
+        String method, String methodVersion) {
+        JSONArray idArr = new JSONArray();
+        for (String id : ids) idArr.put(id);
+
+        JSONArray filterArr = new JSONArray();
+        filterArr.put(new JSONObject().put("ids",
+            new JSONObject().put("values", idArr)));
+        filterArr.put(new JSONObject().put("term",
+            new JSONObject().put("matchAgainst", true)));
+        filterArr.put(new JSONObject().put("exists",
+            new JSONObject().put("field", "acmId")));
+
+        // Nested embedding clause. Match Annotation.getMatchQuery at
+        // Annotation.java:1205-1209 exactly: omit a predicate only when
+        // the value is `null`. A non-null blank string would be a strict
+        // term on "" (matching no docs), preserving consistency with the
+        // matcher rather than silently broadening the wait predicate.
+        // Codex round-1 C8 review surfaced this — empty vs null asymmetry
+        // would let the gate green-light docs the matcher then rejects.
+        JSONArray nestedMust = new JSONArray();
+        if (method != null) {
+            nestedMust.put(new JSONObject().put("term",
+                new JSONObject().put("embeddings.method", method)));
+        }
+        if (methodVersion != null) {
+            nestedMust.put(new JSONObject().put("term",
+                new JSONObject().put("embeddings.methodVersion", methodVersion)));
+        }
+        JSONObject nestedQuery;
+        if (nestedMust.length() == 0) {
+            // Both null — wait only on the existence of any nested
+            // embedding entry. (Legacy api_endpoint-only configs that
+            // can't derive a method.)
+            nestedQuery = new JSONObject().put("match_all", new JSONObject());
+        } else {
+            nestedQuery = new JSONObject().put("bool",
+                new JSONObject().put("must", nestedMust));
+        }
+        filterArr.put(new JSONObject().put("nested",
+            new JSONObject().put("path", "embeddings").put("query", nestedQuery)));
+
+        JSONObject query = new JSONObject();
+        query.put("query",
+            new JSONObject().put("bool",
+                new JSONObject().put("filter", filterArr)));
+        return query;
+    }
+
+    // when you only care about how many this would return
+    public int queryCount(String indexName, final JSONObject query)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request searchRequest = new Request("POST", indexName + "/_count");
+        JSONObject cleanedQuery = new JSONObject(query.toString());
+        cleanedQuery.remove("_source"); // invalid for a _count query
+        searchRequest.setJsonEntity(cleanedQuery.toString());
+        JSONObject res = new JSONObject();
+        try {
+            res = new JSONObject(getRestResponse(searchRequest));
+        } catch (Exception ex) {
+            System.out.println("queryCount() on index " + indexName + " using query=" + query +
+                " failed with: " + ex);
+            ex.printStackTrace();
+            throw new IOException("queryCount() failed");
+        }
+        return res.optInt("count", -1);
     }
 
     public Map<String, Long> getAllVersions(String indexName)

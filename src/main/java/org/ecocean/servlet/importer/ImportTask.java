@@ -9,15 +9,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
+import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.Project;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.security.Collaboration;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.SocialUnit;
@@ -378,10 +381,17 @@ public class ImportTask implements java.io.Serializable {
         Map<String, Set<Task> > encTasks = new HashMap<String, Set<Task> >();
         Map<String, String> taskTmp = new HashMap<String, String>();
 
+        // Bulk-resolve annotation -> encounter catalogNumber via the join table.
+        // Replaces per-annotation Encounter.findByAnnotation() JDOQL, which on
+        // encounters with photographers/submitters/informOthers populated triggers
+        // a DataNucleus 5.2.7 SQL-generation bug that produces malformed SQL.
+        Map<String, String> annIdToEncId = annotationIdsToEncounterIds(atm.keySet(),
+            myShepherd);
+
         for (Annotation ann : atm.keySet()) {
-            Encounter enc = ann.findEncounter(myShepherd);
-            if ((enc != null) && !encTasks.containsKey(enc.getId()))
-                encTasks.put(enc.getId(), new HashSet<Task>());
+            String encId = annIdToEncId.get(ann.getId());
+            if ((encId != null) && !encTasks.containsKey(encId))
+                encTasks.put(encId, new HashSet<Task>());
             // trivial annots will not be sent correctly to ident (no iaClass etc)
             // so we skip them in counts as if not sent
             if (ann.isTrivial()) {
@@ -389,8 +399,24 @@ public class ImportTask implements java.io.Serializable {
                 continue;
             }
             sa.put(ann.getId(), Util.collectionSize(atm.get(ann)));
+            // Annotation exists but has no task yet (e.g., its match was
+            // gate-deferred and runMatchProspects has not fired yet).
+            // Count it as a pending "latest task" so the aggregate
+            // identificationStatus in iaSummaryJson stays "sent" until
+            // every annotation actually has a completed task. Without
+            // this, the FIRST completed task makes
+            // numLatestTask_completed >= numLatestTasks and the import
+            // flips to "complete" before the deferred matches even
+            // run — frontend polling stops too early.
+            List<Task> annTasks = atm.get(ann);
+            if ((annTasks == null) || annTasks.isEmpty()) {
+                String latestStatus = "numLatestTask_pending";
+                sa.put(latestStatus, sa.optInt(latestStatus, 0) + 1);
+                numLatestTasks++;
+                continue;
+            }
             boolean latestTask = true; // only for first (most recent) task
-            for (Task atask : atm.get(ann)) {
+            for (Task atask : annTasks) {
                 String status = atask.getStatus(myShepherd);
                 if (sa.has(status)) {
                     sa.put(status, sa.optInt(status, 0) + 1);
@@ -401,6 +427,8 @@ public class ImportTask implements java.io.Serializable {
                 // this records only most recent task statuses like: numLatestTask_complete
                 if (latestTask) {
                     String latestStatus = "numLatestTask_" + atask.getStatus(myShepherd);
+                    System.out.println("[DEBUG] (ImportTask " + this.getId() +
+                        ") latestStatus for Task " + atask.getId() + ": " + latestStatus);
                     if (sa.has(latestStatus)) {
                         sa.put(latestStatus, sa.optInt(latestStatus, 0) + 1);
                     } else {
@@ -408,31 +436,20 @@ public class ImportTask implements java.io.Serializable {
                     }
                     numLatestTasks++;
                 }
-                if (enc != null) {
-                    // this is temporary storage to use to populate encounterTaskInfo later
-                    // this status is wrong: needs to be "overall status"
-                    // taskTmp.put(atask.getId() + ".status", status);
-                    taskTmp.put(atask.getId() + ".iaClass", ann.getIAClass());
-                    // the logic for deciding when to add a task is based on
-                    // mystical knowledge found originally in import.jsp
-                    if ((atask.getParent() != null) &&
-                        (atask.getParent().getChildren().size() == 1) &&
-                        (atask.getParameters() != null) &&
-                        atask.getParameters().has("ibeis.identification")) {
-                        // task with only one algorithm
-                        encTasks.get(enc.getId()).add(atask);
-                    } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 0) &&
-                        (atask.getParent() != null) &&
-                        (atask.getParent().getChildren().size() <= 1)) {
-                        // task with child ident tasks
-                        encTasks.get(enc.getId()).add(atask);
-                    } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 2) &&
-                        (atask.getParent() == null)) {
-                        // task with child ident tasks (also?)
-                        encTasks.get(enc.getId()).add(atask);
-                    }
-                }
                 latestTask = false;
+            }
+            // C15: pick the bulk-import-scoped match task via the shared
+            // selector so this page and the encounter page agree on which
+            // task they link to. Filtering by importTaskId keeps the
+            // bulk-import link frozen on this import's task even if the
+            // user re-runs ID later from the encounter page.
+            if (encId != null) {
+                Task preferred = Task.getPreferredMatchResultsTaskForAnnotation(
+                    ann, this.getId(), myShepherd);
+                if (preferred != null) {
+                    encTasks.get(encId).add(preferred);
+                    taskTmp.put(preferred.getId() + ".iaClass", ann.getIAClass());
+                }
             }
         }
         sa.put("numTasks", numTasks);
@@ -464,6 +481,47 @@ public class ImportTask implements java.io.Serializable {
         return sa;
     }
 
+    // Returns {annotationId -> encounter catalogNumber} via one SQL pass through
+    // ENCOUNTER_ANNOTATIONS. Annotations not attached to any encounter are absent
+    // from the result. Used by statsAnnotations to avoid Encounter.findByAnnotation,
+    // whose JDOQL triggers a DataNucleus 5.2.7 SQL-generation bug.
+    private static Map<String, String> annotationIdsToEncounterIds(
+        java.util.Collection<Annotation> anns, Shepherd myShepherd) {
+        Map<String, String> result = new HashMap<String, String>();
+
+        if ((anns == null) || anns.isEmpty()) return result;
+        StringBuilder inList = new StringBuilder();
+        int n = 0;
+        for (Annotation ann : anns) {
+            if ((ann == null) || (ann.getId() == null)) continue;
+            if (n > 0) inList.append(",");
+            inList.append("'").append(ann.getId().replace("'", "''")).append("'");
+            n++;
+        }
+        if (n == 0) return result;
+        String sql =
+            "SELECT \"ID_EID\", \"CATALOGNUMBER_OID\" FROM \"ENCOUNTER_ANNOTATIONS\" WHERE \"ID_EID\" IN ("
+            + inList.toString() + ")";
+        Query q = null;
+        try {
+            q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+            List rows = (List)q.execute();
+            for (Object row : rows) {
+                Object[] r = (Object[])row;
+                String annId = (String)r[0];
+                String catNum = (String)r[1];
+                if ((annId != null) && (catNum != null)) result.put(annId, catNum);
+            }
+        } catch (Exception ex) {
+            System.out.println(
+                "[ERROR] ImportTask.annotationIdsToEncounterIds() failed: " + ex);
+            ex.printStackTrace();
+        } finally {
+            if (q != null) q.closeAll();
+        }
+        return result;
+    }
+
 /*
     this likely is doing the wrong thing; using the above logic, which
     was ported from import.jsp
@@ -492,8 +550,8 @@ public class ImportTask implements java.io.Serializable {
         if ((id == null) || (user == null)) throw new IOException("must provide id and user");
         ImportTask itask = myShepherd.getImportTask(id);
         if (itask == null) throw new IOException("invalid ImportTask id=" + id);
-        if (!Collaboration.canUserAccessImportTask(itask, myShepherd.getContext(),
-            user.getUsername()))
+        if (!user.isAdmin(myShepherd) && !Collaboration.canUserAccessImportTask(itask,
+            myShepherd.getContext(), user.getUsername()))
             throw new IOException("user does not have privileges to delete task");
         Util.mark("ImportTask.deleteWithRelated(" + id + ") started");
         try {
@@ -506,17 +564,8 @@ public class ImportTask implements java.io.Serializable {
                 List<Project> projects = myShepherd.getProjectsForEncounter(enc);
                 ArrayList<Annotation> anns = enc.getAnnotations();
                 for (Annotation ann : anns) {
-                    enc.removeAnnotation(ann);
-                    // myShepherd.updateDBTransaction();
-                    List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
-                    if (iaTasks != null && !iaTasks.isEmpty()) {
-                        for (Task iaTask : iaTasks) {
-                            iaTask.removeObject(ann);
-                            // myShepherd.updateDBTransaction();
-                        }
-                    }
+                    ann.prepareForDeletion(myShepherd, enc);
                     myShepherd.throwAwayAnnotation(ann);
-                    // myShepherd.updateDBTransaction();
                 }
                 // handle occurrences
                 if (occ != null) {
@@ -532,6 +581,17 @@ public class ImportTask implements java.io.Serializable {
                     mark.removeEncounter(enc);
                     // myShepherd.updateDBTransaction();
                     if (mark.getEncounters().size() == 0) {
+                        // remove scheduled tasks referencing this individual
+                        List<ScheduledIndividualMerge> mergeTasks =
+                            myShepherd.getAllIncompleteScheduledIndividualMerges();
+                        if (mergeTasks != null) {
+                            for (ScheduledIndividualMerge mergeTask : mergeTasks) {
+                                if (mark.equals(mergeTask.getPrimaryIndividual()) ||
+                                    mark.equals(mergeTask.getSecondaryIndividual())) {
+                                    myShepherd.getPM().deletePersistent(mergeTask);
+                                }
+                            }
+                        }
                         // check for social unit membership and remove
                         List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(
                             mark);
@@ -581,6 +641,7 @@ public class ImportTask implements java.io.Serializable {
     // messes up the status :(
     public JSONObject iaSummaryJson(Shepherd myShepherd) {
         int numDetectionComplete = 0;
+        int numDetectionError = 0;
         int numAcmId = 0;
         int numAllowedIA = 0;
         int numAssets = 0;
@@ -605,9 +666,23 @@ public class ImportTask implements java.io.Serializable {
                     invalidMediaAssets.add(asset);
                 }
  */
-            if ((ma.getDetectionStatus() != null) &&
-                (ma.getDetectionStatus().equals("complete") ||
-                ma.getDetectionStatus().equals("pending"))) numDetectionComplete++;
+            // Terminal detection statuses include the completion states
+            // (complete, complete-mlservice, pending — needs user review)
+            // plus the failure/blocked terminal states (pending-species —
+            // taxonomy not yet PATCHed; error — non-retryable failure from
+            // ml-service or pre-flight validation). Without counting the
+            // terminal-failure states, an import with config or non-
+            // retryable errors never reports 100% detection complete and
+            // the frontend polls forever.
+            String ds = ma.getDetectionStatus();
+            if (IBEISIA.STATUS_COMPLETE.equals(ds) ||
+                IBEISIA.STATUS_COMPLETE_MLSERVICE.equals(ds) ||
+                IBEISIA.STATUS_PENDING.equals(ds) ||
+                IBEISIA.STATUS_PENDING_SPECIES.equals(ds) ||
+                IBEISIA.STATUS_ERROR.equals(ds)) {
+                numDetectionComplete++;
+                if (IBEISIA.STATUS_ERROR.equals(ds)) numDetectionError++;
+            }
         }
         JSONObject pj = new JSONObject();
         pj.put("statsMediaAssets", statsMA);
@@ -617,28 +692,45 @@ public class ImportTask implements java.io.Serializable {
         pj.put("numberMediaAssetACMIds", numAcmId);
         pj.put("numberMediaAssetValidIA", numAllowedIA);
         pj.put("detectionNumberComplete", numDetectionComplete);
+        // Backend signal for "detection finished, but some assets errored".
+        // Aggregate detectionStatus stays "complete" (so frontend polling
+        // stops). UI can read detectionNumberError to render a separate
+        // indicator if it wants to.
+        pj.put("detectionNumberError", numDetectionError);
         // non-legacy flavor
         if ((this.getIATask() != null) && this.iaTaskStarted()) {
             pipelineStarted = true;
-            if (numDetectionComplete == numAllowedIA) {
+            // `>=` rather than `==` so non-IA-eligible MAs that land in a
+            // terminal detection state don't strand the import at "sent".
+            if (numDetectionComplete >= numAllowedIA) {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
-                if (numAssets > 0) pj.put("detectionPercent", new Double(numDetectionComplete) / new Double(numAssets));
+                if (numAssets > 0)
+                    pj.put("detectionPercent",
+                        new Double(numDetectionComplete) / new Double(numAssets));
                 pj.put("detectionStatus", "sent");
             }
             if (this.iaTaskRequestedIdentification()) {
                 int numIdentificationComplete = 0;
+                int numIdentificationError = 0;
                 int numIdentificationTotal = 0;
-                // getOverallStatus() in imports.jsp is a nightmare. attempt to replicate here.
-                if (statsAnn.optInt("numLatestTasks", -1) >= 0)
-                    numIdentificationTotal = statsAnn.optInt("numLatestTasks");
                 // who is the genius who made this be 'completed' versus the (seemingly universal?) 'complete'
                 // (it may well have been me)
-                if (statsAnn.optInt("numLatestTask_completed", -1) >= 0)
-                    numIdentificationComplete = statsAnn.optInt("numLatestTask_completed");
-                // TODO do we have to deal with errors as "completed" somehow?
+                if (statsAnn.optInt("numLatestTasks", -1) >= 0)
+                    numIdentificationTotal = statsAnn.optInt("numLatestTasks");
+                // Terminal identification statuses: "completed" (happy
+                // path) AND "error" (match task threw or failed validation).
+                // numIdentificationComplete here means "terminal" not
+                // "successful"; identificationNumberError is the separate
+                // failure-count signal.
+                int numLatestCompleted = Math.max(0,
+                    statsAnn.optInt("numLatestTask_completed", 0));
+                numIdentificationError = Math.max(0,
+                    statsAnn.optInt("numLatestTask_error", 0));
+                numIdentificationComplete = numLatestCompleted + numIdentificationError;
                 pj.put("identificationNumberComplete", numIdentificationComplete);
+                pj.put("identificationNumberError", numIdentificationError);
                 pj.put("identificationNumTotal", numIdentificationTotal);
                 if (numIdentificationTotal == 0) {
                     pj.put("identificationStatus", "identification not started");
@@ -655,7 +747,7 @@ public class ImportTask implements java.io.Serializable {
             // legacy flavor
         } else if ((this.getIATask() == null) && (numDetectionComplete > 0)) {
             pipelineStarted = true;
-            if (numDetectionComplete == numAssets) {
+            if (numDetectionComplete >= numAssets) {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
@@ -675,5 +767,52 @@ public class ImportTask implements java.io.Serializable {
             (is.equals("complete") || is.equals("skipped")));
         pj.put("pipelineComplete", pipelineComplete);
         return pj;
+    }
+
+    // Batch-count helpers for imports.jsp — run 3 GROUP BY queries instead of 3*N.
+
+    static Map<String, Integer> parseSqlCountResults(Query query) {
+        Map<String, Integer> map = new HashMap<>();
+
+        try {
+            List<?> results = query.executeList();
+            for (Object row : results) {
+                Object[] cols = (Object[])row;
+                map.put((String)cols[0], ((Number)cols[1]).intValue());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (query != null) query.closeAll();
+        }
+        return map;
+    }
+
+    public static Map<String, Integer> getAllEncounterCounts(Shepherd myShepherd) {
+        Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
+            "SELECT \"ID_OID\", count(*) FROM \"IMPORTTASK_ENCOUNTERS\" GROUP BY \"ID_OID\"");
+
+        return parseSqlCountResults(query);
+    }
+
+    public static Map<String, Integer> getAllIndividualCounts(Shepherd myShepherd) {
+        Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
+            "SELECT ie.\"ID_OID\", count(distinct me.\"INDIVIDUALID_OID\") " +
+            "FROM \"IMPORTTASK_ENCOUNTERS\" ie " + "JOIN \"MARKEDINDIVIDUAL_ENCOUNTERS\" me " +
+            "ON ie.\"CATALOGNUMBER_EID\" = me.\"CATALOGNUMBER_EID\" " + "GROUP BY ie.\"ID_OID\"");
+
+        return parseSqlCountResults(query);
+    }
+
+    public static Map<String, Integer> getAllMediaAssetCounts(Shepherd myShepherd) {
+        Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
+            "SELECT ie.\"ID_OID\", count(distinct mf.\"ID_OID\") " +
+            "FROM \"IMPORTTASK_ENCOUNTERS\" ie " + "JOIN \"ENCOUNTER_ANNOTATIONS\" ea " +
+            "ON ie.\"CATALOGNUMBER_EID\" = ea.\"CATALOGNUMBER_OID\" " +
+            "JOIN \"ANNOTATION_FEATURES\" af ON ea.\"ID_EID\" = af.\"ID_OID\" " +
+            "JOIN \"MEDIAASSET_FEATURES\" mf ON af.\"ID_EID\" = mf.\"ID_EID\" " +
+            "GROUP BY ie.\"ID_OID\"");
+
+        return parseSqlCountResults(query);
     }
 }

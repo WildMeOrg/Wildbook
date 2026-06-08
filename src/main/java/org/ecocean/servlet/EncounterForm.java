@@ -50,8 +50,8 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.joda.time.LocalDateTime;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.ecocean.Annotation;
 import org.ecocean.mmutil.FileUtilities;
@@ -414,6 +414,11 @@ public class EncounterForm extends HttpServlet {
             } catch (Exception le) {
                 le.printStackTrace();
             }
+
+            // i truly do not understand the point of the thrown exceptions above, as they are just caught and the encounter is allowed to be created!
+            // seems very wrong to me. so i am NOT going to do that for this check and let it crash the ui unceremoniously.
+            if (Util.dateIsInFuture(year, month, day)) throw new IOException("date given is in the future");
+
             System.out.println("about to do enc()");
 
             Encounter enc = new Encounter(day, month, year, hour, minutes, guess,
@@ -897,7 +902,7 @@ public class EncounterForm extends HttpServlet {
                         Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(),
                             parentTask);
                         myShepherd.storeNewTask(task);
-                        Logger log = LoggerFactory.getLogger(EncounterForm.class);
+                        Logger log = LogManager.getLogger(EncounterForm.class);
                         log.info("New encounter submission: <a href=\"" + request.getScheme() +
                             "://" + CommonConfiguration.getURLLocation(request) +
                             "/encounters/encounter.jsp?number=" + encID + "\">" + encID + "</a>");

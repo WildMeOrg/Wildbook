@@ -30,6 +30,9 @@ jest.mock("../../../components/CardWithoutEditButton", () => (props) => (
     <div data-testid={`card-content-${props.title}`}>{props.content}</div>
   </div>
 ));
+jest.mock("../../../components/LoadingScreen", () => () => (
+  <div data-testid="loading-screen">Loading...</div>
+));
 
 import EncounterPageViewOnly from "../../../pages/Encounter/EncounterPageViewOnly";
 import axios from "axios";
@@ -50,6 +53,7 @@ describe("EncounterPageViewOnly", () => {
     window.history.pushState({}, "", "http://localhost/encounter?number=E-777");
 
     const payload = {
+      isPublic: true,
       individualDisplayName: "Flipper",
       date: "2025-01-02",
       verbatimEventDate: "Jan 2, 2025",
@@ -85,26 +89,34 @@ describe("EncounterPageViewOnly", () => {
     const mainImg = await screen.findByAltText("Encounter Image");
     expect(mainImg).toHaveAttribute("src", "http://img/1.jpg");
 
-    const thumbs = await screen.findAllByAltText(/Thumbnail \d+/);
+    const thumbs = [
+      screen.getByAltText("img-1"),
+      screen.getByAltText("img-2"),
+      screen.getByAltText("img-3"),
+    ];
     expect(thumbs).toHaveLength(3);
 
-    await userEvent.click(thumbs[1]);
+    const user = userEvent.setup();
+
+    await user.click(thumbs[1]);
     expect(screen.getByAltText("Encounter Image")).toHaveAttribute(
       "src",
       "http://img/2.jpg",
     );
 
-    await userEvent.click(thumbs[2]);
+    await user.click(thumbs[2]);
     expect(screen.getByAltText("Encounter Image")).toHaveAttribute(
       "src",
       "http://img/3.jpg",
     );
   });
 
-  test("does not render images section when no mediaAssets", async () => {
+  test("renders NO_IMAGE_AVAILABLE when mediaAssets is empty", async () => {
     window.history.pushState({}, "", "http://localhost/encounter?number=E-999");
+
     axios.get.mockResolvedValueOnce({
       data: {
+        isPublic: true,
         individualDisplayName: "",
         mediaAssets: [],
       },
@@ -116,7 +128,8 @@ describe("EncounterPageViewOnly", () => {
       expect(axios.get).toHaveBeenCalledWith("/api/v3/encounters/E-999");
     });
 
-    expect(screen.queryByAltText(/Encounter Image/)).toBeNull();
-    expect(screen.queryByAltText(/Thumbnail \d+/)).toBeNull();
+    expect(screen.queryByAltText("Encounter Image")).toBeNull();
+    expect(screen.queryByAltText(/img-\d+/)).toBeNull();
+    expect(screen.getByText("NO_IMAGE_AVAILABLE")).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import EncounterFormStore from "../../../pages/SearchPages/encounterFormStore";
+import EncounterFormStore from "../../../pages/SearchPages/stores/EncounterFormStore";
 
 describe("EncounterFormStore", () => {
   let store;

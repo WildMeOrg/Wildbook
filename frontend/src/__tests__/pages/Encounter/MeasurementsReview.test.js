@@ -23,7 +23,7 @@ describe("MeasurementsReview", () => {
   test("renders nothing when showMeasurements is false", () => {
     const store = makeStore({ showMeasurements: false });
     const { container } = render(<MeasurementsReview store={store} />);
-    expect(container).toBeEmptyDOMElement();
+    expect(container.firstChild).toBeEmptyDOMElement();
   });
 
   test("renders all measurementTypes even if encounterData has them", () => {
