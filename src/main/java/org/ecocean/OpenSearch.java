@@ -935,11 +935,18 @@ public class OpenSearch {
      */
     public static JSONObject applyEncounterAclFilter(JSONObject query, String userId)
     throws IOException {
+        return applyAclFilter(query, userId, "encounter");
+    }
+
+    public static JSONObject applyAclFilter(JSONObject query, String userId, String indexName)
+    throws IOException {
         if ((query == null) || !Util.stringExists(userId))
-            throw new IOException("applyEncounterAclFilter: null query or userId");
+            throw new IOException("applyAclFilter: null query or userId");
+        // encounter docs carry a single submitterUserId; annotation/individual carry the union set submitterUserIds
+        String submitterField = "encounter".equals(indexName) ? "submitterUserId" : "submitterUserIds";
         JSONArray should = new JSONArray();
         should.put(new JSONObject().put("term", new JSONObject().put("publiclyReadable", true)));
-        should.put(new JSONObject().put("term", new JSONObject().put("submitterUserId", userId)));
+        should.put(new JSONObject().put("term", new JSONObject().put(submitterField, userId)));
         should.put(new JSONObject().put("term", new JSONObject().put("viewUsers", userId)));
         JSONObject aclBool = new JSONObject();
         aclBool.put("should", should);
