@@ -18,7 +18,7 @@
 
 **Modify (main):**
 - `src/main/java/org/ecocean/Encounter.java` — add `opensearchAclFields(Shepherd)` single-source helper; add `findAllByAnnotation(...)`.
-- `src/main/java/org/ecocean/Annotation.java` — serializer writes union ACL over parent encounter(s); mapping adds the 3 ACL fields.
+- `src/main/java/org/ecocean/Annotation.java` — serializer writes its single parent encounter's ACL (0 or >1 parents → fail-closed); mapping adds the ACL fields.
 - `src/main/java/org/ecocean/MarkedIndividual.java` — serializer writes union ACL over member encounters; mapping adds the 3 ACL fields.
 - `src/main/java/org/ecocean/OpenSearch.java` — generalize `applyEncounterAclFilter`→`applyAclFilter(query,uuid,indexName)`; `sanitizeDoc` gains a `tokenAuth` param, a universal ACL-field scrub, and the individual allowlist.
 - `src/main/java/org/ecocean/api/SearchApi.java` — widen token index allowlist; resolve effective index before the annotation-admin gate; index-aware filter; pass `tokenAuth` to `sanitizeDoc`.
@@ -341,7 +341,7 @@ Expected: PASS (2 tests).
 cd /mnt/c/Wildbook-token-auth
 grep -lU $'\r' src/main/java/org/ecocean/Encounter.java src/main/java/org/ecocean/Annotation.java src/test/java/org/ecocean/AnnotationAclSerializerTest.java | xargs -r sed -i 's/\r$//'
 git add src/main/java/org/ecocean/Encounter.java src/main/java/org/ecocean/Annotation.java src/test/java/org/ecocean/AnnotationAclSerializerTest.java
-git commit -m "feat(acl): denormalize encounter ACL union onto annotation index"
+git commit -m "feat(acl): denormalize single-parent encounter ACL onto annotation index (0/>1 parents fail closed)"
 ```
 
 ---
@@ -545,7 +545,8 @@ In `OpenSearch.java`, replace `applyEncounterAclFilter` with a delegator and add
     throws IOException {
         if ((query == null) || !Util.stringExists(userId))
             throw new IOException("applyAclFilter: null query or userId");
-        // encounter docs carry a single submitterUserId; annotation/individual carry the union set submitterUserIds
+        // encounter docs carry a single submitterUserId; annotation (its single parent's submitter) and
+        // individual (union over members) carry the set field submitterUserIds
         String submitterField = "encounter".equals(indexName) ? "submitterUserId" : "submitterUserIds";
         JSONArray should = new JSONArray();
         should.put(new JSONObject().put("term", new JSONObject().put("publiclyReadable", true)));
@@ -811,7 +812,7 @@ git commit -m "feat(search): universal ACL-field scrub + token individual allowl
                     res.put("error", "token search is limited to encounter, annotation, individual");
 ```
 
-where `EFFECTIVE_INDEX` is the resolved index expression already used there: `(searchQueryId != null) ? query.optString("indexName", null) : indexName`. Introduce a local `String effectiveIndex = (searchQueryId != null) ? query.optString("indexName", null) : indexName;` right after the stored query is loaded (before the guard ladder) and use it in BOTH this gate and the annotation-admin gate (Edit B).
+where `EFFECTIVE_INDEX` is the local `effectiveIndex` defined null-safely in Edit A.1 below. Introduce that local right after the stored query is loaded (before the guard ladder) and use it in BOTH this gate and the annotation-admin gate (Edit B). (Do not use the unguarded `query.optString(...)` form — see Edit A.1 for the null-safe expression that handles a failed stored-query load.)
 
 **Edit A.1 — guard a missing/invalid effective index (Codex Medium), with correct ladder order + null-safety.** Compute `effectiveIndex` null-safely (it is `null` when a stored query failed to load): `String effectiveIndex = (searchQueryId != null) ? (query != null ? query.optString("indexName", null) : null) : indexName;`. Sequence the ladder branches in this exact order so a wrong-method/missing/not-owned request never leaks index validity, and a failed stored-query load returns the right 404:
 
@@ -869,6 +870,19 @@ Add tests: stored-query that fails to load → 404 "invalid searchQueryId" (not 
 
     // session (non-token) POST /individual, non-admin -> NOT blocked by token gate (proceeds)
     @Test void sessionIndividualSearch_notBlocked() throws Exception { /* status 200 */ }
+
+    // Edit A.1: a stored query that fails to load -> 404 "invalid searchQueryId" (NOT "unknown index")
+    @Test void storedQueryMissing_returns404InvalidId() throws Exception {
+        /* mockStatic OpenSearch.queryLoad -> null; GET /{uuid}; assert status 404 and error contains
+           "invalid searchQueryId" (the missing-stored-query branch precedes effective-index validity) */
+    }
+
+    // Edit A.1: token stored query owned by someone else whose indexName is invalid -> 403 owner,
+    // NOT 404 (owner check precedes index validity, so a non-owner can't probe index validity)
+    @Test void tokenStoredQuery_otherOwnerInvalidIndex_returns403() throws Exception {
+        /* mockStatic OpenSearch.queryLoad -> {creator:"someoneElse", indexName:"bogus"}; GET /{uuid} with
+           token; assert status 403 (owner), never 404 */
+    }
 ```
 
 (Use the `EMPTY_HITS` + `mockConstruction<OpenSearch>` capture pattern from `SearchApiTokenAuthTest`; for the individual ACL-filter assertion, check `q.getJSONObject("query").getJSONObject("bool").getJSONArray("filter")...` contains a `submitterUserIds` term.)
@@ -1055,4 +1069,4 @@ git diff --name-only origin/token-auth-scoped-search..HEAD | xargs -r grep -lU $
 
 **Placeholder scan:** Task 6's test bodies and Task 9's integration test are described as method stubs with explicit assertions to fill — they reference concrete patterns (`SearchApiTokenAuthTest`/`SearchTokenScopeTest`) and exact fields to assert. Task 7 Step 2 carries an explicit engineer verification (shallow-vs-deep indexing) rather than a guess — this is a flagged real uncertainty, not a placeholder; the implementer must confirm against `IndexingManager`.
 
-**Type/name consistency:** `opensearchAclFields` (T1) returns `{publiclyReadable, submitterUserId?, viewUsers[]}` and is consumed by `writeAclFields` in T2/T3 (which emit `submitterUserIds` plural unions). `applyAclFilter(query,uuid,indexName)` (T4) uses `submitterUserId` for encounter, `submitterUserIds` for annotation/individual — matching the serializers. `sanitizeDoc(...,tokenAuth)` (T5) is called with `tokenAuth` in T6. `INDIVIDUAL_TOKEN_KEEP` allowlist matches the identity fields the individual serializer emits.
+**Type/name consistency:** `opensearchAclFields` (T1) returns `{publiclyReadable, submitterUserId?, viewUsers[]}` and is consumed by `writeAclFields` in T2 (annotation: single parent's ACL, 0/>1 → fail-closed) and T3 (individual: union over members), both emitting the set field `submitterUserIds`. `applyAclFilter(query,uuid,indexName)` (T4) uses `submitterUserId` for encounter, `submitterUserIds` for annotation/individual — matching the serializers. `sanitizeDoc(...,tokenAuth)` (T5) is called with `tokenAuth` in T6. `INDIVIDUAL_TOKEN_KEEP` allowlist matches the identity fields the individual serializer emits.
