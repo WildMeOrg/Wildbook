@@ -4,7 +4,7 @@
 
 **Goal:** Extend the token-scoped read boundary (Artifact D) from the `encounter` index to the `individual` and `annotation` indices — gated by encounter access — so an agent on a user's token sees individuals/annotations exactly as that user would on Wildbook's own pages, and an admin token sees all.
 
-**Architecture:** The encounter is the ACL unit. We denormalize the encounter ACL (`publiclyReadable`/`submitterUserId(s)`/`viewUsers`) onto the annotation index (union over parent encounter(s)) and the individual index (union over member encounters), computed from **one** centralized source on the `Encounter` (`computeViewUsers` + `isPubliclyReadable` + submitter). The token pre-filter from D then enforces all three indices (index-aware field names); admin bypasses. Individual results pass an allowlist sanitizer (identity only); all responses get a universal ACL-field scrub. Sync triggers re-index children on ACL **and** membership changes; a one-time corrective reindex backfills existing data.
+**Architecture:** The encounter is the ACL unit. We denormalize the encounter ACL (`publiclyReadable`/`submitterUserId(s)`/`viewUsers`) onto the annotation index (its **single** parent encounter's ACL; 0 or >1 parents → fail-closed) and the individual index (union over member encounters), computed from **one** centralized source on the `Encounter` (`computeViewUsers` + `isPubliclyReadable` + submitter). The token pre-filter from D then enforces all three indices (index-aware field names); admin bypasses. Individual results pass an allowlist sanitizer (identity only); all responses get a universal ACL-field scrub. Sync triggers re-index children on ACL **and** membership changes; a one-time corrective reindex backfills existing data.
 
 **Tech Stack:** Java 17, OpenSearch (`org.json`, Jackson `JsonGenerator` serializers, knn_vector mapping), DataNucleus JDO (`Shepherd`), Apache Shiro (D's `WildbookTokenAuthenticationFilter`), JUnit 5 + Mockito 5 (unit), embedded Jetty + Testcontainers OpenSearch (integration). Build: Maven.
 
@@ -813,15 +813,16 @@ git commit -m "feat(search): universal ACL-field scrub + token individual allowl
 
 where `EFFECTIVE_INDEX` is the resolved index expression already used there: `(searchQueryId != null) ? query.optString("indexName", null) : indexName`. Introduce a local `String effectiveIndex = (searchQueryId != null) ? query.optString("indexName", null) : indexName;` right after the stored query is loaded (before the guard ladder) and use it in BOTH this gate and the annotation-admin gate (Edit B).
 
-**Edit A.1 — guard a missing/invalid effective index (Codex Medium).** A stored query whose saved `indexName` is null or not a valid index currently slips past the validity checks and 500s at `queryPit`. Add, as an early branch in the ladder (after the token method gates, before the annotation/token gates):
+**Edit A.1 — guard a missing/invalid effective index (Codex Medium), with correct ladder order + null-safety.** Compute `effectiveIndex` null-safely (it is `null` when a stored query failed to load): `String effectiveIndex = (searchQueryId != null) ? (query != null ? query.optString("indexName", null) : null) : indexName;`. Sequence the ladder branches in this exact order so a wrong-method/missing/not-owned request never leaks index validity, and a failed stored-query load returns the right 404:
 
-```java
-                } else if (!OpenSearch.isValidIndexName(effectiveIndex)) {
-                    response.setStatus(404);
-                    res.put("error", "unknown index");
-```
+1. token method gates (stored=GET, direct=POST) — unchanged
+2. **missing stored query**: `(searchQueryId != null) && (query == null)` → 404 `"invalid searchQueryId"` (unchanged existing branch — keep it BEFORE the effective-index check so a failed load doesn't fall into "unknown index")
+3. **token stored-query owner check** (unchanged) — before revealing index validity, so a non-owner can't probe whether someone else's stored query has a valid index
+4. **effective-index validity**: `else if (!OpenSearch.isValidIndexName(effectiveIndex)) { 404 "unknown index"; }` — replaces the old `(searchQueryId == null) && !isValidIndexName(indexName)` branch (it subsumes both direct and stored; keep ONE)
+5. non-token annotation-admin gate (Edit B) — uses `effectiveIndex`
+6. token index allowlist gate (Edit A) — uses `effectiveIndex`
 
-(For a direct request `effectiveIndex == indexName`, so this also subsumes the existing `(searchQueryId == null) && !isValidIndexName(indexName)` check — keep one, not both.)
+Add tests: stored-query that fails to load → 404 "invalid searchQueryId" (not "unknown index"); other-owner stored query whose indexName is invalid → 403 owner (not 404), proving the owner check precedes index validity.
 
 - [ ] **Step 3: Edit B — resolve effective index before the annotation-admin gate (Codex Medium).** Change the existing annotation-admin gate (`:85`) so it (a) uses `effectiveIndex` not the raw `indexName`, and (b) applies only on the **non-token** path (token path is governed by the ACL filter):
 
@@ -1040,9 +1041,9 @@ cd /mnt/c/Wildbook-token-auth
 git diff --name-only origin/token-auth-scoped-search..HEAD | xargs -r grep -lU $'\r' || echo "LF-clean"
 ```
 
-- [ ] **Step 3: Self-review vs spec** — confirm each spec section maps to a task: ACL fields (T1-3), index-aware filter (T4), universal scrub + allowlist (T5), SearchApi widen + effective-index + token sanitize (T6), triggers incl. membership (T7), mapping/reindex runbook (T8), e2e proof (T9). Confirm parity edges: annotation union/0-parent (T2), individual 0-encounter world-readable (T3), anonymous-vs-invalid owner in the single source (T1).
+- [ ] **Step 3: Self-review vs spec** — confirm each spec section maps to a task: ACL fields (T1-3), index-aware filter (T4), universal scrub + allowlist (T5), SearchApi widen + effective-index + token sanitize (T6), triggers incl. membership (T7), mapping/reindex runbook (T8), e2e proof (T9). Confirm parity edges: annotation single-parent ACL / 0-or-many-parents fail-closed (T2), individual 0-encounter world-readable (T3), anonymous-vs-invalid owner in the single source (T1).
 
-- [ ] **Step 4: Codex code review** on the full Spec-A diff (`git diff <task-1-parent>..HEAD`), per project convention. Prompt Codex (read-only, may read files) to specifically check: no fail-open for non-admin token on the new indices; allowlist completeness vs the live individual serializer; universal ACL scrub covers session AND token on all three indices; membership-trigger coverage (old+new individual); annotation union over all parents (not just first); anonymous-vs-invalid-owner correctness. Fold findings, re-review until SAFE TO MERGE.
+- [ ] **Step 4: Codex code review** on the full Spec-A diff (`git diff <task-1-parent>..HEAD`), per project convention. Prompt Codex (read-only, may read files) to specifically check: no fail-open for non-admin token on the new indices; allowlist completeness vs the live individual serializer; universal ACL scrub covers session AND token on all three indices; membership-trigger coverage (old+new individual); annotation single-parent ACL with 0/>1 parents failing closed (no first-parent metadata leak); anonymous-vs-invalid-owner correctness. Fold findings, re-review until SAFE TO MERGE.
 
 - [ ] **Step 5: Report** to the user: diff summary, test counts, Codex verdict, the carried-forward follow-ups (global session metadata leak; orgAdmin viewUsers verification — now also covers the individual unions), and the reindex-cost note. Await push/PR decision.
 
@@ -1050,7 +1051,7 @@ git diff --name-only origin/token-auth-scoped-search..HEAD | xargs -r grep -lU $
 
 ## Self-Review (plan author)
 
-**Spec coverage:** every spec section maps to a task (see Task 10 Step 3). The four Codex-High spec items are implemented: annotation union (T2), universal ACL scrub (T5), allowlist sanitizer (T5), membership-change triggers (T7).
+**Spec coverage:** every spec section maps to a task (see Task 10 Step 3). The four Codex-High spec items are implemented: annotation single-parent ACL with 0/>1 fail-closed (T2), universal ACL scrub (T5), allowlist sanitizer (T5), membership-change triggers (T7).
 
 **Placeholder scan:** Task 6's test bodies and Task 9's integration test are described as method stubs with explicit assertions to fill — they reference concrete patterns (`SearchApiTokenAuthTest`/`SearchTokenScopeTest`) and exact fields to assert. Task 7 Step 2 carries an explicit engineer verification (shallow-vs-deep indexing) rather than a guess — this is a flagged real uncertainty, not a placeholder; the implementer must confirm against `IndexingManager`.
 
