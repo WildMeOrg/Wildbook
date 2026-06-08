@@ -1010,15 +1010,17 @@ public class OpenSearch {
     private static final java.util.Set<String> DSL_STRUCTURAL = new java.util.HashSet<>(java.util.Arrays.asList(
         "query","bool","must","should","filter","must_not","minimum_should_match","boost",
         "match_all","match_none","constant_score","dis_max","queries","tie_breaker",
-        "term","terms","match","match_phrase","match_phrase_prefix","multi_match","range",
-        "prefix","wildcard","regexp","fuzzy","ids","exists","nested","path","query_string","simple_query_string"));
+        "term","terms","match","match_phrase","match_phrase_prefix","range",
+        "prefix","wildcard","regexp","fuzzy","ids","exists","nested","path"));
     // Leaf-operator keys whose CHILD OBJECT's keys ARE field names (e.g. term/range/match -> {field:...}).
     private static final java.util.Set<String> FIELD_BEARING = new java.util.HashSet<>(java.util.Arrays.asList(
         "term","terms","match","match_phrase","match_phrase_prefix","range","prefix","wildcard","regexp","fuzzy"));
     // Keys that are DISALLOWED outright (can reference arbitrary fields / execute code).
     private static final java.util.Set<String> DENY_FEATURES = new java.util.HashSet<>(java.util.Arrays.asList(
         "script","script_score","aggs","aggregations","sort","_source","fields","docvalue_fields",
-        "runtime_mappings","function_score","more_like_this","percolate","field"));
+        "runtime_mappings","function_score","more_like_this","percolate","field",
+        // free-text/Lucene operators carry field references the validator can't parse -> fail-closed
+        "query_string","simple_query_string","multi_match"));
 
     /**
      * Fail-closed: returns true ONLY if every field the query/sort/aggs could reference is in `allowed`.

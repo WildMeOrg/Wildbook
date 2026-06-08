@@ -1259,8 +1259,11 @@ public class Encounter extends Base implements java.io.Serializable {
         this.refreshAnnotationLiteIndividual();
         // membership change: refresh this encounter (deep -> its new individual + annotations)
         // and the OLD individual it left (so the departed encounter is dropped from its ACL).
-        this.enqueueAclReindex();
-        if (old != null && old != indiv) old.enqueueAclReindex();
+        // Only enqueue when membership actually changed; a no-op set (old == indiv) changes nothing.
+        if (old != indiv) {
+            this.enqueueAclReindex();
+            if (old != null) old.enqueueAclReindex();
+        }
     }
 
     public MarkedIndividual getIndividual() {
@@ -4337,11 +4340,17 @@ public class Encounter extends Base implements java.io.Serializable {
                     }
                 }
                 updateData.put("viewUsers", viewUsers); // always write, incl [] so revocation propagates
-                // Change-detection: compare freshly computed viewUsers (as a set) to what is
-                // CURRENTLY indexed. On a real difference (or if the current value can't be read),
-                // deep-reindex THIS encounter so its individual + annotations get the new ACL.
-                // Best-effort: a missed propagation is recovered by the reconciler / corrective reindex.
-                boolean viewUsersChanged = true; // default to "changed" when current state is unknown
+                // Child-reindex change-detection: compare freshly computed viewUsers (as a set) to
+                // what is CURRENTLY indexed. Enqueue the deep child reindex ONLY when the currently
+                // indexed value was READABLE (non-null) and genuinely DIFFERS.
+                // When getIndexedViewUsers returns null (missing doc / unreadable / degraded read) we
+                // do NOT enqueue: the encounter isn't reliably indexed yet, and on a degraded pass a
+                // null-means-changed default would storm child reindexes for every encounter. The
+                // tradeoff is a rare miss for a genuinely-fresh-but-not-yet-readable encounter, which
+                // is recovered by the normal indexing-queue / opensearchIndexDeep path plus the
+                // periodic reconciler / corrective reindex. The encounter's own indexUpdate below is
+                // unconditional, so its viewUsers stays current regardless.
+                boolean childReindexNeeded = false; // only true on a confirmed, readable difference
                 try {
                     org.json.JSONArray current = os.getIndexedViewUsers("encounter", id);
                     if (current != null) {
@@ -4351,17 +4360,17 @@ public class Encounter extends Base implements java.io.Serializable {
                         Set<String> newSet = new java.util.HashSet<String>();
                         for (int ni = 0; ni < viewUsers.length(); ni++) newSet.add(viewUsers.optString(ni, null));
                         newSet.remove(null);
-                        viewUsersChanged = !currentSet.equals(newSet);
+                        childReindexNeeded = !currentSet.equals(newSet);
                     }
                 } catch (Exception ex) {
-                    viewUsersChanged = true; // unknown -> propagate to be safe
+                    childReindexNeeded = false; // unreadable -> don't storm; recoverable via reconciler
                 }
                 try {
                     os.indexUpdate("encounter", id, updateData);
                 } catch (Exception ex) {
                     viewUsersWriteFailures++; // aggregate only — no per-doc noise during index build
                 }
-                if (viewUsersChanged) {
+                if (childReindexNeeded) {
                     try {
                         Encounter enc = myShepherd.getEncounter(id);
                         if (enc != null) enc.enqueueAclReindex(); // refresh individual + annotations

@@ -180,7 +180,9 @@ public class SearchApi extends ApiBase {
                         res.put("success", true);
                         res.put("searchQueryId", searchQueryId);
                         res.put("hits", hitsArr);
-                        res.put("query", query);
+                        // On the token path `query` has been mutated by applyAclFilter to embed the
+                        // ACL filter (internal ACL field names + the caller's UUID). Don't echo it back.
+                        if (!tokenAuth) res.put("query", query);
                     } catch (IOException ex) {
                         response.setStatus(500);
                         res.put("success", false);

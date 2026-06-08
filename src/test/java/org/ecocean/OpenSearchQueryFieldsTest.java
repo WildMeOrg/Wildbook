@@ -52,4 +52,16 @@ class OpenSearchQueryFieldsTest {
         assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(
             new JSONObject("{\"query\":{\"script\":{\"script\":\"doc['numberEncounters'].value\"}}}"), ALLOW));
     }
+    @Test void queryStringIsRejected() {
+        assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"query_string\":{\"query\":\"numberEncounters:>100\"}}}"), ALLOW));
+    }
+    @Test void simpleQueryStringIsRejected() {
+        assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"simple_query_string\":{\"query\":\"users:bob\"}}}"), ALLOW));
+    }
+    @Test void multiMatchIsRejected() {
+        assertFalse(OpenSearch.queryReferencesOnlyAllowedFields(
+            new JSONObject("{\"query\":{\"multi_match\":{\"query\":\"x\",\"fields\":[\"users\"]}}}"), ALLOW));
+    }
 }

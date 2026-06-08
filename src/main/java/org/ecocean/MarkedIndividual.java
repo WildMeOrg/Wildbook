@@ -493,12 +493,16 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             numberEncounters++;
             refreshDependentProperties();
             setVersion();
+            // membership change: the joining encounter's ACL must reflect this individual.
+            // Deep-reindexing the encounter also refreshes this individual + its annotations.
+            // Also reindex THIS individual directly: callers (AnnotationEdit, IBEISIA) do not set
+            // newEncounter.individual = this, so newEncounter.opensearchIndexDeep() would refresh a
+            // different (or null) individual, leaving this individual's ACL stale.
+            this.enqueueAclReindex();
+            if (newEncounter != null) newEncounter.enqueueAclReindex();
         }
         setTaxonomyFromEncounters(); // will only set if has no value
         setSexFromEncounters(); // likewise
-        // membership change: the joining encounter's ACL must reflect this individual.
-        // Deep-reindexing the encounter also refreshes this individual + its annotations.
-        if (newEncounter != null) newEncounter.enqueueAclReindex();
         return isNew;
     }
 
