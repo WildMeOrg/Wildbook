@@ -967,20 +967,59 @@ public class OpenSearch {
         return out;
     }
 
-    // takes raw search result doc and presents only data user should see
+    private static final String[] ACL_FIELDS = {
+        "publiclyReadable", "submitterUserId", "submitterUserIds", "viewUsers", "editUsers"
+    };
+    // identity fields kept for a non-admin token individual hit; everything else dropped (allowlist).
+    // NOTE: socialUnits/relationships/cooccurrence*/users/encounterIds/number* and all other
+    // cross-encounter aggregates are DELIBERATELY excluded — they reveal data from encounters the
+    // viewer may not see. Out of scope for v1 (agent gets per-viewer detail via the scoped encounter index).
+    private static final String[] INDIVIDUAL_TOKEN_KEEP = {
+        "id", "version", "indexTimestamp", "displayName", "names", "nameMap",
+        "sex", "taxonomy", "timeOfBirth", "timeOfDeath"
+    };
+
+    private static void scrubAclFields(JSONObject doc) {
+        for (String f : ACL_FIELDS) doc.remove(f);
+    }
+
+    // 4-arg overload preserved for the existing caller (non-token path) until SearchApi passes tokenAuth.
     public static JSONObject sanitizeDoc(final JSONObject sourceDoc, String indexName,
         Shepherd myShepherd, User user)
     throws IOException {
+        return sanitizeDoc(sourceDoc, indexName, myShepherd, user, false);
+    }
+
+    // takes raw search result doc and presents only data user should see
+    public static JSONObject sanitizeDoc(final JSONObject sourceDoc, String indexName,
+        Shepherd myShepherd, User user, boolean tokenAuth)
+    throws IOException {
         if ((user == null) || (sourceDoc == null)) throw new IOException("null user or sourceDoc");
-        // these classes we let anyone see as-is
-        if ("annotation".equals(indexName) || "individual".equals(indexName)) return sourceDoc;
+        if ("annotation".equals(indexName)) {
+            JSONObject clean = new JSONObject(sourceDoc.toString());
+            scrubAclFields(clean);             // never leak the internal ACL fields
+            return clean;                      // content (incl. embeddings) returned as-is
+        }
+        if ("individual".equals(indexName)) {
+            boolean admin = user.isAdmin(myShepherd);
+            if (tokenAuth && !admin) {
+                JSONObject clean = new JSONObject();
+                for (String f : INDIVIDUAL_TOKEN_KEEP) {
+                    if (sourceDoc.has(f)) clean.put(f, sourceDoc.get(f));
+                }
+                return clean;                  // allowlist: identity only, aggregates dropped
+            }
+            JSONObject clean = new JSONObject(sourceDoc.toString());
+            scrubAclFields(clean);
+            return clean;
+        }
         // these we return some kinda cleaned value
         JSONObject clean = new JSONObject();
         if ("encounter".equals(indexName)) {
             boolean hasAccess = Encounter.opensearchAccess(sourceDoc, user, myShepherd);
             if (hasAccess) {
                 clean = new JSONObject(sourceDoc.toString());
-                clean.remove("viewUsers");
+                scrubAclFields(clean);
                 clean.put("access", "full");
                 return clean;
             }
@@ -1001,14 +1040,13 @@ public class OpenSearch {
             boolean hasAccess = user.isAdmin(myShepherd) || hasAccessOccurrence(user, sourceDoc);
             if (hasAccess) {
                 clean = new JSONObject(sourceDoc.toString());
+                scrubAclFields(clean);
                 clean.put("access", "full");
             } else {
                 clean = new JSONObject();
                 clean.put("id", sourceDoc.optString("id", "unknown"));
                 clean.put("access", "none");
             }
-            // clean.remove("viewUsers");
-            // clean.remove("editUsers");
         }
         // if we fall through (e.g. future classes) clean will just be empty
         return clean;
