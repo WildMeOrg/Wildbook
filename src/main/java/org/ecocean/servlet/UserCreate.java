@@ -114,7 +114,13 @@ public class UserCreate extends HttpServlet {
                             newUser.setSalt(salt);
                         }
                     }
-                    OpenSearch.setPermissionsNeeded(myShepherd, true);
+                    // NOTE: do NOT call OpenSearch.setPermissionsNeeded(myShepherd, true) here.
+                    // Writing the permissionsNeeded SystemValue row inside this long request
+                    // transaction self-deadlocks: when a Role/Organization is persisted below,
+                    // WildbookLifecycleListener.postStore opens a separate connection to UPDATE the
+                    // same row and commit, which blocks forever on this transaction's uncommitted
+                    // row lock. Role/Organization store+delete already flag permissionsNeeded via
+                    // the lifecycle listener, so this explicit call was redundant anyway.
                     // here handle all of the other User fields (e.g., email address, etc.)
                     if ((request.getParameter("username") != null) &&
                         (!request.getParameter("username").trim().equals(""))) {

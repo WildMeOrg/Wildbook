@@ -4,7 +4,10 @@
       "Bash(git log:*)",
       "Bash(gh pr:*)",
       "Bash(mvn compile:*)",
-      "Bash(mvn test:*)"
+      "Bash(mvn test:*)",
+      "Read(//tmp/**)",
+      "Bash(python3 -)",
+      "Bash(git -C /mnt/c/Wildbook-clean2 tag)"
     ]
   }
 }
