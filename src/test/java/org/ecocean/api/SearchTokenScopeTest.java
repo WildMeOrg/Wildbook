@@ -287,12 +287,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         assertEquals("3", r.header("X-Wildbook-Total-Hits"), "admin token is unscoped");
     }
 
-    @Test void tokenSearch_nonEncounterIndex_403() throws Exception {
+    @Test void tokenSearch_nonAllowlistedIndex_403() throws Exception {
+        // The token index allowlist is encounter + annotation + individual (see SearchApi). Any other
+        // index must be rejected with 403. Use occurrence as the representative non-allowlisted index.
+        // (Originally probed /individual, but the token allowlist was widened to include the child
+        //  indices in a later commit; see SearchTokenScopeChildIndexTest for their scoped coverage.)
         String token = testJwtService.sign(aliceUuid, "context0", 60_000L);
         given().header("Authorization", "Bearer " + token)
             .contentType(io.restassured.http.ContentType.JSON)
             .body("{\"query\":{\"match_all\":{}}}")
-            .when().post("/api/v3/search/individual")
+            .when().post("/api/v3/search/occurrence")
             .then().log().ifValidationFails().statusCode(403);
     }
 
