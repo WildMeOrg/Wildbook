@@ -2691,6 +2691,32 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         myShepherd.throwAwayMarkedIndividual(other);
     }
 
+    /** Denormalized ACL union over member encounters; 0 encounters -> world-readable (matches the live gate). */
+    public void writeAclFields(com.fasterxml.jackson.core.JsonGenerator jgen, Shepherd myShepherd)
+    throws java.io.IOException {
+        java.util.List<Encounter> encs = this.getEncounters();
+        boolean pub = (encs == null) || encs.isEmpty(); // encounterless -> visible to anyone
+        java.util.Set<String> submitters = new java.util.LinkedHashSet<String>();
+        java.util.Set<String> viewers = new java.util.LinkedHashSet<String>();
+        if (encs != null) {
+            for (Encounter enc : encs) {
+                org.json.JSONObject acl = enc.opensearchAclFields(myShepherd);
+                if (acl.optBoolean("publiclyReadable", false)) pub = true;
+                String sid = acl.optString("submitterUserId", null);
+                if (sid != null) submitters.add(sid);
+                org.json.JSONArray vu = acl.optJSONArray("viewUsers");
+                if (vu != null) for (int i = 0; i < vu.length(); i++) viewers.add(vu.optString(i));
+            }
+        }
+        jgen.writeBooleanField("publiclyReadable", pub);
+        jgen.writeArrayFieldStart("submitterUserIds");
+        for (String s : submitters) jgen.writeString(s);
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("viewUsers");
+        for (String v : viewers) jgen.writeString(v);
+        jgen.writeEndArray();
+    }
+
     public org.json.JSONObject opensearchMapping() {
         org.json.JSONObject map = super.opensearchMapping();
         org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
@@ -2717,12 +2743,15 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         map.put("relationships", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("cooccurrenceIndividualMap",
             new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
+        map.put("publiclyReadable", new org.json.JSONObject("{\"type\": \"boolean\"}"));
+        map.put("submitterUserIds", keywordType);
         return map;
     }
 
     public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
     throws IOException, JsonProcessingException {
         super.opensearchDocumentSerializer(jgen, myShepherd);
+        this.writeAclFields(jgen, myShepherd);
 
         jgen.writeStringField("sex", this.getSex());
         jgen.writeStringField("displayName", this.getDisplayName());
