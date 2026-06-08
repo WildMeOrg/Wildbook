@@ -28,37 +28,47 @@ public class EncounterExport extends ApiBase {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
 
-        response.setContentType("application/zip");
-        response.setHeader("Content-Disposition",
-            "attachment;filename=encounter_export_" + Instant.now().getMillis() + ".zip");
-
         myShepherd.beginDBTransaction();
-        try (ZipOutputStream outputStream = new ZipOutputStream(response.getOutputStream())) {
-            if (Objects.equals(request.getParameter("includeMetadata"), "true")) {
-                writeMetadataFile(request, myShepherd, outputStream);
+        try {
+            if (myShepherd.getUser(request) == null) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
             }
-            EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd,
-                request, "year descending, month descending, day descending");
-            List<Encounter> encounters = queryResult.getResult();
 
-            // Build map of encounter ID -> individual using join table relationship
-            Map<String,
-                MarkedIndividual> encounterToIndividual = buildEncounterIndividualMap(myShepherd,
-                encounters);
-            EnumSet<EncounterImageExportFile.ExportOptions> flags = EnumSet.noneOf(
-                EncounterImageExportFile.ExportOptions.class);
-            if (Objects.equals(request.getParameter("unidentifiedEncounters"), "true")) {
-                flags = EnumSet.of(
-                    EncounterImageExportFile.ExportOptions.IncludeUnidentifiedEncounters);
-            }
-            int numAnnotationsPerId = -1;
-            if (StringUtils.isNumeric(request.getParameter("numAnnotationsPerId"))) {
-                numAnnotationsPerId = Integer.parseInt(request.getParameter("numAnnotationsPerId"));
-            }
-            EncounterImageExportFile imagesExport = new EncounterImageExportFile(encounters,
-                encounterToIndividual, numAnnotationsPerId, flags);
+            response.setContentType("application/zip");
+            response.setHeader("Content-Disposition",
+                "attachment;filename=encounter_export_" + Instant.now().getMillis() + ".zip");
 
-            imagesExport.writeTo(outputStream);
+            try (ZipOutputStream outputStream = new ZipOutputStream(response.getOutputStream())) {
+                if (Objects.equals(request.getParameter("includeMetadata"), "true")) {
+                    writeMetadataFile(request, myShepherd, outputStream);
+                }
+                EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd,
+                    request, "year descending, month descending, day descending");
+                Vector<Encounter> encounters = queryResult.getResult();
+                HiddenEncReporter hiddenData = new HiddenEncReporter(encounters, request,
+                    myShepherd);
+
+                // Build map of encounter ID -> individual using join table relationship
+                Map<String,
+                    MarkedIndividual> encounterToIndividual = buildEncounterIndividualMap(
+                    myShepherd, encounters);
+                EnumSet<EncounterImageExportFile.ExportOptions> flags = EnumSet.noneOf(
+                    EncounterImageExportFile.ExportOptions.class);
+                if (Objects.equals(request.getParameter("unidentifiedEncounters"), "true")) {
+                    flags = EnumSet.of(
+                        EncounterImageExportFile.ExportOptions.IncludeUnidentifiedEncounters);
+                }
+                int numAnnotationsPerId = -1;
+                if (StringUtils.isNumeric(request.getParameter("numAnnotationsPerId"))) {
+                    numAnnotationsPerId = Integer.parseInt(request.getParameter(
+                        "numAnnotationsPerId"));
+                }
+                EncounterImageExportFile imagesExport = new EncounterImageExportFile(encounters,
+                    encounterToIndividual, numAnnotationsPerId, flags, hiddenData);
+
+                imagesExport.writeTo(outputStream);
+            }
         } catch (Exception e) {
             // todo: make this more specific
             e.printStackTrace();

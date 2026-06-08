@@ -101,9 +101,11 @@
 				# ===== v3 API Security =====
 				/api/v3/bulk-import = authc
 				/api/v3/bulk-import/** = authc
-				/api/v3/bulk-export = authc
-				/api/v3/bulk-export/** = authc
+
+				/api/v3/bulk-export = authc, roles[researcher]
+				/api/v3/bulk-export/** = authc, roles[researcher]
 				/api/v3/match-inspection/** = authc
+
 
 				# ===== Appadmin =====
 				/appadmin/dataIntegrity.jsp = authc
@@ -305,6 +307,7 @@
 				/ProjectGet = authc
 				/ProjectUpdate = authc
 				/ProjectIA = authc, roles[researcher]
+				/GetCurrentIAInfo = authc, roles[researcher]
 
 				# ===== User Management =====
 				/welcome.jsp = authc
