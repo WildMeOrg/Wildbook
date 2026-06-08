@@ -1,7 +1,7 @@
 # Token-Scoped Individual + Annotation Reads (Spec A) — Design
 
 **Date:** 2026-06-07
-**Status:** Draft — pending Codex design review + user review
+**Status:** Draft — incorporated Codex design review (2026-06-07, verified against real source; FIX-FIRST findings folded). Pending user review.
 **Repo/branch:** Wildbook; new branch off `token-auth-scoped-search` (Artifact D) — or off `main` once A/B/D have landed. Reuses D's `WildbookTokenAuthenticationFilter` + `SearchApi` token path and A's permissions-indexing pattern.
 **Depends on:** Artifact A (merged — `viewUsers` hardening / encounter ACL denormalization), Artifact B (`JwtService`/`AuthToken`), Artifact D (token-scoped encounter search — live-verified on flakebook.wildme.org).
 **Sibling (deferred):** Spec B — detection-via-service-account-token + nested-kNN ACL injection (separate design).
@@ -29,24 +29,28 @@ Per-index ACL fields (written at index time):
 | Index | Fields | Source |
 |---|---|---|
 | `encounter` (exists) | `publiclyReadable`, `submitterUserId`, `viewUsers` | A |
-| `annotation` (new) | `publiclyReadable`, `submitterUserId`, `viewUsers` | copied verbatim from the one parent encounter |
-| `individual` (new) | `publiclyReadable`, `submitterUserIds`, `viewUsers` | **unions** over member encounters |
+| `annotation` (new) | `publiclyReadable`, `submitterUserIds`, `viewUsers` | **union over its parent encounter(s)** |
+| `individual` (new) | `publiclyReadable`, `submitterUserIds`, `viewUsers` | **union over member encounters** |
 
-Individual unions (chosen so the indexed gate is provably equal to `canUserAccessMarkedIndividual`):
-- `publiclyReadable` = `OR` over member encounters' `publiclyReadable` (i.e. *any* member encounter is world-readable).
-- `submitterUserIds` = the **set** of member encounter submitter UUIDs.
-- `viewUsers` = the **union** of member encounters' `viewUsers`.
+**Both child indices use union-over-related-encounters** (Codex High — an annotation is *not* provably 1:1 to one encounter: `Annotation.findByAnnotation`/`findByMediaAsset` can return zero or multiple parent encounters, `Annotation.java:218,1330`; `Encounter.java:3650`). So annotation ACL is the union over **all** its parent encounters, exactly like individual over member encounters — usually a single parent, but correct for 0/many:
+- `publiclyReadable` = `OR` over related encounters' `publiclyReadable` (any related encounter world-readable). **A related encounter set of size 0 → fail closed (admin-only)** for annotations; for **individuals, 0 member encounters → world-readable** (matches `canUserAccessMarkedIndividual` returning true for an encounterless individual — Codex Medium).
+- `submitterUserIds` = the **set** of related encounter submitter UUIDs.
+- `viewUsers` = the **union** of related encounters' `viewUsers`.
 
-Then: *user can access individual* ⟺ `publiclyReadable` OR `user ∈ submitterUserIds` OR `user ∈ viewUsers` ⟺ ∃ member encounter the user can access. ✔ matches the live gate.
+Then: *user can access* ⟺ `publiclyReadable` OR `user ∈ submitterUserIds` OR `user ∈ viewUsers` ⟺ ∃ related encounter the user can access. ✔ matches the live gate (`canUserAccessMarkedIndividual` / per-encounter `canUserAccessEncounter`).
+
+**Single ACL source — no divergence (Codex Medium).** All three indices must derive these fields from **one** centralized computation over **live** encounter state — the same logic Artifact A established (`computeViewUsers` + the public/submitter determination). The annotation/individual serializers must call that same method on their related encounter(s) rather than reading a possibly-stale denormalized value, so the encounter, annotation, and individual ACLs cannot drift. (A's `viewUsers` is written by a bulk permissions pass; the child serializers must invoke the identical computation, not assume the parent doc is already current.)
 
 **Token-path enforcement** (in `SearchApi`, building on D): for a non-admin token request, inject the ACL pre-filter using *that index's* field names, before execution. **Admin token → no filter** (universal access). Token-exposed indices become **`encounter`, `annotation`, `individual`**; `occurrence` and `media_asset` remain **403**. The non-token/session path is **unchanged**.
 
 **Fail-closed during reindex:** until the corrective reindex populates the new fields, they are simply absent on child docs → the pre-filter matches nothing → a non-admin sees *nothing* on those indices. A partial/in-progress reindex degrades to "too restrictive," never "leaky."
 
+**Universal ACL-field stripping from responses (Codex High).** Denormalizing the ACL onto annotation/individual means those internal fields (`publiclyReadable`, `submitterUserId`, `submitterUserIds`, `viewUsers`, and `editUsers` if present) would otherwise be returned in `_source` — and the **session** path returns raw `_source` for annotation/individual today (`OpenSearch.sanitizeDoc:963` returns the doc unchanged for those indices). So `sanitizeDoc` must strip these ACL fields from **every** returned doc, for **all three indices, on both the token and session paths** — independent of, and in addition to, the token-only aggregate-strip for individuals. (D already removes `viewUsers` from encounter responses; generalize that to a universal ACL-field scrub.)
+
 ## Read surfaces
 
 ### Annotation (`POST /api/v3/search/annotation`, token path)
-Annotation is 1:1 with an encounter, so each annotation doc carries the parent encounter's three ACL fields. The token path injects the **same** pre-filter as encounter (identical field names): a non-admin sees only annotations whose encounter they can access; admin bypasses. **Embeddings are returned as-is** (deemed not sensitive). The annotation doc is otherwise gated **wholesale** by the encounter ACL — no content redaction — **except** the internal denormalized ACL fields (`viewUsers`, and the copied `submitterUserId`/`publiclyReadable` if not otherwise meaningful) are removed from the returned doc, consistent with how Artifact D strips `viewUsers` from encounter responses (`sanitizeDoc` → `clean.remove("viewUsers")`). This also gives detection (Spec B) a real annotation read surface.
+Each annotation doc carries the **union** ACL over its parent encounter(s) (`publiclyReadable`/`submitterUserIds`/`viewUsers`; 0 parents → admin-only/fail-closed). The token path injects the **same** `should`-pre-filter (a non-admin sees only annotations whose parent encounter they can access; admin bypasses). **Embeddings are returned as-is** (deemed not sensitive). The annotation doc is otherwise gated **wholesale** by the encounter ACL — no content redaction — except the internal ACL fields are removed by the universal ACL-field scrub (above). This also gives detection (Spec B) a real annotation read surface.
 
 Note: the existing **session** path keeps annotation admin-only (`SearchApi`'s `"annotation".equals(indexName) && !isAdmin → 403`). That gate must NOT block the token path — the token path is governed by the ACL pre-filter instead. The implementation must ensure the annotation-admin-only branch applies only to non-token requests.
 
@@ -63,14 +67,13 @@ Two parts:
    ```
    The user's own query (name/taxonomy/sex/etc.) runs normally, `must`-combined with this gate. (`term` on the keyword-array fields `submitterUserIds`/`viewUsers` matches if any element equals the uuid.)
 
-2. **Strip leaky aggregates** — a token-path sanitizer removes fields computed across *all* member encounters (which would reveal hidden ones), keeping individual-identity attributes:
+2. **Allowlist sanitizer (Codex High — not a denylist).** A token-path sanitizer keeps **only** an explicit allowlist of individual-identity fields and **drops everything else** — so any present-or-future serializer field that's derived from the full member-encounter set is hidden by default (a denylist would silently miss fields like `cooccurrenceIndividualIds`, `numberMediaAssets`, `numberOccurrences`, `MarkedIndividual.java:2813,2839,2858`).
 
-   | Keep (identity attributes) | Strip (cross-encounter aggregates → leak) |
+   | Keep (allowlist — identity attributes) | Everything else → dropped |
    |---|---|
-   | `id`, `displayName`, `names`/`nameMap`, `sex`, `taxonomy`, `timeOfBirth`, `timeOfDeath` | `encounterIds`, `numberEncounters`, `users`, `locationGeoPoints`, `numberLocations`, `maxYearsBetweenResightings`, `socialUnits`, `relationships`, `cooccurrenceIndividualMap`, occurrence-derived counts |
-   | (plus the new ACL fields `publiclyReadable`/`submitterUserIds`/`viewUsers` are stripped from the response) | |
+   | `id`, `displayName`, `names`/`nameMap`, `sex`, `taxonomy`, `timeOfBirth`, `timeOfDeath` | all cross-encounter aggregates: `encounterIds`, `numberEncounters`, `users`, `locationGeoPoints`, `numberLocations`, `maxYearsBetweenResightings`, `socialUnits`, `relationships`, `cooccurrenceIndividualMap`/`cooccurrenceIndividualIds`, `numberMediaAssets`, `numberOccurrences`, occurrence-derived counts, **and any field not in the keep-list** |
 
-   The final keep/strip list is pinned against `MarkedIndividual.opensearchDocumentSerializer` during implementation; any field derived from the full member-encounter set is stripped. `sex`/`timeOfBirth`/`timeOfDeath` are individual-level attributes Wildbook shows to anyone who can access the individual, so they are kept.
+   The allowlist is pinned against the current `MarkedIndividual.opensearchDocumentSerializer` output during implementation, and a test asserts **every** emitted serializer field is either in the keep-list or dropped (so adding a serializer field later can't silently leak). `sex`/`timeOfBirth`/`timeOfDeath` are individual-level attributes Wildbook shows to anyone who can access the individual (page parity), so they are kept — see Open Question 1 for the `names`/`sex`/`taxonomy` "contributed by a hidden encounter" residual.
 
 **Two-hop richness:** the agent obtains the *per-viewer* sighting list, locations, dates, co-occurrences for an individual by querying `POST /api/v3/search/encounter` with `{"query":{"term":{"individualId":"<id>"}}}` — already ACL-scoped. The rich record is assembled across two indices, each enforcing the ACL independently; nothing leaks and individual search keeps full query expressiveness.
 
@@ -81,9 +84,15 @@ Two parts:
 - **Individual serializer** (`MarkedIndividual.opensearchDocumentSerializer`) — in the existing all-member-encounters pass, also compute and emit `publiclyReadable` (OR), `submitterUserIds` (set), `viewUsers` (union).
 - **Mappings** are additive: add the new fields (boolean / keyword) to the existing annotation + individual index mappings (OpenSearch allows adding fields to a live mapping); no drop/recreate required.
 
-**Sync triggers (correctness-critical).** Artifact A reindexes an encounter when its ACL changes (collaboration approve/reject, orgAdmin role change, org membership, user delete/rename/consolidation). Spec A **extends those same trigger points** so that when an encounter's `viewUsers`/`publiclyReadable`/`submitterUserId` changes, we also enqueue reindex of (a) its annotations and (b) its individual. Without this, a revoked viewer could linger on the child indices after the encounter is corrected — the bug class A hardened, now for two more indices. Use the existing bulk/queue path; document any best-effort-vs-guaranteed nuance as A did.
+**Sync triggers (correctness-critical) — two distinct trigger classes:**
 
-**Parity edge — anonymous / null-submitter encounters.** Wildbook's live gate grants these to everyone (`Collaboration.java:477`). The pre-filter only grants via `publiclyReadable`/submitter/`viewUsers`, so indexing must mark anonymous/null-owner encounters as `publiclyReadable=true` (or an equivalent world-readable flag the filter treats as public) — on the **encounter** index too, since today it may under-grant those. This is a small correction that also tightens encounter parity. (Confirm against A's existing handling of invalid/missing owners, which currently writes `[]`/admin-only — reconcile: anonymous-owned ≠ invalid-owner; anonymous-owned is world-readable, invalid/deleted-owner is admin-only/fail-closed.)
+*(i) ACL-change triggers.* Artifact A reindexes an encounter when its ACL changes (collaboration approve/reject, orgAdmin role change, org membership, user delete/rename/consolidation). Spec A **extends those same trigger points** so the encounter's annotations and its individual are also enqueued. Without this, a revoked viewer lingers on the child indices — the bug class A hardened, now for two more indices.
+
+*(ii) Membership-change triggers (Codex High — easy to miss).* The union fields also change when an encounter's *relationship* changes, even if no ACL changed: encounter↔individual reassignment, encounter removal from an individual, and individual **merge/split**. On any such event we must reindex **both the old and the new individual** (capture both IDs *before* the mutation — e.g. `IndividualRemoveEncounter.java:60`, `Encounter.setIndividual`/`MarkedIndividual.removeEncounter`/merge paths), and the affected annotations. Reindexing only "its individual" after the fact misses the stale **old** individual whose union must shrink. Enumerate and cover: encounter added to / removed from / reassigned between individuals, individual merge, individual split, encounter delete/unindex.
+
+Use the existing bulk/queue path; document any best-effort-vs-guaranteed nuance as A did.
+
+**Parity edge — anonymous-owned vs invalid-owner (Codex Medium — use the right predicate).** Wildbook's live gate grants **anonymous-owned** encounters to everyone, where "anonymous" is precisely `User.isUsernameAnonymous(submitterID)` — `null`, blank, `"N/A"`, or `"public"` (`User.java:392`, `Collaboration.java:452-458`, `Encounter.isPubliclyReadable` `Encounter.java:4107`). The indexer must mark those `publiclyReadable=true`. It must **NOT** treat a non-anonymous owner whose `User` lookup happens to be `null` (deleted/invalid) as public — that stays **admin-only/fail-closed** (A's existing invalid-owner handling, `Encounter.java:4398`). So: use `User.isUsernameAnonymous(submitterID)` / `Encounter.isPubliclyReadable()`, never `getSubmitterUser()==null`, to avoid accidentally world-readabling a genuinely-private encounter. This correction belongs in the single ACL source so encounter, annotation, and individual all inherit it.
 
 **Equivalence test (extends A's cross-check).** Add the analogue of A's indexed-vs-live cross-check: for a sample of individuals/annotations, the indexed gate decision matches live `Collaboration.canUserAccessMarkedIndividual` / `canUserAccessEncounter`.
 
@@ -94,15 +103,18 @@ Two parts:
 Small, building on D's structure:
 - Index gate flips from "encounter-only" to a token **allowlist `{encounter, annotation, individual}`**; `occurrence`/`media_asset` still 403.
 - Generalize `OpenSearch.applyEncounterAclFilter(query, uuid)` → `applyAclFilter(query, uuid, indexName)` that selects field names per index (`submitterUserId` for encounter/annotation; `submitterUserIds` for individual; `publiclyReadable`/`viewUsers` common). Same `bool{must:[orig], filter:[should…]}` shape, injected before `queryPit`, admin-bypassed.
-- **Individual result sanitizer**: a token-path branch (in `sanitizeDoc` or a sibling) that strips the cross-encounter aggregate fields (the keep/strip table) from individual hits. Annotation hits pass through whole (embeddings included). Encounter unchanged.
-- Ensure the existing **annotation-admin-only** branch applies only to **non-token** requests (token path uses the ACL filter instead).
+- **Universal ACL-field scrub** (all indices, all paths): `sanitizeDoc` removes `publiclyReadable`/`submitterUserId`/`submitterUserIds`/`viewUsers`/`editUsers` from every returned doc (generalizes D's encounter `viewUsers` removal).
+- **Individual allowlist sanitizer** (token, non-admin): keep only the allowlisted identity fields, drop everything else (see Read surfaces). Annotation hits pass through whole (embeddings included, ACL fields scrubbed). Encounter unchanged beyond the universal scrub.
+- **Resolve the effective index BEFORE the annotation-admin-only gate (Codex Medium).** Today the non-token `"annotation" → admin-only` check runs before a stored query's real `indexName` is resolved, so a stored query over the annotation index could slip past it. Compute the effective index first (direct path index, or the loaded stored query's `indexName`), then apply: on the **non-token/session** path the annotation-admin-only gate uses the effective index; on the **token** path the ACL filter governs instead.
 - Stored-query owner check, method allowlist, fail-closed-unmarked, verified-context binding — **unchanged** from D; already per-index.
 
 ## Testing
 
-- **Unit:** `applyAclFilter` builds the correct clause per index (field names); the individual sanitizer strips exactly the leak set and keeps identity; index allowlist (occurrence/media_asset → 403, annotation/individual allowed on token path).
-- **Serializer unit:** annotation emits parent ACL; individual emits unions (incl. anon-owner → `publiclyReadable=true`); indexed gate matches live `canUserAccessMarkedIndividual` for owner/approved-collab/orgAdmin/rejected-collab/public/anonymous cases.
-- **Integration (real OpenSearch — the decisive proof):** seed encounters with mixed ACLs + their annotations + a shared individual spanning multiple owners; with a non-admin token assert: (a) annotation hits + totals are gated by visible encounters; (b) individual gate = ≥1 visible encounter, hits scoped, leaky aggregates absent from the response, identity present; (c) an individual the user can't see → absent (or stub); (d) admin token → unscoped. Mirrors the live `testy1` proof, extended to the two indices.
+- **Unit:** `applyAclFilter` builds the correct clause per index (field names: `submitterUserId` for encounter, `submitterUserIds` for annotation/individual); index allowlist (occurrence/media_asset → 403; annotation/individual allowed on token path); the **universal ACL-field scrub** removes the ACL fields from encounter, annotation, and individual responses on **both** token and session paths; the effective-index-first ordering blocks a session annotation stored-query from bypassing the admin gate.
+- **Allowlist-completeness test (Codex High):** assert that for the current `MarkedIndividual.opensearchDocumentSerializer` output, **every** emitted field is either in the keep-allowlist or dropped by the sanitizer — guards against a future serializer field silently leaking.
+- **Serializer unit:** annotation emits the **union over parent encounter(s)** (and **0 parents → admin-only**); individual emits unions (and **0 member encounters → `publiclyReadable=true`/world-readable**); anonymous-owned (`isUsernameAnonymous`) → `publiclyReadable=true` while invalid/deleted non-anonymous owner → fail-closed; indexed gate matches live `canUserAccessMarkedIndividual` / `canUserAccessEncounter` for owner/approved-collab/orgAdmin/rejected-collab/public/anonymous/zero-encounter cases (the single-ACL-source guarantees encounter==annotation==individual agreement).
+- **Sync-trigger tests (Codex High):** encounter reassigned between individuals → **both** old and new individual reindexed (old union shrinks); individual merge/split → affected individuals reindexed; encounter ACL change → its annotations + individual reindexed.
+- **Integration (real OpenSearch — the decisive proof):** seed encounters with mixed ACLs + their annotations + a shared individual spanning multiple owners; with a non-admin token assert: (a) annotation hits + totals gated by visible encounters, no ACL fields in `_source`; (b) individual gate = ≥1 visible encounter, hits scoped, only allowlisted identity fields present (no aggregates, no ACL fields); (c) an individual the user can't see → absent; (d) a zero-encounter individual → visible to anyone; (e) admin token → unscoped. Mirrors the live `testy1` proof, extended to the two indices.
 
 ## Scope
 
@@ -114,7 +126,7 @@ Small, building on D's structure:
 
 ## Open questions for review
 
-1. **Keep/strip field list for individuals** — confirm the exact split against the current `MarkedIndividual.opensearchDocumentSerializer` output; decide whether `sex`/`timeOfBirth`/`timeOfDeath` are "identity" (kept) or sensitive (stripped). Default: kept (matches the page showing them to anyone who can access the individual).
+1. **Identity allowlist + the "hidden-encounter-contributed attribute" residual (Codex Medium/Low).** Confirm the allowlist against the current serializer. Note: `names`/`nameMap`, `sex`, and `taxonomy` are individual-level fields that can be *contributed by a member encounter the viewer can't see*, yet Wildbook's individual page shows them wholesale once the individual is visible (`MarkedIndividual.java:2738`, `individuals.jsp:557`). Default = **keep** (exact page parity). Decision for the reviewer: accept this page-parity residual (a name/sex/taxonomy sourced from a hidden encounter is visible), or add a stricter mode that filters name entries to those from visible encounters (more faithful to confidentiality, less faithful to the page, materially more work). Recommend: keep (page parity), document the residual.
 2. **Anonymous-owner vs invalid-owner reconciliation** — confirm A's current handling so anonymous-owned encounters become `publiclyReadable=true` (world-readable) while invalid/deleted-owner stays admin-only/fail-closed; ensure the two cases aren't conflated in the serializer.
 3. **Sync-trigger guarantee level** — reuse A's queue/bulk path; confirm acceptable latency for child-index ACL propagation (the live `canUserAccess`/B2 backstop is encounter-only; individuals/annotations rely on the indexed gate, so propagation latency = visibility latency).
 4. **Branch/PR strategy** — stack Spec A on the D branch, or wait until A/B/D land on `main` and branch fresh?
