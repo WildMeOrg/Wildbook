@@ -1,7 +1,15 @@
 package org.ecocean.api;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
+import org.ecocean.Annotation;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.media.URLAssetStore;
+import org.ecocean.media.YouTubeAssetStore;
+import org.ecocean.media.LocalAssetStore;
+import org.ecocean.shepherd.core.Shepherd;
 import org.junit.jupiter.api.Test;
 
 class MediaResolveApiTest {
@@ -48,5 +56,97 @@ class MediaResolveApiTest {
     @Test void scaleBbox_nullWhenScaledRegionVanishes() {
         int[] out = MediaResolveApi.scaleBbox(new int[] {0, 0, 1, 1}, 10000, 10000, 5, 5);
         assertNull(out, "a region that rounds to <1px in the derivative -> null (omit)");
+    }
+
+    private MediaAsset child(String label, boolean urlStore) {
+        MediaAsset ma = mock(MediaAsset.class);
+        ArrayList<String> labels = new ArrayList<>();
+        labels.add(label);
+        when(ma.getLabels()).thenReturn(labels);
+        when(ma.hasLabel(label)).thenReturn(true);
+        when(ma.getStore()).thenReturn(urlStore ? mock(URLAssetStore.class) : mock(LocalAssetStore.class));
+        return ma;
+    }
+
+    private Annotation annWithSource(MediaAsset src) {
+        Annotation ann = mock(Annotation.class);
+        when(ann.getMediaAsset()).thenReturn(src);
+        return ann;
+    }
+
+    @Test void selectSafeDerivative_prefersMaster() {
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        MediaAsset master = child("_master", false);
+        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(master);
+        when(src.findChildrenByLabel(sh, "_master")).thenReturn(masters);
+        MediaAsset out = MediaResolveApi.selectSafeDerivative(annWithSource(src), sh);
+        assertSame(master, out, "a _master child must be selected first");
+    }
+
+    @Test void selectSafeDerivative_fallsBackToMidWhenNoMaster() {
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.findChildrenByLabel(sh, "_master")).thenReturn(null);
+        MediaAsset mid = child("_mid", false);
+        ArrayList<MediaAsset> mids = new ArrayList<>(); mids.add(mid);
+        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(mids);
+        MediaAsset out = MediaResolveApi.selectSafeDerivative(annWithSource(src), sh);
+        assertSame(mid, out, "must fall back to _mid when _master is absent (bestSafeAsset bug bypassed)");
+    }
+
+    @Test void selectSafeDerivative_nullWhenNoSafeDerivative() {
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.findChildrenByLabel(sh, "_master")).thenReturn(null);
+        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(null);
+        assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+            "no _master/_mid -> null (omit)");
+    }
+
+    @Test void selectSafeDerivative_rejectsUrlAssetStoreSource() {
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(URLAssetStore.class));
+        assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+            "URLAssetStore source (external original) must be rejected");
+    }
+
+    @Test void selectSafeDerivative_skipsUrlStoreChildren() {
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        MediaAsset urlChild = child("_master", true); // _master label but URLAssetStore
+        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(urlChild);
+        when(src.findChildrenByLabel(sh, "_master")).thenReturn(masters);
+        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(null);
+        assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+            "a non-local (URLAssetStore) child must be skipped");
+    }
+
+    @Test void selectSafeDerivative_rejectsYouTubeStoreSource() {
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(YouTubeAssetStore.class));
+        assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+            "YouTubeAssetStore source (webURL is a watch page, not image bytes) must be rejected");
+    }
+
+    @Test void selectSafeDerivative_skipsMasterAlsoLabeledOriginal_fallsBackToMid() {
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        MediaAsset masterButOriginal = child("_master", false);
+        when(masterButOriginal.hasLabel("_original")).thenReturn(true); // also carries _original
+        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(masterButOriginal);
+        when(src.findChildrenByLabel(sh, "_master")).thenReturn(masters);
+        MediaAsset mid = child("_mid", false);
+        ArrayList<MediaAsset> mids = new ArrayList<>(); mids.add(mid);
+        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(mids);
+        assertSame(mid, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+            "a _master child also labeled _original is skipped; falls back to _mid");
     }
 }

@@ -1,5 +1,12 @@
 package org.ecocean.api;
 
+import java.util.ArrayList;
+
+import org.ecocean.Annotation;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.media.LocalAssetStore;
+import org.ecocean.shepherd.core.Shepherd;
+
 public class MediaResolveApi extends ApiBase {
 
     /** Max annotation IDs accepted per request. */
@@ -35,5 +42,32 @@ public class MediaResolveApi extends ApiBase {
 
     private static long clamp(long v, long lo, long hi) {
         return (v < lo) ? lo : (v > hi ? hi : v);
+    }
+
+    /**
+     * Select the safe derivative to serve for an annotation's region: a child of the source asset
+     * labeled _master (preferred) or _mid. Both the source and the chosen derivative must be backed
+     * by a LocalAssetStore — an ALLOWLIST, not a denylist: this rejects URLAssetStore (external/public
+     * originals) AND YouTubeAssetStore (webURL is a watch page, not cropable image bytes). Also skips
+     * any child carrying _original. Returns null if none qualifies (caller omits).
+     * Deliberately does NOT use MediaAsset.safeURL/bestSafeAsset, which can return originals for
+     * URLAssetStore and does not fall back from a missing _master to _mid.
+     */
+    static MediaAsset selectSafeDerivative(Annotation ann, Shepherd myShepherd) {
+        if (ann == null) return null;
+        MediaAsset src = ann.getMediaAsset();
+        if (src == null) return null;
+        if (!(src.getStore() instanceof LocalAssetStore)) return null;
+        for (String label : new String[] {"_master", "_mid"}) {
+            ArrayList<MediaAsset> kids = src.findChildrenByLabel(myShepherd, label);
+            if (kids == null) continue;
+            for (MediaAsset kid : kids) {
+                if (kid == null) continue;
+                if (!(kid.getStore() instanceof LocalAssetStore)) continue;
+                if (kid.hasLabel("_original")) continue;
+                return kid;
+            }
+        }
+        return null;
     }
 }
