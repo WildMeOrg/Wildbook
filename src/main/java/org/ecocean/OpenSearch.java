@@ -776,8 +776,9 @@ public class OpenSearch {
 
     // Reads the CURRENT indexed viewUsers array for a single doc. Returns the array
     // (possibly empty) on success, or null if the doc/field cannot be read (missing doc,
-    // index not present, parse failure). Callers should treat null as "unknown" — i.e.
-    // assume a change so propagation is not silently skipped.
+    // index not present, parse failure). null means "unknown": the caller decides the
+    // policy (opensearchIndexPermissions treats unknown as no-change to avoid storming
+    // child reindexes on a degraded read; the reconciler recovers a missed refresh).
     public org.json.JSONArray getIndexedViewUsers(String index, String id) {
         if ((index == null) || (id == null)) return null;
         try {

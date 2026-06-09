@@ -3712,14 +3712,13 @@ public class Encounter extends Base implements java.io.Serializable {
 
     /** All encounters whose annotations contain this annotation (usually 0 or 1; >1 is anomalous). */
     public static java.util.List<Encounter> findAllByAnnotation(Annotation annot, Shepherd myShepherd) {
-        String queryString =
-            "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id == '"
-            + annot.getId() + "'";
-        javax.jdo.Query query = myShepherd.getPM().newQuery(queryString);
+        javax.jdo.Query query = myShepherd.getPM().newQuery(
+            "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id == annId");
+        query.declareParameters("String annId");
         java.util.List<Encounter> out = new java.util.ArrayList<Encounter>();
         try {
-            java.util.List results = (java.util.List) query.execute();
-            if (results != null) for (Object o : results) out.add((Encounter) o);
+            java.util.List results = (java.util.List)query.execute(annot.getId());
+            if (results != null) for (Object o : results) out.add((Encounter)o);
         } finally {
             query.closeAll();
         }

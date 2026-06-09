@@ -141,6 +141,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
         OpenSearch.initializeClient(new HttpHost(opensearch.getHost(),
             opensearch.getMappedPort(9200), "http"));
+        // The client now points at OUR fresh container; drop cluster-coupled static caches left by
+        // any earlier test class. A stale INDEX_EXISTS_CACHE makes ensureIndex skip real index
+        // creation, so seeded docs would dynamic-map (text) and the ACL term filters match nothing.
+        OpenSearch.INDEX_EXISTS_CACHE.clear();
+        OpenSearch.PIT_CACHE.clear();
+
+        // Evict any cached PMF for context0: it may be bound to ANOTHER test class's (now stopped)
+        // Postgres container. The first Shepherd below then creates a fresh PMF against OUR container.
+        org.ecocean.shepherd.core.TestPMFUtil.closePMF("context0");
 
         // seed users in Postgres + encounter docs in OpenSearch
         seedUsers();
@@ -151,6 +160,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
     @AfterAll static void tearDown() {
         System.out.println("=== Tearing Down SearchTokenScopeTest ===");
+        // our containers stop with this class; don't leave dead PMF / cluster caches for later classes
+        org.ecocean.shepherd.core.TestPMFUtil.closePMF("context0");
+        OpenSearch.INDEX_EXISTS_CACHE.clear();
+        OpenSearch.PIT_CACHE.clear();
     }
 
     // =========================================================================

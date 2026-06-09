@@ -26,6 +26,17 @@ import org.mockito.MockedStatic;
  */
 class ChildReindexTriggerTest {
 
+    // The triggers honor the global /tmp/skipAutoIndexing kill-switch (OpenSearch.skipAutoIndexing
+    // reads the host filesystem). Another test in the suite (EncounterExportImagesTest) creates
+    // that file and only removes it at JVM exit, so these tests MUST stub the static to false —
+    // otherwise they fail with "zero interactions" whenever they run after it (or on a dev
+    // machine with a leftover /tmp/skipAutoIndexing).
+    private static MockedStatic<OpenSearch> mockNoGlobalSkip() {
+        MockedStatic<OpenSearch> os = mockStatic(OpenSearch.class);
+        os.when(OpenSearch::skipAutoIndexing).thenReturn(false);
+        return os;
+    }
+
     // sets the private Encounter.individual field directly, so we can establish a
     // pre-existing "old" individual without triggering the setIndividual() hook.
     private static void setIndividualField(Encounter enc, MarkedIndividual indiv) throws Exception {
@@ -45,7 +56,8 @@ class ChildReindexTriggerTest {
         MarkedIndividual newInd = mock(MarkedIndividual.class);
 
         IndexingManager im = mock(IndexingManager.class);
-        try (MockedStatic<IndexingManagerFactory> factory = mockStatic(IndexingManagerFactory.class)) {
+        try (MockedStatic<IndexingManagerFactory> factory = mockStatic(IndexingManagerFactory.class);
+            MockedStatic<OpenSearch> os = mockNoGlobalSkip()) {
             factory.when(IndexingManagerFactory::getIndexingManager).thenReturn(im);
             enc.setIndividual(newInd);
         }
@@ -65,7 +77,8 @@ class ChildReindexTriggerTest {
         MarkedIndividual newInd = mock(MarkedIndividual.class);
 
         IndexingManager im = mock(IndexingManager.class);
-        try (MockedStatic<IndexingManagerFactory> factory = mockStatic(IndexingManagerFactory.class)) {
+        try (MockedStatic<IndexingManagerFactory> factory = mockStatic(IndexingManagerFactory.class);
+            MockedStatic<OpenSearch> os = mockNoGlobalSkip()) { // global off: proves the ENTITY flag suppresses
             factory.when(IndexingManagerFactory::getIndexingManager).thenReturn(im);
             enc.setIndividual(newInd);
         }
@@ -83,7 +96,8 @@ class ChildReindexTriggerTest {
         ind.addEncounterNoCommit(enc);
 
         IndexingManager im = mock(IndexingManager.class);
-        try (MockedStatic<IndexingManagerFactory> factory = mockStatic(IndexingManagerFactory.class)) {
+        try (MockedStatic<IndexingManagerFactory> factory = mockStatic(IndexingManagerFactory.class);
+            MockedStatic<OpenSearch> os = mockNoGlobalSkip()) {
             factory.when(IndexingManagerFactory::getIndexingManager).thenReturn(im);
             ind.removeEncounter(enc);
         }
@@ -100,7 +114,8 @@ class ChildReindexTriggerTest {
         enc.setCatalogNumber("enc-2");
 
         IndexingManager im = mock(IndexingManager.class);
-        try (MockedStatic<IndexingManagerFactory> factory = mockStatic(IndexingManagerFactory.class)) {
+        try (MockedStatic<IndexingManagerFactory> factory = mockStatic(IndexingManagerFactory.class);
+            MockedStatic<OpenSearch> os = mockNoGlobalSkip()) {
             factory.when(IndexingManagerFactory::getIndexingManager).thenReturn(im);
             ind.addEncounter(enc);
         }
