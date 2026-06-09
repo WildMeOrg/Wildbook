@@ -536,9 +536,9 @@ public class OpenSearch {
         }
     }
 
-    // Package-visible for testing. Returns the _count-shaped query body that
-    // filters on _id ∈ ids, using OpenSearch's idiomatic `ids` query.
-    static JSONObject buildIdEligibilityQuery(Set<String> ids) {
+    // Returns a query body that filters on _id ∈ ids, using OpenSearch's idiomatic `ids` query.
+    // Public so the media-resolve endpoint (org.ecocean.api) can reuse the exact id-eligibility shape.
+    public static JSONObject buildIdEligibilityQuery(Set<String> ids) {
         JSONArray idArr = new JSONArray();
         for (String id : ids) idArr.put(id);
         JSONObject query = new JSONObject();
