@@ -203,4 +203,37 @@ class EndpointAuthWiringTest {
             "search path must map to tokenAuthSearch ONLY (no authc/roles chained); was: '"
                 + value + "'");
     }
+
+    // -----------------------------------------------------------------------
+    // Assertion 7, 8, 9 — /api/v3/media/resolve wiring
+    // -----------------------------------------------------------------------
+
+    @Test
+    void mediaResolve_servletClassIsRegistered() {
+        assertTrue(fullText().contains("<servlet-class>org.ecocean.api.MediaResolveApi</servlet-class>"),
+                "web.xml must register the MediaResolveApi servlet");
+    }
+
+    @Test
+    void mediaResolve_urlPatternIsRegistered() {
+        assertTrue(fullText().contains("<url-pattern>/api/v3/media/resolve</url-pattern>"),
+                "web.xml must map /api/v3/media/resolve");
+    }
+
+    @Test
+    void mediaResolve_shiroRuleIsTokenFilterOnly() {
+        // Mirror searchPath_wiredToTokenFilterOnly: exact value equality, not a loose contains().
+        String ruleLine = lines.stream()
+                .filter(l -> {
+                    String t = l.stripLeading();
+                    return !t.startsWith("#") && t.contains("/api/v3/media/**");
+                })
+                .findFirst().orElse(null);
+        assertNotNull(ruleLine, "Shiro [urls] must contain a rule for /api/v3/media/**");
+        String value = ruleLine.substring(
+                ruleLine.indexOf("/api/v3/media/**") + "/api/v3/media/**".length()).trim();
+        if (value.startsWith("=")) value = value.substring(1).trim();
+        assertEquals("tokenAuthSearch", value,
+                "media path must map to tokenAuthSearch ONLY (no authc/roles chained); was: '" + value + "'");
+    }
 }

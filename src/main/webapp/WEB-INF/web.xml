@@ -111,6 +111,7 @@
 				# token-authenticated scoped search (Artifact D): token filter ONLY, no authc/roles chained.
 				# No Bearer => falls through to SearchApi (which self-401s if no session). Filter handles auth.
 				/api/v3/search/** = tokenAuthSearch
+				/api/v3/media/** = tokenAuthSearch
 
 
 				# ===== Appadmin =====
@@ -561,6 +562,15 @@
 	<servlet-mapping>
 		<servlet-name>CanUserAccess</servlet-name>
 		<url-pattern>/api/v3/can-user-access</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>MediaResolveApi</servlet-name>
+		<servlet-class>org.ecocean.api.MediaResolveApi</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>MediaResolveApi</servlet-name>
+		<url-pattern>/api/v3/media/resolve</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
