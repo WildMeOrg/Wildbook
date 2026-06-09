@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
@@ -17,9 +16,6 @@ import org.ecocean.Embedding;
 import org.ecocean.Encounter;
 import org.ecocean.User;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.media.MediaAssetFactory;
-import org.ecocean.media.URLAssetStore;
-import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.security.WildbookTokenAuthenticationFilter;
 import org.ecocean.servlet.ServletUtilities;
@@ -31,272 +27,6 @@ import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
 class MediaResolveApiTest {
-
-    @Test void scaleBbox_identityWhenSameDims() {
-        int[] out = MediaResolveApi.scaleBbox(new int[] {10, 20, 30, 40}, 100, 200, 100, 200);
-        assertArrayEquals(new int[] {10, 20, 30, 40}, out, "same src/dst dims must be identity");
-    }
-
-    @Test void scaleBbox_halfScaleDownscales() {
-        int[] out = MediaResolveApi.scaleBbox(new int[] {100, 200, 300, 400}, 1000, 1000, 500, 500);
-        assertArrayEquals(new int[] {50, 100, 150, 200}, out, "0.5x scale halves every component");
-    }
-
-    @Test void scaleBbox_clampsOverflowToDerivative() {
-        int[] out = MediaResolveApi.scaleBbox(new int[] {900, 0, 400, 100}, 1000, 1000, 500, 500);
-        assertArrayEquals(new int[] {450, 0, 50, 50}, out, "overflow width/height clamped to derivative bounds");
-    }
-
-    @Test void scaleBbox_nullOnBadInput() {
-        assertNull(MediaResolveApi.scaleBbox(null, 100, 100, 50, 50), "null src -> null");
-        assertNull(MediaResolveApi.scaleBbox(new int[] {1, 2, 3}, 100, 100, 50, 50), "short src -> null");
-        assertNull(MediaResolveApi.scaleBbox(new int[] {0, 0, 10, 10}, 0, 100, 50, 50), "zero src dim -> null");
-        assertNull(MediaResolveApi.scaleBbox(new int[] {0, 0, 10, 10}, 100, 100, 0, 50), "zero dst dim -> null");
-    }
-
-    @Test void scaleBbox_negativeOriginClampsCornerAndShrinksWidth() {
-        // src bbox starts at x=-10; clamping the LEFT corner to 0 must shrink width to 10, not keep 20.
-        int[] out = MediaResolveApi.scaleBbox(new int[] {-10, 0, 20, 20}, 100, 100, 100, 100);
-        assertArrayEquals(new int[] {0, 0, 10, 20}, out, "negative origin clamps corner and shrinks width");
-    }
-
-    @Test void scaleBbox_fullyOutsideReturnsNull() {
-        int[] out = MediaResolveApi.scaleBbox(new int[] {-50, -50, 20, 20}, 100, 100, 100, 100);
-        assertNull(out, "a box entirely outside the image collapses to <1px -> null (omit)");
-    }
-
-    @Test void scaleBbox_asymmetricScaleAppliedPerAxis() {
-        // sx=2 on X, sy=0.5 on Y — a single-factor bug would produce wrong Y values
-        int[] out = MediaResolveApi.scaleBbox(new int[] {10, 100, 50, 200}, 100, 1000, 200, 500);
-        assertArrayEquals(new int[] {20, 50, 100, 100}, out, "x and y must use their own scale factor");
-    }
-
-    @Test void scaleBbox_nullWhenScaledRegionVanishes() {
-        int[] out = MediaResolveApi.scaleBbox(new int[] {0, 0, 1, 1}, 10000, 10000, 5, 5);
-        assertNull(out, "a region that rounds to <1px in the derivative -> null (omit)");
-    }
-
-    private MediaAsset child(String label, boolean urlStore) {
-        MediaAsset ma = mock(MediaAsset.class);
-        ArrayList<String> labels = new ArrayList<>();
-        labels.add(label);
-        when(ma.getLabels()).thenReturn(labels);
-        when(ma.hasLabel(label)).thenReturn(true);
-        when(ma.getStore()).thenReturn(urlStore ? mock(URLAssetStore.class) : mock(LocalAssetStore.class));
-        return ma;
-    }
-
-    private Annotation annWithSource(MediaAsset src) {
-        Annotation ann = mock(Annotation.class);
-        when(ann.getMediaAsset()).thenReturn(src);
-        return ann;
-    }
-
-    @Test void selectSafeDerivative_prefersMaster() {
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        MediaAsset master = child("_master", false);
-        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(master);
-        when(src.findChildrenByLabel(sh, "_master")).thenReturn(masters);
-        MediaAsset out = MediaResolveApi.selectSafeDerivative(annWithSource(src), sh);
-        assertSame(master, out, "a _master child must be selected first");
-    }
-
-    @Test void selectSafeDerivative_fallsBackToMidWhenNoMaster() {
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        when(src.findChildrenByLabel(sh, "_master")).thenReturn(null);
-        MediaAsset mid = child("_mid", false);
-        ArrayList<MediaAsset> mids = new ArrayList<>(); mids.add(mid);
-        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(mids);
-        MediaAsset out = MediaResolveApi.selectSafeDerivative(annWithSource(src), sh);
-        assertSame(mid, out, "must fall back to _mid when _master is absent (bestSafeAsset bug bypassed)");
-    }
-
-    @Test void selectSafeDerivative_nullWhenNoSafeDerivative() {
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        when(src.findChildrenByLabel(sh, "_master")).thenReturn(null);
-        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(null);
-        assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-            "no _master/_mid -> null (omit)");
-    }
-
-    @Test void selectSafeDerivative_rejectsUrlAssetStoreSource() {
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(URLAssetStore.class));
-        assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-            "URLAssetStore source (external original) must be rejected");
-    }
-
-    @Test void selectSafeDerivative_skipsUrlStoreChildren() {
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        MediaAsset urlChild = child("_master", true); // _master label but URLAssetStore
-        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(urlChild);
-        when(src.findChildrenByLabel(sh, "_master")).thenReturn(masters);
-        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(null);
-        assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-            "a non-local (URLAssetStore) child must be skipped");
-    }
-
-    @Test void selectSafeDerivative_rejectsYouTubeStoreSource() {
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(YouTubeAssetStore.class));
-        assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-            "YouTubeAssetStore source (webURL is a watch page, not image bytes) must be rejected");
-    }
-
-    @Test void selectSafeDerivative_skipsMasterAlsoLabeledOriginal_fallsBackToMid() {
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        MediaAsset masterButOriginal = child("_master", false);
-        when(masterButOriginal.hasLabel("_original")).thenReturn(true); // also carries _original
-        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(masterButOriginal);
-        when(src.findChildrenByLabel(sh, "_master")).thenReturn(masters);
-        MediaAsset mid = child("_mid", false);
-        ArrayList<MediaAsset> mids = new ArrayList<>(); mids.add(mid);
-        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(mids);
-        assertSame(mid, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-            "a _master child also labeled _original is skipped; falls back to _mid");
-    }
-
-    @Test void selectSafeDerivative_walksToOriginalParentForDerivatives() {
-        // Live-data shape (flakebook): the annotation's asset is a full-frame, non-original SIBLING of
-        // the derivatives; _master/_mid hang off the _original PARENT. With no own derivative,
-        // selectSafeDerivative walks to the parent and uses its _master because it is a uniform scale
-        // of the source frame (1000x1000 -> 500x500).
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        when(src.getParentId()).thenReturn(4242);
-        when(src.getWidth()).thenReturn(1000.0);
-        when(src.getHeight()).thenReturn(1000.0);
-        MediaAsset original = mock(MediaAsset.class);
-        when(original.hasLabel("_original")).thenReturn(true);
-        MediaAsset master = child("_master", false);
-        when(master.getWidth()).thenReturn(500.0);
-        when(master.getHeight()).thenReturn(500.0);
-        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(master);
-        when(original.findChildrenByLabel(sh, "_master")).thenReturn(masters);
-        try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
-            mf.when(() -> MediaAssetFactory.load(4242, sh)).thenReturn(original);
-            assertSame(master, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-                "uses the _original parent's derivative when it's a uniform scale of the source");
-        }
-    }
-
-    @Test void selectSafeDerivative_ownDerivativePreferredOverParent() {
-        // When the annotation's OWN asset has a _master, use it directly — never load the parent.
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        when(src.getParentId()).thenReturn(4242);
-        MediaAsset own = child("_master", false);
-        ArrayList<MediaAsset> owns = new ArrayList<>(); owns.add(own);
-        when(src.findChildrenByLabel(sh, "_master")).thenReturn(owns);
-        try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
-            assertSame(own, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-                "the annotation's own _master is used without walking to the parent");
-            mf.verifyNoInteractions();
-        }
-    }
-
-    @Test void selectSafeDerivative_parentNotOriginal_omits() {
-        // src has no own derivative and the parent is NOT an _original -> omit.
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        when(src.getParentId()).thenReturn(4242);
-        MediaAsset parent = mock(MediaAsset.class);
-        when(parent.hasLabel("_original")).thenReturn(false);
-        try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
-            mf.when(() -> MediaAssetFactory.load(4242, sh)).thenReturn(parent);
-            assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-                "a non-_original parent yields no derivative -> omit");
-        }
-    }
-
-    @Test void selectSafeDerivative_parentLoadNull_omits() {
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        when(src.getParentId()).thenReturn(4242);
-        try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
-            mf.when(() -> MediaAssetFactory.load(4242, sh)).thenReturn(null);
-            assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-                "parent load returns null -> omit");
-        }
-    }
-
-    @Test void selectSafeDerivative_parentLoadThrows_omits() {
-        // A parent-load failure must omit this one id (fail-soft), never throw to fail the batch.
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        when(src.getParentId()).thenReturn(4242);
-        try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
-            mf.when(() -> MediaAssetFactory.load(4242, sh)).thenThrow(new RuntimeException("pm down"));
-            assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-                "parent load failure -> omit (fail-soft)");
-        }
-    }
-
-    @Test void selectSafeDerivative_parentDerivativeNonUniformScale_omits() {
-        // src is a CROP (different aspect than the parent's full-frame derivative): 1000x1000 source vs
-        // 500x250 derivative => sx=0.5, sy=0.25 (non-uniform) => omit, to avoid a mis-scaled bbox.
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        when(src.getParentId()).thenReturn(4242);
-        when(src.getWidth()).thenReturn(1000.0);
-        when(src.getHeight()).thenReturn(1000.0);
-        MediaAsset original = mock(MediaAsset.class);
-        when(original.hasLabel("_original")).thenReturn(true);
-        MediaAsset master = child("_master", false);
-        when(master.getWidth()).thenReturn(500.0);
-        when(master.getHeight()).thenReturn(250.0);
-        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(master);
-        when(original.findChildrenByLabel(sh, "_master")).thenReturn(masters);
-        try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
-            mf.when(() -> MediaAssetFactory.load(4242, sh)).thenReturn(original);
-            assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-                "non-uniform scale (cropped/transformed source) -> omit");
-        }
-    }
-
-    @Test void selectSafeDerivative_nullWhenChildrenExistButNoneMatchLabel() {
-        // findChildrenByLabel returns an empty list (not null) when children exist but labels don't match
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        when(src.findChildrenByLabel(sh, "_master")).thenReturn(new ArrayList<>());
-        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(new ArrayList<>());
-        assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-            "empty child list (no matching labels) -> null");
-    }
-
-    @Test void selectSafeDerivative_skipsUrlMasterThenFallsBackToLocalMid() {
-        // URL-backed _master is skipped, then a local _mid is returned
-        Shepherd sh = mock(Shepherd.class);
-        MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
-        MediaAsset urlMaster = child("_master", true);
-        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(urlMaster);
-        when(src.findChildrenByLabel(sh, "_master")).thenReturn(masters);
-        MediaAsset mid = child("_mid", false);
-        ArrayList<MediaAsset> mids = new ArrayList<>(); mids.add(mid);
-        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(mids);
-        assertSame(mid, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-            "a non-local _master is skipped; falls back to the local _mid");
-    }
 
     /** Build a token-auth request mock; body comes from the ServletUtilities static mock. */
     private HttpServletRequest tokenRequest() {
@@ -410,41 +140,34 @@ class MediaResolveApiTest {
         }
     }
 
-    /** A fully-populated annotation whose 1000x1000 source has a 500x500 _master derivative. */
+    /** A resolvable annotation: source asset is LocalAssetStore 1000x1000, bbox [100,200,300,400],
+        and bestSafeAsset("master") returns a local, non-_original derivative with a webURL. */
     private Annotation fullAnnotation(String id, String encId, String indId) throws Exception {
         MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.getStore()).thenReturn(mock(org.ecocean.media.LocalAssetStore.class));
         when(src.getWidth()).thenReturn(1000.0);
         when(src.getHeight()).thenReturn(1000.0);
-
         MediaAsset master = mock(MediaAsset.class);
-        when(master.getStore()).thenReturn(mock(LocalAssetStore.class));
-        ArrayList<String> labels = new ArrayList<>(); labels.add("_master");
-        when(master.getLabels()).thenReturn(labels);
-        when(master.hasLabel("_master")).thenReturn(true);
+        when(master.getStore()).thenReturn(mock(org.ecocean.media.LocalAssetStore.class));
         when(master.hasLabel("_original")).thenReturn(false);
-        when(master.getWidth()).thenReturn(500.0);
-        when(master.getHeight()).thenReturn(500.0);
-        when(master.webURL()).thenReturn(new URL("https://h/wildbook_data_dir/x/" + id + "-master.jpg"));
-        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(master);
-
+        when(master.webURL()).thenReturn(new java.net.URL("https://h/wildbook_data_dir/x/" + id + "-master.jpg"));
+        when(src.bestSafeAsset(any(Shepherd.class), isNull(), eq("master"))).thenReturn(master);
         Annotation ann = mock(Annotation.class);
         when(ann.getId()).thenReturn(id);
         when(ann.getMediaAsset()).thenReturn(src);
-        when(src.findChildrenByLabel(any(Shepherd.class), eq("_master"))).thenReturn(masters);
         when(ann.getBbox()).thenReturn(new int[] {100, 200, 300, 400});
         when(ann.getTheta()).thenReturn(0.0);
         when(ann.getViewpoint()).thenReturn("up");
         Encounter enc = mock(Encounter.class);
         when(enc.getId()).thenReturn(encId);
-        when(enc.hasMarkedIndividual()).thenReturn(indId != null && !indId.isEmpty());
+        when(enc.hasMarkedIndividual()).thenReturn(true);
         when(enc.getIndividualID()).thenReturn(indId);
         when(ann.findEncounter(any(Shepherd.class))).thenReturn(enc);
         when(ann.getEmbeddings()).thenReturn(null);
         return ann;
     }
 
-    @Test void resolve_payload_scaledBbox_and_derivativeUrl() throws Exception {
+    @Test void resolve_payload_sourceFrameBbox_and_derivativeUrl() throws Exception {
         Annotation ann = fullAnnotation("ann-A", "enc-A", "ind-A");
         HttpServletRequest request = tokenRequest();
         HttpServletResponse resp = mock(HttpServletResponse.class);
@@ -469,12 +192,11 @@ class MediaResolveApiTest {
         assertEquals(1, arr.length(), "one entry resolved");
         JSONObject e = arr.getJSONObject(0);
         assertEquals("ann-A", e.getString("id"), "id echoed");
-        assertTrue(e.getString("imageUrl").endsWith("-master.jpg"), "serves the _master derivative url");
-        assertEquals(500, e.getInt("imageWidth"), "imageWidth is the derivative width");
-        assertEquals(500, e.getInt("imageHeight"), "imageHeight is the derivative height");
-        // src 1000x1000 -> dst 500x500 is 0.5x: [100,200,300,400] -> [50,100,150,200]
-        assertEquals("[50,100,150,200]", e.getJSONArray("bbox").toString(),
-            "bbox scaled into derivative pixel space, not raw source coords");
+        assertTrue(e.getString("imageUrl").endsWith("-master.jpg"), "serves the safeURL master derivative");
+        assertEquals(1000, e.getInt("imageWidth"), "imageWidth is the annotation asset width");
+        assertEquals(1000, e.getInt("imageHeight"), "imageHeight is the annotation asset height");
+        assertEquals("[100,200,300,400]", e.getJSONArray("bbox").toString(),
+            "bbox is returned in the source coordinate space (no server-side scaling)");
         assertEquals("up", e.getString("viewpoint"), "viewpoint passed through");
         assertEquals("enc-A", e.getString("encounterId"), "first-parent encounter id");
         assertEquals("ind-A", e.getString("individualId"), "individual id");
@@ -702,31 +424,17 @@ class MediaResolveApiTest {
             "gate query must include the Spec A annotation ACL filter; was: " + q);
     }
 
-    @Test void resolve_webUrlThrows_omitsEntryNot500() throws Exception {
-        // A visible annotation whose derivative webURL() throws (corrupt LocalAssetStore params)
-        // must be omitted (fail-closed), not turn the whole batch into a 500.
+    @Test void resolve_safeUrlThrows_omitsEntryNot500() throws Exception {
         MediaAsset src = mock(MediaAsset.class);
-        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.getStore()).thenReturn(mock(org.ecocean.media.LocalAssetStore.class));
         when(src.getWidth()).thenReturn(1000.0);
         when(src.getHeight()).thenReturn(1000.0);
-        MediaAsset master = mock(MediaAsset.class);
-        when(master.getStore()).thenReturn(mock(LocalAssetStore.class));
-        ArrayList<String> labels = new ArrayList<>(); labels.add("_master");
-        when(master.getLabels()).thenReturn(labels);
-        when(master.hasLabel("_master")).thenReturn(true);
-        when(master.hasLabel("_original")).thenReturn(false);
-        when(master.getWidth()).thenReturn(500.0);
-        when(master.getHeight()).thenReturn(500.0);
-        when(master.webURL()).thenThrow(new IllegalArgumentException("corrupt path"));
-        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(master);
+        when(src.bestSafeAsset(any(Shepherd.class), isNull(), anyString()))
+            .thenThrow(new IllegalArgumentException("corrupt path"));
         Annotation ann = mock(Annotation.class);
         when(ann.getId()).thenReturn("ann-x");
         when(ann.getMediaAsset()).thenReturn(src);
-        when(src.findChildrenByLabel(any(Shepherd.class), eq("_master"))).thenReturn(masters);
-        when(ann.getBbox()).thenReturn(new int[] {100, 200, 300, 400});
-        when(ann.getTheta()).thenReturn(0.0);
-        when(ann.getViewpoint()).thenReturn("up");
-
+        when(ann.getBbox()).thenReturn(new int[] {10, 10, 100, 100});
         HttpServletRequest request = tokenRequest();
         HttpServletResponse resp = mock(HttpServletResponse.class);
         StringWriter out = new StringWriter();
@@ -747,7 +455,7 @@ class MediaResolveApiTest {
         }
         verify(resp).setStatus(200);
         assertEquals(0, new JSONArray(out.toString()).length(),
-            "an annotation whose webURL() throws is omitted; the batch still returns 200");
+            "an annotation whose safeURL lookup throws is omitted; batch still 200");
     }
 
     @Test void resolve_emptyEncounterId_serializedAsNull() throws Exception {
@@ -775,5 +483,30 @@ class MediaResolveApiTest {
         }
         JSONObject e = new JSONArray(out.toString()).getJSONObject(0);
         assertTrue(e.isNull("encounterId"), "empty encounter id serialized as JSON null");
+    }
+
+    @Test void resolve_nullBbox_omits() throws Exception {
+        Annotation ann = fullAnnotation("ann-nb", "enc-nb", "ind-nb");
+        when(ann.getBbox()).thenReturn(null);
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin");
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-nb")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-nb")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        verify(resp).setStatus(200);
+        assertEquals(0, new JSONArray(out.toString()).length(), "null bbox -> omit");
     }
 }

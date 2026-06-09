@@ -2,7 +2,6 @@ package org.ecocean.api;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -17,7 +16,6 @@ import org.ecocean.OpenSearch;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.security.WildbookTokenAuthenticationFilter;
 import org.ecocean.servlet.ServletUtilities;
@@ -29,34 +27,6 @@ public class MediaResolveApi extends ApiBase {
 
     /** Max annotation IDs accepted per request. */
     static final int MAX_IDS = 100;
-
-    /**
-     * Scale an axis-aligned bbox from the source asset's pixel space into the returned
-     * derivative's pixel space, then clamp to the derivative bounds.
-     * Returns null if inputs are invalid or the scaled region is empty (<1px) — caller omits the entry.
-     *
-     * @param src  [x, y, width, height] in source-asset pixels
-     */
-    static int[] scaleBbox(int[] src, double srcW, double srcH, double dstW, double dstH) {
-        if ((src == null) || (src.length < 4)) return null;
-        if ((srcW <= 0) || (srcH <= 0) || (dstW <= 0) || (dstH <= 0)) return null;
-        double sx = dstW / srcW;
-        double sy = dstH / srcH;
-        int maxW = (int) Math.floor(dstW);
-        int maxH = (int) Math.floor(dstH);
-        // Scale BOTH corners, clamp each corner to the derivative bounds, THEN derive w/h.
-        // (Clamping only the origin and keeping the scaled w/h would mis-size a negative-origin box.)
-        // src[i] * sx is int*double -> promotes through double, no overflow; the (long) casts below
-        // matter because src[0]+src[2] (an int sum) could overflow before the multiply.
-        long x1 = clamp(Math.round(src[0] * sx), 0, maxW);
-        long y1 = clamp(Math.round(src[1] * sy), 0, maxH);
-        long x2 = clamp(Math.round(((long) src[0] + src[2]) * sx), 0, maxW);
-        long y2 = clamp(Math.round(((long) src[1] + src[3]) * sy), 0, maxH);
-        int w = (int) (x2 - x1);
-        int h = (int) (y2 - y1);
-        if ((w < 1) || (h < 1)) return null;
-        return new int[] {(int) x1, (int) y1, w, h};
-    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -183,42 +153,36 @@ public class MediaResolveApi extends ApiBase {
 
     /**
      * Resolve one visible annotation into a response entry, or null to omit (fail-closed) when any
-     * required piece is missing: annotation, source asset, dimensions, safe derivative, bbox, or url.
-     * encounterId/individualId use findEncounter's first parent (documented multi-parent behavior;
-     * multi-parent annotations are admin-only in the index so a non-admin never reaches here for them).
+     * required piece is missing. The bbox is returned in the ANNOTATION ASSET's coordinate space
+     * (whose dimensions are reliably stored, unlike derivative children's) — NOT scaled into the
+     * served derivative. The consumer fetches imageUrl, reads its real pixel size, and scales bbox by
+     * realDim/reportedDim before cropping (usually a no-op since _master == source size).
+     * encounterId/individualId use the first parent (findEncounter); multi-parent annotations are
+     * admin-only in the index, so a non-admin never reaches here for them.
      */
     private JSONObject resolveOne(String annotationId, Shepherd myShepherd) {
         Annotation ann = myShepherd.getAnnotation(annotationId);
         if (ann == null) return null;
         MediaAsset src = ann.getMediaAsset();
         if (src == null) return null;
-        double srcW = src.getWidth();
-        double srcH = src.getHeight();
-        if ((srcW <= 0) || (srcH <= 0)) return null;
-        MediaAsset deriv = selectSafeDerivative(ann, myShepherd);
-        if (deriv == null) return null;
-        double dstW = deriv.getWidth();
-        double dstH = deriv.getHeight();
-        if ((dstW <= 0) || (dstH <= 0)) return null;
-        int[] scaled = scaleBbox(ann.getBbox(), srcW, srcH, dstW, dstH);
-        if (scaled == null) return null;
-        URL url;
-        try {
-            url = deriv.webURL();
-        } catch (RuntimeException ex) {
-            // corrupt asset params (e.g. LocalAssetStore.pathFromParameters throws IllegalArgumentException)
-            // -> omit this one annotation (fail-closed); never 500 the whole batch.
-            return null;
-        }
+        // Only LocalAssetStore assets yield servable image bytes (rejects URLAssetStore externals and
+        // YouTubeAssetStore watch pages).
+        if (!(src.getStore() instanceof LocalAssetStore)) return null;
+        double w = src.getWidth();
+        double h = src.getHeight();
+        if ((w <= 0) || (h <= 0)) return null;
+        int[] bbox = clampBbox(ann.getBbox(), w, h);
+        if (bbox == null) return null;
+        URL url = safeServableUrl(src, myShepherd);
         if (url == null) return null;
 
         JSONObject e = new JSONObject();
         e.put("id", ann.getId());
         e.put("imageUrl", url.toString());
-        e.put("imageWidth", (int) dstW);
-        e.put("imageHeight", (int) dstH);
+        e.put("imageWidth", (int) w);
+        e.put("imageHeight", (int) h);
         JSONArray bb = new JSONArray();
-        for (int v : scaled) bb.put(v);
+        for (int v : bbox) bb.put(v);
         e.put("bbox", bb);
         e.put("theta", ann.getTheta());
         String vp = ann.getViewpoint();
@@ -226,9 +190,6 @@ public class MediaResolveApi extends ApiBase {
         Encounter enc = ann.findEncounter(myShepherd);
         e.put("encounterId",
             (enc != null && Util.stringExists(enc.getId())) ? enc.getId() : JSONObject.NULL);
-        // Derive the individual from the already-loaded encounter. findIndividualId() would re-run
-        // findEncounter (a second DB query per annotation); mirror its guard here instead.
-        // Util.stringExists already rejects null/blank/"none"/"unknown", so no extra "None" check.
         String indId = (enc != null && enc.hasMarkedIndividual()) ? enc.getIndividualID() : null;
         e.put("individualId", Util.stringExists(indId) ? indId : JSONObject.NULL);
         JSONArray mvs = new JSONArray();
@@ -243,87 +204,39 @@ public class MediaResolveApi extends ApiBase {
         return e;
     }
 
-    private static long clamp(long v, long lo, long hi) {
-        return (v < lo) ? lo : (v > hi ? hi : v);
-    }
-
     /**
-     * Select the safe derivative whose pixels are a UNIFORM SCALE of the annotation's bbox frame, so
-     * the bbox (defined in {@code ann.getMediaAsset()} space) maps to it by a single dimension ratio.
-     *
-     * Two paths, in order:
-     *  1. A _master/_mid child of the annotation's OWN asset — always a uniform scale of that frame.
-     *  2. If the own asset has no such child, the derivatives hang off the _original ANCESTOR and the
-     *     annotation's asset is a sibling of them. Walk to the _original parent (mirroring
-     *     MediaAsset.bestSafeAsset) and use its derivative ONLY when it is a uniform scale of the
-     *     source frame (matching aspect ratio) — i.e. the source is a full-frame view, not a
-     *     crop/transform. Otherwise the bbox would be scaled against a different coordinate plane, so
-     *     we omit (fail-closed).
-     *
-     * Chosen assets must be LocalAssetStore-backed (allowlist: rejects URLAssetStore external
-     * originals AND YouTubeAssetStore watch pages) and never carry _original. Deliberately does NOT
-     * use MediaAsset.safeURL/bestSafeAsset (returns originals for URLAssetStore; no master->mid fallback).
+     * The access-controlled URL to display for the annotation's asset, via Wildbook's own safeURL
+     * (walks to the _original ancestor and masks the raw upload internally). Tries _master then _mid;
+     * requires a LocalAssetStore-backed, non-_original result. Fail-soft: any lookup error -> omit.
      */
-    static MediaAsset selectSafeDerivative(Annotation ann, Shepherd myShepherd) {
-        if (ann == null) return null;
-        MediaAsset src = ann.getMediaAsset();
-        if (src == null) return null;
-        if (!(src.getStore() instanceof LocalAssetStore)) return null;
-        // Path 1: a derivative of the annotation's own asset is a uniform scale of its frame -> safe.
-        MediaAsset own = findSafeDerivativeChild(src, myShepherd);
-        if (own != null) return own;
-        // Path 2: derivatives live on the _original ancestor; src is a sibling. Walk to the parent.
-        Integer parentId = src.getParentId();
-        if (parentId == null) return null;
-        MediaAsset parent;
-        try {
-            parent = MediaAssetFactory.load(parentId, myShepherd);
-        } catch (RuntimeException ex) {
-            return null; // parent lookup unavailable -> omit this id (fail-soft, never 500 the batch)
-        }
-        if ((parent == null) || !parent.hasLabel("_original")) return null;
-        MediaAsset cand = findSafeDerivativeChild(parent, myShepherd);
-        if (cand == null) return null;
-        // Only safe if the parent's derivative is a uniform scale of the source frame (full-frame
-        // sibling). A crop/transform source has a different aspect ratio -> omit (fail-closed).
-        // Residual (acceptable): a same-aspect sub-region crop with no own derivative could still pass
-        // this dimension-only check; isUniformScale proves equal x/y scale, not shared origin. Path 1
-        // covers such a crop whenever it has its own _master/_mid, which is the common case.
-        if (!isUniformScale(src, cand)) return null;
-        return cand;
-    }
-
-    /** First _master (else _mid) child of {@code base} that is LocalAssetStore-backed and not _original. */
-    private static MediaAsset findSafeDerivativeChild(MediaAsset base, Shepherd myShepherd) {
-        if (base == null) return null;
-        for (String label : new String[] {"_master", "_mid"}) {
-            ArrayList<MediaAsset> kids = base.findChildrenByLabel(myShepherd, label);
-            // findChildrenByLabel returns an EMPTY list (not null) when children exist but none
-            // match this label — treat that the same as "no match" and try the next label.
-            if ((kids == null) || kids.isEmpty()) continue;
-            for (MediaAsset kid : kids) {
-                if (kid == null) continue;
-                if (!(kid.getStore() instanceof LocalAssetStore)) continue;
-                if (kid.hasLabel("_original")) continue;
-                return kid;
+    private static URL safeServableUrl(MediaAsset src, Shepherd myShepherd) {
+        for (String type : new String[] {"master", "mid"}) {
+            try {
+                MediaAsset a = src.bestSafeAsset(myShepherd, null, type);
+                if (a == null) continue;
+                if (!(a.getStore() instanceof LocalAssetStore)) continue;
+                if (a.hasLabel("_original")) continue;
+                URL u = a.webURL();
+                if (u != null) return u;
+            } catch (RuntimeException ex) {
+                // corrupt asset params / lookup failure -> try next type, else omit (never 500 batch)
             }
         }
         return null;
     }
 
-    /**
-     * True iff {@code deriv} is (within ~1% rounding tolerance) a uniform scale of {@code src}'s pixel
-     * frame — the precondition for mapping an axis-aligned bbox by a single dimension ratio. Guards
-     * against cropped/transformed sources whose aspect ratio differs from a full-frame derivative.
-     */
-    private static boolean isUniformScale(MediaAsset src, MediaAsset deriv) {
-        double sw = src.getWidth();
-        double sh = src.getHeight();
-        double dw = deriv.getWidth();
-        double dh = deriv.getHeight();
-        if ((sw <= 0) || (sh <= 0) || (dw <= 0) || (dh <= 0)) return false;
-        double sx = dw / sw;
-        double sy = dh / sh;
-        return Math.abs(sx - sy) <= 0.01 * Math.max(sx, sy);
+    /** Clamp bbox [x,y,w,h] (in src pixel space) to [0,W]x[0,H]; null if invalid or empty. */
+    private static int[] clampBbox(int[] b, double W, double H) {
+        if ((b == null) || (b.length < 4)) return null;
+        int maxW = (int) Math.floor(W);
+        int maxH = (int) Math.floor(H);
+        int x = Math.max(0, Math.min(b[0], maxW));
+        int y = Math.max(0, Math.min(b[1], maxH));
+        int w = b[2];
+        int h = b[3];
+        if (x + w > maxW) w = maxW - x;
+        if (y + h > maxH) h = maxH - y;
+        if ((w < 1) || (h < 1)) return null;
+        return new int[] {x, y, w, h};
     }
 }
