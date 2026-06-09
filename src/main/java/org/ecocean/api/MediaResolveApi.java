@@ -1,11 +1,24 @@
 package org.ecocean.api;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.Annotation;
+import org.ecocean.User;
+import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.LocalAssetStore;
+import org.ecocean.security.WildbookTokenAuthenticationFilter;
+import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class MediaResolveApi extends ApiBase {
 
@@ -38,6 +51,106 @@ public class MediaResolveApi extends ApiBase {
         int h = (int) (y2 - y1);
         if ((w < 1) || (h < 1)) return null;
         return new int[] {(int) x1, (int) y1, w, h};
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+        handle(request, response);
+    }
+
+    // package-visible entry point for unit tests
+    void doPostForTest(HttpServletRequest request, HttpServletResponse response)
+    throws IOException {
+        handle(request, response);
+    }
+
+    private void handle(HttpServletRequest request, HttpServletResponse response)
+    throws IOException {
+        boolean tokenAuth = Boolean.TRUE.equals(
+            request.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR));
+        if (!tokenAuth) {
+            writeError(response, 401, "token auth required");
+            return;
+        }
+        // Verified context ONLY — never fall back to ServletUtilities.getContext() (no session on
+        // this endpoint, so a caller must not be able to steer context via ?context=/cookie/host).
+        String context = (String) request.getAttribute(
+            WildbookTokenAuthenticationFilter.TOKEN_CONTEXT_ATTR);
+        if (!Util.stringExists(context)) {
+            writeError(response, 401, "unauthorized");
+            return;
+        }
+        // Parse + validate the body BEFORE constructing a Shepherd or touching the DB/OpenSearch.
+        // Malformed JSON throws here -> 400 (not the 500 a later broad catch would give).
+        Set<String> ids;
+        try {
+            JSONObject body = ServletUtilities.jsonFromHttpServletRequest(request);
+            JSONArray idArr = (body != null) ? body.optJSONArray("annotationIds") : null;
+            if ((idArr == null) || (idArr.length() == 0) || (idArr.length() > MAX_IDS)) {
+                writeError(response, 400, "annotationIds must be a non-empty array of <= " + MAX_IDS);
+                return;
+            }
+            ids = new LinkedHashSet<>();
+            for (int i = 0; i < idArr.length(); i++) {
+                String s = idArr.optString(i, null);
+                if (Util.stringExists(s)) ids.add(s);
+            }
+            if (ids.isEmpty()) {
+                writeError(response, 400, "annotationIds must contain at least one valid id");
+                return;
+            }
+        } catch (Exception ex) {
+            writeError(response, 400, "malformed request body");
+            return;
+        }
+
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("api.MediaResolveApi.POST");
+        myShepherd.beginDBTransaction();
+        try {
+            User currentUser = myShepherd.getUser(request);
+            if ((currentUser == null) || (currentUser.getId() == null)) {
+                writeError(response, 401, "unauthorized");
+                return;
+            }
+            boolean isAdmin = currentUser.isAdmin(myShepherd);
+            Set<String> visible = isAdmin ? ids : gatedVisibleIds(ids, currentUser.getId());
+            JSONArray results = new JSONArray();
+            for (String id : visible) {
+                JSONObject entry = resolveOne(id, myShepherd);
+                if (entry != null) results.put(entry);
+            }
+            response.setStatus(200);
+            writeBody(response, results.toString());
+        } catch (Exception ex) {
+            response.setStatus(500);
+            writeBody(response, new JSONObject().put("error", "resolve failed").toString());
+            ex.printStackTrace();
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    private void writeError(HttpServletResponse response, int status, String msg) throws IOException {
+        response.setStatus(status);
+        writeBody(response, new JSONObject().put("error", msg).toString());
+    }
+
+    private void writeBody(HttpServletResponse response, String s) throws IOException {
+        response.setHeader("Content-Type", "application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(s);
+        response.getWriter().close();
+    }
+
+    // ===== TEMP stubs — replaced in Task 5 (gatedVisibleIds) and Task 6 (resolveOne) =====
+    private Set<String> gatedVisibleIds(Set<String> ids, String userId) throws IOException {
+        return ids; // TEMP — replaced in Task 5
+    }
+
+    private JSONObject resolveOne(String annotationId, Shepherd myShepherd) {
+        return null; // TEMP — replaced in Task 6
     }
 
     private static long clamp(long v, long lo, long hi) {

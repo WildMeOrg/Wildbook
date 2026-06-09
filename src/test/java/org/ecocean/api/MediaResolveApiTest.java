@@ -2,15 +2,27 @@ package org.ecocean.api;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.ecocean.Annotation;
+import org.ecocean.User;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.URLAssetStore;
 import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.media.LocalAssetStore;
+import org.ecocean.security.WildbookTokenAuthenticationFilter;
+import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
 class MediaResolveApiTest {
 
@@ -174,5 +186,92 @@ class MediaResolveApiTest {
         when(src.findChildrenByLabel(sh, "_mid")).thenReturn(mids);
         assertSame(mid, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
             "a non-local _master is skipped; falls back to the local _mid");
+    }
+
+    /** Build a token-auth request mock; body comes from the ServletUtilities static mock. */
+    private HttpServletRequest tokenRequest() {
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        when(req.getMethod()).thenReturn("POST");
+        when(req.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR)).thenReturn(Boolean.TRUE);
+        when(req.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_CONTEXT_ATTR)).thenReturn("context0");
+        return req;
+    }
+
+    private User mockUser(String id, boolean admin) {
+        User u = mock(User.class);
+        when(u.getId()).thenReturn(id);
+        return u;
+    }
+
+    @Test void doPost_non_token_request_401() throws Exception {
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        when(req.getMethod()).thenReturn("POST");
+        when(req.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR)).thenReturn(Boolean.FALSE);
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        new MediaResolveApi().doPostForTest(req, resp);
+        verify(resp).setStatus(401);
+    }
+
+    @Test void doPost_token_but_missing_context_401_noShepherd() throws Exception {
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        when(req.getMethod()).thenReturn("POST");
+        when(req.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR)).thenReturn(Boolean.TRUE);
+        when(req.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_CONTEXT_ATTR)).thenReturn(null);
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class)) {
+            new MediaResolveApi().doPostForTest(req, resp);
+            assertTrue(sh.constructed().isEmpty(), "no Shepherd may be constructed without a verified context");
+        }
+        verify(resp).setStatus(401);
+    }
+
+    @Test void doPost_empty_ids_400_noShepherd() throws Exception {
+        HttpServletRequest req = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class)) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject("{\"annotationIds\":[]}"));
+            new MediaResolveApi().doPostForTest(req, resp);
+            assertTrue(sh.constructed().isEmpty(), "body validation must happen before any Shepherd/DB work");
+        }
+        verify(resp).setStatus(400);
+    }
+
+    @Test void doPost_over_max_ids_400() throws Exception {
+        HttpServletRequest req = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        JSONArray big = new JSONArray();
+        for (int i = 0; i < MediaResolveApi.MAX_IDS + 1; i++) big.put("id-" + i);
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class)) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", big));
+            new MediaResolveApi().doPostForTest(req, resp);
+        }
+        verify(resp).setStatus(400);
+    }
+
+    @Test void doPost_malformed_body_400() throws Exception {
+        HttpServletRequest req = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class)) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenThrow(new org.json.JSONException("bad json"));
+            new MediaResolveApi().doPostForTest(req, resp);
+            assertTrue(sh.constructed().isEmpty(), "malformed body must be rejected before Shepherd construction");
+        }
+        verify(resp).setStatus(400);
     }
 }
