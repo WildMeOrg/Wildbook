@@ -46,18 +46,22 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
 
     public void postStore(InstanceLifecycleEvent event) {
         Persistable obj = (Persistable)event.getSource();
-
-        if (OpenSearch.skipAutoIndexing()) {
-            System.out.println("WildbookLifecycleListener skipAutoIndexing set");
-            return;
-        }
 /*
         System.out.println("WildbookLifecycleListener postStore() event type=" +
             event.getEventType() + "; source=" + obj + "; target=" + event.getTarget() +
             "; detachedInstance=" + event.getDetachedInstance() + "; persistentInstance=" +
             event.getPersistentInstance());
  */
+        // NOTE: the skipAutoIndexing() guard scopes ONLY the Base indexing-queue work below.
+        // It must NOT gate the Collaboration/Organization/Role permissionsNeeded flag: that flag
+        // is the signal that drives the background ACL (viewUsers) reindex, and suppressing it
+        // during a /tmp/skipAutoIndexing window would leave search permissions stale until the
+        // periodic forced reindex caught up.
         if (Base.class.isInstance(obj)) {
+            if (OpenSearch.skipAutoIndexing()) {
+                System.out.println("WildbookLifecycleListener skipAutoIndexing set");
+                return;
+            }
             Base base = (Base)obj;
             if (base.getSkipAutoIndexing()) return;
             System.out.println("WildbookLifecycleListener postStore() event on " + base);
