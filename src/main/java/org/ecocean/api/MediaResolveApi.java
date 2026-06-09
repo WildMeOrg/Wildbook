@@ -21,6 +21,8 @@ public class MediaResolveApi extends ApiBase {
         int maxH = (int) Math.floor(dstH);
         // Scale BOTH corners, clamp each corner to the derivative bounds, THEN derive w/h.
         // (Clamping only the origin and keeping the scaled w/h would mis-size a negative-origin box.)
+        // src[i] * sx is int*double -> promotes through double, no overflow; the (long) casts below
+        // matter because src[0]+src[2] (an int sum) could overflow before the multiply.
         long x1 = clamp(Math.round(src[0] * sx), 0, maxW);
         long y1 = clamp(Math.round(src[1] * sy), 0, maxH);
         long x2 = clamp(Math.round(((long) src[0] + src[2]) * sx), 0, maxW);

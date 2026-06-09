@@ -39,6 +39,12 @@ class MediaResolveApiTest {
         assertNull(out, "a box entirely outside the image collapses to <1px -> null (omit)");
     }
 
+    @Test void scaleBbox_asymmetricScaleAppliedPerAxis() {
+        // sx=2 on X, sy=0.5 on Y — a single-factor bug would produce wrong Y values
+        int[] out = MediaResolveApi.scaleBbox(new int[] {10, 100, 50, 200}, 100, 1000, 200, 500);
+        assertArrayEquals(new int[] {20, 50, 100, 100}, out, "x and y must use their own scale factor");
+    }
+
     @Test void scaleBbox_nullWhenScaledRegionVanishes() {
         int[] out = MediaResolveApi.scaleBbox(new int[] {0, 0, 1, 1}, 10000, 10000, 5, 5);
         assertNull(out, "a region that rounds to <1px in the derivative -> null (omit)");
