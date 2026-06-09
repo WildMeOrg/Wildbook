@@ -275,4 +275,48 @@ class MediaResolveApiTest {
         }
         verify(resp).setStatus(400);
     }
+
+    private JSONObject hitsFor(String... idsThatPass) {
+        JSONArray hits = new JSONArray();
+        for (String id : idsThatPass) hits.put(new JSONObject().put("_id", id));
+        return new JSONObject().put("hits",
+            new JSONObject().put("total", new JSONObject().put("value", idsThatPass.length))
+                            .put("hits", hits));
+    }
+
+    @Test void gate_returns_only_acl_passing_ids_and_sizes_to_id_count() throws Exception {
+        // 12 requested ids; OpenSearch (mocked) returns all 12 as visible -> proves size>=12, not 10.
+        JSONArray req = new JSONArray();
+        String[] all = new String[12];
+        for (int i = 0; i < 12; i++) { all[i] = "ann-" + i; req.put(all[i]); }
+
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+
+        final int[] capturedSize = {-1};
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("viewer", false);
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(false);
+                 when(m.getAnnotation(anyString())).thenReturn(null); // resolveOne no-op here
+             });
+             MockedConstruction<org.ecocean.OpenSearch> os = mockConstruction(org.ecocean.OpenSearch.class,
+                 (m, c) -> {
+                     doNothing().when(m).deletePit(anyString());
+                     when(m.queryPit(eq("annotation"), any(), eq(0), anyInt(), any(), any()))
+                         .thenAnswer(inv -> { capturedSize[0] = inv.getArgument(3); return hitsFor(all); });
+                 })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", req));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        verify(resp).setStatus(200);
+        assertEquals(12, capturedSize[0], "gate query size must equal the de-duplicated id count, not the default 10");
+    }
 }

@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.Annotation;
+import org.ecocean.OpenSearch;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
@@ -147,8 +148,30 @@ public class MediaResolveApi extends ApiBase {
     }
 
     // ===== TEMP stubs — replaced in Task 5 (gatedVisibleIds) and Task 6 (resolveOne) =====
+
+    /**
+     * Visibility gate (non-admin): reuse Spec A's exact annotation ACL filter over an ids query.
+     * Returns the subset of requested ids the token may see. Query size is set to the id count so
+     * none are dropped by the default page size.
+     */
     private Set<String> gatedVisibleIds(Set<String> ids, String userId) throws IOException {
-        return ids; // TEMP — replaced in Task 5
+        JSONObject query = OpenSearch.buildIdEligibilityQuery(ids);
+        query = OpenSearch.applyAclFilter(query, userId, "annotation");
+        OpenSearch os = new OpenSearch();
+        os.deletePit("annotation");
+        JSONObject res = os.queryPit("annotation", query, 0, ids.size(), null, null);
+        Set<String> visible = new LinkedHashSet<>();
+        JSONObject outer = (res != null) ? res.optJSONObject("hits") : null;
+        JSONArray hits = (outer != null) ? outer.optJSONArray("hits") : null;
+        if (hits != null) {
+            for (int i = 0; i < hits.length(); i++) {
+                JSONObject h = hits.optJSONObject(i);
+                if (h == null) continue;
+                String hid = h.optString("_id", null);
+                if (Util.stringExists(hid)) visible.add(hid);
+            }
+        }
+        return visible;
     }
 
     private JSONObject resolveOne(String annotationId, Shepherd myShepherd) {
