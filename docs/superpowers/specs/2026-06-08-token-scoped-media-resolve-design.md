@@ -95,10 +95,10 @@ Response — `200`:
 
 **`bbox` is expressed in the coordinate space given by `imageWidth`×`imageHeight`** — the annotation
 asset's own (reliably-stored) pixel frame, the space `Annotation.getBbox()` uses. The served
-`imageUrl` is an access-controlled derivative whose *actual* pixel size may differ from
-`imageWidth`/`imageHeight` (e.g. a downscaled `_master`). **The consumer fetches `imageUrl`, reads its
-real dimensions, and scales `bbox` by `realW/imageWidth`, `realH/imageHeight` before cropping** —
-typically a no-op (factor 1.0) since `_master` usually equals the source size. `theta` is the
+`imageUrl` is in that same frame: usually the annotation asset itself (so the consumer scale is 1.0),
+or — when the annotation asset is a raw root — a `_master`/`_mid` child whose *actual* pixel size may
+differ. **The consumer fetches `imageUrl`, reads its real dimensions, and scales `bbox` by
+`realW/imageWidth`, `realH/imageHeight` before cropping** (a no-op in the common case). `theta` is the
 annotation's rotation; the axis-aligned `bbox` bounds the region and the agent may rotate the crop by
 `theta` about the bbox center for an upright view.
 
@@ -107,8 +107,9 @@ annotation's rotation; the axis-aligned `bbox` bounds the region and the agent m
 > the generated `_master`/`_mid` **derivative** children — so `derivative.getWidth()` is often `0`. A
 > server that scaled the bbox into the *derivative's* stored dims would therefore omit nearly every
 > annotation (confirmed on flakebook: 0/60 resolved). The server instead uses only data it can trust —
-> the annotation asset's dimensions and Wildbook's own `safeURL` (which already walks to the
-> `_original` and masks the upload) — and the consumer, which holds the fetched image's true pixels,
+> the annotation asset's own dimensions, and a same-frame servable URL (the asset itself when it's a
+> child derivative, else a `_master`/`_mid` child of a raw root) — and the consumer, which holds the
+> fetched image's true pixels,
 > does the final scale.
 
 The endpoint:
@@ -167,11 +168,13 @@ token already passes the search gate for, hand back URL + bbox."*
 The served image must be in the **same coordinate frame as the bbox** (the annotation asset's frame),
 so the consumer's scale-only transform is correct (a scale cannot recover a crop offset). Therefore:
 
-- If the annotation asset is **not** the raw upload (`!hasLabel("_original")`) it *is* the bbox frame —
-  serve its own `webURL()` directly. The served image equals the source asset, so `imageWidth/Height`
-  are its real pixels and the consumer scale is exactly 1.0.
-- If the annotation asset **is** the `_original` (raw upload), we must not serve it directly — serve a
-  `_master` (else `_mid`) **child of it** via `bestSafeAsset(myShepherd, null, type)`. That child is an
+- If the annotation asset is a **child** (`getParentId() != null` and not labeled `_original`) it is a
+  derivative and *is* the bbox frame — serve its own `webURL()` directly. The served image equals the
+  source asset, so `imageWidth/Height` are its real pixels and the consumer scale is exactly 1.0.
+- If the annotation asset is a **raw root** — `getParentId() == null` **or** labeled `_original` — we
+  must not serve it directly (it may be the unmasked upload; some import paths create raw roots
+  *without* the `_original` label, so the tree position, not just the label, is the signal). Serve a
+  `_master` (else `_mid`) **child of it** via `bestSafeAsset(myShepherd, null, type)` — an
   aspect-preserving scale of the *same* frame, so the consumer scales by `realPixels/originalDims`.
 - The chosen asset must be `LocalAssetStore`-backed and not `_original`; any lookup error or a null URL
   → **omit** (fail-soft, never 500 the batch). We never serve a *different-frame* asset (e.g. a

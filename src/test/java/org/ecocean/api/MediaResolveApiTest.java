@@ -148,6 +148,7 @@ class MediaResolveApiTest {
         when(src.getWidth()).thenReturn(1000.0);
         when(src.getHeight()).thenReturn(1000.0);
         when(src.hasLabel("_original")).thenReturn(false);
+        when(src.getParentId()).thenReturn(7); // a child derivative -> served directly (the bbox frame)
         when(src.webURL()).thenReturn(new java.net.URL("https://h/wildbook_data_dir/x/" + id + "-master.jpg"));
         Annotation ann = mock(Annotation.class);
         when(ann.getId()).thenReturn(id);
@@ -427,6 +428,7 @@ class MediaResolveApiTest {
         when(src.getWidth()).thenReturn(1000.0);
         when(src.getHeight()).thenReturn(1000.0);
         when(src.hasLabel("_original")).thenReturn(false);
+        when(src.getParentId()).thenReturn(7); // child -> takes the direct webURL path
         when(src.webURL()).thenThrow(new IllegalArgumentException("corrupt path"));
         Annotation ann = mock(Annotation.class);
         when(ann.getId()).thenReturn("ann-x");
@@ -552,6 +554,56 @@ class MediaResolveApiTest {
             "_original is served via a _master child, not directly");
         assertEquals(1000, arr.getJSONObject(0).getInt("imageWidth"),
             "reported dims are the source (original) frame; consumer scales to the served master");
+    }
+
+    @Test void resolve_unlabeledRawRoot_maskedViaMasterChild() throws Exception {
+        // A raw root identified by tree position (no parent) even WITHOUT an _original label must NOT
+        // be served directly (some import paths create unlabeled raw roots). Serve a _master child.
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(org.ecocean.media.LocalAssetStore.class));
+        when(src.getWidth()).thenReturn(1000.0);
+        when(src.getHeight()).thenReturn(1000.0);
+        when(src.hasLabel("_original")).thenReturn(false); // unlabeled...
+        when(src.getParentId()).thenReturn(null);          // ...but a ROOT (no parent) => raw upload
+        when(src.webURL()).thenReturn(new java.net.URL("https://h/wildbook_data_dir/x/RAW-original.jpg"));
+        MediaAsset master = mock(MediaAsset.class);
+        when(master.getStore()).thenReturn(mock(org.ecocean.media.LocalAssetStore.class));
+        when(master.hasLabel("_original")).thenReturn(false);
+        when(master.webURL()).thenReturn(new java.net.URL("https://h/wildbook_data_dir/x/safe-master.jpg"));
+        when(src.bestSafeAsset(any(Shepherd.class), isNull(), eq("master"))).thenReturn(master);
+        Annotation ann = mock(Annotation.class);
+        when(ann.getId()).thenReturn("ann-rr");
+        when(ann.getMediaAsset()).thenReturn(src);
+        when(ann.getBbox()).thenReturn(new int[] {0, 0, 400, 400});
+        when(ann.getTheta()).thenReturn(0.0);
+        when(ann.getViewpoint()).thenReturn("up");
+        Encounter enc = mock(Encounter.class);
+        when(enc.getId()).thenReturn("enc-rr");
+        when(ann.findEncounter(any(Shepherd.class))).thenReturn(enc);
+        when(ann.getEmbeddings()).thenReturn(null);
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin");
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-rr")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-rr")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        JSONArray arr = new JSONArray(out.toString());
+        assertEquals(1, arr.length(), "unlabeled raw root resolves via its master child");
+        String url = arr.getJSONObject(0).getString("imageUrl");
+        assertTrue(url.endsWith("safe-master.jpg"), "served the masked _master child");
+        assertFalse(url.contains("RAW-original"), "must NOT serve the unmasked raw root directly");
     }
 
     @Test void resolve_negativeOriginBbox_clampsCorner() throws Exception {

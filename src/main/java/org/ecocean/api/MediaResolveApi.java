@@ -206,16 +206,20 @@ public class MediaResolveApi extends ApiBase {
 
     /**
      * Servable URL in the SAME coordinate frame as the bbox (the annotation asset's frame), so the
-     * consumer's scale-only transform is valid (a scale cannot recover a crop offset). If the
-     * annotation asset is not the raw upload (`!hasLabel("_original")`) it IS the bbox frame -> serve
-     * its own webURL. If it is the `_original`, never serve it directly -> serve a _master/_mid child
-     * of it (an aspect-preserving scale of the same frame). LocalAssetStore/non-_original guards;
+     * consumer's scale-only transform is valid (a scale cannot recover a crop offset).
+     *
+     * A child asset (has a parent) is a derivative — safe to serve directly, and it IS the bbox frame.
+     * A ROOT asset (no parent) is the raw upload and must NOT be served directly even if it lacks the
+     * `_original` label (some import paths create unlabeled raw roots) — instead serve a `_master`/
+     * `_mid` child of it (an aspect-preserving scale of the same frame; the consumer scales). The
+     * `_original` label is also honored as a raw-root signal. LocalAssetStore/non-`_original` guards;
      * fail-soft (any error or null URL -> omit, never 500 the batch).
      */
     private static URL safeServableUrl(MediaAsset src, Shepherd myShepherd) {
         try {
-            if (!src.hasLabel("_original")) {
-                return src.webURL(); // the annotation asset is the bbox frame; null -> omit
+            boolean rawRoot = src.hasLabel("_original") || (src.getParentId() == null);
+            if (!rawRoot) {
+                return src.webURL(); // a child derivative; this IS the bbox frame. null -> omit
             }
             for (String type : new String[] {"master", "mid"}) {
                 MediaAsset a = src.bestSafeAsset(myShepherd, null, type);
