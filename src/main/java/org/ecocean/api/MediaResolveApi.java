@@ -147,17 +147,22 @@ public class MediaResolveApi extends ApiBase {
         w.close();
     }
 
-    // ===== TEMP stubs — replaced in Task 5 (gatedVisibleIds) and Task 6 (resolveOne) =====
+    // ===== TEMP stub — replaced in Task 6 (resolveOne) =====
 
     /**
      * Visibility gate (non-admin): reuse Spec A's exact annotation ACL filter over an ids query.
      * Returns the subset of requested ids the token may see. Query size is set to the id count so
      * none are dropped by the default page size.
      */
-    private Set<String> gatedVisibleIds(Set<String> ids, String userId) throws IOException {
+    // package-visible for unit testing
+    Set<String> gatedVisibleIds(Set<String> ids, String userId) throws IOException {
         JSONObject query = OpenSearch.buildIdEligibilityQuery(ids);
         query = OpenSearch.applyAclFilter(query, userId, "annotation");
         OpenSearch os = new OpenSearch();
+        // deletePit-then-queryPit mirrors SearchApi (SearchApi.java:159): forces a FRESH point-in-time
+        // so the ACL gate reads current state (createPit reuses a cached PIT otherwise, which could be
+        // stale and miss a just-revoked viewUser). PIT_CACHE being process-static is a pre-existing,
+        // systemic property shared by all OpenSearch callers — not addressed here.
         os.deletePit("annotation");
         JSONObject res = os.queryPit("annotation", query, 0, ids.size(), null, null);
         Set<String> visible = new LinkedHashSet<>();

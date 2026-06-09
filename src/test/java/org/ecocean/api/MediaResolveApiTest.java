@@ -284,6 +284,22 @@ class MediaResolveApiTest {
                             .put("hits", hits));
     }
 
+    @Test void gatedVisibleIds_returnsOnlyAclPassingSubset() throws Exception {
+        java.util.Set<String> requested = new java.util.LinkedHashSet<>(
+            java.util.Arrays.asList("ann-0", "ann-1", "ann-hidden"));
+        try (MockedConstruction<org.ecocean.OpenSearch> os = mockConstruction(org.ecocean.OpenSearch.class,
+                (m, c) -> {
+                    doNothing().when(m).deletePit(anyString());
+                    when(m.queryPit(eq("annotation"), any(), eq(0), anyInt(), any(), any()))
+                        .thenReturn(hitsFor("ann-0", "ann-1")); // only these pass the ACL gate
+                })) {
+            java.util.Set<String> visible = new MediaResolveApi().gatedVisibleIds(requested, "viewer");
+            assertEquals(new java.util.HashSet<>(java.util.Arrays.asList("ann-0", "ann-1")),
+                new java.util.HashSet<>(visible),
+                "gate returns only the ACL-passing subset; the hidden id is excluded");
+        }
+    }
+
     @Test void gate_returns_only_acl_passing_ids_and_sizes_to_id_count() throws Exception {
         // 12 requested ids; OpenSearch (mocked) returns all 12 as visible -> proves size>=12, not 10.
         JSONArray req = new JSONArray();
