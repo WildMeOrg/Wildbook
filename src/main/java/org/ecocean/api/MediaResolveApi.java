@@ -1,6 +1,7 @@
 package org.ecocean.api;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -10,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.Annotation;
+import org.ecocean.Embedding;
+import org.ecocean.Encounter;
 import org.ecocean.OpenSearch;
 import org.ecocean.User;
 import org.ecocean.Util;
@@ -179,8 +182,56 @@ public class MediaResolveApi extends ApiBase {
         return visible;
     }
 
+    /**
+     * Resolve one visible annotation into a response entry, or null to omit (fail-closed) when any
+     * required piece is missing: annotation, source asset, dimensions, safe derivative, bbox, or url.
+     * encounterId/individualId use findEncounter's first parent (documented multi-parent behavior;
+     * multi-parent annotations are admin-only in the index so a non-admin never reaches here for them).
+     */
     private JSONObject resolveOne(String annotationId, Shepherd myShepherd) {
-        return null; // TEMP — replaced in Task 6
+        Annotation ann = myShepherd.getAnnotation(annotationId);
+        if (ann == null) return null;
+        MediaAsset src = ann.getMediaAsset();
+        if (src == null) return null;
+        double srcW = src.getWidth();
+        double srcH = src.getHeight();
+        if ((srcW <= 0) || (srcH <= 0)) return null;
+        MediaAsset deriv = selectSafeDerivative(ann, myShepherd);
+        if (deriv == null) return null;
+        double dstW = deriv.getWidth();
+        double dstH = deriv.getHeight();
+        if ((dstW <= 0) || (dstH <= 0)) return null;
+        int[] scaled = scaleBbox(ann.getBbox(), srcW, srcH, dstW, dstH);
+        if (scaled == null) return null;
+        URL url = deriv.webURL();
+        if (url == null) return null;
+
+        JSONObject e = new JSONObject();
+        e.put("id", ann.getId());
+        e.put("imageUrl", url.toString());
+        e.put("imageWidth", (int) dstW);
+        e.put("imageHeight", (int) dstH);
+        JSONArray bb = new JSONArray();
+        for (int v : scaled) bb.put(v);
+        e.put("bbox", bb);
+        e.put("theta", ann.getTheta());
+        String vp = ann.getViewpoint();
+        e.put("viewpoint", (vp != null) ? vp : JSONObject.NULL);
+        Encounter enc = ann.findEncounter(myShepherd);
+        e.put("encounterId", (enc != null) ? enc.getId() : JSONObject.NULL);
+        String indId = ann.findIndividualId(myShepherd);
+        e.put("individualId",
+            (Util.stringExists(indId) && !"None".equalsIgnoreCase(indId)) ? indId : JSONObject.NULL);
+        JSONArray mvs = new JSONArray();
+        LinkedHashSet<String> seen = new LinkedHashSet<>();
+        if (ann.getEmbeddings() != null) {
+            for (Embedding emb : ann.getEmbeddings()) {
+                String mv = (emb != null) ? emb.getMethodVersion() : null;
+                if (Util.stringExists(mv) && seen.add(mv)) mvs.put(mv);
+            }
+        }
+        e.put("methodVersion", mvs);
+        return e;
     }
 
     private static long clamp(long v, long lo, long hi) {

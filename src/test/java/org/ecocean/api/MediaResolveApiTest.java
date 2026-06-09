@@ -6,10 +6,15 @@ import static org.mockito.ArgumentMatchers.*;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.ecocean.Annotation;
+import org.ecocean.Embedding;
+import org.ecocean.Encounter;
 import org.ecocean.User;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.URLAssetStore;
@@ -298,6 +303,255 @@ class MediaResolveApiTest {
                 new java.util.HashSet<>(visible),
                 "gate returns only the ACL-passing subset; the hidden id is excluded");
         }
+    }
+
+    /** A fully-populated annotation whose 1000x1000 source has a 500x500 _master derivative. */
+    private Annotation fullAnnotation(String id, String encId, String indId) throws Exception {
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.getWidth()).thenReturn(1000.0);
+        when(src.getHeight()).thenReturn(1000.0);
+
+        MediaAsset master = mock(MediaAsset.class);
+        when(master.getStore()).thenReturn(mock(LocalAssetStore.class));
+        ArrayList<String> labels = new ArrayList<>(); labels.add("_master");
+        when(master.getLabels()).thenReturn(labels);
+        when(master.hasLabel("_master")).thenReturn(true);
+        when(master.hasLabel("_original")).thenReturn(false);
+        when(master.getWidth()).thenReturn(500.0);
+        when(master.getHeight()).thenReturn(500.0);
+        when(master.webURL()).thenReturn(new URL("https://h/wildbook_data_dir/x/" + id + "-master.jpg"));
+        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(master);
+
+        Annotation ann = mock(Annotation.class);
+        when(ann.getId()).thenReturn(id);
+        when(ann.getMediaAsset()).thenReturn(src);
+        when(src.findChildrenByLabel(any(Shepherd.class), eq("_master"))).thenReturn(masters);
+        when(ann.getBbox()).thenReturn(new int[] {100, 200, 300, 400});
+        when(ann.getTheta()).thenReturn(0.0);
+        when(ann.getViewpoint()).thenReturn("up");
+        Encounter enc = mock(Encounter.class);
+        when(enc.getId()).thenReturn(encId);
+        when(ann.findEncounter(any(Shepherd.class))).thenReturn(enc);
+        when(ann.findIndividualId(any(Shepherd.class))).thenReturn(indId);
+        when(ann.getEmbeddings()).thenReturn(null);
+        return ann;
+    }
+
+    @Test void resolve_payload_scaledBbox_and_derivativeUrl() throws Exception {
+        Annotation ann = fullAnnotation("ann-A", "enc-A", "ind-A");
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin", true);
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true); // admin path: no OpenSearch gate
+                 when(m.getAnnotation("ann-A")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-A")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        verify(resp).setStatus(200);
+        JSONArray arr = new JSONArray(out.toString());
+        assertEquals(1, arr.length(), "one entry resolved");
+        JSONObject e = arr.getJSONObject(0);
+        assertEquals("ann-A", e.getString("id"), "id echoed");
+        assertTrue(e.getString("imageUrl").endsWith("-master.jpg"), "serves the _master derivative url");
+        assertEquals(500, e.getInt("imageWidth"), "imageWidth is the derivative width");
+        assertEquals(500, e.getInt("imageHeight"), "imageHeight is the derivative height");
+        // src 1000x1000 -> dst 500x500 is 0.5x: [100,200,300,400] -> [50,100,150,200]
+        assertEquals("[50,100,150,200]", e.getJSONArray("bbox").toString(),
+            "bbox scaled into derivative pixel space, not raw source coords");
+        assertEquals("up", e.getString("viewpoint"), "viewpoint passed through");
+        assertEquals("enc-A", e.getString("encounterId"), "first-parent encounter id");
+        assertEquals("ind-A", e.getString("individualId"), "individual id");
+    }
+
+    @Test void resolve_omits_unresolvable_and_is_not_an_existence_oracle() throws Exception {
+        Annotation good = fullAnnotation("ann-good", "enc-1", "ind-1");
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin", true);
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-good")).thenReturn(good);
+                 when(m.getAnnotation("ann-garbage")).thenReturn(null); // nonexistent
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds",
+                  new JSONArray().put("ann-good").put("ann-garbage")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        verify(resp).setStatus(200);
+        JSONArray arr = new JSONArray(out.toString());
+        assertEquals(1, arr.length(), "garbage/nonexistent id is silently absent (no existence oracle)");
+        assertEquals("ann-good", arr.getJSONObject(0).getString("id"), "only the resolvable id returned");
+    }
+
+    @Test void resolve_dedups_repeated_ids() throws Exception {
+        Annotation good = fullAnnotation("ann-d", "enc-d", "ind-d");
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin", true);
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-d")).thenReturn(good);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds",
+                  new JSONArray().put("ann-d").put("ann-d").put("ann-d")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        JSONArray arr = new JSONArray(out.toString());
+        assertEquals(1, arr.length(), "duplicate ids collapse to a single entry");
+    }
+
+    @Test void resolve_nonAdmin_onlyGateVisibleResolved_noOracle_andNoLoadForHidden() throws Exception {
+        Annotation vis = fullAnnotation("ann-vis", "enc-v", "ind-v");
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("viewer", false);
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(false);
+                 when(m.getAnnotation("ann-vis")).thenReturn(vis);
+             });
+             MockedConstruction<org.ecocean.OpenSearch> os = mockConstruction(org.ecocean.OpenSearch.class,
+                 (m, c) -> {
+                     doNothing().when(m).deletePit(anyString());
+                     when(m.queryPit(eq("annotation"), any(), eq(0), anyInt(), any(), any()))
+                         .thenReturn(hitsFor("ann-vis")); // only ann-vis passes the ACL gate
+                 })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds",
+                  new JSONArray().put("ann-vis").put("ann-hidden").put("ann-garbage")));
+            new MediaResolveApi().doPostForTest(request, resp);
+            Shepherd constructed = sh.constructed().get(0);
+            verify(constructed, never()).getAnnotation("ann-hidden");
+            verify(constructed, never()).getAnnotation("ann-garbage");
+        }
+        verify(resp).setStatus(200);
+        JSONArray arr = new JSONArray(out.toString());
+        assertEquals(1, arr.length(), "non-admin sees only gate-passed ids; hidden/garbage absent (no oracle)");
+        assertEquals("ann-vis", arr.getJSONObject(0).getString("id"), "only the visible id resolved");
+    }
+
+    @Test void resolve_nonAdmin_moreThan10VisibleAllResolve() throws Exception {
+        JSONArray reqIds = new JSONArray();
+        String[] all = new String[12];
+        for (int i = 0; i < 12; i++) { all[i] = "ann-" + i; reqIds.put(all[i]); }
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("viewer", false);
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(false);
+                 when(m.getAnnotation(anyString())).thenAnswer(inv -> {
+                     String id = inv.getArgument(0);
+                     return fullAnnotation(id, "enc-" + id, "ind-" + id);
+                 });
+             });
+             MockedConstruction<org.ecocean.OpenSearch> os = mockConstruction(org.ecocean.OpenSearch.class,
+                 (m, c) -> {
+                     doNothing().when(m).deletePit(anyString());
+                     when(m.queryPit(eq("annotation"), any(), eq(0), anyInt(), any(), any()))
+                         .thenReturn(hitsFor(all));
+                 })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", reqIds));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        verify(resp).setStatus(200);
+        assertEquals(12, new JSONArray(out.toString()).length(), "all 12 visible ids resolve (no default-10 truncation)");
+    }
+
+    @Test void resolve_thetaDefault_and_nullViewpoint() throws Exception {
+        Annotation ann = fullAnnotation("ann-t", "enc-t", "ind-t");
+        when(ann.getViewpoint()).thenReturn(null);
+        when(ann.getTheta()).thenReturn(0.0);
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin", true);
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-t")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-t")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        JSONObject e = new JSONArray(out.toString()).getJSONObject(0);
+        assertTrue(e.isNull("viewpoint"), "null viewpoint serialized as JSON null");
+        assertEquals(0.0, e.getDouble("theta"), 0.0001, "theta defaults to 0.0");
+    }
+
+    @Test void resolve_methodVersion_dedupAndOrder() throws Exception {
+        Annotation ann = fullAnnotation("ann-m", "enc-m", "ind-m");
+        Embedding e1 = mock(Embedding.class); when(e1.getMethodVersion()).thenReturn("msv4.1");
+        Embedding e2 = mock(Embedding.class); when(e2.getMethodVersion()).thenReturn("msv4.1");
+        Embedding e3 = mock(Embedding.class); when(e3.getMethodVersion()).thenReturn("msv3");
+        Set<Embedding> embs = new LinkedHashSet<>(); embs.add(e1); embs.add(e2); embs.add(e3);
+        when(ann.getEmbeddings()).thenReturn(embs);
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin", true);
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-m")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-m")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        JSONArray mvs = new JSONArray(out.toString()).getJSONObject(0).getJSONArray("methodVersion");
+        assertEquals("[\"msv4.1\",\"msv3\"]", mvs.toString(), "method versions de-duplicated, first-seen order");
     }
 
     @Test void gate_returns_only_acl_passing_ids_and_sizes_to_id_count() throws Exception {
