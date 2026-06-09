@@ -188,8 +188,8 @@ public class UserCreate extends HttpServlet {
                     if (!createThisUser) {
                         // get existing roles for this existing user
                         preexistingRoles = myShepherd.getAllRolesForUser(username);
-                        myShepherd.getPM().deletePersistentAll(preexistingRoles);
                         if (!preexistingRoles.isEmpty()) permissionsChanged = true;
+                        myShepherd.getPM().deletePersistentAll(preexistingRoles);
                     }
                     // start role processing
 
