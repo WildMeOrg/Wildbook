@@ -60,7 +60,9 @@ public class MediaResolveApi extends ApiBase {
         if (!(src.getStore() instanceof LocalAssetStore)) return null;
         for (String label : new String[] {"_master", "_mid"}) {
             ArrayList<MediaAsset> kids = src.findChildrenByLabel(myShepherd, label);
-            if (kids == null) continue;
+            // findChildrenByLabel returns an EMPTY list (not null) when children exist but none
+            // match this label — treat that the same as "no match" and try the next label.
+            if ((kids == null) || kids.isEmpty()) continue;
             for (MediaAsset kid : kids) {
                 if (kid == null) continue;
                 if (!(kid.getStore() instanceof LocalAssetStore)) continue;

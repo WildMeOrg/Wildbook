@@ -149,4 +149,30 @@ class MediaResolveApiTest {
         assertSame(mid, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
             "a _master child also labeled _original is skipped; falls back to _mid");
     }
+
+    @Test void selectSafeDerivative_nullWhenChildrenExistButNoneMatchLabel() {
+        // findChildrenByLabel returns an empty list (not null) when children exist but labels don't match
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.findChildrenByLabel(sh, "_master")).thenReturn(new ArrayList<>());
+        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(new ArrayList<>());
+        assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+            "empty child list (no matching labels) -> null");
+    }
+
+    @Test void selectSafeDerivative_skipsUrlMasterThenFallsBackToLocalMid() {
+        // URL-backed _master is skipped, then a local _mid is returned
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        MediaAsset urlMaster = child("_master", true);
+        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(urlMaster);
+        when(src.findChildrenByLabel(sh, "_master")).thenReturn(masters);
+        MediaAsset mid = child("_mid", false);
+        ArrayList<MediaAsset> mids = new ArrayList<>(); mids.add(mid);
+        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(mids);
+        assertSame(mid, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+            "a non-local _master is skipped; falls back to the local _mid");
+    }
 }
