@@ -222,16 +222,15 @@ class EndpointAuthWiringTest {
 
     @Test
     void mediaResolve_shiroRuleIsTokenFilterOnly() {
-        // Mirror searchPath_wiredToTokenFilterOnly: exact value equality, not a loose contains().
         String ruleLine = lines.stream()
                 .filter(l -> {
                     String t = l.stripLeading();
-                    return !t.startsWith("#") && t.contains("/api/v3/media/**");
+                    return !t.startsWith("#") && t.contains("/api/v3/media/resolve") && t.contains("tokenAuthSearch");
                 })
                 .findFirst().orElse(null);
-        assertNotNull(ruleLine, "Shiro [urls] must contain a rule for /api/v3/media/**");
+        assertNotNull(ruleLine, "Shiro [urls] must contain a rule for /api/v3/media/resolve");
         String value = ruleLine.substring(
-                ruleLine.indexOf("/api/v3/media/**") + "/api/v3/media/**".length()).trim();
+                ruleLine.indexOf("/api/v3/media/resolve") + "/api/v3/media/resolve".length()).trim();
         if (value.startsWith("=")) value = value.substring(1).trim();
         assertEquals("tokenAuthSearch", value,
                 "media path must map to tokenAuthSearch ONLY (no authc/roles chained); was: '" + value + "'");

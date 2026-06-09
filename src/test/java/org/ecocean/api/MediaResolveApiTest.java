@@ -567,6 +567,7 @@ class MediaResolveApiTest {
         when(resp.getWriter()).thenReturn(new PrintWriter(out));
 
         final int[] capturedSize = {-1};
+        final org.json.JSONObject[] capturedQuery = {null};
         try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
              MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
                  doNothing().when(m).beginDBTransaction();
@@ -581,7 +582,7 @@ class MediaResolveApiTest {
                  (m, c) -> {
                      doNothing().when(m).deletePit(anyString());
                      when(m.queryPit(eq("annotation"), any(), eq(0), anyInt(), any(), any()))
-                         .thenAnswer(inv -> { capturedSize[0] = inv.getArgument(3); return hitsFor(all); });
+                         .thenAnswer(inv -> { capturedSize[0] = inv.getArgument(3); capturedQuery[0] = inv.getArgument(1); return hitsFor(all); });
                  })) {
             su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
               .thenReturn(new JSONObject().put("annotationIds", req));
@@ -589,6 +590,59 @@ class MediaResolveApiTest {
         }
         verify(resp).setStatus(200);
         assertEquals(12, capturedSize[0], "gate query size must equal the de-duplicated id count, not the default 10");
+        assertNotNull(capturedQuery[0], "queryPit must have been called with a query");
+        String q = capturedQuery[0].toString();
+        assertTrue(q.contains("ann-0"), "gate query must include the requested ids; was: " + q);
+        assertTrue(q.contains("publiclyReadable") && q.contains("submitterUserIds") && q.contains("viewUsers"),
+            "gate query must include the Spec A annotation ACL filter; was: " + q);
+    }
+
+    @Test void resolve_webUrlThrows_omitsEntryNot500() throws Exception {
+        // A visible annotation whose derivative webURL() throws (corrupt LocalAssetStore params)
+        // must be omitted (fail-closed), not turn the whole batch into a 500.
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.getWidth()).thenReturn(1000.0);
+        when(src.getHeight()).thenReturn(1000.0);
+        MediaAsset master = mock(MediaAsset.class);
+        when(master.getStore()).thenReturn(mock(LocalAssetStore.class));
+        ArrayList<String> labels = new ArrayList<>(); labels.add("_master");
+        when(master.getLabels()).thenReturn(labels);
+        when(master.hasLabel("_master")).thenReturn(true);
+        when(master.hasLabel("_original")).thenReturn(false);
+        when(master.getWidth()).thenReturn(500.0);
+        when(master.getHeight()).thenReturn(500.0);
+        when(master.webURL()).thenThrow(new IllegalArgumentException("corrupt path"));
+        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(master);
+        Annotation ann = mock(Annotation.class);
+        when(ann.getId()).thenReturn("ann-x");
+        when(ann.getMediaAsset()).thenReturn(src);
+        when(src.findChildrenByLabel(any(Shepherd.class), eq("_master"))).thenReturn(masters);
+        when(ann.getBbox()).thenReturn(new int[] {100, 200, 300, 400});
+        when(ann.getTheta()).thenReturn(0.0);
+        when(ann.getViewpoint()).thenReturn("up");
+
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin");
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-x")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-x")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        verify(resp).setStatus(200);
+        assertEquals(0, new JSONArray(out.toString()).length(),
+            "an annotation whose webURL() throws is omitted; the batch still returns 200");
     }
 
     @Test void resolve_emptyEncounterId_serializedAsNull() throws Exception {

@@ -201,7 +201,14 @@ public class MediaResolveApi extends ApiBase {
         if ((dstW <= 0) || (dstH <= 0)) return null;
         int[] scaled = scaleBbox(ann.getBbox(), srcW, srcH, dstW, dstH);
         if (scaled == null) return null;
-        URL url = deriv.webURL();
+        URL url;
+        try {
+            url = deriv.webURL();
+        } catch (RuntimeException ex) {
+            // corrupt asset params (e.g. LocalAssetStore.pathFromParameters throws IllegalArgumentException)
+            // -> omit this one annotation (fail-closed); never 500 the whole batch.
+            return null;
+        }
         if (url == null) return null;
 
         JSONObject e = new JSONObject();

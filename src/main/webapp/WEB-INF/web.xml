@@ -111,7 +111,7 @@
 				# token-authenticated scoped search (Artifact D): token filter ONLY, no authc/roles chained.
 				# No Bearer => falls through to SearchApi (which self-401s if no session). Filter handles auth.
 				/api/v3/search/** = tokenAuthSearch
-				/api/v3/media/** = tokenAuthSearch
+				/api/v3/media/resolve = tokenAuthSearch
 
 
 				# ===== Appadmin =====
