@@ -286,6 +286,9 @@ public class MediaResolveApi extends ApiBase {
         if (cand == null) return null;
         // Only safe if the parent's derivative is a uniform scale of the source frame (full-frame
         // sibling). A crop/transform source has a different aspect ratio -> omit (fail-closed).
+        // Residual (acceptable): a same-aspect sub-region crop with no own derivative could still pass
+        // this dimension-only check; isUniformScale proves equal x/y scale, not shared origin. Path 1
+        // covers such a crop whenever it has its own _master/_mid, which is the common case.
         if (!isUniformScale(src, cand)) return null;
         return cand;
     }

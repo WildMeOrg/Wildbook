@@ -236,6 +236,19 @@ class MediaResolveApiTest {
         }
     }
 
+    @Test void selectSafeDerivative_parentLoadThrows_omits() {
+        // A parent-load failure must omit this one id (fail-soft), never throw to fail the batch.
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.getParentId()).thenReturn(4242);
+        try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
+            mf.when(() -> MediaAssetFactory.load(4242, sh)).thenThrow(new RuntimeException("pm down"));
+            assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+                "parent load failure -> omit (fail-soft)");
+        }
+    }
+
     @Test void selectSafeDerivative_parentDerivativeNonUniformScale_omits() {
         // src is a CROP (different aspect than the parent's full-frame derivative): 1000x1000 source vs
         // 500x250 derivative => sx=0.5, sy=0.25 (non-uniform) => omit, to avoid a mis-scaled bbox.
