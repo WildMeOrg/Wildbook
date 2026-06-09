@@ -169,22 +169,93 @@ class MediaResolveApiTest {
     }
 
     @Test void selectSafeDerivative_walksToOriginalParentForDerivatives() {
-        // Live-data shape (flakebook): the annotation's asset is a non-original SIBLING of the
-        // derivatives; _master/_mid hang off the _original PARENT. selectSafeDerivative must walk to
-        // the parent to find them — searching the leaf sibling's own children would find nothing.
+        // Live-data shape (flakebook): the annotation's asset is a full-frame, non-original SIBLING of
+        // the derivatives; _master/_mid hang off the _original PARENT. With no own derivative,
+        // selectSafeDerivative walks to the parent and uses its _master because it is a uniform scale
+        // of the source frame (1000x1000 -> 500x500).
         Shepherd sh = mock(Shepherd.class);
         MediaAsset src = mock(MediaAsset.class);
         when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
         when(src.getParentId()).thenReturn(4242);
+        when(src.getWidth()).thenReturn(1000.0);
+        when(src.getHeight()).thenReturn(1000.0);
         MediaAsset original = mock(MediaAsset.class);
         when(original.hasLabel("_original")).thenReturn(true);
         MediaAsset master = child("_master", false);
+        when(master.getWidth()).thenReturn(500.0);
+        when(master.getHeight()).thenReturn(500.0);
         ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(master);
         when(original.findChildrenByLabel(sh, "_master")).thenReturn(masters);
         try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
             mf.when(() -> MediaAssetFactory.load(4242, sh)).thenReturn(original);
             assertSame(master, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-                "must walk to the _original parent to find the _master derivative");
+                "uses the _original parent's derivative when it's a uniform scale of the source");
+        }
+    }
+
+    @Test void selectSafeDerivative_ownDerivativePreferredOverParent() {
+        // When the annotation's OWN asset has a _master, use it directly — never load the parent.
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.getParentId()).thenReturn(4242);
+        MediaAsset own = child("_master", false);
+        ArrayList<MediaAsset> owns = new ArrayList<>(); owns.add(own);
+        when(src.findChildrenByLabel(sh, "_master")).thenReturn(owns);
+        try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
+            assertSame(own, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+                "the annotation's own _master is used without walking to the parent");
+            mf.verifyNoInteractions();
+        }
+    }
+
+    @Test void selectSafeDerivative_parentNotOriginal_omits() {
+        // src has no own derivative and the parent is NOT an _original -> omit.
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.getParentId()).thenReturn(4242);
+        MediaAsset parent = mock(MediaAsset.class);
+        when(parent.hasLabel("_original")).thenReturn(false);
+        try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
+            mf.when(() -> MediaAssetFactory.load(4242, sh)).thenReturn(parent);
+            assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+                "a non-_original parent yields no derivative -> omit");
+        }
+    }
+
+    @Test void selectSafeDerivative_parentLoadNull_omits() {
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.getParentId()).thenReturn(4242);
+        try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
+            mf.when(() -> MediaAssetFactory.load(4242, sh)).thenReturn(null);
+            assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+                "parent load returns null -> omit");
+        }
+    }
+
+    @Test void selectSafeDerivative_parentDerivativeNonUniformScale_omits() {
+        // src is a CROP (different aspect than the parent's full-frame derivative): 1000x1000 source vs
+        // 500x250 derivative => sx=0.5, sy=0.25 (non-uniform) => omit, to avoid a mis-scaled bbox.
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.getParentId()).thenReturn(4242);
+        when(src.getWidth()).thenReturn(1000.0);
+        when(src.getHeight()).thenReturn(1000.0);
+        MediaAsset original = mock(MediaAsset.class);
+        when(original.hasLabel("_original")).thenReturn(true);
+        MediaAsset master = child("_master", false);
+        when(master.getWidth()).thenReturn(500.0);
+        when(master.getHeight()).thenReturn(250.0);
+        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(master);
+        when(original.findChildrenByLabel(sh, "_master")).thenReturn(masters);
+        try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
+            mf.when(() -> MediaAssetFactory.load(4242, sh)).thenReturn(original);
+            assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+                "non-uniform scale (cropped/transformed source) -> omit");
         }
     }
 

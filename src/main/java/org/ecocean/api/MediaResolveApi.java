@@ -248,34 +248,51 @@ public class MediaResolveApi extends ApiBase {
     }
 
     /**
-     * Select the safe derivative to serve for an annotation's region: a child of the source asset
-     * labeled _master (preferred) or _mid. Both the source and the chosen derivative must be backed
-     * by a LocalAssetStore — an ALLOWLIST, not a denylist: this rejects URLAssetStore (external/public
-     * originals) AND YouTubeAssetStore (webURL is a watch page, not cropable image bytes). Also skips
-     * any child carrying _original. Returns null if none qualifies (caller omits).
-     * Deliberately does NOT use MediaAsset.safeURL/bestSafeAsset, which can return originals for
-     * URLAssetStore and does not fall back from a missing _master to _mid.
+     * Select the safe derivative whose pixels are a UNIFORM SCALE of the annotation's bbox frame, so
+     * the bbox (defined in {@code ann.getMediaAsset()} space) maps to it by a single dimension ratio.
+     *
+     * Two paths, in order:
+     *  1. A _master/_mid child of the annotation's OWN asset — always a uniform scale of that frame.
+     *  2. If the own asset has no such child, the derivatives hang off the _original ANCESTOR and the
+     *     annotation's asset is a sibling of them. Walk to the _original parent (mirroring
+     *     MediaAsset.bestSafeAsset) and use its derivative ONLY when it is a uniform scale of the
+     *     source frame (matching aspect ratio) — i.e. the source is a full-frame view, not a
+     *     crop/transform. Otherwise the bbox would be scaled against a different coordinate plane, so
+     *     we omit (fail-closed).
+     *
+     * Chosen assets must be LocalAssetStore-backed (allowlist: rejects URLAssetStore external
+     * originals AND YouTubeAssetStore watch pages) and never carry _original. Deliberately does NOT
+     * use MediaAsset.safeURL/bestSafeAsset (returns originals for URLAssetStore; no master->mid fallback).
      */
     static MediaAsset selectSafeDerivative(Annotation ann, Shepherd myShepherd) {
         if (ann == null) return null;
         MediaAsset src = ann.getMediaAsset();
         if (src == null) return null;
         if (!(src.getStore() instanceof LocalAssetStore)) return null;
-        // _master/_mid derivatives hang off the _original ANCESTOR. The annotation's asset is
-        // typically a non-original SIBLING of those derivatives, so walk to the _original parent
-        // before searching its children — mirroring MediaAsset.bestSafeAsset's traversal. Without
-        // this, findChildrenByLabel on a leaf sibling returns nothing and every annotation is omitted.
-        MediaAsset base = src;
+        // Path 1: a derivative of the annotation's own asset is a uniform scale of its frame -> safe.
+        MediaAsset own = findSafeDerivativeChild(src, myShepherd);
+        if (own != null) return own;
+        // Path 2: derivatives live on the _original ancestor; src is a sibling. Walk to the parent.
         Integer parentId = src.getParentId();
-        if (parentId != null) {
-            try {
-                MediaAsset parent = MediaAssetFactory.load(parentId, myShepherd);
-                if ((parent != null) && parent.hasLabel("_original")) base = parent;
-            } catch (RuntimeException ex) {
-                // parent lookup unavailable -> fall back to searching this asset directly (fail-soft;
-                // omit this one id rather than failing the whole batch).
-            }
+        if (parentId == null) return null;
+        MediaAsset parent;
+        try {
+            parent = MediaAssetFactory.load(parentId, myShepherd);
+        } catch (RuntimeException ex) {
+            return null; // parent lookup unavailable -> omit this id (fail-soft, never 500 the batch)
         }
+        if ((parent == null) || !parent.hasLabel("_original")) return null;
+        MediaAsset cand = findSafeDerivativeChild(parent, myShepherd);
+        if (cand == null) return null;
+        // Only safe if the parent's derivative is a uniform scale of the source frame (full-frame
+        // sibling). A crop/transform source has a different aspect ratio -> omit (fail-closed).
+        if (!isUniformScale(src, cand)) return null;
+        return cand;
+    }
+
+    /** First _master (else _mid) child of {@code base} that is LocalAssetStore-backed and not _original. */
+    private static MediaAsset findSafeDerivativeChild(MediaAsset base, Shepherd myShepherd) {
+        if (base == null) return null;
         for (String label : new String[] {"_master", "_mid"}) {
             ArrayList<MediaAsset> kids = base.findChildrenByLabel(myShepherd, label);
             // findChildrenByLabel returns an EMPTY list (not null) when children exist but none
@@ -289,5 +306,21 @@ public class MediaResolveApi extends ApiBase {
             }
         }
         return null;
+    }
+
+    /**
+     * True iff {@code deriv} is (within ~1% rounding tolerance) a uniform scale of {@code src}'s pixel
+     * frame — the precondition for mapping an axis-aligned bbox by a single dimension ratio. Guards
+     * against cropped/transformed sources whose aspect ratio differs from a full-frame derivative.
+     */
+    private static boolean isUniformScale(MediaAsset src, MediaAsset deriv) {
+        double sw = src.getWidth();
+        double sh = src.getHeight();
+        double dw = deriv.getWidth();
+        double dh = deriv.getHeight();
+        if ((sw <= 0) || (sh <= 0) || (dw <= 0) || (dh <= 0)) return false;
+        double sx = dw / sw;
+        double sy = dh / sh;
+        return Math.abs(sx - sy) <= 0.01 * Math.max(sx, sy);
     }
 }
