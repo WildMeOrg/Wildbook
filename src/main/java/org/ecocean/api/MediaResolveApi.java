@@ -205,38 +205,49 @@ public class MediaResolveApi extends ApiBase {
     }
 
     /**
-     * The access-controlled URL to display for the annotation's asset, via Wildbook's own safeURL
-     * (walks to the _original ancestor and masks the raw upload internally). Tries _master then _mid;
-     * requires a LocalAssetStore-backed, non-_original result. Fail-soft: any lookup error -> omit.
+     * Servable URL in the SAME coordinate frame as the bbox (the annotation asset's frame), so the
+     * consumer's scale-only transform is valid (a scale cannot recover a crop offset). If the
+     * annotation asset is not the raw upload (`!hasLabel("_original")`) it IS the bbox frame -> serve
+     * its own webURL. If it is the `_original`, never serve it directly -> serve a _master/_mid child
+     * of it (an aspect-preserving scale of the same frame). LocalAssetStore/non-_original guards;
+     * fail-soft (any error or null URL -> omit, never 500 the batch).
      */
     private static URL safeServableUrl(MediaAsset src, Shepherd myShepherd) {
-        for (String type : new String[] {"master", "mid"}) {
-            try {
+        try {
+            if (!src.hasLabel("_original")) {
+                return src.webURL(); // the annotation asset is the bbox frame; null -> omit
+            }
+            for (String type : new String[] {"master", "mid"}) {
                 MediaAsset a = src.bestSafeAsset(myShepherd, null, type);
                 if (a == null) continue;
                 if (!(a.getStore() instanceof LocalAssetStore)) continue;
                 if (a.hasLabel("_original")) continue;
                 URL u = a.webURL();
                 if (u != null) return u;
-            } catch (RuntimeException ex) {
-                // corrupt asset params / lookup failure -> try next type, else omit (never 500 batch)
             }
+            return null;
+        } catch (RuntimeException ex) {
+            return null; // fail-soft
         }
-        return null;
     }
 
-    /** Clamp bbox [x,y,w,h] (in src pixel space) to [0,W]x[0,H]; null if invalid or empty. */
+    /** Clamp bbox [x,y,w,h] (source pixel space) to [0,W]x[0,H] by clamping both corners; null if
+        invalid or empty (incl. negative/inverted). */
     private static int[] clampBbox(int[] b, double W, double H) {
         if ((b == null) || (b.length < 4)) return null;
-        int maxW = (int) Math.floor(W);
-        int maxH = (int) Math.floor(H);
-        int x = Math.max(0, Math.min(b[0], maxW));
-        int y = Math.max(0, Math.min(b[1], maxH));
-        int w = b[2];
-        int h = b[3];
-        if (x + w > maxW) w = maxW - x;
-        if (y + h > maxH) h = maxH - y;
+        long maxW = (long) Math.floor(W);
+        long maxH = (long) Math.floor(H);
+        long x1 = clampLong((long) b[0], 0, maxW);
+        long y1 = clampLong((long) b[1], 0, maxH);
+        long x2 = clampLong((long) b[0] + b[2], 0, maxW);
+        long y2 = clampLong((long) b[1] + b[3], 0, maxH);
+        int w = (int) (x2 - x1);
+        int h = (int) (y2 - y1);
         if ((w < 1) || (h < 1)) return null;
-        return new int[] {x, y, w, h};
+        return new int[] {(int) x1, (int) y1, w, h};
+    }
+
+    private static long clampLong(long v, long lo, long hi) {
+        return (v < lo) ? lo : (v > hi ? hi : v);
     }
 }

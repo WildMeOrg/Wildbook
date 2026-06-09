@@ -140,18 +140,15 @@ class MediaResolveApiTest {
         }
     }
 
-    /** A resolvable annotation: source asset is LocalAssetStore 1000x1000, bbox [100,200,300,400],
-        and bestSafeAsset("master") returns a local, non-_original derivative with a webURL. */
+    /** A resolvable annotation: source asset is a non-_original LocalAssetStore 1000x1000 whose own
+        webURL is servable; bbox [100,200,300,400]. */
     private Annotation fullAnnotation(String id, String encId, String indId) throws Exception {
         MediaAsset src = mock(MediaAsset.class);
         when(src.getStore()).thenReturn(mock(org.ecocean.media.LocalAssetStore.class));
         when(src.getWidth()).thenReturn(1000.0);
         when(src.getHeight()).thenReturn(1000.0);
-        MediaAsset master = mock(MediaAsset.class);
-        when(master.getStore()).thenReturn(mock(org.ecocean.media.LocalAssetStore.class));
-        when(master.hasLabel("_original")).thenReturn(false);
-        when(master.webURL()).thenReturn(new java.net.URL("https://h/wildbook_data_dir/x/" + id + "-master.jpg"));
-        when(src.bestSafeAsset(any(Shepherd.class), isNull(), eq("master"))).thenReturn(master);
+        when(src.hasLabel("_original")).thenReturn(false);
+        when(src.webURL()).thenReturn(new java.net.URL("https://h/wildbook_data_dir/x/" + id + "-master.jpg"));
         Annotation ann = mock(Annotation.class);
         when(ann.getId()).thenReturn(id);
         when(ann.getMediaAsset()).thenReturn(src);
@@ -192,11 +189,11 @@ class MediaResolveApiTest {
         assertEquals(1, arr.length(), "one entry resolved");
         JSONObject e = arr.getJSONObject(0);
         assertEquals("ann-A", e.getString("id"), "id echoed");
-        assertTrue(e.getString("imageUrl").endsWith("-master.jpg"), "serves the safeURL master derivative");
+        assertTrue(e.getString("imageUrl").endsWith("-master.jpg"), "serves the source asset's own webURL");
         assertEquals(1000, e.getInt("imageWidth"), "imageWidth is the annotation asset width");
         assertEquals(1000, e.getInt("imageHeight"), "imageHeight is the annotation asset height");
         assertEquals("[100,200,300,400]", e.getJSONArray("bbox").toString(),
-            "bbox is returned in the source coordinate space (no server-side scaling)");
+            "bbox returned in source coordinate space (no server-side scaling)");
         assertEquals("up", e.getString("viewpoint"), "viewpoint passed through");
         assertEquals("enc-A", e.getString("encounterId"), "first-parent encounter id");
         assertEquals("ind-A", e.getString("individualId"), "individual id");
@@ -429,8 +426,8 @@ class MediaResolveApiTest {
         when(src.getStore()).thenReturn(mock(org.ecocean.media.LocalAssetStore.class));
         when(src.getWidth()).thenReturn(1000.0);
         when(src.getHeight()).thenReturn(1000.0);
-        when(src.bestSafeAsset(any(Shepherd.class), isNull(), anyString()))
-            .thenThrow(new IllegalArgumentException("corrupt path"));
+        when(src.hasLabel("_original")).thenReturn(false);
+        when(src.webURL()).thenThrow(new IllegalArgumentException("corrupt path"));
         Annotation ann = mock(Annotation.class);
         when(ann.getId()).thenReturn("ann-x");
         when(ann.getMediaAsset()).thenReturn(src);
@@ -455,7 +452,7 @@ class MediaResolveApiTest {
         }
         verify(resp).setStatus(200);
         assertEquals(0, new JSONArray(out.toString()).length(),
-            "an annotation whose safeURL lookup throws is omitted; batch still 200");
+            "source webURL throwing -> entry omitted, batch still 200");
     }
 
     @Test void resolve_emptyEncounterId_serializedAsNull() throws Exception {
@@ -508,5 +505,101 @@ class MediaResolveApiTest {
         }
         verify(resp).setStatus(200);
         assertEquals(0, new JSONArray(out.toString()).length(), "null bbox -> omit");
+    }
+
+    @Test void resolve_originalSource_servedViaMasterChild() throws Exception {
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(org.ecocean.media.LocalAssetStore.class));
+        when(src.getWidth()).thenReturn(1000.0);
+        when(src.getHeight()).thenReturn(1000.0);
+        when(src.hasLabel("_original")).thenReturn(true); // raw upload -> must NOT serve directly
+        MediaAsset master = mock(MediaAsset.class);
+        when(master.getStore()).thenReturn(mock(org.ecocean.media.LocalAssetStore.class));
+        when(master.hasLabel("_original")).thenReturn(false);
+        when(master.webURL()).thenReturn(new java.net.URL("https://h/wildbook_data_dir/x/child-master.jpg"));
+        when(src.bestSafeAsset(any(Shepherd.class), isNull(), eq("master"))).thenReturn(master);
+        Annotation ann = mock(Annotation.class);
+        when(ann.getId()).thenReturn("ann-o");
+        when(ann.getMediaAsset()).thenReturn(src);
+        when(ann.getBbox()).thenReturn(new int[] {0, 0, 500, 500});
+        when(ann.getTheta()).thenReturn(0.0);
+        when(ann.getViewpoint()).thenReturn("up");
+        Encounter enc = mock(Encounter.class);
+        when(enc.getId()).thenReturn("enc-o");
+        when(ann.findEncounter(any(Shepherd.class))).thenReturn(enc);
+        when(ann.getEmbeddings()).thenReturn(null);
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin");
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-o")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-o")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        JSONArray arr = new JSONArray(out.toString());
+        assertEquals(1, arr.length(), "_original source resolves via its master child");
+        assertTrue(arr.getJSONObject(0).getString("imageUrl").endsWith("child-master.jpg"),
+            "_original is served via a _master child, not directly");
+        assertEquals(1000, arr.getJSONObject(0).getInt("imageWidth"),
+            "reported dims are the source (original) frame; consumer scales to the served master");
+    }
+
+    @Test void resolve_negativeOriginBbox_clampsCorner() throws Exception {
+        Annotation ann = fullAnnotation("ann-c", "enc-c", "ind-c");
+        when(ann.getBbox()).thenReturn(new int[] {-10, 0, 20, 20}); // x=-10 -> clamp corner, width 20->10
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin");
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-c")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-c")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        assertEquals("[0,0,10,20]", new JSONArray(out.toString()).getJSONObject(0).getJSONArray("bbox").toString(),
+            "negative origin clamps the corner and shrinks width (not kept at 20)");
+    }
+
+    @Test void resolve_bboxFullyOutOfBounds_omits() throws Exception {
+        Annotation ann = fullAnnotation("ann-oob", "enc-oob", "ind-oob");
+        when(ann.getBbox()).thenReturn(new int[] {-50, -50, 20, 20}); // entirely off-image -> omit
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin");
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-oob")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-oob")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        assertEquals(0, new JSONArray(out.toString()).length(), "fully out-of-bounds bbox -> omit");
     }
 }
