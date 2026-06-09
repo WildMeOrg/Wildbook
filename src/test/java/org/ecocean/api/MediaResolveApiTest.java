@@ -202,7 +202,7 @@ class MediaResolveApiTest {
         return req;
     }
 
-    private User mockUser(String id, boolean admin) {
+    private User mockUser(String id) {
         User u = mock(User.class);
         when(u.getId()).thenReturn(id);
         return u;
@@ -332,8 +332,9 @@ class MediaResolveApiTest {
         when(ann.getViewpoint()).thenReturn("up");
         Encounter enc = mock(Encounter.class);
         when(enc.getId()).thenReturn(encId);
+        when(enc.hasMarkedIndividual()).thenReturn(indId != null && !indId.isEmpty());
+        when(enc.getIndividualID()).thenReturn(indId);
         when(ann.findEncounter(any(Shepherd.class))).thenReturn(enc);
-        when(ann.findIndividualId(any(Shepherd.class))).thenReturn(indId);
         when(ann.getEmbeddings()).thenReturn(null);
         return ann;
     }
@@ -349,7 +350,7 @@ class MediaResolveApiTest {
                  doNothing().when(m).beginDBTransaction();
                  doNothing().when(m).setAction(anyString());
                  doNothing().when(m).rollbackAndClose();
-                 User u = mockUser("admin", true);
+                 User u = mockUser("admin");
                  when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
                  when(u.isAdmin(m)).thenReturn(true); // admin path: no OpenSearch gate
                  when(m.getAnnotation("ann-A")).thenReturn(ann);
@@ -385,7 +386,7 @@ class MediaResolveApiTest {
                  doNothing().when(m).beginDBTransaction();
                  doNothing().when(m).setAction(anyString());
                  doNothing().when(m).rollbackAndClose();
-                 User u = mockUser("admin", true);
+                 User u = mockUser("admin");
                  when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
                  when(u.isAdmin(m)).thenReturn(true);
                  when(m.getAnnotation("ann-good")).thenReturn(good);
@@ -413,7 +414,7 @@ class MediaResolveApiTest {
                  doNothing().when(m).beginDBTransaction();
                  doNothing().when(m).setAction(anyString());
                  doNothing().when(m).rollbackAndClose();
-                 User u = mockUser("admin", true);
+                 User u = mockUser("admin");
                  when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
                  when(u.isAdmin(m)).thenReturn(true);
                  when(m.getAnnotation("ann-d")).thenReturn(good);
@@ -438,7 +439,7 @@ class MediaResolveApiTest {
                  doNothing().when(m).beginDBTransaction();
                  doNothing().when(m).setAction(anyString());
                  doNothing().when(m).rollbackAndClose();
-                 User u = mockUser("viewer", false);
+                 User u = mockUser("viewer");
                  when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
                  when(u.isAdmin(m)).thenReturn(false);
                  when(m.getAnnotation("ann-vis")).thenReturn(vis);
@@ -476,7 +477,7 @@ class MediaResolveApiTest {
                  doNothing().when(m).beginDBTransaction();
                  doNothing().when(m).setAction(anyString());
                  doNothing().when(m).rollbackAndClose();
-                 User u = mockUser("viewer", false);
+                 User u = mockUser("viewer");
                  when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
                  when(u.isAdmin(m)).thenReturn(false);
                  when(m.getAnnotation(anyString())).thenAnswer(inv -> {
@@ -511,7 +512,7 @@ class MediaResolveApiTest {
                  doNothing().when(m).beginDBTransaction();
                  doNothing().when(m).setAction(anyString());
                  doNothing().when(m).rollbackAndClose();
-                 User u = mockUser("admin", true);
+                 User u = mockUser("admin");
                  when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
                  when(u.isAdmin(m)).thenReturn(true);
                  when(m.getAnnotation("ann-t")).thenReturn(ann);
@@ -541,7 +542,7 @@ class MediaResolveApiTest {
                  doNothing().when(m).beginDBTransaction();
                  doNothing().when(m).setAction(anyString());
                  doNothing().when(m).rollbackAndClose();
-                 User u = mockUser("admin", true);
+                 User u = mockUser("admin");
                  when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
                  when(u.isAdmin(m)).thenReturn(true);
                  when(m.getAnnotation("ann-m")).thenReturn(ann);
@@ -571,7 +572,7 @@ class MediaResolveApiTest {
                  doNothing().when(m).beginDBTransaction();
                  doNothing().when(m).setAction(anyString());
                  doNothing().when(m).rollbackAndClose();
-                 User u = mockUser("viewer", false);
+                 User u = mockUser("viewer");
                  when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
                  when(u.isAdmin(m)).thenReturn(false);
                  when(m.getAnnotation(anyString())).thenReturn(null); // resolveOne no-op here
@@ -588,5 +589,32 @@ class MediaResolveApiTest {
         }
         verify(resp).setStatus(200);
         assertEquals(12, capturedSize[0], "gate query size must equal the de-duplicated id count, not the default 10");
+    }
+
+    @Test void resolve_emptyEncounterId_serializedAsNull() throws Exception {
+        Annotation ann = fullAnnotation("ann-e", "enc-e", "ind-e");
+        Encounter blankEnc = mock(Encounter.class);
+        when(blankEnc.getId()).thenReturn("");
+        when(ann.findEncounter(any(Shepherd.class))).thenReturn(blankEnc);
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin");
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-e")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-e")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        JSONObject e = new JSONArray(out.toString()).getJSONObject(0);
+        assertTrue(e.isNull("encounterId"), "empty encounter id serialized as JSON null");
     }
 }

@@ -150,8 +150,6 @@ public class MediaResolveApi extends ApiBase {
         w.close();
     }
 
-    // ===== TEMP stub — replaced in Task 6 (resolveOne) =====
-
     /**
      * Visibility gate (non-admin): reuse Spec A's exact annotation ACL filter over an ids query.
      * Returns the subset of requested ids the token may see. Query size is set to the id count so
@@ -218,10 +216,13 @@ public class MediaResolveApi extends ApiBase {
         String vp = ann.getViewpoint();
         e.put("viewpoint", (vp != null) ? vp : JSONObject.NULL);
         Encounter enc = ann.findEncounter(myShepherd);
-        e.put("encounterId", (enc != null) ? enc.getId() : JSONObject.NULL);
-        String indId = ann.findIndividualId(myShepherd);
-        e.put("individualId",
-            (Util.stringExists(indId) && !"None".equalsIgnoreCase(indId)) ? indId : JSONObject.NULL);
+        e.put("encounterId",
+            (enc != null && Util.stringExists(enc.getId())) ? enc.getId() : JSONObject.NULL);
+        // Derive the individual from the already-loaded encounter. findIndividualId() would re-run
+        // findEncounter (a second DB query per annotation); mirror its guard here instead.
+        // Util.stringExists already rejects null/blank/"none"/"unknown", so no extra "None" check.
+        String indId = (enc != null && enc.hasMarkedIndividual()) ? enc.getIndividualID() : null;
+        e.put("individualId", Util.stringExists(indId) ? indId : JSONObject.NULL);
         JSONArray mvs = new JSONArray();
         LinkedHashSet<String> seen = new LinkedHashSet<>();
         if (ann.getEmbeddings() != null) {
