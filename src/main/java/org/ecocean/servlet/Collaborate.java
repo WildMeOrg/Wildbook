@@ -255,7 +255,13 @@ public class Collaborate extends HttpServlet {
                     System.out.println("/Collaborate: new .getState() = " + collab.getState() +
                         " for collab " + collab);
                     rtn.put("success", true);
-                    OpenSearch.setPermissionsNeeded(myShepherd, true);
+                    // NOTE: do NOT call OpenSearch.setPermissionsNeeded(myShepherd, true) here.
+                    // Writing the permissionsNeeded SystemValue row inside this transaction
+                    // self-deadlocks: the updateDBTransaction() commit below flushes the modified
+                    // Collaboration, whose WildbookLifecycleListener.postStore opens a separate
+                    // connection to UPDATE the same row and commit, blocking forever on this
+                    // transaction's uncommitted row lock. The Collaboration store already flags
+                    // permissionsNeeded via the lifecycle listener, so this call was redundant.
                     myShepherd.updateDBTransaction();
                     // myShepherd.commitDBTransaction();
                 }
