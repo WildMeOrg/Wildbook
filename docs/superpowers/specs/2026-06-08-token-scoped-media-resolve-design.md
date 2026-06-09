@@ -124,12 +124,14 @@ token already passes the search gate for, hand back URL + bbox."*
 
 ## Data flow
 
-1. **Token-path enforcement (Codex Low).** Require `request.getAttribute(TOKEN_AUTH_ATTR) == true`;
-   otherwise `401` — no session fallback. Resolve `context` from the filter-**verified**
-   `TOKEN_CONTEXT_ATTR` (never request-derived), exactly as `SearchApi` does (`SearchApi.java:25-32`),
-   so a caller can't steer context via `?context=`/cookie/host.
-2. Validate body: `annotationIds` present, is an array, non-empty, size ≤ 100 → else `400`.
-   De-duplicate IDs.
+1. **Token-path enforcement.** Require `request.getAttribute(TOKEN_AUTH_ATTR) == true`; otherwise
+   `401` — no session fallback. Take `context` **only** from the filter-verified `TOKEN_CONTEXT_ATTR`;
+   if it is null/blank → `401`. Unlike `SearchApi` (which still serves session traffic and so falls
+   back to `ServletUtilities.getContext`), this endpoint **never** calls `getContext` — a caller must
+   not be able to steer context via `?context=`/cookie/host.
+2. Validate body **before constructing a `Shepherd`**: parse JSON (unparseable → `400`);
+   `annotationIds` present, is an array, non-empty, size ≤ 100 → else `400`. De-duplicate IDs. No DB
+   or OpenSearch work happens until the body is valid.
 3. **Visibility gate:** build the Spec A token-ACL annotation query (`applyAclFilter`, which wraps the
    query in `bool.must` + ACL in `bool.filter` — composes correctly), with the user query being a
    `terms` filter on `_id ∈ annotationIds`. **Set the query `size` to the de-duplicated ID count
@@ -157,9 +159,11 @@ carries the requested label (`:777`), and only checks the *exact* requested type
 at `:790` means a missing `master` does **not** fall through to `mid`). Instead, select explicitly:
 
 - look for a child labeled `_master`; if absent, one labeled `_mid`;
-- the selected asset **must** be `_master` or `_mid` — reject `_original` and any other/unknown label,
-  and reject `URLAssetStore`-backed assets (treated as public originals);
-- if no `_master`/`_mid` derivative exists, **omit the entry** (fail-closed for that ID).
+- the selected asset **must** be `_master` or `_mid` and **must be `LocalAssetStore`-backed** (an
+  allowlist, not a denylist): this rejects `_original`, `URLAssetStore` (external/public originals),
+  and `YouTubeAssetStore` (whose `webURL` is a watch page, not cropable image bytes). The source asset
+  must also be `LocalAssetStore`-backed;
+- if no qualifying `_master`/`_mid` derivative exists, **omit the entry** (fail-closed for that ID).
 
 Both `master` (≤4096²) and `mid` (≤1024×768) are aspect-preserving resizes, so the scale factors
 `dstW/srcW` and `dstH/srcH` are equal up to rounding; the spec scales each axis independently and
@@ -182,7 +186,7 @@ leaking to the caller.
 | Status | When |
 |--------|------|
 | `200` | Well-formed request + valid token. Body = resolved array; **may be empty** (none visible/exist). Never distinguishes "not visible" from "doesn't exist" — no existence oracle. |
-| `400` | Malformed body: missing/empty `annotationIds`, not an array, or size > 100. |
+| `400` | Malformed body: unparseable JSON, missing/empty `annotationIds`, not an array, or size > 100. Validated **before** any DB/OpenSearch work (no `Shepherd` constructed on a validation failure). |
 | `401` | Missing/invalid/expired token (upstream filter, same as rest of token API). |
 | `500` | Genuine server fault (DB/OpenSearch unreachable) only — never per-ID resolution failure. |
 

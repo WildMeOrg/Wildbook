@@ -86,6 +86,17 @@ class MediaResolveApiTest {
         assertNull(MediaResolveApi.scaleBbox(new int[] {0, 0, 10, 10}, 100, 100, 0, 50), "zero dst dim -> null");
     }
 
+    @Test void scaleBbox_negativeOriginClampsCornerAndShrinksWidth() {
+        // src bbox starts at x=-10; clamping the LEFT corner to 0 must shrink width to 10, not keep 20.
+        int[] out = MediaResolveApi.scaleBbox(new int[] {-10, 0, 20, 20}, 100, 100, 100, 100);
+        assertArrayEquals(new int[] {0, 0, 10, 20}, out, "negative origin clamps corner and shrinks width");
+    }
+
+    @Test void scaleBbox_fullyOutsideReturnsNull() {
+        int[] out = MediaResolveApi.scaleBbox(new int[] {-50, -50, 20, 20}, 100, 100, 100, 100);
+        assertNull(out, "a box entirely outside the image collapses to <1px -> null (omit)");
+    }
+
     @Test void scaleBbox_nullWhenScaledRegionVanishes() {
         int[] out = MediaResolveApi.scaleBbox(new int[] {0, 0, 1, 1}, 10000, 10000, 5, 5);
         assertNull(out, "a region that rounds to <1px in the derivative -> null (omit)");
@@ -122,20 +133,22 @@ public class MediaResolveApi extends ApiBase {
         if ((srcW <= 0) || (srcH <= 0) || (dstW <= 0) || (dstH <= 0)) return null;
         double sx = dstW / srcW;
         double sy = dstH / srcH;
-        int x = (int) Math.round(src[0] * sx);
-        int y = (int) Math.round(src[1] * sy);
-        int w = (int) Math.round(src[2] * sx);
-        int h = (int) Math.round(src[3] * sy);
         int maxW = (int) Math.floor(dstW);
         int maxH = (int) Math.floor(dstH);
-        if (x < 0) x = 0;
-        if (y < 0) y = 0;
-        if (x > maxW) x = maxW;
-        if (y > maxH) y = maxH;
-        if (x + w > maxW) w = maxW - x;
-        if (y + h > maxH) h = maxH - y;
+        // Scale BOTH corners, clamp each corner to the derivative bounds, THEN derive w/h.
+        // (Clamping only the origin and keeping the scaled w/h would mis-size a negative-origin box.)
+        long x1 = clamp(Math.round(src[0] * sx), 0, maxW);
+        long y1 = clamp(Math.round(src[1] * sy), 0, maxH);
+        long x2 = clamp(Math.round(((long) src[0] + src[2]) * sx), 0, maxW);
+        long y2 = clamp(Math.round(((long) src[1] + src[3]) * sy), 0, maxH);
+        int w = (int) (x2 - x1);
+        int h = (int) (y2 - y1);
         if ((w < 1) || (h < 1)) return null;
-        return new int[] {x, y, w, h};
+        return new int[] {(int) x1, (int) y1, w, h};
+    }
+
+    private static long clamp(long v, long lo, long hi) {
+        return (v < lo) ? lo : (v > hi ? hi : v);
     }
 }
 ```
@@ -143,7 +156,7 @@ public class MediaResolveApi extends ApiBase {
 - [ ] **Step 4: Run test to verify it passes**
 
 Run the same `mvn test -Dtest=MediaResolveApiTest ...` command.
-Expected: PASS (5 tests).
+Expected: PASS (7 tests).
 
 - [ ] **Step 5: Normalize + commit**
 
@@ -177,6 +190,7 @@ import java.util.ArrayList;
 import org.ecocean.Annotation;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.URLAssetStore;
+import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.shepherd.core.Shepherd;
 ```
@@ -241,7 +255,7 @@ Add these tests to the class:
             "URLAssetStore source (external original) must be rejected");
     }
 
-    @Test void selectSafeDerivative_skipsUrlStoreAndOriginalChildren() {
+    @Test void selectSafeDerivative_skipsUrlStoreChildren() {
         Shepherd sh = mock(Shepherd.class);
         MediaAsset src = mock(MediaAsset.class);
         when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
@@ -250,7 +264,30 @@ Add these tests to the class:
         when(src.findChildrenByLabel(sh, "_master")).thenReturn(masters);
         when(src.findChildrenByLabel(sh, "_mid")).thenReturn(null);
         assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
-            "a URLAssetStore-backed child must be skipped");
+            "a non-local (URLAssetStore) child must be skipped");
+    }
+
+    @Test void selectSafeDerivative_rejectsYouTubeStoreSource() {
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(YouTubeAssetStore.class));
+        assertNull(MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+            "YouTubeAssetStore source (webURL is a watch page, not image bytes) must be rejected");
+    }
+
+    @Test void selectSafeDerivative_skipsMasterAlsoLabeledOriginal_fallsBackToMid() {
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        MediaAsset masterButOriginal = child("_master", false);
+        when(masterButOriginal.hasLabel("_original")).thenReturn(true); // also carries _original
+        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(masterButOriginal);
+        when(src.findChildrenByLabel(sh, "_master")).thenReturn(masters);
+        MediaAsset mid = child("_mid", false);
+        ArrayList<MediaAsset> mids = new ArrayList<>(); mids.add(mid);
+        when(src.findChildrenByLabel(sh, "_mid")).thenReturn(mids);
+        assertSame(mid, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+            "a _master child also labeled _original is skipped; falls back to _mid");
     }
 ```
 
@@ -268,7 +305,7 @@ import java.util.ArrayList;
 
 import org.ecocean.Annotation;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.media.URLAssetStore;
+import org.ecocean.media.LocalAssetStore;
 import org.ecocean.shepherd.core.Shepherd;
 ```
 
@@ -277,8 +314,10 @@ Method:
 ```java
     /**
      * Select the safe derivative to serve for an annotation's region: a child of the source asset
-     * labeled _master (preferred) or _mid. Rejects URLAssetStore-backed assets (external/public
-     * originals) and any child also carrying _original. Returns null if none qualifies (caller omits).
+     * labeled _master (preferred) or _mid. Both the source and the chosen derivative must be backed
+     * by a LocalAssetStore — an ALLOWLIST, not a denylist: this rejects URLAssetStore (external/public
+     * originals) AND YouTubeAssetStore (webURL is a watch page, not cropable image bytes). Also skips
+     * any child carrying _original. Returns null if none qualifies (caller omits).
      * Deliberately does NOT use MediaAsset.safeURL/bestSafeAsset, which can return originals for
      * URLAssetStore and does not fall back from a missing _master to _mid.
      */
@@ -286,13 +325,13 @@ Method:
         if (ann == null) return null;
         MediaAsset src = ann.getMediaAsset();
         if (src == null) return null;
-        if (src.getStore() instanceof URLAssetStore) return null;
+        if (!(src.getStore() instanceof LocalAssetStore)) return null;
         for (String label : new String[] {"_master", "_mid"}) {
             ArrayList<MediaAsset> kids = src.findChildrenByLabel(myShepherd, label);
             if (kids == null) continue;
             for (MediaAsset kid : kids) {
                 if (kid == null) continue;
-                if (kid.getStore() instanceof URLAssetStore) continue;
+                if (!(kid.getStore() instanceof LocalAssetStore)) continue;
                 if (kid.hasLabel("_original")) continue;
                 return kid;
             }
@@ -304,14 +343,14 @@ Method:
 - [ ] **Step 4: Run test to verify it passes**
 
 Run the `mvn test -Dtest=MediaResolveApiTest ...` command.
-Expected: PASS (10 tests total).
+Expected: PASS (14 tests total).
 
 - [ ] **Step 5: Normalize + commit**
 
 ```bash
 grep -c $'\r' src/main/java/org/ecocean/api/MediaResolveApi.java src/test/java/org/ecocean/api/MediaResolveApiTest.java
 git add src/main/java/org/ecocean/api/MediaResolveApi.java src/test/java/org/ecocean/api/MediaResolveApiTest.java
-git commit -m "media-resolve: explicit _master/_mid derivative selection
+git commit -m "media-resolve: explicit local-store _master/_mid derivative selection
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
@@ -406,16 +445,6 @@ Add a nested helper + tests (these exercise `doPost`):
         return u;
     }
 
-    private MockedConstruction<Shepherd> shepherd(User user, boolean admin) {
-        return mockConstruction(Shepherd.class, (m, c) -> {
-            doNothing().when(m).beginDBTransaction();
-            doNothing().when(m).setAction(anyString());
-            doNothing().when(m).rollbackAndClose();
-            when(m.getUser(any(HttpServletRequest.class))).thenReturn(user);
-            when(user.isAdmin(m)).thenReturn(admin);
-        });
-    }
-
     @Test void doPost_non_token_request_401() throws Exception {
         HttpServletRequest req = mock(HttpServletRequest.class);
         when(req.getMethod()).thenReturn("POST");
@@ -427,17 +456,32 @@ Add a nested helper + tests (these exercise `doPost`):
         verify(resp).setStatus(401);
     }
 
-    @Test void doPost_empty_ids_400() throws Exception {
+    @Test void doPost_token_but_missing_context_401_noShepherd() throws Exception {
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        when(req.getMethod()).thenReturn("POST");
+        when(req.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR)).thenReturn(Boolean.TRUE);
+        when(req.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_CONTEXT_ATTR)).thenReturn(null);
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class)) {
+            new MediaResolveApi().doPostForTest(req, resp);
+            assertTrue(sh.constructed().isEmpty(), "no Shepherd may be constructed without a verified context");
+        }
+        verify(resp).setStatus(401);
+    }
+
+    @Test void doPost_empty_ids_400_noShepherd() throws Exception {
         HttpServletRequest req = tokenRequest();
         HttpServletResponse resp = mock(HttpServletResponse.class);
         StringWriter out = new StringWriter();
         when(resp.getWriter()).thenReturn(new PrintWriter(out));
         try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
-             MockedConstruction<Shepherd> sh = shepherd(mockUser("u1", false), false)) {
-            su.when(() -> ServletUtilities.getContext(any())).thenReturn("context0");
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class)) {
             su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
               .thenReturn(new JSONObject("{\"annotationIds\":[]}"));
             new MediaResolveApi().doPostForTest(req, resp);
+            assertTrue(sh.constructed().isEmpty(), "body validation must happen before any Shepherd/DB work");
         }
         verify(resp).setStatus(400);
     }
@@ -450,11 +494,25 @@ Add a nested helper + tests (these exercise `doPost`):
         JSONArray big = new JSONArray();
         for (int i = 0; i < MediaResolveApi.MAX_IDS + 1; i++) big.put("id-" + i);
         try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
-             MockedConstruction<Shepherd> sh = shepherd(mockUser("u1", false), false)) {
-            su.when(() -> ServletUtilities.getContext(any())).thenReturn("context0");
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class)) {
             su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
               .thenReturn(new JSONObject().put("annotationIds", big));
             new MediaResolveApi().doPostForTest(req, resp);
+        }
+        verify(resp).setStatus(400);
+    }
+
+    @Test void doPost_malformed_body_400() throws Exception {
+        HttpServletRequest req = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class)) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenThrow(new org.json.JSONException("bad json"));
+            new MediaResolveApi().doPostForTest(req, resp);
+            assertTrue(sh.constructed().isEmpty(), "malformed body must be rejected before Shepherd construction");
         }
         verify(resp).setStatus(400);
     }
@@ -509,9 +567,38 @@ Add the servlet methods. `doPostForTest` is a thin package-visible delegate so t
             writeError(response, 401, "token auth required");
             return;
         }
-        String tokenContext = (String) request.getAttribute(
+        // Verified context ONLY — never fall back to ServletUtilities.getContext() (no session on
+        // this endpoint, so a caller must not be able to steer context via ?context=/cookie/host).
+        String context = (String) request.getAttribute(
             WildbookTokenAuthenticationFilter.TOKEN_CONTEXT_ATTR);
-        String context = (tokenContext != null) ? tokenContext : ServletUtilities.getContext(request);
+        if (!Util.stringExists(context)) {
+            writeError(response, 401, "unauthorized");
+            return;
+        }
+        // Parse + validate the body BEFORE constructing a Shepherd or touching the DB/OpenSearch.
+        // Malformed JSON throws here -> 400 (not the 500 a later broad catch would give).
+        Set<String> ids;
+        try {
+            JSONObject body = ServletUtilities.jsonFromHttpServletRequest(request);
+            JSONArray idArr = (body != null) ? body.optJSONArray("annotationIds") : null;
+            if ((idArr == null) || (idArr.length() == 0) || (idArr.length() > MAX_IDS)) {
+                writeError(response, 400, "annotationIds must be a non-empty array of <= " + MAX_IDS);
+                return;
+            }
+            ids = new LinkedHashSet<>();
+            for (int i = 0; i < idArr.length(); i++) {
+                String s = idArr.optString(i, null);
+                if (Util.stringExists(s)) ids.add(s);
+            }
+            if (ids.isEmpty()) {
+                writeError(response, 400, "annotationIds must contain at least one valid id");
+                return;
+            }
+        } catch (Exception ex) {
+            writeError(response, 400, "malformed request body");
+            return;
+        }
+
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("api.MediaResolveApi.POST");
         myShepherd.beginDBTransaction();
@@ -519,21 +606,6 @@ Add the servlet methods. `doPostForTest` is a thin package-visible delegate so t
             User currentUser = myShepherd.getUser(request);
             if ((currentUser == null) || (currentUser.getId() == null)) {
                 writeError(response, 401, "unauthorized");
-                return;
-            }
-            JSONObject body = ServletUtilities.jsonFromHttpServletRequest(request);
-            JSONArray idArr = (body != null) ? body.optJSONArray("annotationIds") : null;
-            if ((idArr == null) || (idArr.length() == 0) || (idArr.length() > MAX_IDS)) {
-                writeError(response, 400, "annotationIds must be a non-empty array of <= " + MAX_IDS);
-                return;
-            }
-            Set<String> ids = new LinkedHashSet<>();
-            for (int i = 0; i < idArr.length(); i++) {
-                String s = idArr.optString(i, null);
-                if (Util.stringExists(s)) ids.add(s);
-            }
-            if (ids.isEmpty()) {
-                writeError(response, 400, "annotationIds must contain at least one valid id");
                 return;
             }
             boolean isAdmin = currentUser.isAdmin(myShepherd);
@@ -582,7 +654,7 @@ This references `gatedVisibleIds` and `resolveOne`, added in Tasks 5–6. To com
 - [ ] **Step 4: Run test to verify it passes**
 
 Run the `mvn test -Dtest=MediaResolveApiTest ...` command.
-Expected: PASS (13 tests total). The validation tests pass; the resolve loop is a no-op (stubs) for now.
+Expected: PASS (19 tests total). The validation/auth tests pass; the resolve loop is a no-op (stubs) for now.
 
 - [ ] **Step 5: Normalize + commit**
 
@@ -729,6 +801,9 @@ Add imports to the test file:
 
 ```java
 import java.net.URL;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import org.ecocean.Embedding;
 import org.ecocean.Encounter;
 import org.ecocean.media.LocalAssetStore;
 ```
@@ -860,12 +935,142 @@ Add tests:
         JSONArray arr = new JSONArray(out.toString());
         assertEquals(1, arr.length(), "duplicate ids collapse to a single entry");
     }
+
+    @Test void resolve_nonAdmin_onlyGateVisibleResolved_noOracle_andNoLoadForHidden() throws Exception {
+        // Non-admin: OpenSearch gate returns ONLY "ann-vis". Hidden (real-but-invisible) and garbage
+        // ids must be absent AND must never trigger a Shepherd.getAnnotation load.
+        Annotation vis = fullAnnotation("ann-vis", "enc-v", "ind-v");
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("viewer", false);
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(false);
+                 when(m.getAnnotation("ann-vis")).thenReturn(vis);
+             });
+             MockedConstruction<org.ecocean.OpenSearch> os = mockConstruction(org.ecocean.OpenSearch.class,
+                 (m, c) -> {
+                     doNothing().when(m).deletePit(anyString());
+                     when(m.queryPit(eq("annotation"), any(), eq(0), anyInt(), any(), any()))
+                         .thenReturn(hitsFor("ann-vis")); // only ann-vis passes the ACL gate
+                 })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds",
+                  new JSONArray().put("ann-vis").put("ann-hidden").put("ann-garbage")));
+            new MediaResolveApi().doPostForTest(request, resp);
+            Shepherd constructed = sh.constructed().get(0);
+            verify(constructed, never()).getAnnotation("ann-hidden");
+            verify(constructed, never()).getAnnotation("ann-garbage");
+        }
+        verify(resp).setStatus(200);
+        JSONArray arr = new JSONArray(out.toString());
+        assertEquals(1, arr.length(), "non-admin sees only gate-passed ids; hidden/garbage absent (no oracle)");
+        assertEquals("ann-vis", arr.getJSONObject(0).getString("id"), "only the visible id resolved");
+    }
+
+    @Test void resolve_nonAdmin_moreThan10VisibleAllResolve() throws Exception {
+        // 12 visible ids -> all 12 must appear in the response (proves no default-10 truncation end-to-end).
+        JSONArray reqIds = new JSONArray();
+        String[] all = new String[12];
+        for (int i = 0; i < 12; i++) { all[i] = "ann-" + i; reqIds.put(all[i]); }
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("viewer", false);
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(false);
+                 when(m.getAnnotation(anyString())).thenAnswer(inv -> {
+                     String id = inv.getArgument(0);
+                     return fullAnnotation(id, "enc-" + id, "ind-" + id);
+                 });
+             });
+             MockedConstruction<org.ecocean.OpenSearch> os = mockConstruction(org.ecocean.OpenSearch.class,
+                 (m, c) -> {
+                     doNothing().when(m).deletePit(anyString());
+                     when(m.queryPit(eq("annotation"), any(), eq(0), anyInt(), any(), any()))
+                         .thenReturn(hitsFor(all));
+                 })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", reqIds));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        verify(resp).setStatus(200);
+        assertEquals(12, new JSONArray(out.toString()).length(), "all 12 visible ids resolve (no default-10 truncation)");
+    }
+
+    @Test void resolve_thetaDefault_and_nullViewpoint() throws Exception {
+        Annotation ann = fullAnnotation("ann-t", "enc-t", "ind-t");
+        when(ann.getViewpoint()).thenReturn(null);
+        when(ann.getTheta()).thenReturn(0.0);
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin", true);
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-t")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-t")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        JSONObject e = new JSONArray(out.toString()).getJSONObject(0);
+        assertTrue(e.isNull("viewpoint"), "null viewpoint serialized as JSON null");
+        assertEquals(0.0, e.getDouble("theta"), 0.0001, "theta defaults to 0.0");
+    }
+
+    @Test void resolve_methodVersion_dedupAndOrder() throws Exception {
+        Annotation ann = fullAnnotation("ann-m", "enc-m", "ind-m");
+        Embedding e1 = mock(Embedding.class); when(e1.getMethodVersion()).thenReturn("msv4.1");
+        Embedding e2 = mock(Embedding.class); when(e2.getMethodVersion()).thenReturn("msv4.1");
+        Embedding e3 = mock(Embedding.class); when(e3.getMethodVersion()).thenReturn("msv3");
+        Set<Embedding> embs = new LinkedHashSet<>(); embs.add(e1); embs.add(e2); embs.add(e3);
+        when(ann.getEmbeddings()).thenReturn(embs);
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin", true);
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-m")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-m")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        JSONArray mvs = new JSONArray(out.toString()).getJSONObject(0).getJSONArray("methodVersion");
+        assertEquals("[\"msv4.1\",\"msv3\"]", mvs.toString(), "method versions de-duplicated, first-seen order");
+    }
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
 Run the `mvn test -Dtest=MediaResolveApiTest ...` command.
-Expected: FAIL — `resolveOne` stub returns null, so `resolve_payload_*` gets an empty array.
+Expected: FAIL — `resolveOne` stub returns null, so `resolve_payload_*` and the new resolution tests get empty arrays.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -937,7 +1142,7 @@ Replace the temporary `resolveOne` stub with:
 - [ ] **Step 4: Run test to verify it passes**
 
 Run the `mvn test -Dtest=MediaResolveApiTest ...` command.
-Expected: PASS (17 tests total).
+Expected: PASS (27 tests total).
 
 - [ ] **Step 5: Normalize + commit**
 
@@ -975,14 +1180,20 @@ Add to `EndpointAuthWiringTest.java` (mirror the existing `authToken_*` assertio
     }
 
     @Test
-    void mediaResolve_shiroRuleIsTokenGated() {
-        String ruleLine = fullText().lines()
-                .map(String::trim)
-                .filter(t -> !t.startsWith("#") && t.contains("/api/v3/media/"))
+    void mediaResolve_shiroRuleIsTokenFilterOnly() {
+        // Mirror searchPath_wiredToTokenFilterOnly: exact value equality, not a loose contains().
+        String ruleLine = lines.stream()
+                .filter(l -> {
+                    String t = l.stripLeading();
+                    return !t.startsWith("#") && t.contains("/api/v3/media/**");
+                })
                 .findFirst().orElse(null);
-        assertNotNull(ruleLine, "Shiro [urls] must contain a rule line for /api/v3/media/");
-        assertTrue(ruleLine.contains("tokenAuthSearch"),
-                "Shiro rule for /api/v3/media/ must use the token filter (was: '" + ruleLine + "')");
+        assertNotNull(ruleLine, "Shiro [urls] must contain a rule for /api/v3/media/**");
+        String value = ruleLine.substring(
+                ruleLine.indexOf("/api/v3/media/**") + "/api/v3/media/**".length()).trim();
+        if (value.startsWith("=")) value = value.substring(1).trim();
+        assertEquals("tokenAuthSearch", value,
+                "media path must map to tokenAuthSearch ONLY (no authc/roles chained); was: '" + value + "'");
     }
 ```
 
