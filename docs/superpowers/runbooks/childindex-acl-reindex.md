@@ -117,3 +117,34 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST "$HOST/api/v3/search/occurrence
 
 Compare an **admin** token: it is unscoped (sees all individuals/annotations), with the internal ACL
 fields still scrubbed from responses.
+
+---
+
+## 6. Media-resolve smoke test (Spec: token-scoped media resolve)
+
+No reindex is needed for `POST /api/v3/media/resolve` (no new index fields). After deploying the
+endpoint, verify with tokens (see `jwt-keypair-setup.md` + `POST /api/v3/auth/token`):
+
+```bash
+# admin token: resolve the two salamander missed-match candidate annotations -> image url + scaled bbox
+curl -s -X POST "$HOST/api/v3/media/resolve" -H "Authorization: Bearer $ADMIN_TOK" \
+  -H 'Content-Type: application/json' \
+  -d '{"annotationIds":["<ann-BGBI_22-168>","<ann-BGBI_23-2716>"]}'
+# -> 200, JSON array with 2 entries: imageUrl (…-master.jpg or …-mid.jpg), imageWidth/Height,
+#    bbox in that image's pixel space, theta, viewpoint, encounterId, individualId, methodVersion.
+# Fetch each imageUrl and confirm it returns image bytes (HTTP 200).
+
+# non-admin token: an annotation whose parent encounter the user cannot see resolves to empty
+curl -s -X POST "$HOST/api/v3/media/resolve" -H "Authorization: Bearer $RESEARCHER_TOK" \
+  -H 'Content-Type: application/json' -d '{"annotationIds":["<private-annotation-id>"]}'
+# -> 200 with [] (silently absent; indistinguishable from a nonexistent id — no existence oracle)
+
+# no token -> 401
+curl -s -o /dev/null -w '%{http_code}\n' -X POST "$HOST/api/v3/media/resolve" \
+  -H 'Content-Type: application/json' -d '{"annotationIds":["x"]}'
+# -> 401
+```
+
+Sanity-check the bbox: crop the returned `imageUrl` to `bbox` — it should frame the animal region the
+embedding was computed from. The bbox is already in the returned image's pixel space (no client
+scaling needed); `imageWidth`/`imageHeight` are provided for verification.
