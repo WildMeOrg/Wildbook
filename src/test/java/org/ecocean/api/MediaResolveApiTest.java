@@ -17,6 +17,7 @@ import org.ecocean.Embedding;
 import org.ecocean.Encounter;
 import org.ecocean.User;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.media.URLAssetStore;
 import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.media.LocalAssetStore;
@@ -165,6 +166,26 @@ class MediaResolveApiTest {
         when(src.findChildrenByLabel(sh, "_mid")).thenReturn(mids);
         assertSame(mid, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
             "a _master child also labeled _original is skipped; falls back to _mid");
+    }
+
+    @Test void selectSafeDerivative_walksToOriginalParentForDerivatives() {
+        // Live-data shape (flakebook): the annotation's asset is a non-original SIBLING of the
+        // derivatives; _master/_mid hang off the _original PARENT. selectSafeDerivative must walk to
+        // the parent to find them — searching the leaf sibling's own children would find nothing.
+        Shepherd sh = mock(Shepherd.class);
+        MediaAsset src = mock(MediaAsset.class);
+        when(src.getStore()).thenReturn(mock(LocalAssetStore.class));
+        when(src.getParentId()).thenReturn(4242);
+        MediaAsset original = mock(MediaAsset.class);
+        when(original.hasLabel("_original")).thenReturn(true);
+        MediaAsset master = child("_master", false);
+        ArrayList<MediaAsset> masters = new ArrayList<>(); masters.add(master);
+        when(original.findChildrenByLabel(sh, "_master")).thenReturn(masters);
+        try (MockedStatic<MediaAssetFactory> mf = mockStatic(MediaAssetFactory.class)) {
+            mf.when(() -> MediaAssetFactory.load(4242, sh)).thenReturn(original);
+            assertSame(master, MediaResolveApi.selectSafeDerivative(annWithSource(src), sh),
+                "must walk to the _original parent to find the _master derivative");
+        }
     }
 
     @Test void selectSafeDerivative_nullWhenChildrenExistButNoneMatchLabel() {

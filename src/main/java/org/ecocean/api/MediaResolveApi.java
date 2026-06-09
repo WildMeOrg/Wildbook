@@ -17,6 +17,7 @@ import org.ecocean.OpenSearch;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.security.WildbookTokenAuthenticationFilter;
 import org.ecocean.servlet.ServletUtilities;
@@ -260,8 +261,23 @@ public class MediaResolveApi extends ApiBase {
         MediaAsset src = ann.getMediaAsset();
         if (src == null) return null;
         if (!(src.getStore() instanceof LocalAssetStore)) return null;
+        // _master/_mid derivatives hang off the _original ANCESTOR. The annotation's asset is
+        // typically a non-original SIBLING of those derivatives, so walk to the _original parent
+        // before searching its children — mirroring MediaAsset.bestSafeAsset's traversal. Without
+        // this, findChildrenByLabel on a leaf sibling returns nothing and every annotation is omitted.
+        MediaAsset base = src;
+        Integer parentId = src.getParentId();
+        if (parentId != null) {
+            try {
+                MediaAsset parent = MediaAssetFactory.load(parentId, myShepherd);
+                if ((parent != null) && parent.hasLabel("_original")) base = parent;
+            } catch (RuntimeException ex) {
+                // parent lookup unavailable -> fall back to searching this asset directly (fail-soft;
+                // omit this one id rather than failing the whole batch).
+            }
+        }
         for (String label : new String[] {"_master", "_mid"}) {
-            ArrayList<MediaAsset> kids = src.findChildrenByLabel(myShepherd, label);
+            ArrayList<MediaAsset> kids = base.findChildrenByLabel(myShepherd, label);
             // findChildrenByLabel returns an EMPTY list (not null) when children exist but none
             // match this label — treat that the same as "no match" and try the next label.
             if ((kids == null) || kids.isEmpty()) continue;
