@@ -518,6 +518,7 @@ class MediaResolveApiTest {
         MediaAsset master = mock(MediaAsset.class);
         when(master.getStore()).thenReturn(mock(org.ecocean.media.LocalAssetStore.class));
         when(master.hasLabel("_original")).thenReturn(false);
+        when(master.getParentId()).thenReturn(99); // a real child derivative
         when(master.webURL()).thenReturn(new java.net.URL("https://h/wildbook_data_dir/x/child-master.jpg"));
         when(src.bestSafeAsset(any(Shepherd.class), isNull(), eq("master"))).thenReturn(master);
         Annotation ann = mock(Annotation.class);
@@ -569,6 +570,7 @@ class MediaResolveApiTest {
         MediaAsset master = mock(MediaAsset.class);
         when(master.getStore()).thenReturn(mock(org.ecocean.media.LocalAssetStore.class));
         when(master.hasLabel("_original")).thenReturn(false);
+        when(master.getParentId()).thenReturn(99); // a real child derivative
         when(master.webURL()).thenReturn(new java.net.URL("https://h/wildbook_data_dir/x/safe-master.jpg"));
         when(src.bestSafeAsset(any(Shepherd.class), isNull(), eq("master"))).thenReturn(master);
         Annotation ann = mock(Annotation.class);

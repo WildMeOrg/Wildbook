@@ -226,6 +226,7 @@ public class MediaResolveApi extends ApiBase {
                 if (a == null) continue;
                 if (!(a.getStore() instanceof LocalAssetStore)) continue;
                 if (a.hasLabel("_original")) continue;
+                if (a.getParentId() == null) continue; // must be a child derivative, never a self-returned root
                 URL u = a.webURL();
                 if (u != null) return u;
             }

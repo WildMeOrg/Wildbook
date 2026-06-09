@@ -119,8 +119,9 @@ The endpoint:
    subset (single source of ACL truth — Approach A);
 2. for each visible ID, loads the `Annotation` via `Shepherd`, requires its asset `LocalAssetStore`-backed,
    reads the annotation asset's own dimensions, clamps `getBbox()` to them (no scaling), and obtains
-   the servable URL (serve the annotation asset's own `webURL` when it is not the raw `_original`,
-   else a `_master`/`_mid` child of it) — see *Servable URL selection*;
+   the servable URL (serve the annotation asset's own `webURL` when it is a child derivative, else —
+   for a raw root, `getParentId()==null` or `_original` — a `_master`/`_mid` child of it) — see
+   *Servable URL selection*;
 3. returns the array. Non-visible / unknown / unresolvable IDs (source not local, dimensions ≤0, null
    bbox, no servable URL) are simply **absent** (fail-closed; no existence oracle).
 
@@ -244,8 +245,9 @@ one. No new ACL logic is introduced; resolve inherits Spec A's fail-closed multi
 - **Source-frame bbox (Codex High):** the returned `bbox` equals `getBbox()` clamped to the annotation
   asset's dimensions (**not** scaled), and `imageWidth`/`imageHeight` equal the annotation asset's
   dimensions — so the consumer's scale to the fetched image is correct even for a crop source.
-- **Servable URL selection:** non-`_original` source asset → served via its own `webURL`; `_original`
-  source → served via a `_master`/`_mid` child of it; non-`LocalAssetStore` source → omitted; null URL
+- **Servable URL selection:** child-derivative source asset (`parentId!=null`, not `_original`) →
+  served via its own `webURL`; raw root (`parentId==null` or `_original`) → served via a `_master`/
+  `_mid` child of it; non-`LocalAssetStore` source → omitted; null URL
   → omitted; a lookup error → omitted (fail-soft, batch still 200).
 - **Clamp (Codex High):** negative-origin bbox clamps both corners (width shrinks, not preserved);
   fully-out-of-bounds or inverted bbox → omitted.
@@ -272,8 +274,9 @@ non-admin token, confirm a private annotation resolves empty.
 - `MediaResolveApi.java` (new) — the servlet/endpoint: token-path enforcement (`TOKEN_AUTH_ATTR` +
   verified context), validation, visibility gate (sized to ID count), per-ID resolution, response.
 - Two small static helpers in `MediaResolveApi`: `safeServableUrl(src, shepherd)` (serve the
-  annotation asset's own `webURL` when non-`_original`, else a `_master`/`_mid` child via
-  `bestSafeAsset`; `LocalAssetStore`/non-`_original` guards; fail-soft) and `clampBbox(bbox, W, H)`
+  annotation asset's own `webURL` when it is a child derivative, else — raw root: `parentId==null`
+  or `_original` — a `_master`/`_mid` child via `bestSafeAsset`; `LocalAssetStore`/non-`_original`/
+  child guards; fail-soft) and `clampBbox(bbox, W, H)`
   (corner-clamp to the source frame, no scaling).
 - Reuse: `OpenSearch.applyAclFilter` (annotation gate), `WildbookTokenAuthenticationFilter`,
   `Annotation.getBbox()`/`getTheta()`/`getViewpoint()`/`findEncounter()`/`getEmbeddings()`,
