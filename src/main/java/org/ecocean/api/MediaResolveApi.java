@@ -105,10 +105,11 @@ public class MediaResolveApi extends ApiBase {
             return;
         }
 
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("api.MediaResolveApi.POST");
-        myShepherd.beginDBTransaction();
+        Shepherd myShepherd = null;
         try {
+            myShepherd = new Shepherd(context);
+            myShepherd.setAction("api.MediaResolveApi.POST");
+            myShepherd.beginDBTransaction();
             User currentUser = myShepherd.getUser(request);
             if ((currentUser == null) || (currentUser.getId() == null)) {
                 writeError(response, 401, "unauthorized");
@@ -123,12 +124,13 @@ public class MediaResolveApi extends ApiBase {
             }
             response.setStatus(200);
             writeBody(response, results.toString());
+        } catch (IOException ioEx) {
+            throw ioEx; // broken pipe / client gone — let the container handle; don't double-write
         } catch (Exception ex) {
-            response.setStatus(500);
-            writeBody(response, new JSONObject().put("error", "resolve failed").toString());
+            writeError(response, 500, "resolve failed");
             ex.printStackTrace();
         } finally {
-            myShepherd.rollbackAndClose();
+            if (myShepherd != null) myShepherd.rollbackAndClose();
         }
     }
 
@@ -138,10 +140,10 @@ public class MediaResolveApi extends ApiBase {
     }
 
     private void writeBody(HttpServletResponse response, String s) throws IOException {
-        response.setHeader("Content-Type", "application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(s);
-        response.getWriter().close();
+        response.setContentType("application/json; charset=UTF-8");
+        java.io.PrintWriter w = response.getWriter();
+        w.write(s);
+        w.close();
     }
 
     // ===== TEMP stubs — replaced in Task 5 (gatedVisibleIds) and Task 6 (resolveOne) =====

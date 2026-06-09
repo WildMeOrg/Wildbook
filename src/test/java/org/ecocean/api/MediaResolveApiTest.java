@@ -256,6 +256,7 @@ class MediaResolveApiTest {
             su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
               .thenReturn(new JSONObject().put("annotationIds", big));
             new MediaResolveApi().doPostForTest(req, resp);
+            assertTrue(sh.constructed().isEmpty(), "over-max body must be rejected before Shepherd construction");
         }
         verify(resp).setStatus(400);
     }
