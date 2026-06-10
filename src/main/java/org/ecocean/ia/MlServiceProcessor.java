@@ -665,6 +665,20 @@ public class MlServiceProcessor {
 
             Task parent = Task.load(taskId, shep);
             Task matchTask = (parent == null) ? new Task() : new Task(parent);
+            // new Task(parent) copies the parent's parameters. The v2 detection
+            // task is tagged ibeis.detection (IA.enqueueOneAssetForMlService) so
+            // the /metrics detection gauges count it; strip that flag here so it
+            // does NOT propagate onto this match task or the per-annotation
+            // subtasks Embedding.findMatchProspects creates from it below
+            // (new Task(matchTask)). Otherwise the detection gauges would
+            // miscount match/subtasks as detections, and the existential child
+            // clause in MetricsBot would stop counting the parent detection
+            // task. Mirror of IBEISIA's params.remove("ibeis.detection").
+            JSONObject inheritedParams = matchTask.getParameters();
+            if ((inheritedParams != null) && inheritedParams.has("ibeis.detection")) {
+                inheritedParams.remove("ibeis.detection");
+                matchTask.setParameters(inheritedParams);
+            }
             matchTask.setObjectAnnotations(anns);
             matchTask.addParameter("mlServiceV2Match", true);
             // Stamp the chosen _id_conf entry's description into an
