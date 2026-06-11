@@ -112,6 +112,7 @@
 				# No Bearer => falls through to SearchApi (which self-401s if no session). Filter handles auth.
 				/api/v3/search/** = tokenAuthSearch
 				/api/v3/media/resolve = tokenAuthSearch
+				/api/v3/agent-skill = anon
 
 
 				# ===== Appadmin =====
@@ -571,6 +572,15 @@
 	<servlet-mapping>
 		<servlet-name>MediaResolveApi</servlet-name>
 		<url-pattern>/api/v3/media/resolve</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>AgentSkill</servlet-name>
+		<servlet-class>org.ecocean.api.AgentSkill</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AgentSkill</servlet-name>
+		<url-pattern>/api/v3/agent-skill</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
