@@ -13,6 +13,14 @@ import ThemeColorContext from "../../../ThemeColorProvider";
 
 const GalleryView = observer(({ store, pg = {} }) => {
   const theme = React.useContext(ThemeColorContext);
+  const nextPage = store.currentPage + 1;
+  const cachedNextPage = store.previousPageItems[nextPage];
+  const hasCachedNextPage = !!cachedNextPage;
+  const canFetchNextPage =
+    !store.galleryLoading &&
+    !store.galleryExhausted &&
+    store.currentPageItems.length >= store.pageSize;
+  const canGoNext = hasCachedNextPage || canFetchNextPage;
 
   useEffect(() => {
     store.resetGallery();
@@ -65,18 +73,28 @@ const GalleryView = observer(({ store, pg = {} }) => {
             width: "50px",
             height: "30px",
           }}
-          disabled={store.currentPage <= 0}
+          disabled={store.currentPage <= 0 || store.galleryLoading}
           color="white"
           backgroundColor={theme.primaryColors.primary500}
           onClick={() => {
-            if (store.currentPage <= 0) return;
+            if (store.currentPage <= 0 || store.galleryLoading) return;
             const current = store.currentPage;
             const prevPage = current - 1;
-            if (store.previousPageItems[prevPage]) {
-              const prevItems = store.previousPageItems[prevPage].slice();
-              const currentItems = store.currentPageItems.slice();
-              store.setPreviousPageItems(store.currentPage, currentItems);
-              store.setCurrentPageItems(prevItems);
+            const cachedPrevPage = store.previousPageItems[prevPage];
+            if (cachedPrevPage) {
+              store.setPreviousPageItems(
+                current,
+                store.currentPageItems.slice(),
+                store.start,
+                store.assetOffset,
+                store.galleryExhausted,
+              );
+              store.setCurrentPageItems(cachedPrevPage.items.slice());
+              store.setStart(cachedPrevPage.start);
+              store.setAssetOffset(cachedPrevPage.assetOffset);
+              store.setGalleryExhausted(cachedPrevPage.galleryExhausted);
+              store.setGalleryLoading(false);
+              store.setLoadingAll(false);
               store.setCurrentPage(prevPage);
             }
           }}
@@ -90,24 +108,35 @@ const GalleryView = observer(({ store, pg = {} }) => {
             width: "50px",
             height: "30px",
           }}
-          disabled={store.currentPageItems.length < store.pageSize}
+          disabled={!canGoNext}
           color="white"
           backgroundColor={theme.primaryColors.primary500}
           onClick={async () => {
+            if (!canGoNext) {
+              return;
+            }
             store.setPreviousPageItems(
               store.currentPage,
               store.currentPageItems.slice(),
+              store.start,
+              store.assetOffset,
+              store.galleryExhausted,
             );
-            const current = store.currentPage;
-            const nextPage = current + 1;
-            if (store.previousPageItems[nextPage]) {
-              store.setCurrentPageItems(
-                store.previousPageItems[nextPage].slice(),
-              );
-            } else {
-              await pg();
+            if (cachedNextPage) {
+              store.setCurrentPageItems(cachedNextPage.items.slice());
+              store.setStart(cachedNextPage.start);
+              store.setAssetOffset(cachedNextPage.assetOffset);
+              store.setGalleryExhausted(cachedNextPage.galleryExhausted);
+              store.setGalleryLoading(false);
+              store.setLoadingAll(false);
+              store.setCurrentPage(nextPage);
+              return;
             }
-            store.setCurrentPage(nextPage);
+
+            const didAdvance = await pg();
+            if (didAdvance) {
+              store.setCurrentPage(nextPage);
+            }
           }}
         >
           <i className="bi bi-chevron-right"></i>

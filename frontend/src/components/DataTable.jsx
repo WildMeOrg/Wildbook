@@ -12,7 +12,7 @@ import { observer } from "mobx-react-lite";
 import GalleryView from "../pages/SearchPages/searchResultTabs/GalleryView";
 import Select from "react-select";
 import MainButton from "./MainButton";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import { useSiteSettings } from "../SiteSettingsContext";
 
 const customStyles = {
   rows: {
@@ -221,12 +221,14 @@ const MyDataTable = observer(
       }
     }, [store.selectedRows.length, store.projectBannerStatusCode]);
 
-    const { data: siteSettingsData } = useGetSiteSettings();
+    const { data: siteSettingsData, isLoading: siteSettingsLoading } =
+      useSiteSettings();
     useEffect(() => {
       if (siteSettingsData) {
         store.setSiteSettingsData(siteSettingsData);
+        store.setSiteSettingsLoading(siteSettingsLoading);
       }
-    }, [siteSettingsData]);
+    }, [siteSettingsData, siteSettingsLoading]);
 
     useEffect(() => {
       setData(tableData.map((row, index) => ({ tableID: index, ...row })));
@@ -268,7 +270,7 @@ const MyDataTable = observer(
 
     const projectOptions = Object.entries(
       store?.siteSettingsData?.projectsForUser ?? {},
-    ).map(([value, label]) => ({ value, label }));
+    ).map(([value, label]) => ({ value, label: label?.name }));
 
     const handleSort = (column, sortDirection) => {
       const columnName =

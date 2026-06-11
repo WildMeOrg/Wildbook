@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import { Loader } from "@googlemaps/js-api-loader";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 
 export const MapDisplay = observer(({ store, zoom = 4, disableUI = true }) => {
   const mapElRef = useRef(null);
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   const apiKey = data?.googleMapsKey;
   const defaultCenter = { lat: data?.mapCenterLat, lng: data?.mapCenterLon };
 

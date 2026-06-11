@@ -536,7 +536,23 @@ public class MetricsBot {
             "wildbook_tasks_pieTwo", "Number of tasks using PieTwo algorithm", context));
 		addLineIfNotNull(csvLines, buildGauge(
             "SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('MiewId')>-1",
-            "wildbook_tasks_pieTwo", "Number of tasks using MiewId algorithm", context));
+            "wildbook_tasks_miewId", "Number of tasks using MiewId algorithm", context));
+
+        // ml-service v2 vector (MiewID) re-ID matches carry mlServiceV2Match=true
+        // (MlServiceProcessor.runMatchProspects); the per-annotation leaf subtasks
+        // inherit it (Embedding.findMatchProspects -> new Task(matchTask)).
+        // children==null counts those leaves (one per annotation), parallel to the
+        // hotspotter/pieTwo gauges above; the parent match task has children and is
+        // excluded, so no double counting. Edge case: an invalid/rejected match
+        // config aborts before any subtask is created, leaving the parent match
+        // task childless — that rare failure counts as one terminal leaf here.
+        // Match the quoted JSON key (like the hotspotter '"sv_on"' gauge) so we
+        // hit the key, not an incidental substring elsewhere in the params.
+        addLineIfNotNull(csvLines, buildGauge(
+            "SELECT count(this) FROM org.ecocean.ia.Task where children == null && parameters.indexOf('\"mlServiceV2Match\"')>-1",
+            "wildbook_tasks_vectorMatch",
+            "Number of ml-service v2 vector (MiewID) re-ID leaf tasks (one per matched annotation; a rare invalid-config match failure counts as one)",
+            context));
 
 
 

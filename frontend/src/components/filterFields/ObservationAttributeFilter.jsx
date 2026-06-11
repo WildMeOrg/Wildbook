@@ -6,8 +6,10 @@ import DynamicInputs from "../Form/DynamicInputs";
 import { FormLabel, FormGroup } from "react-bootstrap";
 import FormMeasurements from "../Form/FormMeasurements";
 import FormGroupText from "../Form/FormGroupText";
+import ContainerWithSpinner from "../ContainerWithSpinner";
+import { observer } from "mobx-react-lite";
 
-export default function ObservationAttributeFilter({ data, store }) {
+const ObservationAttributeFilter = observer(({ data, store }) => {
   const sexOptions =
     data?.sex?.map((item) => {
       return {
@@ -64,61 +66,70 @@ export default function ObservationAttributeFilter({ data, store }) {
       <Description>
         <FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE_DESC" />
       </Description>
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        noDesc={true}
-        label="FILTER_SEX"
-        options={sexOptions}
-        field="sex"
-        term="terms"
-        filterKey="Sex"
-        store={store}
-      />
-
-      <FormGroupText
-        label="FILTER_NOTICEABLE_SCARRING"
-        noDesc={true}
-        term="match"
-        field="distinguishingScar"
-        filterId={"distinguishingScar"}
-        filterKey={"Noticeable Scarring"}
-        store={store}
-      />
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        label="FILTER_LIFE_STAGE"
-        noDesc={true}
-        options={lifeStageOptions}
-        field="lifeStage"
-        term="terms"
-        filterKey="Life Stage"
-        store={store}
-      />
-      <FormGroupMultiSelect
-        isMulti={true}
-        label="FILTER_LIVING_STATUS"
-        noDesc={true}
-        options={livingStatusOptions}
-        field="livingStatus"
-        term="terms"
-        filterKey="Living Status"
-        store={store}
-      />
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        label="FILTER_GENUS_AND_SPECIES"
-        noDesc={true}
-        options={genusAndSpeciesOptions}
-        field="taxonomy"
-        term="terms"
-        filterId={"Taxonomy"}
-        filterKey={"Genus and Species"}
-        store={store}
-      />
-
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          noDesc={true}
+          label="FILTER_SEX"
+          options={sexOptions}
+          field="sex"
+          term="terms"
+          filterKey="Sex"
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupText
+          label="FILTER_NOTICEABLE_SCARRING"
+          noDesc={true}
+          term="match"
+          field="distinguishingScar"
+          filterId={"distinguishingScar"}
+          filterKey={"Noticeable Scarring"}
+          store={store}
+        />
+      </ContainerWithSpinner>
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          label="FILTER_LIFE_STAGE"
+          noDesc={true}
+          options={lifeStageOptions}
+          field="lifeStage"
+          term="terms"
+          filterKey="Life Stage"
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          label="FILTER_LIVING_STATUS"
+          noDesc={true}
+          options={livingStatusOptions}
+          field="livingStatus"
+          term="terms"
+          filterKey="Living Status"
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          label="FILTER_GENUS_AND_SPECIES"
+          noDesc={true}
+          options={genusAndSpeciesOptions}
+          field="taxonomy"
+          term="terms"
+          filterId={"Taxonomy"}
+          filterKey={"Genus and Species"}
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
       <FormGroup className="mt-2">
         <FormLabel>
           <FormattedMessage id="FILTER_OBSERVATION_SEARCH" />
@@ -126,18 +137,22 @@ export default function ObservationAttributeFilter({ data, store }) {
 
         <DynamicInputs store={store} />
       </FormGroup>
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        noDesc={true}
-        label="FILTER_BEHAVIOUR"
-        options={behaviourOptions}
-        field="behavior"
-        term="terms"
-        filterKey="Behavior"
-        store={store}
-      />
-
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          noDesc={true}
+          label="FILTER_BEHAVIOUR"
+          options={behaviourOptions}
+          field="behavior"
+          term="terms"
+          filterKey="Behavior"
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
+      <ContainerWithSpinner
+        loading={store.siteSettingsLoading}
+      ></ContainerWithSpinner>
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}
@@ -147,6 +162,7 @@ export default function ObservationAttributeFilter({ data, store }) {
         term={"terms"}
         filterKey={"Patterning Code"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
 
       <FormGroup className="mt-2">
@@ -162,4 +178,6 @@ export default function ObservationAttributeFilter({ data, store }) {
       </FormGroup>
     </div>
   );
-}
+});
+
+export default ObservationAttributeFilter;

@@ -20,13 +20,12 @@ import java.util.Map;
 // import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.ecocean.shepherd.core.Shepherd;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class EncounterDelete extends HttpServlet {
-    /** SLF4J logger instance for writing log entries. */
-    public static Logger log = LoggerFactory.getLogger(EncounterDelete.class);
+    private static final Logger log = LogManager.getLogger(EncounterDelete.class);
 
     public void init(ServletConfig config)
     throws ServletException {
@@ -163,15 +162,7 @@ public class EncounterDelete extends HttpServlet {
                     ArrayList<Annotation> anns = enc2trash.getAnnotations();
                     for (Annotation ann : anns) {
                         myShepherd.beginDBTransaction();
-                        enc2trash.removeAnnotation(ann);
-                        myShepherd.updateDBTransaction();
-                        List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
-                        if (iaTasks != null && !iaTasks.isEmpty()) {
-                            for (Task iaTask : iaTasks) {
-                                iaTask.removeObject(ann);
-                                myShepherd.updateDBTransaction();
-                            }
-                        }
+                        ann.prepareForDeletion(myShepherd, enc2trash);
                         myShepherd.throwAwayAnnotation(ann);
                         myShepherd.commitDBTransaction();
                     }
@@ -187,7 +178,6 @@ public class EncounterDelete extends HttpServlet {
                     myShepherd.commitDBTransaction();
 
                     // log it
-                    Logger log = LoggerFactory.getLogger(EncounterDelete.class);
                     log.info("Click to restore deleted encounter: <a href=\"" +
                         request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) +
                         "/ResurrectDeletedEncounter?number=" + request.getParameter("number") +

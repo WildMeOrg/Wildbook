@@ -9,8 +9,8 @@ import org.ecocean.Occurrence;
 import org.ecocean.Project;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.social.SocialUnit;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.social.SocialUnit;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -62,15 +62,7 @@ public class DeleteImportTask extends HttpServlet {
                     List<Project> projects = myShepherd.getProjectsForEncounter(enc);
                     ArrayList<Annotation> anns = enc.getAnnotations();
                     for (Annotation ann : anns) {
-                        enc.removeAnnotation(ann);
-                        myShepherd.updateDBTransaction();
-                        List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
-                        if (iaTasks != null && !iaTasks.isEmpty()) {
-                            for (Task iaTask : iaTasks) {
-                                iaTask.removeObject(ann);
-                                myShepherd.updateDBTransaction();
-                            }
-                        }
+                        ann.prepareForDeletion(myShepherd, enc);
                         myShepherd.throwAwayAnnotation(ann);
                         myShepherd.updateDBTransaction();
                     }

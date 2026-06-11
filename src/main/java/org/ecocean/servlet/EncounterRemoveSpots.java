@@ -123,6 +123,7 @@ public class EncounterRemoveSpots extends HttpServlet {
                     request.getParameter("number") + " was removed.";
                 ServletUtilities.informInterestedParties(request, request.getParameter("number"),
                     message, context);
+                response.setStatus(HttpServletResponse.SC_OK);
             } else {
                 if (assigned) {
                     out.println(
@@ -139,6 +140,7 @@ public class EncounterRemoveSpots extends HttpServlet {
                         "/encounters/encounter.jsp?number=" + request.getParameter("number") +
                         "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
                 }
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
             out.println(ServletUtilities.getFooter(context));
         } else {
@@ -149,6 +151,7 @@ public class EncounterRemoveSpots extends HttpServlet {
                 "/encounters/encounter.jsp?number=" + request.getParameter("number") +
                 "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
         out.close();
     }

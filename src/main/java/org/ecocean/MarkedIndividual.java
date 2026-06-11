@@ -751,6 +751,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         int startMonth = m_startMonth;
         GregorianCalendar gcMin = new GregorianCalendar(startYear, startMonth, 1);
         GregorianCalendar gcMax = new GregorianCalendar(endYear, endMonth, 31);
+        gcMax.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        gcMax.set(java.util.Calendar.MINUTE, 59);
+        gcMax.set(java.util.Calendar.SECOND, 59);
 
         for (int c = 0; c < encounters.size(); c++) {
             Encounter temp = (Encounter)encounters.get(c);
@@ -773,6 +776,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         int startDay = m_startDay;
         GregorianCalendar gcMin = new GregorianCalendar(startYear, startMonth, startDay);
         GregorianCalendar gcMax = new GregorianCalendar(endYear, endMonth, endDay);
+        gcMax.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        gcMax.set(java.util.Calendar.MINUTE, 59);
+        gcMax.set(java.util.Calendar.SECOND, 59);
 
         for (int c = 0; c < encounters.size(); c++) {
             Encounter temp = (Encounter)encounters.get(c);
@@ -798,6 +804,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         int startDay = m_startDay;
         GregorianCalendar gcMin = new GregorianCalendar(startYear, startMonth, startDay);
         GregorianCalendar gcMax = new GregorianCalendar(endYear, endMonth, endDay);
+        gcMax.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        gcMax.set(java.util.Calendar.MINUTE, 59);
+        gcMax.set(java.util.Calendar.SECOND, 59);
 
         for (int c = 0; c < encounters.size(); c++) {
             Encounter temp = (Encounter)encounters.get(c);
@@ -818,6 +827,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         int startMonth = m_startMonth;
         GregorianCalendar gcMin = new GregorianCalendar(startYear, startMonth, 1);
         GregorianCalendar gcMax = new GregorianCalendar(endYear, endMonth, 31);
+        gcMax.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        gcMax.set(java.util.Calendar.MINUTE, 59);
+        gcMax.set(java.util.Calendar.SECOND, 59);
 
         for (int c = 0; c < encounters.size(); c++) {
             Encounter temp = (Encounter)encounters.get(c);
@@ -2515,6 +2527,16 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         }
         if (zeroPadding < 1) zeroPadding = 4; // if we had no guess (e.g. new?) lets be optimistic!
         return String.format("%s%0" + zeroPadding + "d", prefix, val.add(new BigInteger("1")));
+    }
+
+    // convenience method which uses the above prefix stuff
+    public static String nextNameByLocationId(String locationId)
+    throws IllegalArgumentException {
+        if (!LocationID.isValidLocationID(locationId)) throw new IllegalArgumentException("invalid location id: " + locationId);
+        String locPrefix = LocationID.getPrefixForLocationID(locationId, null);
+        if (Util.stringIsEmptyOrNull(locPrefix)) throw new IllegalArgumentException("no prefix value for locationId: " + locationId);
+        int locPad = LocationID.getPrefixDigitPaddingForLocationID(locationId, null);
+        return nextNameByPrefix(locPrefix, locPad);
     }
 
     public static List<String> findNames(String regex) {

@@ -32,8 +32,8 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.jdo.*;
 
@@ -48,7 +48,7 @@ import org.ecocean.Util;
  * @see LocalAssetStore
  */
 public abstract class AssetStore implements java.io.Serializable {
-    private static Logger logger = LoggerFactory.getLogger(AssetStore.class);
+    private static final Logger log = LogManager.getLogger(AssetStore.class);
 
     private static Map<Integer, AssetStore> stores;
 
@@ -82,7 +82,7 @@ public abstract class AssetStore implements java.io.Serializable {
 
     private static Map<Integer, AssetStore> getMap() {
         if (stores == null) {
-            logger.warn("Asset Stores were not set up!");
+            log.warn("Asset Stores were not set up!");
             return Collections.emptyMap();
         }
         return stores;
@@ -131,6 +131,13 @@ public abstract class AssetStore implements java.io.Serializable {
     public abstract URL webURL(MediaAsset ma);
 
     public abstract String getFilename(MediaAsset ma); // this should be null if there is no such thing.  "filename" is subjective here (e.g. youtube id?)
+
+    public Path getBasePath() {
+        MediaAsset ma = new MediaAsset();
+        JSONObject params = new JSONObject("{\"path\": \"\"}");
+        ma.setParameters(params);
+        return localPath(ma);
+    }
 
     // human-facing, "user-chosen" filename that may include complex characters like utf8 etc
     // defaults to just using getFilename() above, but can and should be overridden if applicable

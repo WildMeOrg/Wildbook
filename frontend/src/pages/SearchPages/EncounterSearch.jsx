@@ -79,7 +79,7 @@ const EncounterSearch = observer(() => {
     },
   });
 
-  const { refetch: refetchMediaAssets } = useFilterEncountersWithMediaAssets({
+  const { fetchMediaAssets } = useFilterEncountersWithMediaAssets({
     queries: store.mediaAssetsSearchQuery || [],
     params: {
       sort: encounterSortName,
@@ -89,41 +89,140 @@ const EncounterSearch = observer(() => {
     },
   });
 
-  const pg = async () => {
-    const response = await refetchMediaAssets();
-    const fetchedData = response?.data?.data?.hits || [];
-    if (!fetchedData || !fetchedData.length) {
-      store.setCurrentPageItems([]);
-      return;
+  useEffect(() => {
+    if (store.pageSize !== perPage) {
+      store.setPageSize(perPage);
+      store.resetGallery();
+      pg();
     }
-    let offset = 0;
-    let contents = [];
+  }, [perPage]);
 
-    if (fetchedData[offset].mediaAssets.length <= store.assetOffset) {
-      store.setAssetOffset(0);
-    }
+  const hasVisibleAssetsFromCursor = async (start, initialAssetOffset = 0) => {
+    let cumulativeStart = start;
+    let assetOffset = initialAssetOffset;
 
-    while (contents.length < store.pageSize && offset < fetchedData.length) {
-      if (fetchedData[offset].mediaAssets.length > store.assetOffset) {
-        const encounter = fetchedData[offset];
-        const data = encounter.mediaAssets[store.assetOffset];
-        data.__k = `${encounter.id}-${store.assetOffset}-${data.uuid ?? data.id ?? ""}`;
-        data.encounterId = encounter.id;
-        data.individualId = encounter.individualId;
-        data.date = encounter.date;
-        data.individualDisplayName = encounter.individualDisplayName;
-        data.verbatimDate = encounter.verbatimDate;
-        contents.push(data);
-        const newOffset = store.assetOffset + 1;
-        store.setAssetOffset(newOffset);
-      } else {
-        offset++;
-        store.setAssetOffset(0);
+    while (true) {
+      const response = await fetchMediaAssets({
+        from: cumulativeStart,
+        size: store.pageSize,
+        sort: encounterSortName,
+        sortOrder: encounterSortOrder,
+      });
+
+      const rawHits = response?.data?.hits || [];
+
+      if (!rawHits.length) {
+        return false;
+      }
+
+      for (const encounter of rawHits) {
+        if (encounter?.access === "none") {
+          cumulativeStart++;
+          assetOffset = 0;
+          continue;
+        }
+
+        const mediaAssets = encounter?.mediaAssets || [];
+        if (mediaAssets.length > assetOffset) {
+          return true;
+        }
+
+        cumulativeStart++;
+        assetOffset = 0;
       }
     }
-    store.setCurrentPageItems(contents);
-    const start = store.start + offset;
-    store.setStart(start);
+  };
+
+  const pg = async () => {
+    if (store.galleryLoading) {
+      return false;
+    }
+
+    store.setGalleryLoading(true);
+    store.setLoadingAll(true);
+
+    let contents = [];
+    let cumulativeStart = store.start;
+    let assetOffset = store.assetOffset;
+    let exhaustedBackend = false;
+    try {
+      // Keep fetching encounter windows until we have pageSize visible assets
+      // or the backend returns no more hits.
+      while (contents.length < store.pageSize && !exhaustedBackend) {
+        const response = await fetchMediaAssets({
+          from: cumulativeStart,
+          size: store.pageSize,
+          sort: encounterSortName,
+          sortOrder: encounterSortOrder,
+        });
+
+        const rawHits = response?.data?.hits || [];
+
+        if (!rawHits.length) {
+          exhaustedBackend = true;
+          break;
+        }
+
+        let rawOffset = 0;
+
+        while (contents.length < store.pageSize && rawOffset < rawHits.length) {
+          const encounter = rawHits[rawOffset];
+
+          if (encounter?.access === "none") {
+            rawOffset++;
+            cumulativeStart++;
+            assetOffset = 0;
+            continue;
+          }
+
+          const mediaAssets = encounter?.mediaAssets || [];
+
+          if (mediaAssets.length <= assetOffset) {
+            rawOffset++;
+            cumulativeStart++;
+            assetOffset = 0;
+            continue;
+          }
+
+          const rawAsset = mediaAssets[assetOffset];
+          contents.push({
+            ...rawAsset,
+            __k: `${encounter.id}-${assetOffset}-${rawAsset.uuid ?? rawAsset.id ?? ""}`,
+            encounterId: encounter.id,
+            individualId: encounter.individualId,
+            date: encounter.date,
+            individualDisplayName: encounter.individualDisplayName,
+            verbatimDate: encounter.verbatimDate,
+          });
+          assetOffset++;
+
+          if (assetOffset >= mediaAssets.length) {
+            rawOffset++;
+            cumulativeStart++;
+            assetOffset = 0;
+          }
+        }
+      }
+
+      store.setCurrentPageItems(contents);
+      store.setStart(cumulativeStart);
+      store.setAssetOffset(assetOffset);
+
+      if (contents.length === 0) {
+        store.setGalleryExhausted(true);
+        return false;
+      }
+
+      const hasMore = await hasVisibleAssetsFromCursor(
+        cumulativeStart,
+        assetOffset,
+      );
+      store.setGalleryExhausted(!hasMore);
+      return true;
+    } finally {
+      store.setGalleryLoading(false);
+      store.setLoadingAll(false);
+    }
   };
 
   const encounters = queryID ? searchData || [] : encounterData?.results || [];
@@ -216,7 +315,7 @@ const EncounterSearch = observer(() => {
       <DataTable
         store={store}
         searchQueryId={searchQueryId}
-        refetchMediaAssets={refetchMediaAssets}
+        refetchMediaAssets={fetchMediaAssets}
         pg={pg}
         isLoading={loading}
         style={{
