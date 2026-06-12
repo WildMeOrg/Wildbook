@@ -4,11 +4,15 @@ import { useState, useCallback } from "react";
 // IMPORTANT: uses a raw fetch with credentials:"omit" so NO session cookie is sent — the server
 // must verify the supplied password fresh (a session alone cannot mint).
 export async function mintToken(username, password) {
+  const creds = `${username}:${password}`;
+  const utf8 = new TextEncoder().encode(creds);
+  let binary = "";
+  for (let i = 0; i < utf8.length; i++) binary += String.fromCharCode(utf8[i]);
   const resp = await fetch("/api/v3/auth/token", {
     method: "POST",
     credentials: "omit",
     headers: {
-      Authorization: "Basic " + btoa(`${username}:${password}`),
+      Authorization: "Basic " + btoa(binary),
     },
   });
   let data = null;

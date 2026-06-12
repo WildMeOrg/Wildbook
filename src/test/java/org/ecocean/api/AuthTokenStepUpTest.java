@@ -60,7 +60,7 @@ class AuthTokenStepUpTest {
         verify(r).setStatus(401);
     }
 
-    @Test void correctPassword_mints200() throws Exception {
+    @Test void correctPassword_mints200WithToken() throws Exception {
         HttpServletRequest req = mock(HttpServletRequest.class);
         when(req.getHeader("Authorization")).thenReturn(basic("alice", "right"));
         StringWriter out = new StringWriter();
@@ -68,18 +68,24 @@ class AuthTokenStepUpTest {
         User alice = mock(User.class);
         when(alice.checkPassword("right")).thenReturn(true);
         when(alice.getId()).thenReturn("uuid-alice");
-        when(alice.getUsername()).thenReturn("alice");
+        org.ecocean.api.auth.JwtService jwt = mock(org.ecocean.api.auth.JwtService.class);
+        when(jwt.isEnabled()).thenReturn(true);
+        when(jwt.sign(anyString(), anyString(), anyLong())).thenReturn("signed-jwt");
         try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
-            doNothing().when(m).beginDBTransaction();
-            doNothing().when(m).setAction(anyString());
-            doNothing().when(m).rollbackAndClose();
-            when(m.getUser("alice")).thenReturn(alice);
-        })) {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 when(m.getUser("alice")).thenReturn(alice);
+             });
+             org.mockito.MockedStatic<org.ecocean.api.auth.JwtService> js =
+                 mockStatic(org.ecocean.api.auth.JwtService.class)) {
+            js.when(() -> org.ecocean.api.auth.JwtService.fromConfig(anyString())).thenReturn(jwt);
             new AuthToken().doPostForTest(req, r);
         }
-        // 200 only if JWT issuance is configured in the unit env; otherwise 503. The point is the
-        // credential was ACCEPTED (not 401) and no-store is set.
-        verify(r, never()).setStatus(401);
+        verify(r).setStatus(200);
         verify(r).setHeader("Cache-Control", "no-store");
+        String body = out.toString();
+        assertTrue(body.contains("signed-jwt"), "response carries the minted token");
+        assertTrue(body.contains("expiresInSeconds"), "response carries expiry");
     }
 }

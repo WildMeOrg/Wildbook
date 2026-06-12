@@ -51,7 +51,7 @@ export default function ApiAccessPage() {
       </p>
       <Alert variant="warning">
         Do <strong>not</strong> give your agent your username/password &mdash;
-        paste it only a token.
+        paste only the token.
       </Alert>
       <p>
         Your agent can learn this API here: <code>{SKILL_URL}</code>{" "}
@@ -68,7 +68,7 @@ export default function ApiAccessPage() {
         </Button>
       </p>
 
-      <Button onClick={openModal}>Generate API token</Button>
+      <Button onClick={openModal} disabled={!username}>Generate API token</Button>
 
       {token && (
         <div style={{ marginTop: "1.5rem" }}>
@@ -118,7 +118,7 @@ export default function ApiAccessPage() {
             <Button variant="secondary" onClick={() => setShowModal(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || !password}>
+            <Button type="submit" disabled={loading || !password || !username}>
               Confirm
             </Button>
           </Modal.Footer>

@@ -24,4 +24,13 @@ describe("mintToken", () => {
     fetchMock.mockResolvedValue({ status: 401, json: async () => ({ error: "invalid credentials" }) });
     await expect(mintToken("alice", "wrong")).rejects.toMatchObject({ status: 401 });
   });
+
+  it("UTF-8 encodes non-ASCII credentials", async () => {
+    fetchMock.mockResolvedValue({ status: 200, json: async () => ({ token: "t" }) });
+    await mintToken("José", "pâss");
+    const auth = fetchMock.mock.calls[0][1].headers.Authorization;
+    const b64 = auth.replace(/^Basic /, "");
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    expect(new TextDecoder().decode(bytes)).toBe("José:pâss"); // round-trips as UTF-8
+  });
 });
