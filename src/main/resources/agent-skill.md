@@ -43,7 +43,7 @@ coordinate space. **Fetch `imageUrl`, read its real pixel dimensions, and scale 
 don't exist) are simply absent — the response never reveals which.
 
 ## OpenSearch schema (token-exposed fields)
-See the field reference for full descriptions. Key indices/fields:
+Key indices and fields:
 - **encounter** — `id`, `taxonomy`, `locationId`/`locationName`, `date`/`dateMillis`, `individualId`,
   `sex`, `lifeStage`, `livingStatus`, `country`, `behavior`, ...
 - **individual** — `id`, `displayName`, `names`/`nameMap`, `sex`, `taxonomy`, `timeOfBirth`/`timeOfDeath`.
@@ -64,3 +64,9 @@ Access-control fields exist server-side but are **never** returned.
 **Comparing embeddings for missed matches:** only compare embeddings within the **same `viewpoint` and
 same `methodVersion`** — different viewpoints/versions live in different latent spaces and are not
 directly comparable. Calibrate similarity against known same-individual pairs before trusting a score.
+
+## References
+- **Wildbook documentation** — https://wildbook.docs.wildme.org/ — background on the data model
+  (encounters, individuals, annotations, occurrences), taxonomy, and platform concepts. This describes
+  the broader Wildbook platform and UI; for anything specific to this read-only token API (endpoints,
+  allowed indices, token handling) **this skill is authoritative** where the two differ.
