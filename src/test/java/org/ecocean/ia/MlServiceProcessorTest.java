@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.ecocean.Annotation;
+import org.ecocean.IAJsonProperties;
+import org.ecocean.Taxonomy;
 import org.ecocean.media.Feature;
 import org.ecocean.media.FeatureType;
 import org.ecocean.media.MediaAsset;
@@ -272,5 +274,60 @@ class MlServiceProcessorTest {
         mv = MlServiceProcessor.parseEmbeddingMethodVersion(trailing);
         assertEquals("miewid-", mv[0]);
         assertEquals("msv4.1", mv[1]);
+    }
+
+    // --- applySaveAs (_save_as iaClass remap; parity with IBEISIA) ------
+
+    // In-memory IA.json with an Equus.quagga._save_as mapping for the
+    // model-native zebra classes the ml-service returns. Mirrors
+    // IAJsonPropertiesTest's setJson() injection so no deployment IA.json
+    // or database is needed.
+    private IAJsonProperties iaConfigWithZebraSaveAs() {
+        JSONObject json = new JSONObject()
+            .put("Equus", new JSONObject()
+                .put("quagga", new JSONObject()
+                    .put("zebra_grevys", new JSONObject().put("_save_as", "zebra"))
+                    .put("zebra_plains", new JSONObject().put("_save_as", "zebra"))));
+        IAJsonProperties iac = IAJsonProperties.iaConfig();
+        iac.setJson(json);
+        return iac;
+    }
+
+    @Test void applySaveAsRemapsModelClassToCatalogClass() {
+        // The live-confirmed bug: ml-service returns "zebra_grevys" but the
+        // catalog is stored as "zebra"; _save_as must remap so matching
+        // candidates line up.
+        IAJsonProperties iac = iaConfigWithZebraSaveAs();
+        Taxonomy taxy = new Taxonomy("Equus quagga");
+        assertEquals("zebra", MlServiceProcessor.applySaveAs(iac, taxy, "zebra_grevys"));
+        assertEquals("zebra", MlServiceProcessor.applySaveAs(iac, taxy, "zebra_plains"));
+    }
+
+    @Test void applySaveAsPassesThroughUnmappedClass() {
+        // A class with no _save_as entry is returned unchanged.
+        IAJsonProperties iac = iaConfigWithZebraSaveAs();
+        Taxonomy taxy = new Taxonomy("Equus quagga");
+        assertEquals("giraffe", MlServiceProcessor.applySaveAs(iac, taxy, "giraffe"));
+    }
+
+    @Test void applySaveAsNullConfigReturnsRawClass() {
+        Taxonomy taxy = new Taxonomy("Equus quagga");
+        assertEquals("zebra_grevys",
+            MlServiceProcessor.applySaveAs(null, taxy, "zebra_grevys"));
+    }
+
+    @Test void applySaveAsNullTaxonomyReturnsRawClass() {
+        // No taxonomy known => cannot build the lookup key => no remap.
+        IAJsonProperties iac = iaConfigWithZebraSaveAs();
+        assertEquals("zebra_grevys",
+            MlServiceProcessor.applySaveAs(iac, null, "zebra_grevys"));
+    }
+
+    @Test void applySaveAsNullOrEmptyRawClassReturnedUnchanged() {
+        // A class-less detection must NOT fall through to _default._save_as.
+        IAJsonProperties iac = iaConfigWithZebraSaveAs();
+        Taxonomy taxy = new Taxonomy("Equus quagga");
+        assertNull(MlServiceProcessor.applySaveAs(iac, taxy, null));
+        assertEquals("", MlServiceProcessor.applySaveAs(iac, taxy, ""));
     }
 }

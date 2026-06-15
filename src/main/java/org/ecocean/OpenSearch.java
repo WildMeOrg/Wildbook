@@ -536,9 +536,9 @@ public class OpenSearch {
         }
     }
 
-    // Package-visible for testing. Returns the _count-shaped query body that
-    // filters on _id ∈ ids, using OpenSearch's idiomatic `ids` query.
-    static JSONObject buildIdEligibilityQuery(Set<String> ids) {
+    // Returns a query body that filters on _id ∈ ids, using OpenSearch's idiomatic `ids` query.
+    // Public so the media-resolve endpoint (org.ecocean.api) can reuse the exact id-eligibility shape.
+    public static JSONObject buildIdEligibilityQuery(Set<String> ids) {
         JSONArray idArr = new JSONArray();
         for (String id : ids) idArr.put(id);
         JSONObject query = new JSONObject();
@@ -774,6 +774,31 @@ public class OpenSearch {
         getRestResponse(updateRequest);
     }
 
+    // Reads the CURRENT indexed viewUsers array for a single doc. Returns the array
+    // (possibly empty) on success, or null if the doc/field cannot be read (missing doc,
+    // index not present, parse failure). null means "unknown": the caller decides the
+    // policy (opensearchIndexPermissions treats unknown as no-change to avoid storming
+    // child reindexes on a degraded read; the reconciler recovers a missed refresh).
+    public org.json.JSONArray getIndexedViewUsers(String index, String id) {
+        if ((index == null) || (id == null)) return null;
+        try {
+            if (!existsIndex(index)) return null;
+            // _source filtered to just viewUsers keeps the response tiny.
+            Request getRequest = new Request("GET", index + "/_doc/" + id + "?_source=viewUsers");
+            String body = getRestResponse(getRequest);
+            if (body == null) return null;
+            org.json.JSONObject parsed = new org.json.JSONObject(body);
+            if (!parsed.optBoolean("found", false)) return null;
+            org.json.JSONObject source = parsed.optJSONObject("_source");
+            if (source == null) return new org.json.JSONArray(); // doc exists, no viewUsers yet -> empty
+            org.json.JSONArray arr = source.optJSONArray("viewUsers");
+            return (arr == null) ? new org.json.JSONArray() : arr;
+        } catch (Exception ex) {
+            // 404 (doc not found) surfaces as ResponseException here; treat as unknown.
+            return null;
+        }
+    }
+
     // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
     public static List<List<String> > resolveVersions(Map<String, Long> objVersions,
         Map<String, Long> indexVersions) {
@@ -922,20 +947,197 @@ public class OpenSearch {
         return query;
     }
 
-    // takes raw search result doc and presents only data user should see
+    /**
+     * Wrap a search query's top-level "query" clause in a bool whose filter enforces the
+     * encounter ACL (mirrors Encounter.opensearchAccess for a non-admin user). Applied on the
+     * token-authenticated path BEFORE execution so totals, pagination, and hits are all scoped.
+     * Admins are not passed through here (caller skips the call for admins).
+     *
+     * Decision (documented, safe): a request with no inner "query" yields a filter-only bool,
+     * i.e. "all encounters this user may see" — still fully scoped, never a bypass. A truly
+     * malformed (non-JSON) body fails earlier in ServletUtilities.jsonFromHttpServletRequest,
+     * before reaching this method, so the spec's "fail closed on malformed" is satisfied upstream.
+     */
+    public static JSONObject applyEncounterAclFilter(JSONObject query, String userId)
+    throws IOException {
+        return applyAclFilter(query, userId, "encounter");
+    }
+
+    public static JSONObject applyAclFilter(JSONObject query, String userId, String indexName)
+    throws IOException {
+        if ((query == null) || !Util.stringExists(userId))
+            throw new IOException("applyAclFilter: null query or userId");
+        // encounter docs carry a single submitterUserId; annotation/individual carry the union set submitterUserIds
+        String submitterField = "encounter".equals(indexName) ? "submitterUserId" : "submitterUserIds";
+        JSONArray should = new JSONArray();
+        should.put(new JSONObject().put("term", new JSONObject().put("publiclyReadable", true)));
+        should.put(new JSONObject().put("term", new JSONObject().put(submitterField, userId)));
+        should.put(new JSONObject().put("term", new JSONObject().put("viewUsers", userId)));
+        JSONObject aclBool = new JSONObject();
+        aclBool.put("should", should);
+        aclBool.put("minimum_should_match", 1);
+        JSONObject acl = new JSONObject().put("bool", aclBool);
+
+        JSONObject wrapBool = new JSONObject();
+        JSONObject inner = query.optJSONObject("query");
+        if (inner != null) {
+            JSONArray must = new JSONArray();
+            must.put(inner);
+            wrapBool.put("must", must);
+        }
+        wrapBool.put("filter", new JSONArray().put(acl));
+
+        JSONObject out = new JSONObject(query.toString()); // shallow copy via re-parse
+        out.put("query", new JSONObject().put("bool", wrapBool));
+        return out;
+    }
+
+    private static final String[] ACL_FIELDS = {
+        "publiclyReadable", "submitterUserId", "submitterUserIds", "viewUsers", "editUsers"
+    };
+    // identity fields kept for a non-admin token individual hit; everything else dropped (allowlist).
+    // NOTE: socialUnits/relationships/cooccurrence*/users/encounterIds/number* and all other
+    // cross-encounter aggregates are DELIBERATELY excluded — they reveal data from encounters the
+    // viewer may not see. Out of scope for v1 (agent gets per-viewer detail via the scoped encounter index).
+    private static final String[] INDIVIDUAL_TOKEN_KEEP = {
+        "id", "version", "indexTimestamp", "displayName", "names", "nameMap",
+        "sex", "taxonomy", "timeOfBirth", "timeOfDeath"
+    };
+    // Set form of the individual identity allowlist, for query-side field validation.
+    public static final java.util.Set<String> INDIVIDUAL_TOKEN_KEEP_SET =
+        new java.util.HashSet<>(java.util.Arrays.asList(INDIVIDUAL_TOKEN_KEEP));
+
+    // Structural/operator keys in the OpenSearch query DSL whose CHILD object keys are NOT field names.
+    private static final java.util.Set<String> DSL_STRUCTURAL = new java.util.HashSet<>(java.util.Arrays.asList(
+        "query","bool","must","should","filter","must_not","minimum_should_match","boost",
+        "match_all","match_none","constant_score","dis_max","queries","tie_breaker",
+        "term","terms","match","match_phrase","match_phrase_prefix","range",
+        "prefix","wildcard","regexp","fuzzy","ids","exists"));
+    // Leaf-operator keys whose CHILD OBJECT's keys ARE field names (e.g. term/range/match -> {field:...}).
+    // NOTE: "terms" is intentionally absent — it is handled separately in nodeAllowed because the
+    // terms-lookup form (object value) must be rejected while the plain-array form is allowed.
+    private static final java.util.Set<String> FIELD_BEARING = new java.util.HashSet<>(java.util.Arrays.asList(
+        "term","match","match_phrase","match_phrase_prefix","range","prefix","wildcard","regexp","fuzzy"));
+    // Keys that are DISALLOWED outright (can reference arbitrary fields / execute code).
+    private static final java.util.Set<String> DENY_FEATURES = new java.util.HashSet<>(java.util.Arrays.asList(
+        "script","script_score","aggs","aggregations","sort","_source","fields","docvalue_fields",
+        "runtime_mappings","function_score","more_like_this","percolate","field",
+        // nested/path let a caller probe nested aggregate fields (socialUnits/relationships) -> deny
+        "nested","path",
+        // free-text/Lucene operators carry field references the validator can't parse -> fail-closed
+        "query_string","simple_query_string","multi_match"));
+
+    // The ONLY top-level body keys a non-admin token individual search may carry.
+    // Anything else (post_filter, collapse, rescore, suggest, highlight, aggs, sort, _source,
+    // fields, script_fields, search_after, pit, runtime_mappings, ...) is rejected fail-closed.
+    private static final java.util.Set<String> ALLOWED_TOP_LEVEL_KEYS =
+        new java.util.HashSet<>(java.util.Arrays.asList("query", "from", "size"));
+
+    /**
+     * Fail-closed: returns true ONLY if every field the query/sort/aggs could reference is in `allowed`.
+     * Used to constrain non-admin token individual searches to identity fields (so a caller can't
+     * probe hidden cross-encounter aggregates via range/sort/aggs/etc.).
+     */
+    public static boolean queryReferencesOnlyAllowedFields(JSONObject body, java.util.Set<String> allowed) {
+        if (body == null) return true;
+        // Strict top-level allowlist (fail-closed): ONLY query/from/size are permitted. Any other
+        // top-level key (post_filter, collapse, rescore, suggest, highlight, aggs, sort, _source,
+        // fields, script_fields, search_after, pit, ...) is an unvetted field-bearing/feature key.
+        for (String key : body.keySet()) {
+            if (!ALLOWED_TOP_LEVEL_KEYS.contains(key)) return false;
+        }
+        // from/size are pagination scalars; only `query` needs recursive field validation.
+        return nodeAllowed(body.opt("query"), allowed, false);
+    }
+
+    // expectField=true means: the CURRENT object's KEYS are field names to check against the allowlist.
+    private static boolean nodeAllowed(Object node, java.util.Set<String> allowed, boolean expectField) {
+        if (node == null) return true;
+        if (node instanceof org.json.JSONArray) {
+            org.json.JSONArray arr = (org.json.JSONArray) node;
+            for (int i = 0; i < arr.length(); i++) if (!nodeAllowed(arr.opt(i), allowed, expectField)) return false;
+            return true;
+        }
+        if (!(node instanceof JSONObject)) return true; // scalar value
+        JSONObject obj = (JSONObject) node;
+        for (String key : obj.keySet()) {
+            if (DENY_FEATURES.contains(key)) return false; // script/field/etc. anywhere -> reject
+            if (expectField) {
+                // current level keys are FIELD NAMES
+                if (!allowed.contains(rootField(key))) return false;
+                // values under a field (e.g. range bounds) are leaf params; don't recurse for fields
+            } else if ("terms".equals(key)) {
+                // Special-case: the terms operator has two legal forms:
+                //   plain:  {"terms": {"field": ["v1","v2"]}}   -> array/scalar value  -> allowed (if field allowlisted)
+                //   lookup: {"terms": {"field": {"index":"...","path":"..."}}} -> object value -> REJECT
+                // The lookup form lets a caller probe hidden nested fields via "path"; reject it fail-closed.
+                Object tv = obj.opt(key);
+                if (!(tv instanceof JSONObject)) return false; // terms body must be a JSONObject
+                JSONObject to = (JSONObject) tv;
+                for (String f : to.keySet()) {
+                    if (!allowed.contains(rootField(f))) return false; // field must be allowlisted
+                    if (to.opt(f) instanceof JSONObject) return false;  // object value = terms-lookup -> reject
+                }
+            } else if (FIELD_BEARING.contains(key)) {
+                // the child object's keys are field names
+                if (!nodeAllowed(obj.opt(key), allowed, true)) return false;
+            } else if (DSL_STRUCTURAL.contains(key)) {
+                if (!nodeAllowed(obj.opt(key), allowed, false)) return false;
+            } else {
+                // unknown key in a structural position -> fail closed
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // allow nested subfields under an allowlisted root (e.g. nameMap.foo, names.keyword)
+    private static String rootField(String field) {
+        int dot = field.indexOf('.');
+        return (dot >= 0) ? field.substring(0, dot) : field;
+    }
+
+    private static void scrubAclFields(JSONObject doc) {
+        for (String f : ACL_FIELDS) doc.remove(f);
+    }
+
+    // 4-arg overload preserved for the existing caller (non-token path) until SearchApi passes tokenAuth.
     public static JSONObject sanitizeDoc(final JSONObject sourceDoc, String indexName,
         Shepherd myShepherd, User user)
     throws IOException {
+        return sanitizeDoc(sourceDoc, indexName, myShepherd, user, false);
+    }
+
+    // takes raw search result doc and presents only data user should see
+    public static JSONObject sanitizeDoc(final JSONObject sourceDoc, String indexName,
+        Shepherd myShepherd, User user, boolean tokenAuth)
+    throws IOException {
         if ((user == null) || (sourceDoc == null)) throw new IOException("null user or sourceDoc");
-        // these classes we let anyone see as-is
-        if ("annotation".equals(indexName) || "individual".equals(indexName)) return sourceDoc;
+        if ("annotation".equals(indexName)) {
+            JSONObject clean = new JSONObject(sourceDoc.toString());
+            scrubAclFields(clean);             // never leak the internal ACL fields
+            return clean;                      // content (incl. embeddings) returned as-is
+        }
+        if ("individual".equals(indexName)) {
+            boolean admin = user.isAdmin(myShepherd);
+            if (tokenAuth && !admin) {
+                JSONObject clean = new JSONObject();
+                for (String f : INDIVIDUAL_TOKEN_KEEP) {
+                    if (sourceDoc.has(f)) clean.put(f, sourceDoc.get(f));
+                }
+                return clean;                  // allowlist: identity only, aggregates dropped
+            }
+            JSONObject clean = new JSONObject(sourceDoc.toString());
+            scrubAclFields(clean);
+            return clean;
+        }
         // these we return some kinda cleaned value
         JSONObject clean = new JSONObject();
         if ("encounter".equals(indexName)) {
             boolean hasAccess = Encounter.opensearchAccess(sourceDoc, user, myShepherd);
             if (hasAccess) {
                 clean = new JSONObject(sourceDoc.toString());
-                clean.remove("viewUsers");
+                scrubAclFields(clean);
                 clean.put("access", "full");
                 return clean;
             }
@@ -956,14 +1158,13 @@ public class OpenSearch {
             boolean hasAccess = user.isAdmin(myShepherd) || hasAccessOccurrence(user, sourceDoc);
             if (hasAccess) {
                 clean = new JSONObject(sourceDoc.toString());
+                scrubAclFields(clean);
                 clean.put("access", "full");
             } else {
                 clean = new JSONObject();
                 clean.put("id", sourceDoc.optString("id", "unknown"));
                 clean.put("access", "none");
             }
-            // clean.remove("viewUsers");
-            // clean.remove("editUsers");
         }
         // if we fall through (e.g. future classes) clean will just be empty
         return clean;
