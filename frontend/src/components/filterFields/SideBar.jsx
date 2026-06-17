@@ -21,11 +21,14 @@ const Sidebar = observer(
     const num = () => (queryID ? 1 : store.appliedFilters.length);
 
     const handleCopy = () => {
+      // When viewing a result loaded from a shared query ID, copy that ID;
+      // otherwise copy the ID freshly generated for the current filter search.
+      const idToCopy = queryID || searchQueryId;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard
-          .writeText(searchQueryId)
+          .writeText(idToCopy)
           .then(() => {
-            alert(`Query ID: ${searchQueryId} copied to clipboard!`);
+            alert(`Query ID: ${idToCopy} copied to clipboard!`);
           })
           .catch((err) => {
             console.error("Failed to copy text: ", err);
