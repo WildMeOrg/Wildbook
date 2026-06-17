@@ -568,10 +568,24 @@ public class Task implements java.io.Serializable {
      *      direct tasks predate the structural-criteria pattern.
      *
      * When {@code importTaskId} is non-null, candidates are first
-     * restricted to tasks whose parameters.importTaskId matches.
-     * The bulk-import page passes its own id so the link stays
-     * frozen on the task from that import even if the user re-runs
-     * ID later from the encounter page.
+     * restricted to tasks whose parameters.importTaskId matches, so
+     * the bulk-import page link stays frozen on the task from that
+     * import even if the user re-runs ID later from the encounter
+     * page.
+     *
+     * Fallback for legacy imports (issue #1624): imports created
+     * before the importTaskId parameter existed (pre-10.2) have no
+     * task that matches, which previously returned null and left the
+     * bulk-import "Class" column empty. When no task carries this
+     * import's id we fall back to the annotation's tasks that carry
+     * NO importTaskId at all — i.e. its original, un-stamped tasks —
+     * so the Match Results link renders again. Tasks stamped with a
+     * DIFFERENT import's id are deliberately NOT used as a fallback;
+     * doing so would surface an unrelated import's results on this
+     * import's page. Consequently the freeze-on-import guarantee
+     * holds only for imports whose tasks carry the parameter; a
+     * legacy import follows the newest renderable un-stamped task,
+     * which matches its pre-10.2 behavior.
      *
      * Returns null if no renderable task exists.
      */
@@ -580,16 +594,33 @@ public class Task implements java.io.Serializable {
         List<Task> tasks = getTasksFor(ann, myShepherd, "created DESC");
 
         if (Util.collectionIsEmptyOrNull(tasks)) return null;
+        // A blank importTaskId is not a usable scope; treat it as "unscoped"
+        // so a stray empty string can neither match tasks nor define a
+        // phantom import. (The real caller always passes ImportTask.getId().)
+        if ((importTaskId != null) && importTaskId.trim().isEmpty()) importTaskId = null;
         if (importTaskId != null) {
-            List<Task> filtered = new ArrayList<Task>();
+            List<Task> scoped = new ArrayList<Task>();  // tasks belonging to THIS import
+            List<Task> legacy = new ArrayList<Task>();  // tasks with NO importTaskId at all
             for (Task t : tasks) {
                 JSONObject p = t.getParameters();
-                if ((p != null) && importTaskId.equals(p.optString("importTaskId", null))) {
-                    filtered.add(t);
+                String tid = (p == null) ? null : p.optString("importTaskId", null);
+                if ((tid != null) && tid.trim().isEmpty()) tid = null;  // blank == un-stamped
+                if (importTaskId.equals(tid)) {
+                    scoped.add(t);
+                } else if (tid == null) {
+                    legacy.add(t);
                 }
             }
-            tasks = filtered;
-            if (tasks.isEmpty()) return null;
+            // Prefer this import's own tasks; otherwise fall back to the
+            // import's legacy un-stamped tasks (pre-10.2). Tasks stamped
+            // with another import's id are never used. See javadoc.
+            if (!scoped.isEmpty()) {
+                tasks = scoped;
+            } else if (!legacy.isEmpty()) {
+                tasks = legacy;
+            } else {
+                return null;
+            }
         }
 
         // Single most-recent-first pass: check BOTH renderability
