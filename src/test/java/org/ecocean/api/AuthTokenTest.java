@@ -2,11 +2,13 @@ package org.ecocean.api;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Base64;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,19 +42,23 @@ class AuthTokenTest {
         when(mockRequest.getContextPath()).thenReturn("");
     }
 
+    private String basic(String u, String p) {
+        return "Basic " + Base64.getEncoder().encodeToString((u + ":" + p).getBytes());
+    }
+
     /**
-     * Primary protection gate: unauthenticated caller (getUser returns null) → 401.
-     * This is the most important unit-testable gate: the endpoint must reject requests
-     * where Shiro passed but no User principal was resolved.
+     * Primary protection gate: no Basic header (session-only) → 401.
+     * The new step-up enforcement rejects any request that does not carry a fresh
+     * Basic credential, regardless of Shiro session state.
      */
     @Test
     void unauthenticated_returns401() throws Exception {
+        when(mockRequest.getHeader("Authorization")).thenReturn(null);
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, ctx) -> {
                     doNothing().when(mock).beginDBTransaction();
                     doNothing().when(mock).setAction(anyString());
                     doNothing().when(mock).rollbackAndClose();
-                    when(mock.getUser(any(HttpServletRequest.class))).thenReturn(null);
                 })) {
             AuthToken servlet = new AuthToken();
             servlet.doPost(mockRequest, mockResponse);
@@ -63,7 +69,6 @@ class AuthTokenTest {
             assertFalse(body.isEmpty(), "response body must not be empty");
             JSONObject json = new JSONObject(body);
             assertFalse(json.optBoolean("success", true), "success must be false");
-            assertEquals("unauthenticated", json.optString("error"), "error message");
         }
     }
 
@@ -73,15 +78,21 @@ class AuthTokenTest {
      * A caller supplying context=evilcontext must not shift user lookup or key config
      * to another context. We capture the first constructor arg via MockedConstruction
      * and assert it equals "context0".
-     * The request is also unauthenticated (getUser→null) so we get a 401, confirming
-     * the servlet completed the pinned construction path before returning.
+     * The request carries a valid Basic credential whose password check returns true,
+     * so execution reaches the Shepherd construction path before JWT check.
      */
     @Test
     void requestContextParamIgnored() throws Exception {
         // Make the request look like it carries a context override
         when(mockRequest.getParameter("context")).thenReturn("evilcontext");
+        // Supply a valid Basic credential so execution reaches Shepherd construction
+        when(mockRequest.getHeader("Authorization")).thenReturn(basic("alice", "right"));
 
         AtomicReference<String> capturedCtorArg = new AtomicReference<>();
+        User alice = mock(User.class);
+        when(alice.checkPassword("right")).thenReturn(true);
+        when(alice.getId()).thenReturn("uuid-alice");
+        when(alice.getUsername()).thenReturn("alice");
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, ctx) -> {
@@ -92,8 +103,7 @@ class AuthTokenTest {
                     doNothing().when(mock).beginDBTransaction();
                     doNothing().when(mock).setAction(anyString());
                     doNothing().when(mock).rollbackAndClose();
-                    // unauthenticated → servlet returns 401 without attempting to sign
-                    when(mock.getUser(any(HttpServletRequest.class))).thenReturn(null);
+                    when(mock.getUser("alice")).thenReturn(alice);
                 })) {
             AuthToken servlet = new AuthToken();
             servlet.doPost(mockRequest, mockResponse);
@@ -102,19 +112,23 @@ class AuthTokenTest {
             // Shepherd must have been constructed with the pinned context, not "evilcontext"
             assertEquals("context0", capturedCtorArg.get(),
                 "Shepherd must be constructed with pinned context0, not a request-derived value");
-            // Unauthenticated → 401 (confirms the code path ran fully through construction)
-            verify(mockResponse).setStatus(401);
+            // Credential accepted → not 401 (confirms the code path ran through Shepherd construction)
+            verify(mockResponse, never()).setStatus(401);
         }
     }
 
     /**
      * JwtService disabled (no private key configured) → 503.
-     * Exercises the second gate after successful auth.
+     * Exercises the second gate after successful credential verification.
+     * Must supply a valid Basic credential so execution reaches the JWT logic.
      */
     @Test
     void jwtDisabled_returns503() throws Exception {
-        User fakeUser = new User();
-        fakeUser.setUsername("test-user");
+        when(mockRequest.getHeader("Authorization")).thenReturn(basic("alice", "right"));
+        User alice = mock(User.class);
+        when(alice.checkPassword("right")).thenReturn(true);
+        when(alice.getId()).thenReturn("uuid-alice");
+        when(alice.getUsername()).thenReturn("alice");
 
         try (MockedStatic<org.ecocean.CommonConfiguration> mockConfig =
                 mockStatic(org.ecocean.CommonConfiguration.class);
@@ -123,7 +137,7 @@ class AuthTokenTest {
                      doNothing().when(mock).beginDBTransaction();
                      doNothing().when(mock).setAction(anyString());
                      doNothing().when(mock).rollbackAndClose();
-                     when(mock.getUser(any(HttpServletRequest.class))).thenReturn(fakeUser);
+                     when(mock.getUser("alice")).thenReturn(alice);
                  })) {
             // All CommonConfiguration.getProperty calls return null → JwtService disabled
             mockConfig.when(() -> org.ecocean.CommonConfiguration.getProperty(

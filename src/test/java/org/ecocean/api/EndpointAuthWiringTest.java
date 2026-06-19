@@ -235,4 +235,34 @@ class EndpointAuthWiringTest {
         assertEquals("tokenAuthSearch", value,
                 "media path must map to tokenAuthSearch ONLY (no authc/roles chained); was: '" + value + "'");
     }
+
+    // -----------------------------------------------------------------------
+    // Assertions — /api/v3/agent-skill wiring
+    // -----------------------------------------------------------------------
+
+    @Test
+    void agentSkill_servletClassIsRegistered() {
+        assertTrue(fullText().contains("<servlet-class>org.ecocean.api.AgentSkill</servlet-class>"),
+                "web.xml must register the AgentSkill servlet");
+    }
+
+    @Test
+    void agentSkill_urlPatternIsRegistered() {
+        assertTrue(fullText().contains("<url-pattern>/api/v3/agent-skill</url-pattern>"),
+                "web.xml must map /api/v3/agent-skill");
+    }
+
+    @Test
+    void agentSkill_shiroRuleIsAnon() {
+        String ruleLine = lines.stream()
+                .filter(l -> { String t = l.stripLeading();
+                    return !t.startsWith("#") && t.contains("/api/v3/agent-skill"); })
+                .findFirst().orElse(null);
+        assertNotNull(ruleLine, "Shiro [urls] must contain a rule for /api/v3/agent-skill");
+        String value = ruleLine.substring(
+                ruleLine.indexOf("/api/v3/agent-skill") + "/api/v3/agent-skill".length()).trim();
+        if (value.startsWith("=")) value = value.substring(1).trim();
+        assertEquals("anon", value,
+                "the agent-skill doc must be anon (a how-to-auth doc can't require auth); was: '" + value + "'");
+    }
 }

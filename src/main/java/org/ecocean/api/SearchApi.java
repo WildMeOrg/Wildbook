@@ -15,6 +15,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class SearchApi extends ApiBase {
+    /** Indices a token caller may search; everything else is 403. The agent-skill drift-guard test pins to this. */
+    static final java.util.Set<String> TOKEN_ALLOWED_INDICES =
+        java.util.Set.of("encounter", "annotation", "individual");
+
     public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         doPost(request, response);
@@ -100,9 +104,7 @@ public class SearchApi extends ApiBase {
                     response.setStatus(403);
                     res.put("error", 403);
                 // --- token index allowlist: encounter, annotation, individual (others 403) ---
-                } else if (tokenAuth && !"encounter".equals(effectiveIndex)
-                    && !"annotation".equals(effectiveIndex)
-                    && !"individual".equals(effectiveIndex)) {
+                } else if (tokenAuth && !TOKEN_ALLOWED_INDICES.contains(effectiveIndex)) {
                     response.setStatus(403);
                     res.put("error", "token search is limited to encounter, annotation, individual");
                 } else if ((query == null) && !"POST".equals(request.getMethod())) {
