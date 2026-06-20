@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import "swiper/css";
 import { observer } from "mobx-react-lite";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 
 export const ImageGalleryModal = observer(
   ({ open, onClose, assets = [], index = 0, rects = [], imageStore = {} }) => {
-    const thumbsRef = useRef(null);
+    const intl = useIntl();
     const imgRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
@@ -55,20 +55,6 @@ export const ImageGalleryModal = observer(
     }, [dragStart]);
 
     const encounterData = assets[index] || {};
-
-    useEffect(() => {
-      const s = thumbsRef.current;
-      if (!s || s.destroyed) return;
-      const target = Math.max(0, Math.min(index - 1, assets.length - 1));
-      s.slideTo(target, 250);
-      const naturalWidth = assets[safeIndex]?.width;
-      const naturalHeight = assets[safeIndex]?.height;
-      const displayWidth = imgRef.current.clientWidth;
-      const displayHeight = imgRef.current.clientHeight;
-
-      setScaleX(naturalWidth / displayWidth);
-      setScaleY(naturalHeight / displayHeight);
-    }, [index, assets.length]);
 
     if (!open || !assets.length) return null;
 
@@ -123,7 +109,8 @@ export const ImageGalleryModal = observer(
                       color: "white",
                     }}
                     onClick={() => setZoom((z) => Math.min(3, z + 0.25))}
-                    title="Zoom In"
+                    aria-label={intl.formatMessage({ id: "ZOOM_IN" })}
+                    title={intl.formatMessage({ id: "ZOOM_IN" })}
                   >
                     <i className="bi bi-zoom-in"></i>
                   </button>
@@ -137,7 +124,8 @@ export const ImageGalleryModal = observer(
                       color: "white",
                     }}
                     onClick={() => setZoom(1)}
-                    title="Reset Zoom"
+                    aria-label={intl.formatMessage({ id: "RESET_ZOOM" })}
+                    title={intl.formatMessage({ id: "RESET_ZOOM" })}
                   >
                     <i className="bi bi-zoom-out"></i>
                   </button>
@@ -207,13 +195,27 @@ export const ImageGalleryModal = observer(
               >
                 <div
                   className="position-relative"
-                  style={{ maxWidth: "90vw", maxHeight: "80vh" }}
+                  onMouseDown={onMouseDown}
+                  style={{
+                    maxWidth: "90vw",
+                    maxHeight: "80vh",
+                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                    transformOrigin: "center center",
+                    transition: dragStart ? "none" : "transform 0.2s ease",
+                    cursor:
+                      zoom > 1
+                        ? dragStart
+                          ? "grabbing"
+                          : "grab"
+                        : "default",
+                  }}
                 >
                   <img
                     id="image-modal-main-image"
                     src={a.url}
                     ref={imgRef}
-                    onMouseDown={onMouseDown}
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
                     alt={`asset-${a.id ?? safeIndex}`}
                     className="img-fluid"
                     style={{
@@ -224,17 +226,6 @@ export const ImageGalleryModal = observer(
                       height: "auto",
                       objectFit: "contain",
                       margin: "0 auto",
-                      transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-                      transformOrigin: "center center",
-                      transition: dragStart ? "none" : "transform 0.2s ease",
-                      position: "relative",
-                      overflow: "hidden",
-                      cursor:
-                        zoom > 1
-                          ? dragStart
-                            ? "grabbing"
-                            : "grab"
-                          : "default",
                     }}
                     onLoad={() => {
                       const iw = imgRef.current?.clientWidth || 1;
