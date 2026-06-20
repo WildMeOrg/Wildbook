@@ -34,6 +34,7 @@ const MatchResults = lazy(
 
 const Encounter = lazy(() => import("./pages/Encounter/Encounter"));
 const Citation = lazy(() => import("./pages/Citation"));
+const ApiAccessPage = lazy(() => import("./pages/ApiAccess/ApiAccessPage"));
 const PoliciesAndData = lazy(
   () => import("./pages/PoliciesAndData/PoliciesAndData"),
 );
@@ -112,6 +113,7 @@ export default function AuthenticatedSwitch({
             <Route path="/edit-annotation" element={<EditAnnotation />} />
             <Route path="/bulk-import" element={<BulkImport />} />
             <Route path="/bulk-import-task" element={<BulkImportTask />} />
+            <Route path="/api-access" element={<ApiAccessPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Home />} />
             <Route path="*" element={<NotFound setHeader={setHeader} />} />
