@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import "swiper/css";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage, useIntl } from "react-intl";
+import useWheelZoom from "../../../hooks/useWheelZoom";
 
 export const ImageGalleryModal = observer(
   ({ open, onClose, assets = [], index = 0, rects = [], imageStore = {} }) => {
     const intl = useIntl();
     const imgRef = useRef(null);
+    const imageContainerRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
     const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -26,6 +28,13 @@ export const ImageGalleryModal = observer(
       e.preventDefault();
       setDragStart({ x: e.clientX, y: e.clientY, startPan: pan });
     };
+
+    // Mouse-wheel zoom matches the zoom-in / reset buttons (step 0.25, range 1..3);
+    // pan re-centers via the [zoom, safeIndex] effect above.
+    const handleWheelZoom = (direction) => {
+      setZoom((z) => Math.min(3, Math.max(1, z + direction * 0.25)));
+    };
+    useWheelZoom(imageContainerRef, handleWheelZoom);
 
     useEffect(() => {
       if (!dragStart) return;
@@ -190,6 +199,7 @@ export const ImageGalleryModal = observer(
 
               <div
                 id="image-modal-image"
+                ref={imageContainerRef}
                 className="d-flex justify-content-center position-relative overflow-hidden"
                 style={{ flex: "1 1 auto", minHeight: 0 }}
               >
