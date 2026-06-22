@@ -126,6 +126,11 @@ public class GrothMatchServlet extends HttpServlet {
             if (entry.getKey().equals(encNumber)) continue;
             EncounterLite el = entry.getValue();
 
+            // Skip candidates with no spots on the side being scanned. An encounter
+            // whose spot map was deleted must never surface as a match candidate. (#1608)
+            ArrayList candidateSpots = rightScan ? el.getRightSpots() : el.getSpots();
+            if ((candidateSpots == null) || candidateSpots.isEmpty()) continue;
+
             MatchObject mo = el.getPointsForBestMatch(
                 queryArray, epsilon, R, Sizelim, maxTriangleRotation, C,
                 true, rightScan);

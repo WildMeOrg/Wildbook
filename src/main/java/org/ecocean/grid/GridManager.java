@@ -2,13 +2,10 @@ package org.ecocean.grid;
 
 // import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 // import org.ecocean.CommonConfiguration;
-import org.ecocean.Util;
 import org.ecocean.shepherd.core.Shepherd;
 
 // import org.ecocean.servlet.ServletUtilities;
 
-import java.io.IOException;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import org.json.JSONObject;
 
 // import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 
@@ -666,77 +662,9 @@ public class GridManager {
     }
 
     public void resetMatchGraphWithInitialCapacity(int initialCapacity) {
-        matchGraph = null;
+        // Single assignment: never expose a null matchGraph to concurrent mutators
+        // (servlet add/remove) during a rebuild -- the old null-then-new sequence
+        // had an NPE window. (#1608)
         matchGraph = new ConcurrentHashMap<String, EncounterLite>(initialCapacity);
-    }
-
-    private static final String CACHE_FILEPATH = "WEB-INF/MatchGraphCache.json";
-
-    public static String getCacheFilePath(String dataDir) {
-        return dataDir + "/" + CACHE_FILEPATH;
-    }
-
-    /**
-     * Serialize the matchGraph to a JSONObject for disk caching.
-     */
-    public static JSONObject cacheToJSONObject() {
-        JSONObject root = new JSONObject();
-        root.put("timestamp", System.currentTimeMillis());
-        JSONObject entries = new JSONObject();
-        for (ConcurrentHashMap.Entry<String, EncounterLite> entry : matchGraph.entrySet()) {
-            entries.put(entry.getKey(), entry.getValue().toJSONObject());
-        }
-        root.put("matchGraph", entries);
-        root.put("count", matchGraph.size());
-        return root;
-    }
-
-    /**
-     * Write the matchGraph cache to disk as JSON.
-     */
-    public static void cacheWrite(String filepath) throws IOException {
-        long t = System.currentTimeMillis();
-        System.out.println("INFO: GridManager.cacheWrite() writing to " + filepath);
-        Util.writeToFile(cacheToJSONObject().toString(), filepath);
-        System.out.println("INFO: GridManager.cacheWrite() complete with " + matchGraph.size() +
-            " entries in " + (System.currentTimeMillis() - t) + "ms");
-    }
-
-    /**
-     * Read the matchGraph cache from disk JSON.
-     * Returns true if the cache was loaded successfully, false otherwise.
-     */
-    public static boolean cacheRead(String filepath) throws IOException {
-        long t = System.currentTimeMillis();
-        matchGraphReady = false;
-        String content = Util.readFromFile(filepath);
-        JSONObject root = Util.stringToJSONObject(content);
-        if (root == null) {
-            System.out.println("ERROR: GridManager.cacheRead() could not parse " + filepath);
-            return false;
-        }
-        System.out.println("INFO: GridManager.cacheRead() from " + filepath +
-            " timestamp=" + root.optLong("timestamp"));
-
-        JSONObject entries = root.optJSONObject("matchGraph");
-        if (entries == null || entries.length() < 1) {
-            System.out.println("ERROR: GridManager.cacheRead() empty matchGraph in " + filepath);
-            return false;
-        }
-
-        matchGraph = new ConcurrentHashMap<String, EncounterLite>(entries.length());
-        Iterator<String> keys = entries.keys();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            JSONObject elJson = entries.optJSONObject(key);
-            if (elJson == null) continue;
-            EncounterLite el = EncounterLite.fromJSONObject(elJson);
-            matchGraph.put(key, el);
-        }
-        resetPatternCounts();
-        matchGraphReady = true;
-        System.out.println("INFO: GridManager.cacheRead() complete with " + matchGraph.size() +
-            " entries in " + (System.currentTimeMillis() - t) + "ms");
-        return true;
     }
 }
