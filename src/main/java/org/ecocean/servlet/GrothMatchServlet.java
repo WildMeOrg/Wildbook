@@ -93,14 +93,15 @@ public class GrothMatchServlet extends HttpServlet {
                 }
 
                 queryArray = querySpots.toArray(new SuperSpot[0]);
-                queryGenus = enc.getGenus();
-                querySpecificEpithet = enc.getSpecificEpithet();
                 encDate = enc.getDate();
                 encSex = enc.getSex() != null ? enc.getSex() : "unknown";
                 encIndividualID = ServletUtilities.handleNullString(enc.getIndividualID());
                 encSize = enc.getSizeAsDouble() != null ? enc.getSize() + " meters" : "unknown";
                 encLocation = enc.getLocation();
                 encLocationID = enc.getLocationID();
+                // Query species for species-aware Groth param resolution (below).
+                queryGenus = enc.getGenus();
+                querySpecificEpithet = enc.getSpecificEpithet();
             } finally {
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
