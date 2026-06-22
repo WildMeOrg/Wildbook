@@ -42,12 +42,6 @@ public class GridManager {
 
     // public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
 
-    // Modified Groth algorithm parameters (optimized via GrothParameterSweepTest)
-    private String epsilon = "0.008";
-    private String R = "6.8";
-    private String Sizelim = "0.671";
-    private String maxTriangleRotation = "22.5";
-    private String C = "1.146";
     private String secondRun = "true";
 
     private static ConcurrentHashMap<String,
@@ -266,26 +260,6 @@ public class GridManager {
         } else {
             return (100 * numCollisions / numCompletedWorkItems);
         }
-    }
-
-    public String getGrothEpsilon() {
-        return epsilon;
-    }
-
-    public String getGrothR() {
-        return R;
-    }
-
-    public String getGrothSizelim() {
-        return Sizelim;
-    }
-
-    public String getGrothMaxTriangleRotation() {
-        return maxTriangleRotation;
-    }
-
-    public String getGrothC() {
-        return C;
     }
 
     public String getGrothSecondRun() {
