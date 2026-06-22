@@ -900,19 +900,27 @@ public class BulkImport extends ApiBase {
         Set<String> indivIds = new HashSet<String>();
         if (task.numberEncounters() > 0) {
             JSONArray encArr = new JSONArray();
-            for (Encounter enc : task.getEncounters()) {
+            for (Encounter enc : task.getEncountersOrderByCreated()) {
                 JSONObject encj = new JSONObject();
                 encj.put("id", enc.getId());
                 if (detailed) {
                     encj.put("id", enc.getId());
                     encj.put("date", enc.getDate());
+                    encj.put("createdMillis", enc.getDWCDateAddedLong());
                     encj.put("occurrenceId", enc.getOccurrenceID());
                     if (enc.hasMarkedIndividual()) {
                         indivIds.add(enc.getIndividualID());
                         encj.put("individualId", enc.getIndividualID());
                         encj.put("individualDisplayName", enc.getDisplayName());
                     }
-                    encj.put("numberMediaAssets", enc.numAnnotations());
+                    // The JSON key is numberMediaAssets and the UI labels the
+                    // column "image count", so it must reflect the number of
+                    // MediaAssets uploaded for this encounter — not the
+                    // annotation count. numAnnotations can inflate post-
+                    // detection (multiple objects per image) and is zero
+                    // pre-detection, neither of which match user expectation.
+                    encj.put("numberMediaAssets",
+                        enc.getMedia() == null ? 0 : enc.getMedia().size());
                     User sub = enc.getSubmitterUser(myShepherd);
                     if (sub != null)
                         encj.put("submitter", sub.infoJSONObject(myShepherd));

@@ -4,7 +4,7 @@ import Text from "./Text";
 import { Container } from "react-bootstrap";
 import ThemeContext from "../ThemeColorProvider";
 import BrutalismButton from "./BrutalismButton";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import { useSiteSettings } from "../SiteSettingsContext";
 import { Col, Row } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { useSearchParams } from "react-router-dom";
@@ -15,10 +15,9 @@ export default function FilterPanel({
   style = {},
   handleSearch = () => {},
   refetch = () => {},
-  setTempFormFilters = () => {},
   store,
 }) {
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   const safeSchemas = schemas || [];
   const [clicked, setClicked] = useState(safeSchemas[0]?.id);
   const theme = React.useContext(ThemeContext);
@@ -143,17 +142,16 @@ export default function FilterPanel({
                 backgroundColor={theme.primaryColors.primary700}
                 borderColor={theme.primaryColors.primary700}
                 onClick={() => {
-                  setTempFormFilters([...store.formFilters]);
                   refetch().then(({ data }) => {
                     console.log("Refetched data:", data);
                   });
+                  store.resetGallery();
                   setSearchParams(new URLSearchParams());
-                  sessionStorage.setItem(
-                    "formData",
-                    JSON.stringify(store.formFilters),
-                  );
+                  store.applyFilters();
                   setFilterPanel(false);
                   handleSearch();
+                  store.setActiveStep(0);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 noArrow={true}
                 style={{

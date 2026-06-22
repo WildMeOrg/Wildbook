@@ -132,6 +132,8 @@ public class AcmIdBot {
         myShepherd.setAction("AcmIdBot.java");
         myShepherd.beginDBTransaction();
 
+        Query query2 = null;
+        Query query3 = null;
         try {
             System.out.println(
                 "Looking for complete import tasks with media assets with missing acmIds");
@@ -140,11 +142,12 @@ public class AcmIdBot {
             int maxFixes = 500;
             String filter2 =
                 "select from org.ecocean.media.Feature where itask.status == 'complete' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
-            Query query2 = myShepherd.getPM().newQuery(filter2);
+            query2 = myShepherd.getPM().newQuery(filter2);
             query2.setOrdering("revision desc");
             Collection c2 = (Collection)(query2.execute());
             List<Feature> feats = new ArrayList<Feature>(c2);
             query2.closeAll();
+            query2 = null;  // Mark as closed
 
             fixFeats(feats, myShepherd, "ACM ID ImportTask fixing summary", maxFixes);
 
@@ -158,17 +161,20 @@ public class AcmIdBot {
                 "select from org.ecocean.media.Feature where enc45.dwcDateAddedLong >= " +
                 twenyFourHoursAgo +
                 " && enc45.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc45;org.ecocean.Annotation annot";
-            Query query3 = myShepherd.getPM().newQuery(filter3);
+            query3 = myShepherd.getPM().newQuery(filter3);
             query3.setOrdering("revision desc");
             Collection c3 = (Collection)(query3.execute());
             List<Feature> feats2 = new ArrayList<Feature>(c3);
             query3.closeAll();
+            query3 = null;  // Mark as closed
 
             fixFeats(feats2, myShepherd, "Recent Encounter ACM ID Fixing Summary", maxFixes);
         } catch (Exception f) {
             System.out.println("Exception in AcmIdBot!");
             f.printStackTrace();
         } finally {
+            if (query2 != null) query2.closeAll();
+            if (query3 != null) query3.closeAll();
             myShepherd.rollbackAndClose();
         }
     }

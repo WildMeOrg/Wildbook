@@ -114,6 +114,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
         if (params != null) this.parametersAsString = params.toString();
         this.setRevision();
         this.setHashCode();
+        if (this.acmId == null) this.acmId = this.getUUID();
     }
 
     public AccessControl getAccessControl() {
@@ -215,6 +216,11 @@ public class MediaAsset extends Base implements java.io.Serializable {
 
     public void setDetectionStatus(String status) {
         this.detectionStatus = status;
+        // ml-service migration v2 (commit #5): bump revision so the
+        // OpenSearch reindexer picks up detection-status changes and so the
+        // stale-job reconciler in commit #12 has a real "when did this
+        // detectionStatus change" timestamp via REVISION.
+        this.setRevision();
     }
 
     public String getIdentificationStatus() {
@@ -662,6 +668,25 @@ public class MediaAsset extends Base implements java.io.Serializable {
         }
     }
 
+    // will find one with same qualities on this asset (will not return self!)
+    public Annotation findAnnotation(Annotation match, boolean shapeOnly) {
+        if (match == null) return null;
+        if (numAnnotations() < 1) return null;
+        Annotation found = null;
+        for (Annotation ann : getAnnotations()) {
+            if (ann.equals(match)) continue;
+            if (ann.equalsShape(match)) {
+                found = ann;
+                break;
+            }
+        }
+        if (shapeOnly || (found == null)) return found;
+        // TODO what else do we want to compare here?
+        if (!found.equalsIAClass(match)) return null;
+        if (!found.equalsViewpoint(match)) return null;
+        return found;
+    }
+
     /**
      * Return a full web-accessible url to the asset, or null if the asset is not web-accessible. NOTE: now you should *almost always* use .safeURL()
      * to return something to a user -- this will hide original files when necessary
@@ -740,15 +765,15 @@ public class MediaAsset extends Base implements java.io.Serializable {
     public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request,
         String bestType) {
         if (store == null) return null;
+        if ((bestType == null) && AccessControl.isAnonymous(request)) bestType = "mid";
         if (bestType == null) bestType = "master";
-        // note, this next line means bestType may get bumped *up* for anon user
-        if (AccessControl.isAnonymous(request)) bestType = "mid";
         if (store instanceof URLAssetStore) bestType = "original"; // this is cuz it is assumed to be a "public" url
-
+/*
+        // why is this here??! killing this 2025-09-10  -jon
         // hack for flukebook
         bestType = "master";
-        // System.out.println("bestSafeAsset: ma #"+getId()+" has bestType "+bestType);
-        // gotta consider that wre are the best!
+ */
+        // gotta consider that we are the best!
         if (this.hasLabel("_" + bestType)) return this;
         // if we are a child asset, we need to find our parent then find best from there!
         MediaAsset top = this; // assume we are the parent-est
@@ -946,11 +971,30 @@ public class MediaAsset extends Base implements java.io.Serializable {
         return jobj;
     }
 
+    // a little redundancy with code in sanitizeJSON above; TODO could cleanup/consolidate?
+    public JSONArray getKeywordsJSONArray() {
+        JSONArray kwa = new JSONArray();
+
+        if (Util.collectionSize(this.getKeywords()) < 1) return kwa;
+        for (Keyword kw : this.getKeywords()) {
+            JSONObject kj = new JSONObject();
+            kj.put("id", kw.getIndexname());
+            kj.put("displayName", kw.getDisplayName());
+            kj.put("name", kw.getReadableName());
+            if (kw instanceof LabeledKeyword) {
+                LabeledKeyword lkw = (LabeledKeyword)kw;
+                kj.put("label", lkw.getLabel());
+            }
+            kwa.put(kj);
+        }
+        return kwa;
+    }
+
     // carefree, safe json version
     public JSONObject toSimpleJSONObject() {
         JSONObject j = new JSONObject();
 
-        j.put("id", getId());
+        j.put("id", getIdInt());
         j.put("uuid", getUUID());
         j.put("url", safeURL());
         if ((getMetadata() != null) && (getMetadata().getData() != null) &&
@@ -1164,6 +1208,17 @@ public class MediaAsset extends Base implements java.io.Serializable {
         new Thread(rn).start();
         System.out.println("updateStandardChildrenBackground() [" + tid + "] out of fork for ct=" +
             ids.size() + " <<<<");
+    }
+
+    // convenience when you have list of MediaAssets
+    public static void updateStandardChildrenBackgroundAssets(String context,
+        List<MediaAsset> assets) {
+        if (Util.collectionIsEmptyOrNull(assets)) return;
+        List<Integer> maIds = new ArrayList<Integer>();
+        for (MediaAsset ma : assets) {
+            maIds.add(ma.getIdInt());
+        }
+        updateStandardChildrenBackground(context, maIds);
     }
 
     // convenience, XXX  BUT see not above about sending multiple ids when possible!  XXX

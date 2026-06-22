@@ -26,6 +26,32 @@ public class ShepherdPMF {
         PersistenceManagerFactory>();
 
     public synchronized static PersistenceManagerFactory getPMF(String context) {
+        return getPMF(context, null);
+    }
+
+    /**
+     * Close and evict the cached PMF for a context (no-op if none). TEST SUPPORT ONLY
+     * (package-private; tests call it via TestPMFUtil): each Testcontainers test class binds the
+     * context's PMF to ITS OWN database container, so a class must evict the cached PMF (which may
+     * point at a previous class's now-stopped container) before seeding, and again after itself,
+     * or later classes fail with "An I/O error occurred while sending to the backend".
+     * NOT safe as a production API: another thread holding a PMF from getPMF would have it closed
+     * out from under it.
+     */
+    synchronized static void closePMF(String context) {
+        if (pmfs == null) return;
+        PersistenceManagerFactory pmf = pmfs.remove(context);
+        if ((pmf != null) && !pmf.isClosed()) {
+            try {
+                pmf.close();
+            } catch (Exception ex) {
+                System.out.println("ShepherdPMF.closePMF(" + context + ") failed: " + ex);
+            }
+        }
+    }
+
+    public synchronized static PersistenceManagerFactory getPMF(String context,
+        Properties overrideProps) {
         // public static PersistenceManagerFactory getPMF(String dbLocation) {
         if (pmfs == null) { pmfs = new TreeMap<String, PersistenceManagerFactory>(); }
         try {
@@ -44,7 +70,9 @@ public class ShepherdPMF {
                     shepherdDataDir = ContextConfiguration.getDataDirForContext(context);
                 }
                 // System.out.println("ShepherdPMF: Data directory for context "+context+" is: "+shepherdDataDir);
-                Properties overrideProps = loadOverrideProps(shepherdDataDir);
+                if (overrideProps == null) {
+                    overrideProps = loadOverrideProps(shepherdDataDir);
+                }
                 // System.out.println(overrideProps);
                 if (overrideProps.size() > 0) { props = overrideProps; } else {
                     // otherwise load the embedded commonConfig

@@ -41,15 +41,15 @@
       <field name="effort" persistence-modifier="persistent" element-type="org.ecocean.Measurement" allows-null="true"/>
 
       <field name="dateTimeCreated" persistence-modifier="persistent">
-        <column jdbc-type="String" allows-null="true"/>
+        <column jdbc-type="VARCHAR" allows-null="true"/>
       </field>
 
       <field name="dateTimeModified" persistence-modifier="persistent">
-        <column jdbc-type="String" allows-null="true"/>
+        <column jdbc-type="VARCHAR" allows-null="true"/>
       </field>
 
       <field name="date" persistence-modifier="persistent">
-        <column jdbc-type="String" allows-null="true"/>
+        <column jdbc-type="VARCHAR" allows-null="true"/>
       </field>
 
       <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
@@ -547,6 +547,18 @@
 	<field name="acmId">
 		<column length="100"/>
 	</field>
+
+	<!-- ml-service migration v2 (commit #4): WBIA registration state.
+	     Duplicate-detection idempotency is handled in-memory via Feature
+	     geometry (MlServiceProcessor.findExistingAnnotation), so no extra
+	     idempotency columns or unique index are needed. -->
+	<field name="wbiaRegistered">
+		<column allows-null="true"/>
+	</field>
+	<field name="wbiaRegisterAttempts">
+		<column allows-null="false" default-value="0"/>
+	</field>
+
 		<field name="isExemplar">
 <!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here: -->
 <!--			<column default-value="0" /> -->
@@ -591,6 +603,11 @@
 		<field name="annot_theta" />
 		<field name="species_text" />
 -->
+
+	<field name="embeddings" default-fetch-group="false" mapped-by="annotation">
+		<collection element-type="org.ecocean.Embedding" dependent-element="false" />
+	</field>
+
     </class>
 
     <class name="DataCollectionEvent" identity-type="application">
@@ -1011,6 +1028,42 @@
 		</field>
 	</class>
 
+	<class name="Embedding" identity-type="application">
+		<!-- ml-service migration v2 (commit #4): non-unique composite index
+		     to support idempotency lookup of (annotation, method, methodVersion).
+		     Promotion to UNIQUE is deferred to a follow-up branch after a
+		     per-deployment audit confirms no existing duplicates (see
+		     archive/sql/ml_service_embedding_audit.sql). -->
+		<index name="EMBEDDING_ANN_METHOD_VER_IDX">
+			<column name="ANNOTATION_ID"/>
+			<column name="METHOD"/>
+			<column name="METHODVERSION"/>
+		</index>
+		<field name="id" primary-key="true">
+			<column length="36"/>
+		</field>
+
+		<field name="annotation" dependent-element="false" >
+			<column name="ANNOTATION_ID" />
+		</field>
+
+		<field name="vectorFloatArray" persistence-modifier="persistent" />
+
+		<field name="created">
+			<column jdbc-type="BIGINT" />
+			<index name="EMBEDDING_CREATED_IDX" />
+		</field>
+
+		<field name="method">
+			<column length="64" />
+			<index name="EMBEDDING_METHOD_IDX" />
+		</field>
+
+		<field name="methodVersion">
+			<column length="32" />
+			<index name="EMBEDDING_METHODVERSION_IDX" />
+		</field>
+	</class>
 
   </package>
 </jdo>

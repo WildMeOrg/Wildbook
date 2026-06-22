@@ -92,6 +92,21 @@ public class RestServlet extends HttpServlet {
         super.init(config);
     }
 
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp)
+    throws ServletException, IOException {
+        String method = req.getMethod();
+        if (req.getUserPrincipal() == null) {
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+        if (!"GET".equalsIgnoreCase(method) && !"HEAD".equalsIgnoreCase(method)) {
+            resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
+        super.service(req, resp);
+    }
+
     /**
      * Convenience method to get the next token after a "/".
      * @param req The request

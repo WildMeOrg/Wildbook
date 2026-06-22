@@ -131,8 +131,9 @@ public class Prometheus {
         for (String metric : metrics) {
             String[] vals = metric.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
             if (vals.length > 3) {
+                String m_key = null;
                 try {
-                    String m_key = vals[0].trim();
+                    m_key = vals[0].trim();
                     String m_value = vals[1].trim();
                     String m_type = vals[2].trim();
                     String m_help = vals[3].trim();
@@ -149,46 +150,77 @@ public class Prometheus {
                             while (str.hasMoreTokens()) {
                                 String token = str.nextToken();
                                 StringTokenizer str2 = new StringTokenizer(token, ":");
+                                if (str2.countTokens() < 2) continue; // skip malformed labels
                                 String name = str2.nextToken();
                                 String value = str2.nextToken();
                                 labelNames.add(name);
                                 labelValues.add(value);
                             }
-                            // add label names and build gauge
+                            if (labelNames.isEmpty()) continue; // skip if no valid labels
 
+                            // add label names and build gauge
                             StringTokenizer str4 = new StringTokenizer(labelNames.get(0), "_");
                             String prefix4 = str4.nextToken();
-                            Gauge g = Gauge.build().name(m_key).labelNames(prefix4).help(
-                                m_help).register();
-                            // set gauge value overall
+
+                            // Use createOrGet pattern to avoid IllegalArgumentException on re-registration
+                            Gauge g = getOrCreateGauge(m_key, prefix4, m_help);
+                            if (g == null) continue; // skip if gauge creation failed
+
                             // add label values
                             for (int i = 0; i < labelNames.size(); i++) {
                                 String name = labelNames.get(i);
                                 String[] str3 = name.split("_", 2);
-                                // StringTokenizer str3=new StringTokenizer(name,"_");
+                                if (str3.length < 2) continue; // skip malformed label names
                                 String suffix = str3[1];
                                 String value = labelValues.get(i);
-                                if (name != null && value != null)
-                                    g.labels(suffix).inc(new Double(value));
+                                if (name != null && value != null) {
+                                    try {
+                                        g.labels(suffix).inc(Double.parseDouble(value));
+                                    } catch (NumberFormatException nfe) {
+                                        System.out.println("Prometheus: Invalid number value for " + m_key + ": " + value);
+                                    }
+                                }
                             }
                         }
                         // no labels, easy case!
                         else {
-                            Gauge.build().name(m_key).help(m_help).register().inc(new Double(
-                                m_value));
+                            Gauge g = getOrCreateGauge(m_key, null, m_help);
+                            if (g != null) {
+                                try {
+                                    g.inc(Double.parseDouble(m_value));
+                                } catch (NumberFormatException nfe) {
+                                    System.out.println("Prometheus: Invalid number value for " + m_key + ": " + m_value);
+                                }
+                            }
                         }
                     }
-                    /*
-                       //we don't support counters...yet else if(m_type.equals("counter")) {
-                       System.out.println("Loading counter: "+m_key);
-                       Counter.build().name(m_key)
-                       .help(m_help).register().inc(new Double(m_value));
-                       }
-                     */
+                } catch (IllegalArgumentException iae) {
+                    // This can happen if gauge already exists with different configuration
+                    System.out.println("Prometheus: Could not register gauge " + m_key + ": " + iae.getMessage());
                 } catch (Exception e) {
+                    System.out.println("Prometheus: Error processing metric " + m_key);
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    /**
+     * Get an existing Gauge or create a new one if it doesn't exist.
+     * This prevents IllegalArgumentException when trying to register a gauge that already exists.
+     */
+    private Gauge getOrCreateGauge(String name, String labelName, String help) {
+        try {
+            if (labelName != null) {
+                return Gauge.build().name(name).labelNames(labelName).help(help).register();
+            } else {
+                return Gauge.build().name(name).help(help).register();
+            }
+        } catch (IllegalArgumentException iae) {
+            // Gauge already registered - this shouldn't happen now that we clear the registry first,
+            // but handle it gracefully just in case
+            System.out.println("Prometheus: Gauge " + name + " already registered, skipping");
+            return null;
         }
     }
 }

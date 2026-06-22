@@ -7,6 +7,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -137,6 +139,29 @@ public class BulkImportUtil {
                     ApiException.ERROR_RETURN_CODE_INVALID));
             }
         }
+
+        // 1314 introduces catching incomplete project name/prefix combos
+        List<String> projectPrefixes = findIndexedFieldNames(fieldNames, "Encounter.project.projectIdPrefix");
+        List<String> projectNames = findIndexedFieldNames(fieldNames, "Encounter.project.researchProjectName");
+        // we use the bigger of these
+        int pmax = Integer.max(projectPrefixes.size(), projectNames.size());
+        for (int i = 0; i < pmax; i++) {
+            String pnameKey = "Encounter.project" + i + ".researchProjectName";
+            String pprefixKey = "Encounter.project" + i + ".projectIdPrefix";
+            Object pname = getValue(rtn, pnameKey);
+            Object pprefix = getValue(rtn, pprefixKey);
+            if ((pname == null) && (pprefix == null)) continue;
+            if ((pname != null) && (pprefix != null)) continue;
+            if (pname == null)
+                rtn.put(pnameKey,
+                    new BulkValidatorException("must have researchProjectName if given projectIdPrefix",
+                    ApiException.ERROR_RETURN_CODE_REQUIRED));
+            if (pprefix == null)
+                rtn.put(pprefixKey,
+                    new BulkValidatorException("must have projectIdPrefix if given researchProjectName",
+                    ApiException.ERROR_RETURN_CODE_REQUIRED));
+        }
+
         return rtn;
     }
 
@@ -219,7 +244,7 @@ public class BulkImportUtil {
     // this (intentionally) does not use IndexManager queues as we assume these are newly created
     // and dont need to be done deeply
     public static void bulkOpensearchIndex(final List<Base> objs) {
-        if (objs == null) return;
+        if (Util.collectionIsEmptyOrNull(objs)) return;
         Integer numThreads = (Integer)OpenSearch.getConfigurationValue("indexingNumAllowedThreads",
             4);
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
@@ -328,12 +353,12 @@ public class BulkImportUtil {
 
     public static Map<String, Set<String> > getLabeledKeywordMap() {
         if (labeledKeywordMap != null) return labeledKeywordMap;
-        labeledKeywordMap = new HashMap<String, Set<String> >();
+        labeledKeywordMap = new LinkedHashMap<String, Set<String> >();
         try {
             for (String label : CommonConfiguration.getIndexedPropertyValues("kwLabel",
                 "context0")) {
                 labeledKeywordMap.put(label,
-                    new HashSet<String>(CommonConfiguration.getIndexedPropertyValues(label,
+                    new LinkedHashSet<String>(CommonConfiguration.getIndexedPropertyValues(label,
                         "context0")));
             }
         } catch (Exception ex) {}

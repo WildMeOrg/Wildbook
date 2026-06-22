@@ -97,7 +97,7 @@ const IdentityFilter = observer(({ store }) => {
         label="FILTER_ALTERNATIVE_ID"
         noDesc={true}
         field={"otherCatalogNumbers"}
-        term={"match"}
+        term={"term"}
         filterId={"otherCatalogNumbers"}
         filterKey={"Alternative ID"}
         store={store}

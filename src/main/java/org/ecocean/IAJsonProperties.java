@@ -265,11 +265,71 @@ public class IAJsonProperties extends JsonProperties {
                 taxy.toString() + " and iaClass " + iaClass + ". Trying _default iaClass instead.");
             config = (JSONArray)this.get(identConfigKey(taxy, "_default"));
         }
+        // The implicit `_mlservice_conf` appending that used to live here was
+        // removed in commit #2 of the ml-service migration v2 plan. The new
+        // contract: `_id_conf.default.pipeline_root` is the single decision
+        // point for vector vs HotSpotter, and ml-service config is reached
+        // via `getActiveMlServiceConfigs(...)` only — never implicitly mixed
+        // into ident configs returned by this method.
         if (config == null)
             System.out.println(
                 "IAJsonProperties WARNING: could not find any identConfig for taxonomy " +
                 taxy.getScientificName() + ". Tried configKey=" + configKey + " Returning null.");
         return config;
+    }
+
+    // ------------------------------------------------------------------
+    // ml-service migration v2: routing-aware accessors. The strict
+    // invariant: a species routes to ml-service iff its
+    // `_id_conf.default.pipeline_root == "vector"` AND its
+    // `_mlservice_conf` array is populated. Both conditions are enforced
+    // by `getActiveMlServiceConfigs`. A species with `_mlservice_conf` but
+    // pipeline_root="HotSpotter" does NOT route to ml-service.
+    // ------------------------------------------------------------------
+
+    public static String mlServiceConfigKey(Taxonomy taxy) {
+        return taxonomyKey(taxy) + "._mlservice_conf";
+    }
+
+    /**
+     * Returns the per-taxonomy `_mlservice_conf` JSONArray iff the species'
+     * `_id_conf.default.pipeline_root == "vector"` AND the array is
+     * populated. Returns null otherwise. Callers don't need to second-guess
+     * the routing decision — null means "do not route to ml-service".
+     */
+    public JSONArray getActiveMlServiceConfigs(Taxonomy taxy) {
+        if (taxy == null) return null;
+        String pipelineRoot = getPipelineRoot(taxy);
+        if (!"vector".equals(pipelineRoot)) return null;
+        Object raw = this.get(mlServiceConfigKey(taxy));
+        if (!(raw instanceof JSONArray)) return null;
+        JSONArray arr = (JSONArray) raw;
+        if (arr.length() == 0) return null;
+        return arr;
+    }
+
+    /**
+     * Returns the `pipeline_root` string of the `_id_conf` entry marked
+     * `default: true` for this taxonomy (under `_default` iaClass). Returns
+     * null if no entry is marked default, no `pipeline_root` is set on the
+     * default entry, or no `_id_conf` exists at all.
+     */
+    public String getPipelineRoot(Taxonomy taxy) {
+        return getPipelineRoot(taxy, "_default");
+    }
+
+    public String getPipelineRoot(Taxonomy taxy, String iaClass) {
+        if (taxy == null) return null;
+        JSONArray idConf = getIdentConfig(taxy, iaClass);
+        if (idConf == null) return null;
+        for (int i = 0; i < idConf.length(); i++) {
+            JSONObject entry = idConf.optJSONObject(i);
+            if (entry == null) continue;
+            if (entry.optBoolean("default", false)) {
+                return entry.optString("pipeline_root", null);
+            }
+        }
+        return null;
     }
 
     public JSONArray getAllIdentConfigs(Taxonomy taxy) {
@@ -333,7 +393,7 @@ public class IAJsonProperties extends JsonProperties {
         for (int i = 0; i < identConfig.length(); i++) {
             JSONObject thisIdentOpt = copyJobj(identConfig.getJSONObject(i));
             // so we don't break lookups for queryConfigDict downstream (old world)
-            thisIdentOpt.put("queryConfigDict", thisIdentOpt.get("query_config_dict"));
+            thisIdentOpt.put("queryConfigDict", thisIdentOpt.opt("query_config_dict"));
             identOpts.add(thisIdentOpt);
         }
         return identOpts;

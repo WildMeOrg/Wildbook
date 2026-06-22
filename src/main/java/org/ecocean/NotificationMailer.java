@@ -17,8 +17,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Sends out an email notification. This class in designed to run on an independent thread, so can be scheduled for background operation.
@@ -106,8 +106,7 @@ import org.slf4j.LoggerFactory;
  * @author Giles Winstanley
  */
 public final class NotificationMailer implements Runnable {
-    /** SLF4J logger instance for writing log entries. */
-    private static final Logger log = LoggerFactory.getLogger(NotificationMailer.class);
+    private static final Logger log = LogManager.getLogger(NotificationMailer.class);
     /** Charset for plain text email. */
     private static final Charset CHARSET_PLAIN = Charset.forName("UTF-8");
     /** Charset for HTML text email. */

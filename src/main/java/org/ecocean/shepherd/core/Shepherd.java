@@ -16,6 +16,8 @@ import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
+import org.ecocean.ia.MatchResult;
+import org.ecocean.ia.MatchResultProspect;
 import org.ecocean.ia.Task;
 import org.ecocean.media.*;
 import org.ecocean.movement.Path;
@@ -67,11 +69,13 @@ public class Shepherd {
     private String shepherdID = "";
 
     // Constructor to create a new shepherd thread object
-    public Shepherd(String context) {
+    public Shepherd(String context) { this(context, null); }
+
+    public Shepherd(String context, Properties properties) {
         if (pm == null || pm.isClosed()) {
             localContext = context;
             try {
-                pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
+                pm = ShepherdPMF.getPMF(localContext, properties).getPersistenceManager();
                 this.shepherdID = Util.generateUUID();
 
                 ShepherdState.setShepherdState(action + "_" + shepherdID, "new");
@@ -1436,8 +1440,9 @@ public class Shepherd {
 
     public LabeledKeyword getLabeledKeyword(String label, String readableName) {
         try {
-            String filter = "SELECT FROM org.ecocean.LabeledKeyword WHERE this.readableName == \"" +
-                readableName + "\" && this.label == \"" + label + "\"";
+            String filter = String.format(
+                "SELECT FROM org.ecocean.LabeledKeyword WHERE this.readableName == \"%s\" && this.label == \"%s\"",
+                readableName, label);
             Query query = pm.newQuery(filter);
             List<Keyword> ans = (List)query.execute();
             LabeledKeyword lk = null;
@@ -2220,7 +2225,8 @@ public class Shepherd {
 
     public List<Organization> getAllCommonOrganizationsForTwoUsers(User user1, User user2) {
         ArrayList<Organization> al = new ArrayList<Organization>();
-        if(user1==null||user2==null) return al;
+
+        if (user1 == null || user2 == null) return al;
         try {
             Query q = getPM().newQuery(
                 "SELECT FROM org.ecocean.Organization WHERE members.contains(user1) && members.contains(user2) && user1.uuid == \""
@@ -2229,12 +2235,10 @@ public class Shepherd {
             Collection results = (Collection)q.execute();
             al = new ArrayList<Organization>(results);
             q.closeAll();
-        }
-        catch (javax.jdo.JDOException x) {
+        } catch (javax.jdo.JDOException x) {
             x.printStackTrace();
             return al;
-        }
-        catch (Exception xe) {
+        } catch (Exception xe) {
             xe.printStackTrace();
             return al;
         }
@@ -2710,7 +2714,7 @@ public class Shepherd {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            query.closeAll();
+            if (query != null) query.closeAll();
         }
         return taskList;
     }
@@ -2769,6 +2773,7 @@ public class Shepherd {
     }
 
     public Task getTask(String id) {
+        if (id == null) return null; // save us some trouble
         Task theTask = null;
 
         try {
@@ -2797,6 +2802,72 @@ public class Shepherd {
         Collection c = (Collection)q.execute();
         List<Task> all = new ArrayList(c);
         q.closeAll();
+        return all;
+    }
+
+    public MatchResult getMatchResult(String id) {
+        MatchResult mr = null;
+
+        try {
+            mr = (MatchResult)(pm.getObjectById(pm.newObjectIdInstance(MatchResult.class, id),
+                true));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return mr;
+    }
+
+    public List<MatchResult> getMatchResults(Task task) {
+        List<MatchResult> all = new ArrayList<MatchResult>();
+
+        if (task == null) return all;
+        String filter = "SELECT FROM org.ecocean.ia.MatchResult WHERE task.id == '" + task.getId() +
+            "'";
+        Query query = pm.newQuery(filter);
+        query.setOrdering("created DESC");
+        Collection c = (Collection)query.execute();
+        if (c != null) all = new ArrayList<MatchResult>(c);
+        query.closeAll();
+        return all;
+    }
+
+    public List<MatchResult> getMatchResults(Annotation ann) {
+        List<MatchResult> all = new ArrayList<MatchResult>();
+
+        if (ann == null) return all;
+        String filter = "SELECT FROM org.ecocean.ia.MatchResult WHERE queryAnnotation.id == '" +
+            ann.getId() + "'";
+        Query query = pm.newQuery(filter);
+        query.setOrdering("created DESC");
+        Collection c = (Collection)query.execute();
+        if (c != null) all = new ArrayList<MatchResult>(c);
+        query.closeAll();
+        return all;
+    }
+
+    // faster deletion of all MatchResults associated with Annotation
+    public long deleteMatchResults(Annotation ann) {
+        if (ann == null) return 0l;
+        long t = System.currentTimeMillis();
+        String filter = "SELECT FROM org.ecocean.ia.MatchResult WHERE queryAnnotation.id == '" +
+            ann.getId() + "'";
+        Query query = pm.newQuery(filter);
+        long ct = query.deletePersistentAll(); 
+        query.closeAll();
+        System.out.println("[DEBUG] deleteMatchResults() deleted " + ct + " [" + (System.currentTimeMillis() - t) + "ms] on " + ann);
+        return ct;
+    }
+
+    public List<MatchResultProspect> getMatchResultProspects(Annotation ann) {
+        List<MatchResultProspect> all = new ArrayList<MatchResultProspect>();
+
+        if (ann == null) return all;
+        String filter = "SELECT FROM org.ecocean.ia.MatchResultProspect WHERE annotation.id == '" +
+            ann.getId() + "'";
+        Query query = pm.newQuery(filter);
+        Collection c = (Collection)query.execute();
+        if (c != null) all = new ArrayList<MatchResultProspect>(c);
+        query.closeAll();
         return all;
     }
 
@@ -4084,6 +4155,23 @@ public class Shepherd {
         List al = new ArrayList(results);
         q.closeAll();
         return al;
+    }
+
+    // how many more behavior-related lists can we make?
+    public Map<String, List<String> > getTaxonomicBehaviors() {
+        Map<String, List<String> > rtn = new HashMap<String, List<String> >();
+
+        // empty key is behaviors with no taxonomy
+        rtn.put("", getDefinedBehaviors());
+        // iaClassesForTaxonomy seems to key off taxonomies with spaces, so....
+        for (String sciName : getAllTaxonomyCommonNames(true).get(0)) {
+            // in CommonConfiguration.properties, key is like: Foo.bar.bar2.behavior0
+            String prefix = sciName.replaceAll(" ", ".") + ".behavior";
+            List<String> behaviors = CommonConfiguration.getIndexedPropertyValues(prefix,
+                this.getContext());
+            if (Util.collectionSize(behaviors) > 0) rtn.put(sciName, behaviors);
+        }
+        return rtn;
     }
 
     public List<String> getAllVerbatimEventDates() {

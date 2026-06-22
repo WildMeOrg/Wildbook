@@ -603,6 +603,46 @@ public class BulkImporter {
                 }
                 break;
 
+            case "Sighting.vegetation":
+                occ.setVegetation(bv.getValueString());
+                break;
+
+            case "Sighting.terrain":
+                occ.setTerrain(bv.getValueString());
+                break;
+
+            case "Sighting.monitoringZone":
+                occ.setMonitoringZone(bv.getValueString());
+                break;
+
+            case "Sighting.groupSize":
+                occ.setGroupSize(bv.getValueInteger());
+                break;
+
+            case "Sighting.numAdultMales":
+                occ.setNumAdultMales(bv.getValueInteger());
+                break;
+
+            case "Sighting.numAdultFemales":
+                occ.setNumAdultFemales(bv.getValueInteger());
+                break;
+
+            case "Sighting.numSubMales":
+                occ.setNumSubMales(bv.getValueInteger());
+                break;
+
+            case "Sighting.numSubFemales":
+                occ.setNumSubFemales(bv.getValueInteger());
+                break;
+
+            case "Sighting.numSubAdults":
+                occ.setNumSubAdults(bv.getValueInteger());
+                break;
+
+            case "Sighting.wp":
+                occ.setWp(bv.getValueInteger());
+                break;
+
             case "Survey.comments":
                 if (!bv.valueIsNull() &&
                     ((occ.getComments() == null) ||
@@ -648,9 +688,21 @@ public class BulkImporter {
             if (bv == null) throw new RuntimeException("could not find fmap for key=" + maKey);
             if (bv.valueIsNull()) continue;
             MediaAsset ma = this.mediaAssetMap.get(bv.getValueString());
-            if (ma == null)
-                throw new RuntimeException("could not find MediaAsset for maKey=" + maKey +
-                        ", bv=" + bv.getValueString() + " in " + this.mediaAssetMap);
+            if (ma == null) {
+                // The referenced image has no MediaAsset — typically because it
+                // failed image validation at creation time (corrupt/unreadable;
+                // see AssetStore.isValidImage). Skip just this image so one bad
+                // file does not abort the whole import; the encounter still
+                // imports with its other (valid) images. Unlike the valueIsNull()
+                // skip above (an empty column), this column WAS occupied by an
+                // image, so we advance `offset` to consume its keyword/quality
+                // slot — otherwise a later valid image would inherit this
+                // corrupt image's positional metadata.
+                System.out.println("[WARN] processRow: skipping image with no MediaAsset (likely "
+                    + "corrupt/unreadable) for maKey=" + maKey + ", value=" + bv.getValueString());
+                offset++;
+                continue;
+            }
             Set<String> kws = new HashSet<String>();
             if ((offset < kwFields.size()) && (kwFields.get(offset) != null))
                 kws.add(fmap.get(kwFields.get(offset)).getValueString());

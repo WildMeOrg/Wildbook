@@ -8,16 +8,21 @@ export default function ProjectList() {
   const intl = useIntl();
   const [currentUser, setCurrentUser] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [currentPage, setCurrentPage] = useState(1);
   const [projectsPerPage, setProjectsPerPage] = useState(10);
   const [gotoPage, setGotoPage] = useState(1);
 
   const fetchData = async () => {
-    const response = await axios.get("/api/v3/user");
-    setCurrentUser(response.data.displayName);
-    const projectsResponse = await axios.get("/api/v3/projects");
-    setProjects(projectsResponse.data.projects);
+    try {
+      const response = await axios.get("/api/v3/user");
+      setCurrentUser(response.data.displayName);
+      const projectsResponse = await axios.get("/api/v3/projects");
+      setProjects(projectsResponse.data.projects);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -79,7 +84,15 @@ export default function ProjectList() {
           <FormattedMessage id="NEW_PROJECT" />
         </button>
       </div>
-      {projects.length === 0 ? (
+      {loading ? (
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "200px" }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">
+              <FormattedMessage id="LOADING" />
+            </span>
+          </div>
+        </div>
+      ) : projects.length === 0 ? (
         <h4>
           <FormattedMessage id="NO_PROJECTS" />
         </h4>

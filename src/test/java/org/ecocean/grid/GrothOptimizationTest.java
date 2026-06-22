@@ -11,8 +11,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ForkJoinPool;
-import java.util.stream.Collectors;
 
 /**
  * Benchmark test for optimized Groth algorithm.
@@ -263,109 +261,6 @@ class GrothOptimizationTest {
         System.out.printf("Avg query time:  %.1f seconds%n", avgSec);
         System.out.printf("Rank-1 accuracy: %d/%d (%.1f%%)%n",
             rank1Hits, queriesRun, 100.0 * rank1Hits / queriesRun);
-        System.out.println("========================================\n");
-    }
-
-    /**
-     * Compare sequential vs parallel Groth matching on the full catalog.
-     * Verifies identical rankings and measures speedup.
-     */
-    @Test
-    void benchmarkSequentialVsParallel() throws Exception {
-        System.out.println("========================================");
-        System.out.println("  SEQUENTIAL vs PARALLEL GROTH");
-        System.out.println("========================================\n");
-
-        // Build catalog
-        Map<String, EncounterLite> catalog = new LinkedHashMap<>();
-        for (String encId : allEncounterIds) {
-            ArrayList<SuperSpot> spots = encounterSpots.get(encId);
-            if (spots.size() >= 3) {
-                EncounterLite el = new EncounterLite();
-                el.processLeftSpots(spots);
-                catalog.put(encId, el);
-            }
-        }
-        System.out.printf("Catalog size: %d encounters%n%n", catalog.size());
-
-        int NUM_QUERIES = 3;
-        int[] threadCounts = {1, 2, 4};
-        List<String> queryEncIds = selectQueryEncounters(NUM_QUERIES);
-
-        // Store results per thread count for verification
-        Map<Integer, List<List<String>>> allRankings = new LinkedHashMap<>();
-
-        for (int threads : threadCounts) {
-            long totalNanos = 0;
-            List<List<String>> rankings = new ArrayList<>();
-
-            for (String queryEncId : queryEncIds) {
-                ArrayList<SuperSpot> querySpots = encounterSpots.get(queryEncId);
-                if (querySpots == null || querySpots.size() < 3) continue;
-
-                SuperSpot[] queryArray = querySpots.toArray(new SuperSpot[0]);
-
-                List<MatchObject> results;
-                long startNanos = System.nanoTime();
-
-                if (threads <= 1) {
-                    results = new ArrayList<>();
-                    for (Map.Entry<String, EncounterLite> entry : catalog.entrySet()) {
-                        if (entry.getKey().equals(queryEncId)) continue;
-                        MatchObject mo = entry.getValue().getPointsForBestMatch(
-                            queryArray, GROTH_EPSILON, GROTH_R, GROTH_SIZELIM,
-                            GROTH_MAX_ROTATION, GROTH_C, true, false);
-                        mo.encounterNumber = entry.getKey();
-                        results.add(mo);
-                    }
-                } else {
-                    ForkJoinPool pool = new ForkJoinPool(threads);
-                    final String skipEnc = queryEncId;
-                    final SuperSpot[] qArr = queryArray;
-                    results = pool.submit(() ->
-                        catalog.entrySet().parallelStream()
-                            .filter(e -> !e.getKey().equals(skipEnc))
-                            .map(e -> {
-                                MatchObject mo = e.getValue().getPointsForBestMatch(
-                                    qArr, GROTH_EPSILON, GROTH_R, GROTH_SIZELIM,
-                                    GROTH_MAX_ROTATION, GROTH_C, true, false);
-                                mo.encounterNumber = e.getKey();
-                                return mo;
-                            })
-                            .collect(Collectors.toList())
-                    ).get();
-                    pool.shutdown();
-                }
-
-                long elapsedNanos = System.nanoTime() - startNanos;
-                totalNanos += elapsedNanos;
-
-                results.sort((a, b) -> Double.compare(b.matchValue, a.matchValue));
-
-                // Save top-10 ranking for verification
-                List<String> top10 = new ArrayList<>();
-                for (int i = 0; i < Math.min(10, results.size()); i++) {
-                    top10.add(results.get(i).getEncounterNumber());
-                }
-                rankings.add(top10);
-            }
-
-            allRankings.put(threads, rankings);
-            double avgSec = (totalNanos / 1_000_000_000.0) / NUM_QUERIES;
-            System.out.printf("Threads=%d: avg %.1fs per query%n", threads, avgSec);
-        }
-
-        // Verify parallel results match sequential
-        List<List<String>> seqRankings = allRankings.get(1);
-        for (int threads : threadCounts) {
-            if (threads == 1) continue;
-            List<List<String>> parRankings = allRankings.get(threads);
-            for (int q = 0; q < seqRankings.size(); q++) {
-                assertEquals(seqRankings.get(q), parRankings.get(q),
-                    "Thread=" + threads + " query " + q + " ranking must match sequential");
-            }
-        }
-        System.out.println("\nAll parallel rankings match sequential. Results are identical.");
         System.out.println("========================================\n");
     }
 

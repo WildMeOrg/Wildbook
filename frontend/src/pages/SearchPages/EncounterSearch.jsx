@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DataTable from "../../components/DataTable";
 import useFilterEncounters from "../../models/encounters/useFilterEncounters";
+import useFilterEncountersWithMediaAssets from "../../models/encounters/useFilterEncountersWithMediaAssets";
 import FilterPanel from "../../components/FilterPanel";
 import useEncounterSearchSchemas from "../../models/encounters/useEncounterSearchSchemas";
 import SideBar from "../../components/filterFields/SideBar";
@@ -11,13 +12,13 @@ import axios from "axios";
 import { get } from "lodash-es";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { encounterSearchColumns } from "../../constants/searchPageColumns";
-import { encounterSearchPagetabs } from "../../constants/searchPageTabs";
-import { globalEncounterFormStore as store } from "./encounterFormStore";
+import { globalEncounterFormStore as store } from "./stores/EncounterFormStore";
 import { helperFunction } from "./getAllSearchParamsAndParse";
+import ExportModal from "./components/ExportModal";
+import { observer } from "mobx-react-lite";
 
-export default function EncounterSearch() {
+const EncounterSearch = observer(() => {
   const columns = encounterSearchColumns;
-  const tabs = encounterSearchPagetabs;
   const intl = useIntl();
   const schemas = useEncounterSearchSchemas();
   const theme = React.useContext(ThemeColorContext);
@@ -41,11 +42,17 @@ export default function EncounterSearch() {
   const [encounterSortOrder, setEncounterSortOrder] = useState("desc");
   const [searchIdSortName, setSearchIdSortName] = useState("date");
   const [searchIdSortOrder, setSearchIdSortOrder] = useState("desc");
-  const [tempFormFilters, setTempFormFilters] = useState([]);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   useEffect(() => {
-    helperFunction(searchParams, store, setFilterPanel, setTempFormFilters);
+    helperFunction(searchParams, store, setFilterPanel, encounterData);
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!queryID) {
+      store.getFiltersFromStorage();
+    }
+  }, [queryID, store]);
 
   useEffect(() => {
     if (!queryID) {
@@ -62,7 +69,7 @@ export default function EncounterSearch() {
     loading,
     refetch,
   } = useFilterEncounters({
-    queries: store.formFilters,
+    queries: store.appliedFilters,
     params: {
       sort: encounterSortName,
       sortOrder: encounterSortOrder,
@@ -71,35 +78,168 @@ export default function EncounterSearch() {
     },
   });
 
-  const encounters = queryID ? searchData || [] : encounterData?.results || [];
-
-  const sortedEncounters = encounters.sort((a, b) => {
-    if (!a[sortname] || !b[sortname]) return 0;
-
-    const valueA = a[sortname];
-    const valueB = b[sortname];
-
-    if (sortorder === "asc") {
-      return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
-    } else if (sortorder === "desc") {
-      return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
-    } else {
-      return 0; // Default to no sorting if sortorder is invalid
-    }
+  const { fetchMediaAssets } = useFilterEncountersWithMediaAssets({
+    queries: store.mediaAssetsSearchQuery || [],
+    params: {
+      sort: encounterSortName,
+      sortOrder: encounterSortOrder,
+      size: store.pageSize,
+      from: store.start,
+    },
   });
+
+  useEffect(() => {
+    if (store.pageSize !== perPage) {
+      store.setPageSize(perPage);
+      store.resetGallery();
+      pg();
+    }
+  }, [perPage]);
+
+  const hasVisibleAssetsFromCursor = async (start, initialAssetOffset = 0) => {
+    let cumulativeStart = start;
+    let assetOffset = initialAssetOffset;
+
+    while (true) {
+      const response = await fetchMediaAssets({
+        from: cumulativeStart,
+        size: store.pageSize,
+        sort: encounterSortName,
+        sortOrder: encounterSortOrder,
+      });
+
+      const rawHits = response?.data?.hits || [];
+
+      if (!rawHits.length) {
+        return false;
+      }
+
+      for (const encounter of rawHits) {
+        if (encounter?.access === "none") {
+          cumulativeStart++;
+          assetOffset = 0;
+          continue;
+        }
+
+        const mediaAssets = encounter?.mediaAssets || [];
+        if (mediaAssets.length > assetOffset) {
+          return true;
+        }
+
+        cumulativeStart++;
+        assetOffset = 0;
+      }
+    }
+  };
+
+  const pg = async () => {
+    if (store.galleryLoading) {
+      return false;
+    }
+
+    store.setGalleryLoading(true);
+    store.setLoadingAll(true);
+
+    let contents = [];
+    let cumulativeStart = store.start;
+    let assetOffset = store.assetOffset;
+    let exhaustedBackend = false;
+    try {
+      // Keep fetching encounter windows until we have pageSize visible assets
+      // or the backend returns no more hits.
+      while (contents.length < store.pageSize && !exhaustedBackend) {
+        const response = await fetchMediaAssets({
+          from: cumulativeStart,
+          size: store.pageSize,
+          sort: encounterSortName,
+          sortOrder: encounterSortOrder,
+        });
+
+        const rawHits = response?.data?.hits || [];
+
+        if (!rawHits.length) {
+          exhaustedBackend = true;
+          break;
+        }
+
+        let rawOffset = 0;
+
+        while (contents.length < store.pageSize && rawOffset < rawHits.length) {
+          const encounter = rawHits[rawOffset];
+
+          if (encounter?.access === "none") {
+            rawOffset++;
+            cumulativeStart++;
+            assetOffset = 0;
+            continue;
+          }
+
+          const mediaAssets = encounter?.mediaAssets || [];
+
+          if (mediaAssets.length <= assetOffset) {
+            rawOffset++;
+            cumulativeStart++;
+            assetOffset = 0;
+            continue;
+          }
+
+          const rawAsset = mediaAssets[assetOffset];
+          contents.push({
+            ...rawAsset,
+            __k: `${encounter.id}-${assetOffset}-${rawAsset.uuid ?? rawAsset.id ?? ""}`,
+            encounterId: encounter.id,
+            individualId: encounter.individualId,
+            date: encounter.date,
+            individualDisplayName: encounter.individualDisplayName,
+            verbatimDate: encounter.verbatimDate,
+          });
+          assetOffset++;
+
+          if (assetOffset >= mediaAssets.length) {
+            rawOffset++;
+            cumulativeStart++;
+            assetOffset = 0;
+          }
+        }
+      }
+
+      store.setCurrentPageItems(contents);
+      store.setStart(cumulativeStart);
+      store.setAssetOffset(assetOffset);
+
+      if (contents.length === 0) {
+        store.setGalleryExhausted(true);
+        return false;
+      }
+
+      const hasMore = await hasVisibleAssetsFromCursor(
+        cumulativeStart,
+        assetOffset,
+      );
+      store.setGalleryExhausted(!hasMore);
+      return true;
+    } finally {
+      store.setGalleryLoading(false);
+      store.setLoadingAll(false);
+    }
+  };
+
+  const encounters = queryID ? searchData || [] : encounterData?.results || [];
+  const sortedEncounters = React.useMemo(() => {
+    const list = (encounters || []).slice();
+    if (!sortname || !sortorder) return list;
+    return list.sort((a, b) => {
+      const va = a?.[sortname],
+        vb = b?.[sortname];
+      if (va == null || vb == null) return 0;
+      if (sortorder === "asc") return va > vb ? 1 : va < vb ? -1 : 0;
+      if (sortorder === "desc") return va < vb ? 1 : va > vb ? -1 : 0;
+      return 0;
+    });
+  }, [encounters, sortname, sortorder]);
 
   const totalEncounters = encounterData?.resultCount || 0;
   const searchQueryId = encounterData?.searchQueryId || "";
-
-  const updatedTabs = tabs.map((tab) => {
-    const [name, url] = tab.split(":");
-    const updatedUrl = queryID
-      ? `${url}?searchQueryId=${queryID}`
-      : searchQueryId
-        ? `${url}?searchQueryId=${searchQueryId}&regularQuery=true`
-        : url;
-    return `${name}:${updatedUrl}`;
-  });
 
   useEffect(() => {
     if (queryID) {
@@ -119,6 +259,10 @@ export default function EncounterSearch() {
         })
         .catch((error) => {
           console.error("Error fetching search data:", error);
+          alert(`Query ID: ${queryID} could not be found!`);
+          setQueryID(false);
+          setSearchParams(new URLSearchParams());
+          setFilterPanel(true);
         });
     }
   }, [
@@ -168,10 +312,13 @@ export default function EncounterSearch() {
         handleSearch={handleSearch}
         setQueryID={setQueryID}
         refetch={refetch}
-        setTempFormFilters={setTempFormFilters}
         store={store}
       />
       <DataTable
+        store={store}
+        searchQueryId={searchQueryId}
+        refetchMediaAssets={fetchMediaAssets}
+        pg={pg}
         isLoading={loading}
         style={{
           display: !filterPanel ? "block" : "none",
@@ -183,7 +330,6 @@ export default function EncounterSearch() {
           />
         }
         columnNames={columns}
-        tabs={updatedTabs}
         searchText={intl.formatMessage({ id: "SEARCH" })}
         tableData={sortedEncounters}
         totalItems={queryID ? totalItems : totalEncounters}
@@ -193,6 +339,7 @@ export default function EncounterSearch() {
         onPerPageChange={queryID ? setSearchIdResultPerPage1 : setPerPage}
         setSort={setSort}
         loading={false}
+        setExportModalOpen={setExportModalOpen}
         extraStyles={[
           {
             when: (row) => row.access === "none",
@@ -205,20 +352,26 @@ export default function EncounterSearch() {
           },
         ]}
         onRowClicked={(row) => {
-          const url = `/encounters/encounter.jsp?number=${row.id}`;
+          const url = `/react/encounter?number=${row.id}`;
           window.open(url, "_blank");
         }}
         onSelectedRowsChange={(selectedRows) => {
-          console.log("Selected Rows: ", selectedRows);
+          store.setSelectedRows(selectedRows?.selectedRows || []);
         }}
       />
       <SideBar
         setFilterPanel={setFilterPanel}
         searchQueryId={searchQueryId}
-        queryID={false}
+        queryID={queryID}
         store={store}
-        tempFormFilters={tempFormFilters}
+      />
+      <ExportModal
+        open={exportModalOpen}
+        setOpen={setExportModalOpen}
+        searchQueryId={searchQueryId}
       />
     </div>
   );
-}
+});
+
+export default EncounterSearch;

@@ -53,13 +53,16 @@ export class ReportEncounterStore {
       submitter: {
         name: "",
         email: "",
+        emailError: false,
       },
       photographer: {
         name: "",
         email: "",
+        emailError: false,
       },
       additionalEmails: "",
       error: false,
+      additionalEmailsError: false,
     };
     this._success = false;
     this._finished = false;
@@ -188,6 +191,7 @@ export class ReportEncounterStore {
 
   setDateTimeSectionValue(value) {
     this._dateTimeSection.value = value;
+    this._dateTimeSection.error = false;
   }
 
   setDateTimeSectionError(error) {
@@ -216,6 +220,18 @@ export class ReportEncounterStore {
 
   setFollowUpSection(value) {
     this._followUpSection.value = value;
+  }
+
+  setSubmitterEmailError(error) {
+    this._followUpSection.submitter.emailError = error;
+  }
+
+  setPhotographerEmailError(error) {
+    this._followUpSection.photographer.emailError = error;
+  }
+
+  setAdditionalEmailsError(error) {
+    this._followUpSection.additionalEmailsError = error;
   }
 
   setCommentsSectionValue(value) {
@@ -264,26 +280,38 @@ export class ReportEncounterStore {
 
   validateEmails() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let isValid = true;
+
+    this.setSubmitterEmailError(false);
+    this.setPhotographerEmailError(false);
+    this.setAdditionalEmailsError(false);
 
     if (this._followUpSection.submitter.email) {
-      if (!emailPattern.test(this._followUpSection.submitter.email))
-        return false;
+      if (!emailPattern.test(this._followUpSection.submitter.email)) {
+        this.setSubmitterEmailError(true);
+        isValid = false;
+      }
     }
 
     if (this._followUpSection.photographer.email) {
-      if (!emailPattern.test(this._followUpSection.photographer.email))
-        return false;
+      if (!emailPattern.test(this._followUpSection.photographer.email)) {
+        this.setPhotographerEmailError(true);
+        isValid = false;
+      }
     }
 
     if (this._followUpSection.additionalEmails) {
-      return this._followUpSection.additionalEmails
+      const allEmailsValid = this._followUpSection.additionalEmails
         .split(",")
-        .every((email) => {
-          return emailPattern.test(email.trim());
-        });
+        .every((email) => emailPattern.test(email.trim()));
+
+      if (!allEmailsValid) {
+        this.setAdditionalEmailsError(true);
+        isValid = false;
+      }
     }
 
-    return true;
+    return isValid;
   }
 
   validateFields() {
@@ -303,9 +331,20 @@ export class ReportEncounterStore {
       isValid = false;
     }
 
-    if (!this._dateTimeSection.value && this._dateTimeSection.required) {
-      this._dateTimeSection.error = true;
-      isValid = false;
+    if (this._dateTimeSection.required) {
+      const dateValue = this._dateTimeSection.value
+        ? new Date(this._dateTimeSection.value)
+        : null;
+
+      const isFutureDate =
+        dateValue &&
+        !Number.isNaN(dateValue.getTime()) &&
+        dateValue > new Date();
+
+      if (!dateValue || Number.isNaN(dateValue.getTime()) || isFutureDate) {
+        this._dateTimeSection.error = true;
+        isValid = false;
+      }
     }
 
     if (!this._placeSection.locationId && this._placeSection.required) {

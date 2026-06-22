@@ -465,6 +465,17 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     // Adds a new encounter to this MarkedIndividual.
+    /** Enqueue a (deep) reindex of this individual — refreshes the individual + its member
+     *  encounters. Honors skipAutoIndexing so bulk import / deserialization don't storm. */
+    public void enqueueAclReindex() {
+        if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
+        try {
+            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+        } catch (Exception ex) {
+            System.out.println("MarkedIndividual.enqueueAclReindex failed for " + this.getId() + ": " + ex);
+        }
+    }
+
     public boolean addEncounter(Encounter newEncounter) {
         // get and therefore set the haplotype if necessary
         getHaplotype();
@@ -482,6 +493,13 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             numberEncounters++;
             refreshDependentProperties();
             setVersion();
+            // membership change: the joining encounter's ACL must reflect this individual.
+            // Deep-reindexing the encounter also refreshes this individual + its annotations.
+            // Also reindex THIS individual directly: callers (AnnotationEdit, IBEISIA) do not set
+            // newEncounter.individual = this, so newEncounter.opensearchIndexDeep() would refresh a
+            // different (or null) individual, leaving this individual's ACL stale.
+            this.enqueueAclReindex();
+            if (newEncounter != null) newEncounter.enqueueAclReindex();
         }
         setTaxonomyFromEncounters(); // will only set if has no value
         setSexFromEncounters(); // likewise
@@ -528,6 +546,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         getHaplotype();
 
         setVersion();
+        // membership change: refresh this individual (drops the departed encounter from its ACL)
+        // and the departed encounter itself (its individual link is now gone).
+        this.enqueueAclReindex();
+        if (getRidOfMe != null) getRidOfMe.enqueueAclReindex();
         return changed;
     }
 
@@ -540,6 +562,25 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         this.numberEncounters = 0;
         if (encounters != null) this.numberEncounters = encounters.size();
         return this.numberEncounters;
+    }
+
+    public boolean pruneIfNeeded(Shepherd myShepherd) {
+        if (this.numEncounters() > 0) return false;
+        System.out.println("[INFO] pruneIfNeeded() deleting " + this);
+        this.removeFromNamesCache(); // so name no longer appears in auto-complete
+        this.removeFromAllSocialUnits(myShepherd);
+        // this also removes from opensearch index
+        myShepherd.throwAwayMarkedIndividual(this);
+        return true;
+    }
+
+    // we would not need this if foreign key constraints were the way they should be
+    public void removeFromAllSocialUnits(Shepherd myShepherd) {
+        for (SocialUnit unit : myShepherd.getAllSocialUnitsForMarkedIndividual(this)) {
+            boolean success = unit.removeMember(this, myShepherd);
+            System.out.println("[INFO] removeFromAllSocialUnits() on " + this + " for " + unit +
+                ": success=" + success);
+        }
     }
 
     public String getDateFirstIdentified() {
@@ -732,6 +773,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         int startMonth = m_startMonth;
         GregorianCalendar gcMin = new GregorianCalendar(startYear, startMonth, 1);
         GregorianCalendar gcMax = new GregorianCalendar(endYear, endMonth, 31);
+        gcMax.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        gcMax.set(java.util.Calendar.MINUTE, 59);
+        gcMax.set(java.util.Calendar.SECOND, 59);
 
         for (int c = 0; c < encounters.size(); c++) {
             Encounter temp = (Encounter)encounters.get(c);
@@ -754,6 +798,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         int startDay = m_startDay;
         GregorianCalendar gcMin = new GregorianCalendar(startYear, startMonth, startDay);
         GregorianCalendar gcMax = new GregorianCalendar(endYear, endMonth, endDay);
+        gcMax.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        gcMax.set(java.util.Calendar.MINUTE, 59);
+        gcMax.set(java.util.Calendar.SECOND, 59);
 
         for (int c = 0; c < encounters.size(); c++) {
             Encounter temp = (Encounter)encounters.get(c);
@@ -779,6 +826,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         int startDay = m_startDay;
         GregorianCalendar gcMin = new GregorianCalendar(startYear, startMonth, startDay);
         GregorianCalendar gcMax = new GregorianCalendar(endYear, endMonth, endDay);
+        gcMax.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        gcMax.set(java.util.Calendar.MINUTE, 59);
+        gcMax.set(java.util.Calendar.SECOND, 59);
 
         for (int c = 0; c < encounters.size(); c++) {
             Encounter temp = (Encounter)encounters.get(c);
@@ -799,6 +849,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         int startMonth = m_startMonth;
         GregorianCalendar gcMin = new GregorianCalendar(startYear, startMonth, 1);
         GregorianCalendar gcMax = new GregorianCalendar(endYear, endMonth, 31);
+        gcMax.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        gcMax.set(java.util.Calendar.MINUTE, 59);
+        gcMax.set(java.util.Calendar.SECOND, 59);
 
         for (int c = 0; c < encounters.size(); c++) {
             Encounter temp = (Encounter)encounters.get(c);
@@ -2498,6 +2551,16 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return String.format("%s%0" + zeroPadding + "d", prefix, val.add(new BigInteger("1")));
     }
 
+    // convenience method which uses the above prefix stuff
+    public static String nextNameByLocationId(String locationId)
+    throws IllegalArgumentException {
+        if (!LocationID.isValidLocationID(locationId)) throw new IllegalArgumentException("invalid location id: " + locationId);
+        String locPrefix = LocationID.getPrefixForLocationID(locationId, null);
+        if (Util.stringIsEmptyOrNull(locPrefix)) throw new IllegalArgumentException("no prefix value for locationId: " + locationId);
+        int locPad = LocationID.getPrefixDigitPaddingForLocationID(locationId, null);
+        return nextNameByPrefix(locPrefix, locPad);
+    }
+
     public static List<String> findNames(String regex) {
         List<String> names = new ArrayList<String>();
 
@@ -2612,6 +2675,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             myShepherd.updateDBTransaction();
         }
         refreshDependentProperties();
+        // merge moved every encounter from other -> this (per-encounter hooks already fired via
+        // removeEncounter/setIndividual). Enqueue both individuals as a safety net; the indexing
+        // queue dedups by id so this does not multiply work.
+        this.enqueueAclReindex();
+        if (other != null) other.enqueueAclReindex();
     }
 
     public String getMergedComments(MarkedIndividual other, HttpServletRequest request,
@@ -2650,6 +2718,32 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         myShepherd.throwAwayMarkedIndividual(other);
     }
 
+    /** Denormalized ACL union over member encounters; 0 encounters -> world-readable (matches the live gate). */
+    public void writeAclFields(com.fasterxml.jackson.core.JsonGenerator jgen, Shepherd myShepherd)
+    throws java.io.IOException {
+        java.util.List<Encounter> encs = this.getEncounters();
+        boolean pub = (encs == null) || encs.isEmpty(); // encounterless -> visible to anyone
+        java.util.Set<String> submitters = new java.util.LinkedHashSet<String>();
+        java.util.Set<String> viewers = new java.util.LinkedHashSet<String>();
+        if (encs != null) {
+            for (Encounter enc : encs) {
+                org.json.JSONObject acl = enc.opensearchAclFields(myShepherd);
+                if (acl.optBoolean("publiclyReadable", false)) pub = true;
+                String sid = acl.optString("submitterUserId", null);
+                if (sid != null) submitters.add(sid);
+                org.json.JSONArray vu = acl.optJSONArray("viewUsers");
+                if (vu != null) for (int i = 0; i < vu.length(); i++) viewers.add(vu.optString(i));
+            }
+        }
+        jgen.writeBooleanField("publiclyReadable", pub);
+        jgen.writeArrayFieldStart("submitterUserIds");
+        for (String s : submitters) jgen.writeString(s);
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("viewUsers");
+        for (String v : viewers) jgen.writeString(v);
+        jgen.writeEndArray();
+    }
+
     public org.json.JSONObject opensearchMapping() {
         org.json.JSONObject map = super.opensearchMapping();
         org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
@@ -2676,12 +2770,15 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         map.put("relationships", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("cooccurrenceIndividualMap",
             new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
+        map.put("publiclyReadable", new org.json.JSONObject("{\"type\": \"boolean\"}"));
+        map.put("submitterUserIds", keywordType);
         return map;
     }
 
     public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
     throws IOException, JsonProcessingException {
         super.opensearchDocumentSerializer(jgen, myShepherd);
+        this.writeAclFields(jgen, myShepherd);
 
         jgen.writeStringField("sex", this.getSex());
         jgen.writeStringField("displayName", this.getDisplayName());

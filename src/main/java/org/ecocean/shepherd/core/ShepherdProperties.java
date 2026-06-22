@@ -27,7 +27,12 @@ public class ShepherdProperties {
     }
 
     public static Properties getProperties(String fileName, String langCode, String context) {
-        return getProperties(fileName, langCode, context, null);
+        Properties loadedProperties = getProperties(fileName, langCode, context, null);
+        if(loadedProperties == null){
+            loadedProperties = new Properties();
+        }
+
+        return loadedProperties;
     }
 
     // This method works just like getProperties, except it gives priority to your organization-specific .properties overwrite file

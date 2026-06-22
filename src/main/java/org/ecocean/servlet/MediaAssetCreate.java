@@ -158,7 +158,6 @@ public class MediaAssetCreate extends HttpServlet {
         if (jarr == null) return rtn;
 /*
     NOTE: for now we dont allow user to set AssetStore, so we have some "hard-coded" ways to deal with:
-    - S3 (via CommonConfiguration settings)
     - local (via CommonConfiguration tmp dir and "filename" value)
     - URL
  */

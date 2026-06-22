@@ -4,9 +4,19 @@ import React from "react";
 import { fireEvent, screen } from "@testing-library/react";
 import LoginPage from "../../../pages/Login";
 import { renderWithProviders } from "../../../utils/utils";
+import { useSiteSettings } from "../../../SiteSettingsContext";
+
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: jest.fn(),
+}));
 
 test("calls authenticate function on submit", () => {
   const mockAuthenticate = jest.fn();
+  useSiteSettings.mockReturnValue({
+    data: {},
+    isLoading: false,
+    error: null,
+  });
   useLogin.mockReturnValue({
     authenticate: mockAuthenticate,
     error: null,

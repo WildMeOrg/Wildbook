@@ -5,6 +5,7 @@ const authenticatedMenu = (
   username,
   showclassicsubmit,
   showClassicEncounterSearch,
+  showHowToPhotograph,
 ) => [
   {
     Submit: [
@@ -42,15 +43,14 @@ const authenticatedMenu = (
     ],
   },
   {
-    Learn: [
+    MENU_RESOURCES: [
       {
-        name: (
-          <FormattedMessage
-            id="MENU_LEARN_ABOUTWILDBOOK"
-            defaultMessage="About Wildbook"
-          />
-        ),
-        href: "/overview.jsp",
+        name: <FormattedMessage id="MENU_WILDBOOK_DOCUMENTATION" />,
+        href: `https://wildbook.docs.wildme.org/`,
+      },
+      {
+        name: <FormattedMessage id="ABOUT_US" />,
+        href: "/react/about-us",
       },
       {
         name: (
@@ -64,28 +64,44 @@ const authenticatedMenu = (
       {
         name: (
           <FormattedMessage
-            id="MENU_LEARN_CITINGWILDBOOK"
-            defaultMessage="Citing Wildbook"
+            id="MENU_POLICIES_AND_DATA"
+            defaultMessage="Policies and Data"
           />
         ),
-        href: `${process.env.PUBLIC_URL}/citation`,
+        href: `${process.env.PUBLIC_URL}/policies-and-data?section=privacy_policy`,
+        sub: [
+          {
+            name: <FormattedMessage id="MENU_LEARN_PRIVACYPOLICY" />,
+            href: `${process.env.PUBLIC_URL}/policies-and-data?section=privacy_policy`,
+          },
+          {
+            name: <FormattedMessage id="MENU_LEARN_TERMSOFUSE" />,
+            href: `${process.env.PUBLIC_URL}/policies-and-data?section=terms_of_use`,
+          },
+          {
+            name: <FormattedMessage id="MENU_LEARN_CITINGWILDBOOK" />,
+            href: `${process.env.PUBLIC_URL}/policies-and-data?section=citing_wildbook`,
+          },
+        ],
       },
-      {
-        name: (
-          <FormattedMessage
-            id="MENU_LEARN_HOWTOPHOTOGRAPH"
-            defaultMessage="How to Photograph"
-          />
-        ),
-        href: "/photographing.jsp",
-      },
-      // { name: <FormattedMessage id="MENU_LEARN_PRIVACYPOLICY" defaultMessage="Privacy Policy" />, href: '/privacyPolicy.jsp' },
-      // { name: <FormattedMessage id="MENU_LEARN_TERMSOFUSE" defaultMessage="Terms of Use" />, href: '/termsOfUse.jsp' },
+      ...(showHowToPhotograph
+        ? [
+            {
+              name: (
+                <FormattedMessage
+                  id="MENU_LEARN_HOWTOPHOTOGRAPH"
+                  defaultMessage="How to Photograph"
+                />
+              ),
+              href: "/react/how-to-photograph",
+            },
+          ]
+        : []),
     ],
   },
 
   {
-    My_Data: [
+    MENU_DATA: [
       {
         name: (
           <FormattedMessage
@@ -160,10 +176,28 @@ const authenticatedMenu = (
         ),
         href: "/react/projects/overview",
       },
+      {
+        name: (
+          <FormattedMessage
+            id="MENU_ANIMALS_INDIVIDUALGALLERY"
+            defaultMessage="Individual Gallery"
+          />
+        ),
+        href: "/gallery.jsp",
+      },
+      {
+        name: (
+          <FormattedMessage
+            id="MENU_ANIMALS_ANIMALCALENDAR"
+            defaultMessage="Animal Calendar"
+          />
+        ),
+        href: "/react/encounter-search?calendar=true",
+      },
     ],
   },
   {
-    Search: [
+    SEARCH: [
       {
         name: (
           <FormattedMessage
@@ -207,38 +241,7 @@ const authenticatedMenu = (
     ],
   },
   {
-    Animals: [
-      {
-        name: (
-          <FormattedMessage
-            id="MENU_ANIMALS_INDIVIDUALGALLERY"
-            defaultMessage="Individual Gallery"
-          />
-        ),
-        href: "/gallery.jsp",
-      },
-      {
-        name: (
-          <FormattedMessage
-            id="MENU_ANIMALS_ANIMALCALENDAR"
-            defaultMessage="Animal Calendar"
-          />
-        ),
-        href: "/xcalendar/calendar.jsp",
-      },
-    ],
-  },
-  {
-    Administer: [
-      {
-        name: (
-          <FormattedMessage
-            id="MENU_ADMINISTER_MANAGEACCOUNTS"
-            defaultMessage="Manage My Accounts"
-          />
-        ),
-        href: "/myUsers.jsp",
-      },
+    ADMINISTER: [
       {
         name: (
           <FormattedMessage
@@ -303,7 +306,7 @@ const authenticatedMenu = (
   },
 ];
 
-const unAuthenticatedMenu = (showclassicsubmit) => [
+const unAuthenticatedMenu = (showclassicsubmit, showHowToPhotograph) => [
   {
     Submit: [
       {
@@ -331,15 +334,14 @@ const unAuthenticatedMenu = (showclassicsubmit) => [
     ],
   },
   {
-    Learn: [
+    MENU_RESOURCES: [
       {
-        name: (
-          <FormattedMessage
-            id="MENU_LEARN_ABOUTWILDBOOK"
-            defaultMessage="About Wildbook"
-          />
-        ),
-        href: "/overview.jsp",
+        name: <FormattedMessage id="MENU_WILDBOOK_DOCUMENTATION" />,
+        href: `https://wildbook.docs.wildme.org/`,
+      },
+      {
+        name: <FormattedMessage id="ABOUT_US" />,
+        href: "/react/about-us",
       },
       {
         name: (
@@ -348,49 +350,49 @@ const unAuthenticatedMenu = (showclassicsubmit) => [
             defaultMessage="Contact Us"
           />
         ),
-        href: "/photographing.jsp",
+        href: "/contactus.jsp",
       },
       {
         name: (
           <FormattedMessage
-            id="MENU_LEARN_CITINGWILDBOOK"
-            defaultMessage="Citing Wildbook"
+            id="MENU_POLICIES_AND_DATA"
+            defaultMessage="Policies and Data"
           />
         ),
-        href: `${process.env.PUBLIC_URL}/citation`,
+        href: `${process.env.PUBLIC_URL}/policies-and-data?section=privacy_policy`,
+        sub: [
+          {
+            name: <FormattedMessage id="MENU_LEARN_PRIVACYPOLICY" />,
+            href: `${process.env.PUBLIC_URL}/policies-and-data?section=privacy_policy`,
+          },
+          {
+            name: <FormattedMessage id="MENU_LEARN_TERMSOFUSE" />,
+            href: `${process.env.PUBLIC_URL}/policies-and-data?section=terms_of_use`,
+          },
+          {
+            name: <FormattedMessage id="MENU_LEARN_CITINGWILDBOOK" />,
+            href: `${process.env.PUBLIC_URL}/policies-and-data?section=citing_wildbook`,
+          },
+        ],
       },
-      {
-        name: (
-          <FormattedMessage
-            id="MENU_LEARN_HOWTOPHOTOGRAPH"
-            defaultMessage="How to Photograph"
-          />
-        ),
-        href: "/photographing.jsp",
-      },
-      //   {
-      //     name: (
-      //       <FormattedMessage
-      //         id="MENU_LEARN_PRIVACYPOLICY"
-      //         defaultMessage="Privacy Policy"
-      //       />
-      //     ),
-      //     href: "/privacy-policy.jsp",
-      //   },
-      //   {
-      //     name: (
-      //       <FormattedMessage
-      //         id="MENU_LEARN_TERMSOFUSE"
-      //         defaultMessage="Terms of Use"
-      //       />
-      //     ),
-      //     href: "/terms-of-use.jsp",
-      //   },
+      ...(showHowToPhotograph
+        ? [
+            {
+              name: (
+                <FormattedMessage
+                  id="MENU_LEARN_HOWTOPHOTOGRAPH"
+                  defaultMessage="How to Photograph"
+                />
+              ),
+              href: "/react/how-to-photograph",
+            },
+          ]
+        : []),
     ],
   },
 
   {
-    Animals: [
+    MENU_DATA: [
       {
         name: (
           <FormattedMessage
@@ -407,7 +409,7 @@ const unAuthenticatedMenu = (showclassicsubmit) => [
             defaultMessage="Animal Calendar"
           />
         ),
-        href: "/xcalendar/calendar.jsp",
+        href: "/react/encounter-search?calendar=true",
       },
     ],
   },

@@ -5,27 +5,12 @@ import org.apache.commons.codec.digest.DigestUtils;
 import java.io.*;
 import java.lang.Math;
 import java.net.URI;
+import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
-import java.util.Vector;
 
 import javax.jdo.Query;
 
@@ -36,6 +21,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.api.ApiException;
+import org.ecocean.api.bulk.BulkImportUtil;
+import org.ecocean.api.bulk.BulkValidatorException;
+import org.ecocean.api.patch.EncounterPatchValidator;
 import org.ecocean.genetics.*;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
@@ -55,6 +43,7 @@ import org.ecocean.Util.MeasurementDesc;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.LocalDateTime;
 
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
@@ -744,6 +733,8 @@ public class Encounter extends Base implements java.io.Serializable {
         return occurrenceRemarks;
     }
 
+    // FIXME why is setComments() affecting occurrenceRemarks, and yet
+    // addComments() affecting researchComments  !!!!!????
     // @param newComments Occurrence remarks to set
     @Override public void setComments(String newComments) {
         occurrenceRemarks = newComments;
@@ -1091,6 +1082,32 @@ public class Encounter extends Base implements java.io.Serializable {
         return date;
     }
 
+    public org.json.JSONObject getDateValuesJson() {
+        org.json.JSONObject dv = new org.json.JSONObject();
+        // in theory we *always* should have at least a year, but our data probably says otherwise
+        // sadly we just bail empty if we dont have a year
+        if (getYear() < 1900) return dv;
+        dv.put("year", getYear());
+        // from here on out we only add things if the previous one existed; hence the short-circuit return
+        // e.g. we do not add a day if there was no month
+        if ((getMonth() < 1) || (getMonth() > 12)) return dv;
+        dv.put("month", getMonth());
+        // sorry not checking actual days-per-month here
+        if ((getDay() < 1) || (getDay() > 31)) return dv;
+        dv.put("day", getDay());
+        if ((getHour() < 0) || (getHour() > 23)) return dv;
+        dv.put("hour", getHour());
+        // sigh, deal with string-based minutes...
+        Integer min = getMinutesInteger();
+        if ((min != null) && (min >= 0) && (min < 60)) {
+            dv.put("minutes", min);
+        } else {
+            // choosing to do this because we *must* have hour value here, so dumb to leave null?
+            dv.put("minutes", 0);
+        }
+        return dv;
+    }
+
     // @return a String with text about how the size of this animal was estimated/measured
     public String getSizeGuess() {
         return size_guess;
@@ -1113,6 +1130,13 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public String getMinutes() {
         return minutes;
+    }
+
+    public Integer getMinutesInteger() {
+        Integer min = null;
+
+        try { min = Integer.parseInt(minutes); } catch (Exception e) {}
+        return min;
     }
 
     public int getHour() {
@@ -1150,7 +1174,8 @@ public class Encounter extends Base implements java.io.Serializable {
         Long thisTime = getDateInMilliseconds();
 
         if (thisTime == null) return false;
-        return (start.getMillis() <= thisTime && end.getMillis() >= thisTime);
+        long endOfDay = end.withTime(23, 59, 59, 999).getMillis();
+        return (start.getMillis() <= thisTime && endOfDay >= thisTime);
     }
 
     // @return the String holding specific location data used for searching
@@ -1217,9 +1242,28 @@ public class Encounter extends Base implements java.io.Serializable {
         setIndividual(indiv);
     }
 
+    /** Enqueue a (deep) reindex of this encounter — refreshes its individual + annotations' ACL.
+     *  Honors skipAutoIndexing so bulk import / deserialization don't storm. */
+    public void enqueueAclReindex() {
+        if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
+        try {
+            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+        } catch (Exception ex) {
+            System.out.println("Encounter.enqueueAclReindex failed for " + this.getId() + ": " + ex);
+        }
+    }
+
     public void setIndividual(MarkedIndividual indiv) {
+        MarkedIndividual old = this.individual;
         if (indiv == null) { this.individual = null; } else { this.individual = indiv; }
         this.refreshAnnotationLiteIndividual();
+        // membership change: refresh this encounter (deep -> its new individual + annotations)
+        // and the OLD individual it left (so the departed encounter is dropped from its ACL).
+        // Only enqueue when membership actually changed; a no-op set (old == indiv) changes nothing.
+        if (old != indiv) {
+            this.enqueueAclReindex();
+            if (old != null) old.enqueueAclReindex();
+        }
     }
 
     public MarkedIndividual getIndividual() {
@@ -1404,8 +1448,8 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString());
         org.json.JSONObject sp = astore.createParameters(fullPath);
-        sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName); // note: this really only applies to S3 AssetStores, but shouldnt hurt
-                                                                          // others?
+        sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName);
+        // others?
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma == null) {
             System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
@@ -1615,6 +1659,28 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public void setRightReferenceSpots(ArrayList<SuperSpot> rightReferenceSpots) {
         this.rightReferenceSpots = rightReferenceSpots;
+    }
+
+    // this is for jsonForApiGet()
+    public org.json.JSONObject spotMappingJsonForApiGet() {
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        boolean enabled = CommonConfiguration.useSpotPatternRecognition("context0");
+        rtn.put("enabled", enabled);
+        if (!enabled) return rtn;
+        rtn.put("numberLeftSpots", getNumSpots());
+        rtn.put("numberRightSpots", getNumRightSpots());
+        rtn.put("hasLeftSpots", getNumSpots() > 0);
+        rtn.put("hasRightSpots", getNumRightSpots() > 0);
+        rtn.put("hasSpots", (getNumSpots() + getNumRightSpots()) > 0);
+
+        // check where results xml is stored (per spotMappingAlgorith.jsp)
+        File ddir = Util.getDataDir();
+        String encDir = dir(ddir.toString());
+        rtn.put("resultsGrothLeft", new File(encDir, "lastFullScan.xml").exists());
+        rtn.put("resultsGrothRight", new File(encDir, "lastFullRightScan.xml").exists());
+        rtn.put("resultsI3SLeft", new File(encDir, "lastFullI3SScan.xml").exists());
+        rtn.put("resultsI3SRight", new File(encDir, "lastFullRightI3SScan.xml").exists());
+        return rtn;
     }
 
     // @return the variance for population
@@ -2159,7 +2225,9 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public void setSpecificEpithet(String newEpithet) {
-        if (newEpithet != null) { specificEpithet = newEpithet.replaceAll("_"," "); } else { specificEpithet = null; }
+        if (newEpithet != null) { specificEpithet = newEpithet.replaceAll("_", " "); } else {
+            specificEpithet = null;
+        }
         this.refreshAnnotationLiteTaxonomy();
     }
 
@@ -2187,7 +2255,7 @@ public class Encounter extends Base implements java.io.Serializable {
             this.specificEpithet = null;
         } else {
             this.genus = gs[0];
-            this.specificEpithet = gs[1].replaceAll("_"," ");
+            this.specificEpithet = gs[1].replaceAll("_", " ");
         }
         this.refreshAnnotationLiteTaxonomy();
     }
@@ -2201,7 +2269,7 @@ public class Encounter extends Base implements java.io.Serializable {
             this.specificEpithet = null;
         } else {
             this.genus = gs[0];
-            this.specificEpithet = gs[1].replaceAll("_"," ");
+            this.specificEpithet = gs[1].replaceAll("_", " ");
         }
         this.refreshAnnotationLiteTaxonomy();
     }
@@ -2281,10 +2349,10 @@ public class Encounter extends Base implements java.io.Serializable {
             if (hour > -1) { localHour = hour; }
             int myMinutes = 0;
             try { myMinutes = Integer.parseInt(minutes); } catch (Exception e) {}
-            GregorianCalendar gc = new GregorianCalendar(year, localMonth, localDay, localHour,
-                myMinutes);
-
-            return new Long(gc.getTimeInMillis());
+            TimeZone tz = TimeZone.getTimeZone("UTC");
+            Calendar calendar = Calendar.getInstance(tz);
+            calendar.set(year, localMonth, localDay, localHour, myMinutes);
+            return new Long(calendar.getTimeInMillis());
         }
         return null;
     }
@@ -2298,7 +2366,7 @@ public class Encounter extends Base implements java.io.Serializable {
 
     // this will set all date stuff based on ms since epoch
     public void setDateInMilliseconds(long ms) {
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
         cal.setTimeInMillis(ms);
         this.year = cal.get(Calendar.YEAR);
@@ -2311,30 +2379,60 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // also supports YYYY and YYYY-MM
-    public void setDateFromISO8601String(String iso8601) {
+    // per issue 1489, cannot set a future date
+    public void setDateFromISO8601String(String iso8601)
+    throws ApiException {
         if (!validISO8601String(iso8601)) return;
+
+        // this is for potential ApiException
+        org.json.JSONObject error = new org.json.JSONObject();
+        error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+
         if (iso8601.length() == 4) { // assume year
             try {
                 this.year = Integer.parseInt(iso8601);
             } catch (Exception ex) {}
+
+            // got an int year, but lets see if it is valid
+            if (Util.dateIsInFuture(this.year, null, null)) {
+                error.put("fieldName", "year");
+                error.put("value", this.year);
+                throw new ApiException("date is in the future", error);
+            }
             resetDateInMilliseconds();
             return;
         }
-        // this should already be validated so we can trust it (flw)
+        // this format should already be validated so we can trust it (flw)
         if (iso8601.length() == 7) {
             try {
                 this.year = Integer.parseInt(iso8601.substring(0, 4));
                 this.month = Integer.parseInt(iso8601.substring(5, 7));
             } catch (Exception ex) {}
+            if (Util.dateIsInFuture(this.year, this.month, null)) {
+                // if we wanted to be super thorough we could do errors array of year & month
+                error.put("fieldName", "month");
+                error.put("value", this.month);
+                throw new ApiException("date is in the future", error);
+            }
             resetDateInMilliseconds();
             return;
         }
         try {
             String adjusted = Util.getISO8601Date(iso8601);
             DateTime dt = new DateTime(adjusted);
+            if (Util.dateIsInFuture(dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth())) {
+                error.put("fieldName", "day");
+                error.put("value", dt.getDayOfMonth());
+                throw new ApiException("date is in the future", error);
+            }
             this.setDateInMilliseconds(dt.getMillis());
+        // pass this flavor out...
+        } catch (ApiException ex) {
+            throw ex;
+        // this catches failure of new DateTime() basically, so we make this an ApiException
         } catch (Exception ex) {
             System.out.println("setDateFromISO8601String(" + iso8601 + ") failed: " + ex);
+            throw new ApiException("date/time values are invalid");
         }
         resetDateInMilliseconds();
     }
@@ -2442,6 +2540,21 @@ public class Encounter extends Base implements java.io.Serializable {
         return myShepherd.getProjectsForEncounter(this);
     }
 
+    public boolean isInProjects(Set<String> projectIds, Shepherd myShepherd) {
+        // if we dont have any ids, here we are going to consider it false
+        // NOTE: opposite logic in MatchResultProspect.isInProject()
+        if (Util.collectionIsEmptyOrNull(projectIds)) return false;
+        String sql = "select count(*) from \"PROJECT_ENCOUNTERS\" where \"CATALOGNUMBER_EID\" = '" +
+            this.getId() + "' and \"ID_OID\" in ('" + String.join("', '", projectIds) + "')";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        if (!it.hasNext()) return false;
+        Long count = (Long)it.next();
+        q.closeAll();
+        return (count > 0);
+    }
+
     public void addTissueSample(TissueSample dce) {
         if (tissueSamples == null) { tissueSamples = new ArrayList<TissueSample>(); }
         if (!tissueSamples.contains(dce)) { tissueSamples.add(dce); }
@@ -2507,6 +2620,32 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
+    public Measurement removeMeasurementByType(String type) {
+        // findMeasurementOfType() seems to return even ones with value=null
+        // (versus getMeasurement())... so this seems the better choice?
+        Measurement m = findMeasurementOfType(type);
+
+        if (m != null) measurements.remove(m);
+        return m;
+    }
+
+    // will find the Measurement (by type) and modify it *or* make a new one
+    public Measurement getOrCreateMeasurement(org.json.JSONObject jdata) {
+        if (jdata == null) return null;
+        String type = jdata.optString("type", null);
+        if (type == null) return null;
+        Measurement m = findMeasurementOfType(type);
+        if (m == null) {
+            m = new Measurement(this.getId(), type, jdata.optDouble("value", 0.0D),
+                jdata.optString("units", null), jdata.optString("samplingProtocol", null));
+        } else {
+            m.setValue(jdata.optDouble("value", 0.0D));
+            m.setUnits(jdata.optString("units", null));
+            m.setSamplingProtocol(jdata.optString("samplingProtocol", null));
+        }
+        return m;
+    }
+
     // like above but way less persisty
     public void setMeasurement(Measurement measurement) {
         if (measurement == null) return;
@@ -2522,6 +2661,13 @@ public class Encounter extends Base implements java.io.Serializable {
             hasType.setValue(measurement.getValue());
             hasType.setSamplingProtocol(measurement.getSamplingProtocol());
         }
+    }
+
+    // like above but less..... checky (trust the caller!)
+    public void addMeasurement(Measurement meas) {
+        if (meas == null) return;
+        if (measurements == null) measurements = new ArrayList<Measurement>();
+        measurements.add(meas);
     }
 
     public void removeMeasurement(int num) { measurements.remove(num); }
@@ -2548,8 +2694,32 @@ public class Encounter extends Base implements java.io.Serializable {
         metalTags.add(metalTag);
     }
 
+    // this does NOT validate values
+    public MetalTag addOrUpdateMetalTag(String location, String number) {
+        if ((location == null) || (number == null)) return null;
+        MetalTag tag = findMetalTagForLocation(location);
+        if (tag == null) {
+            tag = new MetalTag(number, location);
+            addMetalTag(tag);
+        } else {
+            tag.setTagNumber(number);
+        }
+        return tag;
+    }
+
     public void removeMetalTag(MetalTag metalTag) {
         metalTags.remove(metalTag);
+    }
+
+    // this will clear out ALL tags with this location, but i think we
+    // are supposed to only have [at most] one anyway!
+    public void removeMetalTag(String location) {
+        if ((location == null) || (metalTags == null)) return;
+        ListIterator<MetalTag> it = metalTags.listIterator();
+        while (it.hasNext()) {
+            MetalTag next = it.next();
+            if (location.equals(next.getLocation())) it.remove();
+        }
     }
 
     public void setMetalTags(List<MetalTag> metalTags) {
@@ -2690,6 +2860,14 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public ArrayList<Annotation> getAnnotations() {
         return annotations;
+    }
+
+    public Annotation getAnnotation(String annId) {
+        if ((annId == null) || (annotations == null)) return null;
+        for (Annotation ann : annotations) {
+            if (annId.equals(ann.getId())) return ann;
+        }
+        return null;
     }
 
     public Set<String> getAnnotationViewpoints() {
@@ -2896,7 +3074,7 @@ public class Encounter extends Base implements java.io.Serializable {
         for (Annotation ann : annotations) {
             if (ann == null) continue; // really weird that this happens sometimes
             MediaAsset ma = ann.getMediaAsset();
-            if (ma != null) m.add(ma);
+            if ((ma != null) && !m.contains(ma)) m.add(ma);
         }
         return m;
     }
@@ -2929,6 +3107,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public void addMediaAsset(MediaAsset ma) {
         Annotation ann = new Annotation(getTaxonomyString(), ma);
 
+        if (annotations == null) annotations = new ArrayList<Annotation>();
         annotations.add(ann);
     }
 
@@ -3140,7 +3319,10 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public boolean canUserAccess(User user, String context) {
-        if (canUserEdit(user)) return true;
+        if (user == null) return false;
+        // see comment below on canUserEdit(); substituting isUserOwner() now
+        // if (canUserEdit(user)) return true;
+        if (isUserOwner(user)) return true;
         String username = user.getUsername();
         if (username == null) return false;
         return Collaboration.canUserAccessEncounter(this, context, username);
@@ -3155,8 +3337,21 @@ public class Encounter extends Base implements java.io.Serializable {
                 myShepherd.getContext()));
     }
 
+    // as part of 10.9, canUserEdit() was modified. it was not
+/*
     public boolean canUserEdit(User user) {
         return isUserOwner(user);
+    }
+ */
+
+    // rewrite for 10.9 tries to actually do the right thing and (maybe) make sense
+    @Override public boolean canUserEdit(User user, Shepherd myShepherd) {
+        if (user == null) return false;
+        if (isUserOwner(user)) return true;
+        if (user.isAdmin(myShepherd)) return true;
+        if (Collaboration.canEditEncounter(this, user, myShepherd.getContext())) return true;
+        // TODO there seems to be some legacy stuff about roles based on location. is this real?
+        return false;
     }
 
     public boolean isUserOwner(User user) { // the definition of this might change?
@@ -3166,19 +3361,83 @@ public class Encounter extends Base implements java.io.Serializable {
         return false;
     }
 
-    // new logic means we only need users who are in collab with submitting user
-    // and if public, we dont need to do this at all
-    public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+    /**
+     * Correct per-encounter ACL: the set of user UUIDs permitted to view this
+     * encounter. Single source of visibility truth for the full-index path.
+     * See docs/superpowers/plans/2026-05-29-viewusers-acl-hardening.md.
+     *
+     * - Public/anonymous-owner encounters and encounters with an invalid owner
+     *   yield [] (admin-only via opensearchAccess' isAdmin branch).
+     * - Otherwise: the other party of every PERSISTED approved/edit
+     *   collaboration with the submitter, plus orgAdmins of the submitter's
+     *   organization(s) (one-way).
+     */
+    public List<String> computeViewUsers(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
-
         if (this.isPubliclyReadable()) return ids;
-        List<Collaboration> collabs = Collaboration.collaborationsForUser(myShepherd,
-            this.getSubmitterID());
-        for (Collaboration collab : collabs) {
-            User user = myShepherd.getUser(collab.getOtherUsername(this.getSubmitterID()));
-            if (user != null) ids.add(user.getId());
+        String submitter = this.getSubmitterID();
+        User submitterUser = (submitter == null) ? null : myShepherd.getUser(submitter);
+        if (submitterUser == null) return ids; // fail closed: admin-only
+        java.util.Set<String> seen = new java.util.HashSet<String>();
+        // 1. persisted approved/edit collaborators (mutual view), correct direction
+        for (Collaboration col : Collaboration.persistedCollaborationsForUser(myShepherd, submitter)) {
+            if (!col.isApproved() && !col.isEditApproved()) continue;
+            String otherUsername = col.getOtherUsername(submitter);
+            if (otherUsername == null || otherUsername.equals(submitter)) continue; // skip self-collab
+            User other = myShepherd.getUser(otherUsername);
+            if (other != null && other.getId() != null && seen.add(other.getId())) {
+                ids.add(other.getId());
+            }
+        }
+        // 2. orgAdmins of the submitter's organization(s) can view (one-way)
+        String context = myShepherd.getContext();
+        List<Organization> orgs = myShepherd.getAllOrganizationsForUser(submitterUser);
+        if (orgs != null) {
+            for (Organization org : orgs) {
+                List<User> members = org.getMembers();
+                if (members == null) continue;
+                for (User m : members) {
+                    if (m == null || m.getUsername() == null) continue;
+                    if (m.getUsername().equals(submitter)) continue; // not self
+                    if (!myShepherd.doesUserHaveRole(m.getUsername(), Organization.ROLE_MANAGER, context)) continue;
+                    if (m.getId() != null && seen.add(m.getId())) ids.add(m.getId());
+                }
+            }
         }
         return ids;
+    }
+
+    public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+        // Delegates to the single correct ACL computation. Retained as a named
+        // method because the full-index serializer and any external callers
+        // reference it. See computeViewUsers().
+        return computeViewUsers(myShepherd);
+    }
+
+    /**
+     * Single source of this encounter's OpenSearch ACL fields, reused by the encounter,
+     * annotation, and individual indexing so all three agree. publiclyReadable mirrors
+     * isPubliclyReadable() (security-disabled OR anonymous owner). For a non-public encounter:
+     * submitterUserId is the resolved owner's UUID (absent if the owner is invalid/deleted ->
+     * admin-only/fail-closed), and viewUsers is computeViewUsers() (approved/edit collaborators +
+     * submitter-org orgAdmins). Anonymous-owned -> public; invalid/deleted non-anonymous owner -> closed.
+     * Semantically equivalent to (not byte-identical with) the encounter index's own serialization
+     * (e.g. for a public encounter we omit submitterUserId since publiclyReadable=true already grants);
+     * the ACCESS DECISION is identical, only the stored field set differs harmlessly.
+     */
+    public org.json.JSONObject opensearchAclFields(Shepherd myShepherd) {
+        org.json.JSONObject acl = new org.json.JSONObject();
+        boolean pub = this.isPubliclyReadable();
+        acl.put("publiclyReadable", pub);
+        org.json.JSONArray vu = new org.json.JSONArray();
+        if (!pub) {
+            User submitter = this.getSubmitterUser(myShepherd);
+            if ((submitter != null) && (submitter.getId() != null))
+                acl.put("submitterUserId", submitter.getId());
+            for (String id : this.computeViewUsers(myShepherd)) vu.put(id);
+        }
+        acl.put("viewUsers", vu);
+        return acl;
     }
 
 /*
@@ -3449,6 +3708,21 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         query.closeAll();
         return returnEnc;
+    }
+
+    /** All encounters whose annotations contain this annotation (usually 0 or 1; >1 is anomalous). */
+    public static java.util.List<Encounter> findAllByAnnotation(Annotation annot, Shepherd myShepherd) {
+        javax.jdo.Query query = myShepherd.getPM().newQuery(
+            "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id == annId");
+        query.declareParameters("String annId");
+        java.util.List<Encounter> out = new java.util.ArrayList<Encounter>();
+        try {
+            java.util.List results = (java.util.List)query.execute(annot.getId());
+            if (results != null) for (Object o : results) out.add((Encounter)o);
+        } finally {
+            query.closeAll();
+        }
+        return out;
     }
 
     public static Encounter findByAnnotationId(String annid, Shepherd myShepherd) {
@@ -3814,6 +4088,11 @@ public class Encounter extends Base implements java.io.Serializable {
         if (!submitters.contains(user)) submitters.add(user);
     }
 
+    public void removeSubmitter(User user) {
+        if ((user == null) || (submitters == null)) return;
+        submitters.remove(user);
+    }
+
     public void addPhotographer(User user) {
         if (user == null) return;
         if (photographers == null) photographers = new ArrayList<User>();
@@ -3832,6 +4111,11 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
+    public void removePhotographer(User user) {
+        if ((user == null) || (photographers == null)) return;
+        photographers.remove(user);
+    }
+
     public void addInformOther(User user) {
         if (user == null) return;
         if (informOthers == null) informOthers = new ArrayList<User>();
@@ -3842,6 +4126,11 @@ public class Encounter extends Base implements java.io.Serializable {
         if (users == null) { this.informOthers = null; } else {
             this.informOthers = users;
         }
+    }
+
+    public void removeInformOther(User user) {
+        if ((user == null) || (informOthers == null)) return;
+        informOthers.remove(user);
     }
 
     public static List<String> getIndividualIDs(Collection<Encounter> encs) {
@@ -3868,16 +4157,6 @@ public class Encounter extends Base implements java.io.Serializable {
         for (Annotation ann : this.annotations) {
             ann.refreshLiteIndividual(indivId);
         }
-    }
-
-    // basically mean id-equivalent, so deal
-    public boolean equals(final Object u2) {
-        if (u2 == null) return false;
-        if (!(u2 instanceof Encounter)) return false;
-        Encounter two = (Encounter)u2;
-        if ((this.getCatalogNumber() == null) || (two == null) || (two.getCatalogNumber() == null))
-            return false;
-        return this.getCatalogNumber().equals(two.getCatalogNumber());
     }
 
     public int hashCode() { // we need this along with equals() for collections methods (contains etc) to work!!
@@ -3921,11 +4200,17 @@ public class Encounter extends Base implements java.io.Serializable {
             System.out.println("opensearchIndexPermissionsBackground: running not required; done");
             return;
         }
-        // i think we should set these first... tho they may not get persisted til after?
-        OpenSearch.setPermissionsTimestamp(myShepherd);
-        OpenSearch.setPermissionsNeeded(myShepherd, false);
-        opensearchIndexPermissions();
-        System.out.println("opensearchIndexPermissionsBackground: running completed");
+        boolean completed = opensearchIndexPermissions();
+        if (completed) {
+            // advance timestamp + clear the needed flag ONLY on success, so an aborted
+            // run (e.g. precompute failure) is retried on the next tick rather than being
+            // masked by a staged needed=false that myShepherd commits after the abort.
+            OpenSearch.setPermissionsTimestamp(myShepherd);
+            OpenSearch.setPermissionsNeeded(myShepherd, false);
+            System.out.println("opensearchIndexPermissionsBackground: running completed");
+        } else {
+            System.out.println("opensearchIndexPermissionsBackground: ABORTED — leaving permissionsNeeded set for retry next tick");
+        }
     }
 
 /*  note: there are a great deal of users with *no username* that seem to appear in enc.submitters array.
@@ -3945,12 +4230,12 @@ public class Encounter extends Base implements java.io.Serializable {
     encounters with submitterID in (NULL, "public", "", "N/A" [ugh]) is readable by anyone; so we will
     skip these from processing as they should be flagged with the boolean isPubliclyReadable in indexing
  */
-    public static void opensearchIndexPermissions() {
+    public static boolean opensearchIndexPermissions() {
         Util.mark("perm start");
         long startT = System.currentTimeMillis();
         System.out.println("opensearchIndexPermissions(): begin...");
         // no security => everything publiclyReadable - saves us work, no?
-        if (!Collaboration.securityEnabled("context0")) return;
+        if (!Collaboration.securityEnabled("context0")) return true;
         OpenSearch os = new OpenSearch();
         Map<String, Set<String> > collab = new HashMap<String, Set<String> >();
         Map<String, String> usernameToId = new HashMap<String, String>();
@@ -3972,13 +4257,17 @@ public class Encounter extends Base implements java.io.Serializable {
                 }
             }
         } catch (Exception ex) {
+            System.out.println("opensearchIndexPermissions(): ABORT — user/collab precompute failed; will retry next tick");
             ex.printStackTrace();
+            myShepherd.rollbackAndClose();
+            return false;
         }
         Util.mark("perm: user build done", startT);
         System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
             " total users; " + collab.size() + " have active collab");
         // now iterated over (non-public) encounters
         int encCount = 0;
+        int viewUsersWriteFailures = 0;
         org.json.JSONObject updateData = new org.json.JSONObject();
         // we do not need full Encounter objects here to update index docs, so lets do this via sql/fields - much faster
         String sql =
@@ -3996,9 +4285,17 @@ public class Encounter extends Base implements java.io.Serializable {
                 org.json.JSONArray viewUsers = new org.json.JSONArray();
                 String uid = usernameToId.get(submitterId);
                 if (uid == null) {
-                    // see issue 939 for example :(
                     System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
-                        submitterId + " on enc " + id);
+                        submitterId + " on enc " + id + " -> full reindex to clear stale ACL fields");
+                    try {
+                        Encounter staleEnc = myShepherd.getEncounter(id);
+                        if (staleEnc != null) {
+                            IndexingManager im = IndexingManagerFactory.getIndexingManager();
+                            im.addIndexingQueueEntry(staleEnc, false); // full reindex: drops submitterUserId + viewUsers
+                        }
+                    } catch (Exception ex) {
+                        System.out.println("  invalid-owner reindex enqueue failed for " + id + ": " + ex);
+                    }
                     continue;
                 }
                 encCount++;
@@ -4035,18 +4332,49 @@ public class Encounter extends Base implements java.io.Serializable {
                     // get the list of usernames in this entry
                     Set<String> localCollabs = collab.get(localUid);
                     // evaluate if the submitterId (a username) of this encounter is in this list
-                    if (localCollabs.contains(submitterId)) {
+                    if (localCollabs.contains(submitterId) && !localUid.equals(uid)) {
                         // if the submitterId is in the list, put the uid of the user in viewUsers for OpenSearch
+                        // (skip self-collab: localUid == uid means the collaborator IS the owner)
                         viewUsers.put(localUid);
                     }
                 }
-                if (viewUsers.length() > 0) {
-                    updateData.put("viewUsers", viewUsers);
+                updateData.put("viewUsers", viewUsers); // always write, incl [] so revocation propagates
+                // Child-reindex change-detection: compare freshly computed viewUsers (as a set) to
+                // what is CURRENTLY indexed. Enqueue the deep child reindex ONLY when the currently
+                // indexed value was READABLE (non-null) and genuinely DIFFERS.
+                // When getIndexedViewUsers returns null (missing doc / unreadable / degraded read) we
+                // do NOT enqueue: the encounter isn't reliably indexed yet, and on a degraded pass a
+                // null-means-changed default would storm child reindexes for every encounter. The
+                // tradeoff is a rare miss for a genuinely-fresh-but-not-yet-readable encounter, which
+                // is recovered by the normal indexing-queue / opensearchIndexDeep path plus the
+                // periodic reconciler / corrective reindex. The encounter's own indexUpdate below is
+                // unconditional, so its viewUsers stays current regardless.
+                boolean childReindexNeeded = false; // only true on a confirmed, readable difference
+                try {
+                    org.json.JSONArray current = os.getIndexedViewUsers("encounter", id);
+                    if (current != null) {
+                        Set<String> currentSet = new java.util.HashSet<String>();
+                        for (int ci = 0; ci < current.length(); ci++) currentSet.add(current.optString(ci, null));
+                        currentSet.remove(null);
+                        Set<String> newSet = new java.util.HashSet<String>();
+                        for (int ni = 0; ni < viewUsers.length(); ni++) newSet.add(viewUsers.optString(ni, null));
+                        newSet.remove(null);
+                        childReindexNeeded = !currentSet.equals(newSet);
+                    }
+                } catch (Exception ex) {
+                    childReindexNeeded = false; // unreadable -> don't storm; recoverable via reconciler
+                }
+                try {
+                    os.indexUpdate("encounter", id, updateData);
+                } catch (Exception ex) {
+                    viewUsersWriteFailures++; // aggregate only — no per-doc noise during index build
+                }
+                if (childReindexNeeded) {
                     try {
-                        os.indexUpdate("encounter", id, updateData);
+                        Encounter enc = myShepherd.getEncounter(id);
+                        if (enc != null) enc.enqueueAclReindex(); // refresh individual + annotations
                     } catch (Exception ex) {
-                        // keeping this quiet cuz it can get noise while index builds
-                        // System.out.println("opensearchIndexPermissions(): WARNING failed to update viewUsers on enc " + enc.getId() + "; likely has not been indexed yet: " + ex);
+                        // best-effort; reconciler / corrective reindex recovers a missed child refresh
                     }
                 }
             }
@@ -4060,6 +4388,10 @@ public class Encounter extends Base implements java.io.Serializable {
         myShepherd.rollbackAndClose();
         System.out.println("opensearchIndexPermissions(): ...end [" + encCount + " encs; " +
             Math.round((System.currentTimeMillis() - startT) / 1000) + "sec]");
+        if (viewUsersWriteFailures > 0)
+            System.out.println("opensearchIndexPermissions(): WARNING " + viewUsersWriteFailures +
+                " viewUsers writes FAILED — revocation may not have propagated for those encounters");
+        return true;
     }
 
     public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
@@ -4118,11 +4450,39 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStartObject();
             jgen.writeNumberField("id", ma.getIdInt());
             jgen.writeStringField("uuid", ma.getUUID());
+            jgen.writeNumberField("width", ma.getWidth());
+            jgen.writeNumberField("height", ma.getHeight());
+            jgen.writeStringField("mimeTypeMajor", ma.getMimeTypeMajor());
+            jgen.writeStringField("mimeTypeMinor", ma.getMimeTypeMinor());
             try {
                 // historic data might throw IllegalArgumentException: Path not under given root
-                java.net.URL url = ma.safeURL(myShepherd);
+                URL url = ma.safeURL(myShepherd, null, "master");
                 if (url != null) jgen.writeStringField("url", url.toString());
             } catch (Exception ex) {}
+            // we (likely) dont need annotations to search on, but they are needed for
+            // many of the usages (export, gallery, etc) of search *results*
+            jgen.writeArrayFieldStart("annotations");
+            if (ma.hasAnnotations())
+                for (Annotation ann : ma.getAnnotations()) {
+                    jgen.writeStartObject();
+                    jgen.writeStringField("id", ann.getId());
+                    jgen.writeStringField("iaClass", ann.getIAClass());
+                    jgen.writeStringField("viewpoint", ann.getViewpoint());
+                    jgen.writeBooleanField("isTrivial", ann.isTrivial());
+                    jgen.writeNumberField("theta", ann.getTheta());
+                    jgen.writeArrayFieldStart("boundingBox");
+                    Feature ft = ann.getFeature(); // attempt force loading features for getBbox()
+                    int[] bbox = ann.getBbox();
+                    if (bbox != null)
+                        for (int i : bbox) {
+                            jgen.writeNumber(i);
+                        }
+                    jgen.writeEndArray();
+                    Encounter annEnc = ann.findEncounter(myShepherd);
+                    if (annEnc != null) jgen.writeStringField("encounterId", annEnc.getId());
+                    jgen.writeEndObject();
+                }
+            jgen.writeEndArray();
             jgen.writeEndObject();
             if (featuredAssetId == null) featuredAssetId = ma.getUUID();
         }
@@ -4391,6 +4751,11 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNumberField(type, bmeas.get(type).getValue());
         }
         jgen.writeEndObject();
+        // NOTE: opensearchProcessPermissions is a transient (non-persisted) flag and is
+        // lost when IndexingManager reloads the entity before async indexing, so this
+        // fresh-compute path is best-effort. ACL correctness does NOT depend on it:
+        // permission-relevant changes call OpenSearch.setPermissionsNeeded(true), and the
+        // background permissions pass (opensearchIndexPermissions) is the authoritative writer.
         // this gets set on specific single-encounter-only actions, when extra expense is okay
         // otherwise this will be computed by permissions backgrounding
         if (this.getOpensearchProcessPermissions()) {
@@ -4399,7 +4764,6 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeFieldName("viewUsers");
             jgen.writeStartArray();
             for (String id : this.userIdsWithViewAccess(myShepherd)) {
-                System.out.println("opensearch whhhh: " + id);
                 jgen.writeString(id);
             }
             jgen.writeEndArray();
@@ -4560,6 +4924,181 @@ public class Encounter extends Base implements java.io.Serializable {
         return map;
     }
 
+    // for encounters, we allow null user to see *some* things
+    public org.json.JSONObject jsonForApiGet(Shepherd myShepherd, User user)
+    throws IOException {
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        boolean isPublic = isPubliclyReadable();
+        // anon-user can only see public, so we 401 here
+        if ((user == null) && !isPublic) {
+            rtn.put("statusCode", 401);
+            rtn.put("success", false);
+            return rtn;
+        }
+        rtn = opensearchDocumentAsJSONObject(myShepherd);
+        rtn.put("success", true);
+        rtn.put("statusCode", 200);
+        rtn.put("access", "read");
+        rtn.put("isPublic", isPublic);
+
+        boolean hideUserEmail = true;
+        User submitter = getSubmitterUser(myShepherd);
+        if (submitter != null)
+            rtn.put("submitterInfo",
+                submitter.infoJSONObject(myShepherd, user != null, hideUserEmail));
+        // check to see if logged-in-user is outright blocked
+        if (user != null) {
+            boolean blocked = true;
+            if (canUserEdit(user, myShepherd)) {
+                rtn.put("access", "write");
+                blocked = false;
+                // we can allow email being shown when access=write
+                hideUserEmail = false;
+                if (submitter != null)
+                    rtn.put("submitterInfo",
+                        submitter.infoJSONObject(myShepherd, true, hideUserEmail));
+            } else if (canUserView(user, myShepherd)) {
+                blocked = false;
+            }
+            if (blocked) {
+                // we keep this very minimal
+                org.json.JSONObject blockedRtn = new org.json.JSONObject();
+                blockedRtn.put("success", true);
+                blockedRtn.put("statusCode", 200);
+                blockedRtn.put("access", "none");
+                blockedRtn.put("id", rtn.get("id"));
+                // need this to know who to collab with
+                Collaboration col = Collaboration.collaborationBetweenUsers(user, submitter,
+                    myShepherd.getContext());
+                if (col != null) {
+                    blockedRtn.put("collaborationState", col.getState());
+                    blockedRtn.put("collaborationCreated", col.getDateStringCreated());
+                }
+                blockedRtn.put("assignedUsername", rtn.optString("assignedUsername", null));
+                blockedRtn.put("submitterUserId", rtn.optString("submitterUserId", null));
+                blockedRtn.put("submitterInfo", rtn.optJSONObject("submitterInfo"));
+                return blockedRtn;
+            }
+        }
+        // additional fields we want
+        rtn.put("dateValues", getDateValuesJson());
+        rtn.put("researcherComments", getRComments());
+        rtn.put("groupRole", getGroupRole());
+        rtn.put("identificationRemarks", getIdentificationRemarks());
+        rtn.put("spotMapping", spotMappingJsonForApiGet());
+
+        // the user-listy things
+        rtn.put("submitters",
+            userListJSONArray(myShepherd, this.submitters, user != null, hideUserEmail));
+        rtn.put("photographers",
+            userListJSONArray(myShepherd, this.photographers, user != null, hideUserEmail));
+        rtn.put("informOthers",
+            userListJSONArray(myShepherd, this.informOthers, user != null, hideUserEmail));
+        // sanitize for non-logged-in users (hence, on public data)
+        if (user == null) {
+            rtn.put("access", "read");
+            String[] blocked = {
+                "importTaskSourceName", "locationId", "locationName", "country", "verbatimLocality",
+                    "microsatelliteMarkers", "locationGeoPoint", "occurrenceLocationGeoPoint",
+                    "mediaAssetKeywords", "mediaAssetLabeledKeywords", "biologicalMeasurements",
+                    "importTaskCreatorId", "annotationIAClasses", "annotationViewpoints",
+                    "researcherComments", "informOthers", "photographers", "submitters",
+                    "assignedUsername"
+            };
+            for (String field : blocked) {
+                rtn.remove(field);
+            }
+            // we redo mediaAssets, with no annots and mid size
+            org.json.JSONArray mas = new org.json.JSONArray();
+            for (MediaAsset ma : getMedia()) {
+                org.json.JSONObject maj = new org.json.JSONObject();
+                maj.put("uuid", ma.getUUID());
+                maj.put("mimeTypeMajor", ma.getMimeTypeMajor());
+                maj.put("mimeTypeMinor", ma.getMimeTypeMinor());
+                maj.put("rotationInfo", ma.getRotationInfo());
+                try {
+                    // historic data might throw IllegalArgumentException: Path not under given root
+                    java.net.URL url = ma.safeURL(myShepherd, null, "mid");
+                    if (url != null) maj.put("url", url.toString());
+                } catch (Exception ex) {}
+                mas.put(maj);
+            }
+            rtn.put("mediaAssets", mas);
+        } else {
+            // for real users we add some extras to assets and annotations
+            if (rtn.optJSONArray("mediaAssets") != null) {
+                for (int i = 0; i < rtn.getJSONArray("mediaAssets").length(); i++) {
+                    if (rtn.getJSONArray("mediaAssets").optJSONObject(i) != null) {
+                        MediaAsset ma = MediaAssetFactory.loadByUuid(rtn.getJSONArray(
+                            "mediaAssets").getJSONObject(i).optString("uuid"), myShepherd);
+                        if (ma != null) {
+                            rtn.getJSONArray("mediaAssets").getJSONObject(i).put("keywords",
+                                ma.getKeywordsJSONArray());
+                            rtn.getJSONArray("mediaAssets").getJSONObject(i).put("detectionStatus",
+                                ma.getDetectionStatus());
+                            rtn.getJSONArray("mediaAssets").getJSONObject(i).put("userFilename",
+                                ma.getUserFilename());
+                            rtn.getJSONArray("mediaAssets").getJSONObject(i).put("rotationInfo",
+                                ma.getRotationInfo());
+                        }
+                        // now we cram some stuff into each annotation as well
+                        if (rtn.getJSONArray("mediaAssets").getJSONObject(i).optJSONArray(
+                            "annotations") != null) {
+                            for (int j = 0;
+                                j <
+                                rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                "annotations").length();
+                                j++) {
+                                if (rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                    "annotations").optJSONObject(j) == null) continue;
+                                // this parsing of nested json really makes me miss perl
+                                Annotation ann = myShepherd.getAnnotation(rtn.getJSONArray(
+                                    "mediaAssets").getJSONObject(i).getJSONArray(
+                                    "annotations").getJSONObject(j).optString("id", null));
+                                if (ann == null) continue;
+                                rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                    "annotations").getJSONObject(j).put("identificationStatus",
+                                    ann.getIdentificationStatus());
+                                rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                    "annotations").getJSONObject(j).put("embeddingCounts",
+                                    new org.json.JSONObject(ann.getEmbeddingCounts()));
+                                // C15: shared selector picks the single task to
+                                // surface as Match Results, matching what the
+                                // bulk-import page shows. Was previously
+                                // ann.getRootIATasks().get(last), which on deep
+                                // v2 task hierarchies climbed past prospects-
+                                // bearing tasks into mid-chain WBIA orchestration
+                                // tasks (recursion-depth=3 on Task.parent caps
+                                // the in-memory ancestor walk).
+                                Task matchTask = ann.getPreferredMatchResultsTask(myShepherd);
+                                if (matchTask != null) {
+                                    rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                        "annotations").getJSONObject(j).put("iaTaskId",
+                                        matchTask.getId());
+                                    rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                        "annotations").getJSONObject(j).put("iaTaskParameters",
+                                        matchTask.getParameters());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return rtn;
+    }
+
+    // internal utility function
+    private org.json.JSONArray userListJSONArray(Shepherd myShepherd, List<User> users,
+        boolean includeSensitive, boolean hideEmail) {
+        org.json.JSONArray arr = new org.json.JSONArray();
+        if (Util.collectionIsEmptyOrNull(users)) return arr;
+        for (User user : users) {
+            arr.put(user.infoJSONObject(myShepherd, includeSensitive, hideEmail));
+        }
+        return arr;
+    }
+
     public static Base createFromApi(org.json.JSONObject payload, List<File> files,
         Shepherd myShepherd)
     throws ApiException {
@@ -4634,7 +5173,378 @@ public class Encounter extends Base implements java.io.Serializable {
                 enc.addInformOther(addlUser);
             }
         }
+        // this will get/make an Occurrence no matter what
+        Occurrence occ = myShepherd.getOrCreateOccurrence(payload.optString("occurrenceId", null));
+        occ.addEncounterAndUpdateIt(enc);
+        myShepherd.getPM().makePersistent(occ);
         return enc;
+    }
+
+    // user should already have been validated -- via obj.canUserEdit() -- in api/BaseObject, so this
+    // does not need to be tested here. however, more detailed checks may require user (e.g. can user
+    // also alter another object, such as Occurrence)
+    public org.json.JSONObject processPatch(org.json.JSONArray patchArr, User user,
+        Shepherd myShepherd)
+    throws ApiException {
+        if (patchArr == null)
+            throw new ApiException("null patch array", ApiException.ERROR_RETURN_CODE_REQUIRED);
+        this.setSkipAutoIndexing(true);
+        org.json.JSONArray resArr = new org.json.JSONArray();
+        Set<Occurrence> occNeedPruning = new HashSet<Occurrence>();
+        Set<MarkedIndividual> indivNeedPruning = new HashSet<MarkedIndividual>();
+        for (int i = 0; i < patchArr.length(); i++) {
+            System.out.println("applied patch at [i=" + i + "]: " + patchArr.optJSONObject(i));
+            org.json.JSONObject patchRes = EncounterPatchValidator.applyPatch(this,
+                patchArr.optJSONObject(i), user, myShepherd);
+            for (int j = 0; j < patchRes.getJSONArray("_mayNeedPruning").length(); j++) {
+                Object p = patchRes.getJSONArray("_mayNeedPruning").get(j);
+                if (p instanceof Occurrence) {
+                    occNeedPruning.add((Occurrence)p);
+                } else if (p instanceof MarkedIndividual) {
+                    indivNeedPruning.add((MarkedIndividual)p);
+                }
+            }
+            patchRes.remove("_mayNeedPruning");
+            System.out.println("patch returned at [i=" + i + "]: " + patchRes);
+            resArr.put(patchRes);
+        }
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        rtn.put("patchResults", resArr);
+        // after applying each patch, make sure nothing is wrong
+        EncounterPatchValidator.finalValidation(this, myShepherd);
+        // now we need to look at modified objects which may be empty (and thus need pruning)
+        for (Occurrence occ : occNeedPruning) {
+            if (!occ.pruneIfNeeded(myShepherd)) {
+                occ.setSkipAutoIndexing(false);
+            }
+        }
+        for (MarkedIndividual indiv : indivNeedPruning) {
+            if (!indiv.pruneIfNeeded(myShepherd)) {
+                indiv.setSkipAutoIndexing(false);
+            }
+        }
+        // no exceptions means success
+        rtn.put("success", true);
+        rtn.put("statusCode", 200);
+        this.setDWCDateLastModified();
+        this._log(resArr);
+        this.setSkipAutoIndexing(false);
+        return rtn;
+    }
+
+    // see note on painful redundancy with bulk import and createFromApi on
+    // Base.applyPatchOp()
+    public Object applyPatchOp(String fieldName, Object value, String op)
+    throws ApiException {
+        System.out.println("[DEBUG] applyPatchOp(): " + op + " " + fieldName + "=>" + value +
+            " on: " + this);
+        if (op == null)
+            throw new ApiException("op is required", ApiException.ERROR_RETURN_CODE_REQUIRED);
+        // TODO future enhancement: op=remove path=annotations/ANNOT_ID should perform
+        // functionality of servlet/EncounterRemoveAnnotation.java
+        User user = null; // needed for some options below
+        switch (fieldName) {
+        case "decimalLatitude":
+            setDecimalLatitude((Double)value);
+            break;
+        case "decimalLongitude":
+            setDecimalLongitude((Double)value);
+            break;
+        case "alternateId":
+            // note: is same as otherCatalogNumbers
+            setAlternateID((String)value);
+            break;
+        case "behavior":
+            setBehavior((String)value);
+            break;
+        case "country":
+            setCountry((String)value);
+            break;
+        case "dateInMilliseconds":
+            if (value != null) setDateInMilliseconds((Long)value);
+            break;
+        case "year":
+            if (value == null) {
+                setYear(0);
+            } else {
+                setYear((Integer)value);
+            }
+            break;
+        case "month":
+            if (value == null) {
+                setMonth(0);
+            } else {
+                setMonth((Integer)value);
+            }
+            break;
+        case "day":
+            if (value == null) {
+                setDay(0);
+            } else {
+                setDay((Integer)value);
+            }
+            break;
+        case "hour":
+            if (value == null) {
+                setHour(-1); // grr
+            } else {
+                setHour((Integer)value);
+            }
+            break;
+        case "minutes":
+            if (value == null) {
+                setMinutes(null);
+            } else {
+                setMinutes(value.toString());
+            }
+            break;
+        case "depth":
+            setDepth((Double)value);
+            break;
+        case "elevation":
+            setMaximumElevationInMeters((Double)value);
+            break;
+        case "genus":
+            setGenus((String)value);
+            break;
+        case "specificEpithet":
+            setSpecificEpithet((String)value);
+            break;
+        case "lifeStage":
+            setLifeStage((String)value);
+            break;
+        case "livingStatus":
+            setLivingStatus((String)value);
+            break;
+        case "locationId":
+            setLocationID((String)value);
+            break;
+        case "sex":
+            setSex((String)value);
+            break;
+        case "state":
+            setState((String)value);
+            break;
+        case "submitterID":
+            setSubmitterID((String)value);
+            break;
+        case "submitterName":
+            setSubmitterName((String)value);
+            break;
+        case "submitterOrganization":
+            setSubmitterOrganization((String)value);
+            break;
+        case "distinguishingScar":
+            setDistinguishingScar((String)value);
+            break;
+        case "groupRole":
+            setGroupRole((String)value);
+            break;
+        case "identificationRemarks":
+            setIdentificationRemarks((String)value);
+            break;
+        case "occurrenceRemarks":
+        case "sightingRemarks":
+            setOccurrenceRemarks((String)value);
+            break;
+        case "otherCatalogNumbers":
+            setOtherCatalogNumbers((String)value);
+            break;
+        case "patterningCode":
+            setPatterningCode((String)value);
+            break;
+        case "satelliteTag":
+            setSatelliteTag((SatelliteTag)value);
+            break;
+        case "acousticTag":
+            setAcousticTag((AcousticTag)value);
+            break;
+        case "metalTags":
+            // we only need location to remove
+            if ("remove".equals(op) && (value != null)) {
+                removeMetalTag(value.toString());
+            } else if (("add".equals(op) || "replace".equals(op)) &&
+                (value instanceof org.json.JSONObject)) {
+                // add or replace will update based on location if exists
+                org.json.JSONObject jval = (org.json.JSONObject)value;
+                addOrUpdateMetalTag(jval.optString("location", null),
+                    jval.optString("number", null));
+            }
+            break;
+        case "measurements":
+            if ("remove".equals(op) && (value != null)) {
+                removeMeasurementByType(value.toString());
+            } else if (value instanceof Measurement) {
+                // for op=add or op=replace, if it has the measurement (i.e. by type), it means
+                // it should be changed in place already so dont do anything
+                Measurement meas = (Measurement)value;
+                if (findMeasurementOfType(meas.getType()) == null) addMeasurement(meas);
+            }
+            break;
+        case "annotations":
+            // for now we can only patch op=remove on path=annotations
+            // adding annots is done through legacy servlet
+            if ("remove".equals(op) && (value instanceof Annotation)) {
+                // enc.removeAnnotation and deletePersistent (from db/shepherd) done in EncounterPatchValidator
+                // so we only need to clean up some loose ends here
+                Annotation goneAnnot = (Annotation)value;
+                goneAnnot.setSkipAutoIndexing(true);
+                goneAnnot.opensearchUnindexQuiet();
+            }
+            break;
+        // these we really only want to append to (i think??)
+        // so this should only happen when op=add/replace and
+        // value is non-null
+        case "researcherComments":
+            if (value != null) addComments((String)value);
+            break;
+        case "verbatimLocality":
+            setVerbatimLocality((String)value);
+            break;
+        case "verbatimEventDate":
+            setVerbatimEventDate((String)value);
+            break;
+        // we should get value as a MarkedIndividual here (or null)
+        case "individualId":
+            if ("remove".equals(op) || (value == null)) {
+                MarkedIndividual current = removeIndividual();
+                if (current != null) {
+                    System.out.println("enc.applyPatchOp() removed " + this + " from " + current);
+                }
+            } else {
+                // value should be an individual (new or existing)
+                MarkedIndividual indiv = (MarkedIndividual)value;
+                MarkedIndividual current = getIndividual();
+                if (indiv.equals(current)) {
+                    System.out.println(
+                        "enc.applyPatchOp() ignoring adding existing individual to " + this);
+                    break;
+                }
+                current = removeIndividual();
+                if (current != null) {
+                    current.setSkipAutoIndexing(false);
+                    setIndividual(null);
+                    System.out.println("enc.applyPatchOp() removed (prior to re-setting) " + this +
+                        " from " + current);
+                }
+                indiv.addEncounter(this);
+                setIndividual(indiv);
+                // this will only set indiv taxonomy if NOT set
+                // so for new indiv and existing with no taxonomy
+                if (indiv.getTaxonomyString() == null)
+                    indiv.setTaxonomyString(this.getTaxonomyString());
+                // indiv.version will be updated by above calls
+                System.out.println("enc.applyPatchOp() added " + this + " to " + indiv);
+            }
+            break;
+        // value should be an Occurrence here (already validated and permission-checked)
+        case "occurrenceId":
+            // if EncounterPatchValidator let thru null value, we do nothing
+            if (value == null) break;
+            Occurrence occ = (Occurrence)value;
+            if ("remove".equals(op)) {
+                // in remove case, we are given occ to remove from
+                occ.removeEncounter(this);
+                this.occurrenceID = null;
+            } else {
+                // otherwise it is occ we add to
+                occ.addEncounterAndUpdateIt(this);
+            }
+            break;
+        case "assets":
+            if ("add".equals(op) && (value != null)) {
+                MediaAsset ma = (MediaAsset)value;
+                ma.setDetectionStatus("_new");
+                addMediaAsset(ma);
+            }
+            break;
+        // value should be a user here
+        case "informOthers":
+            user = (User)value;
+            if (op.equals("remove")) {
+                removeInformOther(user);
+            } else {
+                addInformOther(user);
+            }
+            break;
+        case "submitters":
+            user = (User)value;
+            if (op.equals("remove")) {
+                removeSubmitter(user);
+            } else {
+                addSubmitter(user);
+            }
+            break;
+        case "photographers":
+            user = (User)value;
+            if (op.equals("remove")) {
+                removePhotographer(user);
+            } else {
+                addPhotographer(user);
+            }
+            break;
+        default:
+            throw new ApiException("unknown fieldName: " + fieldName,
+                    ApiException.ERROR_RETURN_CODE_INVALID);
+        }
+        return value;
+    }
+
+    public org.json.JSONObject afterPatch(Shepherd myShepherd) {
+        org.json.JSONObject res = new org.json.JSONObject();
+        List<Base> needsIndexing = new ArrayList<Base>();
+        org.json.JSONArray newAssetsArr = new org.json.JSONArray();
+        // we update children here (not backgrounded) since we need them available
+        // once the api returns the results
+        for (MediaAsset ma : this.getMedia()) {
+            if ("_new".equals(ma.getDetectionStatus())) {
+                // _post_new is meant to be temporary, as it
+                // will get overwritten once put into IA pipeline
+                ma.setDetectionStatus("_post_new");
+                ma.updateStandardChildren(myShepherd);
+                needsIndexing.add(ma);
+                org.json.JSONObject maj = new org.json.JSONObject();
+                maj.put("id", ma.getIdInt());
+                try {
+                    URL url = ma.safeURL(myShepherd, null, "master");
+                    if (url != null) maj.put("url", url.toString());
+                } catch (Exception ex) {}
+                newAssetsArr.put(maj);
+            }
+        }
+        if (newAssetsArr.length() > 0) res.put("newMediaAssets", newAssetsArr);
+        BulkImportUtil.bulkOpensearchIndex(needsIndexing);
+        return res;
+    }
+
+    // this is allowed to have its own new thread since encounter is persisted
+    public org.json.JSONObject afterPatchTransaction(String context) {
+        List<Integer> ids = new ArrayList<Integer>();
+
+        // we use _post_new state to determine what needs to go to IA
+        // see: afterPatch() above
+        for (MediaAsset ma : this.getMedia()) {
+            if ("_post_new".equals(ma.getDetectionStatus())) {
+                ids.add(ma.getIdInt());
+            }
+        }
+        if (ids.size() < 1) return null;
+        Task task = this.sendToIA(ids, context);
+        if (task == null) return null;
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        rtn.put("taskId", task.getId());
+        return rtn;
+    }
+
+    public MarkedIndividual removeIndividual() {
+        MarkedIndividual current = getIndividual();
+
+        if (current == null) return null;
+        // skip auto indexing cuz race conditions; must manually index later
+        current.setSkipAutoIndexing(true);
+        current.removeEncounter(this);
+        setIndividual(null);
+        return current;
     }
 
     public static Object validateFieldValue(String fieldName, org.json.JSONObject data)
@@ -4752,7 +5662,7 @@ public class Encounter extends Base implements java.io.Serializable {
                     tp.put("matchingSetFilter", mf);
                     parentTask.setParameters(tp);
                 }
-                task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, this.getMedia(), parentTask);
+                task = IA.intakeMediaAssets(myShepherd, this.getMedia(), parentTask);
                 myShepherd.storeNewTask(task);
                 System.out.println("sendToIA() success on " + this + " => " + task);
             } else {
@@ -4761,6 +5671,59 @@ public class Encounter extends Base implements java.io.Serializable {
         } catch (Exception ex) {
             System.out.println("sendToIA() failed on " + this + ": " + ex);
             ex.printStackTrace();
+        }
+        return task;
+    }
+
+    // this is based on servlet/MediaAssetCreate and differs only slightly from
+    // above - mainly in that it can handle multiple assets and creates own shepherd
+    // (note: all assets assumed to be using *this encounter*
+    public Task sendToIA(List<Integer> ids, String context) {
+        Task task = null;
+        Shepherd myShepherd = new Shepherd(context);
+
+        myShepherd.setAction("Encounter.sendToIA()");
+        myShepherd.beginDBTransaction();
+        try {
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            boolean hasConfig = iaConfig.hasIA(this, myShepherd);
+            List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
+            for (Integer id : ids) {
+                if (id < 0) continue;
+                MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                if (ma != null) {
+                    ma.setDetectionStatus(hasConfig ? IBEISIA.STATUS_INITIATED : IBEISIA.STATUS_COMPLETE);
+                    allMAs.add(ma);
+                }
+            }
+            if (!hasConfig) {
+                System.out.println("sendToIA() skipped; no config for " + this);
+            } else if (allMAs.size() > 0) {
+                Task parentTask = null; // not persisted
+                if (this.getLocationID() != null) {
+                    parentTask = new Task();
+                    org.json.JSONObject tp = new org.json.JSONObject();
+                    org.json.JSONObject mf = new org.json.JSONObject();
+                    mf.put("locationId", this.getLocationID());
+                    tp.put("matchingSetFilter", mf);
+                    parentTask.setParameters(tp);
+                }
+                Taxonomy taxy = this.getTaxonomy(myShepherd);
+                if (taxy != null) {
+                    task = IA.intakeMediaAssetsOneSpecies(myShepherd, allMAs, taxy, parentTask);
+                } else {
+                    task = IA.intakeMediaAssets(myShepherd, allMAs);
+                }
+                myShepherd.storeNewTask(task);
+                System.out.println("sendToIA() created " + task + " for " + this);
+            }
+            // persist will catch change on asset detectionStatus regardless
+            myShepherd.commitDBTransaction();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            myShepherd.rollbackDBTransaction();
+        } finally {
+            myShepherd.closeDBTransaction();
         }
         return task;
     }
@@ -4825,5 +5788,59 @@ public class Encounter extends Base implements java.io.Serializable {
         } finally {
             myShepherd.rollbackDBTransaction();
         }
+    }
+
+/*
+    in anticipation of 10.10.0, this is a sketchy of what logging might look like
+    for a change in an Encounter via PATCH.
+
+    FIXME this should be fully replaced (or wrapped around) the more basic log functionality
+    that is yet to be written. this can serve as an idea of some things which might be
+    desirable to support in general logging. take with a grain of salt.
+ */
+    public void _log(org.json.JSONArray arr) {
+        if ((arr == null) || (arr.length() == 0)) return;
+        String actionId = Util.generateUUID();
+        for (int i = 0; i < arr.length(); i++) {
+            if (arr.optJSONObject(i) == null) continue;
+            org.json.JSONObject p = arr.getJSONObject(i).optJSONObject("_patch");
+            if (p == null) continue;
+            String op = p.optString("op", "UNKNOWN_OP");
+            String path = p.optString("path", "UNKNOWN_PATH");
+            Object value = null;
+            if (p.has("value") && !p.isNull("value")) value = p.get("value");
+            String logMessage = "modified by PATCH op=" + op + ", path " + path + " with value: " +
+                ((value == null) ? "NULL" : value.toString());
+            _log2(null, null, null, "Encounter", this.getId(), actionId, logMessage);
+            // legacy "audit log" (aka some random comment)
+            // TODO really need to add the user/who part here
+            this.addComments("<p class=\"patch\" data-action-id=\"" + actionId + "\" data-op=\"" +
+                op + "\" data-path=\"" + path + "\"><i>" + Util.prettyTimeStamp() +
+                "</i> modified <b>" + path + "</b> with operation <b>" + op + "</b>" + ((value ==
+                null) ? "" : " and value <b>" + value.toString() + "</b>") + "</p>");
+        }
+    }
+
+    // one of many dilemmas: we need a request object to get user + ip address, but dont have
+    // it at this point. so we likely need to pass it all around somehow. maybe on a shepherd or
+    // some other more common object? FIXME TODO
+    public void _log2(
+    // "standard" levels (null should be some reasonable default???)
+    String logLevel,
+    // reference to who did it, could be multiple users etc. probably should be id _and_ username?
+    String user,
+    // pretty obvious?
+    String ip,
+    // class of object acted upon
+    String objectClass,
+    // primary key
+    String objectId,
+    // for groupin multiple logs into one "action" (e.g. a PATCH on object)
+    String actionId,
+    // message
+    String message) {
+        System.out.println(String.join("\t", "[TMPLOG]",
+            new Long(System.currentTimeMillis()).toString(), user, ip, objectClass, objectId,
+            actionId, message));
     }
 }

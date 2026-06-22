@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import java.util.ArrayList;
 
@@ -339,7 +338,7 @@ class MatchGraphCacheTest {
         // Run Groth against the matchGraph (same logic as GrothMatchServlet Phase 2)
         double epsilon = 0.008, R = 6.8, Sizelim = 0.671, maxRot = 22.5, C = 1.146;
         List<MatchObject> results = new java.util.ArrayList<>();
-        for (Map.Entry<String, EncounterLite> entry : GridManager.getMatchGraph().entrySet()) {
+        for (var entry : GridManager.getMatchGraph().entrySet()) {
             EncounterLite el = entry.getValue();
             MatchObject mo = el.getPointsForBestMatch(
                 querySpots, epsilon, R, Sizelim, maxRot, C, true, false);

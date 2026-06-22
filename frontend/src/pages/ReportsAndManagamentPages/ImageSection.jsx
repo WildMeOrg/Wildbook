@@ -10,10 +10,11 @@ import { FormattedMessage } from "react-intl";
 import ThemeContext from "../../ThemeColorProvider";
 import MainButton from "../../components/MainButton";
 import { v4 as uuidv4 } from "uuid";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import { observer } from "mobx-react-lite";
 import { Alert } from "react-bootstrap";
 import EXIF from "exif-js";
+import { defaultMaxMediaSize } from "../../constants/photoUpload.js";
 
 export const ImageSection = observer(({ store }) => {
   const [files, setFiles] = useState([]);
@@ -22,8 +23,8 @@ export const ImageSection = observer(({ store }) => {
   const [_uploading, setUploading] = useState(false);
   const [previewData, setPreviewData] = useState([]);
   const fileInputRef = useRef(null);
-  const { data } = useGetSiteSettings();
-  const maxSize = data?.maximumMediaSizeMegabytes || 40;
+  const { data } = useSiteSettings();
+  const maxSize = data?.maximumMediaSizeMegabytes || defaultMaxMediaSize;
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const updatedBorder = `2px dashed ${theme.primaryColors.primary500}`;

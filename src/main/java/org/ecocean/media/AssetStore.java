@@ -22,7 +22,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.awt.image.BufferedImage;
-import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -32,8 +31,8 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.jdo.*;
 
@@ -48,7 +47,7 @@ import org.ecocean.Util;
  * @see LocalAssetStore
  */
 public abstract class AssetStore implements java.io.Serializable {
-    private static Logger logger = LoggerFactory.getLogger(AssetStore.class);
+    private static final Logger log = LogManager.getLogger(AssetStore.class);
 
     private static Map<Integer, AssetStore> stores;
 
@@ -59,7 +58,6 @@ public abstract class AssetStore implements java.io.Serializable {
     protected boolean writable = true;
 
     // right now this is open for interpretation.  for starters, it can be "default" to designate default (duh) to use.
-    // probably also will be used to denote S3 temporary upload asset
     protected String usage;
 
     // Create a new AssetStore.
@@ -83,7 +81,7 @@ public abstract class AssetStore implements java.io.Serializable {
 
     private static Map<Integer, AssetStore> getMap() {
         if (stores == null) {
-            logger.warn("Asset Stores were not set up!");
+            log.warn("Asset Stores were not set up!");
             return Collections.emptyMap();
         }
         return stores;
@@ -132,6 +130,13 @@ public abstract class AssetStore implements java.io.Serializable {
     public abstract URL webURL(MediaAsset ma);
 
     public abstract String getFilename(MediaAsset ma); // this should be null if there is no such thing.  "filename" is subjective here (e.g. youtube id?)
+
+    public Path getBasePath() {
+        MediaAsset ma = new MediaAsset();
+        JSONObject params = new JSONObject("{\"path\": \"\"}");
+        ma.setParameters(params);
+        return localPath(ma);
+    }
 
     // human-facing, "user-chosen" filename that may include complex characters like utf8 etc
     // defaults to just using getFilename() above, but can and should be overridden if applicable
@@ -464,7 +469,7 @@ public abstract class AssetStore implements java.io.Serializable {
 
     /**
      *  should create the ("base") set of parameters for the specific store-type based on file.
-     *  note this can take into account store-specific config settings (like bucket for S3) (optional) "grouping" acts sort of like a common subdir to
+     *  note this can take into account store-specific config settings (optional) "grouping" acts sort of like a common subdir to
      * put it under (**if** available for that store!) can (should?) just return null for read-only stores?
      */
     public abstract JSONObject createParameters(final File file, final String grouping);
@@ -678,10 +683,16 @@ public abstract class AssetStore implements java.io.Serializable {
             System.out.println("WARNING: isValidImage(" + file + ") file not found");
             return false;
         } catch (final IIOException e) {
-            if (e.getCause() instanceof EOFException) {
-                System.out.println("WARNING: isValidImage(" + file + ") is truncated[3]");
-                return false;
-            }
+            // Any decode IIOException means the registered ImageReader cannot
+            // read this image (corrupt markers, bad scan data, or truncation).
+            // Such an image is not safe to send to the detection pipeline, where
+            // it can hang the decoder. Previously only EOFException-caused
+            // (truncation) returned false and every OTHER decode error fell
+            // through to `return true`, mis-classifying corrupt images such as
+            // "Unsupported marker type 0xNN" as valid.
+            System.out.println("WARNING: isValidImage(" + file + ") decode failed: "
+                + e.toString());
+            return false;
         } catch (final IOException e) {
             System.out.println("WARNING: isValidImage(" + file + ") threw " + e.toString());
             return false;
@@ -690,7 +701,5 @@ public abstract class AssetStore implements java.io.Serializable {
                 digestInputStream.close();
             } catch (Exception ex) {}
         }
-        System.out.println("INFO: isValidImage(" + file + ") fell thru[2] - success?");
-        return true;
     }
 }

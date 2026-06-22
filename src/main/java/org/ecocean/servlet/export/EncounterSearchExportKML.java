@@ -5,6 +5,8 @@ import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;
 
+import javax.jdo.Query;
+
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
 
@@ -65,12 +67,15 @@ public class EncounterSearchExportKML extends HttpServlet {
         myShepherd.setAction("EncounterSearchExportKML.class");
         myShepherd.beginDBTransaction();
 
+        Query encounterQuery = null;
         try {
             if (request.getParameter("encounterSearchUse") != null) {
-                Collection c = (Collection)myShepherd.getPM().newQuery(
-                    "SELECT FROM org.ecocean.Encounter WHERE decimalLatitude != null && decimalLongitude != null")
-                        .execute();
+                encounterQuery = myShepherd.getPM().newQuery(
+                    "SELECT FROM org.ecocean.Encounter WHERE decimalLatitude != null && decimalLongitude != null");
+                Collection c = (Collection)encounterQuery.execute();
                 rEncounters = new Vector(c);
+                encounterQuery.closeAll();
+                encounterQuery = null;  // Mark as closed
             } else {
                 EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd,
                     request, "year descending, month descending, day descending");
@@ -231,8 +236,10 @@ public class EncounterSearchExportKML extends HttpServlet {
             out.println(
                 "<p>Please let the webmaster know you encountered an error at: EncounterSearchExportKML servlet</p></body></html>");
             out.println(ServletUtilities.getFooter(context));
+        } finally {
+            if (encounterQuery != null) encounterQuery.closeAll();
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
         }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
     }
 }

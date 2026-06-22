@@ -61,9 +61,10 @@ public class IndividualSearchExportCapture extends HttpServlet {
                 DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
                 DateTime date2 = parser.parseDateTime(request.getParameter("datepicker2"));
                 int startYear = date1.getYear();
-                int startMonth = date1.getMonthOfYear();
-                int endMonth = date2.getYear();
-                int endYear = date2.getMonthOfYear();
+                // getMonthOfYear() is 1-based but GregorianCalendar expects 0-based months
+                int startMonth = date1.getMonthOfYear() - 1;
+                int endYear = date2.getYear();
+                int endMonth = date2.getMonthOfYear() - 1;
 
                 // check for seasons wrapping over years
                 int wrapsYear = 0;

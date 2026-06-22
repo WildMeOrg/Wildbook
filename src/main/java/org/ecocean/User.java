@@ -127,17 +127,19 @@ public class User implements Serializable {
     }
 
     public org.json.JSONObject infoJSONObject(Shepherd myShepherd) {
-        return this.infoJSONObject(myShepherd, false);
+        return this.infoJSONObject(myShepherd, false, true);
     }
 
-    // only admin and user-themself should have includeSensitive=true
-    public org.json.JSONObject infoJSONObject(Shepherd myShepherd, boolean includeSensitive) {
+    // includeSensitive=false means the safest level (anon users) - and basically implies hideEmail=true
+    // includeSensitive=true adds more, but email can be specifically blocked with hideEmail=true
+    public org.json.JSONObject infoJSONObject(Shepherd myShepherd, boolean includeSensitive,
+        boolean hideEmail) {
         org.json.JSONObject info = new org.json.JSONObject();
         info.put("id", this.uuid);
         info.put("displayName", this.getDisplayName());
         info.put("imageURL", Util.jsonNull(this.getUserImageURL(myShepherd.getContext())));
         if (includeSensitive) {
-            info.put("email", this.getEmailAddress());
+            if (!hideEmail) info.put("email", this.getEmailAddress());
             info.put("username", this.getUsername());
             JSONArray roleArr = new JSONArray();
             for (Role role : myShepherd.getAllRolesForUser(this.getUsername())) {
@@ -314,6 +316,23 @@ public class User implements Serializable {
 
     public void setSalt(String salt) { this.salt = salt; }
     public String getSalt() { return salt; }
+
+    /**
+     * Verify a clear-text password against this user's stored salted hash, using the same hashing
+     * as login (ServletUtilities.hashAndSaltPassword). Constant-time comparison. Returns false if
+     * this user has no stored password or the candidate is blank.
+     */
+    public boolean checkPassword(String clearText) {
+        if ((clearText == null) || clearText.isEmpty()) return false;
+        String stored = this.getPassword();
+        String salt = this.getSalt();
+        if ((stored == null) || stored.isEmpty() || (salt == null)) return false;
+        String hashed = org.ecocean.servlet.ServletUtilities.hashAndSaltPassword(clearText, salt);
+        if (hashed == null) return false;
+        return java.security.MessageDigest.isEqual(
+            hashed.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+            stored.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
 
     public void setUserProject(String newProj) {
         if (newProj != null) { userProject = newProj; } else { userProject = null; }

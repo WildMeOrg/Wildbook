@@ -81,6 +81,20 @@ public class ProjectUpdate extends HttpServlet {
                                 addOrRemoveEncountersFromProject(project, myShepherd,
                                     encountersToAddJSONArr, "add", res, request);
                             }
+                            // Encounter removal uses same authorization as adding (project users can remove)
+                            if (canAddEncounters) {
+                                JSONArray encountersToRemoveJSONArr = projectJSON.optJSONArray(
+                                    "encountersToRemove");
+                                encountersToRemoveJSONArr = removeUnauthorizedEncounters(
+                                    encountersToRemoveJSONArr, myShepherd, request);
+                                if (encountersToRemoveJSONArr != null &&
+                                    encountersToRemoveJSONArr.length() > 0) {
+                                    System.out.println(
+                                        "Removing encounters from project...");
+                                    addOrRemoveEncountersFromProject(project, myShepherd,
+                                        encountersToRemoveJSONArr, "remove", res, request);
+                                }
+                            }
                             boolean canUpdate = isUserAuthorizedToUpdateProject(project, myShepherd,
                                 request);
                             System.out.println("is authorized to update project is " + canUpdate);
@@ -120,17 +134,6 @@ public class ProjectUpdate extends HttpServlet {
                                     myShepherd.updateDBTransaction();
                                     res.put("modified", true);
                                     res.put("success", true);
-                                }
-                                JSONArray encountersToRemoveJSONArr = projectJSON.optJSONArray(
-                                    "encountersToRemove");
-                                encountersToRemoveJSONArr = removeUnauthorizedEncounters(
-                                    encountersToRemoveJSONArr, myShepherd, request);
-                                if (encountersToRemoveJSONArr != null &&
-                                    encountersToRemoveJSONArr.length() > 0) {
-                                    System.out.println(
-                                        "this should not happen for mark encountersToRemoveJSONArr");
-                                    addOrRemoveEncountersFromProject(project, myShepherd,
-                                        encountersToRemoveJSONArr, "remove", res, request);
                                 }
                                 JSONArray usersToAddJSONArr = projectJSON.optJSONArray(
                                     "usersToAdd");

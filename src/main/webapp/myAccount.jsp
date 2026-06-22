@@ -10,54 +10,54 @@ java.io.*" %>
 <%
 
 
-String context="context0";
+	String context="context0";
 
 //get language
-String langCode = ServletUtilities.getLanguageCode(request);
+	String langCode = ServletUtilities.getLanguageCode(request);
 
 //load user props
-Properties props= ShepherdProperties.getProperties("users.properties", langCode,context);
+	Properties props= ShepherdProperties.getProperties("users.properties", langCode,context);
 
-if (session.getAttribute("error") != null) {
-	%><script>var errorMessage = '<%=session.getAttribute("error").toString().replaceAll("'", "\\'")%>';</script><%
+	if (session.getAttribute("error") != null) {
+%><script>var errorMessage = '<%=session.getAttribute("error").toString().replaceAll("'", "\\'")%>';</script><%
 	session.removeAttribute("error");
 } else {
-	%><script>var errorMessage = false;</script><%
-}
+%><script>var errorMessage = false;</script><%
+	}
 
-if (session.getAttribute("message") != null) {
-	%><script>var message = '<%=session.getAttribute("message").toString().replaceAll("'", "\\'")%>';</script><%
+	if (session.getAttribute("message") != null) {
+%><script>var message = '<%=session.getAttribute("message").toString().replaceAll("'", "\\'")%>';</script><%
 	session.removeAttribute("message");
 } else {
-	%><script>var message = false;</script><%
-}
+%><script>var message = false;</script><%
+	}
 
 
-Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("myAccount.jsp");
+	Shepherd myShepherd = new Shepherd(context);
+	myShepherd.setAction("myAccount.jsp");
 //get the available user roles
-List<String> roles=CommonConfiguration.getIndexedPropertyValues("role",context);
-List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);
-int numRoles=roles.size();
-int numRoleDefinitions=roleDefinitions.size();
+	List<String> roles=CommonConfiguration.getIndexedPropertyValues("role",context);
+	List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);
+	int numRoles=roles.size();
+	int numRoleDefinitions=roleDefinitions.size();
 
-String localUsername="";
-String localEmail="";
-User localUser = null;
-localUser = myShepherd.getUser(request);
-if(localUser != null){
+	String localUsername="";
+	String localEmail="";
+	User localUser = null;
+	localUser = myShepherd.getUser(request);
+	if(localUser != null){
 		localUsername = localUser.getUsername();
 		localEmail = localUser.getEmailAddress();
-}
+	}
 
 
 //handle some cache-related security
-response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
-response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
-response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
-response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
-String dispUsername = request.getUserPrincipal().toString();
-if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
+	response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
+	response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
+	response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
+	response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+	String dispUsername = request.getUserPrincipal().toString();
+	if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 %>
 
 <jsp:include page="header.jsp" flush="true"/>
@@ -69,46 +69,46 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 	<p>
 
 
-   		<table width="100%" class="tissueSample">
+	<table width="100%" class="tissueSample">
 
 
 
-	    <%
-	    //let's set up any pre-defined values if appropriate
-	    String localAffiliation="";
-	    String localFullName="";
-	    String profilePhotoURL="images/user-profile-grey-grey.png";
-	    String userProject="";
-	    String userStatement="";
-	    String userURL="";
-		String receiveEmails="checked=\"checked\"";
-		String defaultProjectId = "";
-	    boolean hasProfilePhoto=false;
+		<%
+			//let's set up any pre-defined values if appropriate
+			String localAffiliation="";
+			String localFullName="";
+			String profilePhotoURL="images/user-profile-grey-grey.png";
+			String userProject="";
+			String userStatement="";
+			String userURL="";
+			String receiveEmails="checked=\"checked\"";
+			String defaultProjectId = "";
+			boolean hasProfilePhoto=false;
 
-	    User thisUser=myShepherd.getUser(request.getUserPrincipal().getName());
-	    	localUsername=thisUser.getUsername();
-	    	if(thisUser.getAffiliation()!=null){
-	    		localAffiliation=thisUser.getAffiliation();
-	    	}
-	    	if(thisUser.getEmailAddress()!=null){
-	    		localEmail=thisUser.getEmailAddress();
-	    	}
-	    	if(!thisUser.getReceiveEmails()){receiveEmails="";}
-	    	if(thisUser.getFullName()!=null){
-	    		localFullName=thisUser.getFullName();
-	    	}
-	    	if(thisUser.getUserProject()!=null){
-	    		userProject=thisUser.getUserProject();
-	    	}
-	    	if(thisUser.getUserStatement()!=null){
+			User thisUser=myShepherd.getUser(request.getUserPrincipal().getName());
+			localUsername=thisUser.getUsername();
+			if(thisUser.getAffiliation()!=null){
+				localAffiliation=thisUser.getAffiliation();
+			}
+			if(thisUser.getEmailAddress()!=null){
+				localEmail=thisUser.getEmailAddress();
+			}
+			if(!thisUser.getReceiveEmails()){receiveEmails="";}
+			if(thisUser.getFullName()!=null){
+				localFullName=thisUser.getFullName();
+			}
+			if(thisUser.getUserProject()!=null){
+				userProject=thisUser.getUserProject();
+			}
+			if(thisUser.getUserStatement()!=null){
 				userStatement=thisUser.getUserStatement();
-	    	}
-	    	if(thisUser.getUserURL()!=null){
+			}
+			if(thisUser.getUserURL()!=null){
 				userURL=thisUser.getUserURL();
-	    	}
-	    	if(thisUser.getUserImage()!=null){
-	    		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-	    	}
+			}
+			if(thisUser.getUserImage()!=null){
+				profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+			}
 			if(thisUser.getUserImage()!=null){hasProfilePhoto=true;}
 
 			try {
@@ -142,214 +142,236 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 				userProjects = allProjects;
 			}
 
-	    %>
-    	<script>
-    		function clickEditPermissions(ev) {
-					var which = ev.target.getAttribute('class'); //
-					var jel = $(ev.target);
-					var p = jel.parent();
-					var uname = p.data('username');
-					p.html('&nbsp;').addClass('throbbing');
-					$.ajax({
-						url: wildbookGlobals.baseUrl + '/Collaborate?json=1&actionForExisting=invite_edit&username=' + uname + '&approve=' + which+'&collabId='+ev.target.getAttribute('id').replace("edit-",""),
-						dataType: 'json',
-						success: function(d) {
-							if (d.success) {
-								p.remove();
-								updateNotificationsWidget();
-								refreshCollaborations();
-							}
-							else {
-								p.removeClass('throbbing').html(d.message);
-							}
-						},
-						error: function(a,x,b) {
-							p.removeClass('throbbing').html('error');
-						},
-						type: 'GET'
-					});
-				}
+		%>
+		<script>
+			function clickEditPermissions(ev) {
+				var which = ev.target.getAttribute('class'); //
+				var jel = $(ev.target);
+				var p = jel.parent();
+				var uname = p.data('username');
+				p.html('&nbsp;').addClass('throbbing');
+				$.ajax({
+					url: wildbookGlobals.baseUrl + '/Collaborate?json=1&actionForExisting=invite_edit&username=' + uname + '&approve=' + which+'&collabId='+ev.target.getAttribute('id').replace("edit-",""),
+					dataType: 'json',
+					success: function(d) {
+						if (d.success) {
+							p.remove();
+							updateNotificationsWidget();
+							refreshCollaborations();
+						}
+						else {
+							p.removeClass('throbbing').html(d.message);
+						}
+					},
+					error: function(a,x,b) {
+						p.removeClass('throbbing').html('error');
+					},
+					type: 'GET'
+				});
+			}
 
-    		    </script>
-		    <tr>
-		    	<td>
-		    		<table border="0">
-		    			<tr>
-		    				<td style="border: solid 0">
-		    					<img src="<%=profilePhotoURL%>" width="200px" height="*" />
-		    				</td>
-		    			</tr>
-
-		    			<tr>
-	    					<td style="border: solid 0">
-	    						<form action="MyAccountAddProfileImage?context=context0" method="post" enctype="multipart/form-data" name="UserAddProfileImage">
-									<img src="images/upload_small.gif" align="absmiddle" />&nbsp;<%=props.getProperty("uploadPhoto") %><br />
-	    						 	<input name="username" type="hidden" value="<%=localUsername%>" id="profileUploadUsernameField" />
-									<input name="file2add" type="file" size="20" />
-									<input name="addtlFile" type="submit" id="addtlFile" value="<%=props.getProperty("upload") %>" />
-								</form>
-	    					</td>
-	    				</tr>
-		    				<%
-		    				if(hasProfilePhoto){
-		    				%>
-		    					<tr><td style="border: solid 0"><%=props.getProperty("deleteProfile") %>&nbsp;<a href="MyAccountRemoveProfileImage"><img src="images/cancel.gif" width="16px" height="16px" align="absmiddle" /></a></td></tr>
-
-		    				<%
-		    				}
-		    			%>
-		    		</table>
-
-	    		</td>
-	        	<form action="UserSelfUpdate?context=context0" method="post" id="editUser">
-			    	<td><table width="100%" class="tissueSample">
-	  					<tr>
-	                        <td style="border-bottom: 0px white;"><%=props.getProperty("newPassword") %> <input name="password" type="password" size="15" maxlength="90" ></input></td>
-	                        <td style="border-bottom: 0px white;" colspan="2"><%=props.getProperty("confirm") %> <%=props.getProperty("newPassword") %> <input name="password2" type="password" size="15" maxlength="90" ></input></td>
-	            		</tr>
-	            		<tr><td colspan="3" style="border-top: 0px white;font-style:italic;"><%=props.getProperty("leaveBlankNoChangePassword") %></td></tr>
-	                    <tr><td colspan="3"><%=props.getProperty("fullname") %> <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
-	                    <tr><td colspan="2"><%=props.getProperty("emailAddress") %> <input id="emailAddress_input" name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1"><%=props.getProperty("receiveEmails") %> <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
-	                    <tr><td colspan="3"><%=props.getProperty("affiliation") %> <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
-	                    <tr><td colspan="3"><%=props.getProperty("projectURL") %> <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
-
-			     		<tr><td colspan="3" valign="top"><%=props.getProperty("researchStatement") %> <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>
-
-	                    <tr><td colspan="3"><input name="Create" type="button" id="Create" value="<%=props.getProperty("update") %>" onclick="sendButtonClicked();" /></td></tr>
-	            	</table></td>
-
-	            	<td><table>
-	            		<%
-			            List<String> contexts=ContextConfiguration.getContextNames();
-			            int numContexts=contexts.size();
-			            for(int d=0;d<numContexts;d++){
-			            	if(myShepherd.doesUserHaveAnyRoleInContext(localUsername, context)){
-			            	%>
-			            	   <tr>
-    								<td style="border-style: none;">
-    									Roles for <%=ContextConfiguration.getNameForContext(("context"+d)) %> (multi-select)
-    								</td>
-    							</tr>
-			            	<tr><td>
-
-					        	<select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5" disabled="disabled">
-					        		<%
-									for(int q=0;q<numRoles;q++){
-										//String selected="";
-										if(myShepherd.getUser(request.getUserPrincipal().getName())!=null &&
-										   myShepherd.doesUserHaveRole(request.getUserPrincipal().getName(),roles.get(q),("context"+d))
-										){
-											%><option value="<%=roles.get(q)%>"><%=roles.get(q)%></option><%
-										}
-									}
-									%>
-								</select>
-
-			            	</td></tr>
-				            <%
-				            }
-			            } // end for loop over contexts
-			            %>
-			            <tr><td style="border-style: none;"><%=props.getProperty("OrgMembership") %> </td></tr>
-
-			            <tr>
-						  <td style="border-style: none;">
-
-			    			<select multiple="multiple" name="organization" id="organization" size="5" disabled="disabled">
-					            <option value=""></option>
-				    	    	<%
-
-					    		List<Organization> orgs=myShepherd.getAllOrganizationsForUser(thisUser);
-								if(orgs!=null){
-						    		int numOrgs=orgs.size();
-									for(Organization org:orgs){
-										String selected="";
-
-										%>
-										<option value="<%=org.getId() %>" <%=selected%>><%=org.getName()%></option>
-										<%
-									}
-								}
-								%>
-				    		</select>
-			    		</td>
+		</script>
+		<tr>
+			<td>
+				<table border="0">
+					<tr>
+						<td style="border: solid 0">
+							<img src="<%=profilePhotoURL%>" width="200px" height="*" />
+						</td>
 					</tr>
 
-												<tr>
-													<td style="border-style: none;"><%=props.getProperty("Projects") %>
-													</td>
-												</tr>
-													<%
-													if(userProjects!=null && userProjects.size()>0){
-														for(int j=0; j<userProjects.size(); j++){
-													%>
-													<tr>
-														<td class="clickable-row"><a target="_new" href="./projects/project.jsp?id=<%=userProjects.get(j).getId()%>"><%=userProjects.get(j).getResearchProjectName()%></a></td>
-													</tr>
-													<%
-														} //end userProjects for loop
-													}  //endif userProjects.size()>0
-														else{
-															%>
-															<tr>
-																<td class="clickable-row"><%=props.getProperty("NoProjects") %></td>
-															</tr>
-															<%
-														}
+					<tr>
+						<td style="border: solid 0">
+							<form action="MyAccountAddProfileImage?context=context0" method="post" enctype="multipart/form-data" name="UserAddProfileImage">
+								<img src="images/upload_small.gif" align="absmiddle" />&nbsp;<%=props.getProperty("uploadPhoto") %><br />
+								<input name="username" type="hidden" value="<%=localUsername%>" id="profileUploadUsernameField" />
+								<input name="file2add" type="file" size="20" />
+								<input name="addtlFile" type="submit" id="addtlFile" value="<%=props.getProperty("upload") %>" />
+							</form>
+						</td>
+					</tr>
+					<%
+						if(hasProfilePhoto){
+					%>
+					<tr><td style="border: solid 0"><%=props.getProperty("deleteProfile") %>&nbsp;<a href="MyAccountRemoveProfileImage"><img src="images/cancel.gif" width="16px" height="16px" align="absmiddle" /></a></td></tr>
 
-													%>
+					<%
+						}
+					%>
+				</table>
 
-													<!--begin default project context selection-->
-													<tr>
-														<td style="border-style: none;"><%=props.getProperty("defaultProject") %></td>
-													</tr>
-													<tr>
-														<td>
-															<select name="defaultProject" id="defaultProjectDropdown">
-																<option value=""><%=props.getProperty("noneSelected")%></option>
-																<%
-																for (Project projForDefaultSelect : userProjects) {
-																	String projNameForDefaultSelect = projForDefaultSelect.getResearchProjectName();
+			</td>
+			<form action="UserSelfUpdate?context=context0" method="post" id="editUser">
+				<td><table width="100%" class="tissueSample">
+					<tr>
+						<td style="border-bottom: 0px white;"><%=props.getProperty("newPassword") %> <input name="password" type="password" size="15" maxlength="90" ></input></td>
+						<td style="border-bottom: 0px white;" colspan="2"><%=props.getProperty("confirm") %> <%=props.getProperty("newPassword") %> <input name="password2" type="password" size="15" maxlength="90" ></input></td>
+					</tr>
+					<tr><td colspan="3" style="border-top: 0px white;font-style:italic;"><%=props.getProperty("leaveBlankNoChangePassword") %></td></tr>
+					<tr><td colspan="3"><%=props.getProperty("fullname") %> <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
+					<tr><td colspan="2"><%=props.getProperty("emailAddress") %> <input id="emailAddress_input" name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1"><%=props.getProperty("receiveEmails") %> <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
+					<tr><td colspan="3"><%=props.getProperty("affiliation") %> <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
+					<tr><td colspan="3"><%=props.getProperty("projectURL") %> <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
 
-																	if (defaultProjectId!=null&&defaultProjectId.equals(projForDefaultSelect.getId())) {
-																	%>
-																		<option value="<%=projForDefaultSelect.getId()%>" selected><%=projNameForDefaultSelect%></option>
-																	<%
-																	} else {
-																		%>
-																			<option value="<%=projForDefaultSelect.getId()%>"><%=projNameForDefaultSelect%></option>
-																		<%
-																	}
-																}
-																%>
-															</select>
-														</td>
-													</tr>
-													<tr>
-														<td><button type="button" id="setDefaultProjBtn" class="setDefaultProjBtn" onclick="setDefaultProject()"><%=props.getProperty("update")%></button></td>
-													</tr>
-													<!--end default project context selection-->
-		            </table></td>
-	            </form>
-            </tr>
-        </table>
+					<tr><td colspan="3" valign="top"><%=props.getProperty("researchStatement") %> <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>
+
+					<tr><td colspan="3"><input name="Create" type="button" id="Create" value="<%=props.getProperty("update") %>" onclick="sendButtonClicked();" /></td></tr>
+				</table></td>
+
+				<td><table>
+					<%
+						List<String> contexts=ContextConfiguration.getContextNames();
+						int numContexts=contexts.size();
+						for(int d=0;d<numContexts;d++){
+							if(myShepherd.doesUserHaveAnyRoleInContext(localUsername, context)){
+					%>
+					<tr>
+						<td style="border-style: none;">
+							Roles for <%=ContextConfiguration.getNameForContext(("context"+d)) %> (multi-select)
+						</td>
+					</tr>
+					<tr><td>
+
+						<select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5" disabled="disabled">
+							<%
+								for(int q=0;q<numRoles;q++){
+									//String selected="";
+									if(myShepherd.getUser(request.getUserPrincipal().getName())!=null &&
+											myShepherd.doesUserHaveRole(request.getUserPrincipal().getName(),roles.get(q),("context"+d))
+									){
+							%><option value="<%=roles.get(q)%>"><%=roles.get(q)%></option><%
+								}
+							}
+						%>
+						</select>
+
+					</td></tr>
+					<%
+							}
+						} // end for loop over contexts
+					%>
+					<tr><td style="border-style: none;"><%=props.getProperty("OrgMembership") %> </td></tr>
+
+					<tr>
+						<td style="border-style: none;">
+
+							<select multiple="multiple" name="organization" id="organization" size="5" disabled="disabled">
+								<option value=""></option>
+								<%
+
+									List<Organization> orgs=myShepherd.getAllOrganizationsForUser(thisUser);
+									if(orgs!=null){
+										int numOrgs=orgs.size();
+										for(Organization org:orgs){
+											String selected="";
+
+								%>
+								<option value="<%=org.getId() %>" <%=selected%>><%=org.getName()%></option>
+								<%
+										}
+									}
+								%>
+							</select>
+						</td>
+					</tr>
+
+					<tr>
+						<td style="border-style: none;"><%=props.getProperty("Projects") %>
+						</td>
+					</tr>
+					<%
+						if(userProjects!=null && userProjects.size()>0){
+							for(int j=0; j<userProjects.size(); j++){
+					%>
+					<tr>
+						<td class="clickable-row"><a target="_new" href="./projects/project.jsp?id=<%=userProjects.get(j).getId()%>"><%=userProjects.get(j).getResearchProjectName()%></a></td>
+					</tr>
+					<%
+						} //end userProjects for loop
+					}  //endif userProjects.size()>0
+					else{
+					%>
+					<tr>
+						<td class="clickable-row"><%=props.getProperty("NoProjects") %></td>
+					</tr>
+					<%
+						}
+
+					%>
+
+					<!--begin default project context selection-->
+					<tr>
+						<td style="border-style: none;"><%=props.getProperty("defaultProject") %></td>
+					</tr>
+					<tr>
+						<td>
+							<select name="defaultProject" id="defaultProjectDropdown">
+								<option value=""><%=props.getProperty("noneSelected")%></option>
+								<%
+									for (Project projForDefaultSelect : userProjects) {
+										String projNameForDefaultSelect = projForDefaultSelect.getResearchProjectName();
+
+										if (defaultProjectId!=null&&defaultProjectId.equals(projForDefaultSelect.getId())) {
+								%>
+								<option value="<%=projForDefaultSelect.getId()%>" selected><%=projNameForDefaultSelect%></option>
+								<%
+								} else {
+								%>
+								<option value="<%=projForDefaultSelect.getId()%>"><%=projNameForDefaultSelect%></option>
+								<%
+										}
+									}
+								%>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td><button type="button" id="setDefaultProjBtn" class="setDefaultProjBtn" onclick="setDefaultProject()"><%=props.getProperty("update")%></button></td>
+					</tr>
+					<!--end default project context selection-->
+				</table></td>
+			</form>
+		</tr>
+	</table>
 	<br></br>
 
 	<script>
-	function sendButtonClicked() {
-		//check for existing email address
-		const localUsername = '<%=localUsername%>';
-		const localEmail = '<%=localEmail%>';
-		const emailVal = $('#emailAddress_input').val();
-		if (emailVal != localEmail) {
-			doAjaxForExistingEmailAddress(emailVal);
+		function containsEmoji(text) {
+			try {
+				var emojiRegex = /\p{Emoji}/gu;
+				return emojiRegex.test(text);
+			} catch (e) {
+				// for older browsers that don't support \p{Emoji}
+				var fallbackRegex = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA70}-\u{1FAFF}]|[\u{FE00}-\u{FE0F}]|[\u{1F018}-\u{1F270}]|[\u{238C}-\u{2454}]|[\u{20D0}-\u{20FF}]/gu;
+				return fallbackRegex.test(text);
+			}
 		}
-		if(emailVal == localEmail){ //handle case where the user edits other things besides	 email
-			submitForm();
-		}
-	}
 
-	function doAjaxForExistingEmailAddress(emailAddress) {
+		function sendButtonClicked() {
+			var fullNameField = $('input[name="fullName"]');
+			var fullNameText = fullNameField.val();
+
+			if (containsEmoji(fullNameText)) {
+				window.setTimeout(function () {
+					alert('Emojis are not allowed in the Full Name field. Please remove any emojis and try again.');
+				}, 100);
+				fullNameField.focus();
+				return;
+			}
+
+			var jsLocalUsername = '<%=localUsername%>';
+			var jsLocalEmail = '<%=localEmail%>';
+			var jsEmailVal = $('#emailAddress_input').val();
+
+			if (jsEmailVal != jsLocalEmail) {
+				doAjaxForExistingEmailAddress(jsEmailVal);
+			}
+			if (jsEmailVal == jsLocalEmail) {
+				submitForm();
+			}
+		}
+
+		function doAjaxForExistingEmailAddress(emailAddress) {
 			let jsonRequest = {};
 			jsonRequest['checkForExistingEmailDesired'] = true;
 			jsonRequest['emailAddress'] = emailAddress;
@@ -406,10 +428,10 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 		}
 	</script>
 
-<%
+	<%
 
-	Properties collabProps = new Properties();
- 		collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+		Properties collabProps = new Properties();
+		collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		String me = request.getUserPrincipal().getName();
 		System.out.println("ME: "+me);
@@ -491,10 +513,10 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 
 		}
 		if (h.equals("")) h = "<p id=\"none-line\">none</p>";
-		%>
-		<a name="collaborations" id="collaborations" style="padding-top: 200px;"></a>
-		<h2><%=collabProps.getProperty("collaborationTitle") %></h2>
-		<%
+	%>
+	<a name="collaborations" id="collaborations" style="padding-top: 200px;"></a>
+	<h2><%=collabProps.getProperty("collaborationTitle") %></h2>
+	<%
 
 		out.println("<div class=\"collab-list\">" + h + "</div>");
 
@@ -568,209 +590,209 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 
 	</div>
 
-    </p> <!-- end content p -->
+	</p> <!-- end content p -->
 
 	<a name="mydata" id="mydata">
-    <h2><%=props.getProperty("myData") %></h2>
+		<h2><%=props.getProperty("myData") %></h2>
 
 
-    <p><strong><%=props.getProperty("links2mydata") %></strong></p>
-        <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
+		<p><strong><%=props.getProperty("links2mydata") %></strong></p>
+		<p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
 
-    <p class="caption"><a href="/react/encounter-search?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>
+		<p class="caption"><a href="/react/encounter-search?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>
 
 
-<%
+			<%
 
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 String alreadySent = props.getProperty("alreadySent");
 %>
-<script>
-if (errorMessage) wildbook.showAlert(errorMessage, '', 'Error');
-if (message) wildbook.showAlert(message);
+		<script>
+			if (errorMessage) wildbook.showAlert(errorMessage, '', 'Error');
+			if (message) wildbook.showAlert(message);
 
-function socialDisconnect(svc) {
+			function socialDisconnect(svc) {
 //console.info('disconnect %s', svc);
-	window.location.href = 'SocialConnect?disconnect=1&type=' + svc;
-}
-
-function socialConnect(svc) {
-//console.info('connect %s', svc);
-	window.location.href = 'SocialConnect?type=' + svc;
-}
-
-let myName = '<%=request.getUserPrincipal().getName()%>';
-
-$('#collabTarget').autocomplete({
-	source: function( request, response ) {
-		$.ajax({
-			url: wildbookGlobals.baseUrl + '/UserGetSimpleJSON?searchUser=' + request.term,
-			type: 'GET',
-			dataType: "json",
-			success: function( data ) {
-				console.log("trying autocomplete...");
-
-				let alreadyCollab = [];
-				$(".collab-name").each(function() {
-					alreadyCollab.push($(this).text());
-				});
-
-				var res = $.map(data, function(item) {
-					if (item.username==myName||typeof item.username == 'undefined'||item.username==undefined||item.username=="") return;
-					let fullName = "";
-					if (item.fullName!=null&&item.fullName!="undefined") fullName = item.fullName;
-					let label = ("name: "+fullName+" user: "+item.username);
-					if (alreadyCollab.indexOf(fullName) > -1) {
-						label += ' (<%=alreadySent%>)';
-					}
-					return { label: label, value: item.username };
-				});
-				response(res);
+				window.location.href = 'SocialConnect?disconnect=1&type=' + svc;
 			}
-		});
-	}
-});
 
-function initiateCollab() {
-	let collabTarget = $("#collabTarget").val();
-	let paramStr = "";
-	if (collabTarget!=null&&""!=collabTarget) {
+			function socialConnect(svc) {
+//console.info('connect %s', svc);
+				window.location.href = 'SocialConnect?type=' + svc;
+			}
 
-		console.log("is collab target current user? myName="+myName+"  collabTarget="+collabTarget);
-		if (myName==collabTarget) {
-			$("#collabResp").text("You cannot send a collaboration request to yourself.");
-		} else {
-			let alreadyCollab = [];
-			$(".collab-name").each(function() {
-				alreadyCollab.push($(this).text());
-			});
-			if (alreadyCollab.indexOf(collabTarget) > -1) {
-				$("#collabResp").text("You already have a collaboration or request with user "+collabTarget+".");
-			} else {
-				paramStr = "?username="+collabTarget;
-				if ($("#collabNote").val()!=null&&""!=$("#collabNote").val()) {
-					paramStr += "&message="+$("#collabNote").val();
+			let myName = '<%=request.getUserPrincipal().getName()%>';
+
+			$('#collabTarget').autocomplete({
+				source: function( request, response ) {
+					$.ajax({
+						url: wildbookGlobals.baseUrl + '/UserGetSimpleJSON?searchUser=' + request.term,
+						type: 'GET',
+						dataType: "json",
+						success: function( data ) {
+							console.log("trying autocomplete...");
+
+							let alreadyCollab = [];
+							$(".collab-name").each(function() {
+								alreadyCollab.push($(this).text());
+							});
+
+							var res = $.map(data, function(item) {
+								if (item.username==myName||typeof item.username == 'undefined'||item.username==undefined||item.username=="") return;
+								let fullName = "";
+								if (item.fullName!=null&&item.fullName!="undefined") fullName = item.fullName;
+								let label = ("name: "+fullName+" user: "+item.username);
+								if (alreadyCollab.indexOf(fullName) > -1) {
+									label += ' (<%=alreadySent%>)';
+								}
+								return { label: label, value: item.username };
+							});
+							response(res);
+						}
+					});
 				}
+			});
+
+			function initiateCollab() {
+				let collabTarget = $("#collabTarget").val();
+				let paramStr = "";
+				if (collabTarget!=null&&""!=collabTarget) {
+
+					console.log("is collab target current user? myName="+myName+"  collabTarget="+collabTarget);
+					if (myName==collabTarget) {
+						$("#collabResp").text("You cannot send a collaboration request to yourself.");
+					} else {
+						let alreadyCollab = [];
+						$(".collab-name").each(function() {
+							alreadyCollab.push($(this).text());
+						});
+						if (alreadyCollab.indexOf(collabTarget) > -1) {
+							$("#collabResp").text("You already have a collaboration or request with user "+collabTarget+".");
+						} else {
+							paramStr = "?username="+collabTarget;
+							if ($("#collabNote").val()!=null&&""!=$("#collabNote").val()) {
+								paramStr += "&message="+$("#collabNote").val();
+							}
+							$.ajax({
+								url: wildbookGlobals.baseUrl + '/Collaborate'+paramStr,
+								type: 'POST',
+								dataType: "text",
+								contentType: 'application/javascript',
+								success: function(d) {
+									console.info('Success! Got back '+JSON.stringify(d));
+									$("#collabResp").text("The collaboration request has been sent.");
+									//appendCollabRequest(collabTarget);
+									//clearCollabInitFields();
+									refreshCollaborations();
+								},
+								error: function(x,y,z) {
+									$("#collabResp").text("There was an error sending this collaboration request.");
+									console.log(" got an error....?? ");
+									console.warn('%o %o %o', x, y, z);
+								}
+							});
+						}
+					}
+				} else {
+					$("#collabResp").text("You must specify a user to initiate collaboration with.");
+				}
+			}
+
+			function clearCollabInitFields() {
+				$("#collabTarget").val('');
+				$("#collabNote").val('');
+			}
+
+			function appendCollabRequest(name) {
+				if ($("#none-line").length > 0) $("#none-line").val('');
+				let newCollab = "<div class=\"collabRow mine state-initialized\"><span class=\"who\">to <b>" +name+ "</b></span><span class=\"state collab-info\"><%=collabProps.getProperty("state_initialized")%></span></div>";
+				//$(".collab-list").append(newCollab);
+				refreshCollaborations();
+			}
+
+			// end collab type ahead
+
+			$('.collabRow .add-view-permissions').click(function() {
+				let collabId = $(this).closest('.collabRow').find('.collabId').val();
+				changeViewPermissions(collabId, "invite");
+			});
+
+			$('.collabRow .revoke-view-permissions').click(function() {
+				let collabId = $(this).closest('.collabRow').find('.collabId').val();
+				changeViewPermissions(collabId, "revoke");
+				refreshCollaborations();
+			});
+
+			function changeViewPermissions(collabId, action) {
+
+				let paramStr = "?toggle=true&collabId="+collabId+"&actionForExisting="+action;
 				$.ajax({
 					url: wildbookGlobals.baseUrl + '/Collaborate'+paramStr,
 					type: 'POST',
-					dataType: "text",
+					dataType: "json",
 					contentType: 'application/javascript',
 					success: function(d) {
-						console.info('Success! Got back '+JSON.stringify(d));
-						$("#collabResp").text("The collaboration request has been sent.");
-						//appendCollabRequest(collabTarget);
-						//clearCollabInitFields();
-						refreshCollaborations();
+						console.info('Success toggling view permission! Got back '+JSON.stringify(d));
+						if (d.success==true) {
+							console.log("changing collaboration "+d.collabId+" state in UI");
+							//changeVisibleCollaborationState(d.newState, d.collabId, d.action);
+							refreshCollaborations();
+						}
 					},
 					error: function(x,y,z) {
-						$("#collabResp").text("There was an error sending this collaboration request.");
-						console.log(" got an error....?? ");
+						console.log(" gt an error..!");
 						console.warn('%o %o %o', x, y, z);
 					}
 				});
 			}
-		}
-	} else {
-		$("#collabResp").text("You must specify a user to initiate collaboration with.");
-	}
-}
 
-function clearCollabInitFields() {
-	$("#collabTarget").val('');
-	$("#collabNote").val('');
-}
-
-function appendCollabRequest(name) {
-	if ($("#none-line").length > 0) $("#none-line").val('');
-	let newCollab = "<div class=\"collabRow mine state-initialized\"><span class=\"who\">to <b>" +name+ "</b></span><span class=\"state collab-info\"><%=collabProps.getProperty("state_initialized")%></span></div>";
-	//$(".collab-list").append(newCollab);
-	refreshCollaborations();
-}
-
-// end collab type ahead
-
-$('.collabRow .add-view-permissions').click(function() {
-	let collabId = $(this).closest('.collabRow').find('.collabId').val();
-	changeViewPermissions(collabId, "invite");
-});
-
-$('.collabRow .revoke-view-permissions').click(function() {
-	let collabId = $(this).closest('.collabRow').find('.collabId').val();
-	changeViewPermissions(collabId, "revoke");
-	refreshCollaborations();
-});
-
-function changeViewPermissions(collabId, action) {
-
-let paramStr = "?toggle=true&collabId="+collabId+"&actionForExisting="+action;
-$.ajax({
-	url: wildbookGlobals.baseUrl + '/Collaborate'+paramStr,
-	type: 'POST',
-	dataType: "json",
-	contentType: 'application/javascript',
-	success: function(d) {
-		console.info('Success toggling view permission! Got back '+JSON.stringify(d));
-		if (d.success==true) {
-			console.log("changing collaboration "+d.collabId+" state in UI");
-			//changeVisibleCollaborationState(d.newState, d.collabId, d.action);
-			refreshCollaborations();
-		}
-	},
-	error: function(x,y,z) {
-		console.log(" gt an error..!");
-		console.warn('%o %o %o', x, y, z);
-	}
-});
-}
-
-function changeVisibleCollaborationState(newState, collabId, action) {
+			function changeVisibleCollaborationState(newState, collabId, action) {
 // we just want to change the visible states to one of the two possible through this method: revoked, or re-invited
-	let collabRow = $("input[value='"+collabId+"']").first().parent('.collabRow');
-	let placeholder = '<span class="collab-button"></span>';
-	if (action=="revoke") {
+				let collabRow = $("input[value='"+collabId+"']").first().parent('.collabRow');
+				let placeholder = '<span class="collab-button"></span>';
+				if (action=="revoke") {
 
-		collabRow.removeClass('state-approved');
-		collabRow.addClass('state-rejected');
-		console.log("trying to update UI to revoke collaboration");
+					collabRow.removeClass('state-approved');
+					collabRow.addClass('state-rejected');
+					console.log("trying to update UI to revoke collaboration");
 
-		//there can be only one
-		let revokeBtn = collabRow.find('.revoke-view-permissions').first();
-		$('<span class=\"collab-button\"><input type=\"button\" class=\"add-view-permissions\" value=\"<%=collabProps.getProperty("buttonAddViewPerm")%>\"></span>').insertBefore(revokeBtn);
-		//not listening for the new one yet
-		$('.collabRow .add-view-permissions').click(function() {
-			let collabId = $(this).closest('.collabRow').find('.collabId').val();
-			changeViewPermissions(collabId, "invite");
-		});
-		revokeBtn.remove();
-		let addEditBtn = collabRow.find('.add-edit-perm-button').first();
-		$(placeholder).insertBefore(addEditBtn);
-		addEditBtn.remove();
+					//there can be only one
+					let revokeBtn = collabRow.find('.revoke-view-permissions').first();
+					$('<span class=\"collab-button\"><input type=\"button\" class=\"add-view-permissions\" value=\"<%=collabProps.getProperty("buttonAddViewPerm")%>\"></span>').insertBefore(revokeBtn);
+					//not listening for the new one yet
+					$('.collabRow .add-view-permissions').click(function() {
+						let collabId = $(this).closest('.collabRow').find('.collabId').val();
+						changeViewPermissions(collabId, "invite");
+					});
+					revokeBtn.remove();
+					let addEditBtn = collabRow.find('.add-edit-perm-button').first();
+					$(placeholder).insertBefore(addEditBtn);
+					addEditBtn.remove();
 
-		let revokeEditBtn = collabRow.find('.revoke-edit-perm-button').first();
-		$(placeholder).insertBefore(revokeEditBtn);
-		revokeEditBtn.remove();
+					let revokeEditBtn = collabRow.find('.revoke-edit-perm-button').first();
+					$(placeholder).insertBefore(revokeEditBtn);
+					revokeEditBtn.remove();
 
-		collabRow.find('.state').first().text('<%=collabProps.getProperty("state_rejected")%>');
-		refreshCollaborations();
-	}
+					collabRow.find('.state').first().text('<%=collabProps.getProperty("state_rejected")%>');
+					refreshCollaborations();
+				}
 
-	if (action=="invite") {
-		collabRow.removeClass('state-rejected');
-		collabRow.addClass('state-initialized');
-		$(placeholder).insertBefore(collabRow.find('.add-view-permissions').first());
-		collabRow.find('.add-view-permissions').first().remove();
-		collabRow.find('.state').first().text('<%=collabProps.getProperty("state_initialized")%>');
-		console.log("trying to update UI to invite again...");
-		updateNotificationsWidget();
-		refreshCollaborations();
-	}
+				if (action=="invite") {
+					collabRow.removeClass('state-rejected');
+					collabRow.addClass('state-initialized');
+					$(placeholder).insertBefore(collabRow.find('.add-view-permissions').first());
+					collabRow.find('.add-view-permissions').first().remove();
+					collabRow.find('.state').first().text('<%=collabProps.getProperty("state_initialized")%>');
+					console.log("trying to update UI to invite again...");
+					updateNotificationsWidget();
+					refreshCollaborations();
+				}
 
 
-}
+			}
 
-</script>
+		</script>
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
