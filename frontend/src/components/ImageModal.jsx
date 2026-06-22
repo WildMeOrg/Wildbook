@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import useWheelZoom from "../hooks/useWheelZoom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { observer } from "mobx-react-lite";
@@ -18,13 +19,15 @@ import Tooltip from "../components/ToolTip";
 export const ImageModal = observer(
   ({
     onClose,
-    assets = [],
+    assets: assetsProp = [],
     index = 0,
     setIndex,
     rects = [],
     imageStore = {},
   }) => {
-    if (!assets || !assets.length) return null;
+    // Normalize once (handles null, not just undefined) so all hooks/render below
+    // are array-safe and the empty guard can sit after the hooks (Rules of Hooks).
+    const assets = Array.isArray(assetsProp) ? assetsProp : [];
     const intl = useIntl();
     const deleteAnnotationConfirmMsg = intl.formatMessage({
       id: "CONFIRM_DELETE_ANNOTATION",
@@ -37,6 +40,7 @@ export const ImageModal = observer(
     const themeColor = React.useContext(ThemeColorContext);
     const thumbsRef = useRef(null);
     const imgRef = useRef(null);
+    const imageContainerRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
     const [imageReady, setImageReady] = useState(false);
@@ -64,6 +68,13 @@ export const ImageModal = observer(
       e.preventDefault();
       setDragStart({ x: e.clientX, y: e.clientY, startPan: pan });
     };
+
+    // Mouse-wheel zoom matches the zoom-in / reset buttons (step 0.25, range 1..3);
+    // pan re-centers via the [zoom, safeIndex] effect above.
+    const handleWheelZoom = (direction) => {
+      setZoom((z) => Math.min(3, Math.max(1, z + direction * 0.25)));
+    };
+    useWheelZoom(imageContainerRef, handleWheelZoom);
 
     useEffect(() => {
       if (!dragStart) return;
@@ -205,6 +216,10 @@ export const ImageModal = observer(
     const hasNonTrivialAnnotations = imageStore.encounterAnnotations?.some(
       (a) => !a.isTrivial && (a.boundingBox?.[2] || 0) > 0 && (a.boundingBox?.[3] || 0) > 0
     );
+
+    // Guard placed after all hooks so hook order stays stable across renders
+    // (Rules of Hooks). All hooks above are null-safe when assets is empty.
+    if (!assets || !assets.length) return null;
 
     return (
       <div
@@ -354,6 +369,7 @@ export const ImageModal = observer(
                 </button>
                 <div
                   id="image-modal-image-container"
+                  ref={imageContainerRef}
                   className="position-relative d-flex justify-content-center align-items-center"
                   style={{
                     width: "100%",
