@@ -188,6 +188,21 @@ and sand tiger now uses its override in both scan paths.
 | `commonConfiguration.properties` (×3) | consistent globals + sand tiger overrides, updated atomically |
 | `org/ecocean/grid/GrothParamsTest.java` | NEW — resolver unit test |
 
+## Decision log
+
+- **Global-default value (Option A, approved):** global = corrected whale-shark
+  optimum. Whale shark and sand tiger are validated; **zebra shark (*Stegostoma
+  tigrinum*), nursehound (*Scyliorhinus stellaris*), and sevengill (*Notorynchus
+  cepedianus*) knowingly move onto whale-shark globals without their own validation.**
+  Accepted as a reasonable default until per-species sweeps exist.
+
+## Follow-ups (out of scope for this PR)
+
+- Corrected sweeps for zebra shark (~98K spot rows) and nursehound (~12K) → add
+  their own overrides if they diverge.
+- Commit the corrected `GrothParameterSweepTest` benchmark fixes (separate change).
+- Optional live config-reload endpoint (params are currently cached per context).
+
 ## Risks
 
 - Removing `GridManager` getters: Codex grep confirms only `ScanWorkItemCreationThread`
