@@ -18,9 +18,17 @@ export const ImageGalleryModal = observer(
     const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
     const a = assets[safeIndex] || {};
 
+    // Reset pan when the image changes. Pan is otherwise preserved across zoom
+    // changes so wheel zoom does not feel jumpy after the user has dragged.
     useEffect(() => {
       setPan({ x: 0, y: 0 });
-    }, [zoom, safeIndex]);
+    }, [safeIndex]);
+
+    // Keep the image centered whenever it is not zoomed in (dragging is disabled
+    // at <=1x), so zooming back out via the wheel never leaves it off-center.
+    useEffect(() => {
+      if (zoom <= 1) setPan({ x: 0, y: 0 });
+    }, [zoom]);
 
     const onMouseDown = (e) => {
       if (e.button !== 0) return;
@@ -29,8 +37,7 @@ export const ImageGalleryModal = observer(
       setDragStart({ x: e.clientX, y: e.clientY, startPan: pan });
     };
 
-    // Mouse-wheel zoom matches the zoom-in / reset buttons (step 0.25, range 1..3);
-    // pan re-centers via the [zoom, safeIndex] effect above.
+    // Mouse-wheel zoom matches the zoom-in / reset buttons (step 0.25, range 1..3).
     const handleWheelZoom = (direction) => {
       setZoom((z) => Math.min(3, Math.max(1, z + direction * 0.25)));
     };
@@ -63,7 +70,7 @@ export const ImageGalleryModal = observer(
       };
     }, [dragStart]);
 
-    const encounterData = assets[index] || {};
+    const encounterData = assets[safeIndex] || {};
 
     if (!open || !assets.length) return null;
 
@@ -132,7 +139,10 @@ export const ImageGalleryModal = observer(
                       marginRight: "8px",
                       color: "white",
                     }}
-                    onClick={() => setZoom(1)}
+                    onClick={() => {
+                      setZoom(1);
+                      setPan({ x: 0, y: 0 });
+                    }}
                     aria-label={intl.formatMessage({ id: "RESET_ZOOM" })}
                     title={intl.formatMessage({ id: "RESET_ZOOM" })}
                   >
@@ -153,7 +163,7 @@ export const ImageGalleryModal = observer(
                       a.href = cur.url;
                       a.download =
                         cur.filename ||
-                        `encounter-image-${cur.id || index}.jpg`;
+                        `encounter-image-${cur.id || safeIndex}.jpg`;
                       a.click();
                     }}
                     aria-label="Download"
