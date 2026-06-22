@@ -70,8 +70,11 @@ public class WriteOutScanTask extends HttpServlet {
             String newEncShark = "";
             String newEncSize = "";
             Encounter newEnc = myShepherd.getEncounter(encNumber);
-            String wqGenus = (newEnc != null) ? newEnc.getGenus() : null;
-            String wqEpithet = (newEnc != null) ? newEnc.getSpecificEpithet() : null;
+            // Resolve species from the in-memory match graph (same source as ScanWorkItemCreationThread),
+            // not from the DB encounter, so the Groth params are consistent with the async creation thread.
+            EncounterLite qle = GridManager.getMatchGraph().get(encNumber);
+            String wqGenus = (qle != null) ? qle.getGenus() : null;
+            String wqEpithet = (qle != null) ? qle.getSpecificEpithet() : null;
             org.ecocean.grid.GrothParams gp = CommonConfiguration.getGrothParams(wqGenus, wqEpithet, context);
             newEncDate = newEnc.getDate();
             if (newEnc.getIndividualID() != null) {

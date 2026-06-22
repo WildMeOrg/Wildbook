@@ -303,7 +303,7 @@ class GrothParameterSweepTest {
         double[] kingen = runBenchmark(0.008, 49.8, 0.998, 12.33, 0.998);
         System.out.println("  Kingen 2019 complete.");
         double[] optimized = runBenchmark(0.008, 6.8, 0.671, 22.5, 1.146);
-        System.out.println("  Optimized complete.");
+        System.out.println("  Original tuning (R=6.8, historical) complete.");
 
         // --- Print comparison table ---
         int q = (int) oldDefaults[3];
@@ -311,7 +311,7 @@ class GrothParameterSweepTest {
         System.out.println();
         System.out.println("----------------------------------------------------------------");
         System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
-            "Metric", "Old Defaults", "Kingen 2019", "Optimized");
+            "Metric", "Old Defaults", "Kingen 2019", "Orig tuning R=6.8");
         System.out.println("----------------------------------------------------------------");
 
         System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
@@ -365,7 +365,7 @@ class GrothParameterSweepTest {
         System.out.println("----------------------------------------------------------------");
 
         System.out.println();
-        System.out.println("=== Improvement Summary (Optimized vs Old Defaults) ===");
+        System.out.println("=== Improvement Summary (Original tuning R=6.8 vs Old Defaults) ===");
         System.out.printf("Rank-1:  %+.0f queries (%.1f%% -> %.1f%%)%n",
             optimized[0] - oldDefaults[0],
             100.0 * oldDefaults[0] / q, 100.0 * optimized[0] / q);
@@ -375,7 +375,7 @@ class GrothParameterSweepTest {
             speedupVsOld > 1 ? "faster" : "slower");
 
         System.out.println();
-        System.out.println("=== Improvement Summary (Optimized vs Kingen 2019) ===");
+        System.out.println("=== Improvement Summary (Original tuning R=6.8 vs Kingen 2019) ===");
         System.out.printf("Rank-1:  %+.0f queries (%.1f%% -> %.1f%%)%n",
             optimized[0] - kingen[0],
             100.0 * kingen[0] / q, 100.0 * optimized[0] / q);

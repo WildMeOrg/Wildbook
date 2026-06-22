@@ -74,9 +74,14 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
         // myShepherd.beginDBTransaction();
         // EncounterLite baseEnc=new EncounterLite(myShepherd.getEncounter(encounterNumber));
         EncounterLite baseEnc = gm.getMatchGraphEncounterLiteEntry(encounterNumber);
-        // Resolve Groth params by query encounter's species
-        String qGenus = (baseEnc != null) ? baseEnc.getGenus() : null;
-        String qEpithet = (baseEnc != null) ? baseEnc.getSpecificEpithet() : null;
+        if (baseEnc == null) {
+            System.out.println("ScanWorkItemCreationThread: encounterNumber " + encounterNumber +
+                " not found in match graph — cannot build work items, aborting.");
+            return;
+        }
+        // Resolve Groth params by query encounter's species (baseEnc is guaranteed non-null here)
+        String qGenus = baseEnc.getGenus();
+        String qEpithet = baseEnc.getSpecificEpithet();
         org.ecocean.grid.GrothParams gp = CommonConfiguration.getGrothParams(qGenus, qEpithet, context);
         props2.setProperty("epsilon", String.valueOf(gp.getEpsilon()));
         props2.setProperty("R", String.valueOf(gp.getR()));
