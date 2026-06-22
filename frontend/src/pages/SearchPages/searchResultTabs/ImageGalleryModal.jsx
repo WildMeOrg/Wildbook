@@ -38,10 +38,12 @@ export const ImageGalleryModal = observer(
     };
 
     // Mouse-wheel zoom matches the zoom-in / reset buttons (step 0.25, range 1..3).
+    // Gated on `open`: this modal stays mounted while closed (open toggles), so the
+    // listener must (re)attach when it opens — by then imageContainerRef is set.
     const handleWheelZoom = (direction) => {
       setZoom((z) => Math.min(3, Math.max(1, z + direction * 0.25)));
     };
-    useWheelZoom(imageContainerRef, handleWheelZoom);
+    useWheelZoom(imageContainerRef, handleWheelZoom, open);
 
     useEffect(() => {
       if (!dragStart) return;
