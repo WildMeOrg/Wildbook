@@ -22,7 +22,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.awt.image.BufferedImage;
-import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -684,10 +683,16 @@ public abstract class AssetStore implements java.io.Serializable {
             System.out.println("WARNING: isValidImage(" + file + ") file not found");
             return false;
         } catch (final IIOException e) {
-            if (e.getCause() instanceof EOFException) {
-                System.out.println("WARNING: isValidImage(" + file + ") is truncated[3]");
-                return false;
-            }
+            // Any decode IIOException means the registered ImageReader cannot
+            // read this image (corrupt markers, bad scan data, or truncation).
+            // Such an image is not safe to send to the detection pipeline, where
+            // it can hang the decoder. Previously only EOFException-caused
+            // (truncation) returned false and every OTHER decode error fell
+            // through to `return true`, mis-classifying corrupt images such as
+            // "Unsupported marker type 0xNN" as valid.
+            System.out.println("WARNING: isValidImage(" + file + ") decode failed: "
+                + e.toString());
+            return false;
         } catch (final IOException e) {
             System.out.println("WARNING: isValidImage(" + file + ") threw " + e.toString());
             return false;
@@ -696,7 +701,5 @@ public abstract class AssetStore implements java.io.Serializable {
                 digestInputStream.close();
             } catch (Exception ex) {}
         }
-        System.out.println("INFO: isValidImage(" + file + ") fell thru[2] - success?");
-        return true;
     }
 }
