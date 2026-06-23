@@ -255,16 +255,16 @@
 				#/encounters/encounter.jsp = authc
 				/encounters/encounterMediaGallery.jsp = authc
 				/encounters/projectManagement.jsp = authc
-				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
+				/encounters/encounterSpotTool.jsp = authc, roles[researcher]
 				/encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
 				/encounters/manualAnnotation.jsp = authc, roles[researcher]
 				/encounters/encounterVM.jsp = authc, roles[researcher]
 
 				# ===== Spots =====
-				/SubmitSpots = authc, roles[imageProcessor]
-				/InterconnectSubmitSpots = authc, roles[imageProcessor]
-				/interconnectSubmitSpots = authc, roles[imageProcessor]
-				/SubmitSpotsAndImage = authc, roles[imageProcessor]
+				/SubmitSpots = authc, roles[researcher]
+				/InterconnectSubmitSpots = authc, roles[researcher]
+				/interconnectSubmitSpots = authc, roles[researcher]
+				/SubmitSpotsAndImage = authc, roles[researcher]
 				/SubmitSpotsAndTransformImage = authc,roles[researcher]
 				/EncounterAddSpotFile = authc, roles[identifier]
 				/EncounterRemoveSpots = authc, roles[researcher]
