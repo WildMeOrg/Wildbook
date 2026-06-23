@@ -95,60 +95,69 @@ public final class GrothScanRunnable implements Runnable {
             deleteStaleResultFiles();
 
             // Phase 1 (match engine): single-threaded, no DB transaction needed. The matchGraph
-            // is a ConcurrentHashMap iterated read-only here.
+            // is a ConcurrentHashMap iterated read-only here. First snapshot the ELIGIBLE
+            // candidates (WB-1791 same-species + correct-side spots, gating BOTH I3S and Groth)
+            // so the progress denominator reflects actual comparisons — matching the legacy
+            // work-item progress — instead of the whole graph (all species + both sides). The
+            // eligibility check is cheap; snapshotting also gives a stable count + candidate
+            // list even if the live graph is edited mid-scan.
             ConcurrentHashMap<String, EncounterLite> matchGraph = GridManager.getMatchGraph();
-            int total = matchGraph.size();
+            List<Map.Entry<String, EncounterLite>> candidates =
+                new ArrayList<Map.Entry<String, EncounterLite>>();
+            for (Map.Entry<String, EncounterLite> entry : matchGraph.entrySet()) {
+                if (GrothMatchServlet.isEligibleCandidate(queryLite, entry.getValue(), encNumber,
+                        entry.getKey(), rightScan)) {
+                    candidates.add(entry);
+                }
+            }
+            int total = candidates.size();
             gm.setScanProgress(taskID, 0, total);
 
             List<MatchObject> grothResults = new ArrayList<MatchObject>();
             Map<String, EncounterLite> scannedI3SLites = new HashMap<String, EncounterLite>();
-            int i = 0;
-            for (ConcurrentHashMap.Entry<String, EncounterLite> entry : matchGraph.entrySet()) {
-                i++;
+            int done = 0;
+            for (Map.Entry<String, EncounterLite> entry : candidates) {
                 EncounterLite el = entry.getValue();
 
-                // WB-1791 species filter + self/empty-spots eligibility (shared with the
-                // former synchronous path), gating BOTH I3S and Groth.
-                if (GrothMatchServlet.isEligibleCandidate(queryLite, el, encNumber,
-                        entry.getKey(), rightScan)) {
-                    Vector i3sPoints = null;
-                    double i3sValue = 0;
-                    try {
-                        ArrayList<SuperSpot> candSpots =
-                            rightScan ? el.getRightSpots() : el.getSpots();
-                        ArrayList<SuperSpot> querySideSpots =
-                            rightScan ? queryLite.getRightSpots() : queryLite.getSpots();
-                        if ((candSpots != null) && !candSpots.isEmpty() &&
-                            (querySideSpots != null) && !querySideSpots.isEmpty()) {
-                            I3SMatchObject i3sResult = el.i3sScan(queryLite, rightScan);
-                            TreeMap i3sMap = i3sResult.getMap();
-                            Vector pts = new Vector();
-                            if (i3sMap != null) {
-                                for (Object pair : i3sMap.values()) pts.add(pair);
-                            }
-                            i3sPoints = pts;
-                            i3sValue = i3sResult.getI3SMatchValue();
-                            scannedI3SLites.put(entry.getKey(), el);
+                Vector i3sPoints = null;
+                double i3sValue = 0;
+                try {
+                    ArrayList<SuperSpot> candSpots =
+                        rightScan ? el.getRightSpots() : el.getSpots();
+                    ArrayList<SuperSpot> querySideSpots =
+                        rightScan ? queryLite.getRightSpots() : queryLite.getSpots();
+                    if ((candSpots != null) && !candSpots.isEmpty() &&
+                        (querySideSpots != null) && !querySideSpots.isEmpty()) {
+                        I3SMatchObject i3sResult = el.i3sScan(queryLite, rightScan);
+                        TreeMap i3sMap = i3sResult.getMap();
+                        Vector pts = new Vector();
+                        if (i3sMap != null) {
+                            for (Object pair : i3sMap.values()) pts.add(pair);
                         }
-                    } catch (Exception i3sEx) {
-                        i3sPoints = null;
+                        i3sPoints = pts;
+                        i3sValue = i3sResult.getI3SMatchValue();
+                        scannedI3SLites.put(entry.getKey(), el);
                     }
-
-                    MatchObject mo = el.getPointsForBestMatch(
-                        queryArray, epsilon, R, Sizelim, maxTriangleRotation, C, true, rightScan);
-                    mo.encounterNumber = entry.getKey();
-                    if (i3sPoints != null) mo.setI3SValues(i3sPoints, i3sValue);
-                    grothResults.add(mo);
+                } catch (Exception i3sEx) {
+                    i3sPoints = null;
                 }
 
-                if ((i % 250) == 0) gm.setScanProgress(taskID, i, total);
+                MatchObject mo = el.getPointsForBestMatch(
+                    queryArray, epsilon, R, Sizelim, maxTriangleRotation, C, true, rightScan);
+                mo.encounterNumber = entry.getKey();
+                if (i3sPoints != null) mo.setI3SValues(i3sPoints, i3sValue);
+                grothResults.add(mo);
+
+                done++;
+                if ((done % 250) == 0) gm.setScanProgress(taskID, done, total);
             }
             gm.setScanProgress(taskID, total, total);
 
             MatchObject[] matchArray = grothResults.toArray(new MatchObject[0]);
             Arrays.sort(matchArray, new MatchComparator());
             log.info("Groth match for " + encNumber + " completed in " +
-                (System.currentTimeMillis() - startTime) + "ms (" + total + " catalog encounters)");
+                (System.currentTimeMillis() - startTime) + "ms (" + total +
+                " same-species candidates of " + matchGraph.size() + " in graph)");
 
             // Phase 2 (results): build the DOM with encounter details inside a short tx, close
             // the tx, then write files (no DB transaction held during file I/O).
