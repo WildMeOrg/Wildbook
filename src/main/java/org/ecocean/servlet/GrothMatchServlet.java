@@ -198,7 +198,10 @@ public class GrothMatchServlet extends HttpServlet {
                 return;
             }
 
-            gm.setScanProgress(taskID, 0, GridManager.getMatchGraph().size());
+            // Seed progress at 0/0 so the page shows "Preparing comparisons..." until the
+            // background thread snapshots the eligible (same-species, correct-side) candidate
+            // set and sets the real denominator. Avoids briefly flashing the whole-graph size.
+            gm.setScanProgress(taskID, 0, 0);
 
             java.util.concurrent.ThreadPoolExecutor es =
                 SharkGridThreadExecutorService.getExecutorService();
