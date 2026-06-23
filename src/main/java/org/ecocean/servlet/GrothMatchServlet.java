@@ -138,8 +138,18 @@ public class GrothMatchServlet extends HttpServlet {
         Map<String, EncounterLite> scannedI3SLites = new HashMap<>();
 
         for (ConcurrentHashMap.Entry<String, EncounterLite> entry : matchGraph.entrySet()) {
-            if (entry.getKey().equals(encNumber)) continue;
             EncounterLite el = entry.getValue();
+
+            // WB-1791: centralized candidate eligibility — skip self, candidates with no
+            // spots on the scanned side (an encounter whose spot map was deleted must never
+            // surface as a match candidate, #1608), and cross-species candidates. The
+            // synchronous Groth rewrite dropped the species filter the legacy async
+            // ScanWorkItemCreationThread applied, which let both Groth and the revived I3S
+            // surface matches from other species. Placed before the I3S and Groth
+            // computations so cross-species candidates are excluded from BOTH.
+            if (!isEligibleCandidate(queryLite, el, encNumber, entry.getKey(), rightScan)) {
+                continue;
+            }
 
             // I3S: run on the same candidate as Groth so one scan produces both Groth and
             // I3S results (I3S was lost when the async grid scan path fell out of use).
@@ -340,5 +350,36 @@ public class GrothMatchServlet extends HttpServlet {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
         }
+    }
+
+    /**
+     * Decide whether a catalog candidate is eligible to be matched against the query.
+     *
+     * Centralizes all candidate-eligibility rules so they live in one tested place:
+     *   - the candidate is not the query encounter itself,
+     *   - the candidate has spots on the side being scanned (#1608), and
+     *   - WB-1791: the candidate is the same species as the query
+     *     (delegated to the null-safe {@link EncounterLite#doesSpeciesMatch(EncounterLite)},
+     *     mirroring the legacy async ScanWorkItemCreationThread behavior that the
+     *     synchronous Groth rewrite dropped).
+     *
+     * @param queryLite          query-side EncounterLite (carries genus/specificEpithet)
+     * @param candidate          catalog EncounterLite under consideration
+     * @param queryEncNumber     the query encounter number
+     * @param candidateEncNumber the candidate encounter number
+     * @param rightScan          true for a right-side scan, false for left
+     * @return true if the candidate should be matched, false to skip it
+     */
+    static boolean isEligibleCandidate(EncounterLite queryLite, EncounterLite candidate,
+        String queryEncNumber, String candidateEncNumber, boolean rightScan) {
+        if (queryLite == null || candidate == null) return false;
+        // skip self
+        if (candidateEncNumber != null && candidateEncNumber.equals(queryEncNumber)) return false;
+        // skip candidates with no spots on the scanned side
+        List<?> candidateSpots = rightScan ? candidate.getRightSpots() : candidate.getSpots();
+        if (candidateSpots == null || candidateSpots.isEmpty()) return false;
+        // WB-1791: same-species only (null-safe; false if either side lacks taxonomy)
+        if (!queryLite.doesSpeciesMatch(candidate)) return false;
+        return true;
     }
 }
