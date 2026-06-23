@@ -57,7 +57,72 @@ public class GridManager {
     // in-process scan work items that have been checked out and sent to a node
     private ArrayList<ScanWorkItem> underway = new ArrayList<ScanWorkItem>();
 
+    // In-memory progress for the synchronous-engine async scan (GrothScanRunnable):
+    // taskID -> {completedCatalogEncounters, totalCatalogEncounters}. Read by
+    // scanEndApplet.jsp on each 15s poll. Not persisted (the old work-item grid that
+    // backed getNumWorkItemsCompleteForTask is dead). Values are REPLACED on every
+    // update (never mutated in place) so reads on the request thread see them.
+    private final java.util.concurrent.ConcurrentHashMap<String, int[]> scanProgress =
+        new java.util.concurrent.ConcurrentHashMap<String, int[]>();
+
+    // Active-run guard: taskID -> ownershipToken. Prevents a duplicate re-scan from corrupting
+    // the ScanTask lifecycle (a second run could flip finished / clear progress / write result
+    // files out from under the first). There is deliberately NO stale-reclaim: allowing two
+    // concurrent runs for one taskID reintroduces result-file races (a superseded or queued old
+    // run deleting/overwriting a newer run's XML). The owning run always releases the slot in a
+    // finally (endScan), and this map is in-memory so an abrupt JVM death clears it on restart.
+    private final java.util.concurrent.ConcurrentHashMap<String, Long> activeScans =
+        new java.util.concurrent.ConcurrentHashMap<String, Long>();
+    private final java.util.concurrent.atomic.AtomicLong scanTokenSeq =
+        new java.util.concurrent.atomic.AtomicLong(0L);
+
     public GridManager() {}
+
+    /**
+     * Record async-scan progress for a taskID. Replaces the value (no in-place int[]
+     * mutation) so the polling request thread observes the update.
+     */
+    public void setScanProgress(String taskID, int completed, int total) {
+        if (taskID != null) scanProgress.put(taskID, new int[] { completed, total });
+    }
+
+    public int getScanProgressComplete(String taskID) {
+        int[] p = (taskID == null) ? null : scanProgress.get(taskID);
+        return (p == null) ? 0 : p[0];
+    }
+
+    public int getScanProgressTotal(String taskID) {
+        int[] p = (taskID == null) ? null : scanProgress.get(taskID);
+        return (p == null) ? 0 : p[1];
+    }
+
+    public void clearScanProgress(String taskID) {
+        if (taskID != null) scanProgress.remove(taskID);
+    }
+
+    /**
+     * Atomically claim the active-scan slot for taskID. Returns a positive ownership token if
+     * the caller may start a new scan, or 0 if one is already running (caller should redirect
+     * to the existing progress page rather than start a duplicate). The token is passed to
+     * {@link #endScan(String, long)} so the slot is released precisely by its owner.
+     */
+    public long tryStartScan(String taskID) {
+        if (taskID == null) return 0L;
+        long token = scanTokenSeq.incrementAndGet();
+        return (activeScans.putIfAbsent(taskID, Long.valueOf(token)) == null) ? token : 0L;
+    }
+
+    /** True if {@code token} currently owns the active-scan slot for {@code taskID}. */
+    public boolean isScanOwner(String taskID, long token) {
+        if (taskID == null) return false;
+        Long cur = activeScans.get(taskID);
+        return (cur != null) && (cur.longValue() == token);
+    }
+
+    /** Release the active-scan slot only if {@code token} still owns it (atomic, precise). */
+    public void endScan(String taskID, long token) {
+        if (taskID != null) activeScans.remove(taskID, Long.valueOf(token));
+    }
 
     public ArrayList<GridNode> getNodes() {
         return nodes;
