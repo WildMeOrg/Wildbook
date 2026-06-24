@@ -50,20 +50,23 @@ public class MarkedIndividualInfo extends ApiBase {
         if (args.length < 3) throw new ServletException("Bad path");
         JSONObject results = new JSONObject("{\"success\": false, \"error\": \"unknown request\"}");
 
-        if (args[0].equals("individuals") && args[1].equals("info")) {
-            if (args[2].equals("next_name")) {
-                results = getNextNames(myShepherd, request, currentUser);
-            } else if (args[2].equals("social-data")) {
-                results = getSocialData(myShepherd, request, currentUser);
+        try {
+            if (args[0].equals("individuals") && args[1].equals("info")) {
+                if (args[2].equals("next_name")) {
+                    results = getNextNames(myShepherd, request, currentUser);
+                } else if (args[2].equals("social-data")) {
+                    results = getSocialData(myShepherd, request, currentUser);
+                }
             }
-        }
 
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        response.setStatus(results.optInt("statusCode", 500));
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader("Content-Type", "application/json");
-        response.getWriter().write(results.toString());
+            response.setStatus(results.optInt("statusCode", 500));
+            response.setCharacterEncoding("UTF-8");
+            response.setHeader("Content-Type", "application/json");
+            response.getWriter().write(results.toString());
+        } finally {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+        }
     }
 
     private JSONObject getSocialData(Shepherd myShepherd, HttpServletRequest request, User user) {
@@ -288,9 +291,12 @@ public class MarkedIndividualInfo extends ApiBase {
         return v;
     }
 
-    // Emits the DataNucleus datastore-identity string in the legacy `_id` form, so the
-    // retained edit/remove buttons (which append "[OID]org.ecocean.social.Relationship")
-    // resolve the same row via getObjectById. Verified by relationshipIdRoundTripsThroughGetObjectById.
+    // Emits the bare DataNucleus datastore-identity key — byte-identical to what the legacy
+    // REST API emitted via IdentityUtils.getTargetKeyForDatastoreIdentity — so the retained
+    // edit/remove servlets (which append "[OID]org.ecocean.social.Relationship" before calling
+    // getObjectById) already consume this form correctly.
+    // Note: relationshipIdRoundTripsThroughGetObjectById confirms the bare-key round-trip, not
+    // the full "_id + [OID]" form the edit/remove buttons assemble at call time.
     private String relationshipDatastoreId(Relationship rel) {
         Object oid = javax.jdo.JDOHelper.getObjectId(rel);
         if (oid == null) return null;
