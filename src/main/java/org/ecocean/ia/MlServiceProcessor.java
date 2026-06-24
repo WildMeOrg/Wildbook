@@ -451,8 +451,29 @@ public class MlServiceProcessor {
                     continue;
                 }
 
-                JSONObject featureParams = featureParams(bbox, theta,
-                    result.optString("viewpoint", null));
+                // Viewpoint: prefer an explicit result "viewpoint"; otherwise
+                // fall back to the orientation model's label (e.g. whale shark's
+                // whaleshark_v3 -> "left"/"right"). The pipeline only sets a
+                // top-level "viewpoint" from a classifier 'viewpoint' field,
+                // which viewpoint-less classifiers (msv2_multilabel_flip) do not
+                // provide -- leaving it null. Whale-shark matching DOES filter
+                // the candidate set on viewpoint (getMatchingSetQuery via
+                // getViewpointAndNeighbors), and the catalog's viewpoints are
+                // left/right, so without this the box matches across both sides.
+                String viewpoint = result.optString("viewpoint", null);
+                if (!Util.stringExists(viewpoint)) {
+                    JSONObject orientation = result.optJSONObject("orientation");
+                    if (orientation != null) {
+                        String label = orientation.optString("label", null);
+                        // Only adopt a fallback viewpoint Wildbook understands
+                        // (Annotation.VALID_VIEWPOINTS); a stray orientation
+                        // label would never match getViewpointAndNeighbors.
+                        if (Util.stringExists(label) && Annotation.isValidViewpoint(label)) {
+                            viewpoint = label;
+                        }
+                    }
+                }
+                JSONObject featureParams = featureParams(bbox, theta, viewpoint);
                 Feature feature = new Feature(BOUNDING_BOX_FEATURE, featureParams);
                 Annotation ann = new Annotation(null, feature, iaClass);
                 ann.setAcmId(ann.getId());
@@ -460,7 +481,7 @@ public class MlServiceProcessor {
                 ann.setIdentificationStatus(IBEISIA.STATUS_COMPLETE_MLSERVICE);
                 ann.setWbiaRegistered(Boolean.FALSE);
                 ann.setWbiaRegisterAttempts(0);
-                ann.setViewpoint(result.optString("viewpoint", null));
+                ann.setViewpoint(viewpoint);
                 ann.setQuality(optionalFiniteDouble(result, "score",
                     optionalFiniteDouble(result, "confidence", null)));
 
