@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-24
 **Branch:** `fix/social-diagram-api-v3-reads` (off `fix/api-v3-individuals-get`, which is PR #1633)
-**Status:** design — revised after Codex review (round 1); awaiting spec review
+**Status:** design — revised after Codex review (rounds 1–2); awaiting spec review
 
 ## Problem
 
@@ -67,11 +67,13 @@ serializer change (no reindex).
    the caller can't see are dropped before serialization. (Note: `canUserView` admits an
    encounter for an admin OR via `Collaboration.canUserAccessEncounter`.)
 4. **Co-occurrence ("occurring with") filter** — computed **server-side in this endpoint**,
-   not from the legacy JSP. For each viewable encounter, find its occurrence's co-occurring
-   individuals and include a companion **only if that companion's encounter in the occurrence
-   is itself `canUserView` for the caller**. This closes the leak Codex flagged: the legacy
-   `occurrenceGraphJson.jsp` authorizes an occurrence if *any* encounter is viewable and then
-   serializes *every* companion's id/name/sex/haplotype.
+   not from the legacy JSP. For each viewable encounter, walk its occurrence's encounter list
+   (`occ.getEncounters()`) and include a companion individual **only if that companion's own
+   encounter in the occurrence is itself `enc.canUserView(currentUser, myShepherd)`**. Do NOT
+   use occurrence-level authorization — `Collaboration.canUserViewOccurrence` admits an
+   occurrence when *any* one encounter is viewable, which is exactly the leak: the legacy
+   `occurrenceGraphJson.jsp` authorizes that way and then serializes *every* companion's
+   id/name/sex/haplotype. The check must be per-companion-encounter.
 5. **Relationship partner filter** — resolve the partner robustly (object link
    `Relationship.getOtherMarkedIndividual(self)` first; if null, fall back to the non-self
    `markedIndividualName{1,2}` via `myShepherd.getMarkedIndividual(name)`). Include the
@@ -113,7 +115,7 @@ and partner detail is embedded).
       "behavior": "…",
       "alternateid": "…",
       "dataTypes": "both",
-      "occurringWith": ["DISPLAYNAME-A id=uuid-a", "DISPLAYNAME-B id=uuid-b"]
+      "occurringWith": "DISPLAYNAME-A, DISPLAYNAME-B"
     }
   ],
   "relationships": [
@@ -145,9 +147,10 @@ and partner detail is embedded).
   non-trivial-only — preserving current behavior): `both` (tissue samples AND annotations) →
   the tissue sample `type` (tissue only) → `youtube-image` (annotation whose `eventID`
   contains "youtube") → `image` (annotation) → `""`.
-- `occurringWith` is the ACL-filtered companion list per encounter (same
-  `"displayName id=uuid"` token format the JS already splits on), replacing the join against
-  the legacy JSP for the encounter table.
+- `occurringWith` is a **display string** — the comma-joined (`", "`) `displayName`s of the
+  ACL-filtered co-occurring individuals — matching the legacy value the encounter table passes
+  straight into `makeTable` (it is a column string, not an array; an array would be mis-rendered
+  as control data). It replaces the join against the legacy JSP for the encounter table.
 - `year`/`month`/`day`/`dateInMilliseconds` are passed through so the JS keeps its existing
   date-precision formatting unchanged.
 - `partner` is embedded so the per-partner fetch (line 703) is removed.
@@ -196,12 +199,19 @@ All via the existing `statusCode` JSON convention in `MarkedIndividualInfo`.
 ## Performance
 
 This removes the **client-side HTTP N+1** (one request instead of 1 + per-encounter-individual
-+ per-partner). Server-side cost is bounded by the individual's encounter count: the
-per-encounter ACL check and `occurringWith` computation touch occurrences and (via partner
-`canUserView`) partner encounters, and reading `dataTypes` touches lazy tissue/annotation
-collections — all inside the single managed transaction. A test exercises a large-encounter
-individual to confirm acceptable behavior; if needed, the plan may add per-occurrence/partner
-memoization. No new unbounded query is introduced.
++ per-partner). Server-side cost, however, is more than linear in the focal individual's
+encounter count: `occurringWith` walks each focal occurrence's full encounter list
+(`occ.getEncounters()`), and each relationship's `partner.canUserView` can scan every encounter
+on that partner. To keep this bounded, the implementation **must memoize**:
+- per-encounter `canUserView` results (an encounter may recur across the focal individual's
+  occurrences and as a companion);
+- per-occurrence the computed set of viewable companion individuals;
+- per-partner-individual the `canUserView` result (reused across multiple relationships).
+
+All work stays inside the single managed transaction; no new unbounded query is introduced.
+The large-individual test (below) must cover a focal individual with **large occurrences**
+(many co-occurring encounters) **and** relationships whose **partners have many encounters**,
+to exercise these paths.
 
 ## Testing
 
@@ -220,6 +230,10 @@ JUnit 5 + Testcontainers, under `src/test/java/org/ecocean/api/`:
 6. **dataTypes precedence** — (tissue+annotation), tissue-only, youtube-annotation,
    plain-annotation, neither → expected `dataTypes` value (matching legacy "any annotation").
 7. **Bad input** — blank `id` → 400; unknown `id` → 404; anonymous → 401.
+8. **Large individual** — a focal individual with large occurrences (many co-occurring
+   encounters) and relationships whose partners have many encounters: completes within the
+   single transaction and returns correct, ACL-filtered results (exercises the memoization
+   paths).
 
 Manual: open the Social Diagram on an individual; confirm both tables populate and that no
 `/api/jdoql` or `/api/org.ecocean.*` request is issued (network tab); confirm edit/remove
