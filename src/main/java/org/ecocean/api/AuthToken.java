@@ -1,6 +1,8 @@
 package org.ecocean.api;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -12,27 +14,46 @@ import org.json.JSONObject;
 
 /**
  * POST /api/v3/auth/token
- * Gated by existing Shiro auth (authcBasicWildbook). Mints a short-lived
- * RS256 token carrying only the caller's identity (uuid + context). The
- * external scoped-access kernel validates it with the public key.
+ * Mints a short-lived RS256 token. STEP-UP: requires a fresh, valid HTTP Basic credential and
+ * verifies it server-side (a Shiro session alone is NOT sufficient) — so a stolen/unlocked session
+ * or same-origin script cannot mint without the password.
  */
 public class AuthToken extends ApiBase {
     private static final long DEFAULT_TTL_MILLIS = 30L * 60L * 1000L; // 30 min
 
     @Override protected void doPost(HttpServletRequest request, HttpServletResponse response)
         throws IOException {
-        // SECURITY (Codex High): pin to the fixed auth context. Basic auth authenticates
-        // against context0 (WildbookBasicHttpAuthenticationFilter), so the user lookup,
-        // signing key/config, and the token's context claim must ALL come from context0 —
-        // never from ServletUtilities.getContext(request), which honors ?context=.
-        final String context = "context0";
+        handle(request, response);
+    }
+
+    // package-visible test entry point
+    void doPostForTest(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        handle(request, response);
+    }
+
+    private void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setHeader("Cache-Control", "no-store");
+        final String context = "context0"; // Basic auth is pinned to context0 (see filter)
+        String clientIp = request.getRemoteAddr();
+
+        String[] cred = parseBasic(request.getHeader("Authorization"));
+        if (cred == null) {
+            System.out.println("AuthToken mint DENIED (no Basic credential) ip=" + clientIp);
+            writeError(response, 401, "basic credentials required");
+            return;
+        }
+        String username = cred[0];
+        String password = cred[1];
+
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("api.AuthToken.doPost");
         myShepherd.beginDBTransaction();
         try {
-            User user = myShepherd.getUser(request);
-            if (user == null) {
-                writeError(response, 401, "unauthenticated");
+            User user = (Util.stringExists(username)) ? myShepherd.getUser(username) : null;
+            if ((user == null) || !user.checkPassword(password)) {
+                System.out.println("AuthToken mint DENIED (bad credentials) user=" + username
+                    + " ip=" + clientIp);
+                writeError(response, 401, "invalid credentials");
                 return;
             }
             String tokenContext = org.ecocean.CommonConfiguration.getProperty("jwtContext", context);
@@ -44,6 +65,7 @@ public class AuthToken extends ApiBase {
             }
             long ttl = ttlFromConfig(tokenContext);
             String token = jwt.sign(user.getId(), tokenContext, ttl);
+            System.out.println("AuthToken mint OK user=" + username + " ip=" + clientIp);
             JSONObject out = new JSONObject();
             out.put("token", token);
             out.put("tokenType", "Bearer");
@@ -59,12 +81,27 @@ public class AuthToken extends ApiBase {
         }
     }
 
+    /** Parse an HTTP Basic Authorization header into [username, password], or null if absent/invalid. */
+    private static String[] parseBasic(String header) {
+        if (header == null) return null;
+        if (!header.regionMatches(true, 0, "Basic ", 0, 6)) return null;
+        try {
+            String decoded = new String(Base64.getDecoder().decode(header.substring(6).trim()),
+                StandardCharsets.UTF_8);
+            int i = decoded.indexOf(':');
+            if (i < 0) return null;
+            return new String[] { decoded.substring(0, i), decoded.substring(i + 1) };
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
     private long ttlFromConfig(String context) {
         String v = org.ecocean.CommonConfiguration.getProperty("jwtTtlSeconds", context);
         if (Util.stringExists(v)) {
             try {
                 long secs = Long.parseLong(v.trim());
-                // Codex Low: clamp to a sane range (1 min .. 24 h)
+                // clamp to a sane range (1 min .. 24 h)
                 secs = Math.max(60L, Math.min(secs, 24L * 3600L));
                 return secs * 1000L;
             } catch (NumberFormatException ignore) {}

@@ -793,6 +793,7 @@
   "TOOLS": "Herramientas",
   "ZOOM_IN": "Acercar",
   "ZOOM_OUT": "Alejar",
+  "RESET_ZOOM": "Restablecer zoom",
   "WILDBOOK_DOCUMENTATION": "Documentación de Wildbook",
   "SET_MATCH_FOR": "Establecer coincidencia para",
   "NO_FURTHER_ACTION_NEEDED": "No se requiere ninguna acción adicional",

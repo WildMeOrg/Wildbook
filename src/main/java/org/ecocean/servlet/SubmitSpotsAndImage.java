@@ -165,12 +165,20 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	            enc.setSpots(spots);
 	            enc.setLeftReferenceSpots(refSpots);
 	        }
-	        // reset the entry in the GridManager graph
+	        // Build the lite snapshot while the encounter is still managed, then
+	        // update the in-memory match graph AFTER the DB commit so a failed commit
+	        // can't leave the graph inconsistent with the DB and the startup rebuild
+	        // can't overwrite it with pre-commit state. (#1608)
 	        GridManager gm = GridManagerFactory.getGridManager();
-	        gm.addMatchGraphEntry(encId, new EncounterLite(enc));
-	
-	        myShepherd.commitDBTransaction();
+	        EncounterLite updatedLite = new EncounterLite(enc);
+
+	        // Only add to the match graph once the spots are confirmed committed, so
+	        // a swallowed commit failure can't leave a phantom candidate. (#1608)
+	        boolean committed = myShepherd.commitDBTransactionWithStatus();
 	        myShepherd.closeDBTransaction();
+	        if (committed) {
+	            gm.addMatchGraphEntry(encId, updatedLite);
+	        }
 	
 	        JSONObject rtn = new JSONObject("{\"success\": true}");
 	        rtn.put("spotAssetId", crMa.getId());

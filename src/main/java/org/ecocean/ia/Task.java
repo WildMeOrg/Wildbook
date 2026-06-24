@@ -555,55 +555,127 @@ public class Task implements java.io.Serializable {
      * annotation. Used by both the encounter page and the bulk-import
      * page so they cannot disagree about which task they link to.
      *
-     * Precedence — single most-recent-first pass over direct tasks,
-     * checking both renderability tests on each candidate before
-     * moving on (so a newer v2 task wins over an older structural
-     * task, not the other way around):
-     *   1. Most recent direct task that EITHER matches the bulk-
-     *      import structural criteria OR has
-     *      parameters.mlServiceV2Match=true. Covers v2 prospects-
-     *      bearing tasks (even before children exist) and legacy
-     *      WBIA orchestration tasks.
-     *   2. Most recent root task. Legacy behavior for callers whose
-     *      direct tasks predate the structural-criteria pattern.
+     * Loads the annotation's direct tasks (created-DESC) and delegates the
+     * selection to {@link #selectPreferredMatchTask(List, String)} — see that
+     * method's javadoc for the full precedence, the {@code importTaskId}
+     * handling (issue #1624 legacy imports and the v2 ml-service fix), and the
+     * known cross-import limitation.
      *
-     * When {@code importTaskId} is non-null, candidates are first
-     * restricted to tasks whose parameters.importTaskId matches.
-     * The bulk-import page passes its own id so the link stays
-     * frozen on the task from that import even if the user re-runs
-     * ID later from the encounter page.
-     *
-     * Returns null if no renderable task exists.
+     * Returns null if no renderable or root task is usable.
      */
     public static Task getPreferredMatchResultsTaskForAnnotation(Annotation ann,
         String importTaskId, Shepherd myShepherd) {
         List<Task> tasks = getTasksFor(ann, myShepherd, "created DESC");
 
+        return selectPreferredMatchTask(tasks, importTaskId);
+    }
+
+    /**
+     * Pure (no datastore) selection logic behind
+     * {@link #getPreferredMatchResultsTaskForAnnotation}, extracted so it can be
+     * unit-tested with hand-built task graphs. {@code tasks} must be the
+     * annotation's direct tasks in created-DESC (newest-first) order.
+     *
+     * <p>Renderability is evaluated FIRST, across all candidates. A renderable
+     * match task (or v2 match task) is the only kind that owns / leads to a
+     * MatchResult, so {@code importTaskId} must NOT pre-filter the candidate set:
+     * a v2 ml-service import stamps {@code importTaskId} onto its
+     * detection/umbrella task — which is not renderable and owns no results —
+     * while the real per-annotation match tasks are unstamped. Pre-filtering by
+     * {@code importTaskId} (the behavior before this fix) discarded those match
+     * tasks and fell back to the resultless detection root, which made the
+     * bulk-import "Class" column render {@code "{}"} and the Match Results link
+     * open an empty page. See
+     * docs/plans/2026-06-18-bulk-import-match-task-selection-fix.md.</p>
+     *
+     * <p>Precedence:
+     * <ol>
+     *   <li>Renderable match tasks only. Within them, when {@code importTaskId}
+     *       is given: the newest task stamped with THIS import wins; else the
+     *       newest UNSTAMPED task (the v2 case); a task stamped with a DIFFERENT
+     *       import's id is never returned. When {@code importTaskId} is null the
+     *       newest renderable task wins.</li>
+     *   <li>No usable renderable task: root fallback, applying the same
+     *       scoped/legacy {@code importTaskId} partition as before (PR #1625 /
+     *       issue #1624 legacy-import behavior, unchanged).</li>
+     * </ol></p>
+     *
+     * <p>Known limitation: because v2 match tasks are unstamped, an annotation
+     * that participates in more than one import cannot be fully isolated by
+     * {@code importTaskId}; the newest unstamped renderable task is used. A later
+     * re-run from the encounter page likewise supersedes the import's task — same
+     * as the encounter page (unscoped) and the documented legacy behavior. A true
+     * freeze-on-import guarantee would require stamping the match tasks (separate
+     * follow-up).</p>
+     *
+     * <p>Returns null if no renderable or root task is usable.</p>
+     */
+    static Task selectPreferredMatchTask(List<Task> tasks, String importTaskId) {
         if (Util.collectionIsEmptyOrNull(tasks)) return null;
-        if (importTaskId != null) {
-            List<Task> filtered = new ArrayList<Task>();
-            for (Task t : tasks) {
-                JSONObject p = t.getParameters();
-                if ((p != null) && importTaskId.equals(p.optString("importTaskId", null))) {
-                    filtered.add(t);
-                }
+        // A blank importTaskId is not a usable scope; treat it as "unscoped"
+        // so a stray empty string can neither match tasks nor define a
+        // phantom import. (The real caller always passes ImportTask.getId().)
+        if ((importTaskId != null) && importTaskId.trim().isEmpty()) importTaskId = null;
+
+        // Renderability FIRST, across ALL candidates (created-DESC preserved).
+        // Codex C15 round-1 Major: check BOTH renderability tests on each
+        // candidate before moving on, so a newer v2 task without children yet
+        // (e.g. pre-PairX) wins over an older structural task.
+        List<Task> renderable = new ArrayList<Task>();
+        for (Task t : tasks) {
+            if (isRenderableMatchTask(t) || isV2MatchTask(t)) renderable.add(t);
+        }
+        if (!renderable.isEmpty()) {
+            if (importTaskId == null) return renderable.get(0);
+            // Among renderable tasks: THIS import's stamped task wins; else the
+            // newest UNSTAMPED task (the v2 case — match tasks are never
+            // stamped). A task stamped with a DIFFERENT import's id is never
+            // returned (foreign-import isolation, mirrors #1624); if only
+            // foreign renderable tasks exist, fall through to the root logic.
+            Task newestUnstamped = null;
+            for (Task t : renderable) {  // newest-first
+                String tid = importTaskIdOf(t);
+                if (importTaskId.equals(tid)) return t;
+                if ((tid == null) && (newestUnstamped == null)) newestUnstamped = t;
             }
-            tasks = filtered;
-            if (tasks.isEmpty()) return null;
+            if (newestUnstamped != null) return newestUnstamped;
+            // else: every renderable task belongs to another import → fall through
         }
 
-        // Single most-recent-first pass: check BOTH renderability
-        // tests on each candidate before moving on. Codex C15 round-1
-        // Major: a per-tier pass returned an older structural task
-        // when a newer v2 task without children yet (e.g., pre-PairX)
-        // existed — wrong for the "encounter page advances on re-ID"
-        // contract.
-        for (Task t : tasks) {
-            if (isRenderableMatchTask(t) || isV2MatchTask(t)) return t;
+        // No usable renderable task. Root fallback, preserving PR #1625's
+        // scoped/legacy partition for legacy (#1624) imports: prefer this
+        // import's tasks, then its un-stamped tasks; never another import's.
+        List<Task> pool = tasks;
+        if (importTaskId != null) {
+            List<Task> scoped = new ArrayList<Task>();  // tasks belonging to THIS import
+            List<Task> legacy = new ArrayList<Task>();  // tasks with NO importTaskId at all
+            for (Task t : tasks) {
+                String tid = importTaskIdOf(t);
+                if (importTaskId.equals(tid)) {
+                    scoped.add(t);
+                } else if (tid == null) {
+                    legacy.add(t);
+                }
+            }
+            if (!scoped.isEmpty()) {
+                pool = scoped;
+            } else if (!legacy.isEmpty()) {
+                pool = legacy;
+            } else {
+                return null;
+            }
         }
-        List<Task> roots = onlyRoots(tasks);
+        List<Task> roots = onlyRoots(pool);
         if (!roots.isEmpty()) return roots.get(0);
         return null;
+    }
+
+    // The task's importTaskId parameter, or null when absent/blank.
+    private static String importTaskIdOf(Task t) {
+        JSONObject p = t.getParameters();
+        String tid = (p == null) ? null : p.optString("importTaskId", null);
+        if ((tid != null) && tid.trim().isEmpty()) tid = null;  // blank == un-stamped
+        return tid;
     }
 
     // A bare mlServiceV2Match=true flag isn't enough — Task(Task p)
