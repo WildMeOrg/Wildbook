@@ -9,7 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 
 const Sidebar = observer(
-  ({ setFilterPanel, searchQueryId, queryID, tempFormFilters = [], store }) => {
+  ({ setFilterPanel, searchQueryId, queryID = false, store }) => {
     const theme = React.useContext(ThemeContext);
     const [show, setShow] = useState(false);
     const sidebarWidth = 400;
@@ -18,14 +18,17 @@ const Sidebar = observer(
     const handleShow = () => setShow(true);
     const [, setSearchParams] = useSearchParams();
 
-    const num = () => (queryID ? 1 : tempFormFilters.length);
+    const num = () => (queryID ? 1 : store.appliedFilters.length);
 
     const handleCopy = () => {
+      // When viewing a result loaded from a shared query ID, copy that ID;
+      // otherwise copy the ID freshly generated for the current filter search.
+      const idToCopy = queryID || searchQueryId;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard
-          .writeText(searchQueryId)
+          .writeText(idToCopy)
           .then(() => {
-            alert(`Query ID: ${searchQueryId} copied to clipboard!`);
+            alert(`Query ID: ${idToCopy} copied to clipboard!`);
           })
           .catch((err) => {
             console.error("Failed to copy text: ", err);
@@ -111,7 +114,7 @@ const Sidebar = observer(
               </div>
             ) : (
               <div style={{ overflowY: "auto" }}>
-                {tempFormFilters.map((filter, index) => (
+                {store.appliedFilters.map((filter, index) => (
                   <Chip key={index}>{filter}</Chip>
                 ))}
               </div>
@@ -135,21 +138,25 @@ const Sidebar = observer(
               >
                 <FormattedMessage id="FILTER_COPY" defaultMessage={"Copy"} />
               </BrutalismButton>
-              <BrutalismButton
-                onClick={() => {
-                  setFilterPanel(true);
-                  handleClose();
-                }}
-                backgroundColor={theme.primaryColors.primary700}
-                borderColor={theme.primaryColors.primary700}
-                color="white"
-                noArrow={true}
-              >
-                <FormattedMessage
-                  id="FILTER_EDIT_FILTER"
-                  defaultMessage={"Edit"}
-                />
-              </BrutalismButton>
+
+              {!queryID && (
+                <BrutalismButton
+                  onClick={() => {
+                    setFilterPanel(true);
+                    handleClose();
+                  }}
+                  backgroundColor={theme.primaryColors.primary700}
+                  borderColor={theme.primaryColors.primary700}
+                  color="white"
+                  noArrow={true}
+                >
+                  <FormattedMessage
+                    id="FILTER_EDIT_FILTER"
+                    defaultMessage={"Edit"}
+                  />
+                </BrutalismButton>
+              )}
+
               <BrutalismButton
                 borderColor={theme.primaryColors.primary700}
                 color={theme.primaryColors.primary700}

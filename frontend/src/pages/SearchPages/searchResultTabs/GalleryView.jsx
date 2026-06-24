@@ -195,8 +195,12 @@ const GalleryView = observer(({ store, pg = {} }) => {
                     setImgDims((prev) => ({
                       ...prev,
                       [asset.__k]: {
-                        nw: img.naturalWidth,
-                        nh: img.naturalHeight,
+                        // Use the API-reported dimensions (the coordinate frame the
+                        // annotation bounding boxes are stored in), matching the
+                        // modal. The served image may be a resized derivative whose
+                        // naturalWidth differs, which would misplace the boxes.
+                        nw: asset.width || img.naturalWidth,
+                        nh: asset.height || img.naturalHeight,
                         dw: img.clientWidth,
                         dh: img.clientHeight,
                       },

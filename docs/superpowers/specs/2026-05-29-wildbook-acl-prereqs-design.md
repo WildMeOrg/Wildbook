@@ -104,7 +104,7 @@ Each must explicitly enqueue permissions-recompute for the affected encounters (
 
 Net-new, additive. No token/JWT/API-key infrastructure exists today (only Shiro HTTP Basic). Keep this off Artifact A's clean security diff.
 
-### B1 — `POST /api/auth/token` (short-lived token issuance)
+### B1 — `POST /api/v3/auth/token` (short-lived token issuance)
 - Gated by the **existing** Shiro authentication (an already-authenticated user calls it).
 - Mints a short-lived **signed** token. Claims: subject = user UUID, `context`, `iss`, `aud`, `jti`, `exp` (~30–60 min), `iat`. **No** admin/orgAdmin/role claims (privileges are resolved fresh by the kernel per request).
 - Signing: **asymmetric** (decided — the service runs remote). Wildbook holds the private signing key; the remote kernel validates with the public key only, so a kernel compromise cannot mint tokens. Key id in header + rotation support.

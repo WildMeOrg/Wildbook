@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import java.util.StringTokenizer;
 import javax.jdo.Query;
 
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.HttpEntity;
@@ -675,8 +676,22 @@ public class MetricsBot {
     public static String httpGetRemoteText(String url) {
         String responseString = "";
 
-        try {
-            CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        // Bound every phase of the request. Without these the default Apache
+        // HttpClient waits forever: a remote that accepts the TCP connection but
+        // never responds (e.g. an unhealthy WBIA /metrics) wedges this thread
+        // indefinitely. Because refreshMetrics() fetches WBIA metrics *before*
+        // writing the CSV, and scheduleWithFixedDelay only reschedules after a
+        // run returns, one hung call silently kills all future metrics refreshes
+        // and leaves /metrics serving an empty 200.
+        int timeoutMs = 10000; // 10s per phase
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setConnectTimeout(timeoutMs)
+            .setConnectionRequestTimeout(timeoutMs)
+            .setSocketTimeout(timeoutMs)
+            .build();
+
+        try (CloseableHttpClient httpClient =
+            HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()) {
             URIBuilder uriBuilder = new URIBuilder(url);
             URI uri = uriBuilder.build();
             HttpGet request = new HttpGet(uri);

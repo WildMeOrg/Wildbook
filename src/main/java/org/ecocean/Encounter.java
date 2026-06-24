@@ -1242,9 +1242,28 @@ public class Encounter extends Base implements java.io.Serializable {
         setIndividual(indiv);
     }
 
+    /** Enqueue a (deep) reindex of this encounter — refreshes its individual + annotations' ACL.
+     *  Honors skipAutoIndexing so bulk import / deserialization don't storm. */
+    public void enqueueAclReindex() {
+        if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
+        try {
+            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+        } catch (Exception ex) {
+            System.out.println("Encounter.enqueueAclReindex failed for " + this.getId() + ": " + ex);
+        }
+    }
+
     public void setIndividual(MarkedIndividual indiv) {
+        MarkedIndividual old = this.individual;
         if (indiv == null) { this.individual = null; } else { this.individual = indiv; }
         this.refreshAnnotationLiteIndividual();
+        // membership change: refresh this encounter (deep -> its new individual + annotations)
+        // and the OLD individual it left (so the departed encounter is dropped from its ACL).
+        // Only enqueue when membership actually changed; a no-op set (old == indiv) changes nothing.
+        if (old != indiv) {
+            this.enqueueAclReindex();
+            if (old != null) old.enqueueAclReindex();
+        }
     }
 
     public MarkedIndividual getIndividual() {
@@ -3395,6 +3414,32 @@ public class Encounter extends Base implements java.io.Serializable {
         return computeViewUsers(myShepherd);
     }
 
+    /**
+     * Single source of this encounter's OpenSearch ACL fields, reused by the encounter,
+     * annotation, and individual indexing so all three agree. publiclyReadable mirrors
+     * isPubliclyReadable() (security-disabled OR anonymous owner). For a non-public encounter:
+     * submitterUserId is the resolved owner's UUID (absent if the owner is invalid/deleted ->
+     * admin-only/fail-closed), and viewUsers is computeViewUsers() (approved/edit collaborators +
+     * submitter-org orgAdmins). Anonymous-owned -> public; invalid/deleted non-anonymous owner -> closed.
+     * Semantically equivalent to (not byte-identical with) the encounter index's own serialization
+     * (e.g. for a public encounter we omit submitterUserId since publiclyReadable=true already grants);
+     * the ACCESS DECISION is identical, only the stored field set differs harmlessly.
+     */
+    public org.json.JSONObject opensearchAclFields(Shepherd myShepherd) {
+        org.json.JSONObject acl = new org.json.JSONObject();
+        boolean pub = this.isPubliclyReadable();
+        acl.put("publiclyReadable", pub);
+        org.json.JSONArray vu = new org.json.JSONArray();
+        if (!pub) {
+            User submitter = this.getSubmitterUser(myShepherd);
+            if ((submitter != null) && (submitter.getId() != null))
+                acl.put("submitterUserId", submitter.getId());
+            for (String id : this.computeViewUsers(myShepherd)) vu.put(id);
+        }
+        acl.put("viewUsers", vu);
+        return acl;
+    }
+
 /*
     public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
@@ -3663,6 +3708,21 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         query.closeAll();
         return returnEnc;
+    }
+
+    /** All encounters whose annotations contain this annotation (usually 0 or 1; >1 is anomalous). */
+    public static java.util.List<Encounter> findAllByAnnotation(Annotation annot, Shepherd myShepherd) {
+        javax.jdo.Query query = myShepherd.getPM().newQuery(
+            "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id == annId");
+        query.declareParameters("String annId");
+        java.util.List<Encounter> out = new java.util.ArrayList<Encounter>();
+        try {
+            java.util.List results = (java.util.List)query.execute(annot.getId());
+            if (results != null) for (Object o : results) out.add((Encounter)o);
+        } finally {
+            query.closeAll();
+        }
+        return out;
     }
 
     public static Encounter findByAnnotationId(String annid, Shepherd myShepherd) {
@@ -4279,10 +4339,43 @@ public class Encounter extends Base implements java.io.Serializable {
                     }
                 }
                 updateData.put("viewUsers", viewUsers); // always write, incl [] so revocation propagates
+                // Child-reindex change-detection: compare freshly computed viewUsers (as a set) to
+                // what is CURRENTLY indexed. Enqueue the deep child reindex ONLY when the currently
+                // indexed value was READABLE (non-null) and genuinely DIFFERS.
+                // When getIndexedViewUsers returns null (missing doc / unreadable / degraded read) we
+                // do NOT enqueue: the encounter isn't reliably indexed yet, and on a degraded pass a
+                // null-means-changed default would storm child reindexes for every encounter. The
+                // tradeoff is a rare miss for a genuinely-fresh-but-not-yet-readable encounter, which
+                // is recovered by the normal indexing-queue / opensearchIndexDeep path plus the
+                // periodic reconciler / corrective reindex. The encounter's own indexUpdate below is
+                // unconditional, so its viewUsers stays current regardless.
+                boolean childReindexNeeded = false; // only true on a confirmed, readable difference
+                try {
+                    org.json.JSONArray current = os.getIndexedViewUsers("encounter", id);
+                    if (current != null) {
+                        Set<String> currentSet = new java.util.HashSet<String>();
+                        for (int ci = 0; ci < current.length(); ci++) currentSet.add(current.optString(ci, null));
+                        currentSet.remove(null);
+                        Set<String> newSet = new java.util.HashSet<String>();
+                        for (int ni = 0; ni < viewUsers.length(); ni++) newSet.add(viewUsers.optString(ni, null));
+                        newSet.remove(null);
+                        childReindexNeeded = !currentSet.equals(newSet);
+                    }
+                } catch (Exception ex) {
+                    childReindexNeeded = false; // unreadable -> don't storm; recoverable via reconciler
+                }
                 try {
                     os.indexUpdate("encounter", id, updateData);
                 } catch (Exception ex) {
                     viewUsersWriteFailures++; // aggregate only — no per-doc noise during index build
+                }
+                if (childReindexNeeded) {
+                    try {
+                        Encounter enc = myShepherd.getEncounter(id);
+                        if (enc != null) enc.enqueueAclReindex(); // refresh individual + annotations
+                    } catch (Exception ex) {
+                        // best-effort; reconciler / corrective reindex recovers a missed child refresh
+                    }
                 }
             }
         } catch (Exception ex) {

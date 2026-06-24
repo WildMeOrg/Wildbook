@@ -2,13 +2,10 @@ package org.ecocean.grid;
 
 // import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 // import org.ecocean.CommonConfiguration;
-import org.ecocean.Util;
 import org.ecocean.shepherd.core.Shepherd;
 
 // import org.ecocean.servlet.ServletUtilities;
 
-import java.io.IOException;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import org.json.JSONObject;
 
 // import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 
@@ -42,12 +38,6 @@ public class GridManager {
 
     // public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
 
-    // Modified Groth algorithm parameters (optimized via GrothParameterSweepTest)
-    private String epsilon = "0.008";
-    private String R = "6.8";
-    private String Sizelim = "0.671";
-    private String maxTriangleRotation = "22.5";
-    private String C = "1.146";
     private String secondRun = "true";
 
     private static ConcurrentHashMap<String,
@@ -67,7 +57,72 @@ public class GridManager {
     // in-process scan work items that have been checked out and sent to a node
     private ArrayList<ScanWorkItem> underway = new ArrayList<ScanWorkItem>();
 
+    // In-memory progress for the synchronous-engine async scan (GrothScanRunnable):
+    // taskID -> {completedCatalogEncounters, totalCatalogEncounters}. Read by
+    // scanEndApplet.jsp on each 15s poll. Not persisted (the old work-item grid that
+    // backed getNumWorkItemsCompleteForTask is dead). Values are REPLACED on every
+    // update (never mutated in place) so reads on the request thread see them.
+    private final java.util.concurrent.ConcurrentHashMap<String, int[]> scanProgress =
+        new java.util.concurrent.ConcurrentHashMap<String, int[]>();
+
+    // Active-run guard: taskID -> ownershipToken. Prevents a duplicate re-scan from corrupting
+    // the ScanTask lifecycle (a second run could flip finished / clear progress / write result
+    // files out from under the first). There is deliberately NO stale-reclaim: allowing two
+    // concurrent runs for one taskID reintroduces result-file races (a superseded or queued old
+    // run deleting/overwriting a newer run's XML). The owning run always releases the slot in a
+    // finally (endScan), and this map is in-memory so an abrupt JVM death clears it on restart.
+    private final java.util.concurrent.ConcurrentHashMap<String, Long> activeScans =
+        new java.util.concurrent.ConcurrentHashMap<String, Long>();
+    private final java.util.concurrent.atomic.AtomicLong scanTokenSeq =
+        new java.util.concurrent.atomic.AtomicLong(0L);
+
     public GridManager() {}
+
+    /**
+     * Record async-scan progress for a taskID. Replaces the value (no in-place int[]
+     * mutation) so the polling request thread observes the update.
+     */
+    public void setScanProgress(String taskID, int completed, int total) {
+        if (taskID != null) scanProgress.put(taskID, new int[] { completed, total });
+    }
+
+    public int getScanProgressComplete(String taskID) {
+        int[] p = (taskID == null) ? null : scanProgress.get(taskID);
+        return (p == null) ? 0 : p[0];
+    }
+
+    public int getScanProgressTotal(String taskID) {
+        int[] p = (taskID == null) ? null : scanProgress.get(taskID);
+        return (p == null) ? 0 : p[1];
+    }
+
+    public void clearScanProgress(String taskID) {
+        if (taskID != null) scanProgress.remove(taskID);
+    }
+
+    /**
+     * Atomically claim the active-scan slot for taskID. Returns a positive ownership token if
+     * the caller may start a new scan, or 0 if one is already running (caller should redirect
+     * to the existing progress page rather than start a duplicate). The token is passed to
+     * {@link #endScan(String, long)} so the slot is released precisely by its owner.
+     */
+    public long tryStartScan(String taskID) {
+        if (taskID == null) return 0L;
+        long token = scanTokenSeq.incrementAndGet();
+        return (activeScans.putIfAbsent(taskID, Long.valueOf(token)) == null) ? token : 0L;
+    }
+
+    /** True if {@code token} currently owns the active-scan slot for {@code taskID}. */
+    public boolean isScanOwner(String taskID, long token) {
+        if (taskID == null) return false;
+        Long cur = activeScans.get(taskID);
+        return (cur != null) && (cur.longValue() == token);
+    }
+
+    /** Release the active-scan slot only if {@code token} still owns it (atomic, precise). */
+    public void endScan(String taskID, long token) {
+        if (taskID != null) activeScans.remove(taskID, Long.valueOf(token));
+    }
 
     public ArrayList<GridNode> getNodes() {
         return nodes;
@@ -266,26 +321,6 @@ public class GridManager {
         } else {
             return (100 * numCollisions / numCompletedWorkItems);
         }
-    }
-
-    public String getGrothEpsilon() {
-        return epsilon;
-    }
-
-    public String getGrothR() {
-        return R;
-    }
-
-    public String getGrothSizelim() {
-        return Sizelim;
-    }
-
-    public String getGrothMaxTriangleRotation() {
-        return maxTriangleRotation;
-    }
-
-    public String getGrothC() {
-        return C;
     }
 
     public String getGrothSecondRun() {
@@ -666,77 +701,9 @@ public class GridManager {
     }
 
     public void resetMatchGraphWithInitialCapacity(int initialCapacity) {
-        matchGraph = null;
+        // Single assignment: never expose a null matchGraph to concurrent mutators
+        // (servlet add/remove) during a rebuild -- the old null-then-new sequence
+        // had an NPE window. (#1608)
         matchGraph = new ConcurrentHashMap<String, EncounterLite>(initialCapacity);
-    }
-
-    private static final String CACHE_FILEPATH = "WEB-INF/MatchGraphCache.json";
-
-    public static String getCacheFilePath(String dataDir) {
-        return dataDir + "/" + CACHE_FILEPATH;
-    }
-
-    /**
-     * Serialize the matchGraph to a JSONObject for disk caching.
-     */
-    public static JSONObject cacheToJSONObject() {
-        JSONObject root = new JSONObject();
-        root.put("timestamp", System.currentTimeMillis());
-        JSONObject entries = new JSONObject();
-        for (ConcurrentHashMap.Entry<String, EncounterLite> entry : matchGraph.entrySet()) {
-            entries.put(entry.getKey(), entry.getValue().toJSONObject());
-        }
-        root.put("matchGraph", entries);
-        root.put("count", matchGraph.size());
-        return root;
-    }
-
-    /**
-     * Write the matchGraph cache to disk as JSON.
-     */
-    public static void cacheWrite(String filepath) throws IOException {
-        long t = System.currentTimeMillis();
-        System.out.println("INFO: GridManager.cacheWrite() writing to " + filepath);
-        Util.writeToFile(cacheToJSONObject().toString(), filepath);
-        System.out.println("INFO: GridManager.cacheWrite() complete with " + matchGraph.size() +
-            " entries in " + (System.currentTimeMillis() - t) + "ms");
-    }
-
-    /**
-     * Read the matchGraph cache from disk JSON.
-     * Returns true if the cache was loaded successfully, false otherwise.
-     */
-    public static boolean cacheRead(String filepath) throws IOException {
-        long t = System.currentTimeMillis();
-        matchGraphReady = false;
-        String content = Util.readFromFile(filepath);
-        JSONObject root = Util.stringToJSONObject(content);
-        if (root == null) {
-            System.out.println("ERROR: GridManager.cacheRead() could not parse " + filepath);
-            return false;
-        }
-        System.out.println("INFO: GridManager.cacheRead() from " + filepath +
-            " timestamp=" + root.optLong("timestamp"));
-
-        JSONObject entries = root.optJSONObject("matchGraph");
-        if (entries == null || entries.length() < 1) {
-            System.out.println("ERROR: GridManager.cacheRead() empty matchGraph in " + filepath);
-            return false;
-        }
-
-        matchGraph = new ConcurrentHashMap<String, EncounterLite>(entries.length());
-        Iterator<String> keys = entries.keys();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            JSONObject elJson = entries.optJSONObject(key);
-            if (elJson == null) continue;
-            EncounterLite el = EncounterLite.fromJSONObject(elJson);
-            matchGraph.put(key, el);
-        }
-        resetPatternCounts();
-        matchGraphReady = true;
-        System.out.println("INFO: GridManager.cacheRead() complete with " + matchGraph.size() +
-            " entries in " + (System.currentTimeMillis() - t) + "ms");
-        return true;
     }
 }
