@@ -886,9 +886,6 @@ public class StartupWildbook implements ServletContextListener {
         System.out.println("* StartupWildbook destroyed called for: " +
             servletContextInfo(sContext));
 
-        if (CommonConfiguration.useSpotPatternRecognition(context)) {
-            saveMatchGraph(sContext, context);
-        }
         // Stop the WBIA poller first so it does not race teardown of
         // Shepherd / IndexingManager / QueueUtil while a poll cycle is in
         // flight. shutdownWbiaRegisterExecutor signals shutdown by
@@ -938,28 +935,16 @@ public class StartupWildbook implements ServletContextListener {
      * via MatchGraphCreationThread.
      */
     public static void loadMatchGraphOrRebuild(ServletContext sContext, String context) {
-        try {
-            String dataDir = CommonConfiguration.getDataDirectory(sContext, context).getAbsolutePath();
-            String cacheFile = GridManager.getCacheFilePath(dataDir);
-            if (new File(cacheFile).exists() && GridManager.cacheRead(cacheFile)) {
-                System.out.println("INFO: matchGraph loaded from cache.");
-                return;
-            }
-        } catch (Exception e) {
-            System.out.println("WARNING: Could not load matchGraph cache, rebuilding from DB: " +
-                e.getMessage());
-        }
+        // Always rebuild the match graph from the database at startup. The match
+        // graph is the candidate set for Modified-Groth scans; rebuilding from the
+        // DB on every startup guarantees deleted spot maps / encounters cannot
+        // reappear as match candidates (issue #1608). The former
+        // WEB-INF/MatchGraphCache.json startup cache was only refreshed on a
+        // graceful shutdown, so a crash/kill left it stale and the next startup
+        // resurrected deleted spots. setMatchGraphReady(false) up front keeps
+        // scans gated until the rebuild completes.
+        GridManager.setMatchGraphReady(false);
         createMatchGraph();
-    }
-
-    public static void saveMatchGraph(ServletContext sContext, String context) {
-        try {
-            String dataDir = CommonConfiguration.getDataDirectory(sContext, context).getAbsolutePath();
-            String cacheFile = GridManager.getCacheFilePath(dataDir);
-            GridManager.cacheWrite(cacheFile);
-        } catch (Exception e) {
-            System.out.println("WARNING: Could not save matchGraph cache: " + e.getMessage());
-        }
     }
 
     public static boolean skipInit(ServletContextEvent sce, String extra) {

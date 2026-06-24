@@ -3359,6 +3359,30 @@ public class Shepherd {
     }
 
     /**
+     * Commit and report whether the commit actually succeeded. Unlike
+     * {@link #commitDBTransaction()} (which swallows commit failures and returns
+     * void), this returns false if the transaction was inactive or the commit
+     * threw. Callers can use this to avoid mutating in-memory state after a commit
+     * that did not durably persist -- e.g. only update the GridManager match graph
+     * once the encounter change is confirmed committed. (#1608)
+     */
+    public boolean commitDBTransactionWithStatus() {
+        try {
+            if ((pm != null) && pm.currentTransaction().isActive()) {
+                pm.currentTransaction().commit();
+                ShepherdState.setShepherdState(action + "_" + shepherdID, "commit");
+                return true;
+            }
+            System.out.println("commitDBTransactionWithStatus: transaction was not active.");
+            return false;
+        } catch (Exception e) {
+            System.out.println("commitDBTransactionWithStatus: commit failed: " + e);
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
      * Since we call these together all over Wildbook
      */
     public void updateDBTransaction() {
