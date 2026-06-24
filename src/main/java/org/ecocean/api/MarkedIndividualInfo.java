@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.Encounter;
 import org.ecocean.LocationID;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.MultiValue;
@@ -32,7 +33,7 @@ public class MarkedIndividualInfo extends ApiBase {
         if (currentUser == null) {
             response.setStatus(401);
             response.setHeader("Content-Type", "application/json");
-            response.getWriter().write("{\"success\": false}");
+            response.getWriter().write("{\"success\": false, \"statusCode\": 401}");
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
             return;
@@ -47,6 +48,8 @@ public class MarkedIndividualInfo extends ApiBase {
         if (args[0].equals("individuals") && args[1].equals("info")) {
             if (args[2].equals("next_name")) {
                 results = getNextNames(myShepherd, request, currentUser);
+            } else if (args[2].equals("social-data")) {
+                results = getSocialData(myShepherd, request, currentUser);
             }
         }
 
@@ -56,6 +59,34 @@ public class MarkedIndividualInfo extends ApiBase {
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(results.toString());
+    }
+
+    private JSONObject getSocialData(Shepherd myShepherd, HttpServletRequest request, User user) {
+        JSONObject rtn = new JSONObject();
+        rtn.put("success", false);
+        String id = request.getParameter("id");
+        if (!Util.stringExists(id)) {
+            rtn.put("statusCode", 400);
+            rtn.put("error", "missing id");
+            return rtn;
+        }
+        MarkedIndividual indiv = myShepherd.getMarkedIndividual(id.trim());
+        if (indiv == null) {
+            rtn.put("statusCode", 404);
+            rtn.put("error", "not found");
+            return rtn;
+        }
+        if (!indiv.canUserView(user, myShepherd)) {
+            rtn.put("statusCode", 403);
+            rtn.put("error", "access denied");
+            return rtn;
+        }
+        rtn.put("individualId", indiv.getId());
+        rtn.put("encounters", new JSONArray());
+        rtn.put("relationships", new JSONArray());
+        rtn.put("success", true);
+        rtn.put("statusCode", 200);
+        return rtn;
     }
 
     private JSONObject getNextNames(Shepherd myShepherd, HttpServletRequest request, User user) {
