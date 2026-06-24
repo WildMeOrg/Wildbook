@@ -438,11 +438,14 @@ public class ImportTask implements java.io.Serializable {
                 }
                 latestTask = false;
             }
-            // C15: pick the bulk-import-scoped match task via the shared
-            // selector so this page and the encounter page agree on which
-            // task they link to. Filtering by importTaskId keeps the
-            // bulk-import link frozen on this import's task even if the
-            // user re-runs ID later from the encounter page.
+            // C15: pick the bulk-import match task via the shared selector so
+            // this page and the encounter page agree on which task they link to.
+            // The selector scopes to this importTaskId when the import has a
+            // stamped renderable task; for v2 ml-service imports the match tasks
+            // are unstamped, so it follows the newest usable unstamped renderable
+            // task instead (a later encounter-page re-ID can supersede it). See
+            // Task.selectPreferredMatchTask javadoc for the full precedence and
+            // the cross-import limitation.
             if (encId != null) {
                 Task preferred = Task.getPreferredMatchResultsTaskForAnnotation(
                     ann, this.getId(), myShepherd);
