@@ -18,6 +18,7 @@ import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.Occurrence;
 import org.ecocean.Role;
 import org.ecocean.User;
 import org.ecocean.genetics.TissueSample;
@@ -59,6 +60,17 @@ class MarkedIndividualInfoTest {
     static String indivWithTissueAndAnnotId;
     // individual with mixed encounters: one private (owner-only) + one public
     static String mixedIndivId;
+
+    // occurringWith security test fields
+    // focalOwner is reused as the focal individual's owner (seededOwner)
+    // focalIndivIdInSharedOcc: focal owned by focalOwner; companion encounter owned by stranger
+    static String focalIndivIdInSharedOcc;
+    static String hiddenCompanionDisplayName;
+    // focalIndivIdWithViewableCompanion: focal + companion both viewable by focalOwner
+    static String focalIndivIdWithViewableCompanion;
+    static String viewableCompanionDisplayName;
+    // alias so test methods read naturally (same object as seededOwner)
+    static User focalOwner;
 
     @BeforeAll
     static void setUp() throws Exception {
@@ -138,6 +150,66 @@ class MarkedIndividualInfoTest {
             MarkedIndividual indivTA = new MarkedIndividual("TissueAnnotIndividual", encTA);
             sh.storeNewMarkedIndividual(indivTA);
             indivWithTissueAndAnnotId = indivTA.getId();
+
+            // focalOwner alias
+            focalOwner = seededOwner;
+
+            // --- occurringWith security test: hidden companion ---
+            // Focal encounter owned by seededOwner; companion encounter owned by stranger.
+            // seededOwner cannot view stranger's encounter (no collaboration).
+            Encounter focalEncHidden = new Encounter();
+            focalEncHidden.setSubmitterID(seededOwnerUsername);
+            sh.storeNewEncounter(focalEncHidden);
+
+            Encounter hiddenCompanionEnc = new Encounter();
+            hiddenCompanionEnc.setSubmitterID(strangerUsername);
+            sh.storeNewEncounter(hiddenCompanionEnc);
+
+            hiddenCompanionDisplayName = "HiddenCompanion";
+            MarkedIndividual hiddenCompanionIndiv = new MarkedIndividual(hiddenCompanionDisplayName,
+                hiddenCompanionEnc);
+            // set back-reference so coEnc.getIndividual() works when loaded from occurrence
+            hiddenCompanionEnc.setIndividual(hiddenCompanionIndiv);
+            sh.storeNewMarkedIndividual(hiddenCompanionIndiv);
+
+            MarkedIndividual focalIndivHidden = new MarkedIndividual("FocalForHiddenOcc",
+                focalEncHidden);
+            focalEncHidden.setIndividual(focalIndivHidden);
+            sh.storeNewMarkedIndividual(focalIndivHidden);
+            focalIndivIdInSharedOcc = focalIndivHidden.getId();
+
+            Occurrence occHidden = new Occurrence("occ-hidden-companion-001");
+            occHidden.addEncounterAndUpdateIt(focalEncHidden);
+            occHidden.addEncounterAndUpdateIt(hiddenCompanionEnc);
+            sh.storeNewOccurrence(occHidden);
+
+            // --- occurringWith viewable companion test ---
+            // Both focal and companion encounters owned by seededOwner (fully viewable).
+            Encounter focalEncViewable = new Encounter();
+            focalEncViewable.setSubmitterID(seededOwnerUsername);
+            sh.storeNewEncounter(focalEncViewable);
+
+            Encounter viewableCompanionEnc = new Encounter();
+            viewableCompanionEnc.setSubmitterID(seededOwnerUsername);
+            sh.storeNewEncounter(viewableCompanionEnc);
+
+            viewableCompanionDisplayName = "ViewableCompanion";
+            MarkedIndividual viewableCompanionIndiv = new MarkedIndividual(viewableCompanionDisplayName,
+                viewableCompanionEnc);
+            // set back-reference so coEnc.getIndividual() works when loaded from occurrence
+            viewableCompanionEnc.setIndividual(viewableCompanionIndiv);
+            sh.storeNewMarkedIndividual(viewableCompanionIndiv);
+
+            MarkedIndividual focalIndivViewable = new MarkedIndividual("FocalForViewableOcc",
+                focalEncViewable);
+            focalEncViewable.setIndividual(focalIndivViewable);
+            sh.storeNewMarkedIndividual(focalIndivViewable);
+            focalIndivIdWithViewableCompanion = focalIndivViewable.getId();
+
+            Occurrence occViewable = new Occurrence("occ-viewable-companion-001");
+            occViewable.addEncounterAndUpdateIt(focalEncViewable);
+            occViewable.addEncounterAndUpdateIt(viewableCompanionEnc);
+            sh.storeNewOccurrence(occViewable);
 
             sh.commitDBTransaction();
         } catch (Exception e) {
@@ -253,6 +325,14 @@ class MarkedIndividualInfoTest {
                         when(mock.doesUserHaveRole(anyString(), anyString(), anyString()))
                             .thenAnswer(inv -> backingShepherd.doesUserHaveRole(
                                 inv.getArgument(0), inv.getArgument(1), inv.getArgument(2)));
+
+                        // Delegate getOccurrence so occurringWith can load co-occurrences
+                        when(mock.getOccurrence(anyString()))
+                            .thenAnswer(inv -> backingShepherd.getOccurrence(
+                                (String) inv.getArgument(0)));
+                        when(mock.getOccurrence(any(Encounter.class)))
+                            .thenAnswer(inv -> backingShepherd.getOccurrence(
+                                (Encounter) inv.getArgument(0)));
                     })) {
 
                 new MarkedIndividualInfo().doGet(req, resp);
@@ -320,5 +400,23 @@ class MarkedIndividualInfoTest {
         JSONObject j = invoke(seededOwner, indivWithTissueAndAnnotId);
         String dt = j.getJSONArray("encounters").getJSONObject(0).getString("dataTypes");
         assertEquals("both", dt);
+    }
+
+    @Test
+    void occurringWithExcludesNonViewableCompanion() throws Exception {
+        JSONObject j = invoke(focalOwner, focalIndivIdInSharedOcc);
+        org.json.JSONArray encs = j.getJSONArray("encounters");
+        for (int i = 0; i < encs.length(); i++) {
+            String ow = encs.getJSONObject(i).optString("occurringWith", "");
+            assertFalse(ow.contains(hiddenCompanionDisplayName),
+                "non-viewable companion must not leak into occurringWith");
+        }
+    }
+
+    @Test
+    void occurringWithIncludesViewableCompanion() throws Exception {
+        JSONObject j = invoke(focalOwner, focalIndivIdWithViewableCompanion);
+        String ow = j.getJSONArray("encounters").getJSONObject(0).optString("occurringWith", "");
+        assertTrue(ow.contains(viewableCompanionDisplayName));
     }
 }

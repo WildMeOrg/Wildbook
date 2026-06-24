@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.ecocean.Occurrence;
+
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Encounter;
@@ -85,6 +87,7 @@ public class MarkedIndividualInfo extends ApiBase {
         }
         rtn.put("individualId", indiv.getId());
         Map<String, Boolean> encViewCache = new HashMap<String, Boolean>();
+        Map<String, String> occCache = new HashMap<String, String>();
         JSONArray encArr = new JSONArray();
         if (indiv.getEncounters() != null) {
             for (Encounter enc : indiv.getEncounters()) {
@@ -102,6 +105,7 @@ public class MarkedIndividualInfo extends ApiBase {
                 e.put("behavior", enc.getBehavior());
                 e.put("alternateid", enc.getAlternateID());
                 e.put("dataTypes", computeDataTypes(enc));
+                e.put("occurringWith", occurringWith(enc, indiv, user, myShepherd, encViewCache, occCache));
                 encArr.put(e);
             }
         }
@@ -173,6 +177,33 @@ public class MarkedIndividualInfo extends ApiBase {
         return rtn;
     }
 
+
+    // ACL-correct co-occurrence: per the spec, a companion is included ONLY if the
+    // companion's own encounter in the occurrence passes enc.canUserView — never
+    // occurrence-level auth (which admits an occurrence if ANY encounter is viewable).
+    private String occurringWith(Encounter enc, MarkedIndividual focal, User user,
+        Shepherd myShepherd, Map<String, Boolean> encViewCache, Map<String, String> occCache) {
+        String occId = enc.getOccurrenceID();
+        if (occId == null) return "";
+        String memo = occCache.get(occId);
+        if (memo != null) return memo;
+        Occurrence occ = enc.getOccurrence(myShepherd);
+        String focalId = focal.getId();
+        java.util.LinkedHashSet<String> names = new java.util.LinkedHashSet<String>();
+        if ((occ != null) && (occ.getEncounters() != null)) {
+            for (Encounter coEnc : occ.getEncounters()) {
+                MarkedIndividual coInd = coEnc.getIndividual();
+                if (coInd == null) continue;
+                if ((focalId != null) && focalId.equals(coInd.getIndividualID())) continue;
+                if (!encCanView(coEnc, user, myShepherd, encViewCache)) continue;
+                String dn = coInd.getDisplayName();
+                if (Util.stringExists(dn)) names.add(dn);
+            }
+        }
+        String joined = String.join(", ", names);
+        occCache.put(occId, joined);
+        return joined;
+    }
 
     private boolean encCanView(Encounter enc, User user, Shepherd myShepherd,
         Map<String, Boolean> cache) {
