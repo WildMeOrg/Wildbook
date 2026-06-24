@@ -367,14 +367,53 @@ public class MlServiceProcessor {
                 double[] bbox = parseBbox(result.getJSONArray("bbox"));
                 double theta = result.getDouble("theta");
                 String[] mv = parseEmbeddingMethodVersion(result);
-                // Resolve the iaClass once, up front: the model-native class
-                // from the response, then the IA.json _save_as remap (parity
-                // with legacy IBEISIA detection, IBEISIA.java:1234,2150) so the
-                // annotation carries the catalog-stored class that
+                // Resolve the iaClass up front, then the IA.json _save_as remap
+                // (parity with legacy IBEISIA detection, IBEISIA.java:1234,2150)
+                // so the annotation carries the catalog-stored class that
                 // Annotation.getMatchingSetQuery filters match candidates on.
+                // Prefer a true species-classifier's class (the pipeline puts it
+                // on top-level "iaClass" via top_species), then legacy
+                // "class_name"/"class".
                 String rawIaClass = result.optString("iaClass",
                     result.optString("class_name", result.optString("class", null)));
                 String iaClass = applySaveAs(iaConf, taxy, rawIaClass);
+                // Fallback: when the classifier gave us nothing -- e.g. a
+                // viewpoint-only classifier like whale shark's
+                // msv2_multilabel_flip -- use the DETECTOR's own class
+                // ("detection_class"), mirroring legacy WBIA which read
+                // iaResult.optString("class"). Without a class the box is
+                // stamped null and binAnnotsByIaClass (IA.java) drops it from
+                // matching. Gate this fallback on validity so a misconfigured
+                // detector's garbage class is NOT stamped where we'd otherwise
+                // (correctly) leave null. NB: never read the nested
+                // "classification.class" -- that is a viewpoint label
+                // (e.g. "species:back"), not an iaClass.
+                if (!Util.stringExists(iaClass)) {
+                    String detRaw = result.optString("detection_class", null);
+                    String detMapped = applySaveAs(iaConf, taxy, detRaw);
+                    // Require a taxonomy we can validate against: if we cannot
+                    // confirm the detector class is a real iaClass, leave null
+                    // (the old, safe behavior) rather than trust a bare label.
+                    if (Util.stringExists(detMapped) && (iaConf != null) && (taxy != null)
+                        && iaConf.isValidIAClass(taxy, detMapped)) {
+                        rawIaClass = detRaw;
+                        iaClass = detMapped;
+                    } else if (Util.stringExists(detRaw)) {
+                        System.out.println(
+                            "WARNING: MlServiceProcessor.persistDetections ignoring detection_class '" +
+                            detRaw + "' (maps to '" + detMapped + "') -- not a valid iaClass for " +
+                            "taxonomy " + taxy + "; leaving iaClass null.");
+                    }
+                }
+                // WBIA parity (IBEISIA.convertAnnotation): warn on a class that
+                // is not valid for this taxonomy but still persist it (non-fatal).
+                if (Util.stringExists(iaClass) && (iaConf != null) && (taxy != null)
+                    && !iaConf.isValidIAClass(taxy, iaClass)) {
+                    System.out.println(
+                        "WARNING: MlServiceProcessor.persistDetections resolved iaClass '" +
+                        iaClass + "' not valid for taxonomy " + taxy + " (raw='" + rawIaClass +
+                        "'); persisting anyway.");
+                }
                 Annotation existing = findExistingAnnotation(ma, bbox, theta);
                 if (existing != null) {
                     // Dedup hit: an annotation with this bbox+theta already
@@ -391,22 +430,50 @@ public class MlServiceProcessor {
                         shep.getPM().makePersistent(emb);
                         existing.setVersion();
                     }
-                    // Self-heal an annotation persisted by the pre-_save_as
-                    // build: if its stored class is exactly the raw model class
-                    // that we now remap to something else, restamp it so it
-                    // matches the catalog. Guarded to the raw==stored case so a
-                    // legitimately different class is never clobbered.
+                    // Self-heal a reused annotation's iaClass when we now have a
+                    // better value. Two cases, both guarded so a legitimately
+                    // different stored class is never clobbered:
+                    //  (a) it has NO class (e.g. persisted before the
+                    //      detection_class fallback existed) -- stamp the freshly
+                    //      resolved class so binAnnotsByIaClass stops dropping it;
+                    //  (b) pre-_save_as row: stored class is exactly the raw
+                    //      model class we now remap to something else.
                     // setIAClass() bumps VERSION (OpenSearch reindex).
-                    if (Util.stringExists(rawIaClass) && rawIaClass.equals(existing.getIAClass())
-                        && !rawIaClass.equals(iaClass)) {
-                        existing.setIAClass(iaClass);
+                    if (Util.stringExists(iaClass) && !iaClass.equals(existing.getIAClass())) {
+                        boolean existingHasNoClass = !Util.stringExists(existing.getIAClass());
+                        boolean preSaveAsRow = Util.stringExists(rawIaClass)
+                            && rawIaClass.equals(existing.getIAClass());
+                        if (existingHasNoClass || preSaveAsRow) {
+                            existing.setIAClass(iaClass);
+                        }
                     }
                     annotationIds.add(existing.getId());
                     continue;
                 }
 
-                JSONObject featureParams = featureParams(bbox, theta,
-                    result.optString("viewpoint", null));
+                // Viewpoint: prefer an explicit result "viewpoint"; otherwise
+                // fall back to the orientation model's label (e.g. whale shark's
+                // whaleshark_v3 -> "left"/"right"). The pipeline only sets a
+                // top-level "viewpoint" from a classifier 'viewpoint' field,
+                // which viewpoint-less classifiers (msv2_multilabel_flip) do not
+                // provide -- leaving it null. Whale-shark matching DOES filter
+                // the candidate set on viewpoint (getMatchingSetQuery via
+                // getViewpointAndNeighbors), and the catalog's viewpoints are
+                // left/right, so without this the box matches across both sides.
+                String viewpoint = result.optString("viewpoint", null);
+                if (!Util.stringExists(viewpoint)) {
+                    JSONObject orientation = result.optJSONObject("orientation");
+                    if (orientation != null) {
+                        String label = orientation.optString("label", null);
+                        // Only adopt a fallback viewpoint Wildbook understands
+                        // (Annotation.VALID_VIEWPOINTS); a stray orientation
+                        // label would never match getViewpointAndNeighbors.
+                        if (Util.stringExists(label) && Annotation.isValidViewpoint(label)) {
+                            viewpoint = label;
+                        }
+                    }
+                }
+                JSONObject featureParams = featureParams(bbox, theta, viewpoint);
                 Feature feature = new Feature(BOUNDING_BOX_FEATURE, featureParams);
                 Annotation ann = new Annotation(null, feature, iaClass);
                 ann.setAcmId(ann.getId());
@@ -414,7 +481,7 @@ public class MlServiceProcessor {
                 ann.setIdentificationStatus(IBEISIA.STATUS_COMPLETE_MLSERVICE);
                 ann.setWbiaRegistered(Boolean.FALSE);
                 ann.setWbiaRegisterAttempts(0);
-                ann.setViewpoint(result.optString("viewpoint", null));
+                ann.setViewpoint(viewpoint);
                 ann.setQuality(optionalFiniteDouble(result, "score",
                     optionalFiniteDouble(result, "confidence", null)));
 
