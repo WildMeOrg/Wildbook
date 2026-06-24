@@ -77,6 +77,13 @@ class MarkedIndividualInfoTest {
     static String focalIndivWithHiddenPartnerRel;
     static String hiddenPartnerId;
 
+    // large-individual memoization test fields
+    // focal with 3 own encounters in a large occurrence (4 co-occurring encounters by stranger)
+    // + a relationship to a partner with 3 encounters (all owned by focalOwner → all viewable)
+    static String largeFocalIndivId;
+    static int largeFocalExpectedEncCount;  // encounters owner can view
+    static int largeFocalExpectedRelCount;  // relationships with viewable partner
+
     @BeforeAll
     static void setUp() throws Exception {
         Properties cc = new Properties();
@@ -253,6 +260,74 @@ class MarkedIndividualInfoTest {
             org.ecocean.social.Relationship hiddenRel = new org.ecocean.social.Relationship(
                 "associate", hiddenRelFocal, hiddenPartner);
             sh.getPM().makePersistent(hiddenRel);
+
+            // --- large-individual memoization test ---
+            // Focal individual has 3 encounters (all owned by seededOwner, all viewable).
+            // They all appear in one large occurrence that also contains 4 companion encounters:
+            //   2 owned by seededOwner (viewable → appear in occurringWith)
+            //   2 owned by stranger    (not viewable → suppressed by encCanView memoization)
+            // The focal also has one relationship to a partner with 3 encounters (all owner-owned).
+            // This exercises the encCanView + occCache + partnerCanView memoized paths.
+
+            // Focal encounters (all viewable by owner)
+            Encounter lfe1 = new Encounter(); lfe1.setSubmitterID(seededOwnerUsername); sh.storeNewEncounter(lfe1);
+            Encounter lfe2 = new Encounter(); lfe2.setSubmitterID(seededOwnerUsername); sh.storeNewEncounter(lfe2);
+            Encounter lfe3 = new Encounter(); lfe3.setSubmitterID(seededOwnerUsername); sh.storeNewEncounter(lfe3);
+
+            MarkedIndividual largeFocal = new MarkedIndividual("LargeFocal", lfe1);
+            largeFocal.addEncounter(lfe2);
+            largeFocal.addEncounter(lfe3);
+            lfe1.setIndividual(largeFocal);
+            lfe2.setIndividual(largeFocal);
+            lfe3.setIndividual(largeFocal);
+            sh.storeNewMarkedIndividual(largeFocal);
+            largeFocalIndivId = largeFocal.getId();
+            largeFocalExpectedEncCount = 3; // owner sees all 3 focal encounters
+
+            // 2 viewable companion encounters (owned by seededOwner)
+            Encounter lce1 = new Encounter(); lce1.setSubmitterID(seededOwnerUsername); sh.storeNewEncounter(lce1);
+            Encounter lce2 = new Encounter(); lce2.setSubmitterID(seededOwnerUsername); sh.storeNewEncounter(lce2);
+            MarkedIndividual largeCompanionA = new MarkedIndividual("LargeCompanionA", lce1);
+            lce1.setIndividual(largeCompanionA);
+            sh.storeNewMarkedIndividual(largeCompanionA);
+            MarkedIndividual largeCompanionB = new MarkedIndividual("LargeCompanionB", lce2);
+            lce2.setIndividual(largeCompanionB);
+            sh.storeNewMarkedIndividual(largeCompanionB);
+
+            // 2 hidden companion encounters (owned by stranger — not viewable by owner)
+            Encounter lch1 = new Encounter(); lch1.setSubmitterID(strangerUsername); sh.storeNewEncounter(lch1);
+            Encounter lch2 = new Encounter(); lch2.setSubmitterID(strangerUsername); sh.storeNewEncounter(lch2);
+            MarkedIndividual largeHiddenC = new MarkedIndividual("LargeHiddenC", lch1);
+            lch1.setIndividual(largeHiddenC);
+            sh.storeNewMarkedIndividual(largeHiddenC);
+            MarkedIndividual largeHiddenD = new MarkedIndividual("LargeHiddenD", lch2);
+            lch2.setIndividual(largeHiddenD);
+            sh.storeNewMarkedIndividual(largeHiddenD);
+
+            // Large occurrence: focal encounters + all 4 companions (3+4=7 total)
+            Occurrence largeOcc = new Occurrence("occ-large-memoization-001");
+            largeOcc.addEncounterAndUpdateIt(lfe1);
+            largeOcc.addEncounterAndUpdateIt(lfe2);
+            largeOcc.addEncounterAndUpdateIt(lfe3);
+            largeOcc.addEncounterAndUpdateIt(lce1);
+            largeOcc.addEncounterAndUpdateIt(lce2);
+            largeOcc.addEncounterAndUpdateIt(lch1);
+            largeOcc.addEncounterAndUpdateIt(lch2);
+            sh.storeNewOccurrence(largeOcc);
+
+            // Relationship partner with 3 encounters (all owner-owned → viewable)
+            Encounter lpe1 = new Encounter(); lpe1.setSubmitterID(seededOwnerUsername); sh.storeNewEncounter(lpe1);
+            Encounter lpe2 = new Encounter(); lpe2.setSubmitterID(seededOwnerUsername); sh.storeNewEncounter(lpe2);
+            Encounter lpe3 = new Encounter(); lpe3.setSubmitterID(seededOwnerUsername); sh.storeNewEncounter(lpe3);
+            MarkedIndividual largePartner = new MarkedIndividual("LargePartner", lpe1);
+            largePartner.addEncounter(lpe2);
+            largePartner.addEncounter(lpe3);
+            sh.storeNewMarkedIndividual(largePartner);
+            largeFocalExpectedRelCount = 1;
+
+            org.ecocean.social.Relationship largeRel = new org.ecocean.social.Relationship(
+                "associate", largeFocal, largePartner);
+            sh.getPM().makePersistent(largeRel);
 
             sh.commitDBTransaction();
         } catch (Exception e) {
@@ -493,5 +568,48 @@ class MarkedIndividualInfoTest {
             String pid = rels.getJSONObject(i).getJSONObject("partner").getString("individualID");
             assertNotEquals(hiddenPartnerId, pid);
         }
+    }
+
+    /**
+     * Large-individual memoization test.
+     *
+     * Focal has 3 owner-viewable encounters in a 7-encounter occurrence (4 companions:
+     * 2 viewable + 2 hidden).  A relationship to a partner with 3 encounters exercises
+     * partnerCanView memoization.  The test asserts:
+     *   1. HTTP 200.
+     *   2. Exactly {@code largeFocalExpectedEncCount} (3) encounters returned.
+     *   3. occurringWith on every returned encounter includes the 2 viewable companions
+     *      but NOT the 2 hidden ones (hidden names start with "LargeHidden").
+     *   4. Exactly {@code largeFocalExpectedRelCount} (1) relationship returned.
+     *   5. The relationship partner is "LargePartner".
+     */
+    @Test void largeIndividualAssemblesCorrectly() throws Exception {
+        JSONObject j = invoke(focalOwner, largeFocalIndivId);
+        assertEquals(200, j.optInt("statusCode"),
+            "Owner must get 200 for large focal; got: " + j);
+
+        org.json.JSONArray encs = j.getJSONArray("encounters");
+        assertEquals(largeFocalExpectedEncCount, encs.length(),
+            "Owner must see exactly all 3 focal encounters");
+
+        // Every returned encounter must include the 2 viewable companions and exclude hidden ones
+        for (int i = 0; i < encs.length(); i++) {
+            String ow = encs.getJSONObject(i).optString("occurringWith", "");
+            assertTrue(ow.contains("LargeCompanionA"),
+                "occurringWith must include viewable companion A; enc[" + i + "].occurringWith=" + ow);
+            assertTrue(ow.contains("LargeCompanionB"),
+                "occurringWith must include viewable companion B; enc[" + i + "].occurringWith=" + ow);
+            assertFalse(ow.contains("LargeHiddenC"),
+                "occurringWith must NOT include hidden companion C; enc[" + i + "].occurringWith=" + ow);
+            assertFalse(ow.contains("LargeHiddenD"),
+                "occurringWith must NOT include hidden companion D; enc[" + i + "].occurringWith=" + ow);
+        }
+
+        org.json.JSONArray rels = j.getJSONArray("relationships");
+        assertEquals(largeFocalExpectedRelCount, rels.length(),
+            "Owner must see exactly 1 relationship");
+        String partnerDisplayName = rels.getJSONObject(0).getJSONObject("partner").optString("displayName", "");
+        assertEquals("LargePartner", partnerDisplayName,
+            "Relationship partner must be LargePartner");
     }
 }
