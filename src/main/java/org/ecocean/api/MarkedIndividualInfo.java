@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.ecocean.Occurrence;
+import org.ecocean.social.Relationship;
 
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
@@ -110,7 +111,13 @@ public class MarkedIndividualInfo extends ApiBase {
             }
         }
         rtn.put("encounters", encArr);
-        rtn.put("relationships", new JSONArray());
+        Map<String, Boolean> partnerViewCache = new HashMap<String, Boolean>();
+        JSONArray relArr = new JSONArray();
+        for (Relationship rel : myShepherd.getAllRelationshipsForMarkedIndividual(indiv.getId())) {
+            JSONObject row = relationshipRow(rel, indiv, user, myShepherd, partnerViewCache);
+            if (row != null) relArr.put(row);
+        }
+        rtn.put("relationships", relArr);
         rtn.put("success", true);
         rtn.put("statusCode", 200);
         return rtn;
@@ -231,6 +238,65 @@ public class MarkedIndividualInfo extends ApiBase {
             return "image";
         }
         return "";
+    }
+
+    private JSONObject relationshipRow(Relationship rel, MarkedIndividual focal, User user,
+        Shepherd myShepherd, Map<String, Boolean> partnerViewCache) {
+        MarkedIndividual partner = rel.getOtherMarkedIndividual(focal);
+        if (partner == null) { // object link not populated; fall back to non-self name
+            String focalId = focal.getId();
+            String n1 = rel.getMarkedIndividualName1();
+            String n2 = rel.getMarkedIndividualName2();
+            String otherName = null;
+            if ((n1 != null) && !n1.equals(focalId)) otherName = n1;
+            else if ((n2 != null) && !n2.equals(focalId)) otherName = n2;
+            if (otherName != null) partner = myShepherd.getMarkedIndividual(otherName);
+        }
+        if (partner == null) return null;
+        if (!partnerCanView(partner, user, myShepherd, partnerViewCache)) return null;
+
+        JSONObject r = new JSONObject();
+        r.put("_id", relationshipDatastoreId(rel));
+        r.put("type", rel.getType());
+        r.put("relatedSocialUnitName", rel.getRelatedSocialUnitName());
+        r.put("markedIndividualName1", rel.getMarkedIndividualName1());
+        r.put("markedIndividualName2", rel.getMarkedIndividualName2());
+        r.put("markedIndividualRole1", rel.getMarkedIndividualRole1());
+        r.put("markedIndividualRole2", rel.getMarkedIndividualRole2());
+        r.put("startTime", rel.getStartTime());
+        r.put("endTime", rel.getEndTime());
+
+        JSONObject p = new JSONObject();
+        p.put("individualID", partner.getIndividualID());
+        p.put("displayName", partner.getDisplayName());
+        p.put("nickName", partner.getNickName());
+        p.put("alternateid", partner.getAlternateID());
+        p.put("sex", partner.getSex());
+        p.put("localHaplotypeReflection", partner.getHaplotype());
+        r.put("partner", p);
+        return r;
+    }
+
+    private boolean partnerCanView(MarkedIndividual partner, User user, Shepherd myShepherd,
+        Map<String, Boolean> cache) {
+        String pid = partner.getId();
+        if (pid == null) return partner.canUserView(user, myShepherd);
+        Boolean cached = cache.get(pid);
+        if (cached != null) return cached.booleanValue();
+        boolean v = partner.canUserView(user, myShepherd);
+        cache.put(pid, v);
+        return v;
+    }
+
+    // Emits the DataNucleus datastore-identity string in the legacy `_id` form, so the
+    // retained edit/remove buttons (which append "[OID]org.ecocean.social.Relationship")
+    // resolve the same row via getObjectById. Verified by relationshipIdRoundTripsThroughGetObjectById.
+    private String relationshipDatastoreId(Relationship rel) {
+        Object oid = javax.jdo.JDOHelper.getObjectId(rel);
+        if (oid == null) return null;
+        String s = oid.toString();
+        int idx = s.indexOf("[OID]");
+        return (idx > -1) ? s.substring(0, idx) : s;
     }
 
 /* from matchResults.jsp ...

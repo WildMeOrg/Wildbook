@@ -72,6 +72,11 @@ class MarkedIndividualInfoTest {
     // alias so test methods read naturally (same object as seededOwner)
     static User focalOwner;
 
+    // relationship test fields
+    static String focalIndivWithViewableRel;
+    static String focalIndivWithHiddenPartnerRel;
+    static String hiddenPartnerId;
+
     @BeforeAll
     static void setUp() throws Exception {
         Properties cc = new Properties();
@@ -211,6 +216,44 @@ class MarkedIndividualInfoTest {
             occViewable.addEncounterAndUpdateIt(viewableCompanionEnc);
             sh.storeNewOccurrence(occViewable);
 
+            // --- relationship test: viewable partner ---
+            // focal individual with encounter owned by seededOwner; partner also owned by seededOwner
+            Encounter relFocalEnc = new Encounter();
+            relFocalEnc.setSubmitterID(seededOwnerUsername);
+            sh.storeNewEncounter(relFocalEnc);
+            MarkedIndividual relFocal = new MarkedIndividual("RelFocal", relFocalEnc);
+            sh.storeNewMarkedIndividual(relFocal);
+            focalIndivWithViewableRel = relFocal.getId();
+
+            Encounter viewablePartnerEnc = new Encounter();
+            viewablePartnerEnc.setSubmitterID(seededOwnerUsername);
+            sh.storeNewEncounter(viewablePartnerEnc);
+            MarkedIndividual viewablePartner = new MarkedIndividual("ViewablePartner", viewablePartnerEnc);
+            sh.storeNewMarkedIndividual(viewablePartner);
+
+            org.ecocean.social.Relationship viewableRel = new org.ecocean.social.Relationship(
+                "mother-calf", relFocal, viewablePartner, "mother", "calf");
+            sh.getPM().makePersistent(viewableRel);
+
+            // --- relationship test: hidden partner (owned by stranger, not viewable by focalOwner) ---
+            Encounter hiddenRelFocalEnc = new Encounter();
+            hiddenRelFocalEnc.setSubmitterID(seededOwnerUsername);
+            sh.storeNewEncounter(hiddenRelFocalEnc);
+            MarkedIndividual hiddenRelFocal = new MarkedIndividual("HiddenRelFocal", hiddenRelFocalEnc);
+            sh.storeNewMarkedIndividual(hiddenRelFocal);
+            focalIndivWithHiddenPartnerRel = hiddenRelFocal.getId();
+
+            Encounter hiddenPartnerEnc = new Encounter();
+            hiddenPartnerEnc.setSubmitterID(strangerUsername);
+            sh.storeNewEncounter(hiddenPartnerEnc);
+            MarkedIndividual hiddenPartner = new MarkedIndividual("HiddenPartner", hiddenPartnerEnc);
+            sh.storeNewMarkedIndividual(hiddenPartner);
+            hiddenPartnerId = hiddenPartner.getId();
+
+            org.ecocean.social.Relationship hiddenRel = new org.ecocean.social.Relationship(
+                "associate", hiddenRelFocal, hiddenPartner);
+            sh.getPM().makePersistent(hiddenRel);
+
             sh.commitDBTransaction();
         } catch (Exception e) {
             sh.rollbackDBTransaction();
@@ -333,6 +376,10 @@ class MarkedIndividualInfoTest {
                         when(mock.getOccurrence(any(Encounter.class)))
                             .thenAnswer(inv -> backingShepherd.getOccurrence(
                                 (Encounter) inv.getArgument(0)));
+                        // Delegate getAllRelationshipsForMarkedIndividual
+                        when(mock.getAllRelationshipsForMarkedIndividual(anyString()))
+                            .thenAnswer(inv -> backingShepherd.getAllRelationshipsForMarkedIndividual(
+                                (String) inv.getArgument(0)));
                     })) {
 
                 new MarkedIndividualInfo().doGet(req, resp);
@@ -418,5 +465,33 @@ class MarkedIndividualInfoTest {
         JSONObject j = invoke(focalOwner, focalIndivIdWithViewableCompanion);
         String ow = j.getJSONArray("encounters").getJSONObject(0).optString("occurringWith", "");
         assertTrue(ow.contains(viewableCompanionDisplayName));
+    }
+
+    @Test void relationshipIdRoundTripsThroughGetObjectById() throws Exception {
+        JSONObject j = invoke(focalOwner, focalIndivWithViewableRel);
+        // _id is the numeric datastore key (stripped of the "[OID]..." suffix).
+        // DataNucleus getObjectById(Class, Object) accepts the numeric string for increment-strategy tables.
+        // Note: getObjectById(Class, fullOIDString) would fail because it tries to parse the string
+        // as a Long — the "[OID]..." suffix is only valid for the no-class 1-arg getObjectById overload.
+        String id = j.getJSONArray("relationships").getJSONObject(0).getString("_id");
+        Shepherd s = new Shepherd("context0", props);
+        s.beginDBTransaction();
+        try {
+            org.ecocean.social.Relationship rel =
+                (org.ecocean.social.Relationship) s.getPM()
+                    .getObjectById(org.ecocean.social.Relationship.class, id);
+            assertNotNull(rel, "emitted _id must resolve the same Relationship the legacy "
+                + "edit/remove path resolves");
+        } finally { s.rollbackAndClose(); }
+    }
+
+    @Test void relationshipToNonViewablePartnerOmitted() throws Exception {
+        JSONObject j = invoke(focalOwner, focalIndivWithHiddenPartnerRel);
+        // only the viewable-partner relationship is present
+        org.json.JSONArray rels = j.getJSONArray("relationships");
+        for (int i = 0; i < rels.length(); i++) {
+            String pid = rels.getJSONObject(i).getJSONObject("partner").getString("individualID");
+            assertNotEquals(hiddenPartnerId, pid);
+        }
     }
 }
