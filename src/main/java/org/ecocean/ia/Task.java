@@ -736,6 +736,14 @@ public class Task implements java.io.Serializable {
                 status = "completed";
             } else if (logs.toString().indexOf("score") > -1) {
                 status = "completed";
+            } else if (islObj.optJSONObject("status") != null &&
+                islObj.optJSONObject("status").optJSONObject("error") != null &&
+                islObj.optJSONObject("status").optJSONObject("error").optBoolean(
+                    "emptyTargetAnnotations", false)) {
+                // No target annotations to match against is a terminal state, not a failure.
+                // Treating it as completed lets import progress reach 100%.
+                System.out.println("[Task.getStatus] emptyTargetAnnotations detected for task " + getId() + ", marking completed");
+                status = "completed";
             } else if (islObj.toString().indexOf("HTTP error code") > -1) {
                 status = "error";
             } else if (!islObj.optString("queueStatus").equals("")) {
@@ -745,7 +753,7 @@ public class Task implements java.io.Serializable {
                 status = "queuing";
             }
             // if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
-            // if(status.equals("waiting to queue"))System.out.println("islObj: "+islObj.toString());
+            if(status.equals("waiting to queue"))System.out.println("[Task.getStatus DEBUG] waiting to queue, islObj: "+islObj.toString());
         }
         System.out.println("[DEBUG] getStatus() fell through to status='" + status + "' on Task " +
             this.getId());
