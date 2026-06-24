@@ -13,11 +13,15 @@ import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.ArrayList;
+import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Role;
 import org.ecocean.User;
+import org.ecocean.genetics.TissueSample;
+import org.ecocean.media.Feature;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.TestPMFUtil;
@@ -52,6 +56,9 @@ class MarkedIndividualInfoTest {
     static String seededOwnerUsername;
     static User stranger;
     static String strangerUsername;
+    static String indivWithTissueAndAnnotId;
+    // individual with mixed encounters: one private (owner-only) + one public
+    static String mixedIndivId;
 
     @BeforeAll
     static void setUp() throws Exception {
@@ -92,15 +99,45 @@ class MarkedIndividualInfoTest {
             Role strangerRole = new Role(strangerUsername, "researcher");
             sh.getPM().makePersistent(strangerRole);
 
-            // Create encounter owned by owner
+            // Create encounter owned by owner (private to owner)
             Encounter enc = new Encounter();
             enc.setSubmitterID(seededOwnerUsername);
             sh.storeNewEncounter(enc);
 
-            // Create individual with that encounter
+            // seededIndivId: private individual (only owner can view; stranger sees 403)
             MarkedIndividual indiv = new MarkedIndividual("TestIndividual", enc);
             sh.storeNewMarkedIndividual(indiv);
             seededIndivId = indiv.getId();
+
+            // mixedIndivId: one private encounter (owner) + one public encounter (null submitter).
+            // Owner sees 2 encounters; stranger can view the individual via the public encounter
+            // but still sees only 1 encounter (the public one).
+            Encounter encPrivate2 = new Encounter();
+            encPrivate2.setSubmitterID(seededOwnerUsername);
+            sh.storeNewEncounter(encPrivate2);
+            Encounter encPublic = new Encounter();
+            // submitterID intentionally left null so isUsernameAnonymous(null)==true
+            sh.storeNewEncounter(encPublic);
+            MarkedIndividual mixedIndiv = new MarkedIndividual("MixedIndividual", encPublic);
+            mixedIndiv.addEncounter(encPrivate2);
+            sh.storeNewMarkedIndividual(mixedIndiv);
+            mixedIndivId = mixedIndiv.getId();
+
+            // Create an individual whose single encounter has both a TissueSample and an Annotation.
+            Encounter encTA = new Encounter();
+            encTA.setSubmitterID(seededOwnerUsername);
+            TissueSample ts = new TissueSample(null, "sample-001");
+            encTA.addTissueSample(ts);
+            sh.getPM().makePersistent(ts);
+            // Use empty feature list to avoid FeatureType.initAll() requirement
+            Annotation ann = new Annotation("test-species", new ArrayList<Feature>());
+            sh.storeNewAnnotation(ann);
+            encTA.addAnnotation(ann);
+            sh.storeNewEncounter(encTA);
+
+            MarkedIndividual indivTA = new MarkedIndividual("TissueAnnotIndividual", encTA);
+            sh.storeNewMarkedIndividual(indivTA);
+            indivWithTissueAndAnnotId = indivTA.getId();
 
             sh.commitDBTransaction();
         } catch (Exception e) {
@@ -266,5 +303,22 @@ class MarkedIndividualInfoTest {
             "Owner must get 200; got: " + j);
         assertTrue(j.has("encounters"), "Response must have 'encounters' array");
         assertTrue(j.has("relationships"), "Response must have 'relationships' array");
+    }
+
+    @Test
+    void onlyViewableEncountersReturned() throws Exception {
+        // mixedIndiv has one private (owner-only) + one public encounter.
+        // Owner sees both; stranger (no collab) sees only the public one.
+        JSONObject asOwner = invoke(seededOwner, mixedIndivId);
+        JSONObject asStranger = invoke(stranger, mixedIndivId);
+        assertTrue(asOwner.getJSONArray("encounters").length()
+                   > asStranger.getJSONArray("encounters").length());
+    }
+
+    @Test
+    void dataTypesBothWhenTissueAndAnnotation() throws Exception {
+        JSONObject j = invoke(seededOwner, indivWithTissueAndAnnotId);
+        String dt = j.getJSONArray("encounters").getJSONObject(0).getString("dataTypes");
+        assertEquals("both", dt);
     }
 }

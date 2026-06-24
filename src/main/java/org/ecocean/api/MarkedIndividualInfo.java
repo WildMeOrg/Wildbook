@@ -7,7 +7,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
@@ -82,7 +84,28 @@ public class MarkedIndividualInfo extends ApiBase {
             return rtn;
         }
         rtn.put("individualId", indiv.getId());
-        rtn.put("encounters", new JSONArray());
+        Map<String, Boolean> encViewCache = new HashMap<String, Boolean>();
+        JSONArray encArr = new JSONArray();
+        if (indiv.getEncounters() != null) {
+            for (Encounter enc : indiv.getEncounters()) {
+                if (!encCanView(enc, user, myShepherd, encViewCache)) continue;
+                JSONObject e = new JSONObject();
+                e.put("catalogNumber", enc.getCatalogNumber());
+                Long dim = enc.getDateInMilliseconds();
+                if (dim != null) e.put("dateInMilliseconds", dim.longValue());
+                e.put("year", enc.getYear());
+                e.put("month", enc.getMonth());
+                e.put("day", enc.getDay());
+                e.put("locationID", enc.getLocationID());
+                e.put("occurrenceID", enc.getOccurrenceID());
+                e.put("sex", enc.getSex());
+                e.put("behavior", enc.getBehavior());
+                e.put("alternateid", enc.getAlternateID());
+                e.put("dataTypes", computeDataTypes(enc));
+                encArr.put(e);
+            }
+        }
+        rtn.put("encounters", encArr);
         rtn.put("relationships", new JSONArray());
         rtn.put("success", true);
         rtn.put("statusCode", 200);
@@ -150,6 +173,33 @@ public class MarkedIndividualInfo extends ApiBase {
         return rtn;
     }
 
+
+    private boolean encCanView(Encounter enc, User user, Shepherd myShepherd,
+        Map<String, Boolean> cache) {
+        String eid = enc.getId();
+        Boolean cached = cache.get(eid);
+        if (cached != null) return cached.booleanValue();
+        boolean v = enc.canUserView(user, myShepherd);
+        cache.put(eid, v);
+        return v;
+    }
+
+    // Mirrors the legacy encounter-calls.js dataTypes precedence (ANY annotation counts;
+    // tissue type is the static "TissueSample").
+    private String computeDataTypes(Encounter enc) {
+        List<org.ecocean.genetics.TissueSample> ts = enc.getTissueSamples();
+        boolean hasTissue = (ts != null) && !ts.isEmpty();
+        List<org.ecocean.Annotation> anns = enc.getAnnotations();
+        boolean hasAnn = (anns != null) && !anns.isEmpty();
+        if (hasTissue && hasAnn) return "both";
+        if (hasTissue) return "TissueSample";
+        if (hasAnn) {
+            String eventID = enc.getEventID();
+            if ((eventID != null) && (eventID.indexOf("youtube") > -1)) return "youtube-image";
+            return "image";
+        }
+        return "";
+    }
 
 /* from matchResults.jsp ...
 String projectIdPrefix = request.getParameter("projectIdPrefix");
