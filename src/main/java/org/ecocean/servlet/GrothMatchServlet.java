@@ -67,20 +67,8 @@ public class GrothMatchServlet extends HttpServlet {
             return;
         }
 
-        // Read Groth parameters from config
+        // Groth parameter locals — resolved after enc is loaded (see Phase 1/2 boundary)
         double epsilon, R, Sizelim, maxTriangleRotation, C;
-        try {
-            epsilon = Double.parseDouble(CommonConfiguration.getEpsilon(context));
-            R = Double.parseDouble(CommonConfiguration.getR(context));
-            Sizelim = Double.parseDouble(CommonConfiguration.getSizelim(context));
-            maxTriangleRotation = Double.parseDouble(
-                CommonConfiguration.getMaxTriangleRotation(context));
-            C = Double.parseDouble(CommonConfiguration.getC(context));
-        } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                "Invalid Groth parameters in configuration: " + e.getMessage());
-            return;
-        }
 
         // Phase 1: Short DB transaction to load query encounter spots
         SuperSpot[] queryArray;
@@ -90,6 +78,7 @@ public class GrothMatchServlet extends HttpServlet {
         // usable after the transaction closes.
         EncounterLite queryLite;
         String encDate, encSex, encIndividualID, encLocation, encLocationID, encSize;
+        String queryGenus = null, querySpecificEpithet = null;
         {
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("GrothMatchServlet.class");
@@ -120,11 +109,23 @@ public class GrothMatchServlet extends HttpServlet {
                 encSize = enc.getSizeAsDouble() != null ? enc.getSize() + " meters" : "unknown";
                 encLocation = enc.getLocation();
                 encLocationID = enc.getLocationID();
+                // Query species for species-aware Groth param resolution (below).
+                queryGenus = enc.getGenus();
+                querySpecificEpithet = enc.getSpecificEpithet();
             } finally {
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
             }
         }
+
+        // Resolve Groth parameters by query encounter's species
+        org.ecocean.grid.GrothParams gp =
+            CommonConfiguration.getGrothParams(queryGenus, querySpecificEpithet, context);
+        epsilon = gp.getEpsilon();
+        R = gp.getR();
+        Sizelim = gp.getSizelim();
+        maxTriangleRotation = gp.getMaxTriangleRotation();
+        C = gp.getC();
 
         // Phase 2: CPU-heavy Groth matching — no DB transaction needed
         long startTime = System.currentTimeMillis();

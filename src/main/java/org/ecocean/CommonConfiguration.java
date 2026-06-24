@@ -8,6 +8,10 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.function.Function;
+import java.util.Locale;
+
+import org.ecocean.grid.GrothParams;
 
 import javax.servlet.ServletContext;
 
@@ -431,6 +435,67 @@ public class CommonConfiguration {
 
     public static String getC(String context) {
         return getProperty("C", context).trim();
+    }
+
+    // --- Species-aware Modified Groth parameters (June 2026) ---
+    // Safe-constant defaults = corrected whale-shark optimum.
+    private static final double GROTH_DEFAULT_EPSILON = 0.015;
+    private static final double GROTH_DEFAULT_R = 8.8;
+    private static final double GROTH_DEFAULT_SIZELIM = 0.94;
+    private static final double GROTH_DEFAULT_MAXROT = 20.0;
+    private static final double GROTH_DEFAULT_C = 1.146;
+
+    /** Normalized property-key suffix from a species, or null if either part is blank. */
+    public static String speciesKey(String genus, String specificEpithet) {
+        if (genus == null || specificEpithet == null) return null;
+        String g = genus.trim(), s = specificEpithet.trim();
+        if (g.isEmpty() || s.isEmpty()) return null;
+        String key = (g + "_" + s).toLowerCase(Locale.ROOT)
+                        .replaceAll("[^a-z0-9]+", "_")
+                        .replaceAll("^_+|_+$", "");
+        return key.isEmpty() ? null : key;
+    }
+
+    /** Parse a positive, finite double, or null if missing/blank/invalid. */
+    private static Double positiveFiniteOrNull(String raw) {
+        if (raw == null) return null;
+        String t = raw.trim();
+        if (t.isEmpty()) return null;
+        try {
+            double d = Double.parseDouble(t);
+            if (!Double.isFinite(d) || d <= 0.0) return null;
+            return d;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private static double resolveOne(String name, String speciesKey,
+                                     Function<String,String> lookup, double dflt) {
+        if (speciesKey != null) {
+            Double v = positiveFiniteOrNull(lookup.apply(name + "." + speciesKey));
+            if (v != null) return v;
+        }
+        Double g = positiveFiniteOrNull(lookup.apply(name));
+        if (g != null) return g;
+        return dflt;
+    }
+
+    /** Testable core: resolve all five params against an arbitrary property lookup. */
+    public static GrothParams resolveGrothParams(String genus, String specificEpithet,
+                                                 Function<String,String> lookup) {
+        String sk = speciesKey(genus, specificEpithet);
+        return new GrothParams(
+            resolveOne("epsilon", sk, lookup, GROTH_DEFAULT_EPSILON),
+            resolveOne("R", sk, lookup, GROTH_DEFAULT_R),
+            resolveOne("sizelim", sk, lookup, GROTH_DEFAULT_SIZELIM),
+            resolveOne("maxTriangleRotation", sk, lookup, GROTH_DEFAULT_MAXROT),
+            resolveOne("C", sk, lookup, GROTH_DEFAULT_C));
+    }
+
+    /** Resolve the Groth params for a query species using configured properties. */
+    public static GrothParams getGrothParams(String genus, String specificEpithet, String context) {
+        return resolveGrothParams(genus, specificEpithet, name -> getProperty(name, context));
     }
 
     public static String getHTMLDescription(String context) {
