@@ -1588,6 +1588,14 @@ public class Annotation extends Base implements java.io.Serializable {
         Feature ft = new Feature("org.ecocean.boundingBox", fparams);
         Annotation ann = new Annotation(null, ft, iaClass);
         ann.setViewpoint(viewpoint);
+        // acmId is required for an annotation to be indexed and considered as a
+        // match CANDIDATE: both the OpenSearch indexer (matchAgainst==true &&
+        // acmId != null) and Annotation.getMatchingSetQuery (exists: acmId)
+        // filter on it. The v2 detection path sets it (MlServiceProcessor does
+        // setAcmId(getId())); manual creation omitted it, so manually-drawn
+        // annotations got an embedding but were never matchable candidates.
+        // Mirror the v2 convention: use the annotation's own id.
+        ann.setAcmId(ann.getId());
         ma.addFeature(ft);
         ma.setDetectionStatus("complete");
         myShepherd.getPM().makePersistent(ft);
