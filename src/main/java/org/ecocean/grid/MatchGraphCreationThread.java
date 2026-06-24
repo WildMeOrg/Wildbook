@@ -74,6 +74,14 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
 
             for (int i = 0; i < numEncs; i++) {
                 Encounter enc = myShepherd.getEncounter(encNumbers.get(i));
+                // getEncounter() returns null if the encounter was deleted after the
+                // id snapshot above (a concurrent EncounterDelete during the rebuild)
+                // or otherwise could not be fetched. Skip it rather than NPE-aborting
+                // the whole rebuild. A genuine exception while building the
+                // EncounterLite below is NOT swallowed: it propagates to the outer
+                // catch, which aborts the rebuild WITHOUT flipping matchGraphReady to
+                // true, so we never publish a silently-incomplete graph. (#1608)
+                if (enc == null) continue;
                 if (((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) ||
                     ((enc.getSpots() != null) && (enc.getSpots().size() > 0))) {
                     EncounterLite el = new EncounterLite(enc);
