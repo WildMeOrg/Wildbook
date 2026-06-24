@@ -177,6 +177,7 @@ public class MarkedIndividualInfo extends ApiBase {
     private boolean encCanView(Encounter enc, User user, Shepherd myShepherd,
         Map<String, Boolean> cache) {
         String eid = enc.getId();
+        if (eid == null) return enc.canUserView(user, myShepherd);
         Boolean cached = cache.get(eid);
         if (cached != null) return cached.booleanValue();
         boolean v = enc.canUserView(user, myShepherd);
