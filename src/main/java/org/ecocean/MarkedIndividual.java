@@ -2122,6 +2122,20 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessMarkedIndividual(this, request);
     }
 
+    // view ACL for the generic /api/v3 GET path (see Base.jsonForApiGet). a user may view this
+    // individual if they are an admin or can view at least one of its encounters. an individual
+    // with no encounters grants no view access (rather than being visible to any logged-in user).
+    @Override public boolean canUserView(User user, Shepherd myShepherd) {
+        if (user == null) return false;
+        if (user.isAdmin(myShepherd)) return true;
+        Vector<Encounter> all = this.getEncounters();
+        if ((all == null) || all.isEmpty()) return false;
+        for (Encounter enc : all) {
+            if (enc.canUserView(user, myShepherd)) return true;
+        }
+        return false;
+    }
+
     // see note on Base class
     public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
