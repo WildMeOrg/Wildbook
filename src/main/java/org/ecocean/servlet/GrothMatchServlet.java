@@ -19,7 +19,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
@@ -34,6 +38,12 @@ import java.util.logging.Logger;
  */
 public class GrothMatchServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(GrothMatchServlet.class.getName());
+
+    /** Build the redirect URL to the polling progress/results page for a scan. */
+    private static String scanProgressUrl(String encNumber, String taskID, boolean rightScan) {
+        return "encounters/scanEndApplet.jsp?number=" + encNumber + "&taskID=" + taskID +
+            (rightScan ? "&rightSide=true" : "");
+    }
 
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
@@ -63,24 +73,18 @@ public class GrothMatchServlet extends HttpServlet {
             return;
         }
 
-        // Read Groth parameters from config
+        // Groth parameter locals — resolved after enc is loaded (see Phase 1/2 boundary)
         double epsilon, R, Sizelim, maxTriangleRotation, C;
-        try {
-            epsilon = Double.parseDouble(CommonConfiguration.getEpsilon(context));
-            R = Double.parseDouble(CommonConfiguration.getR(context));
-            Sizelim = Double.parseDouble(CommonConfiguration.getSizelim(context));
-            maxTriangleRotation = Double.parseDouble(
-                CommonConfiguration.getMaxTriangleRotation(context));
-            C = Double.parseDouble(CommonConfiguration.getC(context));
-        } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                "Invalid Groth parameters in configuration: " + e.getMessage());
-            return;
-        }
 
         // Phase 1: Short DB transaction to load query encounter spots
         SuperSpot[] queryArray;
+        // Query encounter as an EncounterLite — needed by the I3S matcher (i3sScan),
+        // which is run alongside Groth below to revive I3S results. Built while the
+        // encounter is still managed; EncounterLite copies the spot data so it stays
+        // usable after the transaction closes.
+        EncounterLite queryLite;
         String encDate, encSex, encIndividualID, encLocation, encLocationID, encSize;
+        String queryGenus = null, querySpecificEpithet = null;
         {
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("GrothMatchServlet.class");
@@ -104,185 +108,168 @@ public class GrothMatchServlet extends HttpServlet {
                 }
 
                 queryArray = querySpots.toArray(new SuperSpot[0]);
+                queryLite = new EncounterLite(enc);
                 encDate = enc.getDate();
                 encSex = enc.getSex() != null ? enc.getSex() : "unknown";
                 encIndividualID = ServletUtilities.handleNullString(enc.getIndividualID());
                 encSize = enc.getSizeAsDouble() != null ? enc.getSize() + " meters" : "unknown";
                 encLocation = enc.getLocation();
                 encLocationID = enc.getLocationID();
+                // Query species for species-aware Groth param resolution (below).
+                queryGenus = enc.getGenus();
+                querySpecificEpithet = enc.getSpecificEpithet();
             } finally {
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
             }
         }
 
-        // Phase 2: CPU-heavy Groth matching — no DB transaction needed
-        long startTime = System.currentTimeMillis();
+        // Resolve Groth parameters by query encounter's species
+        org.ecocean.grid.GrothParams gp =
+            CommonConfiguration.getGrothParams(queryGenus, querySpecificEpithet, context);
+        epsilon = gp.getEpsilon();
+        R = gp.getR();
+        Sizelim = gp.getSizelim();
+        maxTriangleRotation = gp.getMaxTriangleRotation();
+        C = gp.getC();
 
-        ConcurrentHashMap<String, EncounterLite> matchGraph = GridManager.getMatchGraph();
-        List<MatchObject> grothResults = new ArrayList<>();
+        // Phase 2 + 3 run ASYNCHRONOUSLY. A single-threaded scan over the in-memory
+        // matchGraph can take minutes over a large same-species catalog; running it inline
+        // hung the browser on /GrothMatch and frequently never wrote results. Instead we
+        // create a ScanTask, hand the work to a background thread (GrothScanRunnable), and
+        // redirect immediately to the polling progress page (scanEndApplet.jsp).
+        String taskID = "scan" + (rightScan ? "R" : "L") + encNumber;
+        GridManager gm = GridManagerFactory.getGridManager();
 
-        for (ConcurrentHashMap.Entry<String, EncounterLite> entry : matchGraph.entrySet()) {
-            if (entry.getKey().equals(encNumber)) continue;
-            EncounterLite el = entry.getValue();
-
-            MatchObject mo = el.getPointsForBestMatch(
-                queryArray, epsilon, R, Sizelim, maxTriangleRotation, C,
-                true, rightScan);
-            mo.encounterNumber = entry.getKey();
-            grothResults.add(mo);
+        // Active-run guard: if a scan for this taskID is already running, do NOT start a second
+        // (it would corrupt the shared ScanTask lifecycle and race on result files) — just show
+        // its progress page. tryStartScan returns a non-zero ownership token; 0 means active.
+        final long scanToken = gm.tryStartScan(taskID);
+        if (scanToken == 0L) {
+            response.sendRedirect(scanProgressUrl(encNumber, taskID, rightScan));
+            return;
         }
 
-        MatchObject[] matchArray = grothResults.toArray(new MatchObject[0]);
-        Arrays.sort(matchArray, new MatchComparator());
-
-        long totalTime = System.currentTimeMillis() - startTime;
-        log.info("Groth match for " + encNumber + " completed in " + totalTime +
-            "ms (" + matchGraph.size() + " catalog encounters)");
-
-        // Phase 3: Short DB transaction to build XML with encounter details
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("GrothMatchServlet.class");
-        myShepherd.beginDBTransaction();
-
+        // Once the background runnable is submitted it owns all cleanup (finish/clear/endScan);
+        // until then, every exit path here must release the slot we just claimed.
+        boolean submitted = false;
         try {
-            Document document = DocumentHelper.createDocument();
-            Element root = document.addElement("matchSet");
-            root.addAttribute("scanDate", (new java.util.Date()).toString());
-            root.addAttribute("R", String.valueOf(R));
-            root.addAttribute("epsilon", String.valueOf(epsilon));
-            root.addAttribute("Sizelim", String.valueOf(Sizelim));
-            root.addAttribute("maxTriangleRotation", String.valueOf(maxTriangleRotation));
-            root.addAttribute("C", String.valueOf(C));
-
-            int numMatches = matchArray.length;
-            if (numMatches > 100) numMatches = 100;
-
-            for (int i = 0; i < numMatches; i++) {
-                try {
-                    MatchObject mo = matchArray[i];
-                    if ((mo.getMatchValue() > 0) &&
-                        ((mo.getMatchValue() * mo.getAdjustedMatchValue()) > 2)) {
-
-                        Element match = root.addElement("match");
-                        match.addAttribute("points",
-                            String.valueOf(mo.getMatchValue()));
-                        match.addAttribute("adjustedpoints",
-                            String.valueOf(mo.getAdjustedMatchValue()));
-                        match.addAttribute("pointBreakdown", mo.getPointBreakdown());
-
-                        String finalscore = String.valueOf(
-                            mo.getMatchValue() * mo.getAdjustedMatchValue());
-                        if (finalscore.length() > 7) {
-                            finalscore = finalscore.substring(0, 6);
-                        }
-                        match.addAttribute("finalscore", finalscore);
-
-                        try {
-                            match.addAttribute("logMStdDev",
-                                String.valueOf(mo.getLogMStdDev()));
-                        } catch (NumberFormatException nfe) {
-                            match.addAttribute("logMStdDev", "<0.01");
-                        }
-                        match.addAttribute("evaluation", mo.getEvaluation());
-
-                        Encounter firstEnc = myShepherd.getEncounter(mo.getEncounterNumber());
-                        if (firstEnc == null) continue;
-
-                        Element enc1 = match.addElement("encounter");
-                        enc1.addAttribute("number", firstEnc.getEncounterNumber());
-                        enc1.addAttribute("date", firstEnc.getDate());
-                        enc1.addAttribute("sex",
-                            firstEnc.getSex() != null ? firstEnc.getSex() : "unknown");
-                        enc1.addAttribute("assignedToShark",
-                            ServletUtilities.handleNullString(firstEnc.getIndividualID()));
-                        if (firstEnc.getSizeAsDouble() != null) {
-                            enc1.addAttribute("size", firstEnc.getSize() + " meters");
-                        }
-                        enc1.addAttribute("location", firstEnc.getLocation());
-                        enc1.addAttribute("locationID", firstEnc.getLocationID());
-
-                        VertexPointMatch[] scores = mo.getScores();
-                        try {
-                            for (VertexPointMatch score : scores) {
-                                Element spot = enc1.addElement("spot");
-                                spot.addAttribute("x", String.valueOf(score.getOldX()));
-                                spot.addAttribute("y", String.valueOf(score.getOldY()));
-                            }
-                        } catch (NullPointerException npe) {}
-
-                        Element enc2 = match.addElement("encounter");
-                        enc2.addAttribute("number", encNumber);
-                        enc2.addAttribute("date", encDate);
-                        enc2.addAttribute("sex", encSex);
-                        enc2.addAttribute("assignedToShark", encIndividualID);
-                        enc2.addAttribute("size", encSize);
-                        enc2.addAttribute("location", encLocation);
-                        enc2.addAttribute("locationID", encLocationID);
-
-                        try {
-                            for (VertexPointMatch score : scores) {
-                                Element spot = enc2.addElement("spot");
-                                spot.addAttribute("x", String.valueOf(score.getNewX()));
-                                spot.addAttribute("y", String.valueOf(score.getNewY()));
-                            }
-                        } catch (NullPointerException npe) {}
-
-                        List<String> keywords = myShepherd.getKeywordsInCommon(
-                            mo.getEncounterNumber(), encNumber);
-                        if (keywords != null && !keywords.isEmpty()) {
-                            Element kws = match.addElement("keywords");
-                            for (String kwName : keywords) {
-                                Element keyword = kws.addElement("keyword");
-                                keyword.addAttribute("name", kwName);
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            // Write XML to encounter directory
             String rootWebappPath = getServletContext().getRealPath("/");
             File webappsDir = new File(rootWebappPath).getParentFile();
             File shepherdDataDir = new File(webappsDir,
                 CommonConfiguration.getDataDirectoryName(context));
 
-            String fileAddition = rightScan ? "Right" : "";
-            String thisEncDirString = Encounter.dir(shepherdDataDir, encNumber);
-            File thisEncounterDir = new File(thisEncDirString);
-            if (!thisEncounterDir.exists()) {
-                thisEncounterDir.mkdirs();
+            // Create-or-reset the ScanTask in one short transaction so the first poll sees an
+            // unfinished, freshly-initialized task. commitDBTransactionWithStatus surfaces
+            // commit failures so we never redirect to a page that polls a task that was never
+            // durably stored; on failure we roll back explicitly (close() does not).
+            boolean committed = false;
+            Shepherd taskShepherd = new Shepherd(context);
+            taskShepherd.setAction("GrothMatchServlet.createTask");
+            taskShepherd.beginDBTransaction();
+            try {
+                ScanTask st = taskShepherd.getScanTask(taskID);
+                if (st == null) {
+                    st = new ScanTask(taskShepherd, taskID, new java.util.Properties(),
+                        encNumber, true);
+                    taskShepherd.getPM().makePersistent(st);
+                }
+                // Initialize/reset state identically for new and reused tasks so no stale
+                // finished/started/startTime/endTime/filters leak into this run.
+                st.setFinished(false);
+                st.setStarted(true);
+                st.setStartTime(System.currentTimeMillis());
+                st.setEndTime(-1);
+                st.setLocationIDFilters(new ArrayList<String>());
+                committed = taskShepherd.commitDBTransactionWithStatus();
+            } catch (Exception ce) {
+                log.severe("Failed to create/reset ScanTask " + taskID + ": " + ce.getMessage());
+                committed = false;
+            } finally {
+                if (!committed) {
+                    try { taskShepherd.rollbackDBTransaction(); } catch (Exception ignore) {}
+                }
+                taskShepherd.closeDBTransaction();
             }
 
-            File file = new File(thisEncDirString +
-                "/lastFull" + fileAddition + "Scan.xml");
-            log.info("Writing Groth scan XML to: " + file.getAbsolutePath());
-
-            FileWriter mywriter = new FileWriter(file);
-            org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
-            format.setLineSeparator(System.getProperty("line.separator"));
-            org.dom4j.io.XMLWriter writer = new org.dom4j.io.XMLWriter(mywriter, format);
-            writer.write(document);
-            writer.close();
-
-            // Redirect to scanEndApplet.jsp
-            String redirectUrl = "encounters/scanEndApplet.jsp?number=" + encNumber +
-                "&writeThis=true";
-            if (rightScan) {
-                redirectUrl += "&rightSide=true";
+            if (!committed) {
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Could not create scan task. Please try again.");
+                return;
             }
-            response.sendRedirect(redirectUrl);
 
+            // Seed progress at 0/0 so the page shows "Preparing comparisons..." until the
+            // background thread snapshots the eligible (same-species, correct-side) candidate
+            // set and sets the real denominator. Avoids briefly flashing the whole-graph size.
+            gm.setScanProgress(taskID, 0, 0);
+
+            java.util.concurrent.ThreadPoolExecutor es =
+                SharkGridThreadExecutorService.getExecutorService();
+            if (es == null) {
+                response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+                    "Scan executor unavailable; please try again shortly.");
+                return;
+            }
+
+            try {
+                es.execute(new GrothScanRunnable(context, taskID, scanToken, encNumber, rightScan,
+                    queryArray, queryLite, epsilon, R, Sizelim, maxTriangleRotation, C,
+                    encDate, encSex, encIndividualID, encSize, encLocation, encLocationID,
+                    shepherdDataDir));
+                submitted = true;
+            } catch (java.util.concurrent.RejectedExecutionException ree) {
+                response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+                    "Too many scans in progress; please try again shortly.");
+                return;
+            }
+
+            response.sendRedirect(scanProgressUrl(encNumber, taskID, rightScan));
         } catch (Exception e) {
-            log.severe("Groth match failed: " + e.getMessage());
+            log.severe("Failed to start Groth scan for " + encNumber + ": " + e.getMessage());
             e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                "Match failed: " + e.getMessage());
+            if (!response.isCommitted()) {
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Failed to start scan: " + e.getMessage());
+            }
         } finally {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
+            // If we never handed the work to the background thread, release the slot + progress
+            // we claimed. After submission the runnable owns these (token-guarded), so a failing
+            // sendRedirect here must NOT release them out from under a running scan.
+            if (!submitted) {
+                gm.clearScanProgress(taskID);
+                gm.endScan(taskID, scanToken);
+            }
         }
+    }
+
+    /**
+     * Decide whether a catalog candidate is eligible to be matched against the query.
+     *
+     * Centralizes all candidate-eligibility rules so they live in one tested place:
+     *   - the candidate is not the query encounter itself,
+     *   - the candidate has spots on the side being scanned (#1608), and
+     *   - WB-1791: the candidate is the same species as the query
+     *     (delegated to the null-safe {@link EncounterLite#doesSpeciesMatch(EncounterLite)},
+     *     mirroring the legacy async ScanWorkItemCreationThread behavior that the
+     *     synchronous Groth rewrite dropped).
+     *
+     * @param queryLite          query-side EncounterLite (carries genus/specificEpithet)
+     * @param candidate          catalog EncounterLite under consideration
+     * @param queryEncNumber     the query encounter number
+     * @param candidateEncNumber the candidate encounter number
+     * @param rightScan          true for a right-side scan, false for left
+     * @return true if the candidate should be matched, false to skip it
+     */
+    static boolean isEligibleCandidate(EncounterLite queryLite, EncounterLite candidate,
+        String queryEncNumber, String candidateEncNumber, boolean rightScan) {
+        if (queryLite == null || candidate == null) return false;
+        // skip self
+        if (candidateEncNumber != null && candidateEncNumber.equals(queryEncNumber)) return false;
+        // skip candidates with no spots on the scanned side
+        List<?> candidateSpots = rightScan ? candidate.getRightSpots() : candidate.getSpots();
+        if (candidateSpots == null || candidateSpots.isEmpty()) return false;
+        // WB-1791: same-species only (null-safe; false if either side lacks taxonomy)
+        if (!queryLite.doesSpeciesMatch(candidate)) return false;
+        return true;
     }
 }

@@ -162,7 +162,7 @@ class EncounterStore {
 
   setMediaAssets(mediaAssets) {
     if (this._encounterData) {
-      this._encounterData.mediaAssets = mediaAssets;
+      this._encounterData = { ...this._encounterData, mediaAssets };
     }
   }
 
@@ -632,9 +632,13 @@ class EncounterStore {
     const iaTaskId = !!selectedAnnotation?.iaTaskId;
     const skipId = !!selectedAnnotation?.iaTaskParameters?.skipIdent;
     const identActive = iaTaskId && !skipId;
-    const detectionComplete =
+    // ml-service migration v2 (commit #5): "complete-mlservice" is terminal.
+    const detectionStatus =
       this.encounterData?.mediaAssets?.[this._selectedImageIndex]
-        ?.detectionStatus === "complete";
+        ?.detectionStatus;
+    const detectionComplete =
+      detectionStatus === "complete" ||
+      detectionStatus === "complete-mlservice";
     const identificationStatus =
       selectedAnnotation?.identificationStatus === "complete" ||
       selectedAnnotation?.identificationStatus === "pending";

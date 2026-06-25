@@ -30,6 +30,11 @@ const collectProspects = (node, type, result = []) => {
 
   if (taskCreated) {
     const common = {
+      // MatchResult id — needed by the on-demand PairX inspection
+      // endpoint so the inspector modal can lazy-fetch the prospect's
+      // inspection asset when prospect.asset is null (new matches
+      // post the inline-enricher removal; see commit 2fba64dde).
+      matchResultId: node.matchResults?.id ?? null,
       algorithm: methodName,
       date: node.dateCreated,
       numberCandidates: numberCandidatesRaw ?? "-",

@@ -73,6 +73,8 @@ public class IBEISIA {
     public static String STATUS_PENDING = "pending"; // pending review (needs action by user)
     public static String STATUS_COMPLETE = "complete"; // process is done
     public static String STATUS_COMPLETE_MLSERVICE = "complete-mlservice"; // ml-service is done (e.g. embeddings added)
+    public static String STATUS_PENDING_SPECIES = "pending-species"; // upload without taxonomy / unconfigured species; awaits taxonomy PATCH
+    public static String STATUS_DROPPED_STALE = "dropped-stale"; // queued ml-service job's target deleted before run; terminal-drop without error
     public static String STATUS_PROCESSING = "processing"; // off at IA, awaiting results
     public static String STATUS_PROCESSING_MLSERVICE = "processing-mlservice"; // off at ml-service, awaiting results
     public static String STATUS_INITIATED = "initiated"; // initiated on our side but may or may not be processing on IA side
@@ -3494,8 +3496,8 @@ public class IBEISIA {
                 statusResponse.has("response") &&
                 statusResponse.getJSONObject("response").has("status") &&
                 "ok".equals(statusResponse.getJSONObject("response").getString("status")) &&
-                "completed".equals(statusResponse.getJSONObject("response").getString(
-                "jobstatus"))) {
+                ("completed".equals(statusResponse.getJSONObject("response").getString("jobstatus")) ||
+                "publishing".equals(statusResponse.getJSONObject("response").getString("jobstatus")))) {
                 System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobId + ")");
                 JSONObject resultResponse = getJobResult(jobId, context);
                 JSONObject rlog = new JSONObject();

@@ -183,6 +183,52 @@ describe("MatchResultsStore — loadData", () => {
     expect(store.hasResults).toBe(false);
   });
 
+  // Regression test for C16 (empty-match-prospects design Track 2):
+  // when annot has real prospects but indiv has only a placeholder
+  // row (typical for fresh imports of unmatched animals — no
+  // individuals yet), the store should default to "image" view so
+  // the user actually sees the matches, not the empty placeholder.
+  test("viewMode defaults to 'image' when only annot has real results", () => {
+    store.loadData({
+      matchResultsRoot: makeProspect({
+        statusOverall: "completed",
+        matchResults: {
+          numberCandidates: 5000,
+          queryAnnotation: { id: "q1" },
+          prospects: {
+            annot: [
+              { annotation: { id: "a1" }, score: 3.0, asset: { id: 1 } },
+              { annotation: { id: "a2" }, score: 2.8, asset: { id: 2 } },
+            ],
+            indiv: [],  // empty — getAllIndiv adds a placeholder row
+          },
+        },
+      }),
+    });
+    expect(store.viewMode).toBe("image");
+  });
+
+  // Symmetric regression case: when indiv has real prospects but
+  // annot is empty, the store should default to "individual" view.
+  test("viewMode defaults to 'individual' when only indiv has real results", () => {
+    store.loadData({
+      matchResultsRoot: makeProspect({
+        statusOverall: "completed",
+        matchResults: {
+          numberCandidates: 5000,
+          queryAnnotation: { id: "q1" },
+          prospects: {
+            annot: [],  // empty — getAllAnnots adds a placeholder row
+            indiv: [
+              { individual: { id: "i1" }, score: 1.0, asset: { id: 3 } },
+            ],
+          },
+        },
+      }),
+    });
+    expect(store.viewMode).toBe("individual");
+  });
+
   test("sets hasResults to true and populates raw arrays on valid data", () => {
     store.loadData(makeApiResponse());
     expect(store.hasResults).toBe(true);

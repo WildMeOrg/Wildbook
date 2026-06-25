@@ -165,6 +165,17 @@
 
 	      <Context docBase="/usr/local/tomcat/webapps/wildbook_data_dir" path="/wildbook_data_dir" />
 
+        <!-- Honor X-Forwarded-* headers from the front-end nginx so request.getScheme()
+             returns "https" (not "http") when the browser hit the HTTPS proxy. Without
+             this, absolute URLs Wildbook generates (notably the IA callback URL sent
+             to WBIA) use the wrong scheme, and any HTTP→HTTPS redirect in front of
+             the deployment silently drops POST callbacks. -->
+        <Valve className="org.apache.catalina.valves.RemoteIpValve"
+               remoteIpHeader="x-forwarded-for"
+               protocolHeader="x-forwarded-proto"
+               remoteIpProxiesHeader="x-forwarded-by"
+               internalProxies="172\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|127\.0\.0\.1|::1" />
+
         <!-- SingleSignOn valve, share authentication between web applications
              Documentation at: /docs/config/valve.html -->
         <!--

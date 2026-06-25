@@ -49,7 +49,7 @@ try {
       	  	JSONObject j = new JSONObject();
        		JSONObject taskParameters = j.optJSONObject("taskParameters");
        		if (taskParameters == null) taskParameters = new JSONObject(); 
-      	  	taskParameters.optString("importTaskId", itask.getId());
+      	  	taskParameters.put("importTaskId", itask.getId());
             
             JSONObject tp = new JSONObject();
             JSONObject mf = new JSONObject();

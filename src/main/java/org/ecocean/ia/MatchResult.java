@@ -38,12 +38,18 @@ public class MatchResult implements java.io.Serializable {
     private Set<MatchResultProspect> prospects;
     private Annotation queryAnnotation;
     private int numberCandidates = 0;
+    // we store *actual* count here, but they may not all exist
+    // via .prospects due to MAXIMUM_PROSPECTS_STORED (see below)
+    private int numberProspects = 0;
     // not sure we really *need* true fk link to these annots
     // they might be gone now and will we ever use this?
     // so for now we just populate numberCandidates
     private Set<Annotation> candidates;
     // fallback number to cutoff number of prospects to return
     public static final int DEFAULT_PROSPECTS_CUTOFF = 100;
+    // number of MatchResultProspects [per type] to actually store (hotspotter
+    // results can produce thousands, but storing them all is excessive)
+    public static final int MAXIMUM_PROSPECTS_STORED = 500;
 
     public MatchResult() {
         id = Util.generateUUID();
@@ -158,9 +164,44 @@ public class MatchResult implements java.io.Serializable {
             throw new IOException("mismatch in size of annotIds/scores");
         if (this.prospects == null)
             this.prospects = new HashSet<MatchResultProspect>();
+        this.numberProspects += annotIds.length(); // true number of prospects
+
+        // Sort (index, score) pairs by score DESC, ties broken by original
+        // index ASC, before applying the MAXIMUM_PROSPECTS_STORED cap.
+        // WBIA's response (dannot_uuid_list, score_list, annot_score_list)
+        // is NOT ordered by score, so iterating the first 500 and breaking
+        // would drop the actual top-K matches when the strongest are past
+        // index 500. WBIA also serializes float('-inf') as the literal
+        // string "-Infinity" which is not parseable as a JSON number;
+        // parseScore() handles that and missing/non-numeric values by
+        // returning Double.NEGATIVE_INFINITY so they sort to the bottom.
+        int n = annotIds.length();
+        Integer[] order = new Integer[n];
+        double[] parsed = new double[n];
+        for (int i = 0; i < n; i++) {
+            order[i] = Integer.valueOf(i);
+            parsed[i] = parseScore(scores.opt(i));
+        }
+        java.util.Arrays.sort(order, new java.util.Comparator<Integer>() {
+            @Override public int compare(Integer a, Integer b) {
+                int c = Double.compare(parsed[b.intValue()], parsed[a.intValue()]);
+                if (c != 0) return c;
+                return Integer.compare(a.intValue(), b.intValue());
+            }
+        });
+
         int num = 0;
-        for (int i = 0; i < annotIds.length(); i++) {
-            double score = scores.optDouble(i, -Double.MAX_VALUE);
+        for (int k = 0; k < n; k++) {
+            int i = order[k].intValue();
+            double score = parsed[i];
+            // Skip non-finite scores: WBIA's "-Infinity" / "Infinity" /
+            // "NaN" signal "no valid score for this candidate", and
+            // org.json refuses to serialize non-finite numbers later
+            // when prospects render as JSON. Drop them outright so they
+            // never reach MatchResultProspect, regardless of where they
+            // landed in the sort (NaN coerced to -Infinity above, but
+            // raw +/-Infinity can land anywhere).
+            if (!Double.isFinite(score)) continue;
             String id = IBEISIA.fromFancyUUID(annotIds.optJSONObject(i));
             Annotation ann = getAnnotationFromAcmId(id, myShepherd);
             if (ann == null) {
@@ -174,11 +215,53 @@ public class MatchResult implements java.io.Serializable {
                 ma = createInspectionHeatmapAsset(externRef, id, myShepherd);
             this.prospects.add(new MatchResultProspect(ann, score, type, ma));
             num++;
+            if (num >= MAXIMUM_PROSPECTS_STORED) {
+                System.out.println("[DEBUG] hit max (" + MAXIMUM_PROSPECTS_STORED +
+                    ") number storable prospects on " + this);
+                break;
+            }
         }
         return num;
     }
 
+    /**
+     * Parse a score value from WBIA's response that may be a JSON number,
+     * a JSON null, or the literal string "-Infinity" / "Infinity" / "NaN"
+     * (Python's default serialization for non-finite floats). Missing,
+     * null, unparseable, or NaN values map to
+     * {@link Double#NEGATIVE_INFINITY} so they sort to the bottom of the
+     * prospect list. NaN must be coerced explicitly because
+     * {@link Double#compare} sorts NaN ABOVE finite values, which would
+     * push invalid scores to the top of a DESC sort.
+     */
+    public static double parseScore(Object raw) {
+        double v;
+        if (raw == null || raw == JSONObject.NULL) {
+            v = Double.NEGATIVE_INFINITY;
+        } else if (raw instanceof Number) {
+            v = ((Number) raw).doubleValue();
+        } else if (raw instanceof String) {
+            try {
+                v = Double.parseDouble((String) raw);
+            } catch (NumberFormatException ex) {
+                v = Double.NEGATIVE_INFINITY;
+            }
+        } else {
+            v = Double.NEGATIVE_INFINITY;
+        }
+        return Double.isNaN(v) ? Double.NEGATIVE_INFINITY : v;
+    }
+
     // we just have a list of annots which matched (e.g. via vectors in opensearch)
+    // NOTE: currently does not check MAXIMUM_PROSPECTS_STORED because vector search
+    // tends to return relatively few prospects. TODO adjust later if this proves untrue.
+    //
+    // Empty-match-prospects design Track 2 C13: prospects are created with
+    // {@code asset=null}. The PairX inspection image is populated later by
+    // {@link MatchInspectionPairxEnricher} in a Phase A/B/C flow so the
+    // outer Shepherd is never held across the PairX HTTP call. Holding a
+    // Shepherd across that ~10-30s POST would risk connection-pool
+    // exhaustion under load (Codex C12 review High).
     private int populateProspects(List<Annotation> annots, boolean scoreByIndividual,
         Shepherd myShepherd)
     throws IOException {
@@ -186,52 +269,127 @@ public class MatchResult implements java.io.Serializable {
         if (this.prospects == null)
             this.prospects = new HashSet<MatchResultProspect>();
         if (scoreByIndividual) {
-            // the scores for these are calculated weighted by indiv count
+            // C19: per-individual scores are now the highest per-annotation
+            // OS knn score within the group (same scale as the annot tab),
+            // and un-ID'd candidates are emitted as singletons.
             _populateProspectsByIndividual(annots, myShepherd);
         } else {
             // these scores are direct from opensearch
             for (Annotation ann : annots) {
-                MediaAsset ma = createInspectionPairxAsset(this.queryAnnotation, ann, myShepherd);
-                this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(), "annot", ma));
+                this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(), "annot",
+                    null));
             }
         }
-        return this.prospects.size();
+        this.numberProspects = this.prospects.size();
+        return this.numberProspects;
     }
 
+    /**
+     * Build indiv-tab prospects (scoreType "indiv") from the knn
+     * candidate annotations. C19 changes from the prior count-based
+     * scoring of identified-only individuals to a uniform highest-score
+     * (within group) scoring that also surfaces un-ID'd candidates as
+     * singleton
+     * "individuals" — matching the legacy WBIA HotSpotter behavior of
+     * assigning placeholder name {@code "____"} to un-ID'd
+     * annotations.
+     *
+     * <p>For each MarkedIndividual that owns one or more candidate
+     * annotations, the prospect carries the highest-scoring annotation
+     * within that group and score = its OpenSearch Lucene knn
+     * cosinesimil score {@code (1+cos)/2} in [0, 1] (which matches
+     * WBIA-MiewID's stored score scale for cross-pipeline parity).
+     * For each candidate whose encounter has no MarkedIndividual, a
+     * singleton prospect carries that annotation and its own score.
+     * All entries sort by score descending — the indiv tab and the
+     * image tab use the same scoring scale.</p>
+     */
     private void _populateProspectsByIndividual(List<Annotation> annots, Shepherd myShepherd) {
-        Map<MarkedIndividual, List<Annotation> > tally = new HashMap<MarkedIndividual,
-            List<Annotation> >();
+        // Key by individual ID (String), NOT by MarkedIndividual object.
+        // Base.equals() compares by id but Base does not override
+        // hashCode(), so two distinct MarkedIndividual instances with
+        // the same id would hash to different buckets and emit
+        // duplicate indiv prospects. Keying by id avoids that
+        // (Codex C19 review Medium).
+        Map<String, List<Annotation> > tally =
+            new HashMap<String, List<Annotation> >();
+        List<Annotation> singletons = new ArrayList<Annotation>();
 
         for (Annotation ann : annots) {
             Encounter enc = ann.findEncounter(myShepherd);
-            // i think we just ignore if no enc/indiv
+            // No encounter at all: skip (no individual axis possible).
             if (enc == null) continue;
             MarkedIndividual indiv = enc.getIndividual();
-            if (indiv == null) continue;
-            if (!tally.containsKey(indiv)) tally.put(indiv, new ArrayList<Annotation>());
-            tally.get(indiv).add(ann);
-        }
-        if (tally.size() < 1) return; // no individuals i guess?
-
-        // this sorts by most annots (per indiv) highest to lowest
-        List<Map.Entry<MarkedIndividual,
-            List<Annotation> > > sorted = new ArrayList<>(tally.entrySet());
-        // Collections.sort(sorted, new Comparator<Map.Entry<MarkedIndividual, List<Annotation>>>() {
-        sorted.sort(new Comparator<Map.Entry<MarkedIndividual, List<Annotation> > >() {
-            public int compare(Map.Entry<MarkedIndividual, List<Annotation> > one,
-            Map.Entry<MarkedIndividual, List<Annotation> > two) {
-                // we reverse order here so we get largest first
-                return Integer.compare(two.getValue().size(), one.getValue().size());
+            if (indiv == null || indiv.getId() == null) {
+                // Un-ID'd (no MarkedIndividual or its id is null):
+                // treat as a singleton "individual" so the indiv tab
+                // still shows it, matching legacy WBIA behavior (C19).
+                // The annotation is the singleton's own representative;
+                // the frontend renders these as "potential new
+                // individual" rows since the annotation.encounter.
+                // individual link is null.
+                singletons.add(ann);
+            } else {
+                String key = indiv.getId();
+                if (!tally.containsKey(key))
+                    tally.put(key, new ArrayList<Annotation>());
+                tally.get(key).add(ann);
             }
-        });
-        int most = sorted.get(0).getValue().size(); // top num of annots
-        for (Map.Entry<MarkedIndividual, List<Annotation> > ent : sorted) {
-            double score = new Double(ent.getValue().size()) / new Double(most);
-            // the ent value (annot List) should always have at least one annot, so we use first one
-            MediaAsset ma = createInspectionPairxAsset(this.queryAnnotation, ent.getValue().get(0),
-                myShepherd);
-            this.prospects.add(new MatchResultProspect(ent.getValue().get(0), score, "indiv", ma));
         }
+        if (tally.isEmpty() && singletons.isEmpty()) return;
+
+        // For each ID'd individual: pick the highest-scoring annotation
+        // within its candidate group. That becomes the rep prospect.
+        // Multi-annotation individuals no longer get a count-based
+        // boost — score is the per-annotation OS knn score (same scale
+        // as the image tab and as WBIA-MiewID's stored score).
+        // prospectsSorted(...) handles final ordering, so we don't
+        // pre-sort here.
+        for (Map.Entry<String, List<Annotation> > ent : tally.entrySet()) {
+            Annotation best = null;
+            double bestScore = -Double.MAX_VALUE;
+            for (Annotation cand : ent.getValue()) {
+                double s = cand.getOpensearchScore();
+                if (best == null || s > bestScore) {
+                    best = cand;
+                    bestScore = s;
+                }
+            }
+            if (best != null) {
+                this.prospects.add(new MatchResultProspect(best, bestScore, "indiv", null));
+            }
+        }
+        // Singletons: one prospect per un-ID'd annotation, scored by
+        // its own OS knn score (same scale as the annot tab).
+        for (Annotation ann : singletons) {
+            this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(),
+                "indiv", null));
+        }
+    }
+
+    /**
+     * Public read-only view of the prospects collection so the
+     * {@link MatchInspectionPairxEnricher} can iterate them in Phase A
+     * and Phase C without reaching into private state. Returns the
+     * underlying Set; callers must not mutate.
+     */
+    public Set<MatchResultProspect> getProspects() {
+        return this.prospects;
+    }
+
+    /**
+     * Public accessor for the queryAnnotation field. Returns whatever
+     * value was set by {@link #setQueryAnnotationFromTask()} or
+     * {@link #createFromJsonResult(JSONObject, Shepherd)} — may be null
+     * if neither has run.
+     */
+    public Annotation getQueryAnnotation() {
+        return this.queryAnnotation;
+    }
+
+    /** Public accessor for the JDO primary key. */
+    public String getId() {
+        return this.id;
     }
 
     private Annotation getAnnotationFromAcmId(String acmId, Shepherd myShepherd) {
@@ -314,12 +472,23 @@ public class MatchResult implements java.io.Serializable {
         payload.put("image2_uris", new JSONArray(new String[] { ma2.webURL().toString() }));
         payload.put("theta1", new JSONArray(new Double[] { ann1.getTheta() }));
         payload.put("theta2", new JSONArray(new Double[] { ann2.getTheta() }));
-        // this needs an array of array(s)
-        JSONArray tmpArr = new JSONArray();
-        tmpArr.put(0, ann1.getBbox());
-        payload.put("bb1", tmpArr);
-        tmpArr.put(0, ann2.getBbox());
-        payload.put("bb2", tmpArr);
+        // bb1 / bb2 payload construction. See addBboxPayload Javadoc for
+        // the two bugs this fixes (shared-array + negative-bbox-rejection,
+        // empty-match-prospects design Track 2 C12). If either clamped
+        // bbox has zero width or height, skip the POST entirely — PairX
+        // also rejects degenerate boxes.
+        int[] clamped1 = clampBbox(ann1.getBbox());
+        int[] clamped2 = clampBbox(ann2.getBbox());
+        if (isDegenerateBbox(clamped1) || isDegenerateBbox(clamped2)) {
+            System.out.println(
+                "[INFO] createInspectionPairxAsset() skipping PairX for ann1=" +
+                ann1.getId() + " ann2=" + ann2.getId() +
+                ": degenerate clamped bbox " +
+                java.util.Arrays.toString(clamped1) + " / " +
+                java.util.Arrays.toString(clamped2));
+            return null;
+        }
+        addBboxPayload(payload, clamped1, clamped2);
 
         // get the image data from pairx endpoint
         JSONObject res = null;
@@ -359,6 +528,82 @@ public class MatchResult implements java.io.Serializable {
         return null;
     }
 
+    /**
+     * Clamp negative bbox values to the in-image portion. ml-service
+     * detections sometimes produce bboxes whose top-left extends past
+     * the image edge (e.g., {@code [-80, 42, 1786, 2228]}); the PairX
+     * {@code /explain/} endpoint rejects those with HTTP 400. Shifting
+     * x or y to 0 alone would translate the box; we also shrink the
+     * dimension by the same amount so the result covers the same in-
+     * image pixels the embedding model actually consumed after
+     * edge-cropping.
+     *
+     * <p>Package-visible for unit testing. (Empty-match-prospects
+     * design Track 2 C12.)</p>
+     */
+    static int[] clampBbox(int[] bbox) {
+        if (bbox == null || bbox.length < 4) return bbox;
+        int x = bbox[0], y = bbox[1], w = bbox[2], h = bbox[3];
+        if (x < 0) {
+            w = Math.max(0, w + x);
+            x = 0;
+        }
+        if (y < 0) {
+            h = Math.max(0, h + y);
+            y = 0;
+        }
+        return new int[] { x, y, w, h };
+    }
+
+    /**
+     * Convert an int[] bbox to a JSONArray of ints. {@code JSONArray.put(Object)}
+     * doesn't auto-convert int[] reliably across org.json versions, so we
+     * box explicitly.
+     */
+    static JSONArray bboxToJsonArray(int[] bbox) {
+        JSONArray arr = new JSONArray();
+        if (bbox == null) return arr;
+        for (int v : bbox) arr.put(v);
+        return arr;
+    }
+
+    /**
+     * True when a bbox has zero or negative width/height (the typical
+     * shape after {@link #clampBbox} on a box that lies entirely off-
+     * image). PairX rejects such boxes the same way it rejects negative
+     * x/y, so callers should skip the POST entirely.
+     */
+    static boolean isDegenerateBbox(int[] bbox) {
+        if (bbox == null || bbox.length < 4) return true;
+        return bbox[2] <= 0 || bbox[3] <= 0;
+    }
+
+    /**
+     * Build the bb1/bb2 payload for {@code /explain/}: each key gets
+     * its own outer JSONArray of one [x, y, w, h] inner array.
+     *
+     * <p>Two bugs in the previous implementation are addressed
+     * together (empty-match-prospects design Track 2 C12):</p>
+     * <ol>
+     *   <li>The previous code reused one tmpArr for both keys, so
+     *       {@code tmpArr.put(0, ann2)} after {@code payload.put("bb1", tmpArr)}
+     *       mutated the shared array and made {@code bb2 == bb1}.
+     *       Building two outer arrays here keeps the references
+     *       distinct.</li>
+     *   <li>{@link #clampBbox} (called by the production entry point
+     *       before this method) prevents negative x/y from being
+     *       sent to PairX, which would return HTTP 400
+     *       "Bounding box values should be positive".</li>
+     * </ol>
+     *
+     * <p>Package-visible so {@code MatchResultPairxPayloadTest} can
+     * assert the JSON shape without spinning up a real Annotation.</p>
+     */
+    static void addBboxPayload(JSONObject payload, int[] bbox1, int[] bbox2) {
+        payload.put("bb1", new JSONArray().put(bboxToJsonArray(bbox1)));
+        payload.put("bb2", new JSONArray().put(bboxToJsonArray(bbox2)));
+    }
+
     public static URL _getPairxUrl(String txStr)
     throws IOException {
         if (txStr == null) throw new IOException("passed null taxonomy");
@@ -394,7 +639,7 @@ public class MatchResult implements java.io.Serializable {
     }
  */
     public int numberProspects() {
-        return Util.collectionSize(prospects);
+        return this.numberProspects;
     }
 
     public Set<String> prospectScoreTypes() {
@@ -496,6 +741,14 @@ public class MatchResult implements java.io.Serializable {
             }
         }
         aj.put("id", ann.getId());
+        // ml-service migration v2 §commit #11: surface WBIA registration
+        // state so the frontend can disable the "Match with HotSpotter"
+        // button until WBIA has acknowledged the annotation. tri-state:
+        // null = legacy or not-yet-pending; false = pending registration;
+        // true = WBIA acknowledged. Frontend treats anything non-true as
+        // "HotSpotter not available yet" with a tooltip.
+        Boolean wbiaReg = ann.getWbiaRegistered();
+        if (wbiaReg != null) aj.put("wbiaRegistered", wbiaReg.booleanValue());
         return aj;
     }
 

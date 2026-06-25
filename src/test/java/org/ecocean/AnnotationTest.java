@@ -61,4 +61,50 @@ class AnnotationTest {
         a3.setViewpoint("foo");
         assertFalse(a3.equalsViewpoint(a4));
     }
+
+    // ml-service migration v2 (commit #4): WBIA registration fields
+
+    @Test void mlServiceFieldsDefaultToNull() {
+        Annotation ann = new Annotation();
+        assertNull(ann.getWbiaRegistered());
+        assertEquals(0, ann.getWbiaRegisterAttempts());
+        assertFalse(ann.isWbiaRegistered());
+    }
+
+    @Test void isWbiaRegisteredOnlyTrueWhenExplicitlyTrue() {
+        Annotation ann = new Annotation();
+        assertFalse(ann.isWbiaRegistered());                  // null
+        ann.setWbiaRegistered(Boolean.FALSE);
+        assertFalse(ann.isWbiaRegistered());                  // pending
+        ann.setWbiaRegistered(Boolean.TRUE);
+        assertTrue(ann.isWbiaRegistered());                   // acknowledged
+        ann.setWbiaRegistered(null);
+        assertFalse(ann.isWbiaRegistered());                  // back to null
+    }
+
+    @Test void incrementWbiaRegisterAttempts() {
+        Annotation ann = new Annotation();
+        assertEquals(0, ann.getWbiaRegisterAttempts());
+        ann.incrementWbiaRegisterAttempts();
+        assertEquals(1, ann.getWbiaRegisterAttempts());
+        ann.incrementWbiaRegisterAttempts();
+        ann.incrementWbiaRegisterAttempts();
+        assertEquals(3, ann.getWbiaRegisterAttempts());
+    }
+
+    // Codex review caveat: setVersion() uses System.currentTimeMillis(), so
+    // two setter calls in the same millisecond produce the same version.
+    // Sleep between to make the test reliable.
+    @Test void mlServiceSettersBumpVersion() throws InterruptedException {
+        Annotation ann = new Annotation();
+        long v0 = ann.getVersion();
+        Thread.sleep(2);
+        ann.setWbiaRegistered(Boolean.TRUE);
+        long v1 = ann.getVersion();
+        assertTrue("setWbiaRegistered should bump version", v1 > v0);
+        Thread.sleep(2);
+        ann.incrementWbiaRegisterAttempts();
+        long v2 = ann.getVersion();
+        assertTrue("incrementWbiaRegisterAttempts should bump version", v2 > v1);
+    }
 }

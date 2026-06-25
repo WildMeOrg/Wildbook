@@ -15,6 +15,7 @@ import FilterIcon from "./icons/FilterIcon";
 import MatchCriteriaDrawer from "./components/MatchCriteriaDrawer";
 import MultiSelectWithCheckbox from "../../components/MultiSelectWithCheckbox";
 import ContainerWithSpinner from "../../components/ContainerWithSpinner";
+import { MAX_NUM_RESULTS } from "./constants";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
@@ -242,6 +243,16 @@ const MatchResults = observer(() => {
           >
             <Form.Label className="me-2 mb-0 small">
               <FormattedMessage id="NUMBER_OF_RESULTS" />
+              <span
+                className="ms-1 text-muted"
+                style={{ fontSize: "0.75rem" }}
+                data-testid="match-results-num-results-hint"
+              >
+                <FormattedMessage
+                  id="NUMBER_OF_RESULTS_MAX_HINT"
+                  values={{ max: MAX_NUM_RESULTS }}
+                />
+              </span>
             </Form.Label>
 
             <div

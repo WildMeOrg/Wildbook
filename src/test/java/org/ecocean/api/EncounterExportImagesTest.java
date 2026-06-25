@@ -92,6 +92,7 @@ import static org.mockito.Mockito.when;
 
     private static String baseUrl;
     private static String authenticationCookie;
+    private static boolean createdSkipAutoIndexingFile = false;
 
     @BeforeAll static void setUp() {
         System.out.println("=== Starting EncounterExportImagesTest Setup ===");
@@ -146,17 +147,26 @@ import static org.mockito.Mockito.when;
 
         OpenSearch.initializeClient(new HttpHost(opensearch.getHost(),
             opensearch.getMappedPort(9200), "http"));
+        // The client now points at OUR fresh container; drop cluster-coupled static caches left by
+        // any earlier test class. A stale INDEX_EXISTS_CACHE makes ensureIndex skip real index
+        // creation, so docs would dynamic-map (text) and keyword/term queries silently mismatch.
+        OpenSearch.INDEX_EXISTS_CACHE.clear();
+        OpenSearch.PIT_CACHE.clear();
 
-        // disable auto indexing for the duration of the test, or leave it disabled if it is currently
+        // disable auto indexing for the duration of the test, or leave it disabled if it is currently.
+        // Removed in tearDown if WE created it: deleteOnExit only fires at JVM exit, which leaks the
+        // global kill-switch into every test class that runs after this one in the same JVM (e.g.
+        // ChildReindexTriggerTest's reindex triggers honor it and would see zero enqueues).
         try {
-            File file = new File("/tmp/skipAutoIndexing");
-            if (!file.exists()) {
-                file.createNewFile();
-                file.deleteOnExit();
-            }
+            // createNewFile() is atomic: true only if WE created it, so a file created by another
+            // process between an exists() check and the create can never be claimed (and deleted) by us.
+            createdSkipAutoIndexingFile = new File("/tmp/skipAutoIndexing").createNewFile();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        // Evict any cached PMF for context0: it may be bound to ANOTHER test class's (now stopped)
+        // Postgres container. The first Shepherd below then creates a fresh PMF against OUR container.
+        org.ecocean.shepherd.core.TestPMFUtil.closePMF("context0");
         // Initialize test data via Shepherd
         // DataNucleus will auto-create tables on first access
         initializeTestData();
@@ -171,6 +181,14 @@ import static org.mockito.Mockito.when;
 
     @AfterAll static void tearDown() {
         System.out.println("\n=== Tearing Down Test Environment ===");
+        // only remove the kill-switch if WE created it (preserve a pre-existing operator file)
+        if (createdSkipAutoIndexingFile) {
+            new File("/tmp/skipAutoIndexing").delete();
+        }
+        // our containers stop with this class; don't leave dead PMF / cluster caches for later classes
+        org.ecocean.shepherd.core.TestPMFUtil.closePMF("context0");
+        OpenSearch.INDEX_EXISTS_CACHE.clear();
+        OpenSearch.PIT_CACHE.clear();
         System.out.println("PostgreSQL container will be stopped automatically");
         System.out.println("OpenSearch container will be stopped automatically");
         System.out.println("=== Teardown Complete ===");

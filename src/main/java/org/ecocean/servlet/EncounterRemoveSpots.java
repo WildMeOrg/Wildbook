@@ -44,6 +44,21 @@ public class EncounterRemoveSpots extends HttpServlet {
         boolean locked = false;
         boolean isOwner = true;
         GridManager gm = GridManagerFactory.getGridManager();
+        // Refuse spot removal while the match graph is rebuilding from the DB
+        // (only happens for ~15 min after a restart on spot-matching installs).
+        // A concurrent removal during the rebuild could be overwritten by the
+        // rebuild's stale read and resurrect the deleted spots. (#1608)
+        if (CommonConfiguration.useSpotPatternRecognition(context) &&
+            !GridManager.isMatchGraphReady()) {
+            myShepherd.closeDBTransaction(); // PM opened in ctor; no tx begun yet
+            out.println(ServletUtilities.getHeader(request));
+            out.println(
+                "<strong>Please wait:</strong> the match graph is rebuilding. Please try removing spot data again in a few minutes.");
+            out.println(ServletUtilities.getFooter(context));
+            response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+            out.close();
+            return;
+        }
         // ConcurrentHashMap<String,EncounterLite> chm= gm.getMatchGraph();
         /*
            if(request.getParameter("number")!=null){
@@ -97,9 +112,27 @@ public class EncounterRemoveSpots extends HttpServlet {
                             "-side spot data.</p>");
                         // despotMe.setNumLeftSpots(0);
                     }
-                    gm.addMatchGraphEntry(request.getParameter("number"),
-                        new EncounterLite(despotMe));
-                    myShepherd.commitDBTransaction();
+                    // Build the lite snapshot while the encounter is still managed,
+                    // then update the in-memory match graph AFTER the DB commit so
+                    // (a) a failed commit can't leave the graph inconsistent with the
+                    // DB and (b) the startup rebuild's DB read can't overwrite this
+                    // change with pre-commit (still-spotted) state. (#1608)
+                    boolean stillHasSpots =
+                        ((despotMe.getSpots() != null) && (despotMe.getSpots().size() > 0)) ||
+                        ((despotMe.getRightSpots() != null) &&
+                        (despotMe.getRightSpots().size() > 0));
+                    EncounterLite updatedLite = stillHasSpots ? new EncounterLite(despotMe) : null;
+                    // Only touch the match graph once the DB change is confirmed
+                    // committed, so a swallowed commit failure can't leave the graph
+                    // inconsistent with the DB. (#1608)
+                    if (myShepherd.commitDBTransactionWithStatus()) {
+                        if (stillHasSpots) {
+                            gm.addMatchGraphEntry(request.getParameter("number"), updatedLite);
+                        } else {
+                            // fully de-spotted: drop it from the candidate set entirely
+                            gm.removeMatchGraphEntry(request.getParameter("number"));
+                        }
+                    }
                 } else {
                     locked = true;
                     myShepherd.rollbackDBTransaction();
