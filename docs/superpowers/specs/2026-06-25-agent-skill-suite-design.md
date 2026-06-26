@@ -1,7 +1,10 @@
 # Agent-Skill Suite — Design
 
 **Date:** 2026-06-25
-**Status:** Approved (brainstorm), pending implementation plan
+**Status:** Approved (brainstorm); Codex design review incorporated (1 round, 8 findings: annotation
+index lacks `individualId` → media/resolve join; bounded scope; self-match exclusion; keep both
+servlet mappings; stricter name validation + fixed map; fuller drift invariant; wider jargon guard;
+response-header hardening). Pending implementation plan.
 **Branch:** `feature/agent-skill-suite`
 **Relates to:** PR #1619 (token UI + single agent-skill), `org.ecocean.api.AgentSkill`, `org.ecocean.api.SearchApi`
 
@@ -55,6 +58,20 @@ results" section) enforces this.
 - **Read-only.** The token API exposes search + media resolve only. Every skill *detects and
   recommends*; none can apply a merge/split. Each ends in a worklist the user actions in the
   Wildbook UI. The skills must never claim to have changed the catalog.
+- **The identity label lives on media/resolve, not the annotation search.** Verified against the
+  code: the `annotation` index serializes `id`, `encounterId`, `viewpoint`, `iaClass`,
+  `matchAgainst`, `mediaAssetId`, and `embeddings` — but **not** `individualId`. `POST
+  /api/v3/media/resolve` returns `individualId` (and `encounterId`, `viewpoint`, `bbox`, `imageUrl`,
+  `methodVersion`) for up to 100 annotation IDs per call. So every analytical skill's data-gathering
+  is a two-step join: search `annotation` for the marking-pattern vectors + `encounterId` +
+  `viewpoint` + `methodVersion`, then `media/resolve` those annotation IDs (≤100/call) to attach the
+  catalog-animal label and the crop. (Equivalent fallback: search `encounter` by `encounterId` to
+  read `individualId`.)
+- **Bounded scope, not whole-catalog.** The token search accepts only `from`/`size` (no
+  scroll/search-after), so it is subject to OpenSearch's `max_result_window`, and `media/resolve`
+  caps at 100 IDs/call. Skills must therefore require a narrowed scope (species + site and/or date
+  range), read `X-Wildbook-Total-Hits` up front, and stop and ask the user to narrow when the count
+  exceeds a documented threshold. Skills must not promise whole-catalog comparisons.
 - **Anonymous docs.** Skill documents contain no secrets (they are how-to text). Real data access
   still requires the user's bearer token. Docs must not name internal access-control field names.
 
@@ -87,26 +104,34 @@ src/main/resources/agent-skills/
 
 ### Servlet behavior (`org.ecocean.api.AgentSkill`)
 
-- Read the skill name from `getPathInfo()`. No path segment (null or `/`) → serve `index.md`.
-  `index.md` is the default-only payload; it is **not** itself a fetchable name (so
-  `/api/v3/agent-skill/index` → 404).
-- Validate the name against a **hardcoded allow-list `Set<String>`**. The allow-list is exactly the
-  fetchable skills: `{ api-reference, find-missed-matches, find-misfiled-sightings,
-  how-good-is-our-matching, review-id-problems }` (every packaged file under `agent-skills/`
-  **except** `index.md`). The name is **never** concatenated into a resource path — it only selects a
-  known, fixed resource path. This removes any path-traversal surface.
-- Unknown name → `404` plain text. Allow-listed name whose resource is somehow missing → `500`
-  plain text (as the servlet does today). Success → `200`, `text/markdown; charset=UTF-8`.
+- Read `getPathInfo()`. If it is `null` or `"/"` → serve `index.md` (the default-only payload;
+  `index` is **not** a fetchable name, so `/api/v3/agent-skill/index` → 404).
+- Otherwise require it to match **exactly one segment**: `^/[a-z0-9-]+$`. Anything else (extra
+  segments, `.md` suffix, path params, mixed case, encoded slashes/dots, null bytes) → `404`.
+- Map the validated segment through a **fixed `Map<String,String>` (name → exact classpath
+  resource)** — the single source of truth for the suite. The name is **never** concatenated into a
+  resource path; it only keys this map. Keys are exactly the fetchable skills:
+  `{ api-reference, find-missed-matches, find-misfiled-sightings, how-good-is-our-matching,
+  review-id-problems }` (every packaged file under `agent-skills/` **except** `index.md`). A miss →
+  `404`. This removes any path-traversal / arbitrary-resource-disclosure surface.
+- Unknown name → `404` plain text. Mapped name whose resource is somehow missing → `500` plain text
+  (as the servlet does today). Success → `200`, `text/markdown; charset=UTF-8`.
+- **Response headers** (cheap hardening): `X-Content-Type-Options: nosniff`, a sensible
+  `Cache-Control` (these are static version-controlled docs), and `ETag`/`Last-Modified` for
+  conditional GETs.
 - Remains anonymous (no token required).
 
 ### Two infra changes (load-bearing)
 
-1. **web.xml** — change the `AgentSkill` servlet `url-pattern` from exact `/api/v3/agent-skill` to
-   prefix `/api/v3/agent-skill/*`. A prefix mapping still matches the bare `/api/v3/agent-skill`, so
-   the currently deployed URL keeps working.
-2. **Shiro `[urls]`** — the anon rule must cover both the bare path and subpaths. Keep
-   `/api/v3/agent-skill = anon` and add `/api/v3/agent-skill/** = anon`, or subpaths fall through to
-   the default auth filter.
+1. **web.xml** — **keep** the exact `url-pattern` `/api/v3/agent-skill` **and add** a second
+   `url-pattern` `/api/v3/agent-skill/*` on the same `AgentSkill` servlet. (Keeping both rather than
+   replacing the exact mapping avoids relying on bare-path-matches-prefix behavior — this project
+   has prior history of Shiro/Tomcat path-matching edge cases that abandoned a `/api/**` web.xml
+   approach.) For the exact mapping `getPathInfo()` is `null` → index; for the prefix mapping it is
+   the `/segment`.
+2. **Shiro `[urls]`** — Shiro is first-match. Keep the existing `/api/v3/agent-skill = anon` and add
+   `/api/v3/agent-skill/** = anon` directly adjacent to it, or subpaths fall through to the default
+   auth filter.
 
 ### Migration / backward compatibility
 
@@ -145,10 +170,24 @@ these six sections:
 
 ### The four analytical skills
 
-All four pull annotations (marking-pattern + `individualId` + `viewpoint` + `methodVersion`) via
-`POST /api/v3/search/annotation`, partition strictly by **viewpoint + methodVersion**, and
-**calibrate** a similarity cutoff against known same-animal pairs before trusting a score. All are
-read-only and end in a human worklist.
+**Shared method rules** (apply to all four; the per-skill descriptions assume them):
+
+- **Data join.** Search `annotation` (scoped, paged with `from`/`size`) for the marking-pattern
+  vectors + `encounterId` + `viewpoint` + `methodVersion`, then `media/resolve` the annotation IDs
+  (≤100/call) to attach `individualId` and the crop. `individualId` is **not** on the annotation
+  index (see Assumptions).
+- **Partition strictly by viewpoint + methodVersion.** Never compare marking-patterns across
+  different viewpoints or model versions — they live in different spaces.
+- **Calibrate** a similarity cutoff against known same-animal pairs before trusting any score.
+- **Exclude self and same-sighting.** Every fit/ranking computation must exclude the photo being
+  judged *and* all other photos from the same sighting (encounter); otherwise the own-animal score
+  is trivially perfect (self-match bias) or inflated by easy same-session lookalikes. Require a
+  minimum number of independent reference photos before scoring an animal.
+- **Stay bounded.** Read `X-Wildbook-Total-Hits` first; if the scope exceeds the documented
+  threshold, stop and ask the user to narrow (species + site and/or date range). No whole-catalog
+  promises.
+
+All are read-only and end in a human worklist.
 
 1. **`find-missed-matches`** — *the same animal recorded under two names, or one name covering two
    animals.* Compare each catalog animal's photos against every other's. Surface (a) two **different**
@@ -181,18 +220,25 @@ read-only and end in a human worklist.
 
 ## Testing
 
-- **`AgentSkillTest`** (extends the existing test): bare path → 200 index; each allow-listed name →
-  200 `text/markdown`; unknown name → 404; traversal attempt → 404; anon (no token) works.
-- **Drift-guard test** (mirrors the existing `TOKEN_ALLOWED_INDICES` drift test): the allow-list
-  equals the packaged files under `agent-skills/` minus `index.md`; every allow-listed name resolves
-  to a non-empty resource; and `index.md`'s toolbox table lists exactly the four analytical skills
-  (`api-reference` is reached from the "What you'll need" section, not the toolbox). No orphans, no
-  missing files, no unlisted skill.
+- **`AgentSkillTest`** (extends the existing test): bare path → 200 index; trailing slash `/` → 200
+  index; each mapped name → 200 `text/markdown`; anon (no token) works; `nosniff` header present.
+  **Edge cases → 404:** unknown name; `index`; `.md` suffix; mixed case; extra segment; double
+  slash; encoded slash `%2f`; encoded dots `%2e%2e`; trailing dot; path params; null byte `%00`.
+  If feasible, exercise these at container level (bare path, trailing slash, subpath, unknown,
+  encoded slash) to catch Tomcat/Shiro path-matching behavior, not just the servlet method.
+- **Drift-guard test** (mirrors the existing `TOKEN_ALLOWED_INDICES` drift test) — the servlet's
+  `Map<String,String>` is the single source of truth. Assert a three-way invariant: (a) packaged
+  resources under `agent-skills/` == `index.md` + `map.values()`; (b) every mapped name resolves to
+  a non-empty resource and equals that file's frontmatter `name` (name == file stem); (c) `index.md`
+  links exactly the four analytical skills in its toolbox and links `api-reference` from the
+  "What you'll need" section. No orphans, no missing files, no unlisted skill, no broken fetch URL.
 - **Leak-guard test**: no served document contains the internal access-control field names.
-- **Jargon-guard test, scoped to `index.md` only**: the entry page is free of a small jargon
-  blacklist (`embedding`, `cosine`, `centroid`, `cluster`, …). The deeper skills' "How to do it"
-  sections legitimately use precise terms, so jargon there is caught by a **manual read-aloud review
-  checklist**, not an automated test.
+- **Jargon-guard test** over the user-facing sections of **every** skill — frontmatter
+  (`name`/`description`), "When to use this", "What it does, in plain terms", "How to report
+  results", and "Cautions" — asserting absence of a jargon blacklist (`embedding`, `vector`,
+  `cosine`, `centroid`, `cluster`, …). **Exempt only** the "How to do it" section (which must name
+  techniques precisely for the assistant) and the "Don't say" column of the jargon table. A manual
+  read-aloud check remains a review-checklist item for tone the test can't catch.
 
 ## Out of scope (deferred)
 
