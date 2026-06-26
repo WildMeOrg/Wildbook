@@ -76,3 +76,8 @@ catalog; other scopes may perform differently. Small samples are unreliable — 
 size and flag low counts prominently. You only see catalog data the person's account is permitted
 to view, so the evaluation is bounded by that visibility. This skill is read-only: it produces an
 accuracy report and makes no changes to any records.
+
+## Additional references
+
+This skill is inspired by code developed by Lasha Otarashvili at:
+- [Curation Re-ID](https://github.com/LashaO/curation-reid/)
