@@ -55,8 +55,8 @@ read-only and produces a to-do list only.
 
 ## Cautions
 Only photos of the same viewpoint processed with the same model version are compared —
-do not mix them. Results are unreliable when an animal has very few photos; this tool
-requires at least three independent reference sightings per animal and will skip animals
+do not mix them (with the exception of some finned species, such as dolphins, orcas, and others matched by fin shape). 
+Results are unreliable when an animal has very few photos; this tool requires at least three independent reference sightings per animal and will skip animals
 below that threshold. A photo that looks unusual (unusual lighting, angle, or life-stage)
 may be flagged even when correctly filed — treat every flag as a suggestion, not a
 conclusion. You only see the catalog data your account is permitted to view, so the
