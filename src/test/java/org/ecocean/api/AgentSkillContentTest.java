@@ -71,6 +71,16 @@ class AgentSkillContentTest {
         assertNoJargon(userFacingSections(md));
     }
 
+    @Test void how_good_is_our_matching_is_well_formed() {
+        assertSkillStructure("how-good-is-our-matching");
+        String md = load("/agent-skills/how-good-is-our-matching.md");
+        assertTrue(md.contains("%") || md.toLowerCase().contains("percent"),
+            "reports reliability as a plain percentage");
+        assertTrue(md.toLowerCase().contains("same sighting")
+                || md.toLowerCase().contains("same encounter"),
+            "states the same-sighting exclusion that prevents inflated numbers");
+    }
+
     @Test void find_misfiled_sightings_is_well_formed() {
         assertSkillStructure("find-misfiled-sightings");
         String md = load("/agent-skills/find-misfiled-sightings.md");
