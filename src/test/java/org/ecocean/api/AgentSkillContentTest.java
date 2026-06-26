@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AgentSkillContentTest {
@@ -144,5 +145,30 @@ class AgentSkillContentTest {
             assertTrue(md.contains(idx), "names allowed index " + idx);
         assertTrue(md.contains("403"), "states denied indices return 403");
         assertNoLeak(md);
+    }
+
+    @Test void catalog_files_and_index_do_not_drift() {
+        // (a) every mapped name resolves to a non-empty resource whose frontmatter name == the key
+        for (Map.Entry<String, String> e : AgentSkill.SKILL_RESOURCES.entrySet()) {
+            String md = load("/agent-skills/" + e.getValue());
+            assertFalse(md.isEmpty(), e.getValue() + " must be non-empty");
+            assertEquals(e.getValue(), e.getKey() + ".md",
+                "map value must be <name>.md for key " + e.getKey());
+            assertTrue(md.contains("name: " + e.getKey()),
+                e.getValue() + " frontmatter name must equal its map key");
+        }
+        // (b) index.md links exactly the four analytical skills in its toolbox, plus api-reference
+        String index = load("/agent-skills/index.md");
+        String[] analytical = {
+            "find-missed-matches", "find-misfiled-sightings",
+            "how-good-is-our-matching", "review-id-problems" };
+        for (String n : analytical)
+            assertTrue(index.contains(n), "index toolbox must list " + n);
+        assertTrue(index.contains("api-reference"), "index must reference api-reference");
+        // (c) the map's analytical keys are exactly those four (api-reference is the only extra)
+        java.util.Set<String> keys = new java.util.HashSet<>(AgentSkill.SKILL_RESOURCES.keySet());
+        keys.remove("api-reference");
+        assertEquals(new java.util.HashSet<>(java.util.Arrays.asList(analytical)), keys,
+            "the analytical skills in the map must be exactly the four listed in the index");
     }
 }
