@@ -67,11 +67,21 @@ results" section) enforces this.
   `viewpoint` + `methodVersion`, then `media/resolve` those annotation IDs (≤100/call) to attach the
   catalog-animal label and the crop. (Equivalent fallback: search `encounter` by `encounterId` to
   read `individualId`.)
-- **Bounded scope, not whole-catalog.** The token search accepts only `from`/`size` (no
-  scroll/search-after), so it is subject to OpenSearch's `max_result_window`, and `media/resolve`
-  caps at 100 IDs/call. Skills must therefore require a narrowed scope (species + site and/or date
-  range), read `X-Wildbook-Total-Hits` up front, and stop and ask the user to narrow when the count
-  exceeds a documented threshold. Skills must not promise whole-catalog comparisons.
+- **Paging and its hard ceiling.** The token search uses classic offset paging: pass `?from=&size=`
+  and walk the set across multiple calls (`from=0&size=N`, then `from=N&size=N`, …). Each call is
+  independent (the server deletes + recreates its point-in-time per request), so it is *not* a frozen
+  snapshot — results can drift slightly at page boundaries if the catalog changes mid-walk. The hard
+  limit is OpenSearch's `index.max_result_window` (default **10,000**): **`from + size` must stay
+  ≤ 10,000.** The token API deliberately does **not** expose `scroll` or `search_after` (non-admin
+  bodies are fail-closed to only `query`/`from`/`size`), so **result sets larger than ~10,000 cannot
+  be fully walked** — the tail is unreachable, not just slow.
+- **Bounded scope, not whole-catalog.** Because of the 10k wall — and because full marking-pattern
+  vectors make large pages heavy, `media/resolve` caps at 100 IDs/call, and all-pairs comparison is
+  ~O(n²) — skills must require a narrowed scope (species + site and/or date range), read
+  `X-Wildbook-Total-Hits` up front, and **stop and ask the user to narrow when the total exceeds a
+  documented threshold set comfortably below 10,000** (low thousands). Skills must never silently
+  truncate: if they analyze only the first page(s) of a larger set, they must say so. No
+  whole-catalog promises.
 - **Anonymous docs.** Skill documents contain no secrets (they are how-to text). Real data access
   still requires the user's bearer token. Docs must not name internal access-control field names.
 
@@ -154,6 +164,15 @@ Plain-language and browser-legible. Structure:
    (the user's own words) · the fetch URL.
 4. **How this works** — one line telling the assistant to fetch the matching skill on demand.
 
+### `api-reference.md` (the detailed how-to the assistant reads)
+
+Carries the full token/endpoints/schema (≈ today's `agent-skill.md`), plus an explicit **paging
+contract** the analytical skills depend on: that search is offset paging via `?from=&size=`; that the
+total is in `X-Wildbook-Total-Hits`; that `from + size` must stay **≤ 10,000** and there is **no
+scroll/search_after**, so larger sets can't be fully walked; that pages are independent (not a frozen
+snapshot); and the `media/resolve` 100-ID/call cap and the annotation→media/resolve join for
+`individualId`. A worked multi-page example (walk N records, then resolve in 100-ID batches).
+
 ### Shared skill template
 
 Each analytical skill is a markdown file with frontmatter (`name`, plain-language `description`) and
@@ -183,9 +202,11 @@ these six sections:
   judged *and* all other photos from the same sighting (encounter); otherwise the own-animal score
   is trivially perfect (self-match bias) or inflated by easy same-session lookalikes. Require a
   minimum number of independent reference photos before scoring an animal.
-- **Stay bounded.** Read `X-Wildbook-Total-Hits` first; if the scope exceeds the documented
-  threshold, stop and ask the user to narrow (species + site and/or date range). No whole-catalog
-  promises.
+- **Stay bounded and page correctly.** Read `X-Wildbook-Total-Hits` first; if the total exceeds the
+  documented threshold (low thousands, below the 10k wall), stop and ask the user to narrow (species
+  + site and/or date range). Within scope, retrieve all needed records by paging `?from=&size=`
+  across calls, keeping `from + size ≤ 10,000`. There is no scroll/search_after, so never assume the
+  tail of a >10k set is reachable; if you analyze a partial set, say so. No whole-catalog promises.
 
 All are read-only and end in a human worklist.
 
