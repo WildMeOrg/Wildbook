@@ -8,7 +8,7 @@ is. Everything here is **read-only** — the tools only ever suggest; you make t
 
 A short-lived access token from Wildbook. In Wildbook, open your account menu and choose
 **API Access** to create one, then paste **only that token** to your assistant — never your username
-or password. The token expires after about 30 minutes; create a fresh one when it stops working.
+or password. The token has an expiration date that may vary by Wildbook; create a fresh one when it stops working.
 Full technical detail is in the **api-reference** page (fetch `/api/v3/agent-skill/api-reference`).
 
 ## The toolbox
