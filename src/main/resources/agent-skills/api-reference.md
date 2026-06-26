@@ -1,3 +1,8 @@
+---
+name: api-reference
+description: Reference for the Wildbook token-scoped API and the analytical skills' endpoints and authentication.
+---
+
 # Wildbook Token-Scoped API — Agent Skill
 
 You are an AI agent operating Wildbook's **read-only** API on behalf of a human user. You see exactly
@@ -51,6 +56,23 @@ Key indices and fields:
   `embeddings` (nested: `method`, `methodVersion`, and the MiewID `vector`).
 
 Access-control fields exist server-side but are **never** returned.
+
+## Paging and limits
+
+Search results come back a page at a time. Pass `?from=` and `?size=` on the request and walk the
+set across calls: `from=0&size=200`, then `from=200&size=200`, and so on. The total number of
+matches is in the `X-Wildbook-Total-Hits` response header — read it first.
+
+There is a hard ceiling: `from + size` must stay at or below **10,000** (OpenSearch's
+`max_result_window`). The API does not offer `scroll` or `search_after`, so a result set larger than
+10,000 cannot be fully walked — narrow your search (species, site, date range) instead. Pages are
+fetched independently, so a result set that changes while you page can shift slightly at page
+boundaries.
+
+To turn annotation IDs into a catalog-animal label and a croppable image, call
+`POST /api/v3/media/resolve` with up to **100** annotation IDs per call; it returns `individualId`,
+`encounterId`, `viewpoint`, `bbox`, `imageUrl`, and `methodVersion`. The annotation search itself
+does not return `individualId`.
 
 ## Worked examples
 
