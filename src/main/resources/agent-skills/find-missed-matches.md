@@ -47,3 +47,8 @@ action in Wildbook. Never say you merged or changed anything — you cannot.
 Only compare photos of the same viewpoint taken with the same model version. Small numbers of photos
 are unreliable — say so. You only ever see catalog data the person's account is allowed to see.
 This skill is read-only: it produces a worklist of suggestions. You make no changes to the catalog.
+
+## Additional references
+
+This skill is inspired by code developed by Lasha Otarashvili at:
+- [Curation Re-ID](https://github.com/LashaO/curation-reid/)
