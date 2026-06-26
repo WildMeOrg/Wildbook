@@ -71,6 +71,17 @@ class AgentSkillContentTest {
         assertNoJargon(userFacingSections(md));
     }
 
+    @Test void review_id_problems_is_well_formed() {
+        assertSkillStructure("review-id-problems");
+        String md = load("/agent-skills/review-id-problems.md");
+        assertTrue(md.contains("/api/v3/media/resolve"), "uses media resolve to show photos");
+        assertTrue(md.toLowerCase().contains("side by side") || md.toLowerCase().contains("side-by-side"),
+            "presents photos side by side");
+        assertTrue(md.toLowerCase().contains("to-do") || md.toLowerCase().contains("worklist")
+                || md.toLowerCase().contains("export"),
+            "produces an actionable to-do list");
+    }
+
     @Test void how_good_is_our_matching_is_well_formed() {
         assertSkillStructure("how-good-is-our-matching");
         String md = load("/agent-skills/how-good-is-our-matching.md");
