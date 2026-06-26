@@ -62,3 +62,8 @@ may be flagged even when correctly filed — treat every flag as a suggestion, n
 conclusion. You only see the catalog data your account is permitted to view, so the
 analysis is bounded by that visibility. This skill is read-only: it produces a worklist
 of suspected filing errors. No records are changed.
+
+## Additional references
+
+This skill is inspired by code developed by Lasha Otarashvili at:
+- [Curation Re-ID](https://github.com/LashaO/curation-reid/)
