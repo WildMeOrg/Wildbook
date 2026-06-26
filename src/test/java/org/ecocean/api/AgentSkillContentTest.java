@@ -71,6 +71,17 @@ class AgentSkillContentTest {
         assertNoJargon(userFacingSections(md));
     }
 
+    @Test void find_misfiled_sightings_is_well_formed() {
+        assertSkillStructure("find-misfiled-sightings");
+        String md = load("/agent-skills/find-misfiled-sightings.md");
+        assertTrue(md.contains("/api/v3/media/resolve"), "names media resolve for the identity join");
+        assertTrue(md.toLowerCase().contains("exclude")
+                && (md.toLowerCase().contains("same sighting")
+                    || md.toLowerCase().contains("same encounter")
+                    || md.toLowerCase().contains("itself")),
+            "states the self / same-sighting exclusion rule");
+    }
+
     @Test void find_missed_matches_is_well_formed() {
         assertSkillStructure("find-missed-matches");
         String md = load("/agent-skills/find-missed-matches.md");
