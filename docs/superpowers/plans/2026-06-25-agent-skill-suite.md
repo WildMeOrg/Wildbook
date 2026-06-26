@@ -233,8 +233,7 @@ Full technical detail is in the **api-reference** page (fetch `/api/v3/agent-ski
 
 ## How this works
 
-When the person you're helping describes one of the tasks above, fetch that tool's page and follow
-it. Each page tells you exactly which catalog information to pull and how to present what you find.
+When you describe one of the tasks above to your AI assistant, it fetches that tool's page and follows the steps there. Each page tells the assistant exactly which catalog information to look up and how to show you what it finds — so you can review and decide.
 ```
 
 Note: the toolbox table lines are stripped by `userFacingSections`, so the jargon check passes even though the table is user-visible — the table here contains no jargon anyway. Keep the prose plain.
