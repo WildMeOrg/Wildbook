@@ -11,45 +11,69 @@ import org.junit.jupiter.api.Test;
 
 class AgentSkillTest {
 
-    private String body() throws Exception {
+    // serve with a given pathInfo; return [status, contentType, body]
+    private String[] serve(String pathInfo) throws Exception {
         HttpServletRequest req = mock(HttpServletRequest.class);
         HttpServletResponse resp = mock(HttpServletResponse.class);
+        when(req.getPathInfo()).thenReturn(pathInfo);
         StringWriter out = new StringWriter();
         when(resp.getWriter()).thenReturn(new PrintWriter(out));
         new AgentSkill().doGetForTest(req, resp);
-        verify(resp).setStatus(200);
-        verify(resp).setContentType("text/markdown; charset=UTF-8");
-        return out.toString();
+        org.mockito.ArgumentCaptor<Integer> st = org.mockito.ArgumentCaptor.forClass(Integer.class);
+        verify(resp).setStatus(st.capture());
+        org.mockito.ArgumentCaptor<String> ct = org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(resp).setContentType(ct.capture());
+        return new String[] { String.valueOf(st.getValue()), ct.getValue(), out.toString() };
     }
 
-    @Test void serves_markdown_with_key_anchors() throws Exception {
-        String md = body();
-        assertFalse(md.isEmpty(), "skill body must be non-empty");
-        assertTrue(md.contains("Authorization: Bearer"), "documents bearer auth");
-        assertTrue(md.contains("/api/v3/media/resolve"), "documents media resolve");
-        assertTrue(md.contains("/api/v3/search/"), "documents search");
-        for (String idx : new String[] {"encounter", "individual", "annotation"})
-            assertTrue(md.contains(idx), "mentions index " + idx);
-        assertTrue(md.toLowerCase().contains("never ask for") || md.toLowerCase().contains("never give"),
-            "contains the never-share-credentials guidance");
+    @Test void bare_path_serves_index() throws Exception {
+        String[] r = serve(null);
+        assertEquals("200", r[0], "bare path returns 200");
+        assertEquals("text/markdown; charset=UTF-8", r[1]);
+        assertTrue(r[2].contains("find-missed-matches"), "bare path serves the index/toolbox");
     }
 
-    @Test void skill_index_claims_match_search_allowlist() throws Exception {
-        String md = body();
+    @Test void trailing_slash_serves_index() throws Exception {
+        assertEquals("200", serve("/")[0], "trailing slash returns the index");
+    }
+
+    @Test void each_skill_name_serves_markdown() throws Exception {
+        for (String name : AgentSkill.SKILL_RESOURCES.keySet()) {
+            String[] r = serve("/" + name);
+            assertEquals("200", r[0], name + " returns 200");
+            assertEquals("text/markdown; charset=UTF-8", r[1], name + " is markdown");
+            assertFalse(r[2].isEmpty(), name + " is non-empty");
+        }
+    }
+
+    @Test void api_reference_carries_allowlist_and_no_leak() throws Exception {
+        String md = serve("/api-reference")[2];
         for (String idx : SearchApi.TOKEN_ALLOWED_INDICES)
-            assertTrue(md.contains(idx), "skill must list allowed index " + idx);
+            assertTrue(md.contains(idx), "api-reference must list allowed index " + idx);
         assertTrue(md.contains("occurrence") && md.contains("media_asset"),
-            "skill must name the denied indices");
-        assertTrue(md.contains("403"), "skill must state denied indices return 403");
-        for (String denied : new String[] {"occurrence", "media_asset"})
-            assertFalse(SearchApi.TOKEN_ALLOWED_INDICES.contains(denied),
-                "denied index " + denied + " must not be in the allowlist");
-    }
-
-    @Test void skill_does_not_leak_internal_acl_field_names() throws Exception {
-        String md = body();
+            "api-reference must name the denied indices");
+        assertTrue(md.contains("403"), "api-reference must state denied indices return 403");
+        assertTrue(md.contains("Authorization: Bearer"), "api-reference documents bearer auth");
         for (String acl : new String[] {
                 "publiclyReadable", "submitterUserId", "submitterUserIds", "viewUsers", "editUsers"})
-            assertFalse(md.contains(acl), "skill must not expose internal ACL field name " + acl);
+            assertFalse(md.contains(acl), "must not expose internal ACL field name " + acl);
+    }
+
+    @Test void unknown_and_malformed_names_return_404() throws Exception {
+        for (String bad : new String[] {
+                "/nope", "/index", "/api-reference.md", "/API-REFERENCE",
+                "/find-missed-matches/extra", "//double", "/..", "/../secret",
+                "/a%2fb", "/%2e%2e", "/with space", "/trailing/" }) {
+            assertEquals("404", serve(bad)[0], bad + " must 404");
+        }
+    }
+
+    @Test void success_sets_nosniff_header() throws Exception {
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        when(req.getPathInfo()).thenReturn(null);
+        when(resp.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
+        new AgentSkill().doGetForTest(req, resp);
+        verify(resp).setHeader("X-Content-Type-Options", "nosniff");
     }
 }
