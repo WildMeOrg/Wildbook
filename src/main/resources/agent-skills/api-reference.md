@@ -1,3 +1,8 @@
+---
+name: api-reference
+description: Reference for the Wildbook token-scoped API and the analytical skills' endpoints and authentication.
+---
+
 # Wildbook Token-Scoped API — Agent Skill
 
 You are an AI agent operating Wildbook's **read-only** API on behalf of a human user. You see exactly
