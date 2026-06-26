@@ -23,3 +23,10 @@ Full technical detail is in the **api-reference** page (fetch `/api/v3/agent-ski
 ## How this works
 
 When you describe one of the tasks above to your AI assistant, it fetches that tool's page and follows the steps there. Each page tells the assistant exactly which catalog information to look up and how to show you what it finds — so you can review and decide.
+
+## Additional references
+
+These tools are only a subset of the types of data management and scientific analysis tasks you can use this API and Wildbook. For more information about Wildbook, see these resources if needed:
+- [Wildbook Documentation](https://wildbook.docs.wildme.org/)
+- [Wildbook Community](https://community.wildme.org/)
+- [How I AI by Wildbook User Dr. Simon Pierce](https://github.com/simonjpierce/how-i-ai)
