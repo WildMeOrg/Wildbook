@@ -44,6 +44,42 @@ class AgentSkillContentTest {
             assertFalse(lower.contains(j), "user-facing text must not contain jargon term: " + j);
     }
 
+    static final String[] REQUIRED_SECTIONS = {
+        "## When to use this",
+        "## What it does, in plain terms",
+        "## What you'll need",
+        "## How to do it",
+        "## How to report results",
+        "## Cautions"
+    };
+
+    // Validates the shared skill template: frontmatter name == file stem, all six sections present,
+    // no ACL leak, no jargon outside "How to do it"/table, and the read-only worklist promise.
+    static void assertSkillStructure(String stem) {
+        String md = load("/agent-skills/" + stem + ".md");
+        assertFalse(md.isEmpty(), stem + " must be non-empty");
+        assertTrue(md.contains("name: " + stem),
+            stem + " frontmatter name must equal the file stem");
+        for (String s : REQUIRED_SECTIONS)
+            assertTrue(md.contains(s), stem + " must contain section " + s);
+        assertTrue(md.toLowerCase().contains("read-only")
+                || md.toLowerCase().contains("only suggest")
+                || md.toLowerCase().contains("worklist")
+                || md.toLowerCase().contains("to-do"),
+            stem + " must state it is read-only / produces a worklist");
+        assertNoLeak(md);
+        assertNoJargon(userFacingSections(md));
+    }
+
+    @Test void find_missed_matches_is_well_formed() {
+        assertSkillStructure("find-missed-matches");
+        String md = load("/agent-skills/find-missed-matches.md");
+        assertTrue(md.contains("/api/v3/search/annotation"), "names the annotation search");
+        assertTrue(md.contains("/api/v3/media/resolve"), "names media resolve for the identity join");
+        assertTrue(md.toLowerCase().contains("viewpoint") && md.toLowerCase().contains("methodversion"),
+            "states the same-viewpoint + same-methodVersion rule");
+    }
+
     @Test void index_is_plain_language_and_lists_the_four_tools() {
         String md = load("/agent-skills/index.md");
         assertFalse(md.isEmpty(), "index must be non-empty");
