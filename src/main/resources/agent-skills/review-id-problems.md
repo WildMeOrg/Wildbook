@@ -77,3 +77,8 @@ involving a restricted record will be skipped. Derived (consistency-closure) sug
 inferences from your confirmed decisions — treat them as starting points for further review, not
 as conclusions. When the worklist is large, consider working through it in sessions and saving your
 progress so you do not have to restart from the beginning.
+
+## Additional references
+
+This skill is inspired by code developed by Lasha Otarashvili at:
+- [Curation Re-ID](https://github.com/LashaO/curation-reid/)
