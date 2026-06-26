@@ -62,10 +62,10 @@ class AgentSkillContentTest {
             stem + " frontmatter name must equal the file stem");
         for (String s : REQUIRED_SECTIONS)
             assertTrue(md.contains(s), stem + " must contain section " + s);
-        assertTrue(md.toLowerCase().contains("read-only")
-                || md.toLowerCase().contains("only suggest")
-                || md.toLowerCase().contains("worklist")
-                || md.toLowerCase().contains("to-do"),
+        assertTrue(userFacingSections(md).toLowerCase().contains("read-only")
+                || userFacingSections(md).toLowerCase().contains("only suggest")
+                || userFacingSections(md).toLowerCase().contains("worklist")
+                || userFacingSections(md).toLowerCase().contains("to-do"),
             stem + " must state it is read-only / produces a worklist");
         assertNoLeak(md);
         assertNoJargon(userFacingSections(md));
