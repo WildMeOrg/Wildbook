@@ -1,0 +1,26 @@
+# Wildbook Catalog Helper — Toolbox
+
+These tools help you check and tidy up your animal photo-ID catalog: spot the same animal recorded
+twice, find sightings filed under the wrong animal, and judge how reliable the automatic matching
+is. Everything here is **read-only** — the tools only ever suggest; you make the changes in Wildbook.
+
+## What you'll need
+
+A short-lived access token from Wildbook. In Wildbook, open your account menu and choose
+**API Access** to create one, then paste **only that token** to your assistant — never your username
+or password. The token expires after about 30 minutes; create a fresh one when it stops working.
+Full technical detail is in the **api-reference** page (fetch `/api/v3/agent-skill/api-reference`).
+
+## The toolbox
+
+| Tool | Use this when you want to… | Fetch |
+|---|---|---|
+| find-missed-matches | check whether the same animal was recorded twice under different names | `/api/v3/agent-skill/find-missed-matches` |
+| find-misfiled-sightings | check whether any sightings are filed under the wrong animal | `/api/v3/agent-skill/find-misfiled-sightings` |
+| how-good-is-our-matching | understand how reliable the automatic matching is for a species or site | `/api/v3/agent-skill/how-good-is-our-matching` |
+| review-id-problems | go through suspected ID problems photo-by-photo and build a to-do list | `/api/v3/agent-skill/review-id-problems` |
+
+## How this works
+
+When the person you're helping describes one of the tasks above, fetch that tool's page and follow
+it. Each page tells you exactly which catalog information to pull and how to present what you find.

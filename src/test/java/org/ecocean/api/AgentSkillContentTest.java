@@ -44,6 +44,24 @@ class AgentSkillContentTest {
             assertFalse(lower.contains(j), "user-facing text must not contain jargon term: " + j);
     }
 
+    @Test void index_is_plain_language_and_lists_the_four_tools() {
+        String md = load("/agent-skills/index.md");
+        assertFalse(md.isEmpty(), "index must be non-empty");
+        for (String name : new String[] {
+                "find-missed-matches", "find-misfiled-sightings",
+                "how-good-is-our-matching", "review-id-problems" })
+            assertTrue(md.contains(name), "index toolbox must list " + name);
+        assertTrue(md.contains("api-reference"), "index must point to api-reference for API detail");
+        assertTrue(md.toLowerCase().contains("read-only")
+                || md.toLowerCase().contains("only suggest")
+                || md.toLowerCase().contains("you make the changes"),
+            "index must state the tools are read-only");
+        assertTrue(md.toLowerCase().contains("api access") || md.toLowerCase().contains("token"),
+            "index must explain getting a token");
+        assertNoLeak(md);
+        assertNoJargon(userFacingSections(md));
+    }
+
     @Test void api_reference_has_auth_schema_and_paging_contract() {
         String md = load("/agent-skills/api-reference.md");
         assertFalse(md.isEmpty(), "api-reference must be non-empty");
