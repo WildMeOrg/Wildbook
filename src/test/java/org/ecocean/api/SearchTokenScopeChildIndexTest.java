@@ -109,12 +109,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         commonConfiguration.setProperty("collaborationSecurityEnabled", "true");
         commonConfiguration.setProperty("releaseDateFormat", "yyyy-MM-dd");
         commonConfiguration.setProperty("htmlTitle", "Unit Test");
-        commonConfiguration.setProperty("jwtPrivateKeyBase64", privB64);
-        commonConfiguration.setProperty("jwtPublicKeyBase64", pubB64);
-        commonConfiguration.setProperty("jwtIssuer", "wildbook");
-        commonConfiguration.setProperty("jwtAudience", "wildbook-scoped-api");
-        commonConfiguration.setProperty("jwtContext", "context0");
         CommonConfiguration.initialize("context0", commonConfiguration);
+
+        // JWT keys now live in their own file (apiAccessKeys.properties), seeded via this seam.
+        Properties apiAccessKeys = new Properties();
+        apiAccessKeys.setProperty("jwtPrivateKeyBase64", privB64);
+        apiAccessKeys.setProperty("jwtPublicKeyBase64", pubB64);
+        apiAccessKeys.setProperty("jwtIssuer", "wildbook");
+        apiAccessKeys.setProperty("jwtAudience", "wildbook-scoped-api");
+        apiAccessKeys.setProperty("jwtContext", "context0");
+        CommonConfiguration.initializeApiAccess("context0", apiAccessKeys);
 
         testJwtService = JwtService.fromBase64Keys(privB64, pubB64, "wildbook",
             "wildbook-scoped-api");
@@ -166,6 +170,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         org.ecocean.shepherd.core.TestPMFUtil.closePMF("context0");
         OpenSearch.INDEX_EXISTS_CACHE.clear();
         OpenSearch.PIT_CACHE.clear();
+        CommonConfiguration.clearApiAccessCache();
     }
 
     // =========================================================================
