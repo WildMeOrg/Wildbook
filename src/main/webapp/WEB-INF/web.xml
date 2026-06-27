@@ -113,6 +113,7 @@
 				/api/v3/search/** = tokenAuthSearch
 				/api/v3/media/resolve = tokenAuthSearch
 				/api/v3/agent-skill = anon
+				/api/v3/agent-skill/** = anon
 
 
 				# ===== Appadmin =====
@@ -581,6 +582,7 @@
 	<servlet-mapping>
 		<servlet-name>AgentSkill</servlet-name>
 		<url-pattern>/api/v3/agent-skill</url-pattern>
+		<url-pattern>/api/v3/agent-skill/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>

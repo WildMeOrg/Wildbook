@@ -787,9 +787,10 @@ if(request.getUserPrincipal()!=null){
                                   <div class="profile-icon" style="background-image: url('<%=profilePhotoURL %>');"></div>
                                   
                                   <ul class="dropdown-menu">
-                                      <li><a href="<%=urlLoc %>/react/">Landing Page</a></li>
-                                      <li><a href="<%=urlLoc %>/myAccount.jsp">User Profile</a></li>
-                                      <li><a href="#" onclick="logoutAndRedirect()">Logout</a></li>
+                                      <li><a href="<%=urlLoc %>/react/"><%=props.getProperty("landingPage")%></a></li>
+                                      <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("userProfile")%></a></li>
+                                      <li><a href="<%=urlLoc %>/react/api-access"><%=props.getProperty("apiAccess")%></a></li>
+                                      <li><a href="#" onclick="logoutAndRedirect()"><%=props.getProperty("logout")%></a></li>
                                   </ul>   
                                 </div>              
 
