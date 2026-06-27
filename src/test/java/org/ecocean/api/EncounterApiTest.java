@@ -90,6 +90,7 @@ class EncounterApiTest {
                 // spy to fake some calls on enc so it doesnt blow up
                 Encounter encSpy = spy(enc);
                 doReturn(true).when(encSpy).isPubliclyReadable();
+                doReturn(new JSONObject()).when(encSpy).spotMappingJsonForApiGet();
                 Map emptyMap = new HashMap();
                 doReturn(emptyMap).when(encSpy).getBiologicalMeasurementsByType();
                 Shepherd myShepherd = new Shepherd("context0");
@@ -146,6 +147,7 @@ class EncounterApiTest {
     @Test void futureDateTest()
     throws ApiException {
         Encounter enc = new Encounter();
+
         enc.setDateFromISO8601String("invalid"); // should return silently
         assertEquals(enc.getDay(), 0);
 

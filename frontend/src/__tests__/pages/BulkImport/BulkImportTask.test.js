@@ -3,6 +3,7 @@ import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "../../../utils/utils";
 import BulkImportTask from "../../../pages/BulkImport/BulkImportTask";
 import axios from "axios";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
 jest.mock("antd/es/tree-select", () => ({
   __esModule: true,
@@ -10,6 +11,9 @@ jest.mock("antd/es/tree-select", () => ({
 }));
 
 jest.mock("../../../models/bulkImport/useGetBulkImportTask", () => jest.fn());
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: jest.fn(),
+}));
 jest.mock("../../../components/InfoAccordion", () => ({
   __esModule: true,
   default: ({ title, data }) => {
@@ -87,6 +91,11 @@ const mockTask = {
 describe("BulkImportTask", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useSiteSettings.mockReturnValue({
+      data: {},
+      isLoading: false,
+      error: null,
+    });
     delete window.location;
     window.location = new URL("http://localhost/react/?id=12345");
     axios.get.mockResolvedValue({ data: { roles: [] } });

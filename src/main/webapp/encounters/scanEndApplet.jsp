@@ -53,10 +53,12 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 			if(!st.hasFinished()){
 				scanInProgress = true;
 				scanTaskStartTime = st.getStartTime();
-				// Check how much work is done via GridManager
+				// Progress for the async synchronous-engine scan (GrothScanRunnable) is reported
+				// in-memory via GridManager (the old work-item grid that backed
+				// getNumWorkItemsCompleteForTask is dead and no longer drives this).
 				GridManager gm = GridManagerFactory.getGridManager();
-				numComplete = gm.getNumWorkItemsCompleteForTask(taskID);
-				numTotal = numComplete + gm.getNumWorkItemsIncompleteForTask(taskID);
+				numComplete = gm.getScanProgressComplete(taskID);
+				numTotal = gm.getScanProgressTotal(taskID);
 			}
 		}
 	}

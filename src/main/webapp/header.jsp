@@ -32,7 +32,8 @@
              org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
              org.ecocean.ContextConfiguration,
-             org.slf4j.Logger,org.slf4j.LoggerFactory
+             org.apache.logging.log4j.LogManager,
+             org.apache.logging.log4j.Logger
               "
 %>
 
@@ -44,7 +45,7 @@
         response.setDateHeader("Expires", 0); 
         response.setHeader("Pragma", "no-cache"); 
 
-        Logger log = LoggerFactory.getLogger(getClass());
+        Logger log = LogManager.getLogger(getClass());
 
         if (request.getRemoteUser() != null) {
             log.info(request.getRemoteUser() + " logged out.");
@@ -786,9 +787,10 @@ if(request.getUserPrincipal()!=null){
                                   <div class="profile-icon" style="background-image: url('<%=profilePhotoURL %>');"></div>
                                   
                                   <ul class="dropdown-menu">
-                                      <li><a href="<%=urlLoc %>/react/">Landing Page</a></li>
-                                      <li><a href="<%=urlLoc %>/myAccount.jsp">User Profile</a></li>
-                                      <li><a href="#" onclick="logoutAndRedirect()">Logout</a></li>
+                                      <li><a href="<%=urlLoc %>/react/"><%=props.getProperty("landingPage")%></a></li>
+                                      <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("userProfile")%></a></li>
+                                      <li><a href="<%=urlLoc %>/react/api-access"><%=props.getProperty("apiAccess")%></a></li>
+                                      <li><a href="#" onclick="logoutAndRedirect()"><%=props.getProperty("logout")%></a></li>
                                   </ul>   
                                 </div>              
 
