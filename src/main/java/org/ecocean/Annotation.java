@@ -179,6 +179,8 @@ public class Annotation extends Base implements java.io.Serializable {
         map.put("encounterLocationId", keywordType);
         map.put("encounterTaxonomy", keywordType);
         map.put("encounterProjectIds", keywordType);
+        // parent encounter's sighting date, denormalized so temporal analyses need no encounter join
+        map.put("encounterDateMillis", new JSONObject("{\"type\": \"date\", \"format\": \"epoch_millis\"}"));
 
         // ACL fields (viewUsers is inherited from Base.opensearchMapping())
         map.put("publiclyReadable", new JSONObject("{\"type\": \"boolean\"}"));
@@ -225,6 +227,10 @@ public class Annotation extends Base implements java.io.Serializable {
             jgen.writeStringField("encounterSubmitterId", enc.getSubmitterID());
             jgen.writeStringField("encounterLocationId", enc.getLocationID());
             jgen.writeStringField("encounterTaxonomy", enc.getTaxonomyString());
+            // denormalize the sighting date so temporal re-ID analyses avoid a second round-trip to
+            // the encounter index (mirrors Encounter's own dateMillis serialization)
+            Long encDateMillis = enc.getDateInMillisecondsFallback();
+            if (encDateMillis != null) jgen.writeNumberField("encounterDateMillis", encDateMillis);
             // per discussion on issue 874, including this in indexing, but not (yet) using in matchingSet
             jgen.writeStringField("encounterLivingStatus", enc.getLivingStatus());
             User owner = enc.getSubmitterUser(myShepherd);
