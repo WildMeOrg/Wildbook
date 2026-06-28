@@ -33,8 +33,26 @@ fields, which are never returned to you.
 { "query": { "term": { "taxonomy": "Salamandra salamandra" } } }
 ```
 Pagination via `?from=&size=` query params; total hits in the `X-Wildbook-Total-Hits` response header.
-Non-admin `individual` search may only query/sort identity fields. Aggregations, scripted queries, and
-cross-index term lookups are rejected.
+Non-admin `individual` search may only query/sort identity fields. Scripted queries and cross-index
+term lookups are rejected.
+
+**Counting with aggregations.** A single bounded `terms` aggregation is supported — e.g. to count
+records per location without paging them all:
+```json
+{ "query": { "term": { "taxonomy": "Equus quagga" } },
+  "aggs": { "byLoc": { "terms": { "field": "encounterLocationId", "size": 1000 } } } }
+```
+The response includes an `aggregations` object alongside `hits`. Rules (anything else → **400**, never a
+silent empty result):
+- exactly one **`terms`** aggregation per name — no sub-aggregations, no other aggregation type
+  (`cardinality`, `date_histogram`, scripted, pipeline, `global`/`filter`/`nested` wrappers, …);
+- `terms` may set only `field` (required) and integer `size` (1–1000); no `script`/`include`/`order`/etc.;
+- `field` must be one of the allow-listed keyword fields — **encounter**: `locationId`, `taxonomy`,
+  `country`, `lifeStage`; **annotation**: `viewpoint`, `iaClass`, `encounterLocationId`,
+  `encounterTaxonomy`; **individual** (admin): `taxonomy`, `sex`;
+- the only other top-level body key allowed with an aggregation is `query`. For counts only, request
+  `?size=0` (URL param) so no hits are returned. Counts are access-controlled to your account, exactly
+  like `hits`.
 
 ### Media resolve — `POST /api/v3/media/resolve`
 Resolve up to 100 annotation IDs you are allowed to see into displayable image references:

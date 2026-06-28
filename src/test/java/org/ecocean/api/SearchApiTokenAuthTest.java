@@ -277,4 +277,56 @@ class SearchApiTokenAuthTest {
         }
         verify(response).setStatus(200);
     }
+
+    @Test void tokenAgg_validTerms_surfacesAggregations_aclScoped_aggsTopLevel() throws Exception {
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/annotation");
+        when(request.getHeader("Authorization")).thenReturn("Bearer x");
+        su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any())).thenReturn(new JSONObject(
+            "{\"query\":{\"term\":{\"iaClass\":\"zebra\"}},"
+            + "\"aggs\":{\"byLoc\":{\"terms\":{\"field\":\"encounterLocationId\",\"size\":10}}}}"));
+        User user = mockUser("u1", false);
+        JSONObject withAggs = new JSONObject(
+            "{\"hits\":{\"total\":{\"value\":3},\"hits\":[]},"
+            + "\"aggregations\":{\"byLoc\":{\"buckets\":[{\"key\":\"SiteA\",\"doc_count\":2}]}}}");
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedConstruction<OpenSearch> os = mockConstruction(OpenSearch.class, (m, c) -> {
+                doNothing().when(m).deletePit(anyString());
+                when(m.queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(),
+                    any(), any())).thenAnswer(inv -> {
+                        JSONObject q = inv.getArgument(1);
+                        assertTrue(q.has("aggs"), "aggs left top-level for OpenSearch to compute");
+                        assertTrue(q.getJSONObject("query").getJSONObject("bool").has("filter"),
+                            "non-admin aggregation runs over the ACL-filtered query");
+                        return withAggs;
+                    });
+            })) {
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(200);
+        JSONObject res = new JSONObject(out.toString());
+        assertTrue(res.has("aggregations"), "valid aggregation is surfaced to the caller");
+        assertEquals("SiteA", res.getJSONObject("aggregations").getJSONObject("byLoc")
+            .getJSONArray("buckets").getJSONObject(0).getString("key"));
+    }
+
+    @Test void tokenAgg_disallowedField_returns400_andNotExecuted() throws Exception {
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/encounter");
+        when(request.getHeader("Authorization")).thenReturn("Bearer x");
+        su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any())).thenReturn(new JSONObject(
+            "{\"aggs\":{\"leak\":{\"terms\":{\"field\":\"viewUsers\"}}}}"));
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedConstruction<OpenSearch> os = mockConstruction(OpenSearch.class, (m, c) ->
+                when(m.queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(), any(), any()))
+                    .thenReturn(EMPTY_HITS))) {
+            new SearchApi().doPost(request, response);
+            assertTrue(os.constructed().isEmpty(),
+                "an invalid aggregation is rejected before any OpenSearch execution");
+        }
+        verify(response).setStatus(400);
+        assertFalse(new JSONObject(out.toString()).optString("error", "").isEmpty(),
+            "400 carries an explanatory error");
+    }
 }
