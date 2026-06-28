@@ -41,11 +41,25 @@ Resolve up to 100 annotation IDs you are allowed to see into displayable image r
 ```json
 { "annotationIds": ["<uuid>", "<uuid>"] }
 ```
-Returns an array of `{ id, imageUrl, imageWidth, imageHeight, bbox: [x,y,w,h], theta, viewpoint,
-encounterId, individualId, methodVersion }`. The `bbox` is in the `imageWidth`×`imageHeight`
-coordinate space. **Fetch `imageUrl`, read its real pixel dimensions, and scale `bbox` by
-`realW/imageWidth`, `realH/imageHeight` before cropping** (usually a no-op). IDs you can't see (or that
-don't exist) are simply absent — the response never reveals which.
+Returns an array with **one entry per unique requested ID** (duplicate IDs collapse to one), each
+carrying a `status`:
+- `identified` — resolved; full image reference present **and** assigned to a named animal
+  (`individualId` set).
+- `unidentified` — resolved; full image reference present but **not yet assigned** to a named animal
+  (`individualId` is `null`). This is a legitimate state, not an error.
+- `no_image` — the annotation is visible to you and exists, but has no displayable image to return.
+- `unavailable` — the ID is not visible to your account **or** does not exist. These two are
+  deliberately reported the same way and the response never reveals which (no existence oracle).
+- `error` — a transient failure while resolving this one ID; the rest of the batch is unaffected, so
+  **retry just this ID** (with backoff). Distinct from `unavailable`, which you should not retry.
+
+A resolved entry (`identified`/`unidentified`) has the shape `{ id, status, imageUrl, imageWidth,
+imageHeight, bbox: [x,y,w,h], theta, viewpoint, encounterId, individualId, methodVersion }`; the others
+are just `{ id, status }`. **Branch on `status`: only `identified` and `unidentified` entries carry an
+`imageUrl`** — skip image handling for `no_image`/`unavailable`, and retry `error` entries. For an
+entry that has an image: the `bbox` is in the `imageWidth`×`imageHeight` coordinate space; **fetch
+`imageUrl`, read its real pixel dimensions, and scale `bbox` by `realW/imageWidth`, `realH/imageHeight`
+before cropping** (usually a no-op).
 
 ## OpenSearch schema (token-exposed fields)
 Key indices and fields:
@@ -80,8 +94,8 @@ does not return `individualId`.
 1. `POST /api/v3/search/encounter` with `{"query":{"term":{"taxonomy":"Salamandra salamandra"}}}`.
 2. Collect annotation IDs (search `annotation`, or via the encounters), then
    `POST /api/v3/media/resolve` with those IDs.
-3. For each result, fetch `imageUrl`, scale `bbox` to the fetched pixels, crop, and present
-   side-by-side.
+3. For each entry whose `status` is `identified` or `unidentified`, fetch `imageUrl`, scale `bbox`
+   to the fetched pixels, crop, and present side-by-side. Skip `no_image`/`unavailable`; retry `error`.
 
 **Comparing embeddings for missed matches:** only compare embeddings within the **same `viewpoint` and
 same `methodVersion`** — different viewpoints/versions live in different latent spaces and are not
