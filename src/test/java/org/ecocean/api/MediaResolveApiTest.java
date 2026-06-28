@@ -656,4 +656,35 @@ class MediaResolveApiTest {
         }
         assertEquals(0, new JSONArray(out.toString()).length(), "fully out-of-bounds bbox -> omit");
     }
+
+    @Test void tokenRequest_whenGeneralPoolExhausted_429() throws Exception {
+        // drain the GENERAL pool so the token request cannot acquire a permit -> 429 (live users are
+        // protected from a high-volume agent)
+        java.util.List<TokenApiConcurrency.Permit> held = new java.util.ArrayList<>();
+        TokenApiConcurrency.Permit p;
+        while ((p = TokenApiConcurrency.tryAcquire(TokenApiConcurrency.Kind.GENERAL)) != null) held.add(p);
+        try {
+            HttpServletRequest req = tokenRequest();
+            HttpServletResponse resp = mock(HttpServletResponse.class);
+            StringWriter out = new StringWriter();
+            when(resp.getWriter()).thenReturn(new PrintWriter(out));
+            try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+                 MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                     doNothing().when(m).beginDBTransaction();
+                     doNothing().when(m).setAction(anyString());
+                     doNothing().when(m).rollbackAndClose();
+                     User u = mockUser("admin");
+                     when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                     when(u.isAdmin(m)).thenReturn(true);
+                 })) {
+                su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+                  .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-A")));
+                new MediaResolveApi().doPostForTest(req, resp);
+            }
+            verify(resp).setStatus(429);
+            verify(resp).setHeader(eq("Retry-After"), anyString());
+        } finally {
+            for (TokenApiConcurrency.Permit h : held) h.close();
+        }
+    }
 }

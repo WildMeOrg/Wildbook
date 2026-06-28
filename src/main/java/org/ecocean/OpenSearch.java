@@ -413,6 +413,48 @@ public class OpenSearch {
         return new JSONObject(rtn);
     }
 
+    /**
+     * Request-scoped PIT search: create a PRIVATE point-in-time, run the query, and always delete that
+     * PIT. Unlike {@link #queryPit}, it never reads or writes the shared static {@code PIT_CACHE}, so a
+     * one-shot token API call cannot delete or race a PIT an interactive/UI search is using. Use this
+     * on the token path (one query per call); does not mutate the caller's {@code query}.
+     */
+    public JSONObject queryPitPrivate(String indexName, final JSONObject query, int numFrom,
+        int pageSize, String sort, String sortOrder)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request createReq = new Request("POST",
+            indexName + "/_search/point_in_time?keep_alive=" + SEARCH_PIT_TIME);
+        String pitId = new JSONObject(getRestResponse(createReq)).optString("pit_id", null);
+        if (pitId == null) throw new IOException("failed to get PIT id");
+        try {
+            JSONObject q = new JSONObject(query.toString()); // copy: do not mutate caller's query
+            q.put("from", numFrom);
+            q.put("size", pageSize);
+            if (sort != null) {
+                JSONArray sortArr = new JSONArray();
+                if ((sortOrder == null) || !"desc".equals(sortOrder)) sortOrder = "asc";
+                sortArr.put(new JSONObject("{\"" + sort + "\":{\"order\":\"" + sortOrder + "\"}}"));
+                q.put("sort", sortArr);
+            }
+            JSONObject jpit = new JSONObject();
+            jpit.put("id", pitId);
+            jpit.put("keep_alive", SEARCH_PIT_TIME);
+            q.put("pit", jpit);
+            Request searchRequest = new Request("POST", "/_search?track_total_hits=true");
+            searchRequest.setJsonEntity(q.toString());
+            return new JSONObject(getRestResponse(searchRequest));
+        } finally {
+            try { // best-effort delete of the private PIT
+                Request del = new Request("DELETE", "/_search/point_in_time");
+                del.setJsonEntity(new JSONObject().put("pit_id", pitId).toString());
+                getRestResponse(del);
+            } catch (Exception ignore) {
+                System.out.println("queryPitPrivate(): best-effort PIT delete failed: " + ignore);
+            }
+        }
+    }
+
     // just return the actual hit results
     // note: each object in the array has _id but actual doc is in _source!!
     public static JSONArray getHits(JSONObject queryResults) {
@@ -963,10 +1005,12 @@ public class OpenSearch {
         return applyAclFilter(query, userId, "encounter");
     }
 
-    public static JSONObject applyAclFilter(JSONObject query, String userId, String indexName)
-    throws IOException {
-        if ((query == null) || !Util.stringExists(userId))
-            throw new IOException("applyAclFilter: null query or userId");
+    /**
+     * The ACL access clause as a standalone bool (publiclyReadable OR submitter OR viewUser), for
+     * embedding directly inside a query — e.g. inside a native {@code knn.filter} so the kNN candidate
+     * set itself is ACL-scoped (an OUTER bool.filter would post-filter the ANN results instead).
+     */
+    public static JSONObject aclShouldClause(String userId, String indexName) {
         // encounter docs carry a single submitterUserId; annotation/individual carry the union set submitterUserIds
         String submitterField = "encounter".equals(indexName) ? "submitterUserId" : "submitterUserIds";
         JSONArray should = new JSONArray();
@@ -976,7 +1020,14 @@ public class OpenSearch {
         JSONObject aclBool = new JSONObject();
         aclBool.put("should", should);
         aclBool.put("minimum_should_match", 1);
-        JSONObject acl = new JSONObject().put("bool", aclBool);
+        return new JSONObject().put("bool", aclBool);
+    }
+
+    public static JSONObject applyAclFilter(JSONObject query, String userId, String indexName)
+    throws IOException {
+        if ((query == null) || !Util.stringExists(userId))
+            throw new IOException("applyAclFilter: null query or userId");
+        JSONObject acl = aclShouldClause(userId, indexName);
 
         JSONObject wrapBool = new JSONObject();
         JSONObject inner = query.optJSONObject("query");

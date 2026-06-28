@@ -81,6 +81,7 @@ public class MediaResolveApi extends ApiBase {
         }
 
         Shepherd myShepherd = null;
+        TokenApiConcurrency.Permit permit = null;
         try {
             myShepherd = new Shepherd(context);
             myShepherd.setAction("api.MediaResolveApi.POST");
@@ -91,6 +92,10 @@ public class MediaResolveApi extends ApiBase {
                 return;
             }
             boolean isAdmin = currentUser.isAdmin(myShepherd);
+            // Concurrency guard: bound simultaneous token OpenSearch work so a high-volume agent
+            // cannot starve interactive Wildbook use. Acquire before the gate/resolve OpenSearch calls.
+            permit = TokenApiConcurrency.tryAcquire(TokenApiConcurrency.Kind.GENERAL);
+            if (permit == null) { writeBusy(response); return; }
             Set<String> visible = isAdmin ? ids : gatedVisibleIds(ids, currentUser.getId());
             JSONArray results = new JSONArray();
             for (String id : visible) {
@@ -105,8 +110,17 @@ public class MediaResolveApi extends ApiBase {
             writeError(response, 500, "resolve failed");
             ex.printStackTrace();
         } finally {
+            if (permit != null) permit.close();
             if (myShepherd != null) myShepherd.rollbackAndClose();
         }
+    }
+
+    private void writeBusy(HttpServletResponse response) throws IOException {
+        response.setStatus(429);
+        response.setHeader("Retry-After", Integer.toString(TokenApiConcurrency.RETRY_AFTER_SECONDS));
+        writeBody(response, new JSONObject().put("error",
+            "token API busy, retry after " + TokenApiConcurrency.RETRY_AFTER_SECONDS + " seconds")
+            .toString());
     }
 
     private void writeError(HttpServletResponse response, int status, String msg) throws IOException {

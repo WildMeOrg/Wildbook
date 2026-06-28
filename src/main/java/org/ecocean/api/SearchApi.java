@@ -156,8 +156,21 @@ public class SearchApi extends ApiBase {
                     System.out.println("SearchApi search indexName=" + indexName
                         + " tokenAuth=" + tokenAuth);
 
-                    OpenSearch os = new OpenSearch();
+                    // Concurrency guard (token only): bound simultaneous token OpenSearch work so a
+                    // high-volume agent cannot starve interactive Wildbook use. Session/UI unthrottled.
+                    TokenApiConcurrency.Permit permit = tokenAuth
+                        ? TokenApiConcurrency.tryAcquire(TokenApiConcurrency.Kind.GENERAL) : null;
+                    if (tokenAuth && (permit == null)) {
+                        response.setStatus(429);
+                        response.setHeader("Retry-After",
+                            Integer.toString(TokenApiConcurrency.RETRY_AFTER_SECONDS));
+                        res.put("success", false);
+                        res.put("error", "token API busy, retry after "
+                            + TokenApiConcurrency.RETRY_AFTER_SECONDS + " seconds");
+                    } else {
                     try {
+                        // construct INSIDE the try so a client-init failure still releases the permit
+                        OpenSearch os = new OpenSearch();
                         if (deletePit) os.deletePit(indexName);
                         JSONObject queryRes = os.queryPit(indexName, query, numFrom, pageSize, sort,
                             sortOrder);
@@ -194,7 +207,10 @@ public class SearchApi extends ApiBase {
                         res.put("success", false);
                         res.put("error", "query failed");
                         ex.printStackTrace();
+                    } finally {
+                        if (permit != null) permit.close();
                     }
+                    } // end concurrency-guard else
                     } // end individual-token field-gate else
                 }
             }
