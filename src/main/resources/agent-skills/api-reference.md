@@ -13,7 +13,10 @@ what that user is permitted to see (everything is access-controlled to their acc
 - The user generates a short-lived **bearer token** in Wildbook's UI (Account menu → **API Access**)
   and pastes **only the token** to you.
 - Treat the token as a secret: never log or persist it, never send it anywhere except Wildbook over
-  HTTPS. It expires (typically ~30 minutes). When it expires, ask the user to paste a fresh one.
+  HTTPS. It expires after a fixed lifetime that is **configured per Wildbook instance** (commonly
+  several hours) — do **not** assume any particular duration. The token-mint response's
+  `expiresInSeconds` is the authoritative lifetime; rely on it (this matters for long, unattended
+  runs). When the token expires, ask the user to paste a fresh one.
 
 ## Authentication
 Send the token as a bearer header on every request:
@@ -33,8 +36,15 @@ fields, which are never returned to you.
 { "query": { "term": { "taxonomy": "Salamandra salamandra" } } }
 ```
 Pagination via `?from=&size=` query params; total hits in the `X-Wildbook-Total-Hits` response header.
-Non-admin `individual` search may only query/sort identity fields. Aggregations, scripted queries, and
-cross-index term lookups are rejected.
+Non-admin `individual` search may only query/sort identity fields. Scripted queries and cross-index
+term lookups are rejected. **Aggregations are not supported** — and today an `aggs` body is silently
+dropped and returns an empty aggregation rather than an error, so never infer counts from an
+aggregation. To count, read `X-Wildbook-Total-Hits` from a filtered query (with `size=0`) instead.
+
+**Response shape (important):** the body is a *flat* envelope — `{ "hits": [ {…document fields…}, … ] }`
+— where each element is the document's fields directly. It is **not** the standard OpenSearch
+`{"hits":{"hits":[{"_source":…}]}}` shape, and the hit total lives only in the `X-Wildbook-Total-Hits`
+header, never in the body.
 
 ### Media resolve — `POST /api/v3/media/resolve`
 Resolve up to 100 annotation IDs you are allowed to see into displayable image references:
@@ -53,7 +63,10 @@ Key indices and fields:
   `sex`, `lifeStage`, `livingStatus`, `country`, `behavior`, ...
 - **individual** — `id`, `displayName`, `names`/`nameMap`, `sex`, `taxonomy`, `timeOfBirth`/`timeOfDeath`.
 - **annotation** — `id`, `encounterId`, `viewpoint`, `iaClass`, `matchAgainst`, `mediaAssetId`, and
-  `embeddings` (nested: `method`, `methodVersion`, and the MiewID `vector`).
+  `embeddings` (nested: `method`, `methodVersion`, and the MiewID `vector`). The annotation document
+  carries **no sighting date** — to analyse by time, collect the `encounterId`s and look them up in the
+  encounter index (a `terms` query) to read `date`/`dateMillis`. MiewID `vector`s are **L2-normalised**
+  (unit length), so cosine similarity between two of them is just their dot product.
 
 Access-control fields exist server-side but are **never** returned.
 
@@ -74,6 +87,17 @@ To turn annotation IDs into a catalog-animal label and a croppable image, call
 `encounterId`, `viewpoint`, `bbox`, `imageUrl`, and `methodVersion`. The annotation search itself
 does not return `individualId`.
 
+For whole-population work that would exceed 10,000 records, split the query into sub-scopes that each
+stay under the ceiling and combine the results yourself. For **encounter** searches, split by date
+range (`dateMillis`) or site (`locationId`). For **annotation** searches — which carry no date — split
+by `viewpoint`, or first fetch the encounter IDs for a date band and then query annotations by those
+`encounterId`s. This is the reliable pattern for large catalogues today.
+
+**Transient errors:** retrieving large pages (especially with the heavy embedding `vector`s) is slow,
+and under sustained paging the API may intermittently return HTTP `500` (`"query failed"`). These are
+transient — retry the same request with a short backoff (e.g. wait 1s, then 2s, then 4s, up to ~4
+attempts) before giving up, and pace large sweeps rather than firing requests back-to-back.
+
 ## Worked examples
 
 **Find an individual's salamander encounters, then view two annotations:**
@@ -86,6 +110,11 @@ does not return `individualId`.
 **Comparing embeddings for missed matches:** only compare embeddings within the **same `viewpoint` and
 same `methodVersion`** — different viewpoints/versions live in different latent spaces and are not
 directly comparable. Calibrate similarity against known same-individual pairs before trusting a score.
+Similarity baselines are **species-specific** — e.g. same-individual cosine similarity runs around
+~0.50 for whale sharks but ~0.35 for grey nurse sharks — so calibrate per species and never reuse a
+threshold across species. Similarity also **decays as the time between two sightings grows**; when
+judging a match or measuring reliability, factor in the elapsed time between the photos being compared
+(join via `encounterId` to the encounter `dateMillis`).
 
 ## References
 - **Wildbook documentation** — https://wildbook.docs.wildme.org/ — background on the data model
