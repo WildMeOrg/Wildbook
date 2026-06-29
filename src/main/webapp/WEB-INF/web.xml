@@ -112,6 +112,7 @@
 				# No Bearer => falls through to SearchApi (which self-401s if no session). Filter handles auth.
 				/api/v3/search/** = tokenAuthSearch
 				/api/v3/media/resolve = tokenAuthSearch
+				/api/v3/similarity = tokenAuthSearch
 				/api/v3/agent-skill = anon
 				/api/v3/agent-skill/** = anon
 
@@ -504,6 +505,16 @@
 	<servlet-mapping>
 		<servlet-name>SearchApi</servlet-name>
 		<url-pattern>/api/v3/search/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>SimilarityApi</servlet-name>
+		<servlet-class>org.ecocean.api.SimilarityApi</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>SimilarityApi</servlet-name>
+		<url-pattern>/api/v3/similarity</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
