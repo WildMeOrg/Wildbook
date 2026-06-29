@@ -123,14 +123,25 @@ public class SearchApi extends ApiBase {
                     int pageSize = 10;
                     try { numFrom = Integer.parseInt(fromStr); } catch (Exception ex) {}
                     try { pageSize = Integer.parseInt(sizeStr); } catch (Exception ex) {}
-                    if (query == null) { // must be body (new query, needs storing)
+                    boolean newQueryToStore = false;
+                    String aggError = null;
+                    if (query == null) { // must be body (a new query, stored after it passes all gates)
                         query = ServletUtilities.jsonFromHttpServletRequest(request);
-                        // we store this *before* we sanitize
-                        searchQueryId = OpenSearch.queryStore(query, indexName, currentUser);
+                        // Validate aggregations (token path) up front so an invalid aggregation body
+                        // is rejected (400). Deny-by-default: only a bounded terms agg on an
+                        // allow-listed field is permitted.
+                        if (tokenAuth) aggError = OpenSearch.aggregationError(query, indexName);
+                        // Persist only AFTER all token gates pass (below), so a rejected body is never
+                        // stored, and before applyAclFilter mutates the query.
+                        newQueryToStore = (aggError == null);
                     } else { // stored query, so:
                         indexName = query.optString("indexName", null);
                         query = OpenSearch.queryScrubStored(query);
                     }
+                    if (aggError != null) {
+                        response.setStatus(400);
+                        res.put("error", aggError);
+                    } else {
                     query = OpenSearch.querySanitize(query, currentUser, myShepherd);
                     // Non-admin token individual search may only QUERY/SORT identity fields.
                     // Fail-closed: if we cannot prove the query touches only allowlisted fields,
@@ -148,6 +159,11 @@ public class SearchApi extends ApiBase {
                         response.setStatus(400);
                         res.put("error", "individual token search may only query/sort identity fields");
                     } else {
+                    // all token validation gates passed -> persist the clean new query now (before
+                    // applyAclFilter embeds ACL fields into it); rejected bodies were never stored
+                    if (newQueryToStore) {
+                        searchQueryId = OpenSearch.queryStore(query, indexName, currentUser);
+                    }
                     if (tokenAuth && !isAdmin) {
                         // Java is the hard boundary: scope totals + pagination + hits before execution
                         query = OpenSearch.applyAclFilter(query, currentUser.getId(), indexName);
@@ -186,6 +202,13 @@ public class SearchApi extends ApiBase {
                         res.put("success", true);
                         res.put("searchQueryId", searchQueryId);
                         res.put("hits", hitsArr);
+                        // Surface a (validated, ACL-scoped) aggregation result on the token path.
+                        // Validation gated execution above, so only an allow-listed terms agg reaches
+                        // here; for a non-admin the agg ran over the applyAclFilter-wrapped query.
+                        if (tokenAuth) {
+                            JSONObject aggsOut = queryRes.optJSONObject("aggregations");
+                            if (aggsOut != null) res.put("aggregations", aggsOut);
+                        }
                         // On the token path `query` has been mutated by applyAclFilter to embed the
                         // ACL filter (internal ACL field names + the caller's UUID). Don't echo it back.
                         if (!tokenAuth) res.put("query", query);
@@ -196,6 +219,7 @@ public class SearchApi extends ApiBase {
                         ex.printStackTrace();
                     }
                     } // end individual-token field-gate else
+                    } // end aggError else
                 }
             }
         }

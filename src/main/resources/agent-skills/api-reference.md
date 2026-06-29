@@ -37,9 +37,25 @@ fields, which are never returned to you.
 ```
 Pagination via `?from=&size=` query params; total hits in the `X-Wildbook-Total-Hits` response header.
 Non-admin `individual` search may only query/sort identity fields. Scripted queries and cross-index
-term lookups are rejected. **Aggregations are not supported** — and today an `aggs` body is silently
-dropped and returns an empty aggregation rather than an error, so never infer counts from an
-aggregation. To count, read `X-Wildbook-Total-Hits` from a filtered query (with `size=0`) instead.
+term lookups are rejected.
+
+**Counting with aggregations.** A single bounded `terms` aggregation is supported — e.g. to count
+records per location without paging them all:
+```json
+{ "query": { "term": { "taxonomy": "Equus quagga" } },
+  "aggs": { "byLoc": { "terms": { "field": "encounterLocationId", "size": 1000 } } } }
+```
+The response includes an `aggregations` object alongside `hits`. Rules (anything else → **400**, never a
+silent empty result):
+- exactly one **`terms`** aggregation per name — no sub-aggregations, no other aggregation type
+  (`cardinality`, `date_histogram`, scripted, pipeline, `global`/`filter`/`nested` wrappers, …);
+- `terms` may set only `field` (required) and integer `size` (1–1000); no `script`/`include`/`order`/etc.;
+- `field` must be one of the allow-listed keyword fields — **encounter**: `locationId`, `taxonomy`,
+  `country`, `lifeStage`; **annotation**: `viewpoint`, `iaClass`, `encounterLocationId`,
+  `encounterTaxonomy`; **individual** (admin): `taxonomy`, `sex`;
+- the only other top-level body key allowed with an aggregation is `query`. For counts only, request
+  `?size=0` (URL param) so no hits are returned. Counts are access-controlled to your account, exactly
+  like `hits`.
 
 **Response shape (important):** the body is a *flat* envelope — `{ "hits": [ {…document fields…}, … ] }`
 — where each element is the document's fields directly. It is **not** the standard OpenSearch
