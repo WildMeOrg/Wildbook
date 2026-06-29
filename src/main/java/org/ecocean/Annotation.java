@@ -199,7 +199,21 @@ public class Annotation extends Base implements java.io.Serializable {
         // https://docs.opensearch.org/docs/latest/vector-search/creating-vector-index/
         embVect.put("type", "knn_vector");
         embVect.put("dimension", Embedding.getVectorDimension());
-        embVect.put("space_type", "cosinesimil");
+        // An explicit HNSW method is REQUIRED: without it, OpenSearch builds no
+        // approximate-nearest-neighbor graph and every kNN match silently
+        // degrades to an exact brute-force scan. On a large annotation corpus
+        // that scan exceeds the match query timeout, getMatches() swallows the
+        // failure, and identification returns 0 prospects. OpenSearch 3.x also
+        // removed the nmslib engine, so an index relying on the old default
+        // loses its graph on upgrade. The Lucene engine supports cosinesimil at
+        // this dimension and preserves the (1 + cos) / 2 score that
+        // osHitScore() relies on for vector/WBIA-MiewID parity. (space_type is
+        // set inside method for compatibility across OpenSearch 2.x and 3.x.)
+        JSONObject embVectMethod = new JSONObject();
+        embVectMethod.put("name", "hnsw");
+        embVectMethod.put("engine", "lucene");
+        embVectMethod.put("space_type", "cosinesimil");
+        embVect.put("method", embVectMethod);
         embProps.put("vector", embVect);
         embMap.put("properties", embProps);
         map.put("embeddings", embMap);
