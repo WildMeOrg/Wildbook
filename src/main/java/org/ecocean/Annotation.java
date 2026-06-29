@@ -156,7 +156,10 @@ public class Annotation extends Base implements java.io.Serializable {
     }
 
     public long setVersion() {
-        version = System.currentTimeMillis();
+        // Monotonic: the OpenSearch reconciler treats an annotation as stale only when DB version is
+        // strictly greater than the indexed version, so two bumps within the same millisecond must
+        // still advance the value (otherwise a change could silently fail to reindex).
+        version = Math.max(version + 1, System.currentTimeMillis());
         return version;
     }
 
@@ -1913,6 +1916,8 @@ public class Annotation extends Base implements java.io.Serializable {
                 " deleting " + emb);
             myShepherd.getPM().deletePersistent(emb);
         }
+        // bump version so the reconciler reindexes and the now-removed vector(s) leave the _source
+        this.setVersion();
         return rtn;
     }
 
@@ -2097,8 +2102,17 @@ public class Annotation extends Base implements java.io.Serializable {
     public Set<Embedding> addEmbedding(Embedding emb) {
         if (embeddings == null) embeddings = new HashSet<Embedding>();
         if (emb == null) return embeddings;
-        embeddings.add(emb);
-        if (!this.equals(emb.getAnnotation())) emb.setAnnotation(this);
+        boolean added = embeddings.add(emb);
+        boolean linked = false;
+        if (!this.equals(emb.getAnnotation())) {
+            emb.setAnnotation(this);
+            linked = true;
+        }
+        // bump version only on a real change so the OpenSearch reconciler reindexes this annotation
+        // and writes the embedding vector into the document _source (otherwise the vector is
+        // kNN-searchable but never surfaces in the token-readable _source). Skipping no-op duplicate
+        // adds avoids needless reconciler churn.
+        if (added || linked) this.setVersion();
         return embeddings;
     }
 
