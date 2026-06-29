@@ -208,7 +208,9 @@ public class Annotation extends Base implements java.io.Serializable {
         // loses its graph on upgrade. The Lucene engine supports cosinesimil at
         // this dimension and preserves the (1 + cos) / 2 score that
         // osHitScore() relies on for vector/WBIA-MiewID parity. (space_type is
-        // set inside method for compatibility across OpenSearch 2.x and 3.x.)
+        // set inside method, which is valid both there and at field level. The
+        // Lucene engine requires OpenSearch 2.3+; earlier 2.x offered only
+        // nmslib/faiss. Wildbook targets 2.3+/3.x, so this is safe.)
         JSONObject embVectMethod = new JSONObject();
         embVectMethod.put("name", "hnsw");
         embVectMethod.put("engine", "lucene");
