@@ -421,14 +421,13 @@ public class MlServiceProcessor {
                     // model produced an identical box). Reuse it. If it has no
                     // embedding for THIS (method, version), attach one so a
                     // later model run does not leave the box unmatchable for
-                    // that method. setVersion() forces the parent Annotation to
-                    // reindex its nested embeddings — the Embedding persist and
-                    // Annotation.addEmbedding alone do not bump the parent.
+                    // that method. Annotation.addEmbedding() bumps the parent's
+                    // version, so the reconciler reindexes its nested embeddings
+                    // into the document _source.
                     if (existing.getEmbeddingByMethod(mv[0], mv[1]) == null) {
                         Embedding emb = new Embedding(existing, mv[0], mv[1],
                             result.getJSONArray("embedding"));
                         shep.getPM().makePersistent(emb);
-                        existing.setVersion();
                     }
                     // Self-heal a reused annotation's iaClass when we now have a
                     // better value. Two cases, both guarded so a legitimately

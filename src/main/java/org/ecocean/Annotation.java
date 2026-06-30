@@ -156,7 +156,10 @@ public class Annotation extends Base implements java.io.Serializable {
     }
 
     public long setVersion() {
-        version = System.currentTimeMillis();
+        // Monotonic: the OpenSearch reconciler treats an annotation as stale only when DB version is
+        // strictly greater than the indexed version, so two bumps within the same millisecond must
+        // still advance the value (otherwise a change could silently fail to reindex).
+        version = Math.max(version + 1, System.currentTimeMillis());
         return version;
     }
 
@@ -179,6 +182,8 @@ public class Annotation extends Base implements java.io.Serializable {
         map.put("encounterLocationId", keywordType);
         map.put("encounterTaxonomy", keywordType);
         map.put("encounterProjectIds", keywordType);
+        // parent encounter's sighting date, denormalized so temporal analyses need no encounter join
+        map.put("encounterDateMillis", new JSONObject("{\"type\": \"date\", \"format\": \"epoch_millis\"}"));
 
         // ACL fields (viewUsers is inherited from Base.opensearchMapping())
         map.put("publiclyReadable", new JSONObject("{\"type\": \"boolean\"}"));
@@ -225,6 +230,10 @@ public class Annotation extends Base implements java.io.Serializable {
             jgen.writeStringField("encounterSubmitterId", enc.getSubmitterID());
             jgen.writeStringField("encounterLocationId", enc.getLocationID());
             jgen.writeStringField("encounterTaxonomy", enc.getTaxonomyString());
+            // denormalize the sighting date so temporal re-ID analyses avoid a second round-trip to
+            // the encounter index (mirrors Encounter's own dateMillis serialization)
+            Long encDateMillis = enc.getDateInMillisecondsFallback();
+            if (encDateMillis != null) jgen.writeNumberField("encounterDateMillis", encDateMillis);
             // per discussion on issue 874, including this in indexing, but not (yet) using in matchingSet
             jgen.writeStringField("encounterLivingStatus", enc.getLivingStatus());
             User owner = enc.getSubmitterUser(myShepherd);
@@ -1907,6 +1916,8 @@ public class Annotation extends Base implements java.io.Serializable {
                 " deleting " + emb);
             myShepherd.getPM().deletePersistent(emb);
         }
+        // bump version so the reconciler reindexes and the now-removed vector(s) leave the _source
+        this.setVersion();
         return rtn;
     }
 
@@ -2091,8 +2102,17 @@ public class Annotation extends Base implements java.io.Serializable {
     public Set<Embedding> addEmbedding(Embedding emb) {
         if (embeddings == null) embeddings = new HashSet<Embedding>();
         if (emb == null) return embeddings;
-        embeddings.add(emb);
-        if (!this.equals(emb.getAnnotation())) emb.setAnnotation(this);
+        boolean added = embeddings.add(emb);
+        boolean linked = false;
+        if (!this.equals(emb.getAnnotation())) {
+            emb.setAnnotation(this);
+            linked = true;
+        }
+        // bump version only on a real change so the OpenSearch reconciler reindexes this annotation
+        // and writes the embedding vector into the document _source (otherwise the vector is
+        // kNN-searchable but never surfaces in the token-readable _source). Skipping no-op duplicate
+        // adds avoids needless reconciler churn.
+        if (added || linked) this.setVersion();
         return embeddings;
     }
 

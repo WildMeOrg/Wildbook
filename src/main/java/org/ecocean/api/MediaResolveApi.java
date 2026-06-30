@@ -92,10 +92,40 @@ public class MediaResolveApi extends ApiBase {
             }
             boolean isAdmin = currentUser.isAdmin(myShepherd);
             Set<String> visible = isAdmin ? ids : gatedVisibleIds(ids, currentUser.getId());
+            // One result per unique requested id (ids was de-duplicated above), each with an explicit
+            // status, so the caller can tell a
+            // legitimate absence ("unavailable") from a retryable failure ("error") and from a record
+            // that resolved but has no named animal ("unidentified"). We iterate the requested ids
+            // (not just the visible subset) so nothing is silently dropped — while preserving the
+            // no-existence-oracle property: a not-visible id and a nonexistent id both report
+            // "unavailable" and neither triggers a DB lookup for an id the caller may not see.
             JSONArray results = new JSONArray();
-            for (String id : visible) {
-                JSONObject entry = resolveOne(id, myShepherd);
-                if (entry != null) results.put(entry);
+            for (String id : ids) {
+                JSONObject entry;
+                try {
+                    if (!visible.contains(id)) {
+                        // not visible to this caller, OR does not exist — deliberately the same status
+                        entry = statusOnly(id, "unavailable");
+                    } else {
+                        JSONObject resolved = resolveOne(id, myShepherd);
+                        if (resolved != null) {
+                            resolved.put("status",
+                                resolved.isNull("individualId") ? "unidentified" : "identified");
+                            entry = resolved;
+                        } else {
+                            // a visible/known id that produced no displayable image, vs a rare
+                            // index/DB drift where it has vanished. Only ever checks existence for an
+                            // id already proven visible, so this is not an existence oracle.
+                            boolean exists = (myShepherd.getAnnotation(id) != null);
+                            entry = statusOnly(id, exists ? "no_image" : "unavailable");
+                        }
+                    }
+                } catch (Exception perId) {
+                    // transient/unexpected failure for THIS id — the caller may retry just this one
+                    entry = statusOnly(id, "error");
+                    perId.printStackTrace();
+                }
+                results.put(entry);
             }
             response.setStatus(200);
             writeBody(response, results.toString());
@@ -107,6 +137,10 @@ public class MediaResolveApi extends ApiBase {
         } finally {
             if (myShepherd != null) myShepherd.rollbackAndClose();
         }
+    }
+
+    private static JSONObject statusOnly(String id, String status) {
+        return new JSONObject().put("id", id).put("status", status);
     }
 
     private void writeError(HttpServletResponse response, int status, String msg) throws IOException {
