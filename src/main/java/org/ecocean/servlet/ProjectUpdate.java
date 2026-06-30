@@ -239,9 +239,9 @@ public class ProjectUpdate extends HttpServlet {
             try {
                 Encounter enc = myShepherd.getEncounter(encId);
                 if (enc != null) {
-                    if ("add".equals(action) && !project.getEncounters().contains(enc)) { // need project.getEncounters().contains(enc) check to
-                                                                                          // ensure additionCounter returns the correct number of
-                                                                                          // added encounters
+                    if ("add".equals(action) && !project.containsEncounter(enc)) { // membership check so additionCounter
+                                                                                  // returns the correct number of
+                                                                                  // added encounters
                         String comment = "<p><em>" + myShepherd.getUsername(request) + " on " +
                             (new java.util.Date()).toString() + "</em><br>" +
                             "added this encounter to Project " + project.getResearchProjectName() +
