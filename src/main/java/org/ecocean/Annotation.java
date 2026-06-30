@@ -195,18 +195,13 @@ public class Annotation extends Base implements java.io.Serializable {
         JSONObject embProps = new JSONObject();
         embProps.put("method", keywordType);
         embProps.put("methodVersion", keywordType);
-        // The nested embeddings.vector is retained in _source for API consumers
-        // (e.g. the agent-skill diagnostics that read vectors directly), but it
-        // is NOT the field the matcher searches: a *nested* knn_vector cannot do
-        // filtered ANN -- any filter (viewpoint/iaClass/method/version) forces an
-        // exact brute-force scan. The matchable copy is denormalized to the
-        // top-level "vector" field below, where filtered ANN stays on the graph.
-        JSONObject embVect = new JSONObject();
-        // https://docs.opensearch.org/docs/latest/vector-search/creating-vector-index/
-        embVect.put("type", "knn_vector");
-        embVect.put("dimension", Embedding.getVectorDimension());
-        embVect.put("space_type", "cosinesimil");
-        embProps.put("vector", embVect);
+        // NOTE: embeddings.vector is deliberately NOT mapped. The serializer
+        // still writes it, so with dynamic:false it remains in _source for API
+        // consumers that read vectors directly (e.g. agent-skill diagnostics)
+        // -- but it is not indexed, so NO per-nested HNSW graph is built. The
+        // searchable copy is the top-level "vector" field below: a *nested*
+        // knn_vector cannot do filtered ANN (any filter forces an exact
+        // brute-force scan), so matching must run on a top-level field.
         embMap.put("properties", embProps);
         map.put("embeddings", embMap);
 
@@ -296,16 +291,31 @@ public class Annotation extends Base implements java.io.Serializable {
             }
         jgen.writeEndArray();
 
-        // Denormalize the match embedding to top-level fields so identification
+        // Denormalize ONE match embedding to top-level fields so identification
         // can run filtered ANN on the graph (nested vectors can't -- see
-        // opensearchMapping). Use the first embedding that carries a vector;
-        // in practice an annotation has a single (miewid/msv4.1) embedding.
+        // opensearchMapping). embeddings is a Set, so iteration order is not
+        // stable; pick deterministically -- the most recently created embedding
+        // that carries a vector (newest model wins), tie-broken by id. The
+        // top-level vector and its embeddingMethod/embeddingMethodVersion are
+        // written together, so they are always self-consistent: a match query
+        // filtering on a given method/version simply won't hit annotations whose
+        // chosen top-level embedding is a different method. (Today annotations
+        // carry a single miewid/msv4.1 embedding; per-method top-level vectors
+        // would be needed only if multiple match methods coexist per annotation.)
         Embedding matchEmb = null;
         if (this.embeddings != null) {
             for (Embedding emb : this.embeddings) {
-                if ((emb.vectorToFloatArray() != null) && (emb.vectorLength() > 0)) {
+                if ((emb.vectorToFloatArray() == null) || (emb.vectorLength() < 1)) continue;
+                if (matchEmb == null) {
                     matchEmb = emb;
-                    break;
+                    continue;
+                }
+                if (emb.getCreated() > matchEmb.getCreated()) {
+                    matchEmb = emb;
+                } else if ((emb.getCreated() == matchEmb.getCreated())
+                    && (emb.getId() != null) && (matchEmb.getId() != null)
+                    && (emb.getId().compareTo(matchEmb.getId()) > 0)) {
+                    matchEmb = emb;
                 }
             }
         }
@@ -1235,13 +1245,14 @@ public class Annotation extends Base implements java.io.Serializable {
         // method/methodVersion are denormalized to top-level keyword fields
         // (embeddingMethod/embeddingMethodVersion), so they are ordinary filter
         // terms alongside the other candidate filters. (Previously these were
-        // nested embeddings.method/methodVersion terms.)
+        // nested embeddings.method/methodVersion terms.) Built via put() rather
+        // than string interpolation.
         if (method != null)
-            boolQuery.getJSONArray("filter").put(
-                new JSONObject("{\"term\": {\"embeddingMethod\":\"" + method + "\"}}"));
+            boolQuery.getJSONArray("filter").put(new JSONObject().put("term",
+                new JSONObject().put("embeddingMethod", method)));
         if (methodVersion != null)
-            boolQuery.getJSONArray("filter").put(
-                new JSONObject("{\"term\": {\"embeddingMethodVersion\":\"" + methodVersion + "\"}}"));
+            boolQuery.getJSONArray("filter").put(new JSONObject().put("term",
+                new JSONObject().put("embeddingMethodVersion", methodVersion)));
         // Query the top-level "vector" field (NOT nested embeddings.vector): a
         // nested knn_vector can't do filtered ANN and degrades to an exact scan.
         // We pass the full candidate bool as the knn `filter` so Lucene's
@@ -1255,6 +1266,11 @@ public class Annotation extends Base implements java.io.Serializable {
         knn.put("knn", new JSONObject().put("vector", knnVector));
         JSONObject result = new JSONObject();
         result.put("query", knn);
+        // getMatches() only reads _id and _score, so suppress _source -- without
+        // this each of the k hits would return its (large) top-level + nested
+        // vectors. (The previous nested query inherited a _source exclusion from
+        // matchingSetQuery; this rebuild sets it explicitly.)
+        result.put("_source", false);
         return result;
     }
 

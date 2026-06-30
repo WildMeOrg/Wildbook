@@ -135,4 +135,44 @@ class AnnotationMiewIDScoreTest {
                 "embeddingMethodVersion term should be absent when version null");
         }
     }
+
+    @Test void getMatchQuery_preservesMustNot_suppressesSource_noInputMutation() {
+        org.ecocean.Annotation ann = new org.ecocean.Annotation();
+        org.json.JSONArray vec = new org.json.JSONArray();
+        for (int i = 0; i < 8; i++) vec.put(0.1d * i);
+        new org.ecocean.Embedding(ann, "miewid-msv4.1", "4.1", vec);
+
+        // matchingSet carrying BOTH a filter clause and a must_not clause
+        // (as getMatchingSetQuery produces -- e.g. exclude-own-encounter).
+        org.json.JSONArray filter = new org.json.JSONArray();
+        filter.put(new org.json.JSONObject().put("term",
+            new org.json.JSONObject().put("iaClass", "whaleshark")));
+        org.json.JSONArray mustNot = new org.json.JSONArray();
+        mustNot.put(new org.json.JSONObject().put("match",
+            new org.json.JSONObject().put("encounterId", "enc-self")));
+        org.json.JSONObject boolObj = new org.json.JSONObject()
+            .put("filter", filter).put("must_not", mustNot);
+        org.json.JSONObject matchingSet = new org.json.JSONObject()
+            .put("query", new org.json.JSONObject().put("bool", boolObj));
+        String before = matchingSet.toString();
+
+        org.json.JSONObject q = ann.getMatchQuery("miewid-msv4.1", "4.1", matchingSet);
+        assertNotNull(q);
+
+        // _source suppressed (getMatches only reads _id/_score).
+        assertFalse(q.getBoolean("_source"), "_source should be false");
+
+        org.json.JSONObject knnBool = q.getJSONObject("query").getJSONObject("knn")
+            .getJSONObject("vector").getJSONObject("filter").getJSONObject("bool");
+        // must_not preserved into the knn efficient-filter bool.
+        assertTrue(knnBool.has("must_not"), "must_not should be preserved: " + knnBool);
+        assertEquals(1, knnBool.getJSONArray("must_not").length());
+        // original filter clause + appended method + version terms.
+        assertEquals(3, knnBool.getJSONArray("filter").length(),
+            "filter should hold original + method + version: " + knnBool.getJSONArray("filter"));
+
+        // getMatchQuery must work on a copy, not mutate its input.
+        assertEquals(before, matchingSet.toString(),
+            "getMatchQuery must not mutate the matchingSetQuery argument");
+    }
 }
