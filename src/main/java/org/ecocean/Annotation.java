@@ -195,30 +195,44 @@ public class Annotation extends Base implements java.io.Serializable {
         JSONObject embProps = new JSONObject();
         embProps.put("method", keywordType);
         embProps.put("methodVersion", keywordType);
+        // The nested embeddings.vector is retained in _source for API consumers
+        // (e.g. the agent-skill diagnostics that read vectors directly), but it
+        // is NOT the field the matcher searches: a *nested* knn_vector cannot do
+        // filtered ANN -- any filter (viewpoint/iaClass/method/version) forces an
+        // exact brute-force scan. The matchable copy is denormalized to the
+        // top-level "vector" field below, where filtered ANN stays on the graph.
         JSONObject embVect = new JSONObject();
         // https://docs.opensearch.org/docs/latest/vector-search/creating-vector-index/
         embVect.put("type", "knn_vector");
         embVect.put("dimension", Embedding.getVectorDimension());
-        // An explicit HNSW method is REQUIRED: without it, OpenSearch builds no
-        // approximate-nearest-neighbor graph and every kNN match silently
-        // degrades to an exact brute-force scan. On a large annotation corpus
-        // that scan exceeds the match query timeout, getMatches() swallows the
-        // failure, and identification returns 0 prospects. OpenSearch 3.x also
-        // removed the nmslib engine, so an index relying on the old default
-        // loses its graph on upgrade. The Lucene engine supports cosinesimil at
-        // this dimension and preserves the (1 + cos) / 2 score that
-        // osHitScore() relies on for vector/WBIA-MiewID parity. (space_type is
-        // set inside method, which is valid both there and at field level. The
-        // Lucene engine requires OpenSearch 2.3+; earlier 2.x offered only
-        // nmslib/faiss. Wildbook targets 2.3+/3.x, so this is safe.)
-        JSONObject embVectMethod = new JSONObject();
-        embVectMethod.put("name", "hnsw");
-        embVectMethod.put("engine", "lucene");
-        embVectMethod.put("space_type", "cosinesimil");
-        embVect.put("method", embVectMethod);
+        embVect.put("space_type", "cosinesimil");
         embProps.put("vector", embVect);
         embMap.put("properties", embProps);
         map.put("embeddings", embMap);
+
+        // Top-level matchable vector, denormalized from the annotation's match
+        // embedding (see opensearchDocumentSerializer). A top-level (non-nested)
+        // knn_vector with an explicit HNSW method supports Lucene "efficient
+        // filtering", so the filtered identification query stays on the ANN graph
+        // (milliseconds) instead of degrading to an exact scan (tens of seconds,
+        // which trips the OpenSearch client socket timeout -> 0 prospects). The
+        // explicit engine is also required on OpenSearch 3.x, which removed the
+        // nmslib default. Lucene supports cosinesimil at this dimension and
+        // yields the (1 + cos) / 2 score osHitScore() consumes unchanged.
+        // Lucene engine requires OpenSearch 2.3+; Wildbook targets 2.3+/3.x.
+        JSONObject matchVect = new JSONObject();
+        matchVect.put("type", "knn_vector");
+        matchVect.put("dimension", Embedding.getVectorDimension());
+        JSONObject matchVectMethod = new JSONObject();
+        matchVectMethod.put("name", "hnsw");
+        matchVectMethod.put("engine", "lucene");
+        matchVectMethod.put("space_type", "cosinesimil");
+        matchVect.put("method", matchVectMethod);
+        map.put("vector", matchVect);
+        // method/version of the denormalized vector, so the match query can
+        // filter on them at the top level (alongside the candidate filters).
+        map.put("embeddingMethod", keywordType);
+        map.put("embeddingMethodVersion", keywordType);
 
         return map;
     }
@@ -281,6 +295,31 @@ public class Annotation extends Base implements java.io.Serializable {
                 jgen.writeEndObject();
             }
         jgen.writeEndArray();
+
+        // Denormalize the match embedding to top-level fields so identification
+        // can run filtered ANN on the graph (nested vectors can't -- see
+        // opensearchMapping). Use the first embedding that carries a vector;
+        // in practice an annotation has a single (miewid/msv4.1) embedding.
+        Embedding matchEmb = null;
+        if (this.embeddings != null) {
+            for (Embedding emb : this.embeddings) {
+                if ((emb.vectorToFloatArray() != null) && (emb.vectorLength() > 0)) {
+                    matchEmb = emb;
+                    break;
+                }
+            }
+        }
+        if (matchEmb != null) {
+            jgen.writeStringField("embeddingMethod", matchEmb.getMethod());
+            jgen.writeStringField("embeddingMethodVersion", matchEmb.getMethodVersion());
+            float[] matchVec = matchEmb.vectorToFloatArray();
+            jgen.writeFieldName("vector");
+            jgen.writeStartArray();
+            for (int i = 0; i < matchVec.length; i++) {
+                jgen.writeNumber(matchVec[i]);
+            }
+            jgen.writeEndArray();
+        }
     }
 
     // TODO should this also be limited by matchAgainst and acmId?
@@ -1189,39 +1228,34 @@ public class Annotation extends Base implements java.io.Serializable {
         Embedding emb = getEmbeddingByMethod(method, methodVersion);
 
         if (emb == null) return null;
-        // we work on a copy here so we dont modify matchingSetQuery
+        // We work on a copy here so we don't modify matchingSetQuery.
+        // matchingSetQuery is {"query": {"bool": {"filter": [...], "must_not": [...]}}}.
         JSONObject mq = new JSONObject(matchingSetQuery.toString());
-        JSONObject nested = new JSONObject(
-            "{\"nested\": {\"path\": \"embeddings\", \"query\": {\"bool\": {}}}}");
-        // Inside the nested bool, keep ONLY the knn clause in `must` so the
-        // per-hit score is exactly the OS knn similarity (no spurious
-        // +1.0-per-term-clause offset). method/methodVersion become
-        // `filter` clauses — they still constrain results but contribute
-        // 0 to score. (Empty-match-prospects C17: MiewID score parity.)
-        JSONArray must = new JSONArray();
-        JSONObject knn = new JSONObject("{\"knn\": {\"embeddings.vector\": {}}}");
-        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("vector",
-            new JSONArray(emb.vectorToFloatArray()));
-        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("k", KNN_K_DISTANCE_VALUE);
-        must.put(knn);
-        JSONArray filter = new JSONArray();
+        JSONObject boolQuery = mq.getJSONObject("query").getJSONObject("bool");
+        // method/methodVersion are denormalized to top-level keyword fields
+        // (embeddingMethod/embeddingMethodVersion), so they are ordinary filter
+        // terms alongside the other candidate filters. (Previously these were
+        // nested embeddings.method/methodVersion terms.)
         if (method != null)
-            filter.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
+            boolQuery.getJSONArray("filter").put(
+                new JSONObject("{\"term\": {\"embeddingMethod\":\"" + method + "\"}}"));
         if (methodVersion != null)
-            filter.put(new JSONObject("{\"term\": {\"embeddings.methodVersion\":\"" + methodVersion +
-                "\"}}"));
-        nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("must",
-            must);
-        if (filter.length() > 0) {
-            nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put(
-                "filter", filter);
-        }
-
-        // we put nested under its own top-level must, that way its score counts (whereas filter does not)
-        JSONArray nestedMust = new JSONArray();
-        nestedMust.put(nested);
-        mq.getJSONObject("query").getJSONObject("bool").put("must", nestedMust);
-        return mq;
+            boolQuery.getJSONArray("filter").put(
+                new JSONObject("{\"term\": {\"embeddingMethodVersion\":\"" + methodVersion + "\"}}"));
+        // Query the top-level "vector" field (NOT nested embeddings.vector): a
+        // nested knn_vector can't do filtered ANN and degrades to an exact scan.
+        // We pass the full candidate bool as the knn `filter` so Lucene's
+        // "efficient filtering" keeps the search on the HNSW graph. The OS knn
+        // _score is cosinesimil (1+cos)/2, consumed unchanged by osHitScore().
+        JSONObject knnVector = new JSONObject();
+        knnVector.put("vector", new JSONArray(emb.vectorToFloatArray()));
+        knnVector.put("k", KNN_K_DISTANCE_VALUE);
+        knnVector.put("filter", mq.getJSONObject("query"));
+        JSONObject knn = new JSONObject();
+        knn.put("knn", new JSONObject().put("vector", knnVector));
+        JSONObject result = new JSONObject();
+        result.put("query", knn);
+        return result;
     }
 
     /**
