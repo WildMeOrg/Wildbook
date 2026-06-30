@@ -310,11 +310,12 @@ public class Annotation extends Base implements java.io.Serializable {
                     matchEmb = emb;
                     continue;
                 }
-                if (emb.getCreated() > matchEmb.getCreated()) {
-                    matchEmb = emb;
-                } else if ((emb.getCreated() == matchEmb.getCreated())
-                    && (emb.getId() != null) && (matchEmb.getId() != null)
-                    && (emb.getId().compareTo(matchEmb.getId()) > 0)) {
+                // Total order: created desc, then a null-safe id/method/version
+                // key desc, so selection is deterministic even when created ties
+                // and an id is null (HashSet iteration order never decides).
+                if (emb.getCreated() > matchEmb.getCreated()
+                    || (emb.getCreated() == matchEmb.getCreated()
+                        && embeddingSortKey(emb).compareTo(embeddingSortKey(matchEmb)) > 0)) {
                     matchEmb = emb;
                 }
             }
@@ -330,6 +331,15 @@ public class Annotation extends Base implements java.io.Serializable {
             }
             jgen.writeEndArray();
         }
+    }
+
+    // Stable, null-safe key for choosing the deterministic top-level match
+    // embedding when created timestamps tie (see opensearchDocumentSerializer).
+    private static String embeddingSortKey(Embedding emb) {
+        String id = (emb.getId() == null) ? "" : emb.getId();
+        String method = (emb.getMethod() == null) ? "" : emb.getMethod();
+        String version = (emb.getMethodVersion() == null) ? "" : emb.getMethodVersion();
+        return id + "|" + method + "|" + version;
     }
 
     // TODO should this also be limited by matchAgainst and acmId?
