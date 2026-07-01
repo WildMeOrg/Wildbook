@@ -384,8 +384,13 @@ import org.json.JSONObject;
                 try {
                     if (obj != null) os.index(indexName, obj);
                 } catch (Exception ex) {
-                    System.out.println("Base.opensearchSyncIndex(" + indexName + "): index failed " +
-                        obj + " => " + ex.toString());
+                    // Log the id only -- never "" + obj, because obj.toString() can itself throw
+                    // (e.g. an orphaned Annotation whose MediaAsset row was deleted -> lazy-load
+                    // NucleusObjectNotFoundException). A throw here would escape this per-item catch
+                    // and abort the whole reconcile pass instead of skipping the one bad object.
+                    String failId = (obj == null) ? "?" : obj.getId();
+                    System.out.println("Base.opensearchSyncIndex(" + indexName + "): index failed id=" +
+                        failId + " => " + ex.toString());
                     ex.printStackTrace();
                 }
                 if (ct % 500 == 0)
