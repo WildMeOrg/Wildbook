@@ -38,6 +38,10 @@ narrow very large scopes.
    `individualId` and the croppable image for each annotation.
 3. Discard annotations with no `individualId` — only confirmed-identity photos can serve as
    test cases or catalog references.
+3a. To break reliability down by how much time has passed (recommended — see below), also fetch each
+    photo's sighting date: the annotation has no date, so collect the `encounterId`s and look them up
+    in the encounter index (`POST /api/v3/search/encounter` with a `terms` query on the IDs) and read
+    `dateMillis` for each.
 4. Group strictly by `viewpoint` + `methodVersion`. Never compare photos across viewpoints or
    across model versions; the similarity scores are not comparable.
 5. For each group, conduct a leave-one-out evaluation:
@@ -49,11 +53,18 @@ narrow very large scopes.
    c. Rank all catalog animals in the reference set by their highest cosine similarity to the
       query photo.
    d. Record: (i) whether the correct animal ranked first (Rank-1 hit), and (ii) whether the
-      correct animal appeared anywhere in the top five (Top-5 hit).
+      correct animal appeared anywhere in the top five (Top-5 hit). If you fetched dates (step 3a),
+      also record the elapsed time between the query photo's sighting and the sighting of the
+      correct animal's nearest reference photo.
    e. Repeat for every photo in the group that has at least three independent reference photos
       remaining after exclusion; skip and note photos that fall below that threshold.
 6. Aggregate Rank-1 and Top-5 counts and divide by the total number of evaluated photos to get
    percentages.
+7. **Stratify by elapsed time (strongly recommended).** Also aggregate Rank-1 and Top-5 separately
+   within elapsed-time bands — for example under 1 year, 1–3 years, and over 3 years between the
+   query and its reference. Matching reliability decays as the gap between sightings grows, and a
+   single overall number hides that decline. For population monitoring (where animals are re-sighted
+   years apart) the long-interval bands are the ones that matter most.
 
 ## How to report results
 Speak plainly. Lead with the headline numbers, then add context. For example:
@@ -65,15 +76,24 @@ Speak plainly. Lead with the headline numbers, then add context. For example:
 Always state the sample size (number of test photos and number of individuals covered). If the
 sample is below 30 photos or 10 individuals, add a clear caveat: "These numbers are based on a
 small sample and may not reflect performance on the full catalog — treat them as indicative only."
+If you broke the results down by the time between sightings, report how the accuracy changes as that
+gap grows — for example: "when two sightings of the same animal were within a year of each other the
+right animal came up first 92% of the time, but when they were three or more years apart that fell to
+61%." Call out this trend plainly, because that long-term decline is what matters most for tracking a
+population over many years.
+
 Break results out by viewpoint or model version if those subgroups tell meaningfully different
 stories. Produce a brief summary table if it helps clarity. Never imply precision the sample size
 does not support.
 
 ## Cautions
 Results apply only to the viewpoint and model version you evaluated — do not generalise across
-them. Results describe accuracy for *this* scope (species, site, date range), not the whole
-catalog; other scopes may perform differently. Small samples are unreliable — state the sample
-size and flag low counts prominently. You only see catalog data the person's account is permitted
+them. Reliability also differs markedly **between species**, so figures from one species never
+transfer to another — always measure each species on its own. Results describe accuracy for *this*
+scope (species, site, date range), not the whole catalog; other scopes may perform differently.
+Reliability tends to fade as the time between sightings grows, so an overall figure can look healthy
+while matching across long gaps is weak — prefer the breakdown by time between sightings. Small samples are
+unreliable — state the sample size and flag low counts prominently. You only see catalog data the person's account is permitted
 to view, so the evaluation is bounded by that visibility. This skill is read-only: it produces an
 accuracy report and makes no changes to any records.
 
