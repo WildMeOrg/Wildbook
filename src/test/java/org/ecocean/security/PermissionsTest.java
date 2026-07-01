@@ -181,6 +181,30 @@ class PermissionsTest {
         }
     }
 
+    // any logged-in user can edit a public encounter (issue 1626)
+    @Test void encounterPublicEditTest() {
+        User user = new User("test-user", null, null);
+        Encounter enc = new Encounter();
+        Shepherd myShepherd = mock(Shepherd.class);
+
+        when(myShepherd.getContext()).thenReturn("context0");
+        try (MockedStatic<Collaboration> mockCollab = mockStatic(Collaboration.class,
+                org.mockito.Answers.CALLS_REAL_METHODS)) {
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(any(String.class),
+                any(String.class), any(String.class))).thenReturn(null);
+            mockCollab.when(() -> Collaboration.securityEnabled(any(String.class))).thenReturn(
+                true);
+
+            enc.setSubmitterID("public");
+            assertTrue(enc.canUserEdit(user, myShepherd));
+            // anonymous (not logged in) still cannot edit
+            assertFalse(enc.canUserEdit(null, myShepherd));
+            // encounters owned by someone else remain uneditable
+            enc.setSubmitterID("someone-else");
+            assertFalse(enc.canUserEdit(user, myShepherd));
+        }
+    }
+
     // Collaboration.canCollaborate() is central to many other calls
     @Test void canCollaborateTest() {
         User userResearcher = new User("user-researcher", null, null);

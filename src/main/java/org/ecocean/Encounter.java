@@ -3349,6 +3349,9 @@ public class Encounter extends Base implements java.io.Serializable {
         if (user == null) return false;
         if (isUserOwner(user)) return true;
         if (user.isAdmin(myShepherd)) return true;
+        // any logged-in user can edit a public (ownerless) encounter, matching the
+        // legacy ServletUtilities.isUserAuthorizedForEncounter() behavior
+        if (User.isUsernameAnonymous(this.getSubmitterID())) return true;
         if (Collaboration.canEditEncounter(this, user, myShepherd.getContext())) return true;
         // TODO there seems to be some legacy stuff about roles based on location. is this real?
         return false;
