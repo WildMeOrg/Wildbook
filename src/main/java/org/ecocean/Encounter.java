@@ -3349,9 +3349,21 @@ public class Encounter extends Base implements java.io.Serializable {
         if (user == null) return false;
         if (isUserOwner(user)) return true;
         if (user.isAdmin(myShepherd)) return true;
+        // any logged-in user can edit a public (ownerless) encounter, matching the
+        // legacy ServletUtilities.isUserAuthorizedForEncounter() behavior
+        if (User.isUsernameAnonymous(this.getSubmitterID())) return true;
         if (Collaboration.canEditEncounter(this, user, myShepherd.getContext())) return true;
         // TODO there seems to be some legacy stuff about roles based on location. is this real?
         return false;
+    }
+
+    // edit access on a public encounter (see canUserEdit) does not by itself
+    // grant visibility of other users' contact emails
+    public boolean canUserViewContactInfo(User user, Shepherd myShepherd) {
+        if (user == null) return false;
+        if (isUserOwner(user)) return true;
+        if (user.isAdmin(myShepherd)) return true;
+        return Collaboration.canEditEncounter(this, user, myShepherd.getContext());
     }
 
     public boolean isUserOwner(User user) { // the definition of this might change?
@@ -4952,11 +4964,15 @@ public class Encounter extends Base implements java.io.Serializable {
             if (canUserEdit(user, myShepherd)) {
                 rtn.put("access", "write");
                 blocked = false;
-                // we can allow email being shown when access=write
-                hideUserEmail = false;
-                if (submitter != null)
-                    rtn.put("submitterInfo",
-                        submitter.infoJSONObject(myShepherd, true, hideUserEmail));
+                // we can allow email being shown when the user has a real
+                // relationship to the encounter (owner/admin/edit-collab);
+                // write access via the public-encounter grant is not enough
+                if (canUserViewContactInfo(user, myShepherd)) {
+                    hideUserEmail = false;
+                    if (submitter != null)
+                        rtn.put("submitterInfo",
+                            submitter.infoJSONObject(myShepherd, true, hideUserEmail));
+                }
             } else if (canUserView(user, myShepherd)) {
                 blocked = false;
             }
