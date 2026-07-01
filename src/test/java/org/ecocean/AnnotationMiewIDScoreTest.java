@@ -1,20 +1,18 @@
 package org.ecocean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests pinning the {@code getMatchQuery} JSON shape: a TOP-LEVEL knn
- * on the denormalized {@code vector} field, with method/methodVersion
- * as top-level {@code embeddingMethod}/{@code embeddingMethodVersion}
- * term clauses passed inside the knn {@code filter} (Lucene efficient
- * filtering). The match was moved off the nested {@code embeddings.vector}
- * field because a nested knn_vector cannot do filtered ANN (any filter
- * forces an exact brute-force scan).
+ * Tests pinning the {@code getMatchQuery} JSON shape that the C17
+ * commit established: knn clause in the nested {@code must} array,
+ * method/methodVersion term clauses in the nested {@code filter}
+ * array. This eliminates the spurious +2.0 score offset that the
+ * original (pre-C17) layout introduced when method/methodVersion
+ * terms were in {@code must}.
  *
  * <p>The earlier "openSearchScoreToCosine" tests have been removed
  * along with the back-transform itself (parity-fix). OpenSearch
@@ -62,17 +60,13 @@ class AnnotationMiewIDScoreTest {
             "missing _score should default to 0.0, not crash");
     }
 
-    // --- getMatchQuery shape regression guard ---------------------------
-    // The matcher queries the TOP-LEVEL "vector" knn_vector field (NOT
-    // nested embeddings.vector, which can't do filtered ANN -- any filter
-    // forces an exact brute-force scan that trips the client timeout).
-    // method/methodVersion are top-level embeddingMethod/embeddingMethodVersion
-    // term filters passed INSIDE the knn `filter` (Lucene efficient
-    // filtering keeps the search on the HNSW graph). The knn _score is the
-    // cosinesimil (1+cos)/2 value, consumed unchanged by osHitScore().
-    // This test pins that shape so a regression back to nested is caught.
+    // --- getMatchQuery shape regression guard (Codex C17 Medium) --------
+    // If a future refactor moves embeddings.method/methodVersion back
+    // into the nested `must` list, callers will start seeing scores
+    // offset by +2.0 again. This test pins the JSON shape so that
+    // drift is caught.
 
-    @Test void getMatchQuery_topLevelKnn_methodVersionInEfficientFilter() {
+    @Test void getMatchQuery_putsKnnInMust_termsInFilter() {
         org.ecocean.Annotation ann = new org.ecocean.Annotation();
         // Embedding constructor auto-attaches to the annotation.
         org.json.JSONArray vec = new org.json.JSONArray();
@@ -86,32 +80,42 @@ class AnnotationMiewIDScoreTest {
         org.json.JSONObject q = ann.getMatchQuery("miewid-msv4.1", "4.1", matchingSet);
         assertNotNull(q, "getMatchQuery returned null");
 
-        // Top-level knn on the denormalized "vector" field (no nested wrapper).
-        org.json.JSONObject knnVector = q.getJSONObject("query")
-            .getJSONObject("knn").getJSONObject("vector");
-        assertTrue(knnVector.has("vector"), "knn should carry the query vector array");
-        assertTrue(knnVector.has("k"), "knn should carry k");
+        // Top-level bool.must should contain a single nested clause.
+        org.json.JSONArray topMust = q.getJSONObject("query")
+            .getJSONObject("bool").getJSONArray("must");
+        assertEquals(1, topMust.length(), "expected 1 top-level must clause");
+        org.json.JSONObject nested = topMust.getJSONObject(0)
+            .getJSONObject("nested");
 
-        // method/version are term filters inside the knn efficient-filter bool.
-        org.json.JSONArray filter = knnVector.getJSONObject("filter")
-            .getJSONObject("bool").getJSONArray("filter");
-        org.json.JSONObject methodTerm = null;
-        org.json.JSONObject versionTerm = null;
-        for (int i = 0; i < filter.length(); i++) {
-            org.json.JSONObject term = filter.getJSONObject(i).optJSONObject("term");
-            if (term == null) continue;
-            if (term.has("embeddingMethod")) methodTerm = term;
-            if (term.has("embeddingMethodVersion")) versionTerm = term;
+        // Inside the nested bool: must has ONLY knn, filter has the
+        // method/methodVersion terms. This is the C17 contract — any
+        // movement of the terms back into must would re-introduce the
+        // +1.0-per-term-clause score offset that turned [0, 1] into
+        // [2, 3] on the live deployment.
+        org.json.JSONObject nestedBool = nested.getJSONObject("query")
+            .getJSONObject("bool");
+
+        org.json.JSONArray nestedMust = nestedBool.getJSONArray("must");
+        assertEquals(1, nestedMust.length(),
+            "nested.must should contain only the knn clause; found: " + nestedMust);
+        assertTrue(nestedMust.getJSONObject(0).has("knn"),
+            "nested.must[0] should be a knn clause: " + nestedMust.getJSONObject(0));
+
+        org.json.JSONArray nestedFilter = nestedBool.getJSONArray("filter");
+        assertEquals(2, nestedFilter.length(),
+            "nested.filter should contain method + methodVersion terms; found: " + nestedFilter);
+        // Both filter entries must be term clauses.
+        for (int i = 0; i < nestedFilter.length(); i++) {
+            assertTrue(nestedFilter.getJSONObject(i).has("term"),
+                "nested.filter[" + i + "] should be a term clause: " +
+                nestedFilter.getJSONObject(i));
         }
-        assertNotNull(methodTerm, "expected embeddingMethod term clause: " + filter);
-        assertNotNull(versionTerm, "expected embeddingMethodVersion term clause: " + filter);
-        assertEquals("miewid-msv4.1", methodTerm.getString("embeddingMethod"));
-        assertEquals("4.1", versionTerm.getString("embeddingMethodVersion"));
     }
 
-    @Test void getMatchQuery_omitsMethodVersionTerms_whenBothNull() {
-        // Legacy api_endpoint-only configs: no method/methodVersion to filter
-        // on. Neither embeddingMethod nor embeddingMethodVersion term is added.
+    @Test void getMatchQuery_omitsNestedFilter_whenMethodAndVersionNull() {
+        // Legacy api_endpoint-only configs: no method/methodVersion to
+        // filter on. The nested.filter array should be absent (or empty)
+        // rather than carrying empty term clauses.
         org.ecocean.Annotation ann = new org.ecocean.Annotation();
         org.json.JSONArray vec = new org.json.JSONArray();
         for (int i = 0; i < 8; i++) vec.put(0.1d * i);
@@ -123,56 +127,15 @@ class AnnotationMiewIDScoreTest {
 
         org.json.JSONObject q = ann.getMatchQuery(null, null, matchingSet);
         assertNotNull(q);
-        org.json.JSONArray filter = q.getJSONObject("query")
-            .getJSONObject("knn").getJSONObject("vector")
-            .getJSONObject("filter").getJSONObject("bool").getJSONArray("filter");
-        for (int i = 0; i < filter.length(); i++) {
-            org.json.JSONObject term = filter.getJSONObject(i).optJSONObject("term");
-            if (term == null) continue;
-            assertFalse(term.has("embeddingMethod"),
-                "embeddingMethod term should be absent when method null");
-            assertFalse(term.has("embeddingMethodVersion"),
-                "embeddingMethodVersion term should be absent when version null");
+        org.json.JSONObject nestedBool = q.getJSONObject("query")
+            .getJSONObject("bool").getJSONArray("must")
+            .getJSONObject(0).getJSONObject("nested")
+            .getJSONObject("query").getJSONObject("bool");
+        // nested.filter should either be absent or empty
+        org.json.JSONArray nestedFilter = nestedBool.optJSONArray("filter");
+        if (nestedFilter != null) {
+            assertEquals(0, nestedFilter.length(),
+                "nested.filter should be absent or empty when method+version both null");
         }
-    }
-
-    @Test void getMatchQuery_preservesMustNot_suppressesSource_noInputMutation() {
-        org.ecocean.Annotation ann = new org.ecocean.Annotation();
-        org.json.JSONArray vec = new org.json.JSONArray();
-        for (int i = 0; i < 8; i++) vec.put(0.1d * i);
-        new org.ecocean.Embedding(ann, "miewid-msv4.1", "4.1", vec);
-
-        // matchingSet carrying BOTH a filter clause and a must_not clause
-        // (as getMatchingSetQuery produces -- e.g. exclude-own-encounter).
-        org.json.JSONArray filter = new org.json.JSONArray();
-        filter.put(new org.json.JSONObject().put("term",
-            new org.json.JSONObject().put("iaClass", "whaleshark")));
-        org.json.JSONArray mustNot = new org.json.JSONArray();
-        mustNot.put(new org.json.JSONObject().put("match",
-            new org.json.JSONObject().put("encounterId", "enc-self")));
-        org.json.JSONObject boolObj = new org.json.JSONObject()
-            .put("filter", filter).put("must_not", mustNot);
-        org.json.JSONObject matchingSet = new org.json.JSONObject()
-            .put("query", new org.json.JSONObject().put("bool", boolObj));
-        String before = matchingSet.toString();
-
-        org.json.JSONObject q = ann.getMatchQuery("miewid-msv4.1", "4.1", matchingSet);
-        assertNotNull(q);
-
-        // _source suppressed (getMatches only reads _id/_score).
-        assertFalse(q.getBoolean("_source"), "_source should be false");
-
-        org.json.JSONObject knnBool = q.getJSONObject("query").getJSONObject("knn")
-            .getJSONObject("vector").getJSONObject("filter").getJSONObject("bool");
-        // must_not preserved into the knn efficient-filter bool.
-        assertTrue(knnBool.has("must_not"), "must_not should be preserved: " + knnBool);
-        assertEquals(1, knnBool.getJSONArray("must_not").length());
-        // original filter clause + appended method + version terms.
-        assertEquals(3, knnBool.getJSONArray("filter").length(),
-            "filter should hold original + method + version: " + knnBool.getJSONArray("filter"));
-
-        // getMatchQuery must work on a copy, not mutate its input.
-        assertEquals(before, matchingSet.toString(),
-            "getMatchQuery must not mutate the matchingSetQuery argument");
     }
 }

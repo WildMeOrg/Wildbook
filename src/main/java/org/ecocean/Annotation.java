@@ -156,7 +156,10 @@ public class Annotation extends Base implements java.io.Serializable {
     }
 
     public long setVersion() {
-        version = System.currentTimeMillis();
+        // Monotonic: the OpenSearch reconciler treats an annotation as stale only when DB version is
+        // strictly greater than the indexed version, so two bumps within the same millisecond must
+        // still advance the value (otherwise a change could silently fail to reindex).
+        version = Math.max(version + 1, System.currentTimeMillis());
         return version;
     }
 
@@ -179,6 +182,8 @@ public class Annotation extends Base implements java.io.Serializable {
         map.put("encounterLocationId", keywordType);
         map.put("encounterTaxonomy", keywordType);
         map.put("encounterProjectIds", keywordType);
+        // parent encounter's sighting date, denormalized so temporal analyses need no encounter join
+        map.put("encounterDateMillis", new JSONObject("{\"type\": \"date\", \"format\": \"epoch_millis\"}"));
 
         // ACL fields (viewUsers is inherited from Base.opensearchMapping())
         map.put("publiclyReadable", new JSONObject("{\"type\": \"boolean\"}"));
@@ -195,39 +200,14 @@ public class Annotation extends Base implements java.io.Serializable {
         JSONObject embProps = new JSONObject();
         embProps.put("method", keywordType);
         embProps.put("methodVersion", keywordType);
-        // NOTE: embeddings.vector is deliberately NOT mapped. The serializer
-        // still writes it, so with dynamic:false it remains in _source for API
-        // consumers that read vectors directly (e.g. agent-skill diagnostics)
-        // -- but it is not indexed, so NO per-nested HNSW graph is built. The
-        // searchable copy is the top-level "vector" field below: a *nested*
-        // knn_vector cannot do filtered ANN (any filter forces an exact
-        // brute-force scan), so matching must run on a top-level field.
+        JSONObject embVect = new JSONObject();
+        // https://docs.opensearch.org/docs/latest/vector-search/creating-vector-index/
+        embVect.put("type", "knn_vector");
+        embVect.put("dimension", Embedding.getVectorDimension());
+        embVect.put("space_type", "cosinesimil");
+        embProps.put("vector", embVect);
         embMap.put("properties", embProps);
         map.put("embeddings", embMap);
-
-        // Top-level matchable vector, denormalized from the annotation's match
-        // embedding (see opensearchDocumentSerializer). A top-level (non-nested)
-        // knn_vector with an explicit HNSW method supports Lucene "efficient
-        // filtering", so the filtered identification query stays on the ANN graph
-        // (milliseconds) instead of degrading to an exact scan (tens of seconds,
-        // which trips the OpenSearch client socket timeout -> 0 prospects). The
-        // explicit engine is also required on OpenSearch 3.x, which removed the
-        // nmslib default. Lucene supports cosinesimil at this dimension and
-        // yields the (1 + cos) / 2 score osHitScore() consumes unchanged.
-        // Lucene engine requires OpenSearch 2.3+; Wildbook targets 2.3+/3.x.
-        JSONObject matchVect = new JSONObject();
-        matchVect.put("type", "knn_vector");
-        matchVect.put("dimension", Embedding.getVectorDimension());
-        JSONObject matchVectMethod = new JSONObject();
-        matchVectMethod.put("name", "hnsw");
-        matchVectMethod.put("engine", "lucene");
-        matchVectMethod.put("space_type", "cosinesimil");
-        matchVect.put("method", matchVectMethod);
-        map.put("vector", matchVect);
-        // method/version of the denormalized vector, so the match query can
-        // filter on them at the top level (alongside the candidate filters).
-        map.put("embeddingMethod", keywordType);
-        map.put("embeddingMethodVersion", keywordType);
 
         return map;
     }
@@ -250,6 +230,10 @@ public class Annotation extends Base implements java.io.Serializable {
             jgen.writeStringField("encounterSubmitterId", enc.getSubmitterID());
             jgen.writeStringField("encounterLocationId", enc.getLocationID());
             jgen.writeStringField("encounterTaxonomy", enc.getTaxonomyString());
+            // denormalize the sighting date so temporal re-ID analyses avoid a second round-trip to
+            // the encounter index (mirrors Encounter's own dateMillis serialization)
+            Long encDateMillis = enc.getDateInMillisecondsFallback();
+            if (encDateMillis != null) jgen.writeNumberField("encounterDateMillis", encDateMillis);
             // per discussion on issue 874, including this in indexing, but not (yet) using in matchingSet
             jgen.writeStringField("encounterLivingStatus", enc.getLivingStatus());
             User owner = enc.getSubmitterUser(myShepherd);
@@ -290,56 +274,6 @@ public class Annotation extends Base implements java.io.Serializable {
                 jgen.writeEndObject();
             }
         jgen.writeEndArray();
-
-        // Denormalize ONE match embedding to top-level fields so identification
-        // can run filtered ANN on the graph (nested vectors can't -- see
-        // opensearchMapping). embeddings is a Set, so iteration order is not
-        // stable; pick deterministically -- the most recently created embedding
-        // that carries a vector (newest model wins), tie-broken by id. The
-        // top-level vector and its embeddingMethod/embeddingMethodVersion are
-        // written together, so they are always self-consistent: a match query
-        // filtering on a given method/version simply won't hit annotations whose
-        // chosen top-level embedding is a different method. (Today annotations
-        // carry a single miewid/msv4.1 embedding; per-method top-level vectors
-        // would be needed only if multiple match methods coexist per annotation.)
-        Embedding matchEmb = null;
-        if (this.embeddings != null) {
-            for (Embedding emb : this.embeddings) {
-                if ((emb.vectorToFloatArray() == null) || (emb.vectorLength() < 1)) continue;
-                if (matchEmb == null) {
-                    matchEmb = emb;
-                    continue;
-                }
-                // Total order: created desc, then a null-safe id/method/version
-                // key desc, so selection is deterministic even when created ties
-                // and an id is null (HashSet iteration order never decides).
-                if (emb.getCreated() > matchEmb.getCreated()
-                    || (emb.getCreated() == matchEmb.getCreated()
-                        && embeddingSortKey(emb).compareTo(embeddingSortKey(matchEmb)) > 0)) {
-                    matchEmb = emb;
-                }
-            }
-        }
-        if (matchEmb != null) {
-            jgen.writeStringField("embeddingMethod", matchEmb.getMethod());
-            jgen.writeStringField("embeddingMethodVersion", matchEmb.getMethodVersion());
-            float[] matchVec = matchEmb.vectorToFloatArray();
-            jgen.writeFieldName("vector");
-            jgen.writeStartArray();
-            for (int i = 0; i < matchVec.length; i++) {
-                jgen.writeNumber(matchVec[i]);
-            }
-            jgen.writeEndArray();
-        }
-    }
-
-    // Stable, null-safe key for choosing the deterministic top-level match
-    // embedding when created timestamps tie (see opensearchDocumentSerializer).
-    private static String embeddingSortKey(Embedding emb) {
-        String id = (emb.getId() == null) ? "" : emb.getId();
-        String method = (emb.getMethod() == null) ? "" : emb.getMethod();
-        String version = (emb.getMethodVersion() == null) ? "" : emb.getMethodVersion();
-        return id + "|" + method + "|" + version;
     }
 
     // TODO should this also be limited by matchAgainst and acmId?
@@ -1248,40 +1182,39 @@ public class Annotation extends Base implements java.io.Serializable {
         Embedding emb = getEmbeddingByMethod(method, methodVersion);
 
         if (emb == null) return null;
-        // We work on a copy here so we don't modify matchingSetQuery.
-        // matchingSetQuery is {"query": {"bool": {"filter": [...], "must_not": [...]}}}.
+        // we work on a copy here so we dont modify matchingSetQuery
         JSONObject mq = new JSONObject(matchingSetQuery.toString());
-        JSONObject boolQuery = mq.getJSONObject("query").getJSONObject("bool");
-        // method/methodVersion are denormalized to top-level keyword fields
-        // (embeddingMethod/embeddingMethodVersion), so they are ordinary filter
-        // terms alongside the other candidate filters. (Previously these were
-        // nested embeddings.method/methodVersion terms.) Built via put() rather
-        // than string interpolation.
+        JSONObject nested = new JSONObject(
+            "{\"nested\": {\"path\": \"embeddings\", \"query\": {\"bool\": {}}}}");
+        // Inside the nested bool, keep ONLY the knn clause in `must` so the
+        // per-hit score is exactly the OS knn similarity (no spurious
+        // +1.0-per-term-clause offset). method/methodVersion become
+        // `filter` clauses — they still constrain results but contribute
+        // 0 to score. (Empty-match-prospects C17: MiewID score parity.)
+        JSONArray must = new JSONArray();
+        JSONObject knn = new JSONObject("{\"knn\": {\"embeddings.vector\": {}}}");
+        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("vector",
+            new JSONArray(emb.vectorToFloatArray()));
+        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("k", KNN_K_DISTANCE_VALUE);
+        must.put(knn);
+        JSONArray filter = new JSONArray();
         if (method != null)
-            boolQuery.getJSONArray("filter").put(new JSONObject().put("term",
-                new JSONObject().put("embeddingMethod", method)));
+            filter.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
         if (methodVersion != null)
-            boolQuery.getJSONArray("filter").put(new JSONObject().put("term",
-                new JSONObject().put("embeddingMethodVersion", methodVersion)));
-        // Query the top-level "vector" field (NOT nested embeddings.vector): a
-        // nested knn_vector can't do filtered ANN and degrades to an exact scan.
-        // We pass the full candidate bool as the knn `filter` so Lucene's
-        // "efficient filtering" keeps the search on the HNSW graph. The OS knn
-        // _score is cosinesimil (1+cos)/2, consumed unchanged by osHitScore().
-        JSONObject knnVector = new JSONObject();
-        knnVector.put("vector", new JSONArray(emb.vectorToFloatArray()));
-        knnVector.put("k", KNN_K_DISTANCE_VALUE);
-        knnVector.put("filter", mq.getJSONObject("query"));
-        JSONObject knn = new JSONObject();
-        knn.put("knn", new JSONObject().put("vector", knnVector));
-        JSONObject result = new JSONObject();
-        result.put("query", knn);
-        // getMatches() only reads _id and _score, so suppress _source -- without
-        // this each of the k hits would return its (large) top-level + nested
-        // vectors. (The previous nested query inherited a _source exclusion from
-        // matchingSetQuery; this rebuild sets it explicitly.)
-        result.put("_source", false);
-        return result;
+            filter.put(new JSONObject("{\"term\": {\"embeddings.methodVersion\":\"" + methodVersion +
+                "\"}}"));
+        nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("must",
+            must);
+        if (filter.length() > 0) {
+            nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put(
+                "filter", filter);
+        }
+
+        // we put nested under its own top-level must, that way its score counts (whereas filter does not)
+        JSONArray nestedMust = new JSONArray();
+        nestedMust.put(nested);
+        mq.getJSONObject("query").getJSONObject("bool").put("must", nestedMust);
+        return mq;
     }
 
     /**
@@ -1983,6 +1916,8 @@ public class Annotation extends Base implements java.io.Serializable {
                 " deleting " + emb);
             myShepherd.getPM().deletePersistent(emb);
         }
+        // bump version so the reconciler reindexes and the now-removed vector(s) leave the _source
+        this.setVersion();
         return rtn;
     }
 
@@ -2167,8 +2102,17 @@ public class Annotation extends Base implements java.io.Serializable {
     public Set<Embedding> addEmbedding(Embedding emb) {
         if (embeddings == null) embeddings = new HashSet<Embedding>();
         if (emb == null) return embeddings;
-        embeddings.add(emb);
-        if (!this.equals(emb.getAnnotation())) emb.setAnnotation(this);
+        boolean added = embeddings.add(emb);
+        boolean linked = false;
+        if (!this.equals(emb.getAnnotation())) {
+            emb.setAnnotation(this);
+            linked = true;
+        }
+        // bump version only on a real change so the OpenSearch reconciler reindexes this annotation
+        // and writes the embedding vector into the document _source (otherwise the vector is
+        // kNN-searchable but never surfaces in the token-readable _source). Skipping no-op duplicate
+        // adds avoids needless reconciler churn.
+        if (added || linked) this.setVersion();
         return embeddings;
     }
 
