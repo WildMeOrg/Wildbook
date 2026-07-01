@@ -125,7 +125,16 @@ public class OpenSearch {
     }
 
     public static void initializeClient(HttpHost host) {
-        restClient = RestClient.builder(host).build();
+        // Raise the socket timeout above the 30s default. A slow query (e.g. a
+        // cold/large kNN) otherwise throws SocketTimeoutException, which
+        // getMatches() swallows into an empty result -- surfacing to users as
+        // "0 matches". The top-level-vector match query keeps searches fast;
+        // this is a safety net so a slow query degrades to "slow", not silently
+        // "empty".
+        restClient = RestClient.builder(host)
+            .setRequestConfigCallback(
+                rc -> rc.setConnectTimeout(10000).setSocketTimeout(120000))
+            .build();
         final OpenSearchTransport transport = new RestClientTransport(restClient,
             new JacksonJsonpMapper());
 
