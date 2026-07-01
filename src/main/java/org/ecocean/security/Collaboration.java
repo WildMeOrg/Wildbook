@@ -575,7 +575,7 @@ public class Collaboration implements java.io.Serializable {
         return true;
     }
 
-    // Check if User (via request) has edit access to every Encounter in this Individual
+    // Check if User (via request) has edit access to at least one Encounter in this Individual
     public static boolean canUserPartiallyEditMarkedIndividual(MarkedIndividual mi,
         HttpServletRequest request) {
         if (request.isUserInRole("admin")) return true;
