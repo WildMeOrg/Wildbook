@@ -2,7 +2,40 @@
   "description": "Hierarchical Encounter.locationIDs in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
-
+{
+		"name": "Mediterranean Sea", 
+		"id": "Mediterranean Sea", 
+		"prefix": "MPO-MED", 
+		"prefixDigitPadding": 4, 
+		"geospatialInfo":{
+			"lat": 39.000000, 
+			"long": 12.000000 
+			}, 
+			"locationID":[
+				{
+					"name": "Malta",
+					"id": "Malta",
+					"prefix": "MPO-MED-MT",
+					"prefixDigitPadding": 4,
+					"geospatialInfo":{
+						"lat": 35.91251,
+						"long": 14.42942
+					},
+					"locationID":[]
+				},
+				{
+					"name": "Trieste",
+					"id": "Trieste",
+					"prefix": "MPO-MED-TS",
+					"prefixDigitPadding": 4,
+					"geospatialInfo":{
+						"lat": 45.711203,
+						"long": 13.708584
+					},
+					"locationID":[]
+				}
+			]
+	},
 	{ "name":"Mozambique", "id":"Mozambique","geospatialInfo":{
 	 			 	"lat":-23.44811,
 	 			 	"long":35.752483
