@@ -361,47 +361,56 @@ import org.json.JSONObject;
             return rtn;
         }
         OpenSearch.setActiveIndexingBackground();
-        OpenSearch os = new OpenSearch();
-        List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd,
-            baseObj.getAllVersionsSql()), os.getAllVersions(indexName));
-        if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
-        List<String> needIndexing = changes.get(0);
-        List<String> needRemoval = changes.get(1);
-        rtn[0] = needIndexing.size();
-        rtn[1] = needRemoval.size();
-        System.out.println("Base.opensearchSyncIndex(" + indexName + "): stopAfter=" + stopAfter +
-            ", needIndexing=" + rtn[0] + ", needRemoval=" + rtn[1]);
-        int ct = 0;
-        for (String id : needIndexing) {
-            Base obj = baseObj.getById(myShepherd, id);
-            try {
-                if (obj != null) os.index(indexName, obj);
-            } catch (Exception ex) {
-                System.out.println("Base.opensearchSyncIndex(" + indexName + "): index failed " +
-                    obj + " => " + ex.toString());
-                ex.printStackTrace();
+        // The background flag MUST be cleared however we leave this method. Previously an
+        // exception between here and the unset (the resolveVersions IOException below, a
+        // getAllVersions/scroll failure, or an os.delete throwing in the needRemoval loop)
+        // leaked the flag: it stayed set, so every later opensearchSyncIndex() call
+        // short-circuited at the indexingActive() check above and the reconciler was
+        // permanently wedged. try/finally guarantees the unset.
+        try {
+            OpenSearch os = new OpenSearch();
+            List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd,
+                baseObj.getAllVersionsSql()), os.getAllVersions(indexName));
+            if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
+            List<String> needIndexing = changes.get(0);
+            List<String> needRemoval = changes.get(1);
+            rtn[0] = needIndexing.size();
+            rtn[1] = needRemoval.size();
+            System.out.println("Base.opensearchSyncIndex(" + indexName + "): stopAfter=" + stopAfter +
+                ", needIndexing=" + rtn[0] + ", needRemoval=" + rtn[1]);
+            int ct = 0;
+            for (String id : needIndexing) {
+                Base obj = baseObj.getById(myShepherd, id);
+                try {
+                    if (obj != null) os.index(indexName, obj);
+                } catch (Exception ex) {
+                    System.out.println("Base.opensearchSyncIndex(" + indexName + "): index failed " +
+                        obj + " => " + ex.toString());
+                    ex.printStackTrace();
+                }
+                if (ct % 500 == 0)
+                    System.out.println("Base.opensearchSyncIndex(" + indexName + ") needIndexing: " +
+                        ct + "/" + rtn[0]);
+                ct++;
+                if ((stopAfter > 0) && (ct > stopAfter)) {
+                    System.out.println("Base.opensearchSyncIndex(" + indexName +
+                        ") breaking due to stopAfter");
+                    break;
+                }
             }
-            if (ct % 500 == 0)
-                System.out.println("Base.opensearchSyncIndex(" + indexName + ") needIndexing: " +
-                    ct + "/" + rtn[0]);
-            ct++;
-            if ((stopAfter > 0) && (ct > stopAfter)) {
-                System.out.println("Base.opensearchSyncIndex(" + indexName +
-                    ") breaking due to stopAfter");
-                break;
+            System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needIndexing");
+            ct = 0;
+            for (String id : needRemoval) {
+                os.delete(indexName, id);
+                if (ct % 500 == 0)
+                    System.out.println("Base.opensearchSyncIndex(" + indexName + ") needRemoval: " +
+                        ct + "/" + rtn[1]);
+                ct++;
             }
+            System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needRemoval");
+        } finally {
+            OpenSearch.unsetActiveIndexingBackground();
         }
-        System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needIndexing");
-        ct = 0;
-        for (String id : needRemoval) {
-            os.delete(indexName, id);
-            if (ct % 500 == 0)
-                System.out.println("Base.opensearchSyncIndex(" + indexName + ") needRemoval: " +
-                    ct + "/" + rtn[1]);
-            ct++;
-        }
-        System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needRemoval");
-        OpenSearch.unsetActiveIndexingBackground();
         return rtn;
     }
 
