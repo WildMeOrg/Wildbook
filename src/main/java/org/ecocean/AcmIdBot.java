@@ -398,12 +398,20 @@ public class AcmIdBot {
                     try {
                         asset = org.ecocean.media.MediaAssetFactory.load(
                             assetId.intValue(), healShepherd);
-                        if (asset == null) continue;
+                        if (asset == null) {
+                            System.out.println("WARNING: AcmIdBot sweep skipping unhealable asset "
+                                + assetId + " (no longer exists)");
+                            continue;
+                        }
                         if (asset.isValidImageForIA() == null) {
                             asset.validateSourceImage();
                             healShepherd.updateDBTransaction();
                         }
-                        if (!asset.isValidImageForIAForced()) continue;
+                        if (!asset.isValidImageForIAForced()) {
+                            System.out.println("WARNING: AcmIdBot sweep skipping unhealable asset "
+                                + assetId + " (invalid or unvalidatable image for IA)");
+                            continue;
+                        }
                         if (!asset.hasFamily(healShepherd)) asset.updateStandardChildren();
                         // legacy null or malformed acmIds adopt the asset UUID before sending
                         priorAcmId = asset.getAcmId();
