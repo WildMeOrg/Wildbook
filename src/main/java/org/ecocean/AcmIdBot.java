@@ -85,6 +85,92 @@ public class AcmIdBot {
         }
     }
 
+    // ------- reconciliation sweep (spec: 2026-07-01-acmidbot-reconciliation-sweep-design.md) -------
+
+    static final int SWEEP_PAGE_SIZE = 10000; // distinct assets examined per 15-minute run
+    static final int PAGE_FAIL_LIMIT = 3; // failed runs on one page before skipping it
+    // in-memory sweep state; a restart just restarts the sweep (probes are cheap)
+    static int sweepCursor = 0; // highest asset id processed
+    static int sweepFailCount = 0; // consecutive failures at the current cursor
+
+    // one page of sweep candidates, reduced to primitives so no JDO object
+    // outlives the read transaction
+    static class SweepPage {
+        final List<Integer> nullAcmAssetIds = new ArrayList<Integer>();
+        final java.util.LinkedHashMap<String, Integer> acmIdToAssetId =
+            new java.util.LinkedHashMap<String, Integer>();
+        boolean rawExhausted = false;
+        int lastAssetId = -1; // -1 = empty page
+    }
+
+    // walk assets (ascending id order, may contain duplicates from multiple
+    // Features per asset) collecting up to pageSize distinct assets.
+    // rawExhausted is true only when the input ran out — never inferred from
+    // a post-dedup count (spec §1/§2).
+    static SweepPage collectSweepPage(java.util.Iterator<MediaAsset> assetsInIdOrder,
+        int pageSize) {
+        SweepPage page = new SweepPage();
+        java.util.Set<Integer> seen = new java.util.HashSet<Integer>();
+
+        page.rawExhausted = true;
+        while (assetsInIdOrder.hasNext()) {
+            MediaAsset asset = assetsInIdOrder.next();
+            if (asset == null) continue;
+            // NOTE: MediaAsset.getId() returns String; getIdInt() is the int accessor
+            if (seen.contains(asset.getIdInt())) continue;
+            if (seen.size() >= pageSize) {
+                page.rawExhausted = false;
+                return page;
+            }
+            seen.add(asset.getIdInt());
+            page.lastAssetId = asset.getIdInt();
+            // known-invalid assets are unhealable: counted as processed, never probed
+            if (asset.isValidImageForIA() != null && !asset.isValidImageForIA()) continue;
+            if (asset.getAcmId() == null) {
+                page.nullAcmAssetIds.add(asset.getIdInt());
+            } else {
+                page.acmIdToAssetId.put(asset.getAcmId(), asset.getIdInt());
+            }
+        }
+        return page;
+    }
+
+    // cursor policy (spec §2): maxFixes clamp wins (resume mid-page next run),
+    // else wrap to 0 on true exhaustion, else advance past the page
+    static int nextCursorAfterSuccess(SweepPage page, boolean maxFixesHit, int resumeAssetId) {
+        if (maxFixesHit) return resumeAssetId;
+        if (page.rawExhausted) return 0;
+        return page.lastAssetId;
+    }
+
+    // poisoned-page guard (spec §5): after PAGE_FAIL_LIMIT consecutive failures
+    // on the same page, skip it so one bad page cannot stall the sweep forever
+    static boolean shouldSkipPoisonedPage(int consecutiveFailures) {
+        return consecutiveFailures >= PAGE_FAIL_LIMIT;
+    }
+
+    // did a sendMediaAssetsNew() round-trip actually register this acmId with
+    // WBIA? add_images_json returns the registered image UUIDs; require ours
+    // among them before counting (and committing) a heal — otherwise a locally
+    // pre-assigned acmId could be persisted although WBIA never registered it
+    static boolean sendConfirmedAcmId(org.json.JSONObject sendRtn, String expectedAcmId) {
+        if ((sendRtn == null) || (expectedAcmId == null)) return false;
+        org.json.JSONArray batches = sendRtn.optJSONArray("batchResults");
+        if (batches == null) return false;
+        for (int b = 0; b < batches.length(); b++) {
+            org.json.JSONObject rtn = batches.optJSONObject(b);
+            if (rtn == null) continue; // "EMPTY BATCH" marker string
+            org.json.JSONArray resp = rtn.optJSONArray("response");
+            if (resp == null) continue;
+            for (int i = 0; i < resp.length(); i++) {
+                org.json.JSONObject fancy = resp.optJSONObject(i);
+                if ((fancy != null) &&
+                    expectedAcmId.equals(fancy.optString("__UUID__", null))) return true;
+            }
+        }
+        return false;
+    }
+
     // background workers
     public static boolean startServices(String context) {
         startCollector(context);
