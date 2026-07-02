@@ -114,6 +114,7 @@ const makeStore = (overrides = {}) => ({
   setSelectedAnnotationId: jest.fn(),
   setIntl: jest.fn(),
   matchResultClickable: false,
+  hasMatchableAnnotations: true,
   modals: {
     setOpenMatchCriteriaModal: jest.fn(),
   },
@@ -197,6 +198,15 @@ describe("ImageCard", () => {
 
     await user.click(screen.getByText("NEW_MATCH"));
     expect(store.modals.setOpenMatchCriteriaModal).toHaveBeenCalledWith(true);
+  });
+
+  test("NEW_MATCH does nothing when hasMatchableAnnotations is false", async () => {
+    const user = userEvent.setup();
+    const store = makeStore({ hasMatchableAnnotations: false });
+    renderCard(store);
+
+    await user.click(screen.getByText("NEW_MATCH"));
+    expect(store.modals.setOpenMatchCriteriaModal).not.toHaveBeenCalled();
   });
 
   test("clicking VISUAL_MATCHER opens visual matcher page", async () => {
