@@ -123,6 +123,8 @@ In `frontend/src/__tests__/pages/Encounter/EncounterStore.test.js`, add these te
         store.setSelectedImageIndex(0);
 
         expect(store.hasMatchableAnnotations).toBe(true);
+        // delegation: ImageModalStore.hasMatchableAnnotations forwards to EncounterStore
+        expect(store.imageModal.hasMatchableAnnotations).toBe(true);
       });
 
       it("hasMatchableAnnotations is false when matchAgainst is false or acmId is missing", () => {
@@ -175,7 +177,9 @@ In `frontend/src/pages/Encounter/stores/EncounterStore.js`, add immediately afte
       [];
     return annotations.some(
       (a) =>
-        a.encounterId === this.encounterData?.id && a.matchAgainst && !!a.acmId,
+        a?.encounterId === this.encounterData?.id &&
+        a?.matchAgainst === true &&
+        !!a?.acmId,
     );
   }
 ```
@@ -243,13 +247,23 @@ In `frontend/src/__tests__/pages/Encounter/ImageModal.test.js`, add `hasMatchabl
 
 ```javascript
   test("NEW_MATCH button is disabled when hasMatchableAnnotations is false", () => {
-    const store = makeImageStore({ hasMatchableAnnotations: false });
+    // encounterAnnotations has a positive-bbox annotation so the OLD isTrivial/bbox
+    // gate would ENABLE the button — the button is disabled ONLY once the gate reads
+    // hasMatchableAnnotations. This guarantees the test fails before the impl.
+    const store = makeImageStore({
+      hasMatchableAnnotations: false,
+      encounterAnnotations: [
+        { id: "ann-1", isTrivial: false, boundingBox: [0, 0, 10, 10] },
+      ],
+    });
     renderModal({ imageStore: store });
 
     const btn = screen.getByText("NEW_MATCH").closest("button");
     expect(btn).toBeDisabled();
   });
 ```
+
+Note: the ImageCard fail-first test above already works without this trick — `makeStore`'s default `encounterAnnotations` (`baseEncounterData` annotation with `boundingBox: [10,20,100,40]`) makes the OLD gate true, so the NEW_MATCH click fires before the impl and the `not.toHaveBeenCalled()` assertion fails first.
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
