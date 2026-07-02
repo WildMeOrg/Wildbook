@@ -173,7 +173,14 @@ public class AcmIdBot {
     }
 
     // background workers
-    public static boolean startServices(String context) {
+    private static ScheduledExecutorService schedExec = null;
+
+    public static synchronized boolean startServices(String context) {
+        if ((schedExec != null) && !schedExec.isShutdown()) {
+            System.out.println("WARNING: AcmIdBot.startServices(" + context +
+                ") called but collector already running; ignoring");
+            return false;
+        }
         startCollector(context);
         return true;
     }
@@ -184,14 +191,15 @@ public class AcmIdBot {
         long initialDelay = 1; // number minutes before first execution occurs
 
         System.out.println("+ AcmIdBot.startCollector(" + context + ") starting.");
-        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(1);
-        final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
+        schedExec = Executors.newScheduledThreadPool(1);
+        final ScheduledExecutorService execRef = schedExec;
+        final ScheduledFuture schedFuture = execRef.scheduleWithFixedDelay(new Runnable() {
             // DO WORK HERE
             public void run() {
                 if (new java.io.File("/tmp/WB_AcmIdBot_SHUTDOWN").exists()) {
                     System.out.println("INFO: AcmIdBot.startCollection(" + context +
                     ") shutting down due to file signal");
-                    schedExec.shutdown();
+                    execRef.shutdown();
                     return;
                 }
                 fixAcmIds(context);
@@ -202,7 +210,7 @@ public class AcmIdBot {
 
         System.out.println("Let's get AcmIdBot's time running.");
         try {
-            schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
+            execRef.awaitTermination(5000, TimeUnit.MILLISECONDS);
         } catch (java.lang.InterruptedException ex) {
             System.out.println("WARNING: AcmIdBot.startCollector(" + context + ") interrupted: " +
                 ex.toString());
@@ -210,8 +218,12 @@ public class AcmIdBot {
         System.out.println("+ AcmIdBot.startCollector(" + context + ") backgrounded");
     }
 
-    // mostly for ContextDestroyed in StartupWildbook..... i think?
-    public static void cleanup() {
+    // called from StartupWildbook contextDestroyed
+    public static synchronized void cleanup() {
+        if (schedExec != null) {
+            schedExec.shutdown();
+            schedExec = null;
+        }
         System.out.println(
             "================ = = = = = = ===================== AcmIdBot.cleanup() finished.");
     }
