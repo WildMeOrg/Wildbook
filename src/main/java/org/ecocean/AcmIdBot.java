@@ -289,6 +289,10 @@ public class AcmIdBot {
                 + sweepCursor + " VARIABLES org.ecocean.Annotation annot";
             query = readShepherd.getPM().newQuery(filter);
             query.setOrdering("asset.id ascending");
+            // stream the result instead of buffering ~1M Feature rows client-side
+            // (pgjdbc default fetchSize=0 buffers the whole ResultSet); setRange
+            // would break rawExhausted semantics, a cursor fetch does not
+            query.getFetchPlan().setFetchSize(1000);
             Collection c = (Collection)(query.execute());
             final java.util.Iterator featIter = c.iterator();
             java.util.Iterator<MediaAsset> assetIter = new java.util.Iterator<MediaAsset>() {
@@ -307,7 +311,26 @@ public class AcmIdBot {
             if (query != null) query.closeAll();
             readShepherd.rollbackAndClose();
         }
-        if (page == null) return; // read failed; cursor unchanged, retry next run
+        if (page == null) {
+            // read phase failed: this counts toward the same poisoned-page guard as
+            // probe failures, since a corrupt row at this cursor could otherwise
+            // stall the sweep forever. There is no page.lastAssetId to resume from
+            // here, so a skip is a blind advance rather than a targeted one.
+            sweepFailCount++;
+            System.out.println("WARNING: AcmIdBot sweep read phase failed (attempt " +
+                sweepFailCount + " of " + PAGE_FAIL_LIMIT + " at cursor " + sweepCursor +
+                ")");
+            if (shouldSkipPoisonedPage(sweepFailCount)) {
+                System.out.println(
+                    "WARNING: AcmIdBot sweep SKIPPING page after repeated read failures; " +
+                    "blind-advancing cursor " + sweepCursor + " -> " +
+                    (sweepCursor + SWEEP_PAGE_SIZE) +
+                    " (no page ids available; wrap-around will resweep the skipped range)");
+                sweepCursor += SWEEP_PAGE_SIZE;
+                sweepFailCount = 0;
+            }
+            return; // cursor otherwise unchanged: same page retried next run
+        }
 
         // ---- probe phase (no transaction open) ----
         List<String> missingAcmIds = null;
@@ -360,7 +383,7 @@ public class AcmIdBot {
                             asset.validateSourceImage();
                             healShepherd.updateDBTransaction();
                         }
-                        if (!asset.isValidImageForIA()) continue;
+                        if (!asset.isValidImageForIAForced()) continue;
                         if (!asset.hasFamily(healShepherd)) asset.updateStandardChildren();
                         // legacy rows: adopt the constructor convention before sending
                         priorAcmId = asset.getAcmId();

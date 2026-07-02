@@ -141,7 +141,11 @@ the constructor convention).
   cursor position. After **3** failed runs on the same page, advance the cursor
   past the page with a prominent log line, so one bad page cannot stall the sweep
   forever. (Locally-invalid UUIDs are filtered before sending, so this is a
-  backstop, not the primary defense.)
+  backstop, not the primary defense.) Read-phase failures (e.g. a corrupt row at
+  the current cursor) count toward the same 3-strike counter as probe failures;
+  since no page ids are available in that case, the skip is a blind
+  `sweepCursor += SWEEP_PAGE_SIZE` advance rather than a targeted one, and
+  wrap-around later resweeps the skipped range.
 - Individual heal failures: log, continue; the next full sweep retries naturally.
 - Existing summary-logging conventions kept (candidate counts, probes performed,
   missing found, heals sent/succeeded).
