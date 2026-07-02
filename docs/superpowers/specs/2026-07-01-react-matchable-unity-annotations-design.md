@@ -92,10 +92,10 @@ Notes:
 2. **Delegation** — `ImageModalStore` (Encounter,
    `frontend/src/pages/Encounter/stores/ImageModalStore.js`) delegates
    `hasMatchableAnnotations` to `encounterStore` (mirrors the existing
-   `encounterAnnotations` delegation). The SearchPages `ImageModalStore`
-   (`frontend/src/pages/SearchPages/stores/ImageModalStore.js`) gets an equivalent
-   getter (computed from its own `encounterData`, or a safe `false` default) so the
-   shared `ImageModal` never reads `undefined`.
+   `encounterAnnotations` delegation). The shared `components/ImageModal.jsx` is
+   imported **only** by `Encounter/ImageCard.jsx` (verified), so it always receives
+   the Encounter `ImageModalStore`. The SearchPages `ImageModalStore` is **not**
+   in scope — SearchPages uses `ImageGalleryModal`, which has no New Match button.
 
 3. **`ImageCard.jsx:107`** — replace the local `hasNonTrivialAnnotations`
    (filtered getter + redundant re-filter) with `store.hasMatchableAnnotations`.
@@ -131,9 +131,11 @@ annotation) → match runs.
   serialization test if present; otherwise add a focused one).
 - **Frontend (jest):**
   - `EncounterStore.test.js`: `hasMatchableAnnotations` is `true` for a
-    `matchAgainst + acmId` annotation **even when `isTrivial` and bbox is empty**;
-    `false` when `matchAgainst` is false or `acmId` is missing; `false` for
-    annotations belonging to a different `encounterId`.
+    `matchAgainst + acmId` annotation **even when `isTrivial` is true and the
+    bounding box is the full-image box** (unity features serialize a positive
+    full-image bbox, not an empty one — the annotation is dropped by `isTrivial`,
+    not by bbox); `false` when `matchAgainst` is false or `acmId` is missing;
+    `false` for annotations belonging to a different `encounterId`.
   - `ImageCard.test.js`: New Match enabled/disabled tracks
     `hasMatchableAnnotations`.
   - `ImageModal.test.js`: same for the modal button.
@@ -142,14 +144,30 @@ annotation) → match runs.
 
 ## Risks
 
-- Additive API/index fields — backward compatible.
+- Additive API/index fields — backward compatible. Encounter mapping does not set
+  `dynamic:false`, so the new nested fields map dynamically on later indexing; add
+  explicit mapping only if they later become queried/sorted.
 - Rename touches a handful of lines across two components.
-- SearchPages `ImageModalStore` must expose the new getter (or a safe default) to
-  avoid `undefined` in the shared `ImageModal`.
+
+## Generality
+
+The reported case is spot crops (`SubmitSpotsAndImage.java`), but the fix is not
+specific to that path. The UI gate becomes "any annotation satisfying the backend
+predicate `matchAgainst && acmId`" — which also covers annotations promoted to
+matchable by other paths (e.g. `AnnotationSetMatchAgainst`, IA/detection flows).
 
 ## Out of scope
 
 - Drawing a boundary for whole-image crops (cosmetic).
+- **Residual geometry-proxy consumers.** The `encounterAnnotations` getter stays
+  filtered, so flows keyed off annotation *selection* still exclude unity
+  annotations: `matchResultClickable`/"Match Results" (`EncounterStore.js:627`,
+  `ImageModal.jsx:1056`), the edit-annotation params (`ImageCard.jsx:49`), and
+  `currentAnnotation`. This does **not** block New Match (the initiate flow
+  navigates straight to `/react/match-results?taskId=…` with the fresh task), but
+  a user cannot later *re-select* a unity annotation on the Encounter page to
+  revisit its past match results. Documented as a known limitation; making unity
+  annotations selectable would require touching the shared getter and is deferred.
 - `SubmitSpotsAndTransformImage.java` (per user instruction — it builds a real
   bounding-box feature and does not set `matchAgainst`; not the path that created
   the reported annotation).
