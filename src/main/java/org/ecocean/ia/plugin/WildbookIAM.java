@@ -683,6 +683,45 @@ public class WildbookIAM extends IAPlugin {
     }
 
     /**
+     * Ask WBIA which of the given image acmIds it does NOT have, via
+     * GET /api/image/rowid/uuid/ in {@link #PROBE_CHUNK_SIZE} chunks
+     * (a null rowid in the response marks that UUID unknown — see
+     * wildbook-ia get_image_gids_from_uuid). Null acmIds are skipped
+     * (callers treat those assets as heal candidates without probing).
+     * Throws IOException if any chunk fails so callers never mistake a
+     * failed probe for "all present". (AcmIdBot sweep spec §3.)
+     */
+    public static List<String> iaMissingImageIds(List<String> acmIds, String context)
+    throws IOException {
+        List<String> missing = new ArrayList<String>();
+
+        if (acmIds == null) return missing;
+        List<String> probeable = new ArrayList<String>();
+        for (String acmId : acmIds) {
+            if (acmId != null) probeable.add(acmId);
+        }
+        for (List<String> chunk : chunkList(probeable, PROBE_CHUNK_SIZE)) {
+            StringBuilder sb = new StringBuilder();
+            for (String acmId : chunk) {
+                if (sb.length() > 0) sb.append(",");
+                sb.append(toFancyUUID(acmId).toString());
+            }
+            JSONArray resp = null;
+            try {
+                resp = apiGetJSONArray("/api/image/rowid/uuid/?uuid_list=[" + sb.toString() +
+                    "]", context);
+            } catch (Exception ex) {
+                throw new IOException("WBIA /api/image/rowid/uuid/ probe failed: " +
+                        ex.getMessage(), ex);
+            }
+            // apiGetJSONArray returns null when status.success is false or
+            // the payload is unparseable; parseRowidProbeResponse throws on it
+            missing.addAll(parseRowidProbeResponse(chunk, resp));
+        }
+        return missing;
+    }
+
+    /**
      * Shared body for {@link #parseAnnotationIdsArrayStrict} and
      * {@link #parseImageIdsArrayStrict}. The {@code label} is the
      * source-array name (e.g. {@code "iaAnnotationIds"},
