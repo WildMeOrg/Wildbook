@@ -620,7 +620,7 @@ class EncounterStore {
       (a) =>
         a?.encounterId === this.encounterData?.id &&
         a?.matchAgainst === true &&
-        !!a?.acmId,
+        a?.acmId != null,
     );
   }
 
