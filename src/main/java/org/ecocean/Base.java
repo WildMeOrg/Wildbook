@@ -140,6 +140,15 @@ import org.json.JSONObject;
         return map;
     }
 
+    // Whether this object should have a document in its OpenSearch index at all.
+    // Default true; overridden by classes (e.g. Annotation) that keep non-candidate
+    // records out of the index. Enforced centrally in OpenSearch.index(), so both
+    // opensearchIndex() and the reconciler's direct os.index() honor it; keep the
+    // class's getAllVersionsSql() filtered to the same set.
+    public boolean shouldIndexInOpenSearch() {
+        return true;
+    }
+
     public void opensearchIndex()
     throws IOException {
         long startT = System.currentTimeMillis();
