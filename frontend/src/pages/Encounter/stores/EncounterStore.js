@@ -612,6 +612,18 @@ class EncounterStore {
     );
   }
 
+  get hasMatchableAnnotations() {
+    const annotations =
+      this.encounterData?.mediaAssets?.[this._selectedImageIndex]?.annotations ||
+      [];
+    return annotations.some(
+      (a) =>
+        a?.encounterId === this.encounterData?.id &&
+        a?.matchAgainst === true &&
+        !!a?.acmId,
+    );
+  }
+
   get selectedAnnotationId() {
     return this._selectedAnnotationId;
   }

@@ -748,6 +748,64 @@ describe("EncounterStore", () => {
         ]);
       });
 
+      it("hasMatchableAnnotations is true for a matchAgainst+acmId unity annotation (isTrivial, full-image bbox)", () => {
+        store.setEncounterData({
+          id: "enc-123",
+          mediaAssets: [
+            {
+              annotations: [
+                {
+                  id: "ann-1",
+                  encounterId: "enc-123",
+                  matchAgainst: true,
+                  acmId: "acm-1",
+                  isTrivial: true,
+                  boundingBox: [0, 0, 1000, 500],
+                },
+              ],
+            },
+          ],
+        });
+        store.setSelectedImageIndex(0);
+
+        expect(store.hasMatchableAnnotations).toBe(true);
+        // delegation: ImageModalStore.hasMatchableAnnotations forwards to EncounterStore
+        expect(store.imageModal.hasMatchableAnnotations).toBe(true);
+      });
+
+      it("hasMatchableAnnotations is false when matchAgainst is false or acmId is missing", () => {
+        store.setEncounterData({
+          id: "enc-123",
+          mediaAssets: [
+            {
+              annotations: [
+                { id: "a", encounterId: "enc-123", matchAgainst: false, acmId: "acm-1" },
+                { id: "b", encounterId: "enc-123", matchAgainst: true },
+              ],
+            },
+          ],
+        });
+        store.setSelectedImageIndex(0);
+
+        expect(store.hasMatchableAnnotations).toBe(false);
+      });
+
+      it("hasMatchableAnnotations ignores annotations from a different encounterId", () => {
+        store.setEncounterData({
+          id: "enc-123",
+          mediaAssets: [
+            {
+              annotations: [
+                { id: "a", encounterId: "enc-999", matchAgainst: true, acmId: "acm-1" },
+              ],
+            },
+          ],
+        });
+        store.setSelectedImageIndex(0);
+
+        expect(store.hasMatchableAnnotations).toBe(false);
+      });
+
       it("returns true when match result is clickable", () => {
         store.setEncounterData({
           id: "enc-123",
