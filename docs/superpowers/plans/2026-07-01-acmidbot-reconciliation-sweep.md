@@ -417,6 +417,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
   - `static SweepPage AcmIdBot.collectSweepPage(Iterator<MediaAsset> assetsInIdOrder, int pageSize)`
   - `static int AcmIdBot.nextCursorAfterSuccess(SweepPage page, boolean maxFixesHit, int resumeAssetId)`
   - `static boolean AcmIdBot.shouldSkipPoisonedPage(int consecutiveFailures)`
+  - `static boolean AcmIdBot.sendConfirmedAcmId(org.json.JSONObject sendRtn, String expectedAcmId)` — true only when the WBIA add-images response echoes the expected acmId; Task 6 gates commit+count on it
 
 - [ ] **Step 1: Write the failing test**
 
@@ -562,6 +563,43 @@ class AcmIdBotSweepTest {
         assertTrue(AcmIdBot.shouldSkipPoisonedPage(3));
         assertTrue(AcmIdBot.shouldSkipPoisonedPage(4));
     }
+
+    // ---------- sendConfirmedAcmId ----------
+
+    private static org.json.JSONObject sendRtnWithUuids(String... uuids) {
+        org.json.JSONArray resp = new org.json.JSONArray();
+
+        for (String u : uuids) {
+            org.json.JSONObject fancy = new org.json.JSONObject();
+            fancy.put("__UUID__", u);
+            resp.put(fancy);
+        }
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        rtn.put("response", resp);
+        org.json.JSONArray batches = new org.json.JSONArray();
+        batches.put(rtn);
+        org.json.JSONObject all = new org.json.JSONObject();
+        all.put("batchResults", batches);
+        return all;
+    }
+
+    @Test void confirmsWhenResponseContainsExpectedAcmId() {
+        assertTrue(AcmIdBot.sendConfirmedAcmId(sendRtnWithUuids("abc", "def"), "def"));
+    }
+
+    @Test void doesNotConfirmWhenUuidAbsentOrBatchEmpty() {
+        assertFalse(AcmIdBot.sendConfirmedAcmId(sendRtnWithUuids("abc"), "def"));
+        org.json.JSONObject all = new org.json.JSONObject();
+        org.json.JSONArray batches = new org.json.JSONArray();
+        batches.put("EMPTY BATCH");
+        all.put("batchResults", batches);
+        assertFalse(AcmIdBot.sendConfirmedAcmId(all, "def"));
+    }
+
+    @Test void doesNotConfirmOnNulls() {
+        assertFalse(AcmIdBot.sendConfirmedAcmId(null, "abc"));
+        assertFalse(AcmIdBot.sendConfirmedAcmId(sendRtnWithUuids("abc"), null));
+    }
 }
 ```
 
@@ -606,19 +644,20 @@ In `src/main/java/org/ecocean/AcmIdBot.java`, after the closing brace of `fixFea
         while (assetsInIdOrder.hasNext()) {
             MediaAsset asset = assetsInIdOrder.next();
             if (asset == null) continue;
-            if (seen.contains(asset.getId())) continue;
+            // NOTE: MediaAsset.getId() returns String; getIdInt() is the int accessor
+            if (seen.contains(asset.getIdInt())) continue;
             if (seen.size() >= pageSize) {
                 page.rawExhausted = false;
                 return page;
             }
-            seen.add(asset.getId());
-            page.lastAssetId = asset.getId();
+            seen.add(asset.getIdInt());
+            page.lastAssetId = asset.getIdInt();
             // known-invalid assets are unhealable: counted as processed, never probed
             if (asset.isValidImageForIA() != null && !asset.isValidImageForIA()) continue;
             if (asset.getAcmId() == null) {
-                page.nullAcmAssetIds.add(asset.getId());
+                page.nullAcmAssetIds.add(asset.getIdInt());
             } else {
-                page.acmIdToAssetId.put(asset.getAcmId(), asset.getId());
+                page.acmIdToAssetId.put(asset.getAcmId(), asset.getIdInt());
             }
         }
         return page;
@@ -637,12 +676,34 @@ In `src/main/java/org/ecocean/AcmIdBot.java`, after the closing brace of `fixFea
     static boolean shouldSkipPoisonedPage(int consecutiveFailures) {
         return consecutiveFailures >= PAGE_FAIL_LIMIT;
     }
+
+    // did a sendMediaAssetsNew() round-trip actually register this acmId with
+    // WBIA? add_images_json returns the registered image UUIDs; require ours
+    // among them before counting (and committing) a heal — otherwise a locally
+    // pre-assigned acmId could be persisted although WBIA never registered it
+    static boolean sendConfirmedAcmId(org.json.JSONObject sendRtn, String expectedAcmId) {
+        if ((sendRtn == null) || (expectedAcmId == null)) return false;
+        org.json.JSONArray batches = sendRtn.optJSONArray("batchResults");
+        if (batches == null) return false;
+        for (int b = 0; b < batches.length(); b++) {
+            org.json.JSONObject rtn = batches.optJSONObject(b);
+            if (rtn == null) continue; // "EMPTY BATCH" marker string
+            org.json.JSONArray resp = rtn.optJSONArray("response");
+            if (resp == null) continue;
+            for (int i = 0; i < resp.length(); i++) {
+                org.json.JSONObject fancy = resp.optJSONObject(i);
+                if ((fancy != null) &&
+                    expectedAcmId.equals(fancy.optString("__UUID__", null))) return true;
+            }
+        }
+        return false;
+    }
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `mvn test -Dtest=AcmIdBotSweepTest 2>&1 | tail -25`
-Expected: `Tests run: 11, Failures: 0, Errors: 0` — BUILD SUCCESS.
+Expected: `Tests run: 14, Failures: 0, Errors: 0` — BUILD SUCCESS.
 
 - [ ] **Step 5: CRLF check and commit**
 
@@ -662,7 +723,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Modify: `src/main/java/org/ecocean/AcmIdBot.java` (replace the Query-2/filter3 block in `fixAcmIds` lines 154-171; add `sweepMatchableAssets`; update the class comment lines 17-24; add imports)
 
 **Interfaces:**
-- Consumes: `SweepPage`/`collectSweepPage`/`nextCursorAfterSuccess`/`shouldSkipPoisonedPage`/`sweepCursor`/`sweepFailCount`/`SWEEP_PAGE_SIZE` (Task 5); `WildbookIAM.iaMissingImageIds(List, String)` (Task 2); `IBEISIA.sendMediaAssetsNew(mas, context, false)` (Task 3); existing `MediaAssetFactory.load(int, Shepherd)` (MediaAssetFactory.java:21), `Shepherd.updateDBTransaction()`.
+- Consumes: `SweepPage`/`collectSweepPage`/`nextCursorAfterSuccess`/`shouldSkipPoisonedPage`/`sendConfirmedAcmId`/`sweepCursor`/`sweepFailCount`/`SWEEP_PAGE_SIZE` (Task 5); `WildbookIAM.iaMissingImageIds(List, String)` (Task 2); `IBEISIA.sendMediaAssetsNew(mas, context, false)` (Task 3); existing `MediaAssetFactory.load(int, Shepherd)` (MediaAssetFactory.java:21), `Shepherd.updateDBTransaction()`.
 - Produces: `static void AcmIdBot.sweepMatchableAssets(String context, int maxFixes)` — called from `fixAcmIds` after the Query-1 heal.
 
 - [ ] **Step 1: Replace the Query-2 block in `fixAcmIds`**
@@ -804,21 +865,29 @@ Current code (AcmIdBot.java, after the `fixFeats(feats, ...)` Query-1 call — t
                         if (!asset.isValidImageForIA()) continue;
                         if (!asset.hasFamily(healShepherd)) asset.updateStandardChildren();
                         // legacy rows: adopt the constructor convention before sending
-                        if (asset.getAcmId() == null) asset.setAcmId(asset.getUUID());
+                        String priorAcmId = asset.getAcmId();
+                        if (priorAcmId == null) asset.setAcmId(asset.getUUID());
                         ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
                         fixMe.add(asset);
                         // checkFirst=false: the probe already established absence
-                        IBEISIA.sendMediaAssetsNew(fixMe, context, false);
+                        org.json.JSONObject sendRtn = IBEISIA.sendMediaAssetsNew(fixMe,
+                            context, false);
                         sentCount++;
-                        // commit so the (possibly rectified) acmId survives rollbackAndClose
-                        healShepherd.updateDBTransaction();
-                        if (asset.getAcmId() != null) {
+                        if (sendConfirmedAcmId(sendRtn, asset.getAcmId())) {
+                            // commit so the confirmed acmId survives rollbackAndClose
+                            healShepherd.updateDBTransaction();
                             healedCount++;
                             if (healedCount >= maxFixes) {
                                 maxFixesHit = true;
                                 resumeAssetId = assetId.intValue();
                                 break;
                             }
+                        } else {
+                            System.out.println(
+                                "WARNING: AcmIdBot sweep could not confirm WBIA registration for asset "
+                                + assetId + "; not counting as healed");
+                            // don't persist an acmId WBIA never acknowledged
+                            asset.setAcmId(priorAcmId);
                         }
                     } catch (Exception ec) {
                         System.out.println("Exception in AcmIdBot sweep heal for asset " +
@@ -878,7 +947,7 @@ with:
 
 Run: `mvn -q compile 2>&1 | tail -20` — expect no `ERROR` lines.
 Run: `mvn test -Dtest='AcmIdBotSweepTest,WildbookIAMRowidProbeParseTest' 2>&1 | tail -20`
-Expected: `Tests run: 18, Failures: 0, Errors: 0`.
+Expected: `Tests run: 21, Failures: 0, Errors: 0`.
 
 - [ ] **Step 5: CRLF check and commit**
 
@@ -974,7 +1043,7 @@ Current code (AcmIdBot.java lines 85-127: `startServices` through `cleanup`). Re
 mvn -q compile 2>&1 | tail -20                    # expect no ERROR lines
 mvn test -Dtest='AcmIdBotSweepTest,WildbookIAMRowidProbeParseTest,WildbookIAMImageIdsStrictTest,WildbookIAMFancyUuidArrayStrictTest' 2>&1 | tail -20
 ```
-Expected: all listed classes pass (18 new tests + existing strict-parse tests as regression guard).
+Expected: all listed classes pass (21 new tests + existing strict-parse tests as regression guard).
 
 - [ ] **Step 3: CRLF check and commit**
 

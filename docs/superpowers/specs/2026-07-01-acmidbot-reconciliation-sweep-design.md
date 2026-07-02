@@ -77,7 +77,9 @@ second query only looks at Encounters submitted in the last 24 hours with
 
 ### 2. Sweep cursor
 
-- In-memory `static long` on `AcmIdBot`: the highest asset id **processed**.
+- In-memory `static int` on `AcmIdBot`: the highest asset id **processed**
+  (`MediaAsset.id` is an `int`; note `getId()` returns String — `getIdInt()` is
+  the int accessor).
 - Raw result exhausted ⇒ sweep complete ⇒ cursor resets to 0 (wrap-around;
   continuous background reconciliation).
 - **maxFixes interplay:** if the heal cap (existing `maxFixes = 500`) is hit
