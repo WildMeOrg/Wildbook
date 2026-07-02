@@ -854,8 +854,13 @@ Current code (AcmIdBot.java, after the `fixFeats(feats, ...)` Query-1 call — t
             try {
                 for (Integer assetId : candidateIds) {
                     healShepherd.setAction("AcmIdBot.sweepHeal_asset_" + assetId);
+                    // hoisted so the catch block can revert a pre-assigned acmId that
+                    // WBIA never acknowledged (send threw before confirmation)
+                    MediaAsset asset = null;
+                    String priorAcmId = null;
+                    boolean priorCaptured = false;
                     try {
-                        MediaAsset asset = org.ecocean.media.MediaAssetFactory.load(
+                        asset = org.ecocean.media.MediaAssetFactory.load(
                             assetId.intValue(), healShepherd);
                         if (asset == null) continue;
                         if (asset.isValidImageForIA() == null) {
@@ -865,7 +870,8 @@ Current code (AcmIdBot.java, after the `fixFeats(feats, ...)` Query-1 call — t
                         if (!asset.isValidImageForIA()) continue;
                         if (!asset.hasFamily(healShepherd)) asset.updateStandardChildren();
                         // legacy rows: adopt the constructor convention before sending
-                        String priorAcmId = asset.getAcmId();
+                        priorAcmId = asset.getAcmId();
+                        priorCaptured = true;
                         if (priorAcmId == null) asset.setAcmId(asset.getUUID());
                         ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
                         fixMe.add(asset);
@@ -890,14 +896,16 @@ Current code (AcmIdBot.java, after the `fixFeats(feats, ...)` Query-1 call — t
                             asset.setAcmId(priorAcmId);
                         }
                     } catch (Exception ec) {
+                        // revert BEFORE any commit below (or a later asset's commit)
+                        // can persist an acmId WBIA never acknowledged; probed-missing
+                        // assets revert to their original non-null DB acmId
+                        if (priorCaptured && asset != null) asset.setAcmId(priorAcmId);
                         System.out.println("Exception in AcmIdBot sweep heal for asset " +
                             assetId);
                         ec.printStackTrace();
                         // mirror fixFeats: a 500 from WBIA marks the image invalid for IA
                         if (ec.toString().contains("HTTP error code : 500")) {
                             try {
-                                MediaAsset asset = org.ecocean.media.MediaAssetFactory.load(
-                                    assetId.intValue(), healShepherd);
                                 if (asset != null) {
                                     asset.setIsValidImageForIA(false);
                                     healShepherd.updateDBTransaction();
