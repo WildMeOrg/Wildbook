@@ -212,6 +212,8 @@ class EncounterApiTest {
                         when(mockAnnot.getMediaAsset()).thenReturn(mockMA);
                         when(mockAnnot.getIdentificationStatus()).thenReturn("test");
                         when(mockAnnot.getId()).thenReturn("test-annot-id");
+                        when(mockAnnot.getMatchAgainst()).thenReturn(true);
+                        when(mockAnnot.getAcmId()).thenReturn("test-acm-id");
                         when(myShepherd.getAnnotation(any(String.class))).thenReturn(mockAnnot);
                         when(mockMA.hasAnnotations()).thenReturn(true);
                         ArrayList<Annotation> anns = new ArrayList<Annotation>();
@@ -235,6 +237,12 @@ class EncounterApiTest {
                             "test");
                         assertEquals(res.getJSONArray("mediaAssets").getJSONObject(1).getJSONArray(
                             "annotations").getJSONObject(0).getString("id"), "test-annot-id");
+                        assertEquals(true,
+                            res.getJSONArray("mediaAssets").getJSONObject(1).getJSONArray(
+                            "annotations").getJSONObject(0).getBoolean("matchAgainst"));
+                        assertEquals("test-acm-id",
+                            res.getJSONArray("mediaAssets").getJSONObject(1).getJSONArray(
+                            "annotations").getJSONObject(0).getString("acmId"));
                     }
                 }
             }
