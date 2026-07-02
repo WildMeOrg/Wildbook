@@ -52,6 +52,9 @@ public class AcmIdBot {
                         fixMe.add(asset);
                         IBEISIA.sendMediaAssetsNew(fixMe, context);
                         numAcmIdFixesSent++;
+                        // commit now: rectifyMediaAssetIds set acmId on this asset, and
+                        // fixAcmIds() ends with rollbackAndClose() which would discard it
+                        myShepherd.updateDBTransaction();
                         if (asset.getAcmId() != null) {
                             numAcmIdFixesSuccessful++;
                             // allow the bot to determine how many fixes it wants the logic to consider before exiting
