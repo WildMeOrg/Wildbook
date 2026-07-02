@@ -1,6 +1,6 @@
 # AcmIdBot Reconciliation Sweep — Design
 
-**Date:** 2026-07-01
+**Date:** 2026-07-01 (rev 2, post-Codex review)
 **Status:** Approved (pending spec review)
 **Branch:** `feature/acmidbot-reconciliation-sweep`
 
@@ -13,13 +13,13 @@ second query only looks at Encounters submitted in the last 24 hours with
 1. **Scope.** The set we actually care about is every MediaAsset that could be used
    in matching — i.e. assets backing an Annotation with `matchAgainst == true` — not
    just yesterday's submissions.
-2. **Desync detection.** Wildbook now owns acmId assignment (the MediaAsset
-   constructor defaults `acmId = getUUID()`; the v2 detection path sets it) and tells
-   WBIA which UUID to use. An asset can therefore hold a plausible acmId that WBIA
-   never actually registered — invisible to any `acmId == null` query. Only asking
-   WBIA "do you know this UUID?" can find these.
+2. **Desync detection.** Wildbook owns acmId assignment and tells WBIA which image
+   UUID to use (`sendMediaAssets` sends `image_uuid_list` = acmId, falling back to
+   the asset UUID; `add_images_json` honors it). An asset can therefore hold a
+   plausible acmId that WBIA never actually registered — invisible to any
+   `acmId == null` query. Only asking WBIA "do you know this UUID?" finds these.
 
-## Verified facts (code archaeology)
+## Verified facts (code archaeology, against main)
 
 - **Matchable-candidate definition** (`Annotation.java:1600–1602`): the OpenSearch
   indexer and `Annotation.getMatchingSetQuery` both require
@@ -31,18 +31,20 @@ second query only looks at Encounters submitted in the last 24 hours with
   exists but its `@register_api` is commented out — not usable over REST.)
 - **Wildbook already has the calling pattern:** `IBEISIA.iaImageSetIdFromUUID()`
   (`IBEISIA.java:2859`) hits the sibling `/api/imageset/rowid/uuid/` with
-  `RestClient.get` + `iaURL` + `toFancyUUID`, treating `optInt(0, -1) == -1` as
-  not-found.
-- **Wildbook-assigns-UUID registration is supported end to end:**
-  `POST /api/image/json/` (`add_images_json`, `apis_json.py:59`) accepts an optional
-  `image_uuid_list` which flows into `add_images(image_uuid_list=...)`
-  (`manual_image_funcs.py:464–481`), overriding the hash-computed UUID with the
-  caller's.
-- **Gap:** `WildbookIAM.sendMediaAssets()` today does NOT send `image_uuid_list`; it
-  lets WBIA hash-derive the UUID and rectifies acmId afterward
-  (`AcmUtil.rectifyMediaAssetIds`). Under Wildbook-owned UUIDs, a heal that omits
-  `image_uuid_list` could register the image under a hash UUID different from the
-  probed acmId — the sweep would then flag that asset missing forever.
+  `RestClient.get` + `iaURL` + `toFancyUUID`.
+- **Registration already sends Wildbook-assigned UUIDs:**
+  `WildbookIAM.sendMediaAssets()` (main, lines 132–133) sends
+  `image_uuid_list = (acmId != null ? acmId : UUID)` per asset;
+  `add_images_json` → `add_images(image_uuid_list=...)`
+  (`manual_image_funcs.py:464–481`) overrides the hash-computed UUID with the
+  caller's. No new send path is needed — the heal is a plain
+  `sendMediaAssets(candidates, /* checkFirst */ false)`.
+- **Transaction semantics:** `Shepherd.updateDBTransaction()` = commit + begin
+  (`Shepherd.java:3388`). `AcmUtil.rectifyMediaAssetIds()` mutates JDO-attached
+  assets and relies on the caller to commit. `fixAcmIds()` currently ends with
+  `rollbackAndClose()` and only commits inside the validate branch of `fixFeats` —
+  so acmId writes from a heal can be silently rolled back today. The sweep must
+  commit explicitly.
 
 ## Design
 
@@ -54,24 +56,35 @@ second query only looks at Encounters submitted in the last 24 hours with
   paged sweep over the matchable set:
 
   ```
-  Feature where annot.matchAgainst == true && asset.id > <cursor>
+  select from org.ecocean.media.Feature
+  where annot.matchAgainst == true
+    && annot.features.contains(this)
+    && asset.id > <cursor>
   VARIABLES org.ecocean.Annotation annot
   ordering: asset.id ascending
   ```
 
-  Each run takes a page of **10,000 distinct MediaAssets** (deduped in Java — one
-  asset can carry several Features). No `acmId == null` filter: the sweep considers
-  the entire matchable set, because desync is not detectable from the DB alone.
-  Assets with `isValidImageForIA == false` are excluded up front (unhealable; don't
-  burn probe/heal slots every sweep).
+  (Note the explicit `annot.features.contains(this)` binding — without it the
+  variable is unbound; matches the existing Query 1/2 idiom.)
+
+  Each run processes a page of up to **10,000 distinct MediaAssets**. Because
+  Feature rows ≠ asset rows, paging is by distinct asset: iterate the ordered
+  result, collecting distinct assets until 10,000 are gathered or the raw result is
+  exhausted. **Wrap-around triggers only on raw-result exhaustion**, never on a
+  post-dedup count (which would falsely end the sweep). Assets with
+  `isValidImageForIA == false` are excluded (unhealable; don't burn probe/heal
+  slots every sweep).
 
 ### 2. Sweep cursor
 
-- In-memory `static long` on `AcmIdBot`: the highest asset id processed.
-- A page returning fewer than pageSize assets ⇒ sweep complete ⇒ cursor resets to 0
-  (wrap-around; continuous background reconciliation).
-- Tomcat restart resets the cursor. Accepted: probes are cheap idempotent GETs, so a
-  restarted sweep merely re-verifies healthy assets.
+- In-memory `static long` on `AcmIdBot`: the highest asset id **processed**.
+- Raw result exhausted ⇒ sweep complete ⇒ cursor resets to 0 (wrap-around;
+  continuous background reconciliation).
+- **maxFixes interplay:** if the heal cap (existing `maxFixes = 500`) is hit
+  mid-page, the cursor advances only to the last asset actually processed, so the
+  rest of the page is not deferred until the next full sweep.
+- Tomcat restart resets the cursor. Accepted: probes are cheap idempotent GETs, so
+  a restarted sweep merely re-verifies healthy assets.
 - Full-sweep duration at Sharkbook scale (~1M matchable): ~100 runs ≈ ~1 day.
   Small installs sweep in one or two runs.
 
@@ -83,41 +96,51 @@ New method in `WildbookIAM` (alongside `iaImageIds()`):
 public static List<String> iaMissingImageIds(List<String> acmIds, String context)
 ```
 
-- Chunks acmIds into groups of **100** (bounds URL length).
-- Per chunk: `GET /api/image/rowid/uuid/?uuid_list=[<fancy UUIDs>]` via the existing
-  `iaURL`/`RestClient.get`/`toFancyUUID` idiom.
-- A `null` / `-1` rowid in the response marks that acmId as unknown to WBIA.
+- Skips/never sends null acmIds (`toFancyUUID(null)` must not happen; null-acmId
+  assets are heal candidates without probing).
+- Chunks acmIds into groups of **50** (~3.5 KB URL — safely under common proxy
+  limits; Codex flagged 100 as borderline).
+- Per chunk: `GET /api/image/rowid/uuid/?uuid_list=[<fancy UUIDs>]` via the
+  existing `iaURL`/`RestClient.get`/`toFancyUUID` idiom.
+- Response validation: require `status.success` and response length == request
+  length; treat a `null` rowid entry as missing. On malformed response, treat the
+  chunk as failed (see §5), never as "all present."
 - Returns the list of missing acmIds.
 
 Heal candidates for a page = probe-missing assets **plus** assets with
 `acmId == null` (legacy rows; assign `acmId = getUUID()` before healing, matching
 the constructor convention).
 
-### 4. Heal path (Wildbook-assigns-UUID)
+### 4. Heal path
 
-Extend `WildbookIAM.sendMediaAssets` with an overload:
+- Call the **existing** `WildbookIAM.sendMediaAssets(candidates, false)` —
+  `checkFirst=false` because we just probed (skips the redundant full-list
+  `iaImageIds()` fetch, which is ~1M UUIDs on Sharkbook). It already sends
+  `image_uuid_list` (the acmId we probed for), so a healed asset registers under
+  exactly the UUID the next sweep will probe. No overload needed.
+- `AcmUtil.rectifyMediaAssetIds` runs on the response as today; with
+  caller-supplied UUIDs it is a no-op confirmation (and logs loudly if WBIA
+  returns a different UUID).
+- Heals per run capped by the existing `maxFixes = 500`.
 
-```java
-public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst,
-                                  boolean sendImageUuids)
-```
+### 5. Transactions & error handling
 
-- When `sendImageUuids` is true, the POST body includes
-  `image_uuid_list = [asset.getAcmId() ...]` parallel to `image_uri_list` — the
-  verified `add_images_json` signature where the caller dictates the UUID.
-- The sweep calls it with `checkFirst=false` (we just probed; skip the redundant
-  full-list `iaImageIds()` fetch) and `sendImageUuids=true`.
-- Existing behavior of the two-arg call is untouched (other callers unaffected).
-- `AcmUtil.rectifyMediaAssetIds` still runs on the response; with caller-supplied
-  UUIDs it should be a no-op confirmation.
-- Heals per run remain capped by the existing `maxFixes = 500`.
-
-### 5. Error handling
-
-- WBIA unreachable / a probe chunk throws ⇒ log and end the run **without advancing
-  the cursor** (same page retried next run). Prevents silently skipping a page.
-- Individual heal failures: log, continue with the rest; the next full sweep retries
-  naturally.
+- **Phase separation (fixes the rollback bug):**
+  1. *Read phase* — open transaction, run the sweep query, collect
+     `(assetId, acmId, validity)` tuples for the page, close the transaction.
+  2. *Probe phase* — HTTP only, **no transaction open**.
+  3. *Heal phase* — new transaction; re-fetch the candidate assets; run the heal;
+     `updateDBTransaction()` (commit) after each heal batch so rectified acmIds
+     and validity flags persist. The final `rollbackAndClose()` then only discards
+     the trailing empty transaction.
+- **WBIA unreachable / probe chunk fails:** log and end the run without advancing
+  the cursor (same page retried next run).
+- **Poisoned-page guard:** a static consecutive-failure counter for the current
+  cursor position. After **3** failed runs on the same page, advance the cursor
+  past the page with a prominent log line, so one bad page cannot stall the sweep
+  forever. (Locally-invalid UUIDs are filtered before sending, so this is a
+  backstop, not the primary defense.)
+- Individual heal failures: log, continue; the next full sweep retries naturally.
 - Existing summary-logging conventions kept (candidate counts, probes performed,
   missing found, heals sent/succeeded).
 
@@ -125,27 +148,51 @@ public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst,
 
 | Constant | Value | Meaning |
 |---|---|---|
-| `SWEEP_PAGE_SIZE` | 10,000 | assets examined per 15-minute run |
-| `PROBE_CHUNK_SIZE` | 100 | UUIDs per `/api/image/rowid/uuid/` GET |
+| `SWEEP_PAGE_SIZE` | 10,000 | distinct assets examined per 15-minute run |
+| `PROBE_CHUNK_SIZE` | 50 | UUIDs per `/api/image/rowid/uuid/` GET |
+| `PAGE_FAIL_LIMIT` | 3 | failed runs on one page before skipping it |
 | `maxFixes` | 500 (existing) | max successful heals per run |
 
 Plain constants for now; promote to config properties only if a deployment needs
 tuning.
 
+### 7. Opportunistic hardening (small, in-scope)
+
+- Guard `startServices()`/`startCollector()` against double start (static
+  already-started flag per context), and have `cleanup()` actually shut down the
+  scheduled executor. (Codex Minor; trivial and touches code we're editing.)
+
 ## Out of scope (follow-ups)
 
-- Making **all** `sendMediaAssets` callers pass `image_uuid_list` (the global
-  ownership-model fix). This design only adds the opt-in overload used by the sweep.
 - Exposing WBIA's `/api/image/uuid/missing/` endpoint (would simplify the probe to
   one purpose-built call).
 - Durable (DB/file) cursor persistence — revisit only if restart-induced re-sweeps
   prove costly in practice.
+- Auditing other `fixFeats`-style callers for the same commit-after-rectify gap
+  outside the sweep path.
 
 ## Testing
 
-- Unit tests for the probe-response parsing (missing-UUID extraction, null/`-1`
-  handling, chunking boundaries).
-- Unit test that the `sendImageUuids` overload builds `image_uuid_list` parallel to
-  `image_uri_list` and that the two-arg path is byte-identical to before.
-- Sweep-logic tests (cursor advance, wrap-around, dedup, cap interaction) — extract
-  the page-processing step into a testable method rather than testing the scheduler.
+- Unit tests for probe-response parsing: missing-UUID extraction, null rowid,
+  length-mismatch and `status` failure treated as chunk failure, chunking
+  boundaries, null-acmId exclusion.
+- Sweep-logic tests (extract page processing into a testable method rather than
+  testing the scheduler): cursor advance, wrap-around only on raw exhaustion,
+  distinct-asset dedup, maxFixes cursor clamp, poisoned-page skip after 3
+  failures.
+- Transaction test (or focused review): healed acmId survives
+  `rollbackAndClose()` — i.e. commit happens in the heal phase.
+
+## Codex review disposition (rev 1 → rev 2)
+
+| # | Severity | Finding | Disposition |
+|---|---|---|---|
+| 1 | Critical | Heals rolled back by `rollbackAndClose()` | §5 phase separation + explicit commits |
+| 2 | Major | JDOQL variable unbound | §1 adds `annot.features.contains(this)` |
+| 3 | Major | "sendMediaAssets lacks image_uuid_list" was stale (read on wrong branch) | §4: use existing method, no overload |
+| 4 | Major | Dedup vs page-size false wrap-around | §1/§2: wrap only on raw exhaustion |
+| 5 | Major | Poisoned page stalls cursor forever | §5: 3-strike page skip |
+| 6 | Major | maxFixes defers rest of page a full sweep | §2: cursor clamps to last processed |
+| 7 | Minor | Probe response validation | §3: status + length checks, no null UUIDs |
+| 8 | Minor | URL length at 100 UUIDs | §3/§6: chunk = 50 |
+| 9 | Minor | Executor double-start / no shutdown | §7 opportunistic hardening |
