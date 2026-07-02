@@ -18,8 +18,9 @@ import org.ecocean.shepherd.core.Shepherd;
  * Wildbook requires shared UUIDs (a.k.a. acmID) between MediaAsset objects in the Wildbook database and images in WBIA. AcmIDs are a prerequisite for
  * detection and therefore can be a blocker in the IA pipeline if for any reason WBIA times out or is otherwise unavailable to provide an acmId to
  * Wildbook when new data is submitted. This bot provides some automated backend healing to get images registered if for any reason acmId registration
- * fails. It first checks bulk ImportTasks for appropriate images that may be missing an acmId, and then it checks Encounters submitted within the
- * past 24 hours.
+ * fails. It first checks bulk ImportTasks for appropriate images that may be missing an acmId (fast path for fresh imports), and then runs one
+ * page of a continuous reconciliation sweep: every MediaAsset backing a matchAgainst annotation is eventually probed against WBIA
+ * (/api/image/rowid/uuid/) and re-registered if WBIA does not know its acmId.
  *
  */
 public class AcmIdBot {
@@ -221,14 +222,13 @@ public class AcmIdBot {
         myShepherd.setAction("AcmIdBot.java");
         myShepherd.beginDBTransaction();
 
+        // number of fixes to consider before finishing and letting a new round of work restart the effort
+        int maxFixes = 500;
         Query query2 = null;
-        Query query3 = null;
         try {
             System.out.println(
                 "Looking for complete import tasks with media assets with missing acmIds");
 
-            // number of fixes to consider before finishing and letting a new round of work restart the effort
-            int maxFixes = 500;
             String filter2 =
                 "select from org.ecocean.media.Feature where itask.status == 'complete' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
             query2 = myShepherd.getPM().newQuery(filter2);
@@ -239,32 +239,178 @@ public class AcmIdBot {
             query2 = null;  // Mark as closed
 
             fixFeats(feats, myShepherd, "ACM ID ImportTask fixing summary", maxFixes);
-
-            // check recent Encounter submissions in last 24 hours for missing acmIds
-            long currentTimeInMillis = System.currentTimeMillis();
-            long twenyFourHoursAgo = currentTimeInMillis - (1000 * 60 * 60 * 24);
-            System.out.println(
-                "Looking for recent Encounters (24 hours) with media assets with missing acmIds");
-            // dwcDateAddedLong >=
-            String filter3 =
-                "select from org.ecocean.media.Feature where enc45.dwcDateAddedLong >= " +
-                twenyFourHoursAgo +
-                " && enc45.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc45;org.ecocean.Annotation annot";
-            query3 = myShepherd.getPM().newQuery(filter3);
-            query3.setOrdering("revision desc");
-            Collection c3 = (Collection)(query3.execute());
-            List<Feature> feats2 = new ArrayList<Feature>(c3);
-            query3.closeAll();
-            query3 = null;  // Mark as closed
-
-            fixFeats(feats2, myShepherd, "Recent Encounter ACM ID Fixing Summary", maxFixes);
         } catch (Exception f) {
             System.out.println("Exception in AcmIdBot!");
             f.printStackTrace();
         } finally {
             if (query2 != null) query2.closeAll();
-            if (query3 != null) query3.closeAll();
             myShepherd.rollbackAndClose();
         }
+
+        // full reconciliation sweep of the matchable set (replaces the old
+        // 24-hour Encounter query); manages its own transactions
+        sweepMatchableAssets(context, maxFixes);
+    }
+
+    /**
+     * One 15-minute bite of the reconciliation sweep (spec
+     * docs/superpowers/specs/2026-07-01-acmidbot-reconciliation-sweep-design.md).
+     * Phase-separated: (1) read one page of distinct matchable assets inside a
+     * short transaction, reduced to primitives; (2) probe WBIA for unknown
+     * acmIds over HTTP with no transaction open; (3) heal missing assets in a
+     * fresh transaction with explicit commits so rectified acmIds survive
+     * rollbackAndClose.
+     */
+    static void sweepMatchableAssets(String context, int maxFixes) {
+        // ---- read phase ----
+        SweepPage page = null;
+        Shepherd readShepherd = new Shepherd(context);
+
+        readShepherd.setAction("AcmIdBot.sweepRead");
+        readShepherd.beginDBTransaction();
+        Query query = null;
+        try {
+            System.out.println("AcmIdBot sweep: reading matchable assets from cursor " +
+                sweepCursor);
+            String filter =
+                "select from org.ecocean.media.Feature where annot.matchAgainst == true && annot.features.contains(this) && asset.id > "
+                + sweepCursor + " VARIABLES org.ecocean.Annotation annot";
+            query = readShepherd.getPM().newQuery(filter);
+            query.setOrdering("asset.id ascending");
+            Collection c = (Collection)(query.execute());
+            final java.util.Iterator featIter = c.iterator();
+            java.util.Iterator<MediaAsset> assetIter = new java.util.Iterator<MediaAsset>() {
+                public boolean hasNext() {
+                    return featIter.hasNext();
+                }
+                public MediaAsset next() {
+                    return ((Feature)featIter.next()).getMediaAsset();
+                }
+            };
+            page = collectSweepPage(assetIter, SWEEP_PAGE_SIZE);
+        } catch (Exception ex) {
+            System.out.println("Exception in AcmIdBot.sweepMatchableAssets read phase!");
+            ex.printStackTrace();
+        } finally {
+            if (query != null) query.closeAll();
+            readShepherd.rollbackAndClose();
+        }
+        if (page == null) return; // read failed; cursor unchanged, retry next run
+
+        // ---- probe phase (no transaction open) ----
+        List<String> missingAcmIds = null;
+        try {
+            missingAcmIds = org.ecocean.ia.plugin.WildbookIAM.iaMissingImageIds(
+                new ArrayList<String>(page.acmIdToAssetId.keySet()), context);
+        } catch (java.io.IOException ex) {
+            sweepFailCount++;
+            System.out.println("WARNING: AcmIdBot sweep probe failed (attempt " +
+                sweepFailCount + " of " + PAGE_FAIL_LIMIT + " at cursor " + sweepCursor +
+                "): " + ex.toString());
+            if (shouldSkipPoisonedPage(sweepFailCount)) {
+                System.out.println(
+                    "WARNING: AcmIdBot sweep SKIPPING page after repeated failures; cursor " +
+                    sweepCursor + " -> " + page.lastAssetId);
+                if (page.lastAssetId >= 0) sweepCursor = page.lastAssetId;
+                sweepFailCount = 0;
+            }
+            return; // cursor otherwise unchanged: same page retried next run
+        }
+
+        // ---- heal phase (own transaction, explicit commits) ----
+        List<Integer> candidateIds = new ArrayList<Integer>(page.nullAcmAssetIds);
+        for (String acmId : missingAcmIds) {
+            Integer assetId = page.acmIdToAssetId.get(acmId);
+            if (assetId != null) candidateIds.add(assetId);
+        }
+        java.util.Collections.sort(candidateIds); // ascending id = cursor order
+        int healedCount = 0;
+        int sentCount = 0;
+        boolean maxFixesHit = false;
+        int resumeAssetId = page.lastAssetId;
+        if (candidateIds.size() > 0) {
+            Shepherd healShepherd = new Shepherd(context);
+            healShepherd.setAction("AcmIdBot.sweepHeal");
+            healShepherd.beginDBTransaction();
+            try {
+                for (Integer assetId : candidateIds) {
+                    healShepherd.setAction("AcmIdBot.sweepHeal_asset_" + assetId);
+                    // hoisted so the catch block can revert a pre-assigned acmId that
+                    // WBIA never acknowledged (send threw before confirmation)
+                    MediaAsset asset = null;
+                    String priorAcmId = null;
+                    boolean priorCaptured = false;
+                    try {
+                        asset = org.ecocean.media.MediaAssetFactory.load(
+                            assetId.intValue(), healShepherd);
+                        if (asset == null) continue;
+                        if (asset.isValidImageForIA() == null) {
+                            asset.validateSourceImage();
+                            healShepherd.updateDBTransaction();
+                        }
+                        if (!asset.isValidImageForIA()) continue;
+                        if (!asset.hasFamily(healShepherd)) asset.updateStandardChildren();
+                        // legacy rows: adopt the constructor convention before sending
+                        priorAcmId = asset.getAcmId();
+                        priorCaptured = true;
+                        if (priorAcmId == null) asset.setAcmId(asset.getUUID());
+                        ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
+                        fixMe.add(asset);
+                        // checkFirst=false: the probe already established absence
+                        org.json.JSONObject sendRtn = IBEISIA.sendMediaAssetsNew(fixMe,
+                            context, false);
+                        sentCount++;
+                        if (sendConfirmedAcmId(sendRtn, asset.getAcmId())) {
+                            // commit so the confirmed acmId survives rollbackAndClose
+                            healShepherd.updateDBTransaction();
+                            healedCount++;
+                            if (healedCount >= maxFixes) {
+                                maxFixesHit = true;
+                                resumeAssetId = assetId.intValue();
+                                break;
+                            }
+                        } else {
+                            System.out.println(
+                                "WARNING: AcmIdBot sweep could not confirm WBIA registration for asset "
+                                + assetId + "; not counting as healed");
+                            // don't persist an acmId WBIA never acknowledged
+                            asset.setAcmId(priorAcmId);
+                        }
+                    } catch (Exception ec) {
+                        // revert BEFORE any commit below (or a later asset's commit)
+                        // can persist an acmId WBIA never acknowledged; probed-missing
+                        // assets revert to their original non-null DB acmId
+                        if (priorCaptured && asset != null) asset.setAcmId(priorAcmId);
+                        System.out.println("Exception in AcmIdBot sweep heal for asset " +
+                            assetId);
+                        ec.printStackTrace();
+                        // mirror fixFeats: a 500 from WBIA marks the image invalid for IA
+                        if (ec.toString().contains("HTTP error code : 500")) {
+                            try {
+                                if (asset != null) {
+                                    asset.setIsValidImageForIA(false);
+                                    healShepherd.updateDBTransaction();
+                                }
+                            } catch (Exception inner) {
+                                inner.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            } finally {
+                healShepherd.rollbackAndClose();
+            }
+        }
+        sweepCursor = nextCursorAfterSuccess(page, maxFixesHit, resumeAssetId);
+        sweepFailCount = 0;
+        System.out.println("AcmIdBot Reconciliation Sweep Summary");
+        System.out.println("...page: " + (page.acmIdToAssetId.size() +
+            page.nullAcmAssetIds.size()) + " candidates (" + page.acmIdToAssetId.size() +
+            " probed, " + page.nullAcmAssetIds.size() + " null acmId)");
+        System.out.println("......missing from WBIA: " + missingAcmIds.size());
+        System.out.println("......heals sent: " + sentCount + ", heals successful: " +
+            healedCount + (maxFixesHit ? " (maxFixes cap hit)" : ""));
+        System.out.println("......cursor now " + sweepCursor +
+            (page.rawExhausted && !maxFixesHit ? " (sweep complete, wrapped)" : ""));
     }
 }
