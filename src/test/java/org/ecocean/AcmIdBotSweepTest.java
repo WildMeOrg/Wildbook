@@ -105,6 +105,16 @@ class AcmIdBotSweepTest {
         assertEquals(0, page.nullAcmAssetIds.size());
     }
 
+    @Test void routesMalformedAcmIdToNullBucket() {
+        MediaAsset ma = asset(7);
+
+        ma.setAcmId("not-a-valid-uuid");
+        AcmIdBot.SweepPage page = AcmIdBot.collectSweepPage(Arrays.asList(ma).iterator(), 10);
+        assertEquals(1, page.nullAcmAssetIds.size());
+        assertEquals(Integer.valueOf(7), page.nullAcmAssetIds.get(0));
+        assertEquals(0, page.acmIdToAssetId.size());
+    }
+
     // ---------- nextCursorAfterSuccess ----------
 
     @Test void normalPageAdvancesToLastAssetId() {

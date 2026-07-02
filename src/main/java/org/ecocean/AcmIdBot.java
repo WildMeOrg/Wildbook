@@ -24,8 +24,6 @@ import org.ecocean.shepherd.core.Shepherd;
  *
  */
 public class AcmIdBot {
-    static String context = "context0";
-
     private static void fixFeats(List<Feature> feats, Shepherd myShepherd, String summaryMessage,
                                  int maxFixes) {
         if (feats != null && feats.size() > 0) {
@@ -51,7 +49,7 @@ public class AcmIdBot {
                         if (!asset.hasFamily(myShepherd)) asset.updateStandardChildren();
                         ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
                         fixMe.add(asset);
-                        IBEISIA.sendMediaAssetsNew(fixMe, context);
+                        IBEISIA.sendMediaAssetsNew(fixMe, myShepherd.getContext());
                         numAcmIdFixesSent++;
                         // commit now: rectifyMediaAssetIds set acmId on this asset, and
                         // fixAcmIds() ends with rollbackAndClose() which would discard it
@@ -127,10 +125,18 @@ public class AcmIdBot {
             page.lastAssetId = asset.getIdInt();
             // known-invalid assets are unhealable: counted as processed, never probed
             if (asset.isValidImageForIA() != null && !asset.isValidImageForIA()) continue;
-            if (asset.getAcmId() == null) {
+            // null or malformed acmId: route straight to the heal path rather than
+            // the probe, since a non-UUID value would make WBIA reject the whole
+            // probe chunk and could strand the rest of the page (see Fix B)
+            if (asset.getAcmId() == null || !Util.isUUID(asset.getAcmId())) {
                 page.nullAcmAssetIds.add(asset.getIdInt());
             } else {
-                page.acmIdToAssetId.put(asset.getAcmId(), asset.getIdInt());
+                Integer displaced = page.acmIdToAssetId.put(asset.getAcmId(), asset.getIdInt());
+                if (displaced != null) {
+                    System.out.println("WARNING: AcmIdBot sweep found duplicate acmId " +
+                        asset.getAcmId() + " on assets " + displaced + " and " +
+                        asset.getIdInt() + "; only the latter will be probed/healed this sweep");
+                }
             }
         }
         return page;
@@ -228,40 +234,54 @@ public class AcmIdBot {
             "================ = = = = = = ===================== AcmIdBot.cleanup() finished.");
     }
 
+    // fixAcmIds is public and mutates static sweep state; guard against a
+    // concurrent manual invocation racing the scheduled run
+    private static final java.util.concurrent.atomic.AtomicBoolean botRunning =
+        new java.util.concurrent.atomic.AtomicBoolean(false);
+
     public static void fixAcmIds(String context) {
-        Shepherd myShepherd = new Shepherd(context);
-
-        myShepherd.setAction("AcmIdBot.java");
-        myShepherd.beginDBTransaction();
-
-        // number of fixes to consider before finishing and letting a new round of work restart the effort
-        int maxFixes = 500;
-        Query query2 = null;
-        try {
+        if (!botRunning.compareAndSet(false, true)) {
             System.out.println(
-                "Looking for complete import tasks with media assets with missing acmIds");
-
-            String filter2 =
-                "select from org.ecocean.media.Feature where itask.status == 'complete' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
-            query2 = myShepherd.getPM().newQuery(filter2);
-            query2.setOrdering("revision desc");
-            Collection c2 = (Collection)(query2.execute());
-            List<Feature> feats = new ArrayList<Feature>(c2);
-            query2.closeAll();
-            query2 = null;  // Mark as closed
-
-            fixFeats(feats, myShepherd, "ACM ID ImportTask fixing summary", maxFixes);
-        } catch (Exception f) {
-            System.out.println("Exception in AcmIdBot!");
-            f.printStackTrace();
-        } finally {
-            if (query2 != null) query2.closeAll();
-            myShepherd.rollbackAndClose();
+                "WARNING: AcmIdBot.fixAcmIds() already running; skipping this invocation");
+            return;
         }
+        try {
+            Shepherd myShepherd = new Shepherd(context);
 
-        // full reconciliation sweep of the matchable set (replaces the old
-        // 24-hour Encounter query); manages its own transactions
-        sweepMatchableAssets(context, maxFixes);
+            myShepherd.setAction("AcmIdBot.java");
+            myShepherd.beginDBTransaction();
+
+            // number of fixes to consider before finishing and letting a new round of work restart the effort
+            int maxFixes = 500;
+            Query query2 = null;
+            try {
+                System.out.println(
+                    "Looking for complete import tasks with media assets with missing acmIds");
+
+                String filter2 =
+                    "select from org.ecocean.media.Feature where itask.status == 'complete' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
+                query2 = myShepherd.getPM().newQuery(filter2);
+                query2.setOrdering("revision desc");
+                Collection c2 = (Collection)(query2.execute());
+                List<Feature> feats = new ArrayList<Feature>(c2);
+                query2.closeAll();
+                query2 = null;  // Mark as closed
+
+                fixFeats(feats, myShepherd, "ACM ID ImportTask fixing summary", maxFixes);
+            } catch (Exception f) {
+                System.out.println("Exception in AcmIdBot!");
+                f.printStackTrace();
+            } finally {
+                if (query2 != null) query2.closeAll();
+                myShepherd.rollbackAndClose();
+            }
+
+            // full reconciliation sweep of the matchable set (replaces the old
+            // 24-hour Encounter query); manages its own transactions
+            sweepMatchableAssets(context, maxFixes);
+        } finally {
+            botRunning.set(false);
+        }
     }
 
     /**
@@ -385,16 +405,22 @@ public class AcmIdBot {
                         }
                         if (!asset.isValidImageForIAForced()) continue;
                         if (!asset.hasFamily(healShepherd)) asset.updateStandardChildren();
-                        // legacy rows: adopt the constructor convention before sending
+                        // legacy null or malformed acmIds adopt the asset UUID before sending
                         priorAcmId = asset.getAcmId();
                         priorCaptured = true;
-                        if (priorAcmId == null) asset.setAcmId(asset.getUUID());
+                        if ((priorAcmId == null) || !Util.isUUID(priorAcmId))
+                            asset.setAcmId(asset.getUUID());
                         ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
                         fixMe.add(asset);
                         // checkFirst=false: the probe already established absence
                         org.json.JSONObject sendRtn = IBEISIA.sendMediaAssetsNew(fixMe,
                             context, false);
                         sentCount++;
+                        // NOTE: compared against the POST-rectify acmId on purpose. If WBIA
+                        // already knew this image under a different UUID, rectifyMediaAssetIds
+                        // (inside the send) adopted WBIA's authoritative UUID — that
+                        // convergence IS the heal, and committing it is correct. A strict
+                        // compare against the pre-send UUID would revert and re-probe forever.
                         if (sendConfirmedAcmId(sendRtn, asset.getAcmId())) {
                             // commit so the confirmed acmId survives rollbackAndClose
                             healShepherd.updateDBTransaction();

@@ -686,10 +686,12 @@ public class WildbookIAM extends IAPlugin {
      * Ask WBIA which of the given image acmIds it does NOT have, via
      * GET /api/image/rowid/uuid/ in {@link #PROBE_CHUNK_SIZE} chunks
      * (a null rowid in the response marks that UUID unknown — see
-     * wildbook-ia get_image_gids_from_uuid). Null acmIds are skipped
-     * (callers treat those assets as heal candidates without probing).
-     * Throws IOException if any chunk fails so callers never mistake a
-     * failed probe for "all present". (AcmIdBot sweep spec §3.)
+     * wildbook-ia get_image_gids_from_uuid). Null or malformed (non-UUID)
+     * acmIds are skipped (callers treat those assets as heal candidates
+     * without probing; a malformed value in a chunk could otherwise make
+     * WBIA reject the whole chunk). Throws IOException if any chunk fails
+     * so callers never mistake a failed probe for "all present". (AcmIdBot
+     * sweep spec §3.)
      */
     public static List<String> iaMissingImageIds(List<String> acmIds, String context)
     throws IOException {
@@ -698,7 +700,7 @@ public class WildbookIAM extends IAPlugin {
         if (acmIds == null) return missing;
         List<String> probeable = new ArrayList<String>();
         for (String acmId : acmIds) {
-            if (acmId != null) probeable.add(acmId);
+            if (acmId != null && Util.isUUID(acmId)) probeable.add(acmId);
         }
         for (List<String> chunk : chunkList(probeable, PROBE_CHUNK_SIZE)) {
             StringBuilder sb = new StringBuilder();
