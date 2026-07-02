@@ -4469,6 +4469,8 @@ public class Encounter extends Base implements java.io.Serializable {
                     jgen.writeStringField("iaClass", ann.getIAClass());
                     jgen.writeStringField("viewpoint", ann.getViewpoint());
                     jgen.writeBooleanField("isTrivial", ann.isTrivial());
+                    jgen.writeBooleanField("matchAgainst", ann.getMatchAgainst());
+                    jgen.writeStringField("acmId", ann.getAcmId());
                     jgen.writeNumberField("theta", ann.getTheta());
                     jgen.writeArrayFieldStart("boundingBox");
                     Feature ft = ann.getFeature(); // attempt force loading features for getBbox()
