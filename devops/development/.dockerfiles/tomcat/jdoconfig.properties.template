@@ -1,0 +1,27 @@
+#DataNucleus parameters for object persistence - Docker Configuration with Environment Variables
+
+# PostgreSQL connection for Docker environment
+datanucleus.ConnectionDriverName=org.postgresql.Driver
+datanucleus.ConnectionURL=${WILDBOOK_DB_CONNECTION_URL}
+
+javax.jdo.PersistenceManagerFactoryClass = org.datanucleus.api.jdo.JDOPersistenceManagerFactory
+datanucleus.ConnectionUserName = ${WILDBOOK_DB_USER}              
+datanucleus.ConnectionPassword = ${WILDBOOK_DB_PASSWORD}
+datanucleus.schema.autoCreateAll = true
+datanucleus.NontransactionalRead = true
+datanucleus.Multithreaded = true
+datanucleus.RestoreValues = true
+datanucleus.storeManagerType = rdbms
+datanucleus.maxFetchDepth = -1
+datanucleus.cache.collections.lazy = false
+
+#connection pooling
+datanucleus.connectionPoolingType = dbcp2
+
+# DBCP2 Pooling of Connections
+datanucleus.connectionPool.maxIdle=10
+datanucleus.connectionPool.minIdle=5
+datanucleus.connectionPool.maxActive=30
+datanucleus.connectionPool.maxWait=-1
+datanucleus.connectionPool.testSQL=SELECT 1
+datanucleus.connectionPool.timeBetweenEvictionRunsMillis=240000

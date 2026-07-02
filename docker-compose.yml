@@ -1,0 +1,99 @@
+services:
+  db:
+    image: postgres:13.4
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+    user: postgres
+    volumes:
+      - db-pgdata-var:/var/lib/postgresql/data
+      # DB initialization scripts
+      - ./devops/development/.dockerfiles/db/initdb.d/:/docker-entrypoint-initdb.d/
+      - ./devops/development/.dockerfiles/db/postgresql.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - intranet
+    ports:
+      - 5433:5432
+    command: -c config_file=/etc/postgresql/postgresql.conf
+    env_file: .env
+    environment:
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      WBIA_DB_NAME: "${WBIA_DB_NAME}"
+      WBIA_DB_USER: "${WBIA_DB_USER}"
+      WBIA_DB_PASSWORD: "${WBIA_DB_PASSWORD}"
+      WILDBOOK_DB_NAME: "${WILDBOOK_DB_NAME}"
+      WILDBOOK_DB_USER: "${WILDBOOK_DB_USER}"
+      WILDBOOK_DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
+
+  wildbook:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Persist uploaded images and data on host filesystem
+      - "./wildbook-data:/usr/local/tomcat/webapps/wildbook_data_dir"
+      - "./logs/:/usr/local/tomcat/logs/"
+    networks:
+      - intranet
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      SITE_NAME: "${SITE_NAME:-wildbook}"
+      PUBLIC_URL: "${PUBLIC_URL:-/react/}"
+      # Admin user created on startup,
+      # https://github.com/WildMeOrg/Wildbook/commit/6d65e70e43691f1b281bb76edf151e5c7cdb7403
+      # JAVA_OPTS from old-world wildbook, which gives us 4G heap memory
+      JAVA_OPTS: "-Djava.awt.headless=true -Xms4096m -Xmx4096m"
+
+  opensearch:
+    image: opensearchproject/opensearch:2.15.0
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+    volumes:
+      - opensearch-var1:/usr/share/opensearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - intranet
+    ports:
+      - 9200:9200
+      - 9300:9300
+    env_file: .env
+    environment:
+      - plugins.security.disabled=true
+      - node.name=opensearch
+      - cluster.initial_master_nodes=opensearch
+      - bootstrap.memory_lock=true
+      - cluster.routing.allocation.disk.threshold_enabled=${ES_THRESHOLD:-true}
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
+
+  # MailHog for development email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    networks:
+      - intranet
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+
+networks:
+  intranet:
+
+volumes:
+  db-pgdata-var:
+  wildbook-var:
+  wildbook-data:
+  opensearch-var1:
+  opensearch-var2:
+  wbia-database-var:
+  wbia-cache-var:

@@ -4,6 +4,7 @@
 #   - $WILDBOOK_BASE_DIR/logs/      (logs will go here)
 
 WILDBOOK_BASE_DIR=~/wildbook-dev
+SERVER_URL=http://localhost:80
 
 
 # for smtp (postfix) usage:
