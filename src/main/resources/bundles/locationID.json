@@ -16,7 +16,11 @@
 				{"name": "Lesotho", "id":"Lesotho", "locationID":[]},
 				{"name": "Malawi", "id":"Malawi", "locationID":[]},
 				{"name": "Mozambique", "id":"Mozambique", "locationID":[]},
-				{"name": "Namibia", "id":"Namibia", "locationID":[]},
+				{"name": "Namibia", "id":"Namibia", "locationID":[
+					{"name": "Fish River Canyon", "id": "Fish River Canyon", "locationID":[]},
+					{"name": "Klip River Valley", "id": "Klip River Valley", "locationID":[]},
+					{"name": "Otjiwa", "id": "Otjiwa", "locationID":[]}
+				]},
 				{"name": "South Africa", "id": "South Africa", "locationID":[
 					{"name": "Eastern Cape", "id":"Eastern Cape", "locationID":[]},
 					{"name": "Free State", "id":"Free State", "locationID":[]},
