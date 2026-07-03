@@ -205,6 +205,23 @@ public class Annotation extends Base implements java.io.Serializable {
         embVect.put("type", "knn_vector");
         embVect.put("dimension", Embedding.getVectorDimension());
         embVect.put("space_type", "cosinesimil");
+        // Explicit HNSW method. Do NOT rely on the engine default: OpenSearch 3.x removed nmslib
+        // (the old implicit default), so a methodless knn_vector silently degrades to exact/flat
+        // brute-force kNN -- which scales with candidate count and times out over large matching
+        // sets (surfacing as an empty match result). Lucene engine (over faiss) for this scale:
+        // supports cosinesimil, HNSW lives in the Lucene segment (no native memory, no _knn/warmup,
+        // so no cold-start graph load), and filters well at ~260k vectors. space_type stays
+        // top-level (do not also put it in method). NOTE: adding/changing this method on an
+        // existing index requires a full reindex -- the ANN graph is built into segments at index
+        // time and cannot be added in place.
+        JSONObject knnMethod = new JSONObject();
+        knnMethod.put("name", "hnsw");
+        knnMethod.put("engine", "lucene");
+        JSONObject knnParams = new JSONObject();
+        knnParams.put("m", 24);
+        knnParams.put("ef_construction", 200);
+        knnMethod.put("parameters", knnParams);
+        embVect.put("method", knnMethod);
         embProps.put("vector", embVect);
         embMap.put("properties", embProps);
         map.put("embeddings", embMap);
