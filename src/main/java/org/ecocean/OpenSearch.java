@@ -288,13 +288,15 @@ public class OpenSearch {
         Request req = new Request("GET", "/_plugins/_knn/warmup/" + indexName);
         String rtn = getRestResponse(req);
         System.out.println("OpenSearch.warmupKnn(" + indexName + "): " + rtn);
-        // Only count the graph as warmed if every shard succeeded; a partial warmup would leave the
-        // first match cold on the failed shard(s). Throw (-> caller retries) otherwise.
+        // Treat the warmup as failed only if a shard actually errored (failed>0) or nothing warmed
+        // at all (successful<1). Do NOT require successful==total: on a single-node cluster the
+        // index's replica shards are unassigned, so warmup legitimately reports e.g.
+        // total=2,successful=1,failed=0 -- the primary (which serves queries) is warmed. Requiring
+        // successful==total would make warmup throw forever and never latch on single-node.
         JSONObject shards = new JSONObject(rtn).optJSONObject("_shards");
-        int total = (shards == null) ? 0 : shards.optInt("total", 0);
         int successful = (shards == null) ? 0 : shards.optInt("successful", 0);
         int failed = (shards == null) ? 0 : shards.optInt("failed", 0);
-        if ((total <= 0) || (failed > 0) || (successful < total)) {
+        if ((failed > 0) || (successful < 1)) {
             throw new IOException("kNN warmup incomplete for '" + indexName + "': " + rtn);
         }
     }
