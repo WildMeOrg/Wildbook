@@ -125,7 +125,16 @@ public class OpenSearch {
     }
 
     public static void initializeClient(HttpHost host) {
-        restClient = RestClient.builder(host).build();
+        // Raise the socket timeout above the 30s default. A slow query (e.g. a
+        // cold/large kNN) otherwise throws SocketTimeoutException, which
+        // getMatches() swallows into an empty result -- surfacing to users as
+        // "0 matches". The top-level-vector match query keeps searches fast;
+        // this is a safety net so a slow query degrades to "slow", not silently
+        // "empty".
+        restClient = RestClient.builder(host)
+            .setRequestConfigCallback(
+                rc -> rc.setConnectTimeout(10000).setSocketTimeout(120000))
+            .build();
         final OpenSearchTransport transport = new RestClientTransport(restClient,
             new JacksonJsonpMapper());
 
@@ -1032,6 +1041,89 @@ public class OpenSearch {
     // fields, script_fields, search_after, pit, runtime_mappings, ...) is rejected fail-closed.
     private static final java.util.Set<String> ALLOWED_TOP_LEVEL_KEYS =
         new java.util.HashSet<>(java.util.Arrays.asList("query", "from", "size"));
+
+    // ---- Token search aggregations (deny-by-default; see docs/superpowers/specs/2026-06-28-token-search-aggregations.md)
+    /** Max terms buckets a caller may request. */
+    public static final int AGG_MAX_BUCKETS = 1000;
+    // Only these top-level body keys may accompany an aggregation request (blocks runtime_mappings,
+    // post_filter, script_fields, fields, _source, body sort/from/size, collapse, rescore, suggest,
+    // caller pit, ...). Pagination is via the ?from=/?size= URL params (queryPit ignores body
+    // from/size), so reject body from/size on an agg request rather than silently dropping it; for a
+    // counts-only request pass ?size=0 on the URL.
+    private static final java.util.Set<String> AGG_BODY_TOP_LEVEL = new java.util.HashSet<>(
+        java.util.Arrays.asList("query", "aggs", "aggregations"));
+    // Per-index allow-list of fields a terms aggregation may bucket on. ONLY fields confirmed to be
+    // explicitly keyword-mapped (terms-aggregatable) in opensearchMapping(); never identity/PII/ACL.
+    private static final java.util.Map<String, java.util.Set<String>> AGG_ALLOWED_FIELDS;
+    static {
+        java.util.Map<String, java.util.Set<String>> m = new java.util.HashMap<>();
+        m.put("encounter", new java.util.HashSet<>(java.util.Arrays.asList(
+            "locationId", "taxonomy", "country", "lifeStage")));
+        m.put("annotation", new java.util.HashSet<>(java.util.Arrays.asList(
+            "viewpoint", "iaClass", "encounterLocationId", "encounterTaxonomy")));
+        m.put("individual", new java.util.HashSet<>(java.util.Arrays.asList(
+            "taxonomy", "sex")));
+        AGG_ALLOWED_FIELDS = java.util.Collections.unmodifiableMap(m);
+    }
+
+    /**
+     * Validate an aggregation-bearing token-search body, deny-by-default. Returns null when the body
+     * has NO aggregation (a normal search) OR a fully-valid one; otherwise returns a human-readable
+     * reason to reject with HTTP 400 (so an unsupported aggregation is an explicit error, never a
+     * silent empty result). Permits ONLY a direct `terms` aggregation on an allow-listed keyword field
+     * with an optional bounded integer `size` — no wrappers (global/filter/nested/...), no
+     * sub-aggregations, no pipeline/metric/script aggregations, no extra terms params, and no other
+     * top-level body keys. The caller surfaces `aggregations` from the response only on success.
+     */
+    public static String aggregationError(JSONObject body, String indexName) {
+        if (body == null) return null;
+        boolean hasAggs = body.has("aggs");
+        boolean hasAggregations = body.has("aggregations");
+        if (!hasAggs && !hasAggregations) return null; // no aggregation requested
+        if (hasAggs && hasAggregations) return "specify only one of 'aggs' or 'aggregations'";
+        // (A) strict whole-body top-level allow-list
+        for (String key : body.keySet()) {
+            if (!AGG_BODY_TOP_LEVEL.contains(key)) {
+                return "top-level field '" + key + "' is not allowed alongside an aggregation";
+            }
+        }
+        JSONObject aggs = body.optJSONObject(hasAggs ? "aggs" : "aggregations");
+        if ((aggs == null) || (aggs.length() == 0)) return "aggregation must be a non-empty object";
+        java.util.Set<String> allowedFields = AGG_ALLOWED_FIELDS.get(indexName);
+        if (allowedFields == null) return "aggregations are not supported for this index";
+        for (String name : aggs.keySet()) {
+            JSONObject named = aggs.optJSONObject(name);
+            if (named == null) return "aggregation '" + name + "' must be an object";
+            // (B) exactly one direct 'terms' — no sub-aggs, no wrapper/other agg type
+            if ((named.length() != 1) || !named.has("terms")) {
+                return "aggregation '" + name
+                    + "' must be exactly a 'terms' aggregation (no sub-aggregations or other types)";
+            }
+            JSONObject terms = named.optJSONObject("terms");
+            if (terms == null) return "aggregation '" + name + "' has an invalid 'terms' body";
+            // (C) terms params allow-list: field (required) + optional bounded integer size
+            for (String tk : terms.keySet()) {
+                if (!"field".equals(tk) && !"size".equals(tk)) {
+                    return "terms parameter '" + tk + "' is not allowed (only 'field' and 'size')";
+                }
+            }
+            Object field = terms.opt("field");
+            if (!(field instanceof String) || !allowedFields.contains((String) field)) {
+                return "terms field '" + field + "' is not allowed for index '" + indexName + "'";
+            }
+            if (terms.has("size")) {
+                Object sz = terms.opt("size");
+                long size;
+                if (sz instanceof Integer) size = (Integer) sz;
+                else if (sz instanceof Long) size = (Long) sz;
+                else return "terms 'size' must be an integer";
+                if ((size < 1) || (size > AGG_MAX_BUCKETS)) {
+                    return "terms 'size' must be between 1 and " + AGG_MAX_BUCKETS;
+                }
+            }
+        }
+        return null;
+    }
 
     /**
      * Fail-closed: returns true ONLY if every field the query/sort/aggs could reference is in `allowed`.
