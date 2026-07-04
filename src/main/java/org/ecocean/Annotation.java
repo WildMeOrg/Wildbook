@@ -276,10 +276,27 @@ public class Annotation extends Base implements java.io.Serializable {
         jgen.writeEndArray();
     }
 
-    // TODO should this also be limited by matchAgainst and acmId?
     @Override public String getAllVersionsSql() {
+        // Desired-state for the OpenSearch reconciler: only annotations that should have
+        // an index doc -- match candidates (matchAgainst) or anything carrying an
+        // embedding. MUST stay semantically identical to shouldIndexInOpenSearch() below.
+        // Non-candidate/"trivial" (undetected, no-embedding) annotations are excluded so
+        // the reconciler neither re-indexes them nor flags them as missing (which would
+        // churn forever), and removes any already-indexed ones via its needRemoval pass.
         return
-                "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY \"MATCHAGAINST\" DESC, version";
+                "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" " +
+                "WHERE \"MATCHAGAINST\" = true OR EXISTS " +
+                "(SELECT 1 FROM \"EMBEDDING\" e WHERE e.\"ANNOTATION_ID\" = \"ANNOTATION\".\"ID\") " +
+                "ORDER BY \"MATCHAGAINST\" DESC, version";
+    }
+
+    // Keep non-candidate / "trivial" (undetected, no-embedding) annotations OUT of the
+    // OpenSearch annotation index: they bloat it and get churned by encounter deep-index
+    // cascades without ever being match candidates. Do NOT use isTrivial() (bbox
+    // geometry) -- matchable whole-image/unity/spot-crop annotations are geometrically
+    // trivial but MUST be indexed. MUST stay identical to the getAllVersionsSql() filter.
+    @Override public boolean shouldIndexInOpenSearch() {
+        return getMatchAgainst() || (numberEmbeddings() > 0);
     }
 
     @Override public Base getById(Shepherd myShepherd, String id) {
