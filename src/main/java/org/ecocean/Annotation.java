@@ -1131,6 +1131,13 @@ public class Annotation extends Base implements java.io.Serializable {
         long startTime = System.currentTimeMillis();
 
         if (query == null) return anns;
+        // This path uses ONLY hit._id and hit._score (the Annotations themselves are loaded from
+        // the DB below), so returning _source is pure waste. Fetching full _source for up to
+        // pageSize (10k) candidate docs cost ~20ms/doc, and for large matching sets (e.g. a 34k
+        // whaleshark location) that blew past the OpenSearch socket timeout -> empty target set ->
+        // WBIA rejects "Empty target annotation list" -> the PIE/WBIA match failed with a generic
+        // "Unknown error". Return ids/scores only so the query is fast regardless of set size.
+        query.put("_source", false);
         JSONObject queryRes = null;
         int hitSize = -1;
         try {
