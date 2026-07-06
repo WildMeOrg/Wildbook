@@ -89,4 +89,29 @@ class EmbeddingTest {
         assertTrue(task.statusInEndState());
         assertNotNull(task.getCompletionDateInMilliseconds());
     }
+
+    // catchUpEmbeddings backfill must only target match candidates
+    // (matchAgainst=true); non-candidates never appear in a matching set and
+    // query-side annots get embeddings on the fly via findMatchProspects().
+
+    @Test void catchUpEmbeddingsSql_filtersToMatchAgainst() {
+        String sql = Embedding.catchUpEmbeddingsSql(null, 50);
+        assertTrue(sql.contains("\"MATCHAGAINST\" = true"));
+        assertTrue(sql.contains("\"VECTORFLOATARRAY\" is null"));
+        assertTrue(sql.endsWith("limit 50"));
+        // no cursor clause without a startId
+        assertFalse(sql.contains("\"ANNOTATION\".\"ID\" > "));
+    }
+
+    @Test void catchUpEmbeddingsSql_includesCursorForValidUUID() {
+        String startId = "00000000-0000-0000-0000-000000000000";
+        String sql = Embedding.catchUpEmbeddingsSql(startId, 100);
+        assertTrue(sql.contains("\"ANNOTATION\".\"ID\" > '" + startId + "'"));
+        assertTrue(sql.contains("\"MATCHAGAINST\" = true"));
+    }
+
+    @Test void catchUpEmbeddingsSql_ignoresNonUUIDStartId() {
+        String sql = Embedding.catchUpEmbeddingsSql("not-a-uuid'; drop table", 50);
+        assertFalse(sql.contains("not-a-uuid"));
+    }
 }
