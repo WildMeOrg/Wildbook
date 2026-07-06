@@ -1146,12 +1146,24 @@ public class Annotation extends Base implements java.io.Serializable {
             ex.printStackTrace();
         }
         JSONArray hits = OpenSearch.getHits(queryRes);
+        // Batch-load the candidate set in one query instead of one getAnnotation() per hit (O(N)
+        // DB round-trips over the full matching set). No top-N cap here: this is the candidate
+        // POOL (e.g. for WBIA matchers), not the ranked prospect list. Preserve hit order.
+        java.util.LinkedHashMap<String, Double> idToScore = new java.util.LinkedHashMap<String, Double>();
         for (int i = 0; i < hits.length(); i++) {
             JSONObject hit = hits.optJSONObject(i);
             if (hit == null) continue;
-            Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
+            String hid = hit.optString("_id", null);
+            if (hid != null) idToScore.put(hid, hit.optDouble("_score", 0.0d));
+        }
+        java.util.Map<String, Annotation> byId = new java.util.HashMap<String, Annotation>();
+        for (Annotation a : myShepherd.getAnnotations(idToScore.keySet())) {
+            if ((a != null) && (a.getId() != null)) byId.put(a.getId(), a);
+        }
+        for (java.util.Map.Entry<String, Double> e : idToScore.entrySet()) {
+            Annotation ann = byId.get(e.getKey());
             if (ann != null) {
-                ann.setOpensearchScore(hit.optDouble("_score", 0.0d));
+                ann.setOpensearchScore(e.getValue());
                 anns.add(ann);
             }
         }
@@ -1269,14 +1281,29 @@ public class Annotation extends Base implements java.io.Serializable {
             ex.printStackTrace();
         }
         JSONArray hits = OpenSearch.getHits(queryRes);
-        for (int i = 0; i < hits.length(); i++) {
+        // Take the top-N hits (OpenSearch returns them score-sorted) and BATCH-load them in one
+        // query. Previously this did one myShepherd.getAnnotation() per hit -- O(N) DB round-trips
+        // that dominated match time (hundreds of prospects -> tens of seconds to minutes, often
+        // tripping the socket timeout -> empty result). Cap at MAXIMUM_PROSPECTS_STORED since
+        // nothing downstream keeps more than that. LinkedHashMap preserves the kNN score order.
+        int cap = org.ecocean.ia.MatchResult.MAXIMUM_PROSPECTS_STORED;
+        java.util.LinkedHashMap<String, Double> idToScore = new java.util.LinkedHashMap<String, Double>();
+        for (int i = 0; (i < hits.length()) && (idToScore.size() < cap); i++) {
             JSONObject hit = hits.optJSONObject(i);
             if (hit == null) continue;
-            Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
+            String hid = hit.optString("_id", null);
+            // See osHitScore javadoc for why the OS score is persisted unchanged
+            // (vector <-> WBIA-MiewID parity).
+            if (hid != null) idToScore.put(hid, osHitScore(hit));
+        }
+        java.util.Map<String, Annotation> byId = new java.util.HashMap<String, Annotation>();
+        for (Annotation a : myShepherd.getAnnotations(idToScore.keySet())) {
+            if ((a != null) && (a.getId() != null)) byId.put(a.getId(), a);
+        }
+        for (java.util.Map.Entry<String, Double> e : idToScore.entrySet()) {
+            Annotation ann = byId.get(e.getKey());
             if (ann != null) {
-                // See osHitScore javadoc for why the OS score is
-                // persisted unchanged (vector ↔ WBIA-MiewID parity).
-                ann.setOpensearchScore(osHitScore(hit));
+                ann.setOpensearchScore(e.getValue());
                 anns.add(ann);
             }
         }
