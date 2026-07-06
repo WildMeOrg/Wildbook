@@ -38,7 +38,11 @@ myShepherd.beginDBTransaction();
 try {
     // see Embedding.catchUpEmbeddings() for details on what this does
     JSONObject res = Embedding.catchUpEmbeddings(myShepherd, null, batchSize);
-    myShepherd.commitDBTransaction();
+    // commitDBTransaction() swallows commit failures; use the status variant
+    // so a failed commit reports an error instead of success json
+    if (!myShepherd.commitDBTransactionWithStatus()) {
+        throw new RuntimeException("commit failed; see logs");
+    }
 
     JSONObject show = new JSONObject();
     show.put("_batchSize", batchSize);
@@ -47,7 +51,7 @@ try {
     show.put("_runIds", res.get("_runIds"));
     out.println(show.toString(4));
 } catch (Exception ex) {
-    myShepherd.rollbackDBTransaction();
+    if (myShepherd.isDBTransactionActive()) myShepherd.rollbackDBTransaction();
     ex.printStackTrace();
     response.setStatus(500);
     out.println(new JSONObject().put("error", ex.toString()).toString(4));
