@@ -403,6 +403,15 @@ public class OpenSearch {
         String id = obj.getId();
         if (!Util.stringExists(id))
             throw new RuntimeException("must have id property to index: " + obj);
+        // Central gate: objects that opt out (e.g. non-candidate/"trivial" annotations)
+        // must not have an index doc. Delete any stale doc (covers matchAgainst->false or
+        // last-embedding-removed transitions) and skip indexing. This makes BOTH
+        // Base.opensearchIndex() and the reconciler's direct os.index(obj) honor the
+        // predicate. Synchronous delete: callers are already on background threads.
+        if (!obj.shouldIndexInOpenSearch()) {
+            delete(indexName, id);   // delete() no-ops if the index/doc is absent
+            return;
+        }
         ensureIndex(indexName, obj.opensearchMapping());
         IndexRequest<Base> indexRequest = new IndexRequest.Builder<Base>()
                 .index(indexName)

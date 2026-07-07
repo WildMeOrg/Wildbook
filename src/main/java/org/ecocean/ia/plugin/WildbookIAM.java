@@ -638,6 +638,92 @@ public class WildbookIAM extends IAPlugin {
     }
 
     /**
+     * Chunk size for the /api/image/rowid/uuid/ existence probe. 50 fancy
+     * UUIDs is ~3.5 KB of query string — safely under common proxy URL
+     * limits. (AcmIdBot reconciliation sweep spec §3/§6.)
+     */
+    static final int PROBE_CHUNK_SIZE = 50;
+
+    /**
+     * Split a list into consecutive sublists of at most {@code size}
+     * elements, preserving order. Returns an empty list for null/empty
+     * input or a non-positive size.
+     */
+    static <T> java.util.List<java.util.List<T>> chunkList(java.util.List<T> items, int size) {
+        java.util.List<java.util.List<T>> out = new ArrayList<java.util.List<T>>();
+
+        if ((items == null) || items.isEmpty() || (size < 1)) return out;
+        for (int i = 0; i < items.size(); i += size) {
+            out.add(new ArrayList<T>(items.subList(i, Math.min(items.size(), i + size))));
+        }
+        return out;
+    }
+
+    /**
+     * Interpret one /api/image/rowid/uuid/ response chunk. WBIA returns a
+     * rowid per requested UUID, with JSON null where the UUID is unknown;
+     * those unknown acmIds are returned. Throws IOException on a null
+     * response or a request/response length mismatch so a malformed reply
+     * is treated as a failed probe, never as "all present". (AcmIdBot
+     * reconciliation sweep spec §3.)
+     */
+    static List<String> parseRowidProbeResponse(List<String> chunkAcmIds, JSONArray response)
+    throws IOException {
+        if (response == null)
+            throw new IOException("rowid probe returned null response for chunk of " +
+                    chunkAcmIds.size());
+        if (response.length() != chunkAcmIds.size())
+            throw new IOException("rowid probe response length " + response.length() +
+                    " != request length " + chunkAcmIds.size());
+        List<String> missing = new ArrayList<String>();
+        for (int i = 0; i < response.length(); i++) {
+            if (response.isNull(i)) missing.add(chunkAcmIds.get(i));
+        }
+        return missing;
+    }
+
+    /**
+     * Ask WBIA which of the given image acmIds it does NOT have, via
+     * GET /api/image/rowid/uuid/ in {@link #PROBE_CHUNK_SIZE} chunks
+     * (a null rowid in the response marks that UUID unknown — see
+     * wildbook-ia get_image_gids_from_uuid). Null or malformed (non-UUID)
+     * acmIds are skipped (callers treat those assets as heal candidates
+     * without probing; a malformed value in a chunk could otherwise make
+     * WBIA reject the whole chunk). Throws IOException if any chunk fails
+     * so callers never mistake a failed probe for "all present". (AcmIdBot
+     * sweep spec §3.)
+     */
+    public static List<String> iaMissingImageIds(List<String> acmIds, String context)
+    throws IOException {
+        List<String> missing = new ArrayList<String>();
+
+        if (acmIds == null) return missing;
+        List<String> probeable = new ArrayList<String>();
+        for (String acmId : acmIds) {
+            if (acmId != null && Util.isUUID(acmId)) probeable.add(acmId);
+        }
+        for (List<String> chunk : chunkList(probeable, PROBE_CHUNK_SIZE)) {
+            StringBuilder sb = new StringBuilder();
+            for (String acmId : chunk) {
+                if (sb.length() > 0) sb.append(",");
+                sb.append(toFancyUUID(acmId).toString());
+            }
+            JSONArray resp = null;
+            try {
+                resp = apiGetJSONArray("/api/image/rowid/uuid/?uuid_list=[" + sb.toString() +
+                    "]", context);
+            } catch (Exception ex) {
+                throw new IOException("WBIA /api/image/rowid/uuid/ probe failed: " +
+                        ex.getMessage(), ex);
+            }
+            // apiGetJSONArray returns null when status.success is false or
+            // the payload is unparseable; parseRowidProbeResponse throws on it
+            missing.addAll(parseRowidProbeResponse(chunk, resp));
+        }
+        return missing;
+    }
+
+    /**
      * Shared body for {@link #parseAnnotationIdsArrayStrict} and
      * {@link #parseImageIdsArrayStrict}. The {@code label} is the
      * source-array name (e.g. {@code "iaAnnotationIds"},
