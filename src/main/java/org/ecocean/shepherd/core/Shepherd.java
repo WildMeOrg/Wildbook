@@ -571,6 +571,38 @@ public class Shepherd {
         return annot;
     }
 
+    // Batch-load annotations by id in as few queries as possible (chunked IN), instead of one
+    // getAnnotation()/getObjectById() per id. The match pipeline can produce hundreds of
+    // prospects/candidates; a round-trip each was O(N) and dominated match time (tens of seconds
+    // to minutes). Returned order is NOT the input order -- callers needing the kNN score order
+    // should re-map by id.
+    public List<Annotation> getAnnotations(Collection<String> uuids) {
+        List<Annotation> out = new ArrayList<Annotation>();
+        if ((uuids == null) || uuids.isEmpty()) return out;
+        LinkedHashSet<String> ids = new LinkedHashSet<String>();
+        for (String u : uuids) {
+            if ((u != null) && (u.trim().length() > 0)) ids.add(u.trim());
+        }
+        if (ids.isEmpty()) return out;
+        List<String> all = new ArrayList<String>(ids);
+        final int CHUNK = 1000;
+        for (int i = 0; i < all.size(); i += CHUNK) {
+            List<String> sub = all.subList(i, Math.min(i + CHUNK, all.size()));
+            Query q = pm.newQuery(Annotation.class, ":ids.contains(id)");
+            try {
+                @SuppressWarnings("unchecked")
+                Collection<Annotation> res = (Collection<Annotation>) q.execute(sub);
+                out.addAll(new ArrayList<Annotation>(res));
+            } catch (Exception ex) {
+                System.out.println("getAnnotations(batch) chunk failed: " + ex);
+                ex.printStackTrace();
+            } finally {
+                q.closeAll();
+            }
+        }
+        return out;
+    }
+
     public MediaAsset getMediaAsset(String num) {
         MediaAsset tempMA = null;
 
