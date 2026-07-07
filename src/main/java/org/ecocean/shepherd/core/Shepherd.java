@@ -106,8 +106,15 @@ public class Shepherd {
 
     // handy with a newActiveShepherd
     public void rollbackAndClose() {
-        rollbackDBTransaction();
-        closeDBTransaction();
+        // closeDBTransaction() MUST run even if rollbackDBTransaction() throws. Otherwise a rollback
+        // that fails (e.g. on an already-broken connection) skips the close, leaking the
+        // PersistenceManager/DB connection and leaving a stale ShepherdState entry -- exactly the
+        // "rollback-failed" rows seen accumulating on dbconnections.jsp until the pool exhausts.
+        try {
+            rollbackDBTransaction();
+        } finally {
+            closeDBTransaction();
+        }
     }
 
     public String getContext() {

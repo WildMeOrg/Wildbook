@@ -421,7 +421,17 @@ public class MLService {
             throw new IAException("MLService.createPayload() no MediaAsset for ann=" + ann);
         JSONObject payload = new JSONObject(config.toString());
         payload.remove("api_endpoint");
-        payload.put("image_uri", ma.webURL());
+        // historic assets can carry absolute paths from a previous install; webURL()
+        // then throws IllegalArgumentException("Path not under given root") from
+        // LocalAssetStore.checkPath(). convert to IAException so callers that batch
+        // over annotations (e.g. Embedding.catchUpEmbeddings()) skip the bad asset
+        // instead of aborting the whole sweep.
+        try {
+            payload.put("image_uri", ma.webURL());
+        } catch (IllegalArgumentException ex) {
+            throw new IAException("MLService.createPayload() cannot resolve image for ann=" +
+                    ann + ": " + ex);
+        }
         payload.put("bbox", ann.getBbox());
         payload.put("theta", ann.getTheta());
         return payload;
