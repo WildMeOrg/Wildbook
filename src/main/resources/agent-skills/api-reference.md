@@ -39,6 +39,13 @@ Pagination via `?from=&size=` query params; total hits in the `X-Wildbook-Total-
 Non-admin `individual` search may only query/sort identity fields. Scripted queries and cross-index
 term lookups are rejected.
 
+**What `annotation` search covers.** The `annotation` index holds only annotations that are ready for
+photo-matching — ones that have been through animal detection or otherwise carry a matching
+fingerprint. A plain whole-photo entry for a picture that has not yet been through detection is **not**
+in this index, so it will not appear in `annotation` search results, counts, or aggregations. To see
+every photo on an encounter — including not-yet-detected ones — search `encounter` instead: each
+encounter result lists all of its photos with image URLs (`mediaAssets[].url`).
+
 **Counting with aggregations.** A single bounded `terms` aggregation is supported — e.g. to count
 records per location without paging them all:
 ```json
@@ -86,6 +93,14 @@ are just `{ id, status }`. **Branch on `status`: only `identified` and `unidenti
 entry that has an image: the `bbox` is in the `imageWidth`×`imageHeight` coordinate space; **fetch
 `imageUrl`, read its real pixel dimensions, and scale `bbox` by `realW/imageWidth`, `realH/imageHeight`
 before cropping** (usually a no-op).
+
+**Which IDs resolve to an image.** `media/resolve` can only return an image for an annotation that is
+in the `annotation` index — that is, a match-ready annotation (see *What `annotation` search covers*
+above). If you pass the ID of a plain whole-photo entry (a picture that has not been through
+detection), it comes back `unavailable` — the same status as an ID you are not allowed to see. That
+does **not** mean the photo is out of reach: read the whole-photo URL directly from the encounter
+result's `mediaAssets[].url`. Use `media/resolve` for detected annotation crops, and `search/encounter`
+for an encounter's complete photo list.
 
 ## OpenSearch schema (token-exposed fields)
 Key indices and fields:
