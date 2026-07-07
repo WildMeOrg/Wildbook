@@ -733,10 +733,14 @@ public class MediaAsset extends Base implements java.io.Serializable {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MediaAsset.safeURL");
         myShepherd.beginDBTransaction();
-        URL u = safeURL(myShepherd, request);
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        return u;
+        // try/finally so a throw from safeURL(myShepherd, request) -- e.g. a JDO lazy-load/query
+        // failure inside bestSafeAsset() -- cannot skip the close and leak the PersistenceManager.
+        // Those leaks are the "MediaAsset.safeURL:begin" Shepherds stuck on dbconnections.jsp.
+        try {
+            return safeURL(myShepherd, request);
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
     }
 
     public URL safeURL() {
@@ -1191,6 +1195,10 @@ public class MediaAsset extends Base implements java.io.Serializable {
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("updateStandardChildrenBackground:" + tid);
                 myShepherd.beginDBTransaction();
+                // try/finally so a throw from load/updateStandardChildren cannot skip the close and
+                // leak this background Shepherd. commit stays inside try; the finally rollback is a
+                // harmless no-op once the commit has succeeded.
+                try {
                 int ct = 0;
                 for (Integer id : ids) {
                     ct++;
@@ -1202,7 +1210,9 @@ public class MediaAsset extends Base implements java.io.Serializable {
                         "] completed " + kids.size() + " children for id=" + id);
                 }
                 myShepherd.commitDBTransaction();
-                myShepherd.closeDBTransaction();
+                } finally {
+                    myShepherd.rollbackAndClose();
+                }
             }
         };
         new Thread(rn).start();
