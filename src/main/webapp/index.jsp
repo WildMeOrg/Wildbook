@@ -222,23 +222,7 @@ finally{
 
             %>
                 <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                    <div class="focusbox-inner opec">
-                        <h2><%=props.getProperty("ourContributors") %></h2>
-                        <div>
-                            <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
-                            <p><%=featuredUser.getFullName() %>
-                                <%
-                                if(featuredUser.getAffiliation()!=null){
-                                %>
-                                <i><%=featuredUser.getAffiliation() %></i>
-                                <%
-                                }
-                                %>
-                            </p>
-                            <p><%=featuredUser.getUserStatement() %></p>
-                        </div>
-                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
-                    </div>
+
                 </section>
             <%
             } // end if
@@ -297,63 +281,7 @@ finally{
                     <a href="encounters/searchResults.jsp?state=approved" title="" class="cta"><%=props.getProperty("seeMoreEncs") %></a>
                 </div>
             </section>
-            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                <div class="focusbox-inner opec">
-                    <h2><%=props.getProperty("topSpotters")%></h2>
-                    <ul class="encounter-list list-unstyled">
-                    <%
-                    myShepherd.beginDBTransaction();
-                    try{
-	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
-                            long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
 
-	                    System.out.println("  I think my startTime is: "+startTime);
-
-	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
-	                    int numUsersToDisplay=3;
-	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
-	                    Iterator<String> keys=spotters.keySet().iterator();
-	                    Iterator<Integer> values=spotters.values().iterator();
-	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
-	                          String spotter=keys.next();
-	                          int numUserEncs=values.next().intValue();
-	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
-	                        	  String profilePhotoURL="images/user-profile-white-transparent.png";
-	                              User thisUser=myShepherd.getUser(spotter);
-	                              if(thisUser.getUserImage()!=null){
-	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-	                              }
-	                              //System.out.println(spotters.values().toString());
-	                            Integer myInt=spotters.get(spotter);
-	                            //System.out.println(spotters);
-
-	                          %>
-	                                <li>
-	                                    <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
-	                                    <%
-	                                    if(thisUser.getAffiliation()!=null){
-	                                    %>
-	                                    <small><%=thisUser.getAffiliation() %></small>
-	                                    <%
-	                                      }
-	                                    %>
-	                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
-	                                </li>
-
-	                           <%
-	                           numUsersToDisplay--;
-	                    }
-	                   } //end while
-                    }
-                    catch(Exception e){e.printStackTrace();}
-                    finally{myShepherd.rollbackDBTransaction();}
-
-                   %>
-
-                    </ul>
-                    <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("allSpotters") %></a>
-                </div>
-            </section>
         </div>
     </aside>
 </div>
@@ -379,53 +307,14 @@ finally{
 
         <hr/>
 
-		<!-- 
-        <main class="container">
-            <article class="text-center">
-                <div class="row">
-                    <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
-                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1><%=props.getProperty("whyWeDoThis") %></h1>
-                        <p class="lead"><%=props.getProperty("contributors") %></p>
-                        <a href="#" title=""><%=props.getProperty("contributors") %></a>
-                    </div>
-                </div>
-            </article>
-        <main>
-         -->
+
 
     </section>
 </div>
 
 
  
-<%
-if((CommonConfiguration.getProperty("allowAdoptions",context)!=null)&&(CommonConfiguration.getProperty("allowAdoptions",context).equals("true"))){
-%>
-<div class="container-fluid">
-    <section class="container main-section">
 
-        <!-- Complete header for adoption section in index properties file -->
-        <%=props.getProperty("adoptionHeader") %>
-        <section class="adopt-section row">
-
-            <!-- Complete text body for adoption section in index properties file -->
-            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-              <%=props.getProperty("adoptionBody") %>
-            </div>
-
-
-
-        </section>
-
-
-        <hr/>
-        <%= props.getProperty("donationText") %>
-    </section>
-</div>
-<%
-}
-%>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
