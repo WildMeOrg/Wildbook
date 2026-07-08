@@ -27,7 +27,7 @@ describe("usePostHeaderQuickSearch", () => {
     });
 
     expect(axios.post).toHaveBeenCalledWith(
-      "/api/v3/search/individual?size=10",
+      "/api/v3/search/individual?size=10&sort=id&sortOrder=asc",
       expect.any(Object),
     );
     expect(result.current.searchResults).toEqual(mockData.data.hits);
