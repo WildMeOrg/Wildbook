@@ -70,6 +70,31 @@ public class OpenSearch {
         "backgroundPermissionsMaxForceMinutes", 45);
     public static String PERMISSIONS_LAST_RUN_KEY = "OpenSearch_permissions_last_run_timestamp";
     public static String PERMISSIONS_NEEDED_KEY = "OpenSearch_permissions_needed";
+    // kNN match warmup: after startup, load the faiss/kNN native graph for the match index into
+    // off-heap memory (and warm the filter/segment paths) so the FIRST user match doesn't pay the
+    // cold-load, which can exceed the socket timeout and surface to the user as an empty result.
+    public static String WARMUP_INDEX = (String)getConfigurationValue("matchWarmupIndex",
+        "annotation");
+    // Retry cadence while OpenSearch is still coming up / the index isn't built yet (e.g. a
+    // `docker compose up` where both containers start at once). Kept short so we warm as soon as
+    // OpenSearch is reachable.
+    public static int WARMUP_RETRY_MINUTES = (Integer)getConfigurationValue("matchWarmupRetryMinutes",
+        1);
+    // Re-warm cadence once warmed, to survive segment merges / native-cache eviction. 0 disables
+    // re-warming (warm once at startup only).
+    public static int WARMUP_REWARM_MINUTES = (Integer)getConfigurationValue(
+        "matchWarmupRewarmMinutes", 20);
+    // True while the match kNN graph is warmed into native memory in THIS JVM: set on a successful
+    // warm pass, reset if a later (re)warm fails (e.g. OpenSearch restarted under us). In-memory,
+    // so correctly starts false on restart. Exposed for health/readiness use; not a gate on matching.
+    private static volatile boolean matchWarmupReady = false;
+    // Ensures a single self-rescheduling warmup chain, even if backgroundStartup is ever called twice.
+    private static final java.util.concurrent.atomic.AtomicBoolean warmupChainStarted =
+        new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    public static boolean isMatchWarmupReady() {
+        return matchWarmupReady;
+    }
     public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
     static String ACTIVE_TYPE_FOREGROUND = "opensearch_indexing_foreground";
     static String ACTIVE_TYPE_BACKGROUND = "opensearch_indexing_background";
@@ -125,7 +150,18 @@ public class OpenSearch {
     }
 
     public static void initializeClient(HttpHost host) {
-        restClient = RestClient.builder(host).build();
+        // Raise the socket timeout well above the 30s default. A slow query (e.g. a
+        // cold/large kNN, or a match over a big candidate set) otherwise throws
+        // SocketTimeoutException, which the match path surfaces to users as an empty
+        // "0 matches" result -- and a failed match reads as "no match found", which is
+        // WORSE for a user than a slow one. 240s gives cold/large matches room to
+        // complete rather than silently returning empty. (The batch-load + top-N cap in
+        // Annotation.getMatches keep normal matches to a few seconds; this is the safety
+        // net for the cold/outlier case.)
+        restClient = RestClient.builder(host)
+            .setRequestConfigCallback(
+                rc -> rc.setConnectTimeout(10000).setSocketTimeout(240000))
+            .build();
         final OpenSearchTransport transport = new RestClientTransport(restClient,
             new JacksonJsonpMapper());
 
@@ -168,6 +204,103 @@ public class OpenSearch {
                 ") interrupted: " + ex.toString());
         }
         System.out.println("OpenSearch.backgroundStartup(" + context + ") backgrounded");
+
+        // Warm the match kNN graph so the first user match after this restart isn't cold. Self-
+        // reschedules: retry quickly while OpenSearch/the index are still coming up, then re-warm
+        // on a slow cadence to survive merges/eviction. Guarded so only one chain ever runs.
+        if (warmupChainStarted.compareAndSet(false, true)) {
+            scheduleMatchWarmup(schedExec, context, WARMUP_RETRY_MINUTES);
+        }
+    }
+
+    // Self-rescheduling warmup. Reschedules itself on the same executor: WARMUP_RETRY_MINUTES until
+    // the first successful warm (OpenSearch may still be starting on a `docker compose up`), then
+    // WARMUP_REWARM_MINUTES thereafter (0 = warm once only). Never throws out of the task.
+    private static void scheduleMatchWarmup(final ScheduledExecutorService schedExec,
+        final String context, long delayMinutes) {
+        try {
+            schedExec.schedule(new Runnable() {
+                public void run() {
+                    boolean warmed = false;
+                    try {
+                        warmed = warmupMatching(context);
+                    } catch (Throwable t) { // belt-and-suspenders: a task must never die silently
+                        System.out.println("OpenSearch.warmupMatching threw (will retry): " + t);
+                    }
+                    long next = warmed ? WARMUP_REWARM_MINUTES : WARMUP_RETRY_MINUTES;
+                    if (next > 0) scheduleMatchWarmup(schedExec, context, next);
+                }
+            }, delayMinutes, TimeUnit.MINUTES);
+        } catch (Exception ex) {
+            // e.g. executor shutting down on tomcat stop -- nothing to do, warmup simply ends.
+            System.out.println("OpenSearch.scheduleMatchWarmup: could not schedule (" + ex + ")");
+        }
+    }
+
+    // Warm the match index. Returns true only if the graph was actually warmed this pass. Any
+    // failure (OpenSearch unreachable, index not built yet) is treated as "not ready, retry" -- it
+    // logs and returns false rather than throwing, so a racing startup degrades gracefully.
+    public static boolean warmupMatching(String context) {
+        OpenSearch os;
+        try {
+            os = new OpenSearch(); // client is lazy; ctor won't fail if OpenSearch is still down
+        } catch (Exception ex) {
+            System.out.println("warmupMatching: OpenSearch client not available yet (will retry): " +
+                ex);
+            matchWarmupReady = false;
+            return false;
+        }
+        String indexName = WARMUP_INDEX;
+        try {
+            if (!os.existsIndex(indexName)) {
+                System.out.println("warmupMatching: '" + indexName +
+                    "' index not ready yet (OpenSearch may still be starting / reindexing); will retry");
+                matchWarmupReady = false;
+                return false;
+            }
+            long t = System.currentTimeMillis();
+            System.out.println("warmupMatching: warming kNN graph for '" + indexName + "' ...");
+            os.warmupKnn(indexName);
+            // Also warm the filter/segment/doc-value paths a real match query touches (the graph
+            // warmup alone doesn't). A cheap _count with the matchAgainst filter is enough.
+            try {
+                JSONObject warmQuery = new JSONObject(
+                    "{\"query\":{\"bool\":{\"filter\":[{\"term\":{\"matchAgainst\":true}}]}}}");
+                os.queryCount(indexName, warmQuery);
+            } catch (Exception ex) {
+                System.out.println("warmupMatching: filter-path warm query failed (non-fatal): " +
+                    ex);
+            }
+            matchWarmupReady = true;
+            System.out.println("warmupMatching: kNN warmup complete in " +
+                (System.currentTimeMillis() - t) + "ms; matchWarmupReady=true");
+            return true;
+        } catch (Exception ex) {
+            System.out.println("warmupMatching: warmup failed (OpenSearch may still be starting); " +
+                "will retry: " + ex);
+            matchWarmupReady = false;
+            return false;
+        }
+    }
+
+    // Load an index's kNN native graphs into off-heap memory ahead of the first query.
+    // https://docs.opensearch.org/latest/vector-search/api/knn/#warmup
+    public void warmupKnn(String indexName) throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request req = new Request("GET", "/_plugins/_knn/warmup/" + indexName);
+        String rtn = getRestResponse(req);
+        System.out.println("OpenSearch.warmupKnn(" + indexName + "): " + rtn);
+        // Treat the warmup as failed only if a shard actually errored (failed>0) or nothing warmed
+        // at all (successful<1). Do NOT require successful==total: on a single-node cluster the
+        // index's replica shards are unassigned, so warmup legitimately reports e.g.
+        // total=2,successful=1,failed=0 -- the primary (which serves queries) is warmed. Requiring
+        // successful==total would make warmup throw forever and never latch on single-node.
+        JSONObject shards = new JSONObject(rtn).optJSONObject("_shards");
+        int successful = (shards == null) ? 0 : shards.optInt("successful", 0);
+        int failed = (shards == null) ? 0 : shards.optInt("failed", 0);
+        if ((failed > 0) || (successful < 1)) {
+            throw new IOException("kNN warmup incomplete for '" + indexName + "': " + rtn);
+        }
     }
 
     private static void updatePermissionsIndex(String context) {
@@ -270,6 +403,15 @@ public class OpenSearch {
         String id = obj.getId();
         if (!Util.stringExists(id))
             throw new RuntimeException("must have id property to index: " + obj);
+        // Central gate: objects that opt out (e.g. non-candidate/"trivial" annotations)
+        // must not have an index doc. Delete any stale doc (covers matchAgainst->false or
+        // last-embedding-removed transitions) and skip indexing. This makes BOTH
+        // Base.opensearchIndex() and the reconciler's direct os.index(obj) honor the
+        // predicate. Synchronous delete: callers are already on background threads.
+        if (!obj.shouldIndexInOpenSearch()) {
+            delete(indexName, id);   // delete() no-ops if the index/doc is absent
+            return;
+        }
         ensureIndex(indexName, obj.opensearchMapping());
         IndexRequest<Base> indexRequest = new IndexRequest.Builder<Base>()
                 .index(indexName)
@@ -1032,6 +1174,89 @@ public class OpenSearch {
     // fields, script_fields, search_after, pit, runtime_mappings, ...) is rejected fail-closed.
     private static final java.util.Set<String> ALLOWED_TOP_LEVEL_KEYS =
         new java.util.HashSet<>(java.util.Arrays.asList("query", "from", "size"));
+
+    // ---- Token search aggregations (deny-by-default; see docs/superpowers/specs/2026-06-28-token-search-aggregations.md)
+    /** Max terms buckets a caller may request. */
+    public static final int AGG_MAX_BUCKETS = 1000;
+    // Only these top-level body keys may accompany an aggregation request (blocks runtime_mappings,
+    // post_filter, script_fields, fields, _source, body sort/from/size, collapse, rescore, suggest,
+    // caller pit, ...). Pagination is via the ?from=/?size= URL params (queryPit ignores body
+    // from/size), so reject body from/size on an agg request rather than silently dropping it; for a
+    // counts-only request pass ?size=0 on the URL.
+    private static final java.util.Set<String> AGG_BODY_TOP_LEVEL = new java.util.HashSet<>(
+        java.util.Arrays.asList("query", "aggs", "aggregations"));
+    // Per-index allow-list of fields a terms aggregation may bucket on. ONLY fields confirmed to be
+    // explicitly keyword-mapped (terms-aggregatable) in opensearchMapping(); never identity/PII/ACL.
+    private static final java.util.Map<String, java.util.Set<String>> AGG_ALLOWED_FIELDS;
+    static {
+        java.util.Map<String, java.util.Set<String>> m = new java.util.HashMap<>();
+        m.put("encounter", new java.util.HashSet<>(java.util.Arrays.asList(
+            "locationId", "taxonomy", "country", "lifeStage")));
+        m.put("annotation", new java.util.HashSet<>(java.util.Arrays.asList(
+            "viewpoint", "iaClass", "encounterLocationId", "encounterTaxonomy")));
+        m.put("individual", new java.util.HashSet<>(java.util.Arrays.asList(
+            "taxonomy", "sex")));
+        AGG_ALLOWED_FIELDS = java.util.Collections.unmodifiableMap(m);
+    }
+
+    /**
+     * Validate an aggregation-bearing token-search body, deny-by-default. Returns null when the body
+     * has NO aggregation (a normal search) OR a fully-valid one; otherwise returns a human-readable
+     * reason to reject with HTTP 400 (so an unsupported aggregation is an explicit error, never a
+     * silent empty result). Permits ONLY a direct `terms` aggregation on an allow-listed keyword field
+     * with an optional bounded integer `size` — no wrappers (global/filter/nested/...), no
+     * sub-aggregations, no pipeline/metric/script aggregations, no extra terms params, and no other
+     * top-level body keys. The caller surfaces `aggregations` from the response only on success.
+     */
+    public static String aggregationError(JSONObject body, String indexName) {
+        if (body == null) return null;
+        boolean hasAggs = body.has("aggs");
+        boolean hasAggregations = body.has("aggregations");
+        if (!hasAggs && !hasAggregations) return null; // no aggregation requested
+        if (hasAggs && hasAggregations) return "specify only one of 'aggs' or 'aggregations'";
+        // (A) strict whole-body top-level allow-list
+        for (String key : body.keySet()) {
+            if (!AGG_BODY_TOP_LEVEL.contains(key)) {
+                return "top-level field '" + key + "' is not allowed alongside an aggregation";
+            }
+        }
+        JSONObject aggs = body.optJSONObject(hasAggs ? "aggs" : "aggregations");
+        if ((aggs == null) || (aggs.length() == 0)) return "aggregation must be a non-empty object";
+        java.util.Set<String> allowedFields = AGG_ALLOWED_FIELDS.get(indexName);
+        if (allowedFields == null) return "aggregations are not supported for this index";
+        for (String name : aggs.keySet()) {
+            JSONObject named = aggs.optJSONObject(name);
+            if (named == null) return "aggregation '" + name + "' must be an object";
+            // (B) exactly one direct 'terms' — no sub-aggs, no wrapper/other agg type
+            if ((named.length() != 1) || !named.has("terms")) {
+                return "aggregation '" + name
+                    + "' must be exactly a 'terms' aggregation (no sub-aggregations or other types)";
+            }
+            JSONObject terms = named.optJSONObject("terms");
+            if (terms == null) return "aggregation '" + name + "' has an invalid 'terms' body";
+            // (C) terms params allow-list: field (required) + optional bounded integer size
+            for (String tk : terms.keySet()) {
+                if (!"field".equals(tk) && !"size".equals(tk)) {
+                    return "terms parameter '" + tk + "' is not allowed (only 'field' and 'size')";
+                }
+            }
+            Object field = terms.opt("field");
+            if (!(field instanceof String) || !allowedFields.contains((String) field)) {
+                return "terms field '" + field + "' is not allowed for index '" + indexName + "'";
+            }
+            if (terms.has("size")) {
+                Object sz = terms.opt("size");
+                long size;
+                if (sz instanceof Integer) size = (Integer) sz;
+                else if (sz instanceof Long) size = (Long) sz;
+                else return "terms 'size' must be an integer";
+                if ((size < 1) || (size > AGG_MAX_BUCKETS)) {
+                    return "terms 'size' must be between 1 and " + AGG_MAX_BUCKETS;
+                }
+            }
+        }
+        return null;
+    }
 
     /**
      * Fail-closed: returns true ONLY if every field the query/sort/aggs could reference is in `allowed`.
