@@ -249,7 +249,11 @@
 				{"name": "Zacatecas", "id": "Zacatecas", "locationID":[] }
 			] },
 			{"name": "USA", "id": "USA", "locationID":[
-				{"name": "California", "id": "California", "locationID":[] },
+				{"name": "California", "id": "California", "locationID":[
+					{"name": "AguaChinon", "id": "AguaChinon", "locationID":[] },
+					{"name": "FremontCanyon", "id": "FremontCanyon", "locationID":[] },
+					{"name": "LimestoneCanyon", "id": "LimestoneCanyon", "locationID":[] }
+				] },
 				{"name": "North Carolina", "id": "North Carolina", "locationID": [
 					{ "name":"Alamance", "id":"Alamance", "locationID":[] },
 					{ "name":"Alexander", "id":"Alexander", "locationID":[] },
