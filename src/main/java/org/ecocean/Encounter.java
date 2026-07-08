@@ -4826,6 +4826,11 @@ public class Encounter extends Base implements java.io.Serializable {
                     }
                     if (enc.hasAnnotations()) {
                         for (Annotation ann : enc.getAnnotations()) {
+                            // Skip non-candidate/"trivial" annotations so encounter deep-index
+                            // cascades don't repeatedly touch index docs that shouldn't exist
+                            // (OpenSearch.index() would just delete them). See
+                            // Annotation.shouldIndexInOpenSearch().
+                            if (!ann.shouldIndexInOpenSearch()) continue;
                             System.out.println("opensearchIndexDeep() background indexing annot " +
                                 ann.getId() + " via enc " + encId);
                             try {
