@@ -284,6 +284,15 @@ public class IA {
         ArrayList<MediaAsset> singleton = new ArrayList<MediaAsset>();
         singleton.add(ma);
         childTask.setObjectMediaAssets(singleton);
+        // Tag as a detection task so the /metrics detection gauges
+        // (MetricsBot.addTasksToCsv + appadmin/wildbookIAQueueStats.jsp) count
+        // ml-service v2 detection volume. Mirrors the legacy path, which sets
+        // task.addParameter("ibeis.detection", true) in IAGateway. Must be set
+        // before storeNewTask so it persists with the new row. The downstream
+        // match task is created via new Task(parent) and would inherit this
+        // flag, so MlServiceProcessor.runMatchProspects strips it back off
+        // (mirror of IBEISIA's params.remove("ibeis.detection")).
+        childTask.addParameter("ibeis.detection", true);
         myShepherd.storeNewTask(childTask);
 
         // Best-effort encounterId via existing annotations on the MA.
@@ -504,7 +513,9 @@ public class IA {
         Map<String, List<Annotation> > iaClassToAnns = new HashMap<String, List<Annotation> >();
         for (Annotation ann : anns) {
             String iaClass = ann.getIAClass();
-            if (iaClass == null) continue;
+            // Treat blank (not just null) as classless: a "" iaClass would
+            // otherwise form a degenerate "" bin that resolves no ident opts.
+            if (!Util.stringExists(iaClass)) continue;
             List<Annotation> iaClassList = iaClassToAnns.getOrDefault(iaClass,
                 new ArrayList<Annotation>());
             iaClassList.add(ann);

@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import java.util.StringTokenizer;
 import javax.jdo.Query;
 
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.HttpEntity;
@@ -536,7 +537,23 @@ public class MetricsBot {
             "wildbook_tasks_pieTwo", "Number of tasks using PieTwo algorithm", context));
 		addLineIfNotNull(csvLines, buildGauge(
             "SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('MiewId')>-1",
-            "wildbook_tasks_pieTwo", "Number of tasks using MiewId algorithm", context));
+            "wildbook_tasks_miewId", "Number of tasks using MiewId algorithm", context));
+
+        // ml-service v2 vector (MiewID) re-ID matches carry mlServiceV2Match=true
+        // (MlServiceProcessor.runMatchProspects); the per-annotation leaf subtasks
+        // inherit it (Embedding.findMatchProspects -> new Task(matchTask)).
+        // children==null counts those leaves (one per annotation), parallel to the
+        // hotspotter/pieTwo gauges above; the parent match task has children and is
+        // excluded, so no double counting. Edge case: an invalid/rejected match
+        // config aborts before any subtask is created, leaving the parent match
+        // task childless — that rare failure counts as one terminal leaf here.
+        // Match the quoted JSON key (like the hotspotter '"sv_on"' gauge) so we
+        // hit the key, not an incidental substring elsewhere in the params.
+        addLineIfNotNull(csvLines, buildGauge(
+            "SELECT count(this) FROM org.ecocean.ia.Task where children == null && parameters.indexOf('\"mlServiceV2Match\"')>-1",
+            "wildbook_tasks_vectorMatch",
+            "Number of ml-service v2 vector (MiewID) re-ID leaf tasks (one per matched annotation; a rare invalid-config match failure counts as one)",
+            context));
 
 
 
@@ -659,8 +676,22 @@ public class MetricsBot {
     public static String httpGetRemoteText(String url) {
         String responseString = "";
 
-        try {
-            CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        // Bound every phase of the request. Without these the default Apache
+        // HttpClient waits forever: a remote that accepts the TCP connection but
+        // never responds (e.g. an unhealthy WBIA /metrics) wedges this thread
+        // indefinitely. Because refreshMetrics() fetches WBIA metrics *before*
+        // writing the CSV, and scheduleWithFixedDelay only reschedules after a
+        // run returns, one hung call silently kills all future metrics refreshes
+        // and leaves /metrics serving an empty 200.
+        int timeoutMs = 10000; // 10s per phase
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setConnectTimeout(timeoutMs)
+            .setConnectionRequestTimeout(timeoutMs)
+            .setSocketTimeout(timeoutMs)
+            .build();
+
+        try (CloseableHttpClient httpClient =
+            HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()) {
             URIBuilder uriBuilder = new URIBuilder(url);
             URI uri = uriBuilder.build();
             HttpGet request = new HttpGet(uri);

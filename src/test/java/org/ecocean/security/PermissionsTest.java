@@ -29,6 +29,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +41,7 @@ import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -178,6 +180,131 @@ class PermissionsTest {
             // but now can edit
             collab.setState(Collaboration.STATE_EDIT_PRIV);
             assertTrue(enc.canUserEdit(user2, myShepherd));
+        }
+    }
+
+    // any logged-in user can edit a public encounter (issue 1626)
+    @Test void encounterPublicEditTest() {
+        User user = new User("test-user", null, null);
+        Encounter enc = new Encounter();
+        Shepherd myShepherd = mock(Shepherd.class);
+
+        when(myShepherd.getContext()).thenReturn("context0");
+        try (MockedStatic<Collaboration> mockCollab = mockStatic(Collaboration.class,
+                org.mockito.Answers.CALLS_REAL_METHODS)) {
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(any(String.class),
+                any(String.class), any(String.class))).thenReturn(null);
+            mockCollab.when(() -> Collaboration.securityEnabled(any(String.class))).thenReturn(
+                true);
+
+            enc.setSubmitterID("public");
+            assertTrue(enc.canUserEdit(user, myShepherd));
+            // anonymous (not logged in) still cannot edit
+            assertFalse(enc.canUserEdit(null, myShepherd));
+            // all the User.isUsernameAnonymous flavors of "ownerless" count as public
+            enc.setSubmitterID(null);
+            assertTrue(enc.canUserEdit(user, myShepherd));
+            enc.setSubmitterID("");
+            assertTrue(enc.canUserEdit(user, myShepherd));
+            enc.setSubmitterID("   ");
+            assertTrue(enc.canUserEdit(user, myShepherd));
+            enc.setSubmitterID("N/A");
+            assertTrue(enc.canUserEdit(user, myShepherd));
+            // encounters owned by someone else remain uneditable
+            enc.setSubmitterID("someone-else");
+            assertFalse(enc.canUserEdit(user, myShepherd));
+            // ...even on sites with collaboration security disabled
+            mockCollab.when(() -> Collaboration.securityEnabled(any(String.class))).thenReturn(
+                false);
+            assertFalse(enc.canUserEdit(user, myShepherd));
+        }
+    }
+
+    // edit access on a public encounter must not expose other users' emails (issue 1626)
+    @Test void encounterPublicEditEmailHiddenTest()
+    throws IOException {
+        User user = new User("test-user", null, null);
+        User contact = new User("contact-person", null, null);
+
+        contact.setEmailAddress("secret@example.com");
+        Encounter enc = org.mockito.Mockito.spy(new Encounter());
+        enc.setSubmitterID("public");
+        enc.addSubmitter(contact);
+        Shepherd myShepherd = mock(Shepherd.class);
+        when(myShepherd.getContext()).thenReturn("context0");
+        when(myShepherd.getAllRolesForUser(anyString())).thenReturn(new ArrayList<>());
+        org.mockito.Mockito.doReturn(new JSONObject()).when(enc).opensearchDocumentAsJSONObject(
+            any(Shepherd.class));
+        // avoids a real Shepherd (and thus a real database) inside the test
+        org.mockito.Mockito.doReturn(new JSONObject()).when(enc).spotMappingJsonForApiGet();
+
+        try (MockedStatic<Collaboration> mockCollab = mockStatic(Collaboration.class,
+                org.mockito.Answers.CALLS_REAL_METHODS)) {
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(any(String.class),
+                any(String.class), any(String.class))).thenReturn(null);
+            mockCollab.when(() -> Collaboration.securityEnabled(any(String.class))).thenReturn(
+                true);
+
+            JSONObject rtn = enc.jsonForApiGet(myShepherd, user);
+            // a random logged-in user gets edit access to the public encounter...
+            Assertions.assertEquals("write", rtn.getString("access"));
+            // ...but the submitter-list emails stay hidden
+            JSONArray subs = rtn.getJSONArray("submitters");
+            Assertions.assertEquals(1, subs.length());
+            assertFalse(subs.getJSONObject(0).has("email"));
+        }
+    }
+
+    // Collaboration.canUserPartiallyEditMarkedIndividual() returns true if the user can edit
+    // AT LEAST ONE encounter (ANY), vs canUserFullyEditMarkedIndividual() which needs ALL.
+    // This ANY-vs-ALL distinction is the whole point of the method, so we pin it here.
+    @Test void partiallyEditMarkedIndividualTest() {
+        Encounter e1 = new Encounter();
+        Encounter e2 = new Encounter();
+        MarkedIndividual mi = mock(MarkedIndividual.class);
+
+        // admin short-circuits, before the encounter list is even inspected
+        when(mockRequest.isUserInRole("admin")).thenReturn(true);
+        when(mi.getEncounters()).thenReturn(null);
+        assertTrue(Collaboration.canUserPartiallyEditMarkedIndividual(mi, mockRequest));
+
+        // non-admin from here on
+        when(mockRequest.isUserInRole("admin")).thenReturn(false);
+
+        // no encounters -> not editable (null and empty both)
+        when(mi.getEncounters()).thenReturn(null);
+        assertFalse(Collaboration.canUserPartiallyEditMarkedIndividual(mi, mockRequest));
+        when(mi.getEncounters()).thenReturn(new Vector<Encounter>());
+        assertFalse(Collaboration.canUserPartiallyEditMarkedIndividual(mi, mockRequest));
+
+        Vector<Encounter> encs = new Vector<Encounter>();
+        encs.add(e1);
+        encs.add(e2);
+        when(mi.getEncounters()).thenReturn(encs);
+
+        // mock only canEditEncounter() per-encounter; the ANY/ALL loops run for real
+        try (MockedStatic<Collaboration> mockCollab = mockStatic(Collaboration.class,
+                org.mockito.Answers.CALLS_REAL_METHODS)) {
+            // none editable -> neither partial nor full
+            mockCollab.when(() -> Collaboration.canEditEncounter(any(Encounter.class),
+                any(HttpServletRequest.class))).thenReturn(false);
+            assertFalse(Collaboration.canUserPartiallyEditMarkedIndividual(mi, mockRequest));
+            assertFalse(Collaboration.canUserFullyEditMarkedIndividual(mi, mockRequest));
+
+            // exactly one of two editable -> partial=true (ANY), but full=false (needs ALL)
+            // (same() not eq(): Encounter.equals() treats two blank encounters as equal)
+            mockCollab.when(() -> Collaboration.canEditEncounter(same(e1),
+                any(HttpServletRequest.class))).thenReturn(true);
+            mockCollab.when(() -> Collaboration.canEditEncounter(same(e2),
+                any(HttpServletRequest.class))).thenReturn(false);
+            assertTrue(Collaboration.canUserPartiallyEditMarkedIndividual(mi, mockRequest));
+            assertFalse(Collaboration.canUserFullyEditMarkedIndividual(mi, mockRequest));
+
+            // all editable -> both partial and full are true
+            mockCollab.when(() -> Collaboration.canEditEncounter(same(e2),
+                any(HttpServletRequest.class))).thenReturn(true);
+            assertTrue(Collaboration.canUserPartiallyEditMarkedIndividual(mi, mockRequest));
+            assertTrue(Collaboration.canUserFullyEditMarkedIndividual(mi, mockRequest));
         }
     }
 

@@ -83,6 +83,7 @@ public class EncounterSetSubmitterID extends HttpServlet {
                 }
                 if (!locked && authorized) {
                     myShepherd.commitDBTransaction();
+                    org.ecocean.OpenSearch.setPermissionsNeeded(true);
                     out.println(ServletUtilities.getHeader(request));
                     out.println(
                         "<strong>Success!</strong> I have successfully changed the Library submitter ID for encounter "

@@ -205,6 +205,21 @@ public class Embedding implements java.io.Serializable {
         return Arrays.equals(this.vectorFloatArray, emb.vectorFloatArray);
     }
 
+    // builds the batch query for catchUpEmbeddings(); package-visible for testing.
+    // only match candidates (matchAgainst=true) need embeddings backfilled --
+    // they are the target set of every vector match. query-side annotations get
+    // embeddings extracted on the fly by findMatchProspects() when they match.
+    // an annotation flipped to matchAgainst=true after the cursor passed its id
+    // is picked up on the next full pass: an exhausted sweep clears _lastId
+    // (JSONObject.put(key, null) removes the key), so the following run restarts.
+    static String catchUpEmbeddingsSql(String startId, int batchSize) {
+        String sql =
+            "select \"ANNOTATION\".\"ID\" as \"ID\" from \"ANNOTATION\" left join \"EMBEDDING\" on (\"ANNOTATION\".\"ID\" = \"ANNOTATION_ID\") where \"VECTORFLOATARRAY\" is null and \"MATCHAGAINST\" = true";
+        if (Util.isUUID(startId)) sql += " AND \"ANNOTATION\".\"ID\" > '" + startId + "'";
+        sql += " order by \"ANNOTATION\".\"ID\" limit " + batchSize;
+        return sql;
+    }
+
     // returns final annot id
     public static JSONObject catchUpEmbeddings(Shepherd myShepherd, String startId, int batchSize) {
         if (batchSize < 1) batchSize = BACKGROUND_BATCH_SIZE;
@@ -217,10 +232,7 @@ public class Embedding implements java.io.Serializable {
         System.out.println("catchUpEmbeddings: beginning at " + startId + "; batch size=" +
             batchSize);
 
-        String sql =
-            "select \"ANNOTATION\".\"ID\" as \"ID\" from \"ANNOTATION\" left join \"EMBEDDING\" on (\"ANNOTATION\".\"ID\" = \"ANNOTATION_ID\") where \"VECTORFLOATARRAY\" is null";
-        if (Util.isUUID(startId)) sql += " AND \"ANNOTATION\".\"ID\" > '" + startId + "'";
-        sql += " order by \"ANNOTATION\".\"ID\" limit " + batchSize;
+        String sql = catchUpEmbeddingsSql(startId, batchSize);
         Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         q.setClass(Annotation.class);
         Collection c = (Collection)q.execute();

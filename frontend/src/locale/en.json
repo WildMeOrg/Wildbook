@@ -791,6 +791,7 @@
     "TOOLS": "Tools",
     "ZOOM_IN": "Zoom In",
     "ZOOM_OUT": "Zoom Out",
+    "RESET_ZOOM": "Reset Zoom",
     "WILDBOOK_DOCUMENTATION": "Wildbook Documentation",
     "SET_MATCH_FOR": "Set match for",
     "NO_FURTHER_ACTION_NEEDED": "No further action needed",

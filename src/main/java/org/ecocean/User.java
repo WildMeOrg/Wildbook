@@ -317,6 +317,23 @@ public class User implements Serializable {
     public void setSalt(String salt) { this.salt = salt; }
     public String getSalt() { return salt; }
 
+    /**
+     * Verify a clear-text password against this user's stored salted hash, using the same hashing
+     * as login (ServletUtilities.hashAndSaltPassword). Constant-time comparison. Returns false if
+     * this user has no stored password or the candidate is blank.
+     */
+    public boolean checkPassword(String clearText) {
+        if ((clearText == null) || clearText.isEmpty()) return false;
+        String stored = this.getPassword();
+        String salt = this.getSalt();
+        if ((stored == null) || stored.isEmpty() || (salt == null)) return false;
+        String hashed = org.ecocean.servlet.ServletUtilities.hashAndSaltPassword(clearText, salt);
+        if (hashed == null) return false;
+        return java.security.MessageDigest.isEqual(
+            hashed.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+            stored.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
     public void setUserProject(String newProj) {
         if (newProj != null) { userProject = newProj; } else { userProject = null; }
     }

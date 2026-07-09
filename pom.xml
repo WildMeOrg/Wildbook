@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>10.10.1</version>
+  <version>10.11</version>
   <packaging>war</packaging>
 
   <properties>
@@ -25,6 +25,7 @@
     <testcontainers.version>2.0.3</testcontainers.version>
     <rest-assured.version>5.4.0</rest-assured.version>
     <wiremock.version>3.3.1</wiremock.version>
+    <jjwt.version>0.12.6</jjwt.version>
   </properties>
 
   <repositories>
@@ -616,6 +617,25 @@
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
       <version>2.3.0.1</version>
+    </dependency>
+
+    <!-- JWT signing / verification for scoped-access tokens -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+      <version>${jjwt.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <version>${jjwt.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-jackson</artifactId>
+      <version>${jjwt.version}</version>
+      <scope>runtime</scope>
     </dependency>
   </dependencies>
 

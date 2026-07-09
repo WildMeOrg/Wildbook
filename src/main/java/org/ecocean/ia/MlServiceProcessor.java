@@ -221,7 +221,7 @@ public class MlServiceProcessor {
             shep.commitDBTransaction();
             return new DetectionContext(webUrl.toString(),
                 configs.mlConfig.optString("api_endpoint", null), configs.mlConfig,
-                configs.matchConfig);
+                configs.matchConfig, effectiveTaxonomy);
         } finally {
             shep.rollbackAndClose();
         }
@@ -353,11 +353,67 @@ public class MlServiceProcessor {
                 return PersistResult.done(MlServiceJobOutcome.stale(staleReason));
             }
 
+            // Resolve the _save_as remap inputs ONCE (not per-detection): the
+            // IA.json config and the effective Taxonomy that selected the
+            // detection configs. taxy stays null if no taxonomy is known, in
+            // which case applySaveAs is a no-op. getOrCreateTaxonomy(..., false)
+            // does not persist a new row.
+            IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+            Taxonomy taxy = Util.stringExists(det.effectiveTaxonomyString)
+                ? shep.getOrCreateTaxonomy(det.effectiveTaxonomyString, false) : null;
+
             for (int i = 0; i < results.length(); i++) {
                 JSONObject result = results.getJSONObject(i);
                 double[] bbox = parseBbox(result.getJSONArray("bbox"));
                 double theta = result.getDouble("theta");
                 String[] mv = parseEmbeddingMethodVersion(result);
+                // Resolve the iaClass up front, then the IA.json _save_as remap
+                // (parity with legacy IBEISIA detection, IBEISIA.java:1234,2150)
+                // so the annotation carries the catalog-stored class that
+                // Annotation.getMatchingSetQuery filters match candidates on.
+                // Prefer a true species-classifier's class (the pipeline puts it
+                // on top-level "iaClass" via top_species), then legacy
+                // "class_name"/"class".
+                String rawIaClass = result.optString("iaClass",
+                    result.optString("class_name", result.optString("class", null)));
+                String iaClass = applySaveAs(iaConf, taxy, rawIaClass);
+                // Fallback: when the classifier gave us nothing -- e.g. a
+                // viewpoint-only classifier like whale shark's
+                // msv2_multilabel_flip -- use the DETECTOR's own class
+                // ("detection_class"), mirroring legacy WBIA which read
+                // iaResult.optString("class"). Without a class the box is
+                // stamped null and binAnnotsByIaClass (IA.java) drops it from
+                // matching. Gate this fallback on validity so a misconfigured
+                // detector's garbage class is NOT stamped where we'd otherwise
+                // (correctly) leave null. NB: never read the nested
+                // "classification.class" -- that is a viewpoint label
+                // (e.g. "species:back"), not an iaClass.
+                if (!Util.stringExists(iaClass)) {
+                    String detRaw = result.optString("detection_class", null);
+                    String detMapped = applySaveAs(iaConf, taxy, detRaw);
+                    // Require a taxonomy we can validate against: if we cannot
+                    // confirm the detector class is a real iaClass, leave null
+                    // (the old, safe behavior) rather than trust a bare label.
+                    if (Util.stringExists(detMapped) && (iaConf != null) && (taxy != null)
+                        && iaConf.isValidIAClass(taxy, detMapped)) {
+                        rawIaClass = detRaw;
+                        iaClass = detMapped;
+                    } else if (Util.stringExists(detRaw)) {
+                        System.out.println(
+                            "WARNING: MlServiceProcessor.persistDetections ignoring detection_class '" +
+                            detRaw + "' (maps to '" + detMapped + "') -- not a valid iaClass for " +
+                            "taxonomy " + taxy + "; leaving iaClass null.");
+                    }
+                }
+                // WBIA parity (IBEISIA.convertAnnotation): warn on a class that
+                // is not valid for this taxonomy but still persist it (non-fatal).
+                if (Util.stringExists(iaClass) && (iaConf != null) && (taxy != null)
+                    && !iaConf.isValidIAClass(taxy, iaClass)) {
+                    System.out.println(
+                        "WARNING: MlServiceProcessor.persistDetections resolved iaClass '" +
+                        iaClass + "' not valid for taxonomy " + taxy + " (raw='" + rawIaClass +
+                        "'); persisting anyway.");
+                }
                 Annotation existing = findExistingAnnotation(ma, bbox, theta);
                 if (existing != null) {
                     // Dedup hit: an annotation with this bbox+theta already
@@ -365,31 +421,66 @@ public class MlServiceProcessor {
                     // model produced an identical box). Reuse it. If it has no
                     // embedding for THIS (method, version), attach one so a
                     // later model run does not leave the box unmatchable for
-                    // that method. setVersion() forces the parent Annotation to
-                    // reindex its nested embeddings — the Embedding persist and
-                    // Annotation.addEmbedding alone do not bump the parent.
+                    // that method. Annotation.addEmbedding() bumps the parent's
+                    // version, so the reconciler reindexes its nested embeddings
+                    // into the document _source.
                     if (existing.getEmbeddingByMethod(mv[0], mv[1]) == null) {
                         Embedding emb = new Embedding(existing, mv[0], mv[1],
                             result.getJSONArray("embedding"));
                         shep.getPM().makePersistent(emb);
-                        existing.setVersion();
+                    }
+                    // Self-heal a reused annotation's iaClass when we now have a
+                    // better value. Two cases, both guarded so a legitimately
+                    // different stored class is never clobbered:
+                    //  (a) it has NO class (e.g. persisted before the
+                    //      detection_class fallback existed) -- stamp the freshly
+                    //      resolved class so binAnnotsByIaClass stops dropping it;
+                    //  (b) pre-_save_as row: stored class is exactly the raw
+                    //      model class we now remap to something else.
+                    // setIAClass() bumps VERSION (OpenSearch reindex).
+                    if (Util.stringExists(iaClass) && !iaClass.equals(existing.getIAClass())) {
+                        boolean existingHasNoClass = !Util.stringExists(existing.getIAClass());
+                        boolean preSaveAsRow = Util.stringExists(rawIaClass)
+                            && rawIaClass.equals(existing.getIAClass());
+                        if (existingHasNoClass || preSaveAsRow) {
+                            existing.setIAClass(iaClass);
+                        }
                     }
                     annotationIds.add(existing.getId());
                     continue;
                 }
 
-                JSONObject featureParams = featureParams(bbox, theta,
-                    result.optString("viewpoint", null));
+                // Viewpoint: prefer an explicit result "viewpoint"; otherwise
+                // fall back to the orientation model's label (e.g. whale shark's
+                // whaleshark_v3 -> "left"/"right"). The pipeline only sets a
+                // top-level "viewpoint" from a classifier 'viewpoint' field,
+                // which viewpoint-less classifiers (msv2_multilabel_flip) do not
+                // provide -- leaving it null. Whale-shark matching DOES filter
+                // the candidate set on viewpoint (getMatchingSetQuery via
+                // getViewpointAndNeighbors), and the catalog's viewpoints are
+                // left/right, so without this the box matches across both sides.
+                String viewpoint = result.optString("viewpoint", null);
+                if (!Util.stringExists(viewpoint)) {
+                    JSONObject orientation = result.optJSONObject("orientation");
+                    if (orientation != null) {
+                        String label = orientation.optString("label", null);
+                        // Only adopt a fallback viewpoint Wildbook understands
+                        // (Annotation.VALID_VIEWPOINTS); a stray orientation
+                        // label would never match getViewpointAndNeighbors.
+                        if (Util.stringExists(label) && Annotation.isValidViewpoint(label)) {
+                            viewpoint = label;
+                        }
+                    }
+                }
+                JSONObject featureParams = featureParams(bbox, theta, viewpoint);
                 Feature feature = new Feature(BOUNDING_BOX_FEATURE, featureParams);
-                String iaClass = result.optString("iaClass",
-                    result.optString("class_name", result.optString("class", null)));
                 Annotation ann = new Annotation(null, feature, iaClass);
                 ann.setAcmId(ann.getId());
                 ann.setMatchAgainst(true);
                 ann.setIdentificationStatus(IBEISIA.STATUS_COMPLETE_MLSERVICE);
                 ann.setWbiaRegistered(Boolean.FALSE);
                 ann.setWbiaRegisterAttempts(0);
-                ann.setViewpoint(result.optString("viewpoint", null));
+                ann.setViewpoint(viewpoint);
                 ann.setQuality(optionalFiniteDouble(result, "score",
                     optionalFiniteDouble(result, "confidence", null)));
 
@@ -640,6 +731,20 @@ public class MlServiceProcessor {
 
             Task parent = Task.load(taskId, shep);
             Task matchTask = (parent == null) ? new Task() : new Task(parent);
+            // new Task(parent) copies the parent's parameters. The v2 detection
+            // task is tagged ibeis.detection (IA.enqueueOneAssetForMlService) so
+            // the /metrics detection gauges count it; strip that flag here so it
+            // does NOT propagate onto this match task or the per-annotation
+            // subtasks Embedding.findMatchProspects creates from it below
+            // (new Task(matchTask)). Otherwise the detection gauges would
+            // miscount match/subtasks as detections, and the existential child
+            // clause in MetricsBot would stop counting the parent detection
+            // task. Mirror of IBEISIA's params.remove("ibeis.detection").
+            JSONObject inheritedParams = matchTask.getParameters();
+            if ((inheritedParams != null) && inheritedParams.has("ibeis.detection")) {
+                inheritedParams.remove("ibeis.detection");
+                matchTask.setParameters(inheritedParams);
+            }
             matchTask.setObjectAnnotations(anns);
             matchTask.addParameter("mlServiceV2Match", true);
             // Stamp the chosen _id_conf entry's description into an
@@ -901,6 +1006,27 @@ public class MlServiceProcessor {
         return null;
     }
 
+    /**
+     * Apply the IA.json {@code _save_as} iaClass remap, restoring parity with
+     * the legacy IBEISIA detection path ({@code IBEISIA.java:1234,2150}). The
+     * ml-service returns a model-native class (e.g. {@code "zebra_grevys"});
+     * {@code _save_as} maps it to the catalog-stored class (e.g. {@code
+     * "zebra"}) so the new annotation shares the iaClass that {@link
+     * org.ecocean.Annotation#getMatchingSetQuery} filters match candidates on.
+     *
+     * <p>Null-safe by design: if the config, taxonomy, or raw class is
+     * missing, the raw class is returned unchanged. In particular a class-less
+     * detection must NOT fall through to a {@code _default._save_as} default,
+     * which would stamp a real catalog class onto an unclassified box.</p>
+     *
+     * <p>Package-visible + pure (config and taxonomy injected) so it unit-tests
+     * without a deployment IA.json or a database.</p>
+     */
+    static String applySaveAs(IAJsonProperties iac, Taxonomy taxy, String rawIaClass) {
+        if (iac == null || taxy == null || !Util.stringExists(rawIaClass)) return rawIaClass;
+        return iac.convertIAClassForTaxonomy(rawIaClass, taxy);
+    }
+
     private void markTaskError(String taskId, String code, String message) {
         Shepherd shep = new Shepherd(context);
         shep.setAction(ACTION_PREFIX + "markTaskError");
@@ -1152,14 +1278,20 @@ public class MlServiceProcessor {
         final String apiEndpoint;
         final JSONObject mlConfig;
         final JSONObject matchConfig;
+        // Effective taxonomy (request override or encounter fallback) used to
+        // select the configs above; carried so persistDetections applies the
+        // _save_as iaClass remap against the SAME taxonomy. String (not a JDO
+        // Taxonomy) to avoid carrying a PM-bound object across transactions.
+        final String effectiveTaxonomyString;
         final MlServiceJobOutcome outcome;
 
         DetectionContext(String imageUri, String apiEndpoint, JSONObject mlConfig,
-            JSONObject matchConfig) {
+            JSONObject matchConfig, String effectiveTaxonomyString) {
             this.imageUri = imageUri;
             this.apiEndpoint = apiEndpoint;
             this.mlConfig = mlConfig;
             this.matchConfig = matchConfig;
+            this.effectiveTaxonomyString = effectiveTaxonomyString;
             this.outcome = null;
         }
 
@@ -1168,6 +1300,7 @@ public class MlServiceProcessor {
             this.apiEndpoint = null;
             this.mlConfig = null;
             this.matchConfig = null;
+            this.effectiveTaxonomyString = null;
             this.outcome = outcome;
         }
 

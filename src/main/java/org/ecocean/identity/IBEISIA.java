@@ -3694,9 +3694,19 @@ public class IBEISIA {
     public static JSONObject sendMediaAssetsNew(ArrayList<MediaAsset> mas, String context)
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
+        return sendMediaAssetsNew(mas, context, true);
+    }
+
+    // checkFirst=false skips the full iaImageIds() existence pre-check; use when
+    // the caller has already established the assets are missing from WBIA
+    // (e.g. AcmIdBot sweep probe). (AcmIdBot sweep spec §4.)
+    public static JSONObject sendMediaAssetsNew(ArrayList<MediaAsset> mas, String context,
+        boolean checkFirst)
+    throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
+        InvalidKeyException {
         WildbookIAM plugin = getPluginInstance(context);
 
-        return plugin.sendMediaAssets(mas, true);
+        return plugin.sendMediaAssets(mas, checkFirst);
     }
 
     public static JSONObject sendAnnotationsNew(ArrayList<Annotation> anns, String context,

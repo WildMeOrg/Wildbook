@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import useWheelZoom from "../hooks/useWheelZoom";
 
 const VISIBLE_MARGIN_PX = 40;
 
@@ -248,6 +249,16 @@ const InteractiveAnnotationOverlay = forwardRef(
         window.removeEventListener("resize", handleResize);
       };
     }, [zoom]);
+
+    // Mouse-wheel zoom mirrors the zoomIn/zoomOut imperative-handle behavior.
+    const handleWheelZoom = (direction) => {
+      setZoom((z) => {
+        const nextZoom = clampZoom(z + direction * zoomStep);
+        setPan((prev) => clampPan(prev, nextZoom));
+        return nextZoom;
+      });
+    };
+    useWheelZoom(outerContainerRef, handleWheelZoom, imageLoaded);
 
     const panZoomTransform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
 
