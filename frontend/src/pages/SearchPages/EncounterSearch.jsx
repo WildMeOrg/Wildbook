@@ -23,6 +23,7 @@ const EncounterSearch = observer(() => {
   const schemas = useEncounterSearchSchemas();
   const theme = React.useContext(ThemeColorContext);
   const [totalItems, setTotalItems] = useState(0);
+  const [searchIdMaxResultWindow, setSearchIdMaxResultWindow] = useState(0);
   const [searchIdResultPage, setSearchIdResultPage] = useState(0);
   const [searchIdResultPerPage, setSearchIdResultPerPage1] = useState(20);
   const [sort, setSort] = useState({ sortname: "date", sortorder: "desc" });
@@ -256,6 +257,12 @@ const EncounterSearch = observer(() => {
               10,
             ),
           );
+          setSearchIdMaxResultWindow(
+            parseInt(
+              get(response, ["headers", "x-wildbook-max-result-window"], "0"),
+              10,
+            ),
+          );
           setFilterPanel(false);
         })
         .catch((error) => {
@@ -334,7 +341,9 @@ const EncounterSearch = observer(() => {
         searchText={intl.formatMessage({ id: "SEARCH" })}
         tableData={sortedEncounters}
         totalItems={queryID ? totalItems : totalEncounters}
-        maxResultWindow={encounterData?.maxResultWindow}
+        maxResultWindow={
+          queryID ? searchIdMaxResultWindow : encounterData?.maxResultWindow
+        }
         error={queryID ? null : encounterError}
         page={queryID ? searchIdResultPage : page}
         perPage={queryID ? searchIdResultPerPage : perPage}

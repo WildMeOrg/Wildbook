@@ -684,6 +684,7 @@ const MyDataTable = observer(
                     ))}
                   </Form.Control>
                 </InputGroup>
+                {browsablePageCount > 0 && (
                 <ReactPaginate
                   previousLabel={"<"}
                   nextLabel={">"}
@@ -702,8 +703,9 @@ const MyDataTable = observer(
                   nextClassName={"page-item"}
                   nextLinkClassName={"page-link"}
                   activeClassName={"active-page"}
-                  forcePage={Math.min(page, Math.max(browsablePageCount - 1, 0))}
+                  forcePage={Math.min(page, browsablePageCount - 1)}
                 />
+                )}
                 <InputGroup
                   className="ms-3"
                   style={{ width: "180px", whiteSpace: "nowrap" }}
