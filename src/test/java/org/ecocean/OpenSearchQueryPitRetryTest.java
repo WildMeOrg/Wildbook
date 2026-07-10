@@ -42,10 +42,20 @@ class OpenSearchQueryPitRetryTest {
         return new ResponseException(r);
     }
 
+    @org.junit.jupiter.api.BeforeEach
+    @org.junit.jupiter.api.AfterEach
+    void clearPitCache() {
+        OpenSearch.PIT_CACHE.clear();
+    }
+
     private OpenSearch spyOs() throws IOException {
         OpenSearch os = spy(new OpenSearch());
 
-        doReturn("pit-1").when(os).createPit(anyString());
+        // mirror the real createPit contract: returns the id AND caches it
+        doAnswer(inv -> {
+            OpenSearch.PIT_CACHE.put(inv.getArgument(0), "pit-1");
+            return "pit-1";
+        }).when(os).createPit(anyString());
         doNothing().when(os).deletePit(anyString());
         return os;
     }

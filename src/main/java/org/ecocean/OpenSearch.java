@@ -546,9 +546,9 @@ public class OpenSearch {
             try {
                 return new JSONObject(getRestResponse(searchRequest));
             } catch (ResponseException ex) {
-                // always drop the cached PIT: a possibly-bad cached id would otherwise
+                // always drop OUR cached PIT: a possibly-bad cached id would otherwise
                 // poison every subsequent search on this index
-                discardPitQuietly(indexName);
+                discardPitQuietly(indexName, pitId);
                 if (!isStaleSearchContextError(ex.getMessage())) {
                     // deterministic rejection (bad query, result window exceeded, ...):
                     // retrying cannot succeed and would burn a new server-side PIT per attempt
@@ -575,8 +575,11 @@ public class OpenSearch {
             || message.contains("No search context found");
     }
 
-    // best-effort: delete the (likely stale) server-side PIT before dropping it from cache
-    private void discardPitQuietly(String indexName) {
+    // best-effort: delete the (likely stale) server-side PIT before dropping it from
+    // cache - but only if the cache still holds the pit THIS request used, so we never
+    // destroy a fresh PIT installed by a concurrent request
+    private void discardPitQuietly(String indexName, String pitId) {
+        if ((pitId == null) || !pitId.equals(PIT_CACHE.get(indexName))) return;
         try {
             deletePit(indexName);
         } catch (Exception ex) {
