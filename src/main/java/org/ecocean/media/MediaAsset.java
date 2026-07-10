@@ -1186,7 +1186,20 @@ public class MediaAsset extends Base implements java.io.Serializable {
  */
     public static void updateStandardChildrenBackground(final String context,
         final List<Integer> ids) {
-        if ((ids == null) || (ids.size() < 1)) return;
+        updateStandardChildrenBackground(context, ids, null);
+    }
+
+    /**
+     * Creates standard child assets in the background, then runs {@code afterCommit} only after
+     * the child assets have been committed. Callers that index a parent object from its child URLs
+     * can use the callback to avoid indexing before a _master child is visible.
+     */
+    public static void updateStandardChildrenBackground(final String context,
+        final List<Integer> ids, final Runnable afterCommit) {
+        if ((ids == null) || (ids.size() < 1)) {
+            if (afterCommit != null) afterCommit.run();
+            return;
+        }
         final String tid = Util.generateUUID().substring(0, 8);
         System.out.println("updateStandardChildrenBackground() [" + tid + "] forking for " +
             ids.size() + " MediaAsset ids >>>>");
@@ -1199,17 +1212,25 @@ public class MediaAsset extends Base implements java.io.Serializable {
                 // leak this background Shepherd. commit stays inside try; the finally rollback is a
                 // harmless no-op once the commit has succeeded.
                 try {
-                int ct = 0;
-                for (Integer id : ids) {
-                    ct++;
-                    MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
-                    if (ma == null) continue;
-                    ma.setSkipAutoIndexing(true);
-                    ArrayList<MediaAsset> kids = ma.updateStandardChildren(myShepherd);
-                    System.out.println("+ [" + ct + "] updateStandardChildrenBackground() [" + tid +
-                        "] completed " + kids.size() + " children for id=" + id);
-                }
-                myShepherd.commitDBTransaction();
+                    int ct = 0;
+                    for (Integer id : ids) {
+                        ct++;
+                        try {
+                            MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                            if (ma == null) continue;
+                            ma.setSkipAutoIndexing(true);
+                            ArrayList<MediaAsset> kids = ma.updateStandardChildren(myShepherd);
+                            System.out.println("+ [" + ct + "] updateStandardChildrenBackground() [" +
+                                tid + "] completed " + kids.size() + " children for id=" + id);
+                        } catch (Exception ex) {
+                            System.out.println("updateStandardChildrenBackground() [" + tid +
+                                "] failed for id=" + id + ": " + ex);
+                            ex.printStackTrace();
+                        }
+                    }
+                    if (myShepherd.commitDBTransactionWithStatus() && (afterCommit != null)) {
+                        afterCommit.run();
+                    }
                 } finally {
                     myShepherd.rollbackAndClose();
                 }
