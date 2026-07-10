@@ -45,28 +45,31 @@ class OpenSearchPaginationTest {
             OpenSearch.parseMaxResultWindow(new JSONObject("{\"max_result_window\":\"-1\"}")));
     }
 
-    // ===== isStaleSearchContextError: queryPit may retry ONLY stale/expired PIT errors =====
+    // ===== isStaleSearchContextError: queryPit may retry ONLY stale/expired PIT errors,
+    // matched on the typed OpenSearch error - not status codes or broad substrings =====
 
     @Test void staleContext_missingSearchContextIsRetryable() {
-        assertTrue(OpenSearch.isStaleSearchContextError(404,
+        assertTrue(OpenSearch.isStaleSearchContextError(
             "{\"error\":{\"caused_by\":{\"type\":\"search_context_missing_exception\"}}}"));
-        assertTrue(OpenSearch.isStaleSearchContextError(400,
-            "search_context_missing_exception: No search context found for id"));
+        assertTrue(OpenSearch.isStaleSearchContextError(
+            "No search context found for id [42]"));
     }
 
-    @Test void staleContext_404IsRetryable() {
-        assertTrue(OpenSearch.isStaleSearchContextError(404, "gone"));
+    @Test void staleContext_bareMessageIsNotRetryable() {
+        // a routing/proxy 404 or any other error without the typed cause must propagate
+        assertFalse(OpenSearch.isStaleSearchContextError("no handler found for uri"));
+        assertFalse(OpenSearch.isStaleSearchContextError("gone"));
     }
 
     @Test void staleContext_resultWindowRejectionIsNotRetryable() {
         // the exact class of error observed in production 2026-07-10 (issue #1680):
         // deterministic 400 that can never succeed on retry
-        assertFalse(OpenSearch.isStaleSearchContextError(400,
+        assertFalse(OpenSearch.isStaleSearchContextError(
             "Result window is too large, from + size must be less than or equal to:"
             + " [12004] but was [147080]"));
     }
 
     @Test void staleContext_nullMessageIsNotRetryable() {
-        assertFalse(OpenSearch.isStaleSearchContextError(400, null));
+        assertFalse(OpenSearch.isStaleSearchContextError(null));
     }
 }

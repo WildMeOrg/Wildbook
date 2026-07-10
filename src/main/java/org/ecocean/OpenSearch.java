@@ -58,7 +58,7 @@ public class OpenSearch {
     // because Wildbook raises the setting on indexes that grow past the default
     private static final Map<String, long[]> MAX_RESULT_WINDOW_CACHE =
         new java.util.concurrent.ConcurrentHashMap<String, long[]>();
-    private static final long MAX_RESULT_WINDOW_CACHE_MILLIS = 600000L;
+    private static final long MAX_RESULT_WINDOW_CACHE_MILLIS = 60000L;
     public static String SEARCH_SCROLL_TIME = (String)getConfigurationValue("searchScrollTime",
         "10m");
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
@@ -105,7 +105,6 @@ public class OpenSearch {
     static String ACTIVE_TYPE_FOREGROUND = "opensearch_indexing_foreground";
     static String ACTIVE_TYPE_BACKGROUND = "opensearch_indexing_background";
 
-    private int pitRetry = 0;
 
     public OpenSearch() {
         if (client != null) return;
@@ -526,8 +525,6 @@ public class OpenSearch {
         String sort, String sortOrder)
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
-        String pitId = createPit(indexName);
-        Request searchRequest = new Request("POST", "/_search?track_total_hits=true");
         query.put("from", numFrom);
         query.put("size", pageSize);
         // "sort": [ {"@timestamp": {"order": "asc"}} ]
@@ -537,49 +534,45 @@ public class OpenSearch {
             sortArr.put(new JSONObject("{\"" + sort + "\":{\"order\":\"" + sortOrder + "\"}}"));
             query.put("sort", sortArr);
         }
-        JSONObject jpit = new JSONObject();
-        jpit.put("id", pitId);
-        jpit.put("keep_alive", SEARCH_PIT_TIME);
-        query.put("pit", jpit);
-        searchRequest.setJsonEntity(query.toString());
-        String rtn = null;
-        try {
-            rtn = getRestResponse(searchRequest);
-            pitRetry = 0;
-        } catch (ResponseException ex) {
-            int statusCode = (ex.getResponse() == null) ? -1
-                : ex.getResponse().getStatusLine().getStatusCode();
-            if (!isStaleSearchContextError(statusCode, ex.getMessage())) {
-                // deterministic rejection (bad query, result window exceeded, ...):
-                // retrying cannot succeed and would burn a new server-side PIT per attempt
-                pitRetry = 0;
-                throw ex;
-            }
-            System.out.println("queryPit() using pitId=" + pitId + " failed[" + pitRetry +
-                "] with: " + ex);
-            pitRetry++;
-            if (pitRetry > 5) {
-                pitRetry = 0;
-                ex.printStackTrace();
+        int attempt = 0;
+        while (true) {
+            String pitId = createPit(indexName);
+            JSONObject jpit = new JSONObject();
+            jpit.put("id", pitId);
+            jpit.put("keep_alive", SEARCH_PIT_TIME);
+            query.put("pit", jpit);
+            Request searchRequest = new Request("POST", "/_search?track_total_hits=true");
+            searchRequest.setJsonEntity(query.toString());
+            try {
+                return new JSONObject(getRestResponse(searchRequest));
+            } catch (ResponseException ex) {
+                // always drop the cached PIT: a possibly-bad cached id would otherwise
+                // poison every subsequent search on this index
                 discardPitQuietly(indexName);
-                throw new IOException("queryPit() failed to POST query");
+                if (!isStaleSearchContextError(ex.getMessage())) {
+                    // deterministic rejection (bad query, result window exceeded, ...):
+                    // retrying cannot succeed and would burn a new server-side PIT per attempt
+                    throw ex;
+                }
+                attempt++;
+                System.out.println("queryPit() using pitId=" + pitId + " failed[" + attempt +
+                    "] with: " + ex);
+                if (attempt > 5) {
+                    ex.printStackTrace();
+                    throw new IOException("queryPit() failed to POST query");
+                }
+                // we try again with a fresh PIT
             }
-            // we try again, but attempt to get new PIT
-            discardPitQuietly(indexName);
-            return queryPit(indexName, query, numFrom, pageSize, sort, sortOrder);
         }
-        return new JSONObject(rtn);
     }
 
-    // queryPit()'s cached PIT can expire server-side; only those failures are worth a
-    // retry with a fresh PIT. Anything else is deterministic - retrying cannot succeed.
-    static boolean isStaleSearchContextError(int statusCode, String message) {
-        if (statusCode == 404) return true;
+    // queryPit()'s cached PIT can expire server-side; ONLY that failure class is worth
+    // a retry with a fresh PIT, matched on the typed OpenSearch cause. Anything else
+    // (including a bare 404) is deterministic - retrying cannot succeed.
+    static boolean isStaleSearchContextError(String message) {
         if (message == null) return false;
         return message.contains("search_context_missing")
-            || message.contains("No search context found")
-            || message.contains("point in time")
-            || message.contains("pit_id");
+            || message.contains("No search context found");
     }
 
     // best-effort: delete the (likely stale) server-side PIT before dropping it from cache
@@ -596,16 +589,17 @@ public class OpenSearch {
         if (indexName == null) return DEFAULT_MAX_RESULT_WINDOW;
         long[] cached = MAX_RESULT_WINDOW_CACHE.get(indexName);
         if ((cached != null) && (cached[1] > System.currentTimeMillis())) return (int)cached[0];
-        int window = DEFAULT_MAX_RESULT_WINDOW;
         try {
-            window = parseMaxResultWindow(getSettings(indexName));
+            int window = parseMaxResultWindow(getSettings(indexName));
+            MAX_RESULT_WINDOW_CACHE.put(indexName,
+                new long[] { window, System.currentTimeMillis() + MAX_RESULT_WINDOW_CACHE_MILLIS });
+            return window;
         } catch (Exception ex) {
+            // do NOT cache the fallback: retry the settings read on the next request
             System.out.println("OpenSearch.getMaxResultWindow(" + indexName +
                 ") settings unavailable, using default: " + ex);
+            return DEFAULT_MAX_RESULT_WINDOW;
         }
-        MAX_RESULT_WINDOW_CACHE.put(indexName,
-            new long[] { window, System.currentTimeMillis() + MAX_RESULT_WINDOW_CACHE_MILLIS });
-        return window;
     }
 
     static int parseMaxResultWindow(JSONObject indexSettings) {

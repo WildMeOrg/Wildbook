@@ -132,6 +132,32 @@ class SearchApiPaginationWindowTest {
         verify(response).setHeader("X-Wildbook-Max-Result-Window", "10000");
     }
 
+    // a broken window value from the backend (mock default 0, misconfigured index)
+    // falls back to the default ceiling instead of rejecting every request
+    @Test void nonPositiveWindow_fallsBackToDefault() throws Exception {
+        when(request.getParameter("from")).thenReturn("9990");
+        when(request.getParameter("size")).thenReturn("10");
+        User user = mockUser("u1");
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user);
+            MockedConstruction<OpenSearch> os = openSearchWithWindow(0)) {
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(200);
+        verify(response).setHeader("X-Wildbook-Max-Result-Window", "10000");
+    }
+
+    // size=0 (aggregation-style) stays valid, including exactly at the window boundary
+    @Test void sizeZeroAtWindowBoundary_isAllowed() throws Exception {
+        when(request.getParameter("from")).thenReturn("10000");
+        when(request.getParameter("size")).thenReturn("0");
+        User user = mockUser("u1");
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user);
+            MockedConstruction<OpenSearch> os = openSearchWithWindow(10000)) {
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(200);
+    }
+
     // the check uses the PER-INDEX window (which Wildbook raises above 10k on big indexes)
     @Test void perIndexWindowIsRespected() throws Exception {
         when(request.getParameter("from")).thenReturn("12000");
