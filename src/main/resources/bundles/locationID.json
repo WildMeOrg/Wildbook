@@ -146,6 +146,7 @@
         {"name": "Sea of Azov", "id": "Sea of Azov", "locationID":[]},
         {"name": "Sea of the Hebrides", "id": "Sea of the Hebrides", "locationID":[]},
         {"name": "Turks and Caicos", "id": "Turks and Caicos", "locationID":[]},
+	{"name": "test-nyb", "id": "test-nyb", "locationID":[]},
         {"name":"U.S. Eastern Seaboard","id":"U.S. Eastern Seaboard","locationID":[
           {"name": "NorfolkCanyon", "id": "NorfolkCanyon", "locationID":[]},
           {"name": "NC-OUTERBANKS", "id": "NC - Outerbanks", "locationID":[]},
