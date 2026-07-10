@@ -53,7 +53,7 @@ const MyDataTable = observer(
     const [data, setData] = useState([]);
     // OpenSearch cannot serve hits past index.max_result_window - offer only pages
     // that are actually fetchable, even when the total hit count is larger
-    const browsableItems = browsableItemCount(totalItems, maxResultWindow);
+    const browsableItems = browsableItemCount(totalItems, maxResultWindow, perPage);
     const browsablePageCount = pageCount(totalItems, maxResultWindow, perPage);
     const [filterText, setFilterText] = useState("");
     const [goToPage, setGoToPage] = useState("");
@@ -196,6 +196,14 @@ const MyDataTable = observer(
       [columnNames],
     );
 
+    // if the browsable page count shrinks below the current page (window/per-page
+    // changed), snap back to the last reachable page
+    useEffect(() => {
+      if (browsablePageCount > 0 && page >= browsablePageCount) {
+        onPageChange(browsablePageCount - 1);
+      }
+    }, [browsablePageCount, page, onPageChange]);
+
     const params = new URLSearchParams(window.location.search);
     const individualIDExact = params.get("individualIDExact");
     const calendar = params.get("calendar");
@@ -264,6 +272,7 @@ const MyDataTable = observer(
       const newPerPage = Number(event.target.value);
       if (!isNaN(newPerPage) && newPerPage > 0) {
         onPerPageChange(newPerPage);
+        onPageChange(0);
       }
     };
 
@@ -693,7 +702,7 @@ const MyDataTable = observer(
                   nextClassName={"page-item"}
                   nextLinkClassName={"page-link"}
                   activeClassName={"active-page"}
-                  forcePage={page}
+                  forcePage={Math.min(page, Math.max(browsablePageCount - 1, 0))}
                 />
                 <InputGroup
                   className="ms-3"
