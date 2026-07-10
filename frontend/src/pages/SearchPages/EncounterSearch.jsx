@@ -67,6 +67,7 @@ const EncounterSearch = observer(() => {
   const {
     data: encounterData,
     loading,
+    error: encounterError,
     refetch,
   } = useFilterEncounters({
     queries: store.appliedFilters,
@@ -333,6 +334,8 @@ const EncounterSearch = observer(() => {
         searchText={intl.formatMessage({ id: "SEARCH" })}
         tableData={sortedEncounters}
         totalItems={queryID ? totalItems : totalEncounters}
+        maxResultWindow={encounterData?.maxResultWindow}
+        error={queryID ? null : encounterError}
         page={queryID ? searchIdResultPage : page}
         perPage={queryID ? searchIdResultPerPage : perPage}
         onPageChange={queryID ? setSearchIdResultPage : setPage}
