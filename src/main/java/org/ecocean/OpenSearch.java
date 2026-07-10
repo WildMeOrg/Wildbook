@@ -53,6 +53,12 @@ public class OpenSearch {
     public static RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
     public static Map<String, String> PIT_CACHE = new HashMap<String, String>();
+    public static final int DEFAULT_MAX_RESULT_WINDOW = 10000;
+    // per-index max_result_window: {value, expiresAtMillis}; read live (briefly cached)
+    // because Wildbook raises the setting on indexes that grow past the default
+    private static final Map<String, long[]> MAX_RESULT_WINDOW_CACHE =
+        new java.util.concurrent.ConcurrentHashMap<String, long[]>();
+    private static final long MAX_RESULT_WINDOW_CACHE_MILLIS = 600000L;
     public static String SEARCH_SCROLL_TIME = (String)getConfigurationValue("searchScrollTime",
         "10m");
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
@@ -541,18 +547,77 @@ public class OpenSearch {
             rtn = getRestResponse(searchRequest);
             pitRetry = 0;
         } catch (ResponseException ex) {
+            int statusCode = (ex.getResponse() == null) ? -1
+                : ex.getResponse().getStatusLine().getStatusCode();
+            if (!isStaleSearchContextError(statusCode, ex.getMessage())) {
+                // deterministic rejection (bad query, result window exceeded, ...):
+                // retrying cannot succeed and would burn a new server-side PIT per attempt
+                pitRetry = 0;
+                throw ex;
+            }
             System.out.println("queryPit() using pitId=" + pitId + " failed[" + pitRetry +
                 "] with: " + ex);
             pitRetry++;
             if (pitRetry > 5) {
+                pitRetry = 0;
                 ex.printStackTrace();
+                discardPitQuietly(indexName);
                 throw new IOException("queryPit() failed to POST query");
             }
             // we try again, but attempt to get new PIT
-            PIT_CACHE.remove(indexName);
+            discardPitQuietly(indexName);
             return queryPit(indexName, query, numFrom, pageSize, sort, sortOrder);
         }
         return new JSONObject(rtn);
+    }
+
+    // queryPit()'s cached PIT can expire server-side; only those failures are worth a
+    // retry with a fresh PIT. Anything else is deterministic - retrying cannot succeed.
+    static boolean isStaleSearchContextError(int statusCode, String message) {
+        if (statusCode == 404) return true;
+        if (message == null) return false;
+        return message.contains("search_context_missing")
+            || message.contains("No search context found")
+            || message.contains("point in time")
+            || message.contains("pit_id");
+    }
+
+    // best-effort: delete the (likely stale) server-side PIT before dropping it from cache
+    private void discardPitQuietly(String indexName) {
+        try {
+            deletePit(indexName);
+        } catch (Exception ex) {
+            PIT_CACHE.remove(indexName);
+        }
+    }
+
+    // the effective pagination ceiling (from + size limit) for queries on this index
+    public int getMaxResultWindow(String indexName) {
+        if (indexName == null) return DEFAULT_MAX_RESULT_WINDOW;
+        long[] cached = MAX_RESULT_WINDOW_CACHE.get(indexName);
+        if ((cached != null) && (cached[1] > System.currentTimeMillis())) return (int)cached[0];
+        int window = DEFAULT_MAX_RESULT_WINDOW;
+        try {
+            window = parseMaxResultWindow(getSettings(indexName));
+        } catch (Exception ex) {
+            System.out.println("OpenSearch.getMaxResultWindow(" + indexName +
+                ") settings unavailable, using default: " + ex);
+        }
+        MAX_RESULT_WINDOW_CACHE.put(indexName,
+            new long[] { window, System.currentTimeMillis() + MAX_RESULT_WINDOW_CACHE_MILLIS });
+        return window;
+    }
+
+    static int parseMaxResultWindow(JSONObject indexSettings) {
+        if (indexSettings == null) return DEFAULT_MAX_RESULT_WINDOW;
+        try {
+            // _settings returns values as strings; tolerate numbers too
+            int window = Integer.parseInt(indexSettings.opt("max_result_window").toString());
+            // a broken/misconfigured value must never lock search out entirely
+            return (window < 1) ? DEFAULT_MAX_RESULT_WINDOW : window;
+        } catch (Exception ex) {
+            return DEFAULT_MAX_RESULT_WINDOW;
+        }
     }
 
     // just return the actual hit results
@@ -855,6 +920,7 @@ public class OpenSearch {
             putSettings(indexName,
                 new JSONObject("{\"index.max_result_window\": " +
                 Math.round(1.2 * versions.size()) + "}"));
+            MAX_RESULT_WINDOW_CACHE.remove(indexName);
         }
         return versions;
     }
