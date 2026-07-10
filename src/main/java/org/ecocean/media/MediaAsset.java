@@ -1233,7 +1233,8 @@ public class MediaAsset extends Base implements java.io.Serializable {
 
     // convenience, XXX  BUT see not above about sending multiple ids when possible!  XXX
     public static void updateStandardChildrenBackground(final String context, int id) {
-        updateStandardChildrenBackground(context, new ArrayList<Integer>(id));
+        // note: new ArrayList<Integer>(id) here would be the *capacity* constructor (empty list)
+        updateStandardChildrenBackground(context, Collections.singletonList(id));
     }
 
     public void updateStandardChildrenBackground(String context) { // convenience
