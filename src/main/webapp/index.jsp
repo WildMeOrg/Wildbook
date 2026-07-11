@@ -58,13 +58,49 @@ myShepherd.beginDBTransaction();
 try{
 
 
-    //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
-    numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
-    numEncounters=myShepherd.getNumEncounters();
-    //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
-    //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
-    numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
-    numUsers=qc.getQueryByName("numUsers").executeCountQuery(myShepherd).intValue();
+    // Landing-page counts, cached application-wide for 10 minutes.
+    // Encounter/individual counts come from OpenSearch _count (~1ms, no Postgres,
+    // no DataNucleus object materialization - the old per-request full-table
+    // .size() serialized every request thread on the metadata monitor under
+    // concurrent homepage hits and could freeze the whole JVM). User/role counts
+    // stay as DB-side COUNT queries: tiny tables, not indexed in OpenSearch.
+    // On refresh failure the previous cached values keep serving.
+    Long countsAt = (Long)application.getAttribute("wbLandingCountsAt");
+    if ((countsAt == null) || ((System.currentTimeMillis() - countsAt.longValue()) > 600000L)) {
+        try {
+            org.ecocean.OpenSearch os = new org.ecocean.OpenSearch();
+            int osNumEnc = os.queryCount("encounter", new org.json.JSONObject(
+                "{\"query\":{\"bool\":{\"must_not\":[{\"term\":{\"state\":\"unidentifiable\"}}]}}}"));
+            int osNumIndiv = os.queryCount("individual", new org.json.JSONObject(
+                "{\"query\":{\"match_all\":{}}}"));
+            javax.jdo.Query cq;
+            cq = myShepherd.getPM().newQuery("SELECT count(distinct username) FROM org.ecocean.Role");
+            int dbNumContributors = ((Long)cq.execute()).intValue();
+            cq.closeAll();
+            cq = myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.User");
+            int dbNumUsers = ((Long)cq.execute()).intValue();
+            cq.closeAll();
+            if ((osNumEnc >= 0) && (osNumIndiv >= 0)) {
+                application.setAttribute("wbNumEncounters", Integer.valueOf(osNumEnc));
+                application.setAttribute("wbNumMarkedIndividuals", Integer.valueOf(osNumIndiv));
+                application.setAttribute("wbNumDataContributors", Integer.valueOf(dbNumContributors));
+                application.setAttribute("wbNumUsers", Integer.valueOf(dbNumUsers));
+                // timestamp LAST: presence implies all four values are present
+                application.setAttribute("wbLandingCountsAt", Long.valueOf(System.currentTimeMillis()));
+            }
+        } catch (Exception statsEx) {
+            System.out.println("index.jsp: landing counts refresh failed, serving cached: " + statsEx);
+        }
+    }
+    Integer wbCached;
+    wbCached = (Integer)application.getAttribute("wbNumEncounters");
+    numEncounters = (wbCached == null) ? 0 : wbCached.intValue();
+    wbCached = (Integer)application.getAttribute("wbNumMarkedIndividuals");
+    numMarkedIndividuals = (wbCached == null) ? 0 : wbCached.intValue();
+    wbCached = (Integer)application.getAttribute("wbNumDataContributors");
+    numDataContributors = (wbCached == null) ? 0 : wbCached.intValue();
+    wbCached = (Integer)application.getAttribute("wbNumUsers");
+    numUsers = (wbCached == null) ? 0 : wbCached.intValue();
     numUsersWithRoles = numUsers-numDataContributors;
 
 
@@ -221,7 +257,19 @@ h2.vidcap {
             <%
             //myShepherd.beginDBTransaction();
             try{
-								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
+								// featured user: cache only the picked USERNAME (10 min); per-request cost
+								// is one primary-key lookup instead of materializing the whole user table
+								String wbFeatName = (String)application.getAttribute("wbFeaturedUsername");
+								Long wbFeatAt = (Long)application.getAttribute("wbFeaturedUsernameAt");
+								if ((wbFeatName == null) || (wbFeatAt == null) || ((System.currentTimeMillis() - wbFeatAt.longValue()) > 600000L)) {
+								    User wbPick = myShepherd.getRandomUserWithPhotoAndStatement();
+								    if (wbPick != null) {
+								        wbFeatName = wbPick.getUsername();
+								        application.setAttribute("wbFeaturedUsername", wbFeatName);
+								        application.setAttribute("wbFeaturedUsernameAt", Long.valueOf(System.currentTimeMillis()));
+								    }
+								}
+								User featuredUser = (wbFeatName == null) ? null : myShepherd.getUser(wbFeatName);
             if(featuredUser!=null){
                 String profilePhotoURL="images/user-profile-white-transparent.png";
                 if(featuredUser.getUserImage()!=null){
@@ -269,7 +317,23 @@ h2.vidcap {
 
                        
                        try{
-                           List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                           // latest encounters: cache the 3 catalog numbers (10 min); per-request cost
+                           // is three primary-key lookups
+                           java.util.List<String> wbLatestNums = (java.util.List<String>)application.getAttribute("wbLatestEncNums");
+                           Long wbLatestAt = (Long)application.getAttribute("wbLatestEncNumsAt");
+                           if ((wbLatestNums == null) || (wbLatestAt == null) || ((System.currentTimeMillis() - wbLatestAt.longValue()) > 600000L)) {
+                               wbLatestNums = new java.util.ArrayList<String>();
+                               for (Encounter wbE : myShepherd.getMostRecentIdentifiedEncountersByDate(3)) {
+                                   wbLatestNums.add(wbE.getCatalogNumber());
+                               }
+                               application.setAttribute("wbLatestEncNums", wbLatestNums);
+                               application.setAttribute("wbLatestEncNumsAt", Long.valueOf(System.currentTimeMillis()));
+                           }
+                           List<Encounter> latestIndividuals = new java.util.ArrayList<Encounter>();
+                           for (String wbNum : wbLatestNums) {
+                               Encounter wbE = myShepherd.getEncounter(wbNum);
+                               if (wbE != null) latestIndividuals.add(wbE);
+                           }
                            int numResults=latestIndividuals.size();
 	                       for(int i=0;i<numResults;i++){
 	                           Encounter thisEnc=latestIndividuals.get(i);
@@ -314,11 +378,17 @@ h2.vidcap {
                     //myShepherd.beginDBTransaction();
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
-                            long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
-
-	                    System.out.println("  I think my startTime is: "+startTime);
-
-	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
+                            // top spotters: cache the username->count map (plain strings/ints, 10 min).
+                            // The uncached call scans the encounter date range AND does a DB lookup per
+                            // active submitter on EVERY homepage hit - the main source of page slowness.
+                            Map<String,Integer> spotters = (Map<String,Integer>)application.getAttribute("wbTopSpotters");
+                            Long wbSpottersAt = (Long)application.getAttribute("wbTopSpottersAt");
+                            if ((spotters == null) || (wbSpottersAt == null) || ((System.currentTimeMillis() - wbSpottersAt.longValue()) > 600000L)) {
+                                long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
+                                spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
+                                application.setAttribute("wbTopSpotters", spotters);
+                                application.setAttribute("wbTopSpottersAt", Long.valueOf(System.currentTimeMillis()));
+                            }
 	                    int numUsersToDisplay=3;
 	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
 	                    Iterator<String> keys=spotters.keySet().iterator();
