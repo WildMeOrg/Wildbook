@@ -1584,19 +1584,36 @@
 			"id": "Tanzania",
 			"locationID": [
 				{
-					"name": "Arusha National Park",
-					"id": "Arusha National Park",
-					"description": "Arusha National Park",
-					"geospatialInfo":{
-		 			 	"lat":-3.2,
-		 			 	"long":36.8
-		 			 },
-					  "locationID":[]
+					"name": "Arusha",
+					"id": "Arusha",
+					"locationID": [
+						{
+							"name": "Arusha National Park",
+							"id": "Arusha National Park",
+							"description": "Arusha National Park",
+							"geospatialInfo": {
+								"lat": -3.2,
+								"long": 36.8
+							},
+							"locationID": []
+						}
+					]
 				},
 				{
 					"name": "Mkomazi National Park",
 					"id": "Mkomazi National Park",
-					"locationID":[]
+					"locationID": [
+						{
+							"name": "Kilimanjaro",
+							"id": "Kilimanjaro",
+							"locationID": []
+						},
+						{
+							"name": "Tanga",
+							"id": "Tanga",
+							"locationID": []
+						}
+					]
 				},
 				{
 					"name": "Ruaha National Park",
@@ -1628,24 +1645,86 @@
 					"locationID":[]
 				},
 				{
-					"name": "Serengeti National Park",
-					"id": "Serengeti National Park",
-					"description": "Serengeti National Park",
-					"geospatialInfo": {
-						"lat": -2.33341,
-						"long": 34.83344
-					},
-					"locationID": []
+					"name": "Serengeti",
+					"id": "Serengeti",
+					"locationID": [
+						{
+							"name": "Grumeti Game Reserve",
+							"id": "Grumeti Game Reserve",
+							"locationID": []
+						},
+						{
+							"name": "Ikona Wildlife Management Area",
+							"id": "Ikona Wildlife Management Area",
+							"locationID": []
+						},
+						{
+							"name": "Ikorongo Game Reserve",
+							"id": "Ikorongo Game Reserve",
+							"locationID": []
+						},
+						{
+							"name": "Maswa Game Reserve",
+							"id": "Maswa Game Reserve",
+							"locationID": []
+						},
+						{
+							"name": "Ngorongoro Conservation Area",
+							"id": "Ngorongoro Conservation Area",
+							"locationID": []
+						},
+						{
+							"name": "Pololeti Game Reserve",
+							"id": "Pololeti Game Reserve",
+							"locationID": []
+						},
+						{
+							"name": "Serengeti National Park",
+							"id": "Serengeti National Park",
+							"description": "Serengeti National Park",
+							"geospatialInfo": {
+								"lat": -2.33341,
+								"long": 34.83344
+							},
+							"locationID": []
+						}
+					]
 				},
 				{
-					"name": "Tarangire National Park",
-					"id": "Tarangire National Park",
-					"description": "Tarangire National Park",
-					"geospatialInfo": {
-						"lat": -4.16289,
-						"long": 36.08990
-					},
-					"locationID": []
+					"name": "Tarangire",
+					"id": "Tarangire",
+					"locationID": [
+						{
+							"name": "Burunge Wildlife Management Area",
+							"id": "Burunge Wildlife Management Area",
+							"locationID": []
+						},
+						{
+							"name": "Lake Manyara",
+							"id": "Lake Manyara",
+							"locationID": []
+						},
+						{
+							"name": "Makuyuni Wildlife Park",
+							"id": "Makuyuni Wildlife Park",
+							"locationID": []
+						},
+						{
+							"name": "Manyara Ranch",
+							"id": "Manyara Ranch",
+							"locationID": []
+						},
+						{
+							"name": "Tarangire National Park",
+							"id": "Tarangire National Park",
+							"description": "Tarangire National Park",
+							"geospatialInfo": {
+								"lat": -4.16289,
+								"long": 36.08990
+							},
+							"locationID": []
+						}
+					]
 				}
 			]
 		},
