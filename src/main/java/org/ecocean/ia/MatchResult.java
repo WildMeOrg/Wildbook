@@ -315,8 +315,20 @@ public class MatchResult implements java.io.Serializable {
             new HashMap<String, List<Annotation> >();
         List<Annotation> singletons = new ArrayList<Annotation>();
 
+        // Batch-load all parent encounters up front (was: one findEncounter JDOQL per prospect).
+        // No Shepherd -> no DB access possible; degrade to no indiv grouping (the annot-scored
+        // prospects are populated separately and do not need it), matching the prior findEncounter
+        // behavior when no encounter could be resolved.
+        List<String> annIds = new ArrayList<String>();
         for (Annotation ann : annots) {
-            Encounter enc = ann.findEncounter(myShepherd);
+            if ((ann != null) && (ann.getId() != null)) annIds.add(ann.getId());
+        }
+        Map<String, Encounter> encByAnnId = (myShepherd == null)
+            ? java.util.Collections.<String, Encounter>emptyMap()
+            : myShepherd.getEncountersByAnnotationIds(annIds);
+
+        for (Annotation ann : annots) {
+            Encounter enc = (ann == null) ? null : encByAnnId.get(ann.getId());
             // No encounter at all: skip (no individual axis possible).
             if (enc == null) continue;
             MarkedIndividual indiv = enc.getIndividual();
