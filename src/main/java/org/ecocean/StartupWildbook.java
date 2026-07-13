@@ -911,6 +911,7 @@ public class StartupWildbook implements ServletContextListener {
         shutdownWbiaRegisterExecutor();
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
+        org.ecocean.ia.ParallelIdentify.shutdown();
         MetricsBot.cleanup();
         AcmIdBot.cleanup();
         IndexingManagerFactory.getIndexingManager().shutdown();
