@@ -403,8 +403,103 @@ public abstract class AssetStore implements java.io.Serializable {
             throw new IOException("updateChild() ImageProcessor failed due to interruption: " +
                     ex.toString());
         }
-        if (!targetFile.exists())
+        if (!targetFile.exists() || targetFile.length() == 0) {
+            // ZIMPARKS PRODUCTION PATCH: fallback derivative creation.
+            // If normal derivative creation fails, create the target image using Java ImageIO.
+            // This prevents missing master/thumb/mid files after upload.
+            try {
+                java.io.File parentDir = targetFile.getParentFile();
+                if (parentDir != null) {
+                    parentDir.mkdirs();
+                }
+
+                java.awt.image.BufferedImage input = javax.imageio.ImageIO.read(sourceFile);
+
+                if (input != null) {
+                    String targetName = targetFile.getName();
+
+                    int targetWidth = input.getWidth();
+                    int targetHeight = input.getHeight();
+
+                    if (targetName.contains("-thumb")) {
+                        targetWidth = 250;
+                        targetHeight = 200;
+                    } else if (targetName.contains("-mid")) {
+                        targetWidth = 800;
+                        targetHeight = 800;
+                    } else if (targetName.contains("-master")) {
+                        targetWidth = 1600;
+                        targetHeight = 1600;
+                    }
+
+                    double scale = Math.min(
+                        1.0,
+                        Math.min(
+                            (double) targetWidth / (double) input.getWidth(),
+                            (double) targetHeight / (double) input.getHeight()
+                        )
+                    );
+
+                    if (scale <= 0 || Double.isInfinite(scale) || Double.isNaN(scale)) {
+                        scale = 1.0;
+                    }
+
+                    int newWidth = Math.max(1, (int) Math.round(input.getWidth() * scale));
+                    int newHeight = Math.max(1, (int) Math.round(input.getHeight() * scale));
+
+                    java.awt.image.BufferedImage output =
+                        new java.awt.image.BufferedImage(
+                            newWidth,
+                            newHeight,
+                            java.awt.image.BufferedImage.TYPE_INT_RGB
+                        );
+
+                    java.awt.Graphics2D g = output.createGraphics();
+                    g.setColor(java.awt.Color.WHITE);
+                    g.fillRect(0, 0, newWidth, newHeight);
+
+                    g.setRenderingHint(
+                        java.awt.RenderingHints.KEY_INTERPOLATION,
+                        java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC
+                    );
+                    g.setRenderingHint(
+                        java.awt.RenderingHints.KEY_RENDERING,
+                        java.awt.RenderingHints.VALUE_RENDER_QUALITY
+                    );
+                    g.setRenderingHint(
+                        java.awt.RenderingHints.KEY_ANTIALIASING,
+                        java.awt.RenderingHints.VALUE_ANTIALIAS_ON
+                    );
+
+                    g.drawImage(input, 0, 0, newWidth, newHeight, null);
+                    g.dispose();
+
+                    javax.imageio.ImageIO.write(output, "jpg", targetFile);
+                }
+
+                // Last-resort fallback: if ImageIO failed, copy original file.
+                if (!targetFile.exists() || targetFile.length() == 0) {
+                    java.nio.file.Files.copy(
+                        sourceFile.toPath(),
+                        targetFile.toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                    );
+                }
+
+                targetFile.setReadable(true, false);
+                targetFile.setWritable(true, true);
+
+                System.out.println(
+                    "ZIMPARKS PATCH: created derivative fallback " + targetFile.getAbsolutePath()
+                );
+            } catch (Exception fallbackException) {
+                fallbackException.printStackTrace();
+            }
+        }
+
+        if (!targetFile.exists() || targetFile.length() == 0) {
             throw new IOException("updateChild() failed to create " + targetFile.toString());
+        }
         return true;
     }
 
