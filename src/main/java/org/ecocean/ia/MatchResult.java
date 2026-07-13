@@ -681,10 +681,25 @@ public class MatchResult implements java.io.Serializable {
     public JSONObject prospectsForApiGet(int cutoff, Set<String> projectIds, Shepherd myShepherd) {
         JSONObject sj = new JSONObject();
 
+        // Batch-load every prospect's parent encounter once (was: one findEncounter per prospect per
+        // type inside annotationDetails). `prospects` is a nullable Set; guard it. Null shepherd ->
+        // no batch (annotationDetails keeps its per-annotation fallback), preserving prior behavior.
+        // NOTE: this removes the fanout in the SERIALIZATION path only; when projectIds is non-empty
+        // prospectsSorted -> isInProjects still resolves encounters per prospect (separate, unchanged).
+        java.util.Map<String, Encounter> encByAnnId = java.util.Collections.emptyMap();
+        if ((myShepherd != null) && (prospects != null) && !prospects.isEmpty()) {
+            List<String> annIds = new ArrayList<String>();
+            for (MatchResultProspect mrp : prospects) {
+                Annotation a = (mrp == null) ? null : mrp.getAnnotation();
+                if ((a != null) && (a.getId() != null)) annIds.add(a.getId());
+            }
+            encByAnnId = myShepherd.getEncountersByAnnotationIds(annIds);
+        }
+
         for (String type : prospectScoreTypes()) {
             JSONArray jarr = new JSONArray();
             for (MatchResultProspect mrp : prospectsSorted(type, cutoff, projectIds, myShepherd)) {
-                jarr.put(mrp.jsonForApiGet(myShepherd));
+                jarr.put(mrp.jsonForApiGet(myShepherd, encByAnnId));
             }
             sj.put(type, jarr);
         }
@@ -705,6 +720,22 @@ public class MatchResult implements java.io.Serializable {
     }
 
     public static JSONObject annotationDetails(Annotation ann, Shepherd myShepherd) {
+        return annotationDetails(ann, myShepherd, null);
+    }
+
+    // Prefer a pre-batched annotation-id -> Encounter map (one loader call for the whole result) and
+    // fall back to the per-annotation query when the map is absent or lacks this id (e.g. the single
+    // queryAnnotation call). Absent id -> findEncounter; the map never holds null values.
+    private static Encounter resolveEncounter(Annotation ann, Shepherd myShepherd,
+        java.util.Map<String, Encounter> encByAnnId) {
+        if ((encByAnnId != null) && (ann.getId() != null) && encByAnnId.containsKey(ann.getId())) {
+            return encByAnnId.get(ann.getId());
+        }
+        return ann.findEncounter(myShepherd);
+    }
+
+    public static JSONObject annotationDetails(Annotation ann, Shepherd myShepherd,
+        java.util.Map<String, Encounter> encByAnnId) {
         JSONObject aj = new JSONObject();
 
         if (ann == null) return aj;
@@ -732,7 +763,7 @@ public class MatchResult implements java.io.Serializable {
             mj.put("rotationInfo", ma.getRotationInfo());
             aj.put("asset", mj);
         }
-        Encounter enc = ann.findEncounter(myShepherd);
+        Encounter enc = resolveEncounter(ann, myShepherd, encByAnnId);
         if (enc != null) {
             JSONObject ej = new JSONObject();
             // TODO add "access" permission value if needed?
