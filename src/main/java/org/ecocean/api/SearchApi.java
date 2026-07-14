@@ -66,7 +66,7 @@ public class SearchApi extends ApiBase {
                 JSONObject query = null;
                 if (Util.isUUID(indexName)) {
                     searchQueryId = indexName;
-                    query = OpenSearch.queryLoad(searchQueryId);
+                    query = OpenSearch.queryLoad(searchQueryId, myShepherd);
                 }
                 // effective index: a stored query's real index comes from the loaded doc, not the {uuid} URL.
                 // null-safe: null when a stored query failed to load (handled by the missing-stored-query branch).
@@ -161,9 +161,32 @@ public class SearchApi extends ApiBase {
                     } else {
                     // all token validation gates passed -> persist the clean new query now (before
                     // applyAclFilter embeds ACL fields into it); rejected bodies were never stored
+                    boolean storeFailed = false;
+                    boolean sessionRecoveryFailed = false;
                     if (newQueryToStore) {
-                        searchQueryId = OpenSearch.queryStore(query, indexName, currentUser);
+                        // commits + re-begins myShepherd's (read-only so far) transaction
+                        searchQueryId = OpenSearch.queryStore(query, indexName, currentUser,
+                            myShepherd);
+                        storeFailed = (searchQueryId == null);
+                        // commit confirmed but the request transaction could not be re-established:
+                        // the id IS durable, but sanitizeDoc needs live DB reads -- fail the request
+                        // without claiming the store failed, and hand back the (valid) id
+                        sessionRecoveryFailed = !storeFailed &&
+                            !myShepherd.isDBTransactionActive();
                     }
+                    if (storeFailed) {
+                        // a search whose response promises a share id must not 200 without one
+                        response.setStatus(503);
+                        res.put("success", false);
+                        res.put("error", "failed to store search query");
+                    } else if (sessionRecoveryFailed) {
+                        response.setStatus(503);
+                        res.put("success", false);
+                        res.put("error",
+                            "search query stored but request could not continue; retry");
+                        res.put("searchQueryId", searchQueryId);
+                        response.setHeader("X-Wildbook-Search-Query-Id", searchQueryId);
+                    } else {
                     if (tokenAuth && !isAdmin) {
                         // Java is the hard boundary: scope totals + pagination + hits before execution
                         query = OpenSearch.applyAclFilter(query, currentUser.getId(), indexName);
@@ -218,6 +241,7 @@ public class SearchApi extends ApiBase {
                         res.put("error", "query failed");
                         ex.printStackTrace();
                     }
+                    } // end storeFailed/sessionRecoveryFailed else
                     } // end individual-token field-gate else
                     } // end aggError else
                 }
