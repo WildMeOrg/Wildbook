@@ -892,6 +892,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return many.get(0);
     }
 
+    public String getAlternateID() {
+        return alternateid;
+    }
+
     public void setNickName(String newName) {
         this.addNameByKey(NAMES_KEY_NICKNAME, newName);
     }
