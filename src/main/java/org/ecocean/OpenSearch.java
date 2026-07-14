@@ -101,7 +101,10 @@ public class OpenSearch {
     public static boolean isMatchWarmupReady() {
         return matchWarmupReady;
     }
-    public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
+    // stored search queries (see queryStore): pruned opportunistically at most this often
+    static final long QUERY_PRUNE_INTERVAL_MILLIS = 3600000L; // 1 hour
+    static final int QUERY_TTL_DAYS_DEFAULT = 90;
+    private static volatile long queryLastPruneMillis = 0L;
     static String ACTIVE_TYPE_FOREGROUND = "opensearch_indexing_foreground";
     static String ACTIVE_TYPE_BACKGROUND = "opensearch_indexing_background";
 
@@ -1565,37 +1568,69 @@ public class OpenSearch {
             "] completed indexing " + indexName);
     }
 
-    public static String queryStoragePath(String id) {
-        return QUERY_STORAGE_DIR + "/OpenSearch-query-" + id + ".json";
-    }
-
+    /**
+     * Persist a stored query durably (OPENSEARCHQUERY table). Uses the CALLER's
+     * Shepherd/connection: commits the caller's open transaction (which must hold no other
+     * uncommitted writes -- SearchApi's is read-only) via commitDBTransactionWithStatus() so a
+     * commit failure is detectable, then re-begins a transaction for the remainder of the
+     * request. Returns the new id ONLY after a confirmed commit; null means durability was not
+     * confirmed. A confirmed commit followed by a failed re-begin still returns the id --
+     * callers needing further DB reads must check myShepherd.isDBTransactionActive().
+     */
     public static String queryStore(final JSONObject query, final String indexName,
-        final User user) {
-        if (query == null) return null;
+        final User user, final Shepherd myShepherd) {
+        if ((query == null) || (user == null) || (myShepherd == null)) return null;
         JSONObject stored = new JSONObject(query.toString());
         String id = Util.generateUUID();
+        long now = System.currentTimeMillis();
         stored.put("id", id);
         stored.put("indexName", indexName);
-        stored.put("created", System.currentTimeMillis());
+        stored.put("created", now);
         stored.put("creator", user.getUUID());
+        boolean committed = false;
         try {
-            Util.writeToFile(stored.toString(), queryStoragePath(id));
+            myShepherd.getPM().makePersistent(new OpenSearchQuery(id, stored, now));
+            if ((now - queryLastPruneMillis) > QUERY_PRUNE_INTERVAL_MILLIS) {
+                queryLastPruneMillis = now;
+                int ttlDays = (Integer)getConfigurationValue("searchQueryTtlDays",
+                    QUERY_TTL_DAYS_DEFAULT);
+                queryPrune(myShepherd, now - ttlDays * 86400000L);
+            }
+            committed = myShepherd.commitDBTransactionWithStatus();
         } catch (Exception ex) {
+            System.out.println("OpenSearch.queryStore() failed to store " + id + ": " + ex);
             ex.printStackTrace();
+        }
+        if (!committed) {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.beginDBTransaction();
             return null;
         }
+        myShepherd.beginDBTransaction(); // recover a transaction for the rest of the request
         return id;
     }
 
-    public static JSONObject queryLoad(String id) {
-        if (id == null) return null;
+    // deletes stored queries with created < cutoffMillis; runs in the caller's transaction
+    public static long queryPrune(final Shepherd myShepherd, final long cutoffMillis) {
         try {
-            String jsonData = Util.readFromFile(queryStoragePath(id));
-            return new JSONObject(jsonData);
+            javax.jdo.Query q = myShepherd.getPM().newQuery(OpenSearchQuery.class,
+                "created < " + cutoffMillis);
+            long ct = q.deletePersistentAll();
+            if (ct > 0)
+                System.out.println("OpenSearch.queryPrune() deleted " + ct +
+                    " stored queries older than " + new java.util.Date(cutoffMillis));
+            return ct;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            System.out.println("OpenSearch.queryPrune() failed: " + ex);
+            return 0;
         }
-        return null;
+    }
+
+    public static JSONObject queryLoad(String id, Shepherd myShepherd) {
+        OpenSearchQuery osq = OpenSearchQuery.load(myShepherd, id);
+
+        if (osq == null) return null;
+        return osq.getValue();
     }
 
     public static JSONObject queryScrubStored(final JSONObject query) {
