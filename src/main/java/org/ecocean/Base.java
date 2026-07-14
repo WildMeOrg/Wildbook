@@ -340,6 +340,9 @@ import org.json.JSONObject;
         case "annotations":
             tmp = new Annotation();
             break;
+        case "individuals":
+            tmp = new MarkedIndividual();
+            break;
         default:
             return null;
         }
