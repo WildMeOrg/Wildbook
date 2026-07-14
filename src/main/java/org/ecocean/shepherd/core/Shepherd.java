@@ -3439,12 +3439,12 @@ public class Shepherd {
                 pm.close();
             }
             closed = true;
-        } catch (JDOUserException jdoe) {
+        // Must catch everything (e.g. JDODataStoreException on a broken connection), not just
+        // JDOUserException: many callers invoke this inline without their own try/finally, and a
+        // throw from here propagates into page rendering.
+        } catch (Exception e) {
             System.out.println("I hit an error trying to close a DBTransaction.");
-            jdoe.printStackTrace();
-        } catch (NullPointerException npe) {
-            System.out.println("I hit a NullPointerException trying to close a DBTransaction.");
-            npe.printStackTrace();
+            e.printStackTrace();
         } finally {
             // Only clear the diagnostic state entry if the close actually succeeded.
             // If it threw, leave evidence behind so dbconnections.jsp can surface the leak.
@@ -3466,12 +3466,12 @@ public class Shepherd {
                 pm.currentTransaction().rollback();
             }
             rolledBack = true;
-        } catch (JDOUserException jdoe) {
-            jdoe.printStackTrace();
-        } catch (JDOFatalUserException fdoe) {
-            fdoe.printStackTrace();
-        } catch (NullPointerException npe) {
-            npe.printStackTrace();
+        // Must catch everything, not just JDO(Fatal)UserException: rollback on a broken connection
+        // throws JDOFatalDataStoreException, and ~80 JSPs call rollbackDBTransaction() then
+        // closeDBTransaction() sequentially in a finally -- a throw from here skips that close and
+        // leaks the PersistenceManager (the stuck "rollback-failed" rows on dbconnections.jsp).
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             // Always publish a terminal rollback state so leaked "begin" entries do not accumulate,
             // but distinguish success from failure so close-follow-up can see the evidence.
