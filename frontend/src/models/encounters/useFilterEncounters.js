@@ -55,9 +55,14 @@ export default function useFilterEncounters({ queries, params = {} }) {
         get(result, ["data", "headers", "x-wildbook-total-hits"], "0"),
         10,
       );
+      const maxResultWindow = parseInt(
+        get(result, ["data", "headers", "x-wildbook-max-result-window"], "0"),
+        10,
+      );
 
       return {
         resultCount,
+        maxResultWindow,
         results: get(result, ["data", "data", "hits"], []),
         searchQueryId: get(
           result,
@@ -68,7 +73,12 @@ export default function useFilterEncounters({ queries, params = {} }) {
       };
     },
     queryOptions: {
-      retry: 2,
+      // retry transport/server errors only - a 4xx (e.g. pagination window
+      // exceeded) is deterministic and re-sending it just repeats the failure
+      retry: (failureCount, err) => {
+        const status = err?.response?.status;
+        return (!status || status >= 500) && failureCount < 2;
+      },
       enable: false,
     },
   });
