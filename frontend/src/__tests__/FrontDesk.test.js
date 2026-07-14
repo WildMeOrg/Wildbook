@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import axios from "axios";
 import FrontDesk from "../FrontDesk";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import { useSiteSettings } from "../SiteSettingsContext";
 
 jest.mock("../AuthenticatedSwitch", () => {
   const MockComponent = () => <div>Authenticated</div>;
@@ -35,7 +35,7 @@ jest.mock("../components/SessionWarning", () => {
 });
 
 jest.mock("../hooks/useDocumentTitle", () => jest.fn());
-jest.mock("../models/useGetSiteSettings");
+jest.mock("../SiteSettingsContext", () => ({ useSiteSettings: jest.fn() }));
 jest.mock("../models/notifications/getMergeNotifications", () => jest.fn());
 jest.mock("../models/notifications/getCollaborationNotifications", () =>
   jest.fn(),
@@ -46,7 +46,11 @@ jest.mock("axios");
 describe("FrontDesk Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    useGetSiteSettings.mockReturnValue({ data: { showClassicSubmit: false } });
+    useSiteSettings.mockReturnValue({
+      data: { showClassicSubmit: false },
+      isLoading: false,
+      error: null,
+    });
   });
 
   test("renders UnauthenticatedSwitch if user is not logged in (401)", async () => {
@@ -65,7 +69,11 @@ describe("FrontDesk Component", () => {
   test("keeps loading on non-401 login check failure (current behavior)", async () => {
     const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     axios.head.mockRejectedValueOnce(new Error("Network Error"));
-    useGetSiteSettings.mockReturnValue({ data: {} });
+    useSiteSettings.mockReturnValue({
+      data: {},
+      isLoading: false,
+      error: null,
+    });
 
     render(<FrontDesk />);
 

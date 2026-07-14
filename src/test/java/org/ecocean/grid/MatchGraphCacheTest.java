@@ -131,73 +131,10 @@ class MatchGraphCacheTest {
         assertNull(reloaded.getRightReferenceSpots());
     }
 
-    @Test
-    void testGridManagerCacheRoundTrip() {
-        JSONObject el1Json = makeElJson("enc-A", "ind-1", "2024-01-01", "male", 2.0,
-            new double[]{1.0, 2.0, 3.0, 4.0, 5.0},
-            new double[]{1.1, 2.1, 3.1, 4.1, 5.1},
-            null, null);
-
-        JSONObject el2Json = makeElJson("enc-B", "ind-2", "2024-06-15", "female", 4.0,
-            null, null,
-            new double[]{10.0, 20.0, 30.0},
-            new double[]{11.0, 21.0, 31.0});
-        el2Json.put("genus", "Rhincodon");
-        el2Json.put("specificEpithet", "typus");
-
-        EncounterLite el1 = EncounterLite.fromJSONObject(el1Json);
-        EncounterLite el2 = EncounterLite.fromJSONObject(el2Json);
-
-        // Clear and populate the matchGraph directly
-        GridManager gm = GridManagerFactory.getGridManager();
-        gm.resetMatchGraphWithInitialCapacity(10);
-        GridManager.getMatchGraph().put("enc-A", el1);
-        GridManager.getMatchGraph().put("enc-B", el2);
-
-        // Serialize the whole matchGraph to JSON (as cacheWrite does)
-        JSONObject cacheJson = GridManager.cacheToJSONObject();
-
-        // Verify structure
-        assertTrue(cacheJson.has("timestamp"));
-        assertTrue(cacheJson.has("matchGraph"));
-        assertEquals(2, cacheJson.getInt("count"));
-
-        JSONObject entries = cacheJson.getJSONObject("matchGraph");
-        assertTrue(entries.has("enc-A"));
-        assertTrue(entries.has("enc-B"));
-
-        // Simulate what cacheRead does: clear graph and reload from JSON
-        gm.resetMatchGraphWithInitialCapacity(10);
-        assertEquals(0, GridManager.getMatchGraph().size());
-
-        // Parse the JSON string back (simulates reading from file)
-        String jsonString = cacheJson.toString();
-        JSONObject parsed = new JSONObject(jsonString);
-        JSONObject reloadedEntries = parsed.getJSONObject("matchGraph");
-        for (String key : reloadedEntries.keySet()) {
-            EncounterLite el = EncounterLite.fromJSONObject(reloadedEntries.getJSONObject(key));
-            GridManager.getMatchGraph().put(key, el);
-        }
-
-        // Verify reloaded data
-        assertEquals(2, GridManager.getMatchGraph().size());
-
-        EncounterLite reloadedA = GridManager.getMatchGraphEncounterLiteEntry("enc-A");
-        assertNotNull(reloadedA);
-        assertEquals("enc-A", reloadedA.getEncounterNumber());
-        assertEquals("ind-1", reloadedA.getBelongsToMarkedIndividual());
-        assertNotNull(reloadedA.getSpots());
-        assertEquals(5, reloadedA.getSpots().size());
-
-        EncounterLite reloadedB = GridManager.getMatchGraphEncounterLiteEntry("enc-B");
-        assertNotNull(reloadedB);
-        assertEquals("enc-B", reloadedB.getEncounterNumber());
-        assertEquals("Rhincodon", reloadedB.getGenus());
-        assertEquals("typus", reloadedB.getSpecificEpithet());
-        assertNotNull(reloadedB.getRightSpots());
-        assertEquals(3, reloadedB.getRightSpots().size());
-        assertNull(reloadedB.getSpots());
-    }
+    // NOTE: the former testGridManagerCacheRoundTrip was removed: the MatchGraphCache.json
+    // serialize/reload mechanism (GridManager.cacheToJSONObject / cacheWrite / cacheRead) was
+    // deleted in #1608/#1610 in favor of always rebuilding the match graph from the DB at
+    // startup. The remaining tests cover EncounterLite round-trip and live matchGraph behavior.
 
     @Test
     void testGrothCompatibilityAfterRoundTrip() {

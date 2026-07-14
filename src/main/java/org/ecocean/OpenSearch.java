@@ -5,10 +5,13 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -32,6 +35,7 @@ import org.opensearch.client.transport.rest_client.RestClientTransport;
 import org.opensearch.client.opensearch.core.IndexRequest;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
+import org.opensearch.client.opensearch.indices.IndexSettings;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.transport.OpenSearchTransport;
 
@@ -45,10 +49,16 @@ import java.util.concurrent.TimeUnit;
 // https://github.com/opensearch-project/opensearch-java/blob/main/USER_GUIDE.md
 
 public class OpenSearch {
-    public static OpenSearchClient client = null;
-    public static RestClient restClient = null;
+    public static volatile OpenSearchClient client = null;
+    public static volatile RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
-    public static Map<String, String> PIT_CACHE = new HashMap<String, String>();
+    // ConcurrentHashMap: PIT_CACHE is read/mutated from concurrent request threads (SearchApi,
+    // EncounterQueryProcessor, MediaResolveApi) and, once IA match consumers can run concurrently,
+    // from those too. This only removes the structural-corruption hazard of an unsynchronized
+    // HashMap; it does NOT make the shared one-PIT-per-index lifecycle request-safe (a deletePit on
+    // one caller can still drop another's snapshot; queryPit's retry self-heals it). Match read
+    // paths avoid PIT entirely via querySearch(); proper per-request PIT scoping is a separate change.
+    public static Map<String, String> PIT_CACHE = new java.util.concurrent.ConcurrentHashMap<String, String>();
     public static String SEARCH_SCROLL_TIME = (String)getConfigurationValue("searchScrollTime",
         "10m");
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
@@ -66,6 +76,31 @@ public class OpenSearch {
         "backgroundPermissionsMaxForceMinutes", 45);
     public static String PERMISSIONS_LAST_RUN_KEY = "OpenSearch_permissions_last_run_timestamp";
     public static String PERMISSIONS_NEEDED_KEY = "OpenSearch_permissions_needed";
+    // kNN match warmup: after startup, load the faiss/kNN native graph for the match index into
+    // off-heap memory (and warm the filter/segment paths) so the FIRST user match doesn't pay the
+    // cold-load, which can exceed the socket timeout and surface to the user as an empty result.
+    public static String WARMUP_INDEX = (String)getConfigurationValue("matchWarmupIndex",
+        "annotation");
+    // Retry cadence while OpenSearch is still coming up / the index isn't built yet (e.g. a
+    // `docker compose up` where both containers start at once). Kept short so we warm as soon as
+    // OpenSearch is reachable.
+    public static int WARMUP_RETRY_MINUTES = (Integer)getConfigurationValue("matchWarmupRetryMinutes",
+        1);
+    // Re-warm cadence once warmed, to survive segment merges / native-cache eviction. 0 disables
+    // re-warming (warm once at startup only).
+    public static int WARMUP_REWARM_MINUTES = (Integer)getConfigurationValue(
+        "matchWarmupRewarmMinutes", 20);
+    // True while the match kNN graph is warmed into native memory in THIS JVM: set on a successful
+    // warm pass, reset if a later (re)warm fails (e.g. OpenSearch restarted under us). In-memory,
+    // so correctly starts false on restart. Exposed for health/readiness use; not a gate on matching.
+    private static volatile boolean matchWarmupReady = false;
+    // Ensures a single self-rescheduling warmup chain, even if backgroundStartup is ever called twice.
+    private static final java.util.concurrent.atomic.AtomicBoolean warmupChainStarted =
+        new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    public static boolean isMatchWarmupReady() {
+        return matchWarmupReady;
+    }
     public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
     static String ACTIVE_TYPE_FOREGROUND = "opensearch_indexing_foreground";
     static String ACTIVE_TYPE_BACKGROUND = "opensearch_indexing_background";
@@ -73,7 +108,18 @@ public class OpenSearch {
     private int pitRetry = 0;
 
     public OpenSearch() {
+        // Double-checked, synchronized one-time init: concurrent first-callers (e.g. parallel match
+        // consumers hitting cold init) must not each build and overwrite the shared static client.
+        // client/restClient are volatile; initializeClient sets restClient before client, so any
+        // thread that observes client != null also observes a fully-built restClient.
         if (client != null) return;
+        synchronized (OpenSearch.class) {
+            if (client != null) return;
+            initializeClientOnce();
+        }
+    }
+
+    private static void initializeClientOnce() {
         // System.setProperty("javax.net.ssl.trustStore", "/full/path/to/keystore");
         // System.setProperty("javax.net.ssl.trustStorePassword", "password-to-keystore");
 
@@ -121,11 +167,36 @@ public class OpenSearch {
     }
 
     public static void initializeClient(HttpHost host) {
-        restClient = RestClient.builder(host).build();
+        // Raise the socket timeout well above the 30s default. A slow query (e.g. a
+        // cold/large kNN, or a match over a big candidate set) otherwise throws
+        // SocketTimeoutException, which the match path surfaces to users as an empty
+        // "0 matches" result -- and a failed match reads as "no match found", which is
+        // WORSE for a user than a slow one. 240s gives cold/large matches room to
+        // complete rather than silently returning empty. (The batch-load + top-N cap in
+        // Annotation.getMatches keep normal matches to a few seconds; this is the safety
+        // net for the cold/outlier case.)
+        restClient = RestClient.builder(host)
+            .setRequestConfigCallback(
+                rc -> rc.setConnectTimeout(10000).setSocketTimeout(240000))
+            .build();
         final OpenSearchTransport transport = new RestClientTransport(restClient,
             new JacksonJsonpMapper());
 
         client = new OpenSearchClient(transport);
+    }
+
+    // Stateless single-page search (no PIT, no shared static state) -- safe under concurrency.
+    // Used by the match read paths (getMatches / getMatchingSet), which fetch one page (from=0) and
+    // never paginate across pages. track_total_hits=true keeps hits.total.value exact so callers
+    // that read it (e.g. getMatchingSet hitSize) are unaffected.
+    public JSONObject querySearch(String indexName, final JSONObject query, int from, int size)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request searchRequest = new Request("POST", indexName + "/_search?track_total_hits=true");
+        query.put("from", from);
+        query.put("size", size);
+        searchRequest.setJsonEntity(query.toString());
+        return new JSONObject(getRestResponse(searchRequest));
     }
 
     public static boolean isValidIndexName(String indexName) {
@@ -164,6 +235,103 @@ public class OpenSearch {
                 ") interrupted: " + ex.toString());
         }
         System.out.println("OpenSearch.backgroundStartup(" + context + ") backgrounded");
+
+        // Warm the match kNN graph so the first user match after this restart isn't cold. Self-
+        // reschedules: retry quickly while OpenSearch/the index are still coming up, then re-warm
+        // on a slow cadence to survive merges/eviction. Guarded so only one chain ever runs.
+        if (warmupChainStarted.compareAndSet(false, true)) {
+            scheduleMatchWarmup(schedExec, context, WARMUP_RETRY_MINUTES);
+        }
+    }
+
+    // Self-rescheduling warmup. Reschedules itself on the same executor: WARMUP_RETRY_MINUTES until
+    // the first successful warm (OpenSearch may still be starting on a `docker compose up`), then
+    // WARMUP_REWARM_MINUTES thereafter (0 = warm once only). Never throws out of the task.
+    private static void scheduleMatchWarmup(final ScheduledExecutorService schedExec,
+        final String context, long delayMinutes) {
+        try {
+            schedExec.schedule(new Runnable() {
+                public void run() {
+                    boolean warmed = false;
+                    try {
+                        warmed = warmupMatching(context);
+                    } catch (Throwable t) { // belt-and-suspenders: a task must never die silently
+                        System.out.println("OpenSearch.warmupMatching threw (will retry): " + t);
+                    }
+                    long next = warmed ? WARMUP_REWARM_MINUTES : WARMUP_RETRY_MINUTES;
+                    if (next > 0) scheduleMatchWarmup(schedExec, context, next);
+                }
+            }, delayMinutes, TimeUnit.MINUTES);
+        } catch (Exception ex) {
+            // e.g. executor shutting down on tomcat stop -- nothing to do, warmup simply ends.
+            System.out.println("OpenSearch.scheduleMatchWarmup: could not schedule (" + ex + ")");
+        }
+    }
+
+    // Warm the match index. Returns true only if the graph was actually warmed this pass. Any
+    // failure (OpenSearch unreachable, index not built yet) is treated as "not ready, retry" -- it
+    // logs and returns false rather than throwing, so a racing startup degrades gracefully.
+    public static boolean warmupMatching(String context) {
+        OpenSearch os;
+        try {
+            os = new OpenSearch(); // client is lazy; ctor won't fail if OpenSearch is still down
+        } catch (Exception ex) {
+            System.out.println("warmupMatching: OpenSearch client not available yet (will retry): " +
+                ex);
+            matchWarmupReady = false;
+            return false;
+        }
+        String indexName = WARMUP_INDEX;
+        try {
+            if (!os.existsIndex(indexName)) {
+                System.out.println("warmupMatching: '" + indexName +
+                    "' index not ready yet (OpenSearch may still be starting / reindexing); will retry");
+                matchWarmupReady = false;
+                return false;
+            }
+            long t = System.currentTimeMillis();
+            System.out.println("warmupMatching: warming kNN graph for '" + indexName + "' ...");
+            os.warmupKnn(indexName);
+            // Also warm the filter/segment/doc-value paths a real match query touches (the graph
+            // warmup alone doesn't). A cheap _count with the matchAgainst filter is enough.
+            try {
+                JSONObject warmQuery = new JSONObject(
+                    "{\"query\":{\"bool\":{\"filter\":[{\"term\":{\"matchAgainst\":true}}]}}}");
+                os.queryCount(indexName, warmQuery);
+            } catch (Exception ex) {
+                System.out.println("warmupMatching: filter-path warm query failed (non-fatal): " +
+                    ex);
+            }
+            matchWarmupReady = true;
+            System.out.println("warmupMatching: kNN warmup complete in " +
+                (System.currentTimeMillis() - t) + "ms; matchWarmupReady=true");
+            return true;
+        } catch (Exception ex) {
+            System.out.println("warmupMatching: warmup failed (OpenSearch may still be starting); " +
+                "will retry: " + ex);
+            matchWarmupReady = false;
+            return false;
+        }
+    }
+
+    // Load an index's kNN native graphs into off-heap memory ahead of the first query.
+    // https://docs.opensearch.org/latest/vector-search/api/knn/#warmup
+    public void warmupKnn(String indexName) throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request req = new Request("GET", "/_plugins/_knn/warmup/" + indexName);
+        String rtn = getRestResponse(req);
+        System.out.println("OpenSearch.warmupKnn(" + indexName + "): " + rtn);
+        // Treat the warmup as failed only if a shard actually errored (failed>0) or nothing warmed
+        // at all (successful<1). Do NOT require successful==total: on a single-node cluster the
+        // index's replica shards are unassigned, so warmup legitimately reports e.g.
+        // total=2,successful=1,failed=0 -- the primary (which serves queries) is warmed. Requiring
+        // successful==total would make warmup throw forever and never latch on single-node.
+        JSONObject shards = new JSONObject(rtn).optJSONObject("_shards");
+        int successful = (shards == null) ? 0 : shards.optInt("successful", 0);
+        int failed = (shards == null) ? 0 : shards.optInt("failed", 0);
+        if ((failed > 0) || (successful < 1)) {
+            throw new IOException("kNN warmup incomplete for '" + indexName + "': " + rtn);
+        }
     }
 
     private static void updatePermissionsIndex(String context) {
@@ -207,11 +375,17 @@ public class OpenSearch {
     public void createIndex(String indexName, JSONObject mapping)
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        IndexSettings indexSettings = null;
+        // a little hacky but meh
+        if (indexName.equals("annotation")) {
+            // also? "knn.algo_param.ef_search": 100
+            indexSettings = IndexSettings.of(is -> is.knn(true));
+        }
         CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder().index(
-            indexName).build();
+            indexName).settings(indexSettings).build();
 
         client.indices().create(createIndexRequest);
-        // ideally we would pass these as settings() in CreateIndexRequest but that is kind of a mess
+        // TODO fold in this settings-change into indexSettings above
         indexClose(indexName);
         JSONObject analysis = new JSONObject(
             "{\"analysis\": {\"normalizer\": {\"wildbook_keyword_normalizer\": {\"type\": \"custom\", \"char_filter\": [], \"filter\": [\"lowercase\", \"asciifolding\"]} } } }");
@@ -260,6 +434,15 @@ public class OpenSearch {
         String id = obj.getId();
         if (!Util.stringExists(id))
             throw new RuntimeException("must have id property to index: " + obj);
+        // Central gate: objects that opt out (e.g. non-candidate/"trivial" annotations)
+        // must not have an index doc. Delete any stale doc (covers matchAgainst->false or
+        // last-embedding-removed transitions) and skip indexing. This makes BOTH
+        // Base.opensearchIndex() and the reconciler's direct os.index(obj) honor the
+        // predicate. Synchronous delete: callers are already on background threads.
+        if (!obj.shouldIndexInOpenSearch()) {
+            delete(indexName, id);   // delete() no-ops if the index/doc is absent
+            return;
+        }
         ensureIndex(indexName, obj.opensearchMapping());
         IndexRequest<Base> indexRequest = new IndexRequest.Builder<Base>()
                 .index(indexName)
@@ -450,6 +633,227 @@ public class OpenSearch {
         return new JSONObject(rtn);
     }
 
+    // ml-service migration v2 (commit #7): force pending writes in `indexName`
+    // through Lucene's refresh boundary so they are searchable. Synchronous;
+    // returns after targeted shards have completed the refresh. NOT a Wildbook
+    // queue drain — IndexingManager may still have unindexed entities queued.
+    // Callers (typically waitForVisibility) follow with a visibility poll.
+    public void indexRefresh(final String indexName)
+    throws IOException {
+        if (!isValidIndexName(indexName))
+            throw new IOException("invalid index name: " + indexName);
+        Request req = new Request("POST", indexName + "/_refresh");
+        getRestResponse(req);   // discard body; non-2xx surfaces as IOException
+    }
+
+    // ml-service migration v2 (commit #7): bounded poll-and-wait until OpenSearch
+    // can see every id in `ids` in `indexName`. Used by MlServiceProcessor
+    // (commit #9) post-persist to avoid running findMatchProspects against an
+    // index that doesn't yet contain the freshly-written annotations.
+    //
+    // On entry:
+    //   - normalizes `ids` to a Set (drops nulls and duplicates so they can't
+    //     prevent the count check from ever succeeding);
+    //   - calls _refresh once (synchronous; pushes pending writes through
+    //     Lucene's refresh boundary);
+    //   - WARNs if /tmp/skipAutoIndexing is set, since that flag will make
+    //     every poll return zero hits regardless of how long we wait.
+    //
+    // Then polls a _count eligibility query with exponential backoff (start
+    // 100ms, double, cap 1s) until count >= |normalized ids| OR the total
+    // wait reaches timeoutMs. Returns true on visible-success, false on
+    // timeout. Caller decides what to do on false (e.g. enqueue a deferred-
+    // match job rather than match against a partial index).
+    //
+    // Does NOT try to drain the Wildbook IndexingManager queue. That queue
+    // may contain unrelated entities; queue-depth zero doesn't imply the
+    // specific IDs are queryable. Polling visibility IS the correctness gate.
+    public boolean waitForVisibility(String indexName, Collection<String> ids,
+        long timeoutMs)
+    throws IOException {
+        if (!isValidIndexName(indexName))
+            throw new IOException("invalid index name: " + indexName);
+        if (ids == null || ids.isEmpty()) return true;
+
+        // Normalize: drop nulls + duplicates so the count comparison is
+        // against the true number of distinct documents we expect to see.
+        Set<String> targetIds = new LinkedHashSet<String>();
+        for (String id : ids) {
+            if (id != null) targetIds.add(id);
+        }
+        if (targetIds.isEmpty()) return true;
+
+        if (skipAutoIndexing()) {
+            System.out.println(
+                "WARN: OpenSearch.waitForVisibility called with /tmp/skipAutoIndexing set " +
+                "— every poll will return zero hits regardless of wait time.");
+        }
+
+        indexRefresh(indexName);
+
+        JSONObject query = buildIdEligibilityQuery(targetIds);
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        long sleepMs = 100;
+        while (true) {
+            int seen = queryCount(indexName, query);
+            if (seen >= targetIds.size()) return true;
+            long remaining = deadline - System.currentTimeMillis();
+            if (remaining <= 0) return false;
+            try {
+                Thread.sleep(Math.min(sleepMs, remaining));
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+            sleepMs = Math.min(sleepMs * 2, 1000);
+        }
+    }
+
+    // Returns a query body that filters on _id ∈ ids, using OpenSearch's idiomatic `ids` query.
+    // Public so the media-resolve endpoint (org.ecocean.api) can reuse the exact id-eligibility shape.
+    public static JSONObject buildIdEligibilityQuery(Set<String> ids) {
+        JSONArray idArr = new JSONArray();
+        for (String id : ids) idArr.put(id);
+        JSONObject query = new JSONObject();
+        query.put("query",
+            new JSONObject().put("ids",
+                new JSONObject().put("values", idArr)));
+        return query;
+    }
+
+    // ml-service migration v2 / empty-match-prospects design Track 2 C8.
+    //
+    // Stronger visibility predicate than waitForVisibility for the annotation
+    // index. A doc that exists by _id but is missing nested
+    // embeddings.method/methodVersion would pass _id-only and then knn-fail
+    // at match time. This helper polls a predicate that mirrors the matching
+    // constraints in Annotation.getMatchQuery: id ∈ ids AND matchAgainst=true
+    // AND acmId exists AND a nested embedding for this method/version is
+    // indexed. Scope is intentionally narrower than getMatchingSetQuery
+    // (no taxonomy/viewpoint/encounter/dead-animal filters) — this helper
+    // answers "doc has fresh embedding metadata", which is the visibility
+    // race the Track 2 batch gate cares about.
+    //
+    // method/methodVersion follow the strict-when-present convention of
+    // Annotation.getMatchQuery at Annotation.java:1205-1209: if either is
+    // null/blank, the corresponding nested predicate is omitted.
+    //
+    // Like waitForVisibility: _refresh on entry, then exponential-backoff
+    // poll of _count until count >= |normalized ids| OR timeout. Empty
+    // wait set short-circuits to true.
+    public boolean waitForAnnotationMatchableIds(Collection<String> ids,
+        String method, String methodVersion, long timeoutMs)
+    throws IOException {
+        if (ids == null || ids.isEmpty()) return true;
+
+        Set<String> targetIds = new LinkedHashSet<String>();
+        for (String id : ids) {
+            if (id != null) targetIds.add(id);
+        }
+        if (targetIds.isEmpty()) return true;
+
+        if (skipAutoIndexing()) {
+            System.out.println(
+                "WARN: OpenSearch.waitForAnnotationMatchableIds called with " +
+                "/tmp/skipAutoIndexing set — every poll will return zero hits " +
+                "regardless of wait time.");
+        }
+
+        indexRefresh("annotation");
+
+        JSONObject query = buildAnnotationMatchableQuery(targetIds, method,
+            methodVersion);
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        long sleepMs = 100;
+        while (true) {
+            int seen = queryCount("annotation", query);
+            if (seen >= targetIds.size()) return true;
+            long remaining = deadline - System.currentTimeMillis();
+            if (remaining <= 0) return false;
+            try {
+                Thread.sleep(Math.min(sleepMs, remaining));
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+            sleepMs = Math.min(sleepMs * 2, 1000);
+        }
+    }
+
+    // Package-visible for testing. Returns the _count-shaped query body
+    // matching the annotation-matchable predicate documented on
+    // waitForAnnotationMatchableIds. Uses the same `ids` query shape as
+    // buildIdEligibilityQuery for consistency with queryCount's
+    // expectations (no `size`, no `track_total_hits`).
+    static JSONObject buildAnnotationMatchableQuery(Set<String> ids,
+        String method, String methodVersion) {
+        JSONArray idArr = new JSONArray();
+        for (String id : ids) idArr.put(id);
+
+        JSONArray filterArr = new JSONArray();
+        filterArr.put(new JSONObject().put("ids",
+            new JSONObject().put("values", idArr)));
+        filterArr.put(new JSONObject().put("term",
+            new JSONObject().put("matchAgainst", true)));
+        filterArr.put(new JSONObject().put("exists",
+            new JSONObject().put("field", "acmId")));
+
+        // Nested embedding clause. Match Annotation.getMatchQuery at
+        // Annotation.java:1205-1209 exactly: omit a predicate only when
+        // the value is `null`. A non-null blank string would be a strict
+        // term on "" (matching no docs), preserving consistency with the
+        // matcher rather than silently broadening the wait predicate.
+        // Codex round-1 C8 review surfaced this — empty vs null asymmetry
+        // would let the gate green-light docs the matcher then rejects.
+        JSONArray nestedMust = new JSONArray();
+        if (method != null) {
+            nestedMust.put(new JSONObject().put("term",
+                new JSONObject().put("embeddings.method", method)));
+        }
+        if (methodVersion != null) {
+            nestedMust.put(new JSONObject().put("term",
+                new JSONObject().put("embeddings.methodVersion", methodVersion)));
+        }
+        JSONObject nestedQuery;
+        if (nestedMust.length() == 0) {
+            // Both null — wait only on the existence of any nested
+            // embedding entry. (Legacy api_endpoint-only configs that
+            // can't derive a method.)
+            nestedQuery = new JSONObject().put("match_all", new JSONObject());
+        } else {
+            nestedQuery = new JSONObject().put("bool",
+                new JSONObject().put("must", nestedMust));
+        }
+        filterArr.put(new JSONObject().put("nested",
+            new JSONObject().put("path", "embeddings").put("query", nestedQuery)));
+
+        JSONObject query = new JSONObject();
+        query.put("query",
+            new JSONObject().put("bool",
+                new JSONObject().put("filter", filterArr)));
+        return query;
+    }
+
+    // when you only care about how many this would return
+    public int queryCount(String indexName, final JSONObject query)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request searchRequest = new Request("POST", indexName + "/_count");
+        JSONObject cleanedQuery = new JSONObject(query.toString());
+        cleanedQuery.remove("_source"); // invalid for a _count query
+        searchRequest.setJsonEntity(cleanedQuery.toString());
+        JSONObject res = new JSONObject();
+        try {
+            res = new JSONObject(getRestResponse(searchRequest));
+        } catch (Exception ex) {
+            System.out.println("queryCount() on index " + indexName + " using query=" + query +
+                " failed with: " + ex);
+            ex.printStackTrace();
+            throw new IOException("queryCount() failed");
+        }
+        return res.optInt("count", -1);
+    }
+
     public Map<String, Long> getAllVersions(String indexName)
     throws IOException {
         Map<String, Long> versions = new HashMap<String, Long>();
@@ -541,6 +945,31 @@ public class OpenSearch {
         Request updateRequest = new Request("POST", indexName + "/_update/" + id);
         updateRequest.setJsonEntity(doc.toString());
         getRestResponse(updateRequest);
+    }
+
+    // Reads the CURRENT indexed viewUsers array for a single doc. Returns the array
+    // (possibly empty) on success, or null if the doc/field cannot be read (missing doc,
+    // index not present, parse failure). null means "unknown": the caller decides the
+    // policy (opensearchIndexPermissions treats unknown as no-change to avoid storming
+    // child reindexes on a degraded read; the reconciler recovers a missed refresh).
+    public org.json.JSONArray getIndexedViewUsers(String index, String id) {
+        if ((index == null) || (id == null)) return null;
+        try {
+            if (!existsIndex(index)) return null;
+            // _source filtered to just viewUsers keeps the response tiny.
+            Request getRequest = new Request("GET", index + "/_doc/" + id + "?_source=viewUsers");
+            String body = getRestResponse(getRequest);
+            if (body == null) return null;
+            org.json.JSONObject parsed = new org.json.JSONObject(body);
+            if (!parsed.optBoolean("found", false)) return null;
+            org.json.JSONObject source = parsed.optJSONObject("_source");
+            if (source == null) return new org.json.JSONArray(); // doc exists, no viewUsers yet -> empty
+            org.json.JSONArray arr = source.optJSONArray("viewUsers");
+            return (arr == null) ? new org.json.JSONArray() : arr;
+        } catch (Exception ex) {
+            // 404 (doc not found) surfaces as ResponseException here; treat as unknown.
+            return null;
+        }
     }
 
     // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
@@ -691,20 +1120,280 @@ public class OpenSearch {
         return query;
     }
 
-    // takes raw search result doc and presents only data user should see
+    /**
+     * Wrap a search query's top-level "query" clause in a bool whose filter enforces the
+     * encounter ACL (mirrors Encounter.opensearchAccess for a non-admin user). Applied on the
+     * token-authenticated path BEFORE execution so totals, pagination, and hits are all scoped.
+     * Admins are not passed through here (caller skips the call for admins).
+     *
+     * Decision (documented, safe): a request with no inner "query" yields a filter-only bool,
+     * i.e. "all encounters this user may see" — still fully scoped, never a bypass. A truly
+     * malformed (non-JSON) body fails earlier in ServletUtilities.jsonFromHttpServletRequest,
+     * before reaching this method, so the spec's "fail closed on malformed" is satisfied upstream.
+     */
+    public static JSONObject applyEncounterAclFilter(JSONObject query, String userId)
+    throws IOException {
+        return applyAclFilter(query, userId, "encounter");
+    }
+
+    public static JSONObject applyAclFilter(JSONObject query, String userId, String indexName)
+    throws IOException {
+        if ((query == null) || !Util.stringExists(userId))
+            throw new IOException("applyAclFilter: null query or userId");
+        // encounter docs carry a single submitterUserId; annotation/individual carry the union set submitterUserIds
+        String submitterField = "encounter".equals(indexName) ? "submitterUserId" : "submitterUserIds";
+        JSONArray should = new JSONArray();
+        should.put(new JSONObject().put("term", new JSONObject().put("publiclyReadable", true)));
+        should.put(new JSONObject().put("term", new JSONObject().put(submitterField, userId)));
+        should.put(new JSONObject().put("term", new JSONObject().put("viewUsers", userId)));
+        JSONObject aclBool = new JSONObject();
+        aclBool.put("should", should);
+        aclBool.put("minimum_should_match", 1);
+        JSONObject acl = new JSONObject().put("bool", aclBool);
+
+        JSONObject wrapBool = new JSONObject();
+        JSONObject inner = query.optJSONObject("query");
+        if (inner != null) {
+            JSONArray must = new JSONArray();
+            must.put(inner);
+            wrapBool.put("must", must);
+        }
+        wrapBool.put("filter", new JSONArray().put(acl));
+
+        JSONObject out = new JSONObject(query.toString()); // shallow copy via re-parse
+        out.put("query", new JSONObject().put("bool", wrapBool));
+        return out;
+    }
+
+    private static final String[] ACL_FIELDS = {
+        "publiclyReadable", "submitterUserId", "submitterUserIds", "viewUsers", "editUsers"
+    };
+    // identity fields kept for a non-admin token individual hit; everything else dropped (allowlist).
+    // NOTE: socialUnits/relationships/cooccurrence*/users/encounterIds/number* and all other
+    // cross-encounter aggregates are DELIBERATELY excluded — they reveal data from encounters the
+    // viewer may not see. Out of scope for v1 (agent gets per-viewer detail via the scoped encounter index).
+    private static final String[] INDIVIDUAL_TOKEN_KEEP = {
+        "id", "version", "indexTimestamp", "displayName", "names", "nameMap",
+        "sex", "taxonomy", "timeOfBirth", "timeOfDeath"
+    };
+    // Set form of the individual identity allowlist, for query-side field validation.
+    public static final java.util.Set<String> INDIVIDUAL_TOKEN_KEEP_SET =
+        new java.util.HashSet<>(java.util.Arrays.asList(INDIVIDUAL_TOKEN_KEEP));
+
+    // Structural/operator keys in the OpenSearch query DSL whose CHILD object keys are NOT field names.
+    private static final java.util.Set<String> DSL_STRUCTURAL = new java.util.HashSet<>(java.util.Arrays.asList(
+        "query","bool","must","should","filter","must_not","minimum_should_match","boost",
+        "match_all","match_none","constant_score","dis_max","queries","tie_breaker",
+        "term","terms","match","match_phrase","match_phrase_prefix","range",
+        "prefix","wildcard","regexp","fuzzy","ids","exists"));
+    // Leaf-operator keys whose CHILD OBJECT's keys ARE field names (e.g. term/range/match -> {field:...}).
+    // NOTE: "terms" is intentionally absent — it is handled separately in nodeAllowed because the
+    // terms-lookup form (object value) must be rejected while the plain-array form is allowed.
+    private static final java.util.Set<String> FIELD_BEARING = new java.util.HashSet<>(java.util.Arrays.asList(
+        "term","match","match_phrase","match_phrase_prefix","range","prefix","wildcard","regexp","fuzzy"));
+    // Keys that are DISALLOWED outright (can reference arbitrary fields / execute code).
+    private static final java.util.Set<String> DENY_FEATURES = new java.util.HashSet<>(java.util.Arrays.asList(
+        "script","script_score","aggs","aggregations","sort","_source","fields","docvalue_fields",
+        "runtime_mappings","function_score","more_like_this","percolate","field",
+        // nested/path let a caller probe nested aggregate fields (socialUnits/relationships) -> deny
+        "nested","path",
+        // free-text/Lucene operators carry field references the validator can't parse -> fail-closed
+        "query_string","simple_query_string","multi_match"));
+
+    // The ONLY top-level body keys a non-admin token individual search may carry.
+    // Anything else (post_filter, collapse, rescore, suggest, highlight, aggs, sort, _source,
+    // fields, script_fields, search_after, pit, runtime_mappings, ...) is rejected fail-closed.
+    private static final java.util.Set<String> ALLOWED_TOP_LEVEL_KEYS =
+        new java.util.HashSet<>(java.util.Arrays.asList("query", "from", "size"));
+
+    // ---- Token search aggregations (deny-by-default; see docs/superpowers/specs/2026-06-28-token-search-aggregations.md)
+    /** Max terms buckets a caller may request. */
+    public static final int AGG_MAX_BUCKETS = 1000;
+    // Only these top-level body keys may accompany an aggregation request (blocks runtime_mappings,
+    // post_filter, script_fields, fields, _source, body sort/from/size, collapse, rescore, suggest,
+    // caller pit, ...). Pagination is via the ?from=/?size= URL params (queryPit ignores body
+    // from/size), so reject body from/size on an agg request rather than silently dropping it; for a
+    // counts-only request pass ?size=0 on the URL.
+    private static final java.util.Set<String> AGG_BODY_TOP_LEVEL = new java.util.HashSet<>(
+        java.util.Arrays.asList("query", "aggs", "aggregations"));
+    // Per-index allow-list of fields a terms aggregation may bucket on. ONLY fields confirmed to be
+    // explicitly keyword-mapped (terms-aggregatable) in opensearchMapping(); never identity/PII/ACL.
+    private static final java.util.Map<String, java.util.Set<String>> AGG_ALLOWED_FIELDS;
+    static {
+        java.util.Map<String, java.util.Set<String>> m = new java.util.HashMap<>();
+        m.put("encounter", new java.util.HashSet<>(java.util.Arrays.asList(
+            "locationId", "taxonomy", "country", "lifeStage")));
+        m.put("annotation", new java.util.HashSet<>(java.util.Arrays.asList(
+            "viewpoint", "iaClass", "encounterLocationId", "encounterTaxonomy")));
+        m.put("individual", new java.util.HashSet<>(java.util.Arrays.asList(
+            "taxonomy", "sex")));
+        AGG_ALLOWED_FIELDS = java.util.Collections.unmodifiableMap(m);
+    }
+
+    /**
+     * Validate an aggregation-bearing token-search body, deny-by-default. Returns null when the body
+     * has NO aggregation (a normal search) OR a fully-valid one; otherwise returns a human-readable
+     * reason to reject with HTTP 400 (so an unsupported aggregation is an explicit error, never a
+     * silent empty result). Permits ONLY a direct `terms` aggregation on an allow-listed keyword field
+     * with an optional bounded integer `size` — no wrappers (global/filter/nested/...), no
+     * sub-aggregations, no pipeline/metric/script aggregations, no extra terms params, and no other
+     * top-level body keys. The caller surfaces `aggregations` from the response only on success.
+     */
+    public static String aggregationError(JSONObject body, String indexName) {
+        if (body == null) return null;
+        boolean hasAggs = body.has("aggs");
+        boolean hasAggregations = body.has("aggregations");
+        if (!hasAggs && !hasAggregations) return null; // no aggregation requested
+        if (hasAggs && hasAggregations) return "specify only one of 'aggs' or 'aggregations'";
+        // (A) strict whole-body top-level allow-list
+        for (String key : body.keySet()) {
+            if (!AGG_BODY_TOP_LEVEL.contains(key)) {
+                return "top-level field '" + key + "' is not allowed alongside an aggregation";
+            }
+        }
+        JSONObject aggs = body.optJSONObject(hasAggs ? "aggs" : "aggregations");
+        if ((aggs == null) || (aggs.length() == 0)) return "aggregation must be a non-empty object";
+        java.util.Set<String> allowedFields = AGG_ALLOWED_FIELDS.get(indexName);
+        if (allowedFields == null) return "aggregations are not supported for this index";
+        for (String name : aggs.keySet()) {
+            JSONObject named = aggs.optJSONObject(name);
+            if (named == null) return "aggregation '" + name + "' must be an object";
+            // (B) exactly one direct 'terms' — no sub-aggs, no wrapper/other agg type
+            if ((named.length() != 1) || !named.has("terms")) {
+                return "aggregation '" + name
+                    + "' must be exactly a 'terms' aggregation (no sub-aggregations or other types)";
+            }
+            JSONObject terms = named.optJSONObject("terms");
+            if (terms == null) return "aggregation '" + name + "' has an invalid 'terms' body";
+            // (C) terms params allow-list: field (required) + optional bounded integer size
+            for (String tk : terms.keySet()) {
+                if (!"field".equals(tk) && !"size".equals(tk)) {
+                    return "terms parameter '" + tk + "' is not allowed (only 'field' and 'size')";
+                }
+            }
+            Object field = terms.opt("field");
+            if (!(field instanceof String) || !allowedFields.contains((String) field)) {
+                return "terms field '" + field + "' is not allowed for index '" + indexName + "'";
+            }
+            if (terms.has("size")) {
+                Object sz = terms.opt("size");
+                long size;
+                if (sz instanceof Integer) size = (Integer) sz;
+                else if (sz instanceof Long) size = (Long) sz;
+                else return "terms 'size' must be an integer";
+                if ((size < 1) || (size > AGG_MAX_BUCKETS)) {
+                    return "terms 'size' must be between 1 and " + AGG_MAX_BUCKETS;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Fail-closed: returns true ONLY if every field the query/sort/aggs could reference is in `allowed`.
+     * Used to constrain non-admin token individual searches to identity fields (so a caller can't
+     * probe hidden cross-encounter aggregates via range/sort/aggs/etc.).
+     */
+    public static boolean queryReferencesOnlyAllowedFields(JSONObject body, java.util.Set<String> allowed) {
+        if (body == null) return true;
+        // Strict top-level allowlist (fail-closed): ONLY query/from/size are permitted. Any other
+        // top-level key (post_filter, collapse, rescore, suggest, highlight, aggs, sort, _source,
+        // fields, script_fields, search_after, pit, ...) is an unvetted field-bearing/feature key.
+        for (String key : body.keySet()) {
+            if (!ALLOWED_TOP_LEVEL_KEYS.contains(key)) return false;
+        }
+        // from/size are pagination scalars; only `query` needs recursive field validation.
+        return nodeAllowed(body.opt("query"), allowed, false);
+    }
+
+    // expectField=true means: the CURRENT object's KEYS are field names to check against the allowlist.
+    private static boolean nodeAllowed(Object node, java.util.Set<String> allowed, boolean expectField) {
+        if (node == null) return true;
+        if (node instanceof org.json.JSONArray) {
+            org.json.JSONArray arr = (org.json.JSONArray) node;
+            for (int i = 0; i < arr.length(); i++) if (!nodeAllowed(arr.opt(i), allowed, expectField)) return false;
+            return true;
+        }
+        if (!(node instanceof JSONObject)) return true; // scalar value
+        JSONObject obj = (JSONObject) node;
+        for (String key : obj.keySet()) {
+            if (DENY_FEATURES.contains(key)) return false; // script/field/etc. anywhere -> reject
+            if (expectField) {
+                // current level keys are FIELD NAMES
+                if (!allowed.contains(rootField(key))) return false;
+                // values under a field (e.g. range bounds) are leaf params; don't recurse for fields
+            } else if ("terms".equals(key)) {
+                // Special-case: the terms operator has two legal forms:
+                //   plain:  {"terms": {"field": ["v1","v2"]}}   -> array/scalar value  -> allowed (if field allowlisted)
+                //   lookup: {"terms": {"field": {"index":"...","path":"..."}}} -> object value -> REJECT
+                // The lookup form lets a caller probe hidden nested fields via "path"; reject it fail-closed.
+                Object tv = obj.opt(key);
+                if (!(tv instanceof JSONObject)) return false; // terms body must be a JSONObject
+                JSONObject to = (JSONObject) tv;
+                for (String f : to.keySet()) {
+                    if (!allowed.contains(rootField(f))) return false; // field must be allowlisted
+                    if (to.opt(f) instanceof JSONObject) return false;  // object value = terms-lookup -> reject
+                }
+            } else if (FIELD_BEARING.contains(key)) {
+                // the child object's keys are field names
+                if (!nodeAllowed(obj.opt(key), allowed, true)) return false;
+            } else if (DSL_STRUCTURAL.contains(key)) {
+                if (!nodeAllowed(obj.opt(key), allowed, false)) return false;
+            } else {
+                // unknown key in a structural position -> fail closed
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // allow nested subfields under an allowlisted root (e.g. nameMap.foo, names.keyword)
+    private static String rootField(String field) {
+        int dot = field.indexOf('.');
+        return (dot >= 0) ? field.substring(0, dot) : field;
+    }
+
+    private static void scrubAclFields(JSONObject doc) {
+        for (String f : ACL_FIELDS) doc.remove(f);
+    }
+
+    // 4-arg overload preserved for the existing caller (non-token path) until SearchApi passes tokenAuth.
     public static JSONObject sanitizeDoc(final JSONObject sourceDoc, String indexName,
         Shepherd myShepherd, User user)
     throws IOException {
+        return sanitizeDoc(sourceDoc, indexName, myShepherd, user, false);
+    }
+
+    // takes raw search result doc and presents only data user should see
+    public static JSONObject sanitizeDoc(final JSONObject sourceDoc, String indexName,
+        Shepherd myShepherd, User user, boolean tokenAuth)
+    throws IOException {
         if ((user == null) || (sourceDoc == null)) throw new IOException("null user or sourceDoc");
-        // these classes we let anyone see as-is
-        if ("annotation".equals(indexName) || "individual".equals(indexName)) return sourceDoc;
+        if ("annotation".equals(indexName)) {
+            JSONObject clean = new JSONObject(sourceDoc.toString());
+            scrubAclFields(clean);             // never leak the internal ACL fields
+            return clean;                      // content (incl. embeddings) returned as-is
+        }
+        if ("individual".equals(indexName)) {
+            boolean admin = user.isAdmin(myShepherd);
+            if (tokenAuth && !admin) {
+                JSONObject clean = new JSONObject();
+                for (String f : INDIVIDUAL_TOKEN_KEEP) {
+                    if (sourceDoc.has(f)) clean.put(f, sourceDoc.get(f));
+                }
+                return clean;                  // allowlist: identity only, aggregates dropped
+            }
+            JSONObject clean = new JSONObject(sourceDoc.toString());
+            scrubAclFields(clean);
+            return clean;
+        }
         // these we return some kinda cleaned value
         JSONObject clean = new JSONObject();
         if ("encounter".equals(indexName)) {
             boolean hasAccess = Encounter.opensearchAccess(sourceDoc, user, myShepherd);
             if (hasAccess) {
                 clean = new JSONObject(sourceDoc.toString());
-                clean.remove("viewUsers");
+                scrubAclFields(clean);
                 clean.put("access", "full");
                 return clean;
             }
@@ -725,14 +1414,13 @@ public class OpenSearch {
             boolean hasAccess = user.isAdmin(myShepherd) || hasAccessOccurrence(user, sourceDoc);
             if (hasAccess) {
                 clean = new JSONObject(sourceDoc.toString());
+                scrubAclFields(clean);
                 clean.put("access", "full");
             } else {
                 clean = new JSONObject();
                 clean.put("id", sourceDoc.optString("id", "unknown"));
                 clean.put("access", "none");
             }
-            // clean.remove("viewUsers");
-            // clean.remove("editUsers");
         }
         // if we fall through (e.g. future classes) clean will just be empty
         return clean;

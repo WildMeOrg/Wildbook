@@ -1242,9 +1242,28 @@ public class Encounter extends Base implements java.io.Serializable {
         setIndividual(indiv);
     }
 
+    /** Enqueue a (deep) reindex of this encounter — refreshes its individual + annotations' ACL.
+     *  Honors skipAutoIndexing so bulk import / deserialization don't storm. */
+    public void enqueueAclReindex() {
+        if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
+        try {
+            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+        } catch (Exception ex) {
+            System.out.println("Encounter.enqueueAclReindex failed for " + this.getId() + ": " + ex);
+        }
+    }
+
     public void setIndividual(MarkedIndividual indiv) {
+        MarkedIndividual old = this.individual;
         if (indiv == null) { this.individual = null; } else { this.individual = indiv; }
         this.refreshAnnotationLiteIndividual();
+        // membership change: refresh this encounter (deep -> its new individual + annotations)
+        // and the OLD individual it left (so the departed encounter is dropped from its ACL).
+        // Only enqueue when membership actually changed; a no-op set (old == indiv) changes nothing.
+        if (old != indiv) {
+            this.enqueueAclReindex();
+            if (old != null) old.enqueueAclReindex();
+        }
     }
 
     public MarkedIndividual getIndividual() {
@@ -1430,7 +1449,7 @@ public class Encounter extends Base implements java.io.Serializable {
         System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString());
         org.json.JSONObject sp = astore.createParameters(fullPath);
         sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName);
-                                                                          // others?
+        // others?
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma == null) {
             System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
@@ -1640,6 +1659,28 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public void setRightReferenceSpots(ArrayList<SuperSpot> rightReferenceSpots) {
         this.rightReferenceSpots = rightReferenceSpots;
+    }
+
+    // this is for jsonForApiGet()
+    public org.json.JSONObject spotMappingJsonForApiGet() {
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        boolean enabled = CommonConfiguration.useSpotPatternRecognition("context0");
+        rtn.put("enabled", enabled);
+        if (!enabled) return rtn;
+        rtn.put("numberLeftSpots", getNumSpots());
+        rtn.put("numberRightSpots", getNumRightSpots());
+        rtn.put("hasLeftSpots", getNumSpots() > 0);
+        rtn.put("hasRightSpots", getNumRightSpots() > 0);
+        rtn.put("hasSpots", (getNumSpots() + getNumRightSpots()) > 0);
+
+        // check where results xml is stored (per spotMappingAlgorith.jsp)
+        File ddir = Util.getDataDir();
+        String encDir = dir(ddir.toString());
+        rtn.put("resultsGrothLeft", new File(encDir, "lastFullScan.xml").exists());
+        rtn.put("resultsGrothRight", new File(encDir, "lastFullRightScan.xml").exists());
+        rtn.put("resultsI3SLeft", new File(encDir, "lastFullI3SScan.xml").exists());
+        rtn.put("resultsI3SRight", new File(encDir, "lastFullRightI3SScan.xml").exists());
+        return rtn;
     }
 
     // @return the variance for population
@@ -2338,30 +2379,60 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // also supports YYYY and YYYY-MM
-    public void setDateFromISO8601String(String iso8601) {
+    // per issue 1489, cannot set a future date
+    public void setDateFromISO8601String(String iso8601)
+    throws ApiException {
         if (!validISO8601String(iso8601)) return;
+
+        // this is for potential ApiException
+        org.json.JSONObject error = new org.json.JSONObject();
+        error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+
         if (iso8601.length() == 4) { // assume year
             try {
                 this.year = Integer.parseInt(iso8601);
             } catch (Exception ex) {}
+
+            // got an int year, but lets see if it is valid
+            if (Util.dateIsInFuture(this.year, null, null)) {
+                error.put("fieldName", "year");
+                error.put("value", this.year);
+                throw new ApiException("date is in the future", error);
+            }
             resetDateInMilliseconds();
             return;
         }
-        // this should already be validated so we can trust it (flw)
+        // this format should already be validated so we can trust it (flw)
         if (iso8601.length() == 7) {
             try {
                 this.year = Integer.parseInt(iso8601.substring(0, 4));
                 this.month = Integer.parseInt(iso8601.substring(5, 7));
             } catch (Exception ex) {}
+            if (Util.dateIsInFuture(this.year, this.month, null)) {
+                // if we wanted to be super thorough we could do errors array of year & month
+                error.put("fieldName", "month");
+                error.put("value", this.month);
+                throw new ApiException("date is in the future", error);
+            }
             resetDateInMilliseconds();
             return;
         }
         try {
             String adjusted = Util.getISO8601Date(iso8601);
             DateTime dt = new DateTime(adjusted);
+            if (Util.dateIsInFuture(dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth())) {
+                error.put("fieldName", "day");
+                error.put("value", dt.getDayOfMonth());
+                throw new ApiException("date is in the future", error);
+            }
             this.setDateInMilliseconds(dt.getMillis());
+        // pass this flavor out...
+        } catch (ApiException ex) {
+            throw ex;
+        // this catches failure of new DateTime() basically, so we make this an ApiException
         } catch (Exception ex) {
             System.out.println("setDateFromISO8601String(" + iso8601 + ") failed: " + ex);
+            throw new ApiException("date/time values are invalid");
         }
         resetDateInMilliseconds();
     }
@@ -2467,6 +2538,21 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public List<Project> getProjects(Shepherd myShepherd) {
         return myShepherd.getProjectsForEncounter(this);
+    }
+
+    public boolean isInProjects(Set<String> projectIds, Shepherd myShepherd) {
+        // if we dont have any ids, here we are going to consider it false
+        // NOTE: opposite logic in MatchResultProspect.isInProject()
+        if (Util.collectionIsEmptyOrNull(projectIds)) return false;
+        String sql = "select count(*) from \"PROJECT_ENCOUNTERS\" where \"CATALOGNUMBER_EID\" = '" +
+            this.getId() + "' and \"ID_OID\" in ('" + String.join("', '", projectIds) + "')";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        if (!it.hasNext()) return false;
+        Long count = (Long)it.next();
+        q.closeAll();
+        return (count > 0);
     }
 
     public void addTissueSample(TissueSample dce) {
@@ -2988,7 +3074,7 @@ public class Encounter extends Base implements java.io.Serializable {
         for (Annotation ann : annotations) {
             if (ann == null) continue; // really weird that this happens sometimes
             MediaAsset ma = ann.getMediaAsset();
-            if (ma != null) m.add(ma);
+            if ((ma != null) && !m.contains(ma)) m.add(ma);
         }
         return m;
     }
@@ -3263,9 +3349,21 @@ public class Encounter extends Base implements java.io.Serializable {
         if (user == null) return false;
         if (isUserOwner(user)) return true;
         if (user.isAdmin(myShepherd)) return true;
+        // any logged-in user can edit a public (ownerless) encounter, matching the
+        // legacy ServletUtilities.isUserAuthorizedForEncounter() behavior
+        if (User.isUsernameAnonymous(this.getSubmitterID())) return true;
         if (Collaboration.canEditEncounter(this, user, myShepherd.getContext())) return true;
         // TODO there seems to be some legacy stuff about roles based on location. is this real?
         return false;
+    }
+
+    // edit access on a public encounter (see canUserEdit) does not by itself
+    // grant visibility of other users' contact emails
+    public boolean canUserViewContactInfo(User user, Shepherd myShepherd) {
+        if (user == null) return false;
+        if (isUserOwner(user)) return true;
+        if (user.isAdmin(myShepherd)) return true;
+        return Collaboration.canEditEncounter(this, user, myShepherd.getContext());
     }
 
     public boolean isUserOwner(User user) { // the definition of this might change?
@@ -3275,19 +3373,83 @@ public class Encounter extends Base implements java.io.Serializable {
         return false;
     }
 
-    // new logic means we only need users who are in collab with submitting user
-    // and if public, we dont need to do this at all
-    public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+    /**
+     * Correct per-encounter ACL: the set of user UUIDs permitted to view this
+     * encounter. Single source of visibility truth for the full-index path.
+     * See docs/superpowers/plans/2026-05-29-viewusers-acl-hardening.md.
+     *
+     * - Public/anonymous-owner encounters and encounters with an invalid owner
+     *   yield [] (admin-only via opensearchAccess' isAdmin branch).
+     * - Otherwise: the other party of every PERSISTED approved/edit
+     *   collaboration with the submitter, plus orgAdmins of the submitter's
+     *   organization(s) (one-way).
+     */
+    public List<String> computeViewUsers(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
-
         if (this.isPubliclyReadable()) return ids;
-        List<Collaboration> collabs = Collaboration.collaborationsForUser(myShepherd,
-            this.getSubmitterID());
-        for (Collaboration collab : collabs) {
-            User user = myShepherd.getUser(collab.getOtherUsername(this.getSubmitterID()));
-            if (user != null) ids.add(user.getId());
+        String submitter = this.getSubmitterID();
+        User submitterUser = (submitter == null) ? null : myShepherd.getUser(submitter);
+        if (submitterUser == null) return ids; // fail closed: admin-only
+        java.util.Set<String> seen = new java.util.HashSet<String>();
+        // 1. persisted approved/edit collaborators (mutual view), correct direction
+        for (Collaboration col : Collaboration.persistedCollaborationsForUser(myShepherd, submitter)) {
+            if (!col.isApproved() && !col.isEditApproved()) continue;
+            String otherUsername = col.getOtherUsername(submitter);
+            if (otherUsername == null || otherUsername.equals(submitter)) continue; // skip self-collab
+            User other = myShepherd.getUser(otherUsername);
+            if (other != null && other.getId() != null && seen.add(other.getId())) {
+                ids.add(other.getId());
+            }
+        }
+        // 2. orgAdmins of the submitter's organization(s) can view (one-way)
+        String context = myShepherd.getContext();
+        List<Organization> orgs = myShepherd.getAllOrganizationsForUser(submitterUser);
+        if (orgs != null) {
+            for (Organization org : orgs) {
+                List<User> members = org.getMembers();
+                if (members == null) continue;
+                for (User m : members) {
+                    if (m == null || m.getUsername() == null) continue;
+                    if (m.getUsername().equals(submitter)) continue; // not self
+                    if (!myShepherd.doesUserHaveRole(m.getUsername(), Organization.ROLE_MANAGER, context)) continue;
+                    if (m.getId() != null && seen.add(m.getId())) ids.add(m.getId());
+                }
+            }
         }
         return ids;
+    }
+
+    public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+        // Delegates to the single correct ACL computation. Retained as a named
+        // method because the full-index serializer and any external callers
+        // reference it. See computeViewUsers().
+        return computeViewUsers(myShepherd);
+    }
+
+    /**
+     * Single source of this encounter's OpenSearch ACL fields, reused by the encounter,
+     * annotation, and individual indexing so all three agree. publiclyReadable mirrors
+     * isPubliclyReadable() (security-disabled OR anonymous owner). For a non-public encounter:
+     * submitterUserId is the resolved owner's UUID (absent if the owner is invalid/deleted ->
+     * admin-only/fail-closed), and viewUsers is computeViewUsers() (approved/edit collaborators +
+     * submitter-org orgAdmins). Anonymous-owned -> public; invalid/deleted non-anonymous owner -> closed.
+     * Semantically equivalent to (not byte-identical with) the encounter index's own serialization
+     * (e.g. for a public encounter we omit submitterUserId since publiclyReadable=true already grants);
+     * the ACCESS DECISION is identical, only the stored field set differs harmlessly.
+     */
+    public org.json.JSONObject opensearchAclFields(Shepherd myShepherd) {
+        org.json.JSONObject acl = new org.json.JSONObject();
+        boolean pub = this.isPubliclyReadable();
+        acl.put("publiclyReadable", pub);
+        org.json.JSONArray vu = new org.json.JSONArray();
+        if (!pub) {
+            User submitter = this.getSubmitterUser(myShepherd);
+            if ((submitter != null) && (submitter.getId() != null))
+                acl.put("submitterUserId", submitter.getId());
+            for (String id : this.computeViewUsers(myShepherd)) vu.put(id);
+        }
+        acl.put("viewUsers", vu);
+        return acl;
     }
 
 /*
@@ -3558,6 +3720,21 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         query.closeAll();
         return returnEnc;
+    }
+
+    /** All encounters whose annotations contain this annotation (usually 0 or 1; >1 is anomalous). */
+    public static java.util.List<Encounter> findAllByAnnotation(Annotation annot, Shepherd myShepherd) {
+        javax.jdo.Query query = myShepherd.getPM().newQuery(
+            "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id == annId");
+        query.declareParameters("String annId");
+        java.util.List<Encounter> out = new java.util.ArrayList<Encounter>();
+        try {
+            java.util.List results = (java.util.List)query.execute(annot.getId());
+            if (results != null) for (Object o : results) out.add((Encounter)o);
+        } finally {
+            query.closeAll();
+        }
+        return out;
     }
 
     public static Encounter findByAnnotationId(String annid, Shepherd myShepherd) {
@@ -4035,11 +4212,17 @@ public class Encounter extends Base implements java.io.Serializable {
             System.out.println("opensearchIndexPermissionsBackground: running not required; done");
             return;
         }
-        // i think we should set these first... tho they may not get persisted til after?
-        OpenSearch.setPermissionsTimestamp(myShepherd);
-        OpenSearch.setPermissionsNeeded(myShepherd, false);
-        opensearchIndexPermissions();
-        System.out.println("opensearchIndexPermissionsBackground: running completed");
+        boolean completed = opensearchIndexPermissions();
+        if (completed) {
+            // advance timestamp + clear the needed flag ONLY on success, so an aborted
+            // run (e.g. precompute failure) is retried on the next tick rather than being
+            // masked by a staged needed=false that myShepherd commits after the abort.
+            OpenSearch.setPermissionsTimestamp(myShepherd);
+            OpenSearch.setPermissionsNeeded(myShepherd, false);
+            System.out.println("opensearchIndexPermissionsBackground: running completed");
+        } else {
+            System.out.println("opensearchIndexPermissionsBackground: ABORTED — leaving permissionsNeeded set for retry next tick");
+        }
     }
 
 /*  note: there are a great deal of users with *no username* that seem to appear in enc.submitters array.
@@ -4059,12 +4242,12 @@ public class Encounter extends Base implements java.io.Serializable {
     encounters with submitterID in (NULL, "public", "", "N/A" [ugh]) is readable by anyone; so we will
     skip these from processing as they should be flagged with the boolean isPubliclyReadable in indexing
  */
-    public static void opensearchIndexPermissions() {
+    public static boolean opensearchIndexPermissions() {
         Util.mark("perm start");
         long startT = System.currentTimeMillis();
         System.out.println("opensearchIndexPermissions(): begin...");
         // no security => everything publiclyReadable - saves us work, no?
-        if (!Collaboration.securityEnabled("context0")) return;
+        if (!Collaboration.securityEnabled("context0")) return true;
         OpenSearch os = new OpenSearch();
         Map<String, Set<String> > collab = new HashMap<String, Set<String> >();
         Map<String, String> usernameToId = new HashMap<String, String>();
@@ -4086,13 +4269,17 @@ public class Encounter extends Base implements java.io.Serializable {
                 }
             }
         } catch (Exception ex) {
+            System.out.println("opensearchIndexPermissions(): ABORT — user/collab precompute failed; will retry next tick");
             ex.printStackTrace();
+            myShepherd.rollbackAndClose();
+            return false;
         }
         Util.mark("perm: user build done", startT);
         System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
             " total users; " + collab.size() + " have active collab");
         // now iterated over (non-public) encounters
         int encCount = 0;
+        int viewUsersWriteFailures = 0;
         org.json.JSONObject updateData = new org.json.JSONObject();
         // we do not need full Encounter objects here to update index docs, so lets do this via sql/fields - much faster
         String sql =
@@ -4110,9 +4297,17 @@ public class Encounter extends Base implements java.io.Serializable {
                 org.json.JSONArray viewUsers = new org.json.JSONArray();
                 String uid = usernameToId.get(submitterId);
                 if (uid == null) {
-                    // see issue 939 for example :(
                     System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
-                        submitterId + " on enc " + id);
+                        submitterId + " on enc " + id + " -> full reindex to clear stale ACL fields");
+                    try {
+                        Encounter staleEnc = myShepherd.getEncounter(id);
+                        if (staleEnc != null) {
+                            IndexingManager im = IndexingManagerFactory.getIndexingManager();
+                            im.addIndexingQueueEntry(staleEnc, false); // full reindex: drops submitterUserId + viewUsers
+                        }
+                    } catch (Exception ex) {
+                        System.out.println("  invalid-owner reindex enqueue failed for " + id + ": " + ex);
+                    }
                     continue;
                 }
                 encCount++;
@@ -4149,18 +4344,49 @@ public class Encounter extends Base implements java.io.Serializable {
                     // get the list of usernames in this entry
                     Set<String> localCollabs = collab.get(localUid);
                     // evaluate if the submitterId (a username) of this encounter is in this list
-                    if (localCollabs.contains(submitterId)) {
+                    if (localCollabs.contains(submitterId) && !localUid.equals(uid)) {
                         // if the submitterId is in the list, put the uid of the user in viewUsers for OpenSearch
+                        // (skip self-collab: localUid == uid means the collaborator IS the owner)
                         viewUsers.put(localUid);
                     }
                 }
-                if (viewUsers.length() > 0) {
-                    updateData.put("viewUsers", viewUsers);
+                updateData.put("viewUsers", viewUsers); // always write, incl [] so revocation propagates
+                // Child-reindex change-detection: compare freshly computed viewUsers (as a set) to
+                // what is CURRENTLY indexed. Enqueue the deep child reindex ONLY when the currently
+                // indexed value was READABLE (non-null) and genuinely DIFFERS.
+                // When getIndexedViewUsers returns null (missing doc / unreadable / degraded read) we
+                // do NOT enqueue: the encounter isn't reliably indexed yet, and on a degraded pass a
+                // null-means-changed default would storm child reindexes for every encounter. The
+                // tradeoff is a rare miss for a genuinely-fresh-but-not-yet-readable encounter, which
+                // is recovered by the normal indexing-queue / opensearchIndexDeep path plus the
+                // periodic reconciler / corrective reindex. The encounter's own indexUpdate below is
+                // unconditional, so its viewUsers stays current regardless.
+                boolean childReindexNeeded = false; // only true on a confirmed, readable difference
+                try {
+                    org.json.JSONArray current = os.getIndexedViewUsers("encounter", id);
+                    if (current != null) {
+                        Set<String> currentSet = new java.util.HashSet<String>();
+                        for (int ci = 0; ci < current.length(); ci++) currentSet.add(current.optString(ci, null));
+                        currentSet.remove(null);
+                        Set<String> newSet = new java.util.HashSet<String>();
+                        for (int ni = 0; ni < viewUsers.length(); ni++) newSet.add(viewUsers.optString(ni, null));
+                        newSet.remove(null);
+                        childReindexNeeded = !currentSet.equals(newSet);
+                    }
+                } catch (Exception ex) {
+                    childReindexNeeded = false; // unreadable -> don't storm; recoverable via reconciler
+                }
+                try {
+                    os.indexUpdate("encounter", id, updateData);
+                } catch (Exception ex) {
+                    viewUsersWriteFailures++; // aggregate only — no per-doc noise during index build
+                }
+                if (childReindexNeeded) {
                     try {
-                        os.indexUpdate("encounter", id, updateData);
+                        Encounter enc = myShepherd.getEncounter(id);
+                        if (enc != null) enc.enqueueAclReindex(); // refresh individual + annotations
                     } catch (Exception ex) {
-                        // keeping this quiet cuz it can get noise while index builds
-                        // System.out.println("opensearchIndexPermissions(): WARNING failed to update viewUsers on enc " + enc.getId() + "; likely has not been indexed yet: " + ex);
+                        // best-effort; reconciler / corrective reindex recovers a missed child refresh
                     }
                 }
             }
@@ -4174,6 +4400,10 @@ public class Encounter extends Base implements java.io.Serializable {
         myShepherd.rollbackAndClose();
         System.out.println("opensearchIndexPermissions(): ...end [" + encCount + " encs; " +
             Math.round((System.currentTimeMillis() - startT) / 1000) + "sec]");
+        if (viewUsersWriteFailures > 0)
+            System.out.println("opensearchIndexPermissions(): WARNING " + viewUsersWriteFailures +
+                " viewUsers writes FAILED — revocation may not have propagated for those encounters");
+        return true;
     }
 
     public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
@@ -4533,6 +4763,11 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNumberField(type, bmeas.get(type).getValue());
         }
         jgen.writeEndObject();
+        // NOTE: opensearchProcessPermissions is a transient (non-persisted) flag and is
+        // lost when IndexingManager reloads the entity before async indexing, so this
+        // fresh-compute path is best-effort. ACL correctness does NOT depend on it:
+        // permission-relevant changes call OpenSearch.setPermissionsNeeded(true), and the
+        // background permissions pass (opensearchIndexPermissions) is the authoritative writer.
         // this gets set on specific single-encounter-only actions, when extra expense is okay
         // otherwise this will be computed by permissions backgrounding
         if (this.getOpensearchProcessPermissions()) {
@@ -4541,7 +4776,6 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeFieldName("viewUsers");
             jgen.writeStartArray();
             for (String id : this.userIdsWithViewAccess(myShepherd)) {
-                System.out.println("opensearch whhhh: " + id);
                 jgen.writeString(id);
             }
             jgen.writeEndArray();
@@ -4592,6 +4826,11 @@ public class Encounter extends Base implements java.io.Serializable {
                     }
                     if (enc.hasAnnotations()) {
                         for (Annotation ann : enc.getAnnotations()) {
+                            // Skip non-candidate/"trivial" annotations so encounter deep-index
+                            // cascades don't repeatedly touch index docs that shouldn't exist
+                            // (OpenSearch.index() would just delete them). See
+                            // Annotation.shouldIndexInOpenSearch().
+                            if (!ann.shouldIndexInOpenSearch()) continue;
                             System.out.println("opensearchIndexDeep() background indexing annot " +
                                 ann.getId() + " via enc " + encId);
                             try {
@@ -4730,11 +4969,15 @@ public class Encounter extends Base implements java.io.Serializable {
             if (canUserEdit(user, myShepherd)) {
                 rtn.put("access", "write");
                 blocked = false;
-                // we can allow email being shown when access=write
-                hideUserEmail = false;
-                if (submitter != null)
-                    rtn.put("submitterInfo",
-                        submitter.infoJSONObject(myShepherd, true, hideUserEmail));
+                // we can allow email being shown when the user has a real
+                // relationship to the encounter (owner/admin/edit-collab);
+                // write access via the public-encounter grant is not enough
+                if (canUserViewContactInfo(user, myShepherd)) {
+                    hideUserEmail = false;
+                    if (submitter != null)
+                        rtn.put("submitterInfo",
+                            submitter.infoJSONObject(myShepherd, true, hideUserEmail));
+                }
             } else if (canUserView(user, myShepherd)) {
                 blocked = false;
             }
@@ -4763,6 +5006,7 @@ public class Encounter extends Base implements java.io.Serializable {
         rtn.put("researcherComments", getRComments());
         rtn.put("groupRole", getGroupRole());
         rtn.put("identificationRemarks", getIdentificationRemarks());
+        rtn.put("spotMapping", spotMappingJsonForApiGet());
 
         // the user-listy things
         rtn.put("submitters",
@@ -4836,16 +5080,25 @@ public class Encounter extends Base implements java.io.Serializable {
                                 rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
                                     "annotations").getJSONObject(j).put("identificationStatus",
                                     ann.getIdentificationStatus());
-                                // annTasks are in chron order so most recent will be at end
-                                List<Task> annTasks = ann.getRootIATasks(myShepherd);
-                                int ntasks = Util.collectionSize(annTasks);
-                                if (ntasks > 0) {
+                                rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                    "annotations").getJSONObject(j).put("embeddingCounts",
+                                    new org.json.JSONObject(ann.getEmbeddingCounts()));
+                                // C15: shared selector picks the single task to
+                                // surface as Match Results, matching what the
+                                // bulk-import page shows. Was previously
+                                // ann.getRootIATasks().get(last), which on deep
+                                // v2 task hierarchies climbed past prospects-
+                                // bearing tasks into mid-chain WBIA orchestration
+                                // tasks (recursion-depth=3 on Task.parent caps
+                                // the in-memory ancestor walk).
+                                Task matchTask = ann.getPreferredMatchResultsTask(myShepherd);
+                                if (matchTask != null) {
                                     rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
                                         "annotations").getJSONObject(j).put("iaTaskId",
-                                        annTasks.get(ntasks - 1).getId());
+                                        matchTask.getId());
                                     rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
                                         "annotations").getJSONObject(j).put("iaTaskParameters",
-                                        annTasks.get(ntasks - 1).getParameters());
+                                        matchTask.getParameters());
                                 }
                             }
                         }
@@ -5460,7 +5713,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 if (id < 0) continue;
                 MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
                 if (ma != null) {
-                    ma.setDetectionStatus(hasConfig ? "pending" : "complete");
+                    ma.setDetectionStatus(hasConfig ? IBEISIA.STATUS_INITIATED : IBEISIA.STATUS_COMPLETE);
                     allMAs.add(ma);
                 }
             }

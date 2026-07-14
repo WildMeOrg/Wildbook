@@ -224,8 +224,8 @@ describe("ImageModal", () => {
 
     fireEvent.click(screen.getByText("MATCH_RESULTS"));
 
-    expect(window.open).toHaveBeenCalledWith(
-      "/iaResults.jsp?taskId=task-123",
+    expect(global.open).toHaveBeenCalledWith(
+      "/react/match-results?taskId=task-123",
       "_blank",
     );
   });

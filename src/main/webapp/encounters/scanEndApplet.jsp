@@ -35,6 +35,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 	Shepherd myShepherd=new Shepherd(context);
 	myShepherd.setAction("scanEndApplet.jsp");
 	myShepherd.beginDBTransaction();
+	// try/finally guarantees the Shepherd is closed even if the body throws; otherwise the
+	// PersistenceManager/DB connection leaks (see dbconnections.jsp pool exhaustion).
+	try {
 	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
   		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
 	}
@@ -53,15 +56,18 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 			if(!st.hasFinished()){
 				scanInProgress = true;
 				scanTaskStartTime = st.getStartTime();
-				// Check how much work is done via GridManager
+				// Progress for the async synchronous-engine scan (GrothScanRunnable) is reported
+				// in-memory via GridManager (the old work-item grid that backed
+				// getNumWorkItemsCompleteForTask is dead and no longer drives this).
 				GridManager gm = GridManagerFactory.getGridManager();
-				numComplete = gm.getNumWorkItemsCompleteForTask(taskID);
-				numTotal = numComplete + gm.getNumWorkItemsIncompleteForTask(taskID);
+				numComplete = gm.getScanProgressComplete(taskID);
+				numTotal = gm.getScanProgressTotal(taskID);
 			}
 		}
 	}
-	myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
+	} finally {
+		myShepherd.rollbackAndClose();
+	}
   }
   String encSubdir = Encounter.subdir(num);
 
@@ -604,6 +610,11 @@ function fitRightImage() {
           indShepherd.setAction("scanEndApplet.jsp_displayNames");
           indShepherd.beginDBTransaction();
           java.util.HashMap<String, String> displayNameCache = new java.util.HashMap<>();
+          // try/finally guarantees indShepherd is closed even if the rendering block below throws
+          // (XML parse, substring, Double parse, dom4j iteration). Without it, a throw here leaks
+          // the PersistenceManager/DB connection -- the dominant source of pool exhaustion under
+          // heavy scan-result rendering (see dbconnections.jsp).
+          try {
 
           if (!xmlOK) {
 
@@ -782,8 +793,9 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
 
 
   <%
-          indShepherd.rollbackDBTransaction();
-          indShepherd.closeDBTransaction();
+          } finally {
+              indShepherd.rollbackAndClose();
+          }
 
 
 

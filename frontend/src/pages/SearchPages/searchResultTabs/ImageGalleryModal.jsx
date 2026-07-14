@@ -1,35 +1,80 @@
 import React, { useEffect, useRef, useState } from "react";
 import "swiper/css";
 import { observer } from "mobx-react-lite";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
+import useWheelZoom from "../../../hooks/useWheelZoom";
 
 export const ImageGalleryModal = observer(
   ({ open, onClose, assets = [], index = 0, rects = [], imageStore = {} }) => {
-    const thumbsRef = useRef(null);
+    const intl = useIntl();
     const imgRef = useRef(null);
+    const imageContainerRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
-
-    const encounterData = assets[index] || {};
-
-    useEffect(() => {
-      const s = thumbsRef.current;
-      if (!s || s.destroyed) return;
-      const target = Math.max(0, Math.min(index - 1, assets.length - 1));
-      s.slideTo(target, 250);
-      const naturalWidth = assets[safeIndex]?.width;
-      const naturalHeight = assets[safeIndex]?.height;
-      const displayWidth = imgRef.current.clientWidth;
-      const displayHeight = imgRef.current.clientHeight;
-
-      setScaleX(naturalWidth / displayWidth);
-      setScaleY(naturalHeight / displayHeight);
-    }, [index, assets.length]);
-
-    if (!open || !assets.length) return null;
+    const [pan, setPan] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [dragStart, setDragStart] = useState(null);
 
     const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
     const a = assets[safeIndex] || {};
+
+    // Reset pan when the image changes. Pan is otherwise preserved across zoom
+    // changes so wheel zoom does not feel jumpy after the user has dragged.
+    useEffect(() => {
+      setPan({ x: 0, y: 0 });
+    }, [safeIndex]);
+
+    // Keep the image centered whenever it is not zoomed in (dragging is disabled
+    // at <=1x), so zooming back out via the wheel never leaves it off-center.
+    useEffect(() => {
+      if (zoom <= 1) setPan({ x: 0, y: 0 });
+    }, [zoom]);
+
+    const onMouseDown = (e) => {
+      if (e.button !== 0) return;
+      if (zoom <= 1) return;
+      e.preventDefault();
+      setDragStart({ x: e.clientX, y: e.clientY, startPan: pan });
+    };
+
+    // Mouse-wheel zoom matches the zoom-in / reset buttons (step 0.25, range 1..3).
+    // Gated on `open`: this modal stays mounted while closed (open toggles), so the
+    // listener must (re)attach when it opens — by then imageContainerRef is set.
+    const handleWheelZoom = (direction) => {
+      setZoom((z) => Math.min(3, Math.max(1, z + direction * 0.25)));
+    };
+    useWheelZoom(imageContainerRef, handleWheelZoom, open);
+
+    useEffect(() => {
+      if (!dragStart) return;
+
+      const handleMouseMove = (e) => {
+        const dx = e.clientX - dragStart.x;
+        const dy = e.clientY - dragStart.y;
+        setPan({
+          x: dragStart.startPan.x + dx,
+          y: dragStart.startPan.y + dy,
+        });
+      };
+
+      const handleMouseUp = () => {
+        setDragStart(null);
+      };
+
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+      document.body.style.userSelect = "none";
+
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+        document.body.style.userSelect = "";
+      };
+    }, [dragStart]);
+
+    const encounterData = assets[safeIndex] || {};
+
+    if (!open || !assets.length) return null;
 
     return (
       <div
@@ -79,6 +124,39 @@ export const ImageGalleryModal = observer(
                     style={{
                       backgroundColor: "rgba(255, 255, 255, 0.5)",
                       marginRight: "8px",
+                      color: "white",
+                    }}
+                    onClick={() => setZoom((z) => Math.min(3, z + 0.25))}
+                    aria-label={intl.formatMessage({ id: "ZOOM_IN" })}
+                    title={intl.formatMessage({ id: "ZOOM_IN" })}
+                  >
+                    <i className="bi bi-zoom-in"></i>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-sm rounded-circle"
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.5)",
+                      marginRight: "8px",
+                      color: "white",
+                    }}
+                    onClick={() => {
+                      setZoom(1);
+                      setPan({ x: 0, y: 0 });
+                    }}
+                    aria-label={intl.formatMessage({ id: "RESET_ZOOM" })}
+                    title={intl.formatMessage({ id: "RESET_ZOOM" })}
+                  >
+                    <i className="bi bi-zoom-out"></i>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-sm rounded-circle"
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.5)",
+                      marginRight: "8px",
                     }}
                     onClick={() => {
                       const cur = assets[safeIndex];
@@ -87,7 +165,7 @@ export const ImageGalleryModal = observer(
                       a.href = cur.url;
                       a.download =
                         cur.filename ||
-                        `encounter-image-${cur.id || index}.jpg`;
+                        `encounter-image-${cur.id || safeIndex}.jpg`;
                       a.click();
                     }}
                     aria-label="Download"
@@ -133,17 +211,33 @@ export const ImageGalleryModal = observer(
 
               <div
                 id="image-modal-image"
+                ref={imageContainerRef}
                 className="d-flex justify-content-center position-relative overflow-hidden"
                 style={{ flex: "1 1 auto", minHeight: 0 }}
               >
                 <div
                   className="position-relative"
-                  style={{ maxWidth: "90vw", maxHeight: "80vh" }}
+                  onMouseDown={onMouseDown}
+                  style={{
+                    maxWidth: "90vw",
+                    maxHeight: "80vh",
+                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                    transformOrigin: "center center",
+                    transition: dragStart ? "none" : "transform 0.2s ease",
+                    cursor:
+                      zoom > 1
+                        ? dragStart
+                          ? "grabbing"
+                          : "grab"
+                        : "default",
+                  }}
                 >
                   <img
                     id="image-modal-main-image"
                     src={a.url}
                     ref={imgRef}
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
                     alt={`asset-${a.id ?? safeIndex}`}
                     className="img-fluid"
                     style={{

@@ -16,7 +16,7 @@ import InfoAccordion from "../../components/InfoAccordion";
 import SimpleDataTable from "../../components/SimpleDataTable";
 import { Modal } from "react-bootstrap";
 import { Suspense, lazy } from "react";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import axios from "axios";
 import MainButton from "../../components/MainButton";
 import convertToTreeData from "../../utils/converToTreeData";
@@ -31,11 +31,13 @@ const BulkImportTask = observer(() => {
   const [showError, setShowError] = useState(false);
   const taskId = new URLSearchParams(window.location.search).get("id");
   const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
-  const { data: siteData } = useGetSiteSettings();
+  const { data: siteData } = useSiteSettings();
   const [userRoles, setUserRoles] = useState(null);
   const store = useLocalObservable(() => new BulkImportTaskStore());
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSendingToIdentification, setIsSendingToIdentification] =
+    useState(false);
   const previousLocationID = task?.matchingLocations || [];
 
   const fetchData = async () => {
@@ -76,12 +78,14 @@ const BulkImportTask = observer(() => {
 
   const deleteTask = async () => {
     if (!task?.id) return;
+    if (isDeleting) return;
 
     const confirmed = window.confirm(
       intl.formatMessage({ id: "BULK_IMPORT_DELETE_TASK_CONFIRM" }),
     );
     if (!confirmed) return;
 
+    setIsDeleting(true);
     try {
       const res = await fetch(`/api/v3/bulk-import/${task.id}`, {
         method: "DELETE",
@@ -102,6 +106,7 @@ const BulkImportTask = observer(() => {
           { error: err.message || "" },
         ),
       );
+      setIsDeleting(false);
     }
   };
 
@@ -208,7 +213,7 @@ const BulkImportTask = observer(() => {
       cell: (row) => {
         const arr = row.class;
         if (Array.isArray(arr) && arr.length === 3) {
-          const link = `/iaResults.jsp?taskId=${arr[0]}`;
+          const link = `/react/match-results?taskId=${arr[0]}`;
           return (
             <a href={link} target="_blank" rel="noreferrer">
               {arr[2]} {": "}
@@ -278,32 +283,31 @@ const BulkImportTask = observer(() => {
       <Row className="g-2">
         <div className="d-flex flex-row gap-3">
           {[
-            {
-              title: intl.formatMessage({
-                id: "IMPORT",
-              }),
-              progress:
-                task?.importPercent ||
+            (() => {
+              // Import is "done" once it hits 100%, or once a later phase
+              // proves it finished (task complete, detection complete, or the
+              // pipeline overlay is running). Compute once so progress and
+              // status stay consistent. NOTE: the bar must show the *actual*
+              // fractional importPercent while in progress — guarding only
+              // against `=== 1` here, not any truthy value, otherwise a 30%
+              // import renders as a full bar.
+              const importComplete =
+                task?.importPercent === 1 ||
                 task?.status === "complete" ||
                 task?.iaSummary?.detectionStatus === "complete" ||
-                task?.status === "processing-pipeline"
-                  ? 1
-                  : 0,
-              status: (() => {
-                if (
-                  task?.importPercent === 1 ||
-                  task?.status === "complete" ||
-                  task?.iaSummary?.detectionStatus === "complete" ||
-                  task?.status === "processing-pipeline"
-                ) {
-                  return "complete";
-                } else if (task?.importPercent) {
-                  return "in_progress";
-                } else {
-                  return "not_started";
-                }
-              })(),
-            },
+                task?.status === "processing-pipeline";
+              return {
+                title: intl.formatMessage({
+                  id: "IMPORT",
+                }),
+                progress: importComplete ? 1 : task?.importPercent || 0,
+                status: importComplete
+                  ? "complete"
+                  : task?.importPercent
+                    ? "in_progress"
+                    : "not_started",
+              };
+            })(),
             {
               title: intl.formatMessage({
                 id: "DETECTION",
@@ -428,7 +432,11 @@ const BulkImportTask = observer(() => {
             </select>
           </label>
         </div>
-        <SimpleDataTable columns={columns} data={sortedTableData} perPage={rowsPerPage} />
+        <SimpleDataTable
+          columns={columns}
+          data={sortedTableData}
+          perPage={rowsPerPage}
+        />
       </section>
 
       <Row>
@@ -482,50 +490,50 @@ const BulkImportTask = observer(() => {
           <MainButton
             id="re-id-button"
             disabled={
+              isSendingToIdentification ||
               (!userRoles?.includes("admin") &&
                 !userRoles?.includes("researcher")) ||
               !store.locationIDString ||
               task?.status !== "complete" ||
               task?.iaSummary?.detectionStatus !== "complete"
             }
-            onClick={() => {
+            onClick={async () => {
               setShowError(false);
-              axios
-                .get(
+              setIsSendingToIdentification(true);
+
+              try {
+                const response = await axios.get(
                   `/appadmin/resendBulkImportID.jsp?importIdTask=${taskId}${store.locationIDString}`,
-                )
-                .then((response) => {
-                  if (response.status === 200) {
-                    alert(
-                      intl.formatMessage({
-                        id: "BULK_IMPORT_RE_ID_SUCCESS",
-                        defaultMessage:
-                          "Re-identification task started successfully.",
-                      }),
-                    );
-                    window.location.reload();
-                  } else {
-                    throw new Error(
-                      intl.formatMessage({
-                        id: "BULK_IMPORT_RE_ID_ERROR",
-                        defaultMessage:
-                          "Failed to start re-identification task.",
-                      }),
-                    );
-                  }
-                })
-                .catch((error) => {
-                  console.error(
-                    "Error starting re-identification task:",
-                    error,
-                  );
+                );
+
+                if (response.status === 200) {
                   alert(
+                    intl.formatMessage({
+                      id: "BULK_IMPORT_RE_ID_SUCCESS",
+                      defaultMessage:
+                        "Re-identification task started successfully.",
+                    }),
+                  );
+                  window.location.reload();
+                } else {
+                  throw new Error(
                     intl.formatMessage({
                       id: "BULK_IMPORT_RE_ID_ERROR",
                       defaultMessage: "Failed to start re-identification task.",
                     }),
                   );
-                });
+                }
+              } catch (error) {
+                console.error("Error starting re-identification task:", error);
+                alert(
+                  intl.formatMessage({
+                    id: "BULK_IMPORT_RE_ID_ERROR",
+                    defaultMessage: "Failed to start re-identification task.",
+                  }),
+                );
+              } finally {
+                setIsSendingToIdentification(false);
+              }
             }}
             backgroundColor={theme.wildMeColors.cyan700}
             color={theme.defaultColors.white}
@@ -537,6 +545,15 @@ const BulkImportTask = observer(() => {
               marginLeft: 0,
             }}
           >
+            {isSendingToIdentification && (
+              <Spinner
+                animation="border"
+                size="sm"
+                className="me-2"
+                role="status"
+                aria-hidden="true"
+              />
+            )}
             <FormattedMessage id="BULK_IMPORT_SEND_TO_IDENTIFICATION" />
           </MainButton>
           {((!userRoles?.includes("admin") &&
@@ -564,6 +581,7 @@ const BulkImportTask = observer(() => {
         <Col xs="auto">
           <MainButton
             onClick={deleteTask}
+            disabled={isDeleting}
             shadowColor={theme.statusColors.red500}
             color={theme.statusColors.red500}
             noArrow={true}
@@ -575,9 +593,23 @@ const BulkImportTask = observer(() => {
               marginLeft: 0,
               marginTop: "1rem",
               marginBottom: "2rem",
+              opacity: isDeleting ? 0.7 : 1,
+              cursor: isDeleting ? "not-allowed" : "pointer",
             }}
           >
-            <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
+            {isDeleting ? (
+              <>
+                <Spinner
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  className="me-2"
+                />
+                <FormattedMessage id="BULK_IMPORT_DELETE_TASK_IN_PROGRESS" />
+              </>
+            ) : (
+              <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
+            )}
           </MainButton>
         </Col>
       </Row>
