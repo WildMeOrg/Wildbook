@@ -49,10 +49,16 @@ import java.util.concurrent.TimeUnit;
 // https://github.com/opensearch-project/opensearch-java/blob/main/USER_GUIDE.md
 
 public class OpenSearch {
-    public static OpenSearchClient client = null;
-    public static RestClient restClient = null;
+    public static volatile OpenSearchClient client = null;
+    public static volatile RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
-    public static Map<String, String> PIT_CACHE = new HashMap<String, String>();
+    // ConcurrentHashMap: PIT_CACHE is read/mutated from concurrent request threads (SearchApi,
+    // EncounterQueryProcessor, MediaResolveApi) and, once IA match consumers can run concurrently,
+    // from those too. This only removes the structural-corruption hazard of an unsynchronized
+    // HashMap; it does NOT make the shared one-PIT-per-index lifecycle request-safe (a deletePit on
+    // one caller can still drop another's snapshot; queryPit's retry self-heals it). Match read
+    // paths avoid PIT entirely via querySearch(); proper per-request PIT scoping is a separate change.
+    public static Map<String, String> PIT_CACHE = new java.util.concurrent.ConcurrentHashMap<String, String>();
     public static String SEARCH_SCROLL_TIME = (String)getConfigurationValue("searchScrollTime",
         "10m");
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
@@ -70,6 +76,31 @@ public class OpenSearch {
         "backgroundPermissionsMaxForceMinutes", 45);
     public static String PERMISSIONS_LAST_RUN_KEY = "OpenSearch_permissions_last_run_timestamp";
     public static String PERMISSIONS_NEEDED_KEY = "OpenSearch_permissions_needed";
+    // kNN match warmup: after startup, load the faiss/kNN native graph for the match index into
+    // off-heap memory (and warm the filter/segment paths) so the FIRST user match doesn't pay the
+    // cold-load, which can exceed the socket timeout and surface to the user as an empty result.
+    public static String WARMUP_INDEX = (String)getConfigurationValue("matchWarmupIndex",
+        "annotation");
+    // Retry cadence while OpenSearch is still coming up / the index isn't built yet (e.g. a
+    // `docker compose up` where both containers start at once). Kept short so we warm as soon as
+    // OpenSearch is reachable.
+    public static int WARMUP_RETRY_MINUTES = (Integer)getConfigurationValue("matchWarmupRetryMinutes",
+        1);
+    // Re-warm cadence once warmed, to survive segment merges / native-cache eviction. 0 disables
+    // re-warming (warm once at startup only).
+    public static int WARMUP_REWARM_MINUTES = (Integer)getConfigurationValue(
+        "matchWarmupRewarmMinutes", 20);
+    // True while the match kNN graph is warmed into native memory in THIS JVM: set on a successful
+    // warm pass, reset if a later (re)warm fails (e.g. OpenSearch restarted under us). In-memory,
+    // so correctly starts false on restart. Exposed for health/readiness use; not a gate on matching.
+    private static volatile boolean matchWarmupReady = false;
+    // Ensures a single self-rescheduling warmup chain, even if backgroundStartup is ever called twice.
+    private static final java.util.concurrent.atomic.AtomicBoolean warmupChainStarted =
+        new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    public static boolean isMatchWarmupReady() {
+        return matchWarmupReady;
+    }
     public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
     static String ACTIVE_TYPE_FOREGROUND = "opensearch_indexing_foreground";
     static String ACTIVE_TYPE_BACKGROUND = "opensearch_indexing_background";
@@ -77,7 +108,18 @@ public class OpenSearch {
     private int pitRetry = 0;
 
     public OpenSearch() {
+        // Double-checked, synchronized one-time init: concurrent first-callers (e.g. parallel match
+        // consumers hitting cold init) must not each build and overwrite the shared static client.
+        // client/restClient are volatile; initializeClient sets restClient before client, so any
+        // thread that observes client != null also observes a fully-built restClient.
         if (client != null) return;
+        synchronized (OpenSearch.class) {
+            if (client != null) return;
+            initializeClientOnce();
+        }
+    }
+
+    private static void initializeClientOnce() {
         // System.setProperty("javax.net.ssl.trustStore", "/full/path/to/keystore");
         // System.setProperty("javax.net.ssl.trustStorePassword", "password-to-keystore");
 
@@ -125,20 +167,36 @@ public class OpenSearch {
     }
 
     public static void initializeClient(HttpHost host) {
-        // Raise the socket timeout above the 30s default. A slow query (e.g. a
-        // cold/large kNN) otherwise throws SocketTimeoutException, which
-        // getMatches() swallows into an empty result -- surfacing to users as
-        // "0 matches". The top-level-vector match query keeps searches fast;
-        // this is a safety net so a slow query degrades to "slow", not silently
-        // "empty".
+        // Raise the socket timeout well above the 30s default. A slow query (e.g. a
+        // cold/large kNN, or a match over a big candidate set) otherwise throws
+        // SocketTimeoutException, which the match path surfaces to users as an empty
+        // "0 matches" result -- and a failed match reads as "no match found", which is
+        // WORSE for a user than a slow one. 240s gives cold/large matches room to
+        // complete rather than silently returning empty. (The batch-load + top-N cap in
+        // Annotation.getMatches keep normal matches to a few seconds; this is the safety
+        // net for the cold/outlier case.)
         restClient = RestClient.builder(host)
             .setRequestConfigCallback(
-                rc -> rc.setConnectTimeout(10000).setSocketTimeout(120000))
+                rc -> rc.setConnectTimeout(10000).setSocketTimeout(240000))
             .build();
         final OpenSearchTransport transport = new RestClientTransport(restClient,
             new JacksonJsonpMapper());
 
         client = new OpenSearchClient(transport);
+    }
+
+    // Stateless single-page search (no PIT, no shared static state) -- safe under concurrency.
+    // Used by the match read paths (getMatches / getMatchingSet), which fetch one page (from=0) and
+    // never paginate across pages. track_total_hits=true keeps hits.total.value exact so callers
+    // that read it (e.g. getMatchingSet hitSize) are unaffected.
+    public JSONObject querySearch(String indexName, final JSONObject query, int from, int size)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request searchRequest = new Request("POST", indexName + "/_search?track_total_hits=true");
+        query.put("from", from);
+        query.put("size", size);
+        searchRequest.setJsonEntity(query.toString());
+        return new JSONObject(getRestResponse(searchRequest));
     }
 
     public static boolean isValidIndexName(String indexName) {
@@ -177,6 +235,103 @@ public class OpenSearch {
                 ") interrupted: " + ex.toString());
         }
         System.out.println("OpenSearch.backgroundStartup(" + context + ") backgrounded");
+
+        // Warm the match kNN graph so the first user match after this restart isn't cold. Self-
+        // reschedules: retry quickly while OpenSearch/the index are still coming up, then re-warm
+        // on a slow cadence to survive merges/eviction. Guarded so only one chain ever runs.
+        if (warmupChainStarted.compareAndSet(false, true)) {
+            scheduleMatchWarmup(schedExec, context, WARMUP_RETRY_MINUTES);
+        }
+    }
+
+    // Self-rescheduling warmup. Reschedules itself on the same executor: WARMUP_RETRY_MINUTES until
+    // the first successful warm (OpenSearch may still be starting on a `docker compose up`), then
+    // WARMUP_REWARM_MINUTES thereafter (0 = warm once only). Never throws out of the task.
+    private static void scheduleMatchWarmup(final ScheduledExecutorService schedExec,
+        final String context, long delayMinutes) {
+        try {
+            schedExec.schedule(new Runnable() {
+                public void run() {
+                    boolean warmed = false;
+                    try {
+                        warmed = warmupMatching(context);
+                    } catch (Throwable t) { // belt-and-suspenders: a task must never die silently
+                        System.out.println("OpenSearch.warmupMatching threw (will retry): " + t);
+                    }
+                    long next = warmed ? WARMUP_REWARM_MINUTES : WARMUP_RETRY_MINUTES;
+                    if (next > 0) scheduleMatchWarmup(schedExec, context, next);
+                }
+            }, delayMinutes, TimeUnit.MINUTES);
+        } catch (Exception ex) {
+            // e.g. executor shutting down on tomcat stop -- nothing to do, warmup simply ends.
+            System.out.println("OpenSearch.scheduleMatchWarmup: could not schedule (" + ex + ")");
+        }
+    }
+
+    // Warm the match index. Returns true only if the graph was actually warmed this pass. Any
+    // failure (OpenSearch unreachable, index not built yet) is treated as "not ready, retry" -- it
+    // logs and returns false rather than throwing, so a racing startup degrades gracefully.
+    public static boolean warmupMatching(String context) {
+        OpenSearch os;
+        try {
+            os = new OpenSearch(); // client is lazy; ctor won't fail if OpenSearch is still down
+        } catch (Exception ex) {
+            System.out.println("warmupMatching: OpenSearch client not available yet (will retry): " +
+                ex);
+            matchWarmupReady = false;
+            return false;
+        }
+        String indexName = WARMUP_INDEX;
+        try {
+            if (!os.existsIndex(indexName)) {
+                System.out.println("warmupMatching: '" + indexName +
+                    "' index not ready yet (OpenSearch may still be starting / reindexing); will retry");
+                matchWarmupReady = false;
+                return false;
+            }
+            long t = System.currentTimeMillis();
+            System.out.println("warmupMatching: warming kNN graph for '" + indexName + "' ...");
+            os.warmupKnn(indexName);
+            // Also warm the filter/segment/doc-value paths a real match query touches (the graph
+            // warmup alone doesn't). A cheap _count with the matchAgainst filter is enough.
+            try {
+                JSONObject warmQuery = new JSONObject(
+                    "{\"query\":{\"bool\":{\"filter\":[{\"term\":{\"matchAgainst\":true}}]}}}");
+                os.queryCount(indexName, warmQuery);
+            } catch (Exception ex) {
+                System.out.println("warmupMatching: filter-path warm query failed (non-fatal): " +
+                    ex);
+            }
+            matchWarmupReady = true;
+            System.out.println("warmupMatching: kNN warmup complete in " +
+                (System.currentTimeMillis() - t) + "ms; matchWarmupReady=true");
+            return true;
+        } catch (Exception ex) {
+            System.out.println("warmupMatching: warmup failed (OpenSearch may still be starting); " +
+                "will retry: " + ex);
+            matchWarmupReady = false;
+            return false;
+        }
+    }
+
+    // Load an index's kNN native graphs into off-heap memory ahead of the first query.
+    // https://docs.opensearch.org/latest/vector-search/api/knn/#warmup
+    public void warmupKnn(String indexName) throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request req = new Request("GET", "/_plugins/_knn/warmup/" + indexName);
+        String rtn = getRestResponse(req);
+        System.out.println("OpenSearch.warmupKnn(" + indexName + "): " + rtn);
+        // Treat the warmup as failed only if a shard actually errored (failed>0) or nothing warmed
+        // at all (successful<1). Do NOT require successful==total: on a single-node cluster the
+        // index's replica shards are unassigned, so warmup legitimately reports e.g.
+        // total=2,successful=1,failed=0 -- the primary (which serves queries) is warmed. Requiring
+        // successful==total would make warmup throw forever and never latch on single-node.
+        JSONObject shards = new JSONObject(rtn).optJSONObject("_shards");
+        int successful = (shards == null) ? 0 : shards.optInt("successful", 0);
+        int failed = (shards == null) ? 0 : shards.optInt("failed", 0);
+        if ((failed > 0) || (successful < 1)) {
+            throw new IOException("kNN warmup incomplete for '" + indexName + "': " + rtn);
+        }
     }
 
     private static void updatePermissionsIndex(String context) {
@@ -279,6 +434,15 @@ public class OpenSearch {
         String id = obj.getId();
         if (!Util.stringExists(id))
             throw new RuntimeException("must have id property to index: " + obj);
+        // Central gate: objects that opt out (e.g. non-candidate/"trivial" annotations)
+        // must not have an index doc. Delete any stale doc (covers matchAgainst->false or
+        // last-embedding-removed transitions) and skip indexing. This makes BOTH
+        // Base.opensearchIndex() and the reconciler's direct os.index(obj) honor the
+        // predicate. Synchronous delete: callers are already on background threads.
+        if (!obj.shouldIndexInOpenSearch()) {
+            delete(indexName, id);   // delete() no-ops if the index/doc is absent
+            return;
+        }
         ensureIndex(indexName, obj.opensearchMapping());
         IndexRequest<Base> indexRequest = new IndexRequest.Builder<Base>()
                 .index(indexName)
