@@ -3,17 +3,22 @@ package org.ecocean.ia;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.shepherd.core.Shepherd;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -38,12 +43,42 @@ class MatchResultIndivProspectsTest {
 
     private static final double EPS = 1e-9;
 
+    // Per-test registry mirroring the DB: annotation id -> its parent Encounter. mockAnn populates
+    // it; newShepherd() stubs Shepherd.getEncountersByAnnotationIds(...) to read it (the batch seam
+    // that replaced the per-prospect Annotation.findEncounter).
+    private final Map<String, Encounter> encByAnnId = new HashMap<String, Encounter>();
+    private int annCounter = 0;
+
+    @BeforeEach void reset() {
+        encByAnnId.clear();
+        annCounter = 0;
+    }
+
+    // A Shepherd mock whose getEncountersByAnnotationIds reflects the per-test registry, exactly as
+    // the real batch loader would (returns only ids that have a parent encounter).
+    private Shepherd newShepherd() {
+        Shepherd s = mock(Shepherd.class);
+        lenient().when(s.getEncountersByAnnotationIds(any())).thenAnswer(inv -> {
+            Collection<String> ids = inv.getArgument(0);
+            Map<String, Encounter> out = new HashMap<String, Encounter>();
+            if (ids != null) {
+                for (String id : ids) {
+                    if (encByAnnId.containsKey(id)) out.put(id, encByAnnId.get(id));
+                }
+            }
+            return out;
+        });
+        return s;
+    }
+
     private Annotation mockAnn(double score, MarkedIndividual indiv, Shepherd shepherd) {
         Annotation a = mock(Annotation.class);
+        String id = "ann-" + (++annCounter);
+        lenient().when(a.getId()).thenReturn(id);
         lenient().when(a.getOpensearchScore()).thenReturn(score);
         Encounter enc = mock(Encounter.class);
         lenient().when(enc.getIndividual()).thenReturn(indiv);
-        lenient().when(a.findEncounter(shepherd)).thenReturn(enc);
+        encByAnnId.put(id, enc);
         return a;
     }
 
@@ -55,8 +90,10 @@ class MatchResultIndivProspectsTest {
 
     private Annotation mockAnnNoEncounter(double score, Shepherd shepherd) {
         Annotation a = mock(Annotation.class);
+        // A real id, but no registry entry -> the batch loader returns no encounter for it, so it is
+        // skipped in the indiv tab (same as the old findEncounter == null).
+        lenient().when(a.getId()).thenReturn("ann-" + (++annCounter));
         lenient().when(a.getOpensearchScore()).thenReturn(score);
-        lenient().when(a.findEncounter(shepherd)).thenReturn(null);
         return a;
     }
 
@@ -78,7 +115,7 @@ class MatchResultIndivProspectsTest {
 
     @Test void multiAnnIndividual_scoredByBestCosine()
     throws Exception {
-        Shepherd s = mock(Shepherd.class);
+        Shepherd s = newShepherd();
         MarkedIndividual indivA = mockIndiv("indiv-A");
 
         // Three candidate annotations belong to the same individual.
@@ -102,7 +139,7 @@ class MatchResultIndivProspectsTest {
 
     @Test void unIdentifiedAnnotation_emittedAsSingletonInIndivTab()
     throws Exception {
-        Shepherd s = mock(Shepherd.class);
+        Shepherd s = newShepherd();
         // No individual on this encounter.
         Annotation a1 = mockAnn(0.7, null, s);
 
@@ -119,7 +156,7 @@ class MatchResultIndivProspectsTest {
 
     @Test void mixedIdentifiedAndUnidentified_bothPresent()
     throws Exception {
-        Shepherd s = mock(Shepherd.class);
+        Shepherd s = newShepherd();
         MarkedIndividual indivA = mockIndiv("indiv-A");
         MarkedIndividual indivB = mockIndiv("indiv-B");
 
@@ -146,7 +183,7 @@ class MatchResultIndivProspectsTest {
 
     @Test void multipleUnidentified_allEmittedAsSeparateSingletons()
     throws Exception {
-        Shepherd s = mock(Shepherd.class);
+        Shepherd s = newShepherd();
         Annotation a1 = mockAnn(0.3, null, s);
         Annotation a2 = mockAnn(0.8, null, s);
         Annotation a3 = mockAnn(0.55, null, s);
@@ -167,7 +204,7 @@ class MatchResultIndivProspectsTest {
 
     @Test void indivAndAnnotTabs_useSameCosineScale()
     throws Exception {
-        Shepherd s = mock(Shepherd.class);
+        Shepherd s = newShepherd();
         MarkedIndividual indivA = mockIndiv("indiv-A");
         Annotation a1 = mockAnn(0.65, indivA, s);
         Annotation a2 = mockAnn(0.42, null, s);
@@ -193,7 +230,7 @@ class MatchResultIndivProspectsTest {
 
     @Test void annotationWithNoEncounter_skippedInIndivTab()
     throws Exception {
-        Shepherd s = mock(Shepherd.class);
+        Shepherd s = newShepherd();
         // a1: belongs to indivA — should emit a prospect.
         MarkedIndividual indivA = mockIndiv("indiv-A");
         Annotation a1 = mockAnn(0.5, indivA, s);
@@ -212,7 +249,7 @@ class MatchResultIndivProspectsTest {
 
     @Test void emptyCandidates_noIndivProspects()
     throws Exception {
-        Shepherd s = mock(Shepherd.class);
+        Shepherd s = newShepherd();
         Task task = mock(Task.class);
         when(task.countObjectAnnotations()).thenReturn(1);
         Annotation queryAnn = mock(Annotation.class);
@@ -238,7 +275,7 @@ class MatchResultIndivProspectsTest {
 
     @Test void multipleMarkedIndividualInstancesWithSameId_groupedAsOne()
     throws Exception {
-        Shepherd s = mock(Shepherd.class);
+        Shepherd s = newShepherd();
         // Two distinct MarkedIndividual objects, same id "shark-42".
         MarkedIndividual indivA1 = mock(MarkedIndividual.class);
         MarkedIndividual indivA2 = mock(MarkedIndividual.class);
@@ -263,7 +300,7 @@ class MatchResultIndivProspectsTest {
 
     @Test void markedIndividualWithNullId_treatedAsSingleton()
     throws Exception {
-        Shepherd s = mock(Shepherd.class);
+        Shepherd s = newShepherd();
         MarkedIndividual indivWithNullId = mock(MarkedIndividual.class);
         lenient().when(indivWithNullId.getId()).thenReturn(null);
         Annotation a1 = mockAnn(0.6, indivWithNullId, s);
@@ -280,7 +317,7 @@ class MatchResultIndivProspectsTest {
 
     @Test void allAnnotationsHaveNoEncounter_noProspectsEmitted()
     throws Exception {
-        Shepherd s = mock(Shepherd.class);
+        Shepherd s = newShepherd();
         Annotation a1 = mockAnnNoEncounter(0.5, s);
         Annotation a2 = mockAnnNoEncounter(0.7, s);
 
