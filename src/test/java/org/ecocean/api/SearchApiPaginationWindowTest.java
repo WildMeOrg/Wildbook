@@ -64,6 +64,12 @@ class SearchApiPaginationWindowTest {
             doNothing().when(m).rollbackAndClose();
             when(m.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(user.isAdmin(m)).thenReturn(false);
+            // let the REAL OpenSearch.queryStore run against this mock: makePersistent is a
+            // no-op on the mock PM, the commit reports success, and the re-begun transaction
+            // reads as active (same pattern as SearchApiChildIndexTest)
+            when(m.getPM()).thenReturn(mock(javax.jdo.PersistenceManager.class));
+            when(m.commitDBTransactionWithStatus()).thenReturn(true);
+            when(m.isDBTransactionActive()).thenReturn(true);
         });
     }
 

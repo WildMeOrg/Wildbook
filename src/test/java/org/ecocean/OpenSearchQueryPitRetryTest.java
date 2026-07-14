@@ -56,7 +56,7 @@ class OpenSearchQueryPitRetryTest {
             OpenSearch.PIT_CACHE.put(inv.getArgument(0), "pit-1");
             return "pit-1";
         }).when(os).createPit(anyString());
-        doNothing().when(os).deletePit(anyString());
+        doNothing().when(os).deletePitId(anyString());
         return os;
     }
 
@@ -69,7 +69,19 @@ class OpenSearchQueryPitRetryTest {
         verify(os, times(1)).getRestResponse(any(Request.class));
         // the cached PIT is discarded even on non-retryable failures - a possibly-bad
         // cached PIT must never poison every subsequent search on the index
-        verify(os, times(1)).deletePit("encounter");
+        verify(os, times(1)).deletePitId("pit-1");
+        assertFalse(OpenSearch.PIT_CACHE.containsKey("encounter"));
+    }
+
+    @Test void discardNeverDeletesAConcurrentRequestsFreshPit() throws Exception {
+        OpenSearch os = spyOs();
+
+        // while OUR search was failing, a concurrent request replaced our stale pit-1
+        // with its own fresh pit-2; discarding pit-1 must leave pit-2 untouched
+        OpenSearch.PIT_CACHE.put("encounter", "pit-2");
+        os.discardPitQuietly("encounter", "pit-1");
+        assertEquals("pit-2", OpenSearch.PIT_CACHE.get("encounter"));
+        verify(os, never()).deletePitId(anyString());
     }
 
     @Test void stalePit_retriedOnceWithFreshPit() throws Exception {

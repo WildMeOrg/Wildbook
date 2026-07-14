@@ -546,13 +546,20 @@ public class OpenSearch {
         String pitId = PIT_CACHE.get(indexName);
 
         if (pitId == null) return;
+        deletePitId(pitId);
+        PIT_CACHE.remove(indexName);
+        System.out.println("OpenSearch.deletePit(" + indexName + ") [" + pitId + "] completed");
+    }
+
+    // server-side delete of one specific PIT id; no cache interaction
+    void deletePitId(String pitId)
+    throws IOException {
         Request req = new Request("DELETE", "/_search/point_in_time");
         JSONObject body = new JSONObject();
+
         body.put("pit_id", pitId);
         req.setJsonEntity(body.toString());
         getRestResponse(req);
-        PIT_CACHE.remove(indexName);
-        System.out.println("OpenSearch.deletePit(" + indexName + ") [" + pitId + "] completed");
     }
 
     public JSONObject queryPit(String indexName, final JSONObject query, int numFrom, int pageSize,
@@ -609,15 +616,16 @@ public class OpenSearch {
             || message.contains("No search context found");
     }
 
-    // best-effort: delete the (likely stale) server-side PIT before dropping it from
-    // cache - but only if the cache still holds the pit THIS request used, so we never
-    // destroy a fresh PIT installed by a concurrent request
-    private void discardPitQuietly(String indexName, String pitId) {
-        if ((pitId == null) || !pitId.equals(PIT_CACHE.get(indexName))) return;
+    // best-effort: drop the pit THIS request used from cache, then delete it server-side.
+    // The atomic remove(key, value) detaches ONLY our pit, so we never destroy a fresh
+    // PIT installed by a concurrent request between our failure and this cleanup.
+    void discardPitQuietly(String indexName, String pitId) {
+        if ((pitId == null) || !PIT_CACHE.remove(indexName, pitId)) return;
         try {
-            deletePit(indexName);
+            deletePitId(pitId);
         } catch (Exception ex) {
-            PIT_CACHE.remove(indexName);
+            // best-effort only: the stale id is already out of the cache; the server
+            // expires the orphaned PIT at keep_alive
         }
     }
 
