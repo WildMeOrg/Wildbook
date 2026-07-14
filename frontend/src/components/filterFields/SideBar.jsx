@@ -24,6 +24,7 @@ const Sidebar = observer(
       // When viewing a result loaded from a shared query ID, copy that ID;
       // otherwise copy the ID freshly generated for the current filter search.
       const idToCopy = queryID || searchQueryId;
+      if (!idToCopy) return;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard
           .writeText(idToCopy)

@@ -996,6 +996,17 @@
 		</field>
 	</class>
 
+	<class name="OpenSearchQuery">
+		<field name="id" primary-key="true" />
+		<field name="created">
+			<column allows-null="true" />
+			<index name="OPENSEARCHQUERY_CREATED_IDX" />
+		</field>
+		<field name="value">
+			<column jdbc-type="LONGVARCHAR" />
+		</field>
+	</class>
+
 
 	<class name="MultiValue" identity-type="application">
 		<field name="id" primary-key="true" value-strategy="identity" persistence-modifier="persistent" />

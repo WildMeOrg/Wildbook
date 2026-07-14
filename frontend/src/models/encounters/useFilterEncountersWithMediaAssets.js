@@ -81,11 +81,7 @@ export default function useFilterEncountersWithMediaAssets({
       return {
         resultCount,
         results: get(result, ["data", "data", "hits"], []),
-        searchQueryId: get(
-          result,
-          ["data", "data", "searchQueryId"],
-          "defaultSearchQueryId",
-        ),
+        searchQueryId: get(result, ["data", "data", "searchQueryId"], ""),
         success: get(result, ["data", "data", "success"], false),
       };
     },

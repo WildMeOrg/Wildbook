@@ -49,10 +49,16 @@ import java.util.concurrent.TimeUnit;
 // https://github.com/opensearch-project/opensearch-java/blob/main/USER_GUIDE.md
 
 public class OpenSearch {
-    public static OpenSearchClient client = null;
-    public static RestClient restClient = null;
+    public static volatile OpenSearchClient client = null;
+    public static volatile RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
-    public static Map<String, String> PIT_CACHE = new HashMap<String, String>();
+    // ConcurrentHashMap: PIT_CACHE is read/mutated from concurrent request threads (SearchApi,
+    // EncounterQueryProcessor, MediaResolveApi) and, once IA match consumers can run concurrently,
+    // from those too. This only removes the structural-corruption hazard of an unsynchronized
+    // HashMap; it does NOT make the shared one-PIT-per-index lifecycle request-safe (a deletePit on
+    // one caller can still drop another's snapshot; queryPit's retry self-heals it). Match read
+    // paths avoid PIT entirely via querySearch(); proper per-request PIT scoping is a separate change.
+    public static Map<String, String> PIT_CACHE = new java.util.concurrent.ConcurrentHashMap<String, String>();
     public static final int DEFAULT_MAX_RESULT_WINDOW = 10000;
     // per-index max_result_window: {value, expiresAtMillis}; read live (briefly cached)
     // because Wildbook raises the setting on indexes that grow past the default
@@ -101,13 +107,27 @@ public class OpenSearch {
     public static boolean isMatchWarmupReady() {
         return matchWarmupReady;
     }
-    public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
+    // stored search queries (see queryStore): pruned opportunistically at most this often
+    static final long QUERY_PRUNE_INTERVAL_MILLIS = 3600000L; // 1 hour
+    static final int QUERY_TTL_DAYS_DEFAULT = 90;
+    private static volatile long queryLastPruneMillis = 0L;
     static String ACTIVE_TYPE_FOREGROUND = "opensearch_indexing_foreground";
     static String ACTIVE_TYPE_BACKGROUND = "opensearch_indexing_background";
 
 
     public OpenSearch() {
+        // Double-checked, synchronized one-time init: concurrent first-callers (e.g. parallel match
+        // consumers hitting cold init) must not each build and overwrite the shared static client.
+        // client/restClient are volatile; initializeClient sets restClient before client, so any
+        // thread that observes client != null also observes a fully-built restClient.
         if (client != null) return;
+        synchronized (OpenSearch.class) {
+            if (client != null) return;
+            initializeClientOnce();
+        }
+    }
+
+    private static void initializeClientOnce() {
         // System.setProperty("javax.net.ssl.trustStore", "/full/path/to/keystore");
         // System.setProperty("javax.net.ssl.trustStorePassword", "password-to-keystore");
 
@@ -171,6 +191,20 @@ public class OpenSearch {
             new JacksonJsonpMapper());
 
         client = new OpenSearchClient(transport);
+    }
+
+    // Stateless single-page search (no PIT, no shared static state) -- safe under concurrency.
+    // Used by the match read paths (getMatches / getMatchingSet), which fetch one page (from=0) and
+    // never paginate across pages. track_total_hits=true keeps hits.total.value exact so callers
+    // that read it (e.g. getMatchingSet hitSize) are unaffected.
+    public JSONObject querySearch(String indexName, final JSONObject query, int from, int size)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request searchRequest = new Request("POST", indexName + "/_search?track_total_hits=true");
+        query.put("from", from);
+        query.put("size", size);
+        searchRequest.setJsonEntity(query.toString());
+        return new JSONObject(getRestResponse(searchRequest));
     }
 
     public static boolean isValidIndexName(String indexName) {
@@ -1597,37 +1631,103 @@ public class OpenSearch {
             "] completed indexing " + indexName);
     }
 
-    public static String queryStoragePath(String id) {
-        return QUERY_STORAGE_DIR + "/OpenSearch-query-" + id + ".json";
-    }
-
+    /**
+     * Persist a stored query durably (OPENSEARCHQUERY table). Uses the CALLER's
+     * Shepherd/connection: commits the caller's open transaction (which must hold no other
+     * uncommitted writes -- SearchApi's is read-only) via commitDBTransactionWithStatus() so a
+     * commit failure is detectable, then re-begins a transaction for the remainder of the
+     * request. Returns the new id ONLY after a confirmed commit; null means durability was not
+     * confirmed. A confirmed commit followed by a failed re-begin still returns the id --
+     * callers needing further DB reads must check myShepherd.isDBTransactionActive().
+     */
     public static String queryStore(final JSONObject query, final String indexName,
-        final User user) {
-        if (query == null) return null;
+        final User user, final Shepherd myShepherd) {
+        if ((query == null) || (user == null) || (myShepherd == null)) return null;
         JSONObject stored = new JSONObject(query.toString());
         String id = Util.generateUUID();
+        long now = System.currentTimeMillis();
         stored.put("id", id);
         stored.put("indexName", indexName);
-        stored.put("created", System.currentTimeMillis());
+        stored.put("created", now);
         stored.put("creator", user.getUUID());
+        boolean committed = false;
         try {
-            Util.writeToFile(stored.toString(), queryStoragePath(id));
+            myShepherd.getPM().makePersistent(new OpenSearchQuery(id, stored, now));
+            committed = myShepherd.commitDBTransactionWithStatus();
         } catch (Exception ex) {
+            System.out.println("OpenSearch.queryStore() failed to store " + id + ": " + ex);
             ex.printStackTrace();
+        }
+        if (!committed) {
+            try {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.beginDBTransaction();
+            } catch (Exception ex) {
+                System.out.println("OpenSearch.queryStore() transaction recovery failed: " + ex);
+            }
             return null;
+        }
+        // the id is durable from here on: nothing below may throw past this method
+        try {
+            myShepherd.beginDBTransaction(); // recover a transaction for the rest of the request
+            queryPruneMaybe(myShepherd, now);
+        } catch (Exception ex) {
+            System.out.println("OpenSearch.queryStore() post-commit recovery failed (id " + id +
+                " IS stored): " + ex);
         }
         return id;
     }
 
-    public static JSONObject queryLoad(String id) {
-        if (id == null) return null;
+    /**
+     * Opportunistic TTL prune, run AFTER a stored query is durably committed, in its own
+     * best-effort commit cycle so a prune/database failure can never affect the stored id
+     * (only rolls back the prune itself). Non-positive searchQueryTtlDays disables pruning.
+     */
+    private static void queryPruneMaybe(final Shepherd myShepherd, final long now) {
+        if ((now - queryLastPruneMillis) <= QUERY_PRUNE_INTERVAL_MILLIS) return;
+        queryLastPruneMillis = now;
+        int ttlDays = QUERY_TTL_DAYS_DEFAULT;
         try {
-            String jsonData = Util.readFromFile(queryStoragePath(id));
-            return new JSONObject(jsonData);
+            ttlDays = (Integer)getConfigurationValue("searchQueryTtlDays",
+                QUERY_TTL_DAYS_DEFAULT);
+        } catch (Exception ex) {}
+        if (ttlDays <= 0) return;
+        try {
+            if (queryPrune(myShepherd, now - ttlDays * 86400000L) > 0) {
+                if (!myShepherd.commitDBTransactionWithStatus())
+                    myShepherd.rollbackDBTransaction();
+                myShepherd.beginDBTransaction();
+            }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            System.out.println("OpenSearch.queryPruneMaybe() failed: " + ex);
+            try {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.beginDBTransaction();
+            } catch (Exception ex2) {
+                System.out.println(
+                    "OpenSearch.queryPruneMaybe() transaction recovery failed: " + ex2);
+            }
         }
-        return null;
+    }
+
+    // deletes stored queries with created < cutoffMillis; runs in the caller's transaction,
+    // which the caller must commit -- propagates failures (callers own transaction recovery)
+    public static long queryPrune(final Shepherd myShepherd, final long cutoffMillis) {
+        javax.jdo.Query q = myShepherd.getPM().newQuery(OpenSearchQuery.class,
+            "created < " + cutoffMillis);
+        long ct = q.deletePersistentAll();
+
+        if (ct > 0)
+            System.out.println("OpenSearch.queryPrune() deleted " + ct +
+                " stored queries older than " + new java.util.Date(cutoffMillis));
+        return ct;
+    }
+
+    public static JSONObject queryLoad(String id, Shepherd myShepherd) {
+        OpenSearchQuery osq = OpenSearchQuery.load(myShepherd, id);
+
+        if (osq == null) return null;
+        return osq.getValue();
     }
 
     public static JSONObject queryScrubStored(final JSONObject query) {
