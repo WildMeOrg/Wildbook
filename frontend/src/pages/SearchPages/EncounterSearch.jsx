@@ -42,18 +42,17 @@ const EncounterSearch = observer(() => {
   const [encounterSortOrder, setEncounterSortOrder] = useState("desc");
   const [searchIdSortName, setSearchIdSortName] = useState("date");
   const [searchIdSortOrder, setSearchIdSortOrder] = useState("desc");
-  const [tempFormFilters, setTempFormFilters] = useState([]);
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
   useEffect(() => {
-    helperFunction(
-      searchParams,
-      store,
-      setFilterPanel,
-      setTempFormFilters,
-      encounterData,
-    );
+    helperFunction(searchParams, store, setFilterPanel, encounterData);
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!queryID) {
+      store.getFiltersFromStorage();
+    }
+  }, [queryID, store]);
 
   useEffect(() => {
     if (!queryID) {
@@ -70,13 +69,14 @@ const EncounterSearch = observer(() => {
     loading,
     refetch,
   } = useFilterEncounters({
-    queries: store.formFilters,
+    queries: store.appliedFilters,
     params: {
       sort: encounterSortName,
       sortOrder: encounterSortOrder,
       size: perPage,
       from: page * perPage,
     },
+    enabled: !queryID,
   });
 
   const { fetchMediaAssets } = useFilterEncountersWithMediaAssets({
@@ -260,6 +260,10 @@ const EncounterSearch = observer(() => {
         })
         .catch((error) => {
           console.error("Error fetching search data:", error);
+          alert(`Query ID: ${queryID} could not be found!`);
+          setQueryID(false);
+          setSearchParams(new URLSearchParams());
+          setFilterPanel(true);
         });
     }
   }, [
@@ -309,12 +313,11 @@ const EncounterSearch = observer(() => {
         handleSearch={handleSearch}
         setQueryID={setQueryID}
         refetch={refetch}
-        setTempFormFilters={setTempFormFilters}
         store={store}
       />
       <DataTable
         store={store}
-        searchQueryId={searchQueryId}
+        searchQueryId={queryID || searchQueryId}
         refetchMediaAssets={fetchMediaAssets}
         pg={pg}
         isLoading={loading}
@@ -360,14 +363,13 @@ const EncounterSearch = observer(() => {
       <SideBar
         setFilterPanel={setFilterPanel}
         searchQueryId={searchQueryId}
-        queryID={false}
+        queryID={queryID}
         store={store}
-        tempFormFilters={tempFormFilters}
       />
       <ExportModal
         open={exportModalOpen}
         setOpen={setExportModalOpen}
-        searchQueryId={searchQueryId}
+        searchQueryId={queryID || searchQueryId}
       />
     </div>
   );

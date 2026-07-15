@@ -134,7 +134,7 @@ class GrothParameterSweepTest {
         // Step 5: Build catalog
         catalog = new LinkedHashMap<>();
         for (Map.Entry<String, ArrayList<SuperSpot>> entry : encounterSpots.entrySet()) {
-            if (entry.getValue().size() >= 3) {
+            if (entry.getValue().size() >= 4) {  // production-visible spot count (>=4)
                 EncounterLite el = new EncounterLite();
                 el.processLeftSpots(entry.getValue());
                 catalog.put(entry.getKey(), el);
@@ -303,7 +303,7 @@ class GrothParameterSweepTest {
         double[] kingen = runBenchmark(0.008, 49.8, 0.998, 12.33, 0.998);
         System.out.println("  Kingen 2019 complete.");
         double[] optimized = runBenchmark(0.008, 6.8, 0.671, 22.5, 1.146);
-        System.out.println("  Optimized complete.");
+        System.out.println("  Original tuning (R=6.8, historical) complete.");
 
         // --- Print comparison table ---
         int q = (int) oldDefaults[3];
@@ -311,7 +311,7 @@ class GrothParameterSweepTest {
         System.out.println();
         System.out.println("----------------------------------------------------------------");
         System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
-            "Metric", "Old Defaults", "Kingen 2019", "Optimized");
+            "Metric", "Old Defaults", "Kingen 2019", "Orig tuning R=6.8");
         System.out.println("----------------------------------------------------------------");
 
         System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
@@ -365,7 +365,7 @@ class GrothParameterSweepTest {
         System.out.println("----------------------------------------------------------------");
 
         System.out.println();
-        System.out.println("=== Improvement Summary (Optimized vs Old Defaults) ===");
+        System.out.println("=== Improvement Summary (Original tuning R=6.8 vs Old Defaults) ===");
         System.out.printf("Rank-1:  %+.0f queries (%.1f%% -> %.1f%%)%n",
             optimized[0] - oldDefaults[0],
             100.0 * oldDefaults[0] / q, 100.0 * optimized[0] / q);
@@ -375,7 +375,7 @@ class GrothParameterSweepTest {
             speedupVsOld > 1 ? "faster" : "slower");
 
         System.out.println();
-        System.out.println("=== Improvement Summary (Optimized vs Kingen 2019) ===");
+        System.out.println("=== Improvement Summary (Original tuning R=6.8 vs Kingen 2019) ===");
         System.out.printf("Rank-1:  %+.0f queries (%.1f%% -> %.1f%%)%n",
             optimized[0] - kingen[0],
             100.0 * kingen[0] / q, 100.0 * optimized[0] / q);
@@ -462,7 +462,7 @@ class GrothParameterSweepTest {
 
         for (String queryEncId : queryEncIds) {
             ArrayList<SuperSpot> querySpots = encounterSpots.get(queryEncId);
-            if (querySpots == null || querySpots.size() < 3) continue;
+            if (querySpots == null || querySpots.size() < 4) continue;  // production requires >=4 query spots (GrothMatchServlet:99)
 
             SuperSpot[] queryArray = querySpots.toArray(new SuperSpot[0]);
             String trueIndId = encounterToIndividual.get(queryEncId);
@@ -503,15 +503,38 @@ class GrothParameterSweepTest {
             }
             totalTimeNanos += System.nanoTime() - startNanos;
 
-            results.sort((a, b) -> Double.compare(b.matchValue, a.matchValue));
+            // Production-faithful scoring: mirror GrothMatchServlet / WriteOutScanTask.
+            // (1) gate: a match is only shown when matchValue>0 AND
+            //     matchValue*adjustedMatchValue>2;
+            // (2) sort by that product (MatchComparator), with a deterministic
+            //     encounterNumber tiebreak so ground-truth insertion order can never
+            //     leak into the ranking (MatchComparator returns 0 on ties, and Java's
+            //     stable sort would otherwise keep the truth-first ordering);
+            // (3) cap to the top 100 displayed matches.
+            List<MatchObject> visible = new ArrayList<>();
+            for (MatchObject mo : results) {
+                if (mo.getMatchValue() > 0 &&
+                    (mo.getMatchValue() * mo.getAdjustedMatchValue()) > 2) {
+                    visible.add(mo);
+                }
+            }
+            visible.sort((a, b) -> {
+                double pa = a.getMatchValue() * a.getAdjustedMatchValue();
+                double pb = b.getMatchValue() * b.getAdjustedMatchValue();
+                int cmp = Double.compare(pb, pa);
+                if (cmp != 0) return cmp;
+                return a.getEncounterNumber().compareTo(b.getEncounterNumber());
+            });
+            if (visible.size() > 100) visible = new ArrayList<>(visible.subList(0, 100));
 
-            // Rank-1
-            int rank = findCorrectRank(results, queryEncId, trueIndId);
+            // Rank-1 / Rank-5 over the production-visible list. numTrueInCatalog remains
+            // the AP denominator, so true matches suppressed by the gate or pushed past
+            // rank 100 correctly count as misses.
+            int rank = findCorrectRank(visible, queryEncId, trueIndId);
             if (rank == 1) rank1Hits++;
             if (rank >= 1 && rank <= 5) rank5Hits++;
 
-            // Average Precision for this query
-            double ap = computeAP(results, trueEncounters, numTrueInCatalog);
+            double ap = computeAP(visible, trueEncounters, numTrueInCatalog);
             sumAP += ap;
 
             queriesRun++;
@@ -562,15 +585,15 @@ class GrothParameterSweepTest {
         for (Map.Entry<String, List<String>> entry : individualToEncounters.entrySet()) {
             String indId = entry.getKey();
             int encCount = entry.getValue().size();
-            // Verify at least one encounter is in the catalog
-            boolean hasCatalogEntry = false;
+            // Require >=2 catalog-resident (>=4-spot) encounters, so that after the query
+            // encounter is chosen from this set at least one true match remains in the
+            // catalog. This guarantees runBenchmark never skips the query for an empty
+            // true-match set, which would otherwise bias the sample (Codex Major #4).
+            int catalogEncs = 0;
             for (String encId : entry.getValue()) {
-                if (catalog.containsKey(encId)) {
-                    hasCatalogEntry = true;
-                    break;
-                }
+                if (catalog.containsKey(encId)) catalogEncs++;
             }
-            if (!hasCatalogEntry) continue;
+            if (catalogEncs < 2) continue;
 
             if (encCount == 2) {
                 twoEncInds.add(indId);
@@ -589,14 +612,20 @@ class GrothParameterSweepTest {
         // Select from 2-encounter individuals
         for (int i = 0; i < Math.min(halfQueries, twoEncInds.size()); i++) {
             String indId = twoEncInds.get(i);
-            List<String> encIds = individualToEncounters.get(indId);
+            List<String> encIds = new ArrayList<>();
+            for (String e : individualToEncounters.get(indId)) {
+                if (catalog.containsKey(e)) encIds.add(e);  // catalog-resident only
+            }
             queries.add(encIds.get(rng.nextInt(encIds.size())));
         }
 
         // Select from multi-encounter individuals
         for (int i = 0; i < Math.min(halfQueries, multiEncInds.size()); i++) {
             String indId = multiEncInds.get(i);
-            List<String> encIds = individualToEncounters.get(indId);
+            List<String> encIds = new ArrayList<>();
+            for (String e : individualToEncounters.get(indId)) {
+                if (catalog.containsKey(e)) encIds.add(e);  // catalog-resident only
+            }
             queries.add(encIds.get(rng.nextInt(encIds.size())));
         }
 
@@ -617,10 +646,11 @@ class GrothParameterSweepTest {
         double lo = (idx > 0) ? coarseValues[idx - 1] : winner * 0.7;
         double hi = (idx < coarseValues.length - 1) ? coarseValues[idx + 1] : winner * 1.3;
 
-        double[] fine = new double[5];
+        double[] fine = new double[6];
         for (int i = 0; i < 5; i++) {
             fine[i] = lo + (hi - lo) * i / 4.0;
         }
+        fine[5] = winner;  // always re-evaluate the current best so Round 2 cannot regress (Codex Major #5)
         return fine;
     }
 

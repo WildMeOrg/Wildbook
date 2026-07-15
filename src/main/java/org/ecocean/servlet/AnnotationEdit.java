@@ -45,7 +45,6 @@ public class AnnotationEdit extends HttpServlet {
         myShepherd.beginDBTransaction();
         JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
         PrintWriter out = response.getWriter();
-
         User user = AccessControl.getUser(request, myShepherd);
         boolean isAdmin = false;
         if (user != null)
@@ -172,6 +171,9 @@ public class AnnotationEdit extends HttpServlet {
                             myShepherd.getPM().deletePersistent(enc);
                             rtn.put("encounterDeleted", true);
                         }
+                        annot.deleteMatchResults(myShepherd);
+                        annot.deleteMatchResultProspects(myShepherd);
+                        annot.deleteEmbeddings(myShepherd);
                         myShepherd.getPM().deletePersistent(annot);
                         myShepherd.getPM().deletePersistent(feat);
                         System.out.println(

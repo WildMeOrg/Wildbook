@@ -31,7 +31,10 @@
   },
   "homepage": "https://github.com/WildbookOrg/Wildbook#readme",
   "lint-staged": {
-    "*.{js,jsx}": ["eslint --fix", "prettier --write"]
+    "*.{js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -47,13 +50,19 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "globals": "^15.0.0",
     "husky": "^7.0.4",
+    "jest": "^27.5.1",
     "lint-staged": ">=8",
-    "prettier": "^3.3.3",
-    "jest": "^27.5.1"
+    "prettier": "^3.3.3"
   },
   "jest": {
     "collectCoverage": true,
-    "coverageReporters": ["lcov", "text"],
+    "coverageReporters": [
+      "lcov",
+      "text"
+    ],
     "coverageDirectory": "./coverage"
+  },
+  "dependencies": {
+    "react-app-rewired": "^2.2.1"
   }
 }

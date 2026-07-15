@@ -3,8 +3,12 @@ import { screen } from "@testing-library/react";
 import Home from "../../../pages/Home";
 import useGetHomePageInfo from "../../../models/useGetHomePageInfo";
 import { renderWithProviders } from "../../../utils/utils";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
 jest.mock("../../../models/useGetHomePageInfo");
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: jest.fn(),
+}));
 jest.mock("../../../components/home/LandingImage", () => {
   const React = require("react");
   const MockLandingImage = () =>
@@ -77,6 +81,14 @@ jest.mock("../../../pages/errorPages/Forbidden", () => {
 });
 
 describe("Home Page", () => {
+  beforeEach(() => {
+    useSiteSettings.mockReturnValue({
+      data: {},
+      isLoading: false,
+      error: null,
+    });
+  });
+
   test("renders the main components when API call is successful", () => {
     useGetHomePageInfo.mockReturnValue({
       data: {

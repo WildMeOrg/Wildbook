@@ -29,6 +29,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.Embedding;
+import org.ecocean.Encounter;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.media.MediaAsset;
@@ -148,14 +150,32 @@ public class IA {
         topTask.setObjectMediaAssets(mas);
         myShepherd.storeNewTask(topTask);
 
-        // what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
-        JSONObject dj = new JSONObject();
-        dj.put("mediaAssetIds", maArr);
         String context = myShepherd.getContext();
         String baseUrl = getBaseURL(context);
 
         // Ia configs are keyed off taxonomies
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+
+        // Migration plan v2 §commit #10b: routing reroute.
+        // If the species' _id_conf.default.pipeline_root is "vector" AND
+        // _mlservice_conf is configured, route per-asset through the
+        // MlServiceProcessor lifecycle. Otherwise fall through to the legacy
+        // WBIA path below — production deployments without _mlservice_conf
+        // see no behavior change at all.
+        //
+        // Per-asset CHILD tasks under topTask (vs v1's shared topTask) so
+        // child finalization is local; no first-finisher-wins. The topTask
+        // remains as the aggregator for the caller contract (and so legacy
+        // summary code that reads topTask.objectMediaAssets keeps working).
+        if (iaConfig != null && taxy != null &&
+            iaConfig.getActiveMlServiceConfigs(taxy) != null) {
+            return intakeMediaAssetsOneSpeciesMlService(myShepherd, mas, taxy, topTask,
+                context, baseUrl);
+        }
+
+        // what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
+        JSONObject dj = new JSONObject();
+        dj.put("mediaAssetIds", maArr);
         // mimicking intakeAnnotations, we assume the first mediaAsset is representative of all of them wrt Taxonomies, configs etc.
         int numDetectAlgos = iaConfig.numDetectionAlgos(taxy);
         Boolean[] sent = new Boolean[numDetectAlgos];
@@ -200,6 +220,112 @@ public class IA {
         System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() +
             " assets; queued? = " + sent + "; " + topTask);
         return topTask;
+    }
+
+    /**
+     * ml-service migration v2 §commit #10b: per-asset job enqueue for the
+     * vector pipeline. Each MediaAsset gets its own child Task under
+     * topTask; each emits a {@code mlServiceV2:true} payload to the
+     * detection queue. MlServiceProcessor.processQueueJob (commit #9)
+     * picks them up via the IAGateway dispatcher (commit #10a).
+     *
+     * <p>Per-asset child Tasks avoid v1's first-finisher-wins on the shared
+     * topTask. The topTask itself remains as the aggregator that holds the
+     * full MediaAsset list for caller-side summary code.</p>
+     *
+     * <p>encounterId is derived best-effort from the MediaAsset's existing
+     * trivial annotation (every Encounter.addMediaAsset call creates one).
+     * If null, MlServiceProcessor persists annotations without explicit
+     * Encounter linkage and downstream MediaAsset.assignEncounters handles
+     * the assignment per the legacy IBEISIA detect-callback pattern.</p>
+     */
+    private static Task intakeMediaAssetsOneSpeciesMlService(Shepherd myShepherd,
+        List<MediaAsset> mas, Taxonomy taxy, Task topTask, String context, String baseUrl) {
+        int queued = 0;
+        for (MediaAsset ma : mas) {
+            if (enqueueOneAssetForMlService(myShepherd, ma, taxy, topTask, context, baseUrl)) {
+                queued++;
+            }
+        }
+        System.out.println("INFO: IA.intakeMediaAssetsOneSpeciesMlService accepted " +
+            mas.size() + " assets; queued=" + queued + "; topTask=" + topTask);
+        return topTask;
+    }
+
+    /**
+     * Build and enqueue one v2 ml-service job for a single MediaAsset.
+     * Returns {@code true} iff the FileQueue write succeeded.
+     *
+     * <p>Used by both {@link #intakeMediaAssetsOneSpeciesMlService} (the
+     * normal intake path) and the startup stale-mlservice reconciler in
+     * {@code StartupWildbook}. The reconciler relies on the boolean
+     * return to decide whether to commit accompanying state changes; the
+     * normal intake path tolerates the swallowed-failure behavior.</p>
+     *
+     * <p><b>Task persistence note:</b> {@link Shepherd#storeNewTask}
+     * internally commits/reopens the transaction, so the child Task row
+     * is persisted before this method enqueues. On enqueue failure the
+     * child Task remains in the DB as an orphan — there is no queued
+     * job that will ever drive it. The orphan IS still discoverable
+     * via {@link org.ecocean.media.MediaAsset#getRootIATasks} (since
+     * the task references the MediaAsset through objectMediaAssets),
+     * so it may surface in operator-facing task listings until cleaned
+     * up by an out-of-band path. Callers that need cleanup should
+     * delete the orphan explicitly; the default posture here is to
+     * accept it since FileQueue write failures are rare.</p>
+     *
+     * <p>If {@code topTask} is null a fresh root task is created inside
+     * this method. This matches the reconciler's use case where there is
+     * no caller-side aggregator umbrella.</p>
+     */
+    public static boolean enqueueOneAssetForMlService(Shepherd myShepherd, MediaAsset ma,
+        Taxonomy taxy, Task topTask, String context, String baseUrl) {
+        Task childTask = (topTask == null) ? new Task() : new Task(topTask);
+        ArrayList<MediaAsset> singleton = new ArrayList<MediaAsset>();
+        singleton.add(ma);
+        childTask.setObjectMediaAssets(singleton);
+        // Tag as a detection task so the /metrics detection gauges
+        // (MetricsBot.addTasksToCsv + appadmin/wildbookIAQueueStats.jsp) count
+        // ml-service v2 detection volume. Mirrors the legacy path, which sets
+        // task.addParameter("ibeis.detection", true) in IAGateway. Must be set
+        // before storeNewTask so it persists with the new row. The downstream
+        // match task is created via new Task(parent) and would inherit this
+        // flag, so MlServiceProcessor.runMatchProspects strips it back off
+        // (mirror of IBEISIA's params.remove("ibeis.detection")).
+        childTask.addParameter("ibeis.detection", true);
+        myShepherd.storeNewTask(childTask);
+
+        // Best-effort encounterId via existing annotations on the MA.
+        String encounterId = null;
+        ArrayList<Annotation> existing = ma.getAnnotations();
+        if (existing != null) {
+            for (Annotation a : existing) {
+                Encounter enc = a.findEncounter(myShepherd);
+                if (enc != null) {
+                    encounterId = enc.getId();
+                    break;
+                }
+            }
+        }
+
+        JSONObject qjob = new JSONObject();
+        qjob.put("mlServiceV2", true);
+        qjob.put("mediaAssetId", ma.getId());
+        qjob.put("taxonomyString", taxy.getScientificName());
+        qjob.put("taskId", childTask.getId());
+        qjob.put("__context", context);
+        qjob.put("__baseUrl", baseUrl);
+        if (Util.stringExists(encounterId)) {
+            qjob.put("encounterId", encounterId);
+        }
+
+        try {
+            return org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
+        } catch (java.io.IOException iox) {
+            System.out.println("ERROR: IA.enqueueOneAssetForMlService() " +
+                "addToDetectionQueue threw on ma " + ma.getId() + ": " + iox);
+            return false;
+        }
     }
 
     public static void handleMissingAcmids(List<MediaAsset> mediaAssets, Shepherd myShepherd) {
@@ -349,6 +475,8 @@ public class IA {
             aj.put("annotationIds", annArr);
             String baseUrl = getBaseURL(context);
             for (int i = 0; i < opts.size(); i++) {
+                // if this is a vector-based matching option, this will just do the job and be done
+                if (Embedding.findMatchProspects(opts.get(i), tasks.get(i), myShepherd)) continue;
                 JSONObject qjob = new JSONObject();
                 qjob.put("identify", aj);
                 qjob.put("taskId", tasks.get(i).getId());
@@ -385,7 +513,9 @@ public class IA {
         Map<String, List<Annotation> > iaClassToAnns = new HashMap<String, List<Annotation> >();
         for (Annotation ann : anns) {
             String iaClass = ann.getIAClass();
-            if (iaClass == null) continue;
+            // Treat blank (not just null) as classless: a "" iaClass would
+            // otherwise form a degenerate "" bin that resolves no ident opts.
+            if (!Util.stringExists(iaClass)) continue;
             List<Annotation> iaClassList = iaClassToAnns.getOrDefault(iaClass,
                 new ArrayList<Annotation>());
             iaClassList.add(ann);
@@ -418,7 +548,6 @@ public class IA {
             if (fastlane) topTask.addParameter("fastlane", true);
             myShepherd.storeNewTask(topTask);
             JSONObject opt = jin.optJSONObject("opt"); // should use this to decide how to branch differently than "default"
-
             JSONArray mlist = jin.optJSONArray("mediaAssetIds");
             if ((mlist != null) && (mlist.length() > 0)) {
                 System.out.println("MLIST: " + mlist);
@@ -433,7 +562,7 @@ public class IA {
                 }
                 Task mtask = intakeMediaAssets(myShepherd, mas, topTask);
                 System.out.println("INFO: IA.handleRest() just intook MediaAssets as " + mtask +
-                    " for " + topTask);
+                    " for (parent) " + topTask);
                 topTask.addChild(mtask);
             }
             JSONArray alist = jin.optJSONArray("annotationIds");
@@ -465,8 +594,10 @@ public class IA {
                 Task atask = intakeAnnotations(myShepherd, anns, topTask, fastlane);
                 System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask +
                     " for " + topTask);
-                topTask.addChild(atask);
                 myShepherd.getPM().refresh(topTask);
+                topTask.addChild(atask);
+                topTask.setModified();
+                myShepherd.getPM().makePersistent(atask);
             }
             myShepherd.commitDBTransaction();
         } catch (Exception e) {

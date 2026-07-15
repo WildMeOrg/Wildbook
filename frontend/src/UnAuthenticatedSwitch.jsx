@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Footer from "./components/Footer";
+import LoadingScreen from "./components/LoadingScreen";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import EncounterPageViewOnly from "./pages/Encounter/EncounterPageViewOnly";
 const PoliciesAndData = lazy(
@@ -22,6 +23,7 @@ const ReportConfirm = lazy(
 export default function UnAuthenticatedSwitch({
   showclassicsubmit,
   showHowToPhotograph,
+  siteSettingsLoading,
 }) {
   const [header, setHeader] = React.useState(true);
   const location = useLocation();
@@ -67,9 +69,19 @@ export default function UnAuthenticatedSwitch({
             <Route path="/encounter" element={<EncounterPageViewOnly />} />
             <Route path="/policies-and-data" element={<PoliciesAndData />} />
             <Route path="/about-us" element={<AboutUs />} />
-            {showHowToPhotograph && (
-              <Route path="/how-to-photograph" element={<HowToPhotograph />} />
-            )}
+            <Route
+              path="/how-to-photograph"
+              element={
+                siteSettingsLoading ? (
+                  <LoadingScreen />
+                ) : showHowToPhotograph ? (
+                  <HowToPhotograph />
+                ) : (
+                  <Navigate to={`/login?redirect=${redirParam}`} />
+                )
+              }
+            />
+
             <Route path="/report" element={<ReportEncounter />} />
             <Route path="/reportConfirm" element={<ReportConfirm />} />
             <Route path="/login" element={<Login />} />

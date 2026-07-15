@@ -465,6 +465,17 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     // Adds a new encounter to this MarkedIndividual.
+    /** Enqueue a (deep) reindex of this individual — refreshes the individual + its member
+     *  encounters. Honors skipAutoIndexing so bulk import / deserialization don't storm. */
+    public void enqueueAclReindex() {
+        if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
+        try {
+            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+        } catch (Exception ex) {
+            System.out.println("MarkedIndividual.enqueueAclReindex failed for " + this.getId() + ": " + ex);
+        }
+    }
+
     public boolean addEncounter(Encounter newEncounter) {
         // get and therefore set the haplotype if necessary
         getHaplotype();
@@ -482,6 +493,13 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             numberEncounters++;
             refreshDependentProperties();
             setVersion();
+            // membership change: the joining encounter's ACL must reflect this individual.
+            // Deep-reindexing the encounter also refreshes this individual + its annotations.
+            // Also reindex THIS individual directly: callers (AnnotationEdit, IBEISIA) do not set
+            // newEncounter.individual = this, so newEncounter.opensearchIndexDeep() would refresh a
+            // different (or null) individual, leaving this individual's ACL stale.
+            this.enqueueAclReindex();
+            if (newEncounter != null) newEncounter.enqueueAclReindex();
         }
         setTaxonomyFromEncounters(); // will only set if has no value
         setSexFromEncounters(); // likewise
@@ -528,6 +546,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         getHaplotype();
 
         setVersion();
+        // membership change: refresh this individual (drops the departed encounter from its ACL)
+        // and the departed encounter itself (its individual link is now gone).
+        this.enqueueAclReindex();
+        if (getRidOfMe != null) getRidOfMe.enqueueAclReindex();
         return changed;
     }
 
@@ -868,6 +890,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         List<String> many = names.getValuesByKey(NAMES_KEY_NICKNAME);
         if ((many == null) || (many.size() < 1)) return null; // "should" only have 0 or 1 nickname
         return many.get(0);
+    }
+
+    public String getAlternateID() {
+        return alternateid;
     }
 
     public void setNickName(String newName) {
@@ -2100,6 +2126,20 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessMarkedIndividual(this, request);
     }
 
+    // view ACL for the generic /api/v3 GET path (see Base.jsonForApiGet). a user may view this
+    // individual if they are an admin or can view at least one of its encounters. an individual
+    // with no encounters grants no view access (rather than being visible to any logged-in user).
+    @Override public boolean canUserView(User user, Shepherd myShepherd) {
+        if (user == null) return false;
+        if (user.isAdmin(myShepherd)) return true;
+        Vector<Encounter> all = this.getEncounters();
+        if ((all == null) || all.isEmpty()) return false;
+        for (Encounter enc : all) {
+            if (enc.canUserView(user, myShepherd)) return true;
+        }
+        return false;
+    }
+
     // see note on Base class
     public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
@@ -2606,12 +2646,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     // Need request to record which user did it
     public void mergeIndividual(MarkedIndividual other, String username, Shepherd myShepherd) {
-        IndexingManager im = IndexingManagerFactory.getIndexingManager();
         for (Encounter enc : other.getEncounters()) {
             other.removeEncounter(enc);
             enc.setIndividual(this);
-            // Reindex each transferred encounter
-            if (im != null) im.addIndexingQueueEntry(enc, false);
         }
         this.names.merge(other.getNames());
         this.setComments(getMergedComments(other, username));
@@ -2656,11 +2693,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             myShepherd.updateDBTransaction();
         }
         refreshDependentProperties();
-        // Reindex both individuals after merge
-        if (im != null) {
-            im.addIndexingQueueEntry(this, false);
-            im.addIndexingQueueEntry(other, false);
-        }
+        // merge moved every encounter from other -> this (per-encounter hooks already fired via
+        // removeEncounter/setIndividual). Enqueue both individuals as a safety net; the indexing
+        // queue dedups by id so this does not multiply work.
+        this.enqueueAclReindex();
+        if (other != null) other.enqueueAclReindex();
     }
 
     public String getMergedComments(MarkedIndividual other, HttpServletRequest request,
@@ -2699,6 +2736,32 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         myShepherd.throwAwayMarkedIndividual(other);
     }
 
+    /** Denormalized ACL union over member encounters; 0 encounters -> world-readable (matches the live gate). */
+    public void writeAclFields(com.fasterxml.jackson.core.JsonGenerator jgen, Shepherd myShepherd)
+    throws java.io.IOException {
+        java.util.List<Encounter> encs = this.getEncounters();
+        boolean pub = (encs == null) || encs.isEmpty(); // encounterless -> visible to anyone
+        java.util.Set<String> submitters = new java.util.LinkedHashSet<String>();
+        java.util.Set<String> viewers = new java.util.LinkedHashSet<String>();
+        if (encs != null) {
+            for (Encounter enc : encs) {
+                org.json.JSONObject acl = enc.opensearchAclFields(myShepherd);
+                if (acl.optBoolean("publiclyReadable", false)) pub = true;
+                String sid = acl.optString("submitterUserId", null);
+                if (sid != null) submitters.add(sid);
+                org.json.JSONArray vu = acl.optJSONArray("viewUsers");
+                if (vu != null) for (int i = 0; i < vu.length(); i++) viewers.add(vu.optString(i));
+            }
+        }
+        jgen.writeBooleanField("publiclyReadable", pub);
+        jgen.writeArrayFieldStart("submitterUserIds");
+        for (String s : submitters) jgen.writeString(s);
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("viewUsers");
+        for (String v : viewers) jgen.writeString(v);
+        jgen.writeEndArray();
+    }
+
     public org.json.JSONObject opensearchMapping() {
         org.json.JSONObject map = super.opensearchMapping();
         org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
@@ -2725,12 +2788,15 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         map.put("relationships", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("cooccurrenceIndividualMap",
             new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
+        map.put("publiclyReadable", new org.json.JSONObject("{\"type\": \"boolean\"}"));
+        map.put("submitterUserIds", keywordType);
         return map;
     }
 
     public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
     throws IOException, JsonProcessingException {
         super.opensearchDocumentSerializer(jgen, myShepherd);
+        this.writeAclFields(jgen, myShepherd);
 
         jgen.writeStringField("sex", this.getSex());
         jgen.writeStringField("displayName", this.getDisplayName());

@@ -185,8 +185,11 @@ public class BulkImporter {
             "------------ persistence complete; background indexing and MA children -------------\n");
         // clears shepherd/pmf cache, which we seem to do when we create encounters (?)
         myShepherd.cacheEvictAll();
-        BulkImportUtil.bulkOpensearchIndex(needIndexing);
-        MediaAsset.updateStandardChildrenBackground(myShepherd.getContext(), maIds);
+        MediaAsset.updateStandardChildrenBackground(myShepherd.getContext(), maIds, new Runnable() {
+            public void run() {
+                BulkImportUtil.bulkOpensearchIndex(needIndexing);
+            }
+        });
         logProgress("end createImport()");
         return rtn;
     }
@@ -702,9 +705,21 @@ public class BulkImporter {
             if (bv == null) throw new RuntimeException("could not find fmap for key=" + maKey);
             if (bv.valueIsNull()) continue;
             MediaAsset ma = this.mediaAssetMap.get(bv.getValueString());
-            if (ma == null)
-                throw new RuntimeException("could not find MediaAsset for maKey=" + maKey +
-                        ", bv=" + bv.getValueString() + " in " + this.mediaAssetMap);
+            if (ma == null) {
+                // The referenced image has no MediaAsset — typically because it
+                // failed image validation at creation time (corrupt/unreadable;
+                // see AssetStore.isValidImage). Skip just this image so one bad
+                // file does not abort the whole import; the encounter still
+                // imports with its other (valid) images. Unlike the valueIsNull()
+                // skip above (an empty column), this column WAS occupied by an
+                // image, so we advance `offset` to consume its keyword/quality
+                // slot — otherwise a later valid image would inherit this
+                // corrupt image's positional metadata.
+                System.out.println("[WARN] processRow: skipping image with no MediaAsset (likely "
+                    + "corrupt/unreadable) for maKey=" + maKey + ", value=" + bv.getValueString());
+                offset++;
+                continue;
+            }
             Set<String> kws = new HashSet<String>();
             if ((offset < kwFields.size()) && (kwFields.get(offset) != null))
                 kws.add(fmap.get(kwFields.get(offset)).getValueString());

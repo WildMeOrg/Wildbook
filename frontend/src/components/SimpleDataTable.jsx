@@ -14,18 +14,29 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
   const pageCount = Math.ceil(data.length / safePerPage);
 
   useEffect(() => {
-    if (dataset.length === 0) {
-      const indexedData = data.map((row, index) => ({
-        ...row,
-        tableID: row.tableID ?? index + 1,
-      }));
-      setDataset(indexedData);
-      setCurrentPage(0);
-      setPagedData([...indexedData].slice(0, safePerPage));
-    } else {
-      setCurrentPage(0);
-      setPagedData([...dataset].slice(0, safePerPage));
-    }
+    // Rebuild dataset from the incoming `data` prop so updates
+    // (e.g. polling progress) are reflected. Any active user sort is
+    // discarded on each new snapshot.
+    //
+    // Preserve the user's current page across refreshes instead of
+    // resetting to the first page. A bulk-import task polls every few
+    // seconds while detection/identification run (and for a short
+    // window after), handing this component a fresh `data` array on
+    // every poll. Resetting here knocked a reviewer back to page 1 on
+    // every poll while they were reviewing matches (issue #1637).
+    // Clamp to the last available page so a shrinking row count never
+    // strands us on an out-of-range page; the second effect recomputes
+    // the visible rows from the clamped page.
+    const indexedData = data.map((row, index) => ({
+      ...row,
+      tableID: row.tableID ?? index + 1,
+    }));
+    setDataset(indexedData);
+    const lastPage = Math.max(
+      0,
+      Math.ceil(indexedData.length / safePerPage) - 1,
+    );
+    setCurrentPage((prev) => Math.min(prev, lastPage));
   }, [data, safePerPage]);
 
   useEffect(() => {
@@ -91,6 +102,11 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
         fixedHeader
         fixedHeaderScrollHeight="85vh"
         striped
+        noDataComponent={
+          <div className="p-3 text-center text-muted">
+            There are no records to display yet. Page will refresh.
+          </div>
+        }
       />
       <Row className="mt-3 d-flex justify-content-center">
         <Col xs="auto">
