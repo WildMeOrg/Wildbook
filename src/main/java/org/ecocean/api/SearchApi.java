@@ -153,11 +153,27 @@ public class SearchApi extends ApiBase {
                     // so validate it here too: it may only sort on an allowlisted identity field.
                     boolean badSort = (sort != null) && !sort.trim().isEmpty()
                         && !OpenSearch.INDIVIDUAL_TOKEN_KEEP_SET.contains(sort.trim());
+                    OpenSearch os = new OpenSearch();
+                    // effective pagination ceiling (index.max_result_window) - per-index, since
+                    // Wildbook raises it on large indexes. Exposed as a header so the frontend
+                    // can cap its paginator instead of offering pages we cannot serve.
+                    int maxResultWindow = os.getMaxResultWindow(indexName);
+                    if (maxResultWindow < 1) maxResultWindow = OpenSearch.DEFAULT_MAX_RESULT_WINDOW;
+                    response.setHeader("X-Wildbook-Max-Result-Window",
+                        Integer.toString(maxResultWindow));
                     if (tokenAuth && !isAdmin && "individual".equals(indexName)
                         && (!OpenSearch.queryReferencesOnlyAllowedFields(query,
                             OpenSearch.INDIVIDUAL_TOKEN_KEEP_SET) || badSort)) {
                         response.setStatus(400);
                         res.put("error", "individual token search may only query/sort identity fields");
+                    } else if ((numFrom < 0) || (pageSize < 0)
+                        || ((long)numFrom + (long)pageSize > maxResultWindow)) {
+                        // reject up front: OpenSearch would refuse this anyway (as a 500 to the
+                        // client), and deep pages cannot be fetched no matter how we retry
+                        response.setStatus(400);
+                        res.put("error", "invalid pagination: from + size must be non-negative and"
+                            + " no greater than " + maxResultWindow);
+                        res.put("maxResultWindow", maxResultWindow);
                     } else {
                     // all token validation gates passed -> persist the clean new query now (before
                     // applyAclFilter embeds ACL fields into it); rejected bodies were never stored
@@ -195,7 +211,6 @@ public class SearchApi extends ApiBase {
                     System.out.println("SearchApi search indexName=" + indexName
                         + " tokenAuth=" + tokenAuth);
 
-                    OpenSearch os = new OpenSearch();
                     try {
                         if (deletePit) os.deletePit(indexName);
                         JSONObject queryRes = os.queryPit(indexName, query, numFrom, pageSize, sort,
