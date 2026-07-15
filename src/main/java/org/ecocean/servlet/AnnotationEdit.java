@@ -205,7 +205,9 @@ public class AnnotationEdit extends HttpServlet {
                 } else {
                     indiv.addEncounter(enc);
                 }
-                touchedIndividualIds.add(assignIndivId);
+                // use the datastore id — for a newly created individual,
+                // assignIndivId is a name, not the generated individualID
+                touchedIndividualIds.add(indiv.getIndividualID());
                 // enc.setIndividualID(assignIndivId);
                 System.out.println("INFO: AnnotationEdit assigned " + indiv + " on " + enc +
                     " via " + annot);

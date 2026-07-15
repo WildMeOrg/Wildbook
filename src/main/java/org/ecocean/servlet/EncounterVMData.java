@@ -94,8 +94,11 @@ public class EncounterVMData extends HttpServlet {
                         myShepherd.commitDBTransaction();
                         // GH-1514: post-commit, queue deep reindex of the individual
                         // so sibling encounters pick up refreshed denormalized fields.
+                        // NOTE: use the datastore id — for a newly created individual,
+                        // matchID is a name, not the generated individualID.
                         org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(
-                            myShepherd, java.util.Collections.singleton(matchID));
+                            myShepherd,
+                            java.util.Collections.singleton(indiv.getIndividualID()));
                         redirUrl = "encounters/encounter.jsp?number=" + enc.getCatalogNumber();
                     } else {
                         rtn.put("error", "unauthorized");

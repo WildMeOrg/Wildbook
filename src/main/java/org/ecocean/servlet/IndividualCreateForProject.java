@@ -79,9 +79,6 @@ public class IndividualCreateForProject extends HttpServlet {
                         myShepherd.updateDBTransaction();
                         enc.setIndividual(individual);
                         myShepherd.updateDBTransaction();
-                        // Reindex encounter after individual assignment
-                        IndexingManager im = IndexingManagerFactory.getIndexingManager();
-                        if (im != null) im.addIndexingQueueEntry(enc, false);
 
                         res.put("newIndividualId", individual.getId());
                         res.put("newIndividualName", individual.getName(projectId));

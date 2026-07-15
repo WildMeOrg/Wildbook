@@ -94,13 +94,15 @@ public class IndexingManager {
     public static void queueIndividualsByIdForDeepReindex(Shepherd myShepherd,
         java.util.Collection<String> individualIds) {
         if ((individualIds == null) || individualIds.isEmpty()) return;
+        // honor the global ops kill-switch, same as enqueueAclReindex()
+        if (OpenSearch.skipAutoIndexing()) return;
         IndexingManager im = IndexingManagerFactory.getIndexingManager();
         if (im == null) return;
         String context = (myShepherd != null) ? myShepherd.getContext() : "context0";
         Shepherd shep = new Shepherd(context);
         shep.setAction("IndexingManager.queueIndividualsByIdForDeepReindex");
-        shep.beginDBTransaction();
         try {
+            shep.beginDBTransaction();
             for (String id : individualIds) {
                 if (id == null) continue;
                 MarkedIndividual indiv = shep.getMarkedIndividualQuiet(id);

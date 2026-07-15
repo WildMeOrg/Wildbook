@@ -282,11 +282,15 @@ public class ImportIA extends HttpServlet {
                     myShepherd.commitDBTransaction();
                     myShepherd.beginDBTransaction();
                     // enc.setIndividualID(name);
+                    // GH-1514: track the datastore id (NOT `name`, which for a new
+                    // individual is just a name; individualID is a generated UUID)
+                    String touchedIndividualId = null;
                     if (myShepherd.isMarkedIndividual(name)) {
                         MarkedIndividual ind = myShepherd.getMarkedIndividual(name);
                         if ((ind.getSex() == null) && (sex != null)) ind.setSex(sex); // only if not set already
                         ind.addEncounter(enc);
                         enc.setIndividual(ind);
+                        touchedIndividualId = ind.getIndividualID();
                     } else {
                         MarkedIndividual ind = new MarkedIndividual(name, enc);
                         if (sex != null) ind.setSex(sex);
@@ -295,6 +299,7 @@ public class ImportIA extends HttpServlet {
                         log(itask, "created new " + ind);
 
                         ind.refreshNamesCache();
+                        touchedIndividualId = ind.getIndividualID();
                     }
                     for (Annotation ann : annotGroups.get(name)) {
                         myShepherd.storeNewAnnotation(ann);
@@ -303,7 +308,7 @@ public class ImportIA extends HttpServlet {
                     // GH-1514: post-commit deep reindex so sibling encounters on
                     // the named individual pick up refreshed individualNumberEncounters.
                     org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(
-                        myShepherd, java.util.Collections.singleton(name));
+                        myShepherd, java.util.Collections.singleton(touchedIndividualId));
 
                     String annLog = "";
                     String annWeb = "";

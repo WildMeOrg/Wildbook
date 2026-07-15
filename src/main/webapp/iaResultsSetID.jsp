@@ -242,15 +242,6 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
                         setImportTaskComplete(myShepherd, oenc);
                     }
                     indiv.refreshNamesCache();
-                    // Reindex encounters and individual after ID assignment
-                    IndexingManager im = IndexingManagerFactory.getIndexingManager();
-                    if (im != null) {
-                        im.addIndexingQueueEntry(enc, false);
-                        for (Encounter oenc : otherEncs) {
-                            im.addIndexingQueueEntry(oenc, false);
-                        }
-                        im.addIndexingQueueEntry(indiv, false);
-                    }
 
                     if ((indiv != null) && (enc != null)) IndividualAddEncounter.executeEmails(myShepherd, request, indiv, isNewIndiv, enc, context, langCode);
 
@@ -279,14 +270,6 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
                                     IndividualAddEncounter.executeEmails(myShepherd, request, indiv, false, oenc, context, langCode);
                                     setImportTaskComplete(myShepherd, oenc);
                                 }
-                                // Reindex encounters and individual after ID assignment
-                                IndexingManager im2 = IndexingManagerFactory.getIndexingManager();
-                                if (im2 != null) {
-                                    for (Encounter oenc : otherEncs) {
-                                        im2.addIndexingQueueEntry(oenc, false);
-                                    }
-                                    im2.addIndexingQueueEntry(indiv, false);
-                                }
 			}
 
 			// target enc has indy
@@ -308,12 +291,6 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 
 				IndividualAddEncounter.executeEmails(myShepherd, request, oindiv, false, enc, context, langCode);
                                 setImportTaskComplete(myShepherd, enc);
-                                // Reindex encounter and individual after ID assignment
-                                IndexingManager im3 = IndexingManagerFactory.getIndexingManager();
-                                if (im3 != null) {
-                                    im3.addIndexingQueueEntry(enc, false);
-                                    im3.addIndexingQueueEntry(oindiv, false);
-                                }
 			}
 
 
