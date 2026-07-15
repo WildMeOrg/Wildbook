@@ -800,6 +800,17 @@
 					"locationID": []
 				},
 				{
+					"name": "Gulf of Guinea",
+					"id": "Gulf of Guinea",
+					"locationID": [
+						{
+							"name": "Sao Tome and Principe",
+							"id": "Sao Tome and Principe",
+							"locationID": []
+						}
+					]
+				},
+				{
 					"name": "Mediterranean Sea", 
 					"id": "Mediterranean Sea", 
 					"locationID": [
