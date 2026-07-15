@@ -548,8 +548,15 @@ public class ImportTask implements java.io.Serializable {
     an exception does a rollback, but very likely many of the steps up until that point has been commited, so not sure
     what state that leaves things in the actual db
  */
-    public static void deleteWithRelated(String id, User user, Shepherd myShepherd)
+    // GH-1514: returns the set of MarkedIndividual ids whose encounter lists were
+    // reduced but not fully emptied by this delete. Callers should queue these
+    // individuals for deep reindex AFTER committing the enclosing transaction so
+    // their surviving encounters pick up refreshed individualNumberEncounters.
+    public static java.util.Set<String> deleteWithRelated(String id, User user,
+        Shepherd myShepherd)
     throws IOException {
+        java.util.Set<String> touchedSurvivingIndividualIds =
+            new java.util.LinkedHashSet<String>();
         if ((id == null) || (user == null)) throw new IOException("must provide id and user");
         ImportTask itask = myShepherd.getImportTask(id);
         if (itask == null) throw new IOException("invalid ImportTask id=" + id);
@@ -606,6 +613,10 @@ public class ImportTask implements java.io.Serializable {
                         }
                         myShepherd.throwAwayMarkedIndividual(mark);
                         // myShepherd.updateDBTransaction();
+                    } else {
+                        // GH-1514: individual survives; its remaining encounters
+                        // need a fresh individualNumberEncounters after commit.
+                        touchedSurvivingIndividualIds.add(mark.getIndividualID());
                     }
                 }
                 // handle projects
@@ -633,6 +644,7 @@ public class ImportTask implements java.io.Serializable {
             throw new IOException("general exception on ImportTask delete: " + ex);
         }
         Util.mark("ImportTask.deleteWithRelated(" + id + ") completed");
+        return touchedSurvivingIndividualIds;
     }
 
     // this is hobbled together from some complex code in import.jsp

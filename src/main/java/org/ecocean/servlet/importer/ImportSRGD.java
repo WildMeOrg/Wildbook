@@ -71,6 +71,11 @@ public class ImportSRGD extends HttpServlet {
         StringBuffer messages = new StringBuffer();
         boolean successfullyWroteFile = false;
         File finalFile = new File(tempSubdir, "temp.csv");
+        // GH-1514: individual ids touched across all rows; used at end-of-import
+        // to queue a post-commit deep reindex so sibling encounters refresh
+        // individualNumberEncounters etc.
+        java.util.Set<String> touchedIndividualIds =
+            new java.util.LinkedHashSet<String>();
 
         try {
             MultipartParser mp = new MultipartParser(request,
@@ -463,6 +468,11 @@ public class ImportSRGD extends HttpServlet {
 
                                 myShepherd.commitDBTransaction();
                                 if (newShark) { myShepherd.storeNewMarkedIndividual(indie); }
+                                // GH-1514: remember the touched individual id so we
+                                // can queue deep reindex at end-of-import, post-commit.
+                                if (indie != null && indie.getIndividualID() != null) {
+                                    touchedIndividualIds.add(indie.getIndividualID());
+                                }
                             }
                         } else { myShepherd.rollbackDBTransaction(); }
                         // out.println("Imported row: "+line);
@@ -481,6 +491,10 @@ public class ImportSRGD extends HttpServlet {
             if (!locked) {
                 myShepherd.commitDBTransaction();
                 myShepherd.closeDBTransaction();
+                // GH-1514: post-commit, queue deep reindex of touched individuals
+                // so their sibling encounters refresh individualNumberEncounters.
+                org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
+                    touchedIndividualIds);
                 out.println(ServletUtilities.getHeader(request));
                 out.println(
                     "<p><strong>Success!</strong> I have successfully uploaded and imported your SRGD CSV file.</p>");

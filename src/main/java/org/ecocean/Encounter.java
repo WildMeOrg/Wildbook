@@ -5250,6 +5250,9 @@ public class Encounter extends Base implements java.io.Serializable {
         this.setDWCDateLastModified();
         this._log(resArr);
         this.setSkipAutoIndexing(false);
+        // explicitly reindex since postStore fired while skipAutoIndexing was true;
+        // enqueueAclReindex honors the global skipAutoIndexing guard
+        this.enqueueAclReindex();
         return rtn;
     }
 
