@@ -1479,6 +1479,7 @@ public class IBEISIA {
                     }
                 }
             }
+            System.out.println("needIdentifying=" + needIdentifying + "; parentTask=" + parentTask);
             if (needIdentifying.size() > 0) {
                 // split the results into encounters
                 HashMap<String, ArrayList<Annotation> > needIdentifyingMap = new HashMap<String,
@@ -1511,10 +1512,11 @@ public class IBEISIA {
                         mf.put("locationIds", matchTheseLocationIDs);
                     }
                     taskParameters.put("matchingSetFilter", mf);
-                    Task subParentTask = new Task();
+                    Task subParentTask = new Task(parentTask);
                     subParentTask.setParameters(taskParameters);
                     myShepherd2.storeNewTask(subParentTask);
                     myShepherd2.updateDBTransaction();
+                    System.out.println("[DEBUG] ID send: enc=" + encUUID + " created subParentTask=" + subParentTask + " on parentTask=" + parentTask);
 
                     Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask,
                         false);
