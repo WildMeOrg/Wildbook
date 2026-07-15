@@ -227,49 +227,6 @@ h2.vidcap {
     <aside class="container main-section">
         <div class="row">
 
-            <!-- Random user profile to select -->
-            <%
-            //myShepherd.beginDBTransaction();
-            try{
-								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
-            if(featuredUser!=null){
-                String profilePhotoURL="images/user-profile-white-transparent.png";
-                if(featuredUser.getUserImage()!=null){
-                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
-                }
-
-            %>
-                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                    <div class="focusbox-inner opec">
-                        <h2><%=props.getProperty("ourContributors") %></h2>
-                        <div>
-                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
-                            <p><%=featuredUser.getFullName() %>
-                                <%
-                                if(featuredUser.getAffiliation()!=null){
-                                %>
-                                <i><%=featuredUser.getAffiliation() %></i>
-                                <%
-                                }
-                                %>
-                            </p>
-                            <p><%=featuredUser.getUserStatement() %></p>
-                        </div>
-                        <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("showContributors") %></a>
-                    </div>
-                </section>
-            <%
-            } // end if
-
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{
-
-            	//myShepherd.rollbackDBTransaction();
-            }
-            %>
-
-
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
                     <h2><%=props.getProperty("latestAnimalEncounters") %></h2>
