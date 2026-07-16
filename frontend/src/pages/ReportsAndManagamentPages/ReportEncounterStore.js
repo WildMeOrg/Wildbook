@@ -45,6 +45,7 @@ export class ReportEncounterStore {
       value: "",
       error: false,
       required: true,
+      verbatimLocality: "",
     };
     this._additionalCommentsSection = {
       value: "",
@@ -218,6 +219,10 @@ export class ReportEncounterStore {
     this._placeSection.error = error;
   }
 
+  setVerbatimLocality(value) {
+    this._placeSection.verbatimLocality = value;
+  }
+
   setFollowUpSection(value) {
     this._followUpSection.value = value;
   }
@@ -366,6 +371,7 @@ export class ReportEncounterStore {
           dateTime: this._dateTimeSection.value,
           taxonomy: this._speciesSection.value,
           locationId: this._placeSection.locationId,
+          verbatimLocality: this._placeSection.verbatimLocality,
           comments: this._additionalCommentsSection.value,
           submitterName: this._followUpSection.submitter.name,
           submitterEmail: this._followUpSection.submitter.email,
@@ -400,6 +406,7 @@ export class ReportEncounterStore {
         if (response.status === 200) {
           this._speciesSection.value = "";
           this._placeSection.value = "";
+          this._placeSection.verbatimLocality = "";
           this._followUpSection.value = "";
           this._dateTimeSection.value = "";
           this._imageSectionFileNames = [];

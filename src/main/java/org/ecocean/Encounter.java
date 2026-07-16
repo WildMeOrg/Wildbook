@@ -5164,6 +5164,7 @@ public class Encounter extends Base implements java.io.Serializable {
         Encounter enc = new Encounter(false);
         if (Util.isUUID(payload.optString("_id"))) enc.setId(payload.getString("_id"));
         enc.setLocationID(locationID);
+        enc.setVerbatimLocality(payload.optString("verbatimLocality", null));
         enc.setDecimalLatitude(decimalLatitude);
         enc.setDecimalLongitude(decimalLongitude);
         enc.setDateFromISO8601String(dateTime);
