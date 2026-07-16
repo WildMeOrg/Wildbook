@@ -6,9 +6,11 @@ import { action } from "mobx";
 
 class EncounterFormStore {
   _formFilters;
+  _appliedFilters;
   _activeStep = 0;
 
   _siteSettingsData = null;
+  _siteSettingsLoading = true;
 
   _loadingAll = false;
   _selectedRows = [];
@@ -23,6 +25,8 @@ class EncounterFormStore {
   _pageSize = 20;
   _start = 0;
   _assetOffset = 0;
+  _galleryExhausted = false;
+  _galleryLoading = false;
 
   _showAnnotations = true;
 
@@ -30,8 +34,11 @@ class EncounterFormStore {
 
   imageModalStore;
 
+  FILTER_STORAGE_KEY = "formData";
+
   constructor() {
     this.formFilters = [];
+    this.appliedFilters = [];
     this.imageModalStore = new ImageModalStore(this);
 
     makeAutoObservable(
@@ -50,11 +57,25 @@ class EncounterFormStore {
     this._siteSettingsData = data;
   }
 
+  get siteSettingsLoading() {
+    return this._siteSettingsLoading;
+  }
+  setSiteSettingsLoading(loading) {
+    this._siteSettingsLoading = loading;
+  }
+
   get formFilters() {
     return this._formFilters;
   }
   set formFilters(newFilters) {
     this._formFilters = newFilters;
+  }
+
+  get appliedFilters() {
+    return this._appliedFilters;
+  }
+  set appliedFilters(filters) {
+    this._appliedFilters = filters;
   }
 
   get activeStep() {
@@ -103,6 +124,9 @@ class EncounterFormStore {
     this.setCurrentPageItems([]);
     this.setStart(0);
     this.setAssetOffset(0);
+    this.setLoadingAll(false);
+    this.setGalleryExhausted(false);
+    this.setGalleryLoading(false);
     this.clearPreviousPageItems();
     this.setCurrentPage?.(0);
   });
@@ -131,6 +155,20 @@ class EncounterFormStore {
     this._assetOffset = offset;
   }
 
+  get galleryExhausted() {
+    return this._galleryExhausted;
+  }
+  setGalleryExhausted(value) {
+    this._galleryExhausted = value;
+  }
+
+  get galleryLoading() {
+    return this._galleryLoading;
+  }
+  setGalleryLoading(value) {
+    this._galleryLoading = value;
+  }
+
   get mediaAssetsSearchQuery() {
     const filterOnMediaAssets = {
       filterId: "numberMediaAssets",
@@ -139,7 +177,7 @@ class EncounterFormStore {
       filterKey: "Number Media Assets",
       path: "",
     };
-    const base = this.formFilters || [];
+    const base = this.appliedFilters || [];
     const has = base.some((f) => f.filterId === "numberMediaAssets");
     if (!has) {
       return [...base, filterOnMediaAssets];
@@ -166,11 +204,22 @@ class EncounterFormStore {
   get previousPageItems() {
     return this._previousPageItems;
   }
-  setPreviousPageItems(index, data) {
+  setPreviousPageItems(
+    index,
+    data,
+    start = this._start,
+    assetOffset = this._assetOffset,
+    galleryExhausted = this._galleryExhausted,
+  ) {
     if (index < 0) {
       return;
     }
-    this._previousPageItems[index] = Array.isArray(data) ? data.slice() : [];
+    this._previousPageItems[index] = {
+      items: Array.isArray(data) ? data.slice() : [],
+      start,
+      assetOffset,
+      galleryExhausted,
+    };
   }
 
   clearPreviousPageItems() {
@@ -200,6 +249,10 @@ class EncounterFormStore {
     }
   }
 
+  setFormFilters(filters) {
+    this._formFilters = filters;
+  }
+
   removeFilter(filterId) {
     this.formFilters = this.formFilters.filter((f) => f.filterId !== filterId);
   }
@@ -210,8 +263,44 @@ class EncounterFormStore {
     );
   }
 
+  setFiltersInSessionStorage() {
+    if (this.appliedFilters.length > 0) {
+      sessionStorage.setItem(
+        this.FILTER_STORAGE_KEY,
+        JSON.stringify(this.appliedFilters),
+      );
+    } else {
+      sessionStorage.removeItem(this.FILTER_STORAGE_KEY);
+    }
+  }
+
+  applyFilters() {
+    this.appliedFilters = toJS(this.formFilters);
+    this.setFiltersInSessionStorage();
+  }
+
+  getFiltersFromStorage() {
+    const savedJson = sessionStorage.getItem(this.FILTER_STORAGE_KEY);
+    if (savedJson) {
+      try {
+        const parsed = JSON.parse(savedJson);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          this.formFilters = parsed;
+          this.appliedFilters = parsed;
+        } else {
+          sessionStorage.removeItem(this.FILTER_STORAGE_KEY);
+        }
+      } catch (e) {
+        console.error("Failed to load filters:", e);
+        sessionStorage.removeItem(this.FILTER_STORAGE_KEY);
+      }
+    }
+  }
+
   resetFilters() {
     this.formFilters = [];
+    this.appliedFilters = [];
+    sessionStorage.removeItem(this.FILTER_STORAGE_KEY);
   }
 
   async addEncountersToProject() {

@@ -16,6 +16,8 @@ import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
+import org.ecocean.ia.MatchResult;
+import org.ecocean.ia.MatchResultProspect;
 import org.ecocean.ia.Task;
 import org.ecocean.media.*;
 import org.ecocean.movement.Path;
@@ -104,8 +106,15 @@ public class Shepherd {
 
     // handy with a newActiveShepherd
     public void rollbackAndClose() {
-        rollbackDBTransaction();
-        closeDBTransaction();
+        // closeDBTransaction() MUST run even if rollbackDBTransaction() throws. Otherwise a rollback
+        // that fails (e.g. on an already-broken connection) skips the close, leaking the
+        // PersistenceManager/DB connection and leaving a stale ShepherdState entry -- exactly the
+        // "rollback-failed" rows seen accumulating on dbconnections.jsp until the pool exhausts.
+        try {
+            rollbackDBTransaction();
+        } finally {
+            closeDBTransaction();
+        }
     }
 
     public String getContext() {
@@ -567,6 +576,38 @@ public class Shepherd {
             return null;
         }
         return annot;
+    }
+
+    // Batch-load annotations by id in as few queries as possible (chunked IN), instead of one
+    // getAnnotation()/getObjectById() per id. The match pipeline can produce hundreds of
+    // prospects/candidates; a round-trip each was O(N) and dominated match time (tens of seconds
+    // to minutes). Returned order is NOT the input order -- callers needing the kNN score order
+    // should re-map by id.
+    public List<Annotation> getAnnotations(Collection<String> uuids) {
+        List<Annotation> out = new ArrayList<Annotation>();
+        if ((uuids == null) || uuids.isEmpty()) return out;
+        LinkedHashSet<String> ids = new LinkedHashSet<String>();
+        for (String u : uuids) {
+            if ((u != null) && (u.trim().length() > 0)) ids.add(u.trim());
+        }
+        if (ids.isEmpty()) return out;
+        List<String> all = new ArrayList<String>(ids);
+        final int CHUNK = 1000;
+        for (int i = 0; i < all.size(); i += CHUNK) {
+            List<String> sub = all.subList(i, Math.min(i + CHUNK, all.size()));
+            Query q = pm.newQuery(Annotation.class, ":ids.contains(id)");
+            try {
+                @SuppressWarnings("unchecked")
+                Collection<Annotation> res = (Collection<Annotation>) q.execute(sub);
+                out.addAll(new ArrayList<Annotation>(res));
+            } catch (Exception ex) {
+                System.out.println("getAnnotations(batch) chunk failed: " + ex);
+                ex.printStackTrace();
+            } finally {
+                q.closeAll();
+            }
+        }
+        return out;
     }
 
     public MediaAsset getMediaAsset(String num) {
@@ -2712,7 +2753,7 @@ public class Shepherd {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            query.closeAll();
+            if (query != null) query.closeAll();
         }
         return taskList;
     }
@@ -2771,6 +2812,7 @@ public class Shepherd {
     }
 
     public Task getTask(String id) {
+        if (id == null) return null; // save us some trouble
         Task theTask = null;
 
         try {
@@ -2799,6 +2841,72 @@ public class Shepherd {
         Collection c = (Collection)q.execute();
         List<Task> all = new ArrayList(c);
         q.closeAll();
+        return all;
+    }
+
+    public MatchResult getMatchResult(String id) {
+        MatchResult mr = null;
+
+        try {
+            mr = (MatchResult)(pm.getObjectById(pm.newObjectIdInstance(MatchResult.class, id),
+                true));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return mr;
+    }
+
+    public List<MatchResult> getMatchResults(Task task) {
+        List<MatchResult> all = new ArrayList<MatchResult>();
+
+        if (task == null) return all;
+        String filter = "SELECT FROM org.ecocean.ia.MatchResult WHERE task.id == '" + task.getId() +
+            "'";
+        Query query = pm.newQuery(filter);
+        query.setOrdering("created DESC");
+        Collection c = (Collection)query.execute();
+        if (c != null) all = new ArrayList<MatchResult>(c);
+        query.closeAll();
+        return all;
+    }
+
+    public List<MatchResult> getMatchResults(Annotation ann) {
+        List<MatchResult> all = new ArrayList<MatchResult>();
+
+        if (ann == null) return all;
+        String filter = "SELECT FROM org.ecocean.ia.MatchResult WHERE queryAnnotation.id == '" +
+            ann.getId() + "'";
+        Query query = pm.newQuery(filter);
+        query.setOrdering("created DESC");
+        Collection c = (Collection)query.execute();
+        if (c != null) all = new ArrayList<MatchResult>(c);
+        query.closeAll();
+        return all;
+    }
+
+    // faster deletion of all MatchResults associated with Annotation
+    public long deleteMatchResults(Annotation ann) {
+        if (ann == null) return 0l;
+        long t = System.currentTimeMillis();
+        String filter = "SELECT FROM org.ecocean.ia.MatchResult WHERE queryAnnotation.id == '" +
+            ann.getId() + "'";
+        Query query = pm.newQuery(filter);
+        long ct = query.deletePersistentAll(); 
+        query.closeAll();
+        System.out.println("[DEBUG] deleteMatchResults() deleted " + ct + " [" + (System.currentTimeMillis() - t) + "ms] on " + ann);
+        return ct;
+    }
+
+    public List<MatchResultProspect> getMatchResultProspects(Annotation ann) {
+        List<MatchResultProspect> all = new ArrayList<MatchResultProspect>();
+
+        if (ann == null) return all;
+        String filter = "SELECT FROM org.ecocean.ia.MatchResultProspect WHERE annotation.id == '" +
+            ann.getId() + "'";
+        Query query = pm.newQuery(filter);
+        Collection c = (Collection)query.execute();
+        if (c != null) all = new ArrayList<MatchResultProspect>(c);
+        query.closeAll();
         return all;
     }
 
@@ -3286,6 +3394,30 @@ public class Shepherd {
                 "A null pointer exception was thrown while trying to commit a transaction!");
             npe.printStackTrace();
             // return false;
+        }
+    }
+
+    /**
+     * Commit and report whether the commit actually succeeded. Unlike
+     * {@link #commitDBTransaction()} (which swallows commit failures and returns
+     * void), this returns false if the transaction was inactive or the commit
+     * threw. Callers can use this to avoid mutating in-memory state after a commit
+     * that did not durably persist -- e.g. only update the GridManager match graph
+     * once the encounter change is confirmed committed. (#1608)
+     */
+    public boolean commitDBTransactionWithStatus() {
+        try {
+            if ((pm != null) && pm.currentTransaction().isActive()) {
+                pm.currentTransaction().commit();
+                ShepherdState.setShepherdState(action + "_" + shepherdID, "commit");
+                return true;
+            }
+            System.out.println("commitDBTransactionWithStatus: transaction was not active.");
+            return false;
+        } catch (Exception e) {
+            System.out.println("commitDBTransactionWithStatus: commit failed: " + e);
+            e.printStackTrace();
+            return false;
         }
     }
 

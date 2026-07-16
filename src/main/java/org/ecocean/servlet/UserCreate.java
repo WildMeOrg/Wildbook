@@ -83,6 +83,11 @@ public class UserCreate extends HttpServlet {
             if ((password.equals(password2)) || (isEdit)) {
                 User newUser = null;
                 String originalUsername = null;
+                // Tracks whether a permission-relevant change (role or org membership) actually
+                // occurred. If so, we flag permissionsNeeded AFTER this transaction commits (see the
+                // end of this block) rather than inside it -- both to avoid the self-deadlock and so
+                // the background ACL reindex cannot run against pre-commit data.
+                boolean permissionsChanged = false;
                 try {
                     myShepherd.beginDBTransaction();
                     if (myShepherd.getUserByUUID(uuid) != null) {
@@ -117,7 +122,14 @@ public class UserCreate extends HttpServlet {
                             newUser.setSalt(salt);
                         }
                     }
-                    OpenSearch.setPermissionsNeeded(myShepherd, true);
+                    // NOTE: do NOT call OpenSearch.setPermissionsNeeded(myShepherd, true) here.
+                    // Writing the permissionsNeeded SystemValue row inside this long request
+                    // transaction self-deadlocks: when a Role/Organization is persisted below,
+                    // WildbookLifecycleListener.postStore opens a separate connection to UPDATE the
+                    // same row and commit, which blocks forever on this transaction's uncommitted
+                    // row lock. Instead we track permissionsChanged below and flag permissionsNeeded
+                    // AFTER this transaction commits (see end of block): deadlock-free and correctly
+                    // ordered, so a background reindex cannot run against pre-commit data.
                     // here handle all of the other User fields (e.g., email address, etc.)
                     if ((request.getParameter("username") != null) &&
                         (!request.getParameter("username").trim().equals(""))) {
@@ -179,6 +191,7 @@ public class UserCreate extends HttpServlet {
                     if (!createThisUser) {
                         // get existing roles for this existing user
                         preexistingRoles = myShepherd.getAllRolesForUser(username);
+                        if (!preexistingRoles.isEmpty()) permissionsChanged = true;
                         myShepherd.getPM().deletePersistentAll(preexistingRoles);
                     }
                     // start role processing
@@ -201,6 +214,7 @@ public class UserCreate extends HttpServlet {
                                         role.setUsername(username);
                                         role.setContext("context" + d);
                                         myShepherd.getPM().makePersistent(role);
+                                        permissionsChanged = true;
                                         addedRoles += ("SEPARATORSTART" + roles[i] +
                                             "SEPARATOREND");
                                         // System.out.println(addedRoles);
@@ -238,6 +252,7 @@ public class UserCreate extends HttpServlet {
                                     // OK - add to new organizations
                                     if (!preexistingOrgs.contains(org)) {
                                         org.addMember(newUser);
+                                        permissionsChanged = true;
                                         myShepherd.commitDBTransaction();
                                         myShepherd.beginDBTransaction();
                                     }
@@ -262,7 +277,10 @@ public class UserCreate extends HttpServlet {
                     reqOrgs.removeAll(selectedOrgs);
                     for (Organization rOrg : reqOrgs) {
                         // for each org the requesting user could have selected for this user but didn't, remove this user from that org
-                        rOrg.removeMember(newUser);
+                        if (rOrg.hasMember(newUser)) {
+                            rOrg.removeMember(newUser);
+                            permissionsChanged = true;
+                        }
                     }
                     // output success statement
                     out.println(ServletUtilities.getHeader(request));
@@ -321,6 +339,10 @@ public class UserCreate extends HttpServlet {
                     myShepherd.closeDBTransaction();
                     myShepherd = null;
                 }
+                // Flag the ACL reindex only AFTER the transaction above has committed and closed,
+                // and only if a role/org membership change actually occurred. Uses the static
+                // overload (its own short transaction) so it never holds a lock across this request.
+                if (permissionsChanged) OpenSearch.setPermissionsNeeded(true);
             } else {
                 // output failure statement
                 out.println(ServletUtilities.getHeader(request));

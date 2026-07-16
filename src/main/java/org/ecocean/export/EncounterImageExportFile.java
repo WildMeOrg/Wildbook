@@ -6,6 +6,7 @@ import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.MultiValue;
+import org.ecocean.security.HiddenEncReporter;
 
 import java.awt.image.BufferedImage;
 import java.net.URI;
@@ -26,18 +27,21 @@ public class EncounterImageExportFile {
     private final Map<String, MarkedIndividual> encounterToIndividual;
     private final int numAnnotationsPerId;
     private final EnumSet<ExportOptions> exportFlags;
+    private final HiddenEncReporter hiddenData;
 
     public EncounterImageExportFile(List<Encounter> encounters,
         Map<String, MarkedIndividual> encounterIndividualMap, int numAnnotationsPerId,
-        EnumSet<ExportOptions> exportFlags) {
+        EnumSet<ExportOptions> exportFlags, HiddenEncReporter hiddenData) {
         this.encounters = encounters;
         this.encounterToIndividual = encounterIndividualMap;
         this.numAnnotationsPerId = numAnnotationsPerId;
         this.exportFlags = exportFlags;
+        this.hiddenData = hiddenData;
     }
 
     public void writeTo(ZipOutputStream outputStream) {
         for (Encounter e : encounters) {
+            if (hiddenData != null && hiddenData.contains(e)) continue;
             int annotatationIdx = 0;
             for (Annotation a : e.getAnnotations()) {
                 MediaAsset ma = a.getMediaAsset();
