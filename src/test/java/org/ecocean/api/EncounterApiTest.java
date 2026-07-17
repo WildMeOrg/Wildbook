@@ -144,6 +144,27 @@ class EncounterApiTest {
         assertEquals(dv.getInt("minutes"), 15);
     }
 
+    @Test void encounterDateTimeRetainsCivilFields() throws ApiException {
+        Encounter enc = new Encounter();
+
+        enc.setDateFromISO8601String("2020-07-17T08:45:00-07:00");
+
+        assertEquals(2020, enc.getYear());
+        assertEquals(7, enc.getMonth());
+        assertEquals(17, enc.getDay());
+        assertEquals(8, enc.getHour());
+        assertEquals("45", enc.getMinutes());
+    }
+
+    @Test void setDateInMillisecondsUses24HourClock() {
+        Encounter enc = new Encounter();
+
+        enc.setDateInMilliseconds(new org.joda.time.DateTime("2020-07-17T15:45:00Z").getMillis());
+
+        assertEquals(15, enc.getHour());
+        assertEquals("45", enc.getMinutes());
+    }
+
     @Test void futureDateTest()
     throws ApiException {
         Encounter enc = new Encounter();
