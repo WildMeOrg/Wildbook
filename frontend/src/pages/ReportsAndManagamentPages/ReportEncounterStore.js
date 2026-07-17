@@ -1,5 +1,9 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
+import {
+  formatReportDateTime,
+  parseReportDateTime,
+} from "./reportDateTime";
 
 export class ReportEncounterStore {
   _isLoggedin;
@@ -332,16 +336,12 @@ export class ReportEncounterStore {
     }
 
     if (this._dateTimeSection.required) {
-      const dateValue = this._dateTimeSection.value
-        ? new Date(this._dateTimeSection.value)
-        : null;
+      const dateValue = parseReportDateTime(this._dateTimeSection.value);
 
       const isFutureDate =
-        dateValue &&
-        !Number.isNaN(dateValue.getTime()) &&
-        dateValue > new Date();
+        dateValue.isValid() && dateValue.isAfter(parseReportDateTime(new Date()));
 
-      if (!dateValue || Number.isNaN(dateValue.getTime()) || isFutureDate) {
+      if (!dateValue.isValid() || isFutureDate) {
         this._dateTimeSection.error = true;
         isValid = false;
       }
@@ -363,7 +363,7 @@ export class ReportEncounterStore {
         const payload = {
           submissionId: this._imageSectionSubmissionId,
           assetFilenames: this._imageSectionFileNames,
-          dateTime: this._dateTimeSection.value,
+          dateTime: formatReportDateTime(this._dateTimeSection.value),
           taxonomy: this._speciesSection.value,
           locationId: this._placeSection.locationId,
           comments: this._additionalCommentsSection.value,
