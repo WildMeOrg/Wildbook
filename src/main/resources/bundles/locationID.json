@@ -886,13 +886,6 @@
 							"locationID":[]
 						},
 						{
-							"name": "Meru National Park",
-							"prefix": "mer",
-							"prefixDigitPadding": 3,
-							"id": "Meru National Park",
-							"locationID":[]
-						},
-						{
 							"name": "Mpala",
 							"id": "Mpala"
 						},
@@ -1033,6 +1026,34 @@
 						}
 					
 					
+					]
+				},
+				{
+					"name": "Meru Conservation Area",
+					"id": "Meru Conservation Area",
+					"locationID":[
+						{
+							"name": "Meru National Park",
+							"prefix": "mer",
+							"prefixDigitPadding": 3,
+							"id": "Meru National Park",
+							"locationID":[]
+						},
+						{
+							"name": "Kora National Park",
+							"id": "Kora National Park",
+							"locationID":[]
+						},
+						{
+							"name": "Bisanadi National Reserve",
+							"id": "Bisanadi National Reserve",
+							"locationID":[]
+						},
+						{
+							"name": "Rahole National Reserve",
+							"id": "Rahole National Reserve",
+							"locationID":[]
+						}
 					]
 				},
 				{
