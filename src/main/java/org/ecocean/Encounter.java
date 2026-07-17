@@ -43,7 +43,7 @@ import org.ecocean.Util.MeasurementDesc;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.LocalDateTime;
+import org.joda.time.format.ISODateTimeFormat;
 
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
@@ -2351,6 +2351,7 @@ public class Encounter extends Base implements java.io.Serializable {
             try { myMinutes = Integer.parseInt(minutes); } catch (Exception e) {}
             TimeZone tz = TimeZone.getTimeZone("UTC");
             Calendar calendar = Calendar.getInstance(tz);
+            calendar.clear();
             calendar.set(year, localMonth, localDay, localHour, myMinutes);
             return new Long(calendar.getTimeInMillis());
         }
@@ -2372,7 +2373,7 @@ public class Encounter extends Base implements java.io.Serializable {
         this.year = cal.get(Calendar.YEAR);
         this.month = cal.get(Calendar.MONTH) + 1;
         this.day = cal.get(Calendar.DAY_OF_MONTH);
-        this.hour = cal.get(Calendar.HOUR);
+        this.hour = cal.get(Calendar.HOUR_OF_DAY);
         this.minutes = Integer.toString(cal.get(Calendar.MINUTE));
         if (this.minutes.length() == 1) this.minutes = "0" + this.minutes;
         this.dateInMilliseconds = ms;
@@ -2419,13 +2420,25 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         try {
             String adjusted = Util.getISO8601Date(iso8601);
-            DateTime dt = new DateTime(adjusted);
+            // Parse with the supplied offset retained rather than normalizing
+            // into the JVM default zone, so the civil fields below reflect the
+            // wall-clock value the reporter selected regardless of server zone.
+            DateTime dt = ISODateTimeFormat.dateTimeParser().withOffsetParsed()
+                .parseDateTime(adjusted);
             if (Util.dateIsInFuture(dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth())) {
                 error.put("fieldName", "day");
                 error.put("value", dt.getDayOfMonth());
                 throw new ApiException("date is in the future", error);
             }
-            this.setDateInMilliseconds(dt.getMillis());
+            // Encounter event dates are civil values, not instants.  Retain
+            // the fields supplied by the reporter (including an optional ISO
+            // offset) rather than converting them into UTC first.
+            this.year = dt.getYear();
+            this.month = dt.getMonthOfYear();
+            this.day = dt.getDayOfMonth();
+            this.hour = dt.getHourOfDay();
+            this.minutes = Integer.toString(dt.getMinuteOfHour());
+            if (this.minutes.length() == 1) this.minutes = "0" + this.minutes;
         // pass this flavor out...
         } catch (ApiException ex) {
             throw ex;
