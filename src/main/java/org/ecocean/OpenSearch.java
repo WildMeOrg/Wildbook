@@ -335,27 +335,27 @@ public class OpenSearch {
     }
 
     private static void updatePermissionsIndex(String context) {
-        Shepherd myShepherd = new Shepherd(context);
-
-        myShepherd.setAction("OpenSearch.backgroundPermissions");
+        Shepherd myShepherd = null;
         try {
+            myShepherd = new Shepherd(context);
+            myShepherd.setAction("OpenSearch.backgroundPermissions");
             myShepherd.beginDBTransaction();
             System.out.println("OpenSearch background permissions running...");
             Encounter.opensearchIndexPermissionsBackground(myShepherd);
             System.out.println("OpenSearch background permissions finished.");
             myShepherd.commitDBTransaction(); // need commit since we might have changed SystemValues
-            myShepherd.closeDBTransaction();
         } catch (Exception ex) {
             ex.printStackTrace();
-            myShepherd.rollbackAndClose();
+        } finally {
+            if (myShepherd != null) myShepherd.rollbackAndClose();
         }
     }
 
     public static void updateEncounterIndexes(String context) {
-        Shepherd myShepherd = new Shepherd(context);
-
-        myShepherd.setAction("OpenSearch.backgroundIndexing");
+        Shepherd myShepherd = null;
         try {
+            myShepherd = new Shepherd(context);
+            myShepherd.setAction("OpenSearch.backgroundIndexing");
             myShepherd.beginDBTransaction();
             System.out.println("OpenSearch background indexing running...");
             Base.opensearchSyncIndex(myShepherd, Encounter.class, BACKGROUND_SLICE_SIZE);
@@ -367,7 +367,7 @@ public class OpenSearch {
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-            myShepherd.rollbackAndClose();
+            if (myShepherd != null) myShepherd.rollbackAndClose();
             unsetActiveIndexingBackground();
         }
     }
@@ -1092,17 +1092,17 @@ public class OpenSearch {
     }
 
     public static void setPermissionsNeeded(boolean value) {
-        Shepherd myShepherd = new Shepherd("context0");
-
-        myShepherd.setAction("OpenSearch.setPermissionsNeeded");
-        myShepherd.beginDBTransaction();
+        Shepherd myShepherd = null;
         try {
+            myShepherd = new Shepherd("context0");
+            myShepherd.setAction("OpenSearch.setPermissionsNeeded");
+            myShepherd.beginDBTransaction();
             setPermissionsNeeded(myShepherd, value);
             myShepherd.commitDBTransaction();
-            myShepherd.closeDBTransaction();
         } catch (Exception ex) {
             ex.printStackTrace();
-            myShepherd.rollbackAndClose();
+        } finally {
+            if (myShepherd != null) myShepherd.rollbackAndClose();
         }
     }
 
@@ -1471,32 +1471,32 @@ public class OpenSearch {
 
     static void setActive(String type) {
         // we want our own shepherd as the main shepherd may not persist this til later
-        Shepherd myShepherd = new Shepherd("context0");
-
-        myShepherd.setAction("OpenSearch.setActive");
-        myShepherd.beginDBTransaction();
+        Shepherd myShepherd = null;
         try {
+            myShepherd = new Shepherd("context0");
+            myShepherd.setAction("OpenSearch.setActive");
+            myShepherd.beginDBTransaction();
             SystemValue.set(myShepherd, type, true);
             myShepherd.commitDBTransaction();
-            myShepherd.closeDBTransaction();
         } catch (Exception ex) {
             ex.printStackTrace();
-            myShepherd.rollbackAndClose();
+        } finally {
+            if (myShepherd != null) myShepherd.rollbackAndClose();
         }
     }
 
     static void unsetActive(String type) {
-        Shepherd myShepherd = new Shepherd("context0");
-
-        myShepherd.setAction("OpenSearch.unsetActive");
-        myShepherd.beginDBTransaction();
+        Shepherd myShepherd = null;
         try {
+            myShepherd = new Shepherd("context0");
+            myShepherd.setAction("OpenSearch.unsetActive");
+            myShepherd.beginDBTransaction();
             SystemValue.set(myShepherd, type, false);
             myShepherd.commitDBTransaction();
-            myShepherd.closeDBTransaction();
         } catch (Exception ex) {
             ex.printStackTrace();
-            myShepherd.rollbackAndClose();
+        } finally {
+            if (myShepherd != null) myShepherd.rollbackAndClose();
         }
     }
 
