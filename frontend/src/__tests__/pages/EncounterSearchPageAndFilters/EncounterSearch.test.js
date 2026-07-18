@@ -43,6 +43,7 @@ jest.mock("../../../components/DataTable", () => {
       <div data-testid="datatable-total-items">{props.totalItems}</div>
       <div data-testid="datatable-page">{props.page}</div>
       <div data-testid="datatable-per-page">{props.perPage}</div>
+      <div data-testid="datatable-search-query-id">{props.searchQueryId}</div>
       <button onClick={() => props.onRowClicked({ id: "enc1" })}>
         RowClick
       </button>
@@ -96,8 +97,11 @@ jest.mock("../../../components/filterFields/SideBar", () => {
 });
 
 jest.mock("../../../pages/SearchPages/components/ExportModal", () => {
-  const MockExportModal = ({ open }) => (
-    <div data-testid="export-modal">{open ? "open" : "closed"}</div>
+  const MockExportModal = ({ open, searchQueryId }) => (
+    <div data-testid="export-modal">
+      {open ? "open" : "closed"}
+      <div data-testid="export-modal-search-query-id">{searchQueryId}</div>
+    </div>
   );
 
   MockExportModal.displayName = "MockExportModal";
@@ -708,6 +712,60 @@ describe("EncounterSearch", () => {
     expect(useFilterEncounters).toHaveBeenCalledWith({
       queries: mockFilter,
       params: params,
+      enabled: true,
+    });
+  });
+
+  it("disables the default filter search while a queryID is applied", async () => {
+    jest.spyOn(axios, "get").mockResolvedValue({
+      data: { hits: [{ id: "encX" }] },
+      headers: { "x-wildbook-total-hits": "1" },
+    });
+
+    renderWithProviders("/search?searchQueryId=abc123");
+
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v3/search/abc123"),
+      );
+    });
+    expect(useFilterEncounters).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(useFilterEncounters).not.toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
+  it("routes the applied queryID to DataTable and ExportModal", async () => {
+    jest.spyOn(axios, "get").mockResolvedValue({
+      data: { hits: [{ id: "encX" }] },
+      headers: { "x-wildbook-total-hits": "1" },
+    });
+
+    renderWithProviders("/search?searchQueryId=abc123");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("datatable-search-query-id")).toHaveTextContent(
+        "abc123",
+      );
+    });
+    expect(
+      screen.getByTestId("export-modal-search-query-id"),
+    ).toHaveTextContent("abc123");
+  });
+
+  it("re-enables the default filter search after a failed queryID fetch", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(window, "alert").mockImplementation(() => {});
+    jest.spyOn(axios, "get").mockRejectedValue(new Error("fail"));
+
+    renderWithProviders("/search?searchQueryId=abc123");
+
+    await waitFor(() => {
+      expect(useFilterEncounters).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: true }),
+      );
     });
   });
 

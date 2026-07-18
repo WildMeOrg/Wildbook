@@ -66,7 +66,7 @@ public class SearchApi extends ApiBase {
                 JSONObject query = null;
                 if (Util.isUUID(indexName)) {
                     searchQueryId = indexName;
-                    query = OpenSearch.queryLoad(searchQueryId);
+                    query = OpenSearch.queryLoad(searchQueryId, myShepherd);
                 }
                 // effective index: a stored query's real index comes from the loaded doc, not the {uuid} URL.
                 // null-safe: null when a stored query failed to load (handled by the missing-stored-query branch).
@@ -153,17 +153,56 @@ public class SearchApi extends ApiBase {
                     // so validate it here too: it may only sort on an allowlisted identity field.
                     boolean badSort = (sort != null) && !sort.trim().isEmpty()
                         && !OpenSearch.INDIVIDUAL_TOKEN_KEEP_SET.contains(sort.trim());
+                    OpenSearch os = new OpenSearch();
+                    // effective pagination ceiling (index.max_result_window) - per-index, since
+                    // Wildbook raises it on large indexes. Exposed as a header so the frontend
+                    // can cap its paginator instead of offering pages we cannot serve.
+                    int maxResultWindow = os.getMaxResultWindow(indexName);
+                    if (maxResultWindow < 1) maxResultWindow = OpenSearch.DEFAULT_MAX_RESULT_WINDOW;
+                    response.setHeader("X-Wildbook-Max-Result-Window",
+                        Integer.toString(maxResultWindow));
                     if (tokenAuth && !isAdmin && "individual".equals(indexName)
                         && (!OpenSearch.queryReferencesOnlyAllowedFields(query,
                             OpenSearch.INDIVIDUAL_TOKEN_KEEP_SET) || badSort)) {
                         response.setStatus(400);
                         res.put("error", "individual token search may only query/sort identity fields");
+                    } else if ((numFrom < 0) || (pageSize < 0)
+                        || ((long)numFrom + (long)pageSize > maxResultWindow)) {
+                        // reject up front: OpenSearch would refuse this anyway (as a 500 to the
+                        // client), and deep pages cannot be fetched no matter how we retry
+                        response.setStatus(400);
+                        res.put("error", "invalid pagination: from + size must be non-negative and"
+                            + " no greater than " + maxResultWindow);
+                        res.put("maxResultWindow", maxResultWindow);
                     } else {
                     // all token validation gates passed -> persist the clean new query now (before
                     // applyAclFilter embeds ACL fields into it); rejected bodies were never stored
+                    boolean storeFailed = false;
+                    boolean sessionRecoveryFailed = false;
                     if (newQueryToStore) {
-                        searchQueryId = OpenSearch.queryStore(query, indexName, currentUser);
+                        // commits + re-begins myShepherd's (read-only so far) transaction
+                        searchQueryId = OpenSearch.queryStore(query, indexName, currentUser,
+                            myShepherd);
+                        storeFailed = (searchQueryId == null);
+                        // commit confirmed but the request transaction could not be re-established:
+                        // the id IS durable, but sanitizeDoc needs live DB reads -- fail the request
+                        // without claiming the store failed, and hand back the (valid) id
+                        sessionRecoveryFailed = !storeFailed &&
+                            !myShepherd.isDBTransactionActive();
                     }
+                    if (storeFailed) {
+                        // a search whose response promises a share id must not 200 without one
+                        response.setStatus(503);
+                        res.put("success", false);
+                        res.put("error", "failed to store search query");
+                    } else if (sessionRecoveryFailed) {
+                        response.setStatus(503);
+                        res.put("success", false);
+                        res.put("error",
+                            "search query stored but request could not continue; retry");
+                        res.put("searchQueryId", searchQueryId);
+                        response.setHeader("X-Wildbook-Search-Query-Id", searchQueryId);
+                    } else {
                     if (tokenAuth && !isAdmin) {
                         // Java is the hard boundary: scope totals + pagination + hits before execution
                         query = OpenSearch.applyAclFilter(query, currentUser.getId(), indexName);
@@ -172,7 +211,6 @@ public class SearchApi extends ApiBase {
                     System.out.println("SearchApi search indexName=" + indexName
                         + " tokenAuth=" + tokenAuth);
 
-                    OpenSearch os = new OpenSearch();
                     try {
                         if (deletePit) os.deletePit(indexName);
                         JSONObject queryRes = os.queryPit(indexName, query, numFrom, pageSize, sort,
@@ -218,6 +256,7 @@ public class SearchApi extends ApiBase {
                         res.put("error", "query failed");
                         ex.printStackTrace();
                     }
+                    } // end storeFailed/sessionRecoveryFailed else
                     } // end individual-token field-gate else
                     } // end aggError else
                 }

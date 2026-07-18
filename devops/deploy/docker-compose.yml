@@ -96,9 +96,9 @@ services:
       # https://github.com/WildMeOrg/Wildbook/commit/6d65e70e43691f1b281bb76edf151e5c7cdb7403
       ADMIN_EMAIL: "${EDM_AUTHENTICATIONS_USERNAME__DEFAULT}"
       ADMIN_PASSWORD: "${EDM_AUTHENTICATIONS_PASSWORD__DEFAULT}"
-      # JAVA_OPTS from old-world wildbook, which gives us 16G heap memory
+      # JAVA_OPTS from old-world wildbook, was 16G heap memory, current recommendation is 8
       # JUL bridge routes java.util.logging (DataNucleus, Tomcat internals) through Log4j2
-      JAVA_OPTS: "-Djava.awt.headless=true -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -Xms16g -Xmx16g"
+      JAVA_OPTS: "-Djava.awt.headless=true -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -Xms8g -Xmx8g"
       SERVICE_NAME: "${SERVICE_NAME:-wildbook}"
       ENVIRONMENT: "${ENVIRONMENT:-production}"
       DOMAIN_NAME: "${DOMAIN_NAME:-unknown}"
@@ -151,8 +151,9 @@ services:
       - cluster.initial_master_nodes=opensearch
       - bootstrap.memory_lock=true
       - cluster.routing.allocation.disk.threshold_enabled=${ES_THRESHOLD:-true}
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "OPENSEARCH_JAVA_OPTS=-Xms4g -Xmx4g"
       - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
+      - "index.store.preload=vec,vex,vem,dvd,dvm,tim,doc"
 
   # https://hub.docker.com/r/boky/postfix/
   #  TODO dkim and spf needs to be added/supported
