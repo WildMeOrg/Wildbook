@@ -610,6 +610,56 @@ public class Shepherd {
         return out;
     }
 
+    /**
+     * Batch reverse-lookup: annotation id -&gt; its (single) parent Encounter. Replaces per-annotation
+     * Encounter.findByAnnotation calls in hot paths (e.g. MatchResult prospect grouping), which did
+     * one JDOQL join per prospect. Runs one query per chunk of ids, mapping back by walking each
+     * returned encounter's annotations.
+     *
+     * Annotation ids with no parent encounter are omitted from the map. An annotation shared by
+     * more than one encounter is anomalous (Encounter.findByAnnotation warns and returns an
+     * arbitrary one too); the first encounter seen wins and a WARNING is logged. Query failures are
+     * NOT swallowed -- they propagate, matching the per-prospect findEncounter behavior this
+     * replaces (a partial map would silently drop prospects).
+     */
+    public Map<String, Encounter> getEncountersByAnnotationIds(Collection<String> annotationIds) {
+        Map<String, Encounter> out = new HashMap<String, Encounter>();
+        if ((annotationIds == null) || annotationIds.isEmpty()) return out;
+        LinkedHashSet<String> wanted = new LinkedHashSet<String>();
+        for (String a : annotationIds) {
+            if ((a != null) && (a.trim().length() > 0)) wanted.add(a.trim());
+        }
+        if (wanted.isEmpty()) return out;
+        List<String> all = new ArrayList<String>(wanted);
+        final int CHUNK = 1000;
+        for (int i = 0; i < all.size(); i += CHUNK) {
+            List<String> sub = all.subList(i, Math.min(i + CHUNK, all.size()));
+            Query q = pm.newQuery(Encounter.class, "annotations.contains(ann) && :ids.contains(ann.id)");
+            q.declareVariables("org.ecocean.Annotation ann");
+            try {
+                @SuppressWarnings("unchecked")
+                Collection<Encounter> res = (Collection<Encounter>) q.execute(sub);
+                for (Encounter enc : res) {
+                    if ((enc == null) || (enc.getAnnotations() == null)) continue;
+                    for (Annotation ann : enc.getAnnotations()) {
+                        if ((ann == null) || (ann.getId() == null)) continue;
+                        if (!wanted.contains(ann.getId())) continue;
+                        Encounter prev = out.put(ann.getId(), enc);
+                        if ((prev != null) && !prev.equals(enc)) {
+                            System.out.println("WARNING: Shepherd.getEncountersByAnnotationIds() " +
+                                "found more than one Encounter containing Annotation " +
+                                ann.getId() + "; keeping the first seen");
+                            out.put(ann.getId(), prev);
+                        }
+                    }
+                }
+            } finally {
+                q.closeAll();
+            }
+        }
+        return out;
+    }
+
     public MediaAsset getMediaAsset(String num) {
         MediaAsset tempMA = null;
 

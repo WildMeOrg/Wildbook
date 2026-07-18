@@ -49,10 +49,16 @@ import java.util.concurrent.TimeUnit;
 // https://github.com/opensearch-project/opensearch-java/blob/main/USER_GUIDE.md
 
 public class OpenSearch {
-    public static OpenSearchClient client = null;
-    public static RestClient restClient = null;
+    public static volatile OpenSearchClient client = null;
+    public static volatile RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
-    public static Map<String, String> PIT_CACHE = new HashMap<String, String>();
+    // ConcurrentHashMap: PIT_CACHE is read/mutated from concurrent request threads (SearchApi,
+    // EncounterQueryProcessor, MediaResolveApi) and, once IA match consumers can run concurrently,
+    // from those too. This only removes the structural-corruption hazard of an unsynchronized
+    // HashMap; it does NOT make the shared one-PIT-per-index lifecycle request-safe (a deletePit on
+    // one caller can still drop another's snapshot; queryPit's retry self-heals it). Match read
+    // paths avoid PIT entirely via querySearch(); proper per-request PIT scoping is a separate change.
+    public static Map<String, String> PIT_CACHE = new java.util.concurrent.ConcurrentHashMap<String, String>();
     public static String SEARCH_SCROLL_TIME = (String)getConfigurationValue("searchScrollTime",
         "10m");
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
@@ -102,7 +108,18 @@ public class OpenSearch {
     private int pitRetry = 0;
 
     public OpenSearch() {
+        // Double-checked, synchronized one-time init: concurrent first-callers (e.g. parallel match
+        // consumers hitting cold init) must not each build and overwrite the shared static client.
+        // client/restClient are volatile; initializeClient sets restClient before client, so any
+        // thread that observes client != null also observes a fully-built restClient.
         if (client != null) return;
+        synchronized (OpenSearch.class) {
+            if (client != null) return;
+            initializeClientOnce();
+        }
+    }
+
+    private static void initializeClientOnce() {
         // System.setProperty("javax.net.ssl.trustStore", "/full/path/to/keystore");
         // System.setProperty("javax.net.ssl.trustStorePassword", "password-to-keystore");
 
@@ -166,6 +183,20 @@ public class OpenSearch {
             new JacksonJsonpMapper());
 
         client = new OpenSearchClient(transport);
+    }
+
+    // Stateless single-page search (no PIT, no shared static state) -- safe under concurrency.
+    // Used by the match read paths (getMatches / getMatchingSet), which fetch one page (from=0) and
+    // never paginate across pages. track_total_hits=true keeps hits.total.value exact so callers
+    // that read it (e.g. getMatchingSet hitSize) are unaffected.
+    public JSONObject querySearch(String indexName, final JSONObject query, int from, int size)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request searchRequest = new Request("POST", indexName + "/_search?track_total_hits=true");
+        query.put("from", from);
+        query.put("size", size);
+        searchRequest.setJsonEntity(query.toString());
+        return new JSONObject(getRestResponse(searchRequest));
     }
 
     public static boolean isValidIndexName(String indexName) {
