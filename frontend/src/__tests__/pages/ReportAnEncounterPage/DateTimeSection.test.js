@@ -5,6 +5,14 @@ import userEvent from "@testing-library/user-event";
 import { ReportEncounterStore } from "../../../pages/ReportsAndManagamentPages/ReportEncounterStore";
 import { renderWithProviders } from "../../../utils/utils";
 
+jest.mock("react-intl", () => {
+  const actual = jest.requireActual("react-intl");
+  return {
+    ...actual,
+    FormattedMessage: ({ id }) => id,
+  };
+});
+
 jest.mock("moment", () => {
   const originalMoment = jest.requireActual("moment");
   return (date, format, strict) => {
