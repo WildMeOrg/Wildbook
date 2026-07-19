@@ -199,9 +199,13 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
                                 }
 				if (Util.stringExists(individualID)) {
 					System.out.println("CASE 1: both indy null");
-					if (Util.isUUID(individualID)) {
-						indiv = myShepherd.getMarkedIndividual(individualID);
-					}
+					// Always attempt an existing-individual lookup by primary key before
+					// creating. individualID here is a MarkedIndividual primary key
+					// (getId()); legacy individuals have human-readable string keys
+					// (e.g. "TZ-173"), not UUIDs, so a UUID-only guard would skip the
+					// lookup and mint a duplicate. getMarkedIndividualQuiet is an exact
+					// PK lookup that returns null on a miss (see issue #1305).
+					indiv = myShepherd.getMarkedIndividualQuiet(individualID);
 					if (indiv==null) {
 						indiv = new MarkedIndividual(individualID, enc);
                                                 isNewIndiv = true;
