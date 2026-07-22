@@ -110,6 +110,56 @@ const BulkImportTask = observer(() => {
     }
   };
 
+  const sendToIdentification = async ({ algorithm, unidentifiedOnly }) => {
+    setShowError(false);
+    setIsSendingToIdentification(true);
+    try {
+      const params = new URLSearchParams();
+      if (algorithm) params.set("algorithm", algorithm);
+      if (unidentifiedOnly) params.set("unidentifiedOnly", "true");
+      const suffix = params.toString() ? `&${params.toString()}` : "";
+      const response = await axios.get(
+        `/appadmin/resendBulkImportID.jsp?importIdTask=${taskId}${store.locationIDString}${suffix}`,
+      );
+      if (response?.data?.success === true) {
+        alert(
+          intl.formatMessage({
+            id: "BULK_IMPORT_RE_ID_SUCCESS",
+            defaultMessage: "Re-identification task started successfully.",
+          }),
+        );
+        window.location.reload();
+      } else {
+        const msg =
+          response?.data?.error ||
+          intl.formatMessage({
+            id: "BULK_IMPORT_RE_ID_ERROR",
+            defaultMessage: "Failed to start re-identification task.",
+          });
+        alert(msg);
+      }
+    } catch (error) {
+      console.error("Error starting re-identification task:", error);
+      const msg =
+        error?.response?.data?.error ||
+        intl.formatMessage({
+          id: "BULK_IMPORT_RE_ID_ERROR",
+          defaultMessage: "Failed to start re-identification task.",
+        });
+      alert(msg);
+    } finally {
+      setIsSendingToIdentification(false);
+    }
+  };
+
+  const encountersList = Array.isArray(task?.encounters) ? task.encounters : [];
+  const unidentifiedCount = encountersList.filter((e) => !e.individualId).length;
+  const identificationTerminal =
+    task?.iaSummary?.identificationStatus === "complete" ||
+    task?.iaSummary?.identificationStatus === "skipped";
+  const showHotspotterButton =
+    Boolean(siteData?.hotspotterAvailable) && userRoles?.includes("admin");
+
   const tableData =
     task?.encounters?.map((item) => {
       const taskArray =
@@ -497,44 +547,7 @@ const BulkImportTask = observer(() => {
               task?.status !== "complete" ||
               task?.iaSummary?.detectionStatus !== "complete"
             }
-            onClick={async () => {
-              setShowError(false);
-              setIsSendingToIdentification(true);
-
-              try {
-                const response = await axios.get(
-                  `/appadmin/resendBulkImportID.jsp?importIdTask=${taskId}${store.locationIDString}`,
-                );
-
-                if (response.status === 200) {
-                  alert(
-                    intl.formatMessage({
-                      id: "BULK_IMPORT_RE_ID_SUCCESS",
-                      defaultMessage:
-                        "Re-identification task started successfully.",
-                    }),
-                  );
-                  window.location.reload();
-                } else {
-                  throw new Error(
-                    intl.formatMessage({
-                      id: "BULK_IMPORT_RE_ID_ERROR",
-                      defaultMessage: "Failed to start re-identification task.",
-                    }),
-                  );
-                }
-              } catch (error) {
-                console.error("Error starting re-identification task:", error);
-                alert(
-                  intl.formatMessage({
-                    id: "BULK_IMPORT_RE_ID_ERROR",
-                    defaultMessage: "Failed to start re-identification task.",
-                  }),
-                );
-              } finally {
-                setIsSendingToIdentification(false);
-              }
-            }}
+            onClick={() => sendToIdentification({})}
             backgroundColor={theme.wildMeColors.cyan700}
             color={theme.defaultColors.white}
             noArrow={true}
@@ -573,6 +586,64 @@ const BulkImportTask = observer(() => {
             </p>
           )}
         </Col>
+        {showHotspotterButton && (
+          <Col xs="auto">
+            <MainButton
+              id="hotspotter-button"
+              disabled={
+                isSendingToIdentification ||
+                unidentifiedCount === 0 ||
+                !store.locationIDString ||
+                task?.status !== "complete" ||
+                task?.iaSummary?.detectionStatus !== "complete" ||
+                !identificationTerminal
+              }
+              onClick={() => {
+                const confirmed = window.confirm(
+                  intl.formatMessage({ id: "BULK_IMPORT_HOTSPOTTER_CONFIRM" }),
+                );
+                if (!confirmed) return;
+                sendToIdentification({
+                  algorithm: "hotspotter",
+                  unidentifiedOnly: true,
+                });
+              }}
+              backgroundColor={theme.wildMeColors.cyan700}
+              color={theme.defaultColors.white}
+              noArrow={true}
+              style={{
+                width: "auto",
+                height: "40px",
+                fontSize: "1rem",
+                marginLeft: 0,
+              }}
+            >
+              {isSendingToIdentification && (
+                <Spinner
+                  animation="border"
+                  size="sm"
+                  className="me-2"
+                  role="status"
+                  aria-hidden="true"
+                />
+              )}
+              <FormattedMessage id="BULK_IMPORT_SEND_TO_HOTSPOTTER" />
+            </MainButton>
+            <p style={{ color: theme.grayColors.gray500 }}>
+              {unidentifiedCount === 0 ? (
+                <FormattedMessage id="BULK_IMPORT_HOTSPOTTER_NONE_UNIDENTIFIED" />
+              ) : (
+                <FormattedMessage
+                  id="BULK_IMPORT_HOTSPOTTER_UNIDENTIFIED_COUNT"
+                  values={{
+                    count: unidentifiedCount,
+                    total: encountersList.length,
+                  }}
+                />
+              )}
+            </p>
+          </Col>
+        )}
       </Row>
       <Row>
         <h5 className="text-danger">
