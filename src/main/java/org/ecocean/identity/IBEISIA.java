@@ -61,6 +61,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 // date time
 
 public class IBEISIA {
+    /**
+     * A query_config_dict identifies HotSpotter when it explicitly enables spatial
+     * verification (sv_on). Strict boolean: {"sv_on": false} is NOT HotSpotter.
+     */
+    public static boolean isHotspotterQueryConfig(org.json.JSONObject queryConfigDict) {
+        return (queryConfigDict != null) && queryConfigDict.optBoolean("sv_on", false);
+    }
+
     // move this ish to its own class asap!
     private static final Map<String, String[]> speciesMap;
     static {
@@ -251,9 +259,7 @@ public class IBEISIA {
         map.put("jobid", taskId);
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
         // OK, check here and dont let HotSpotter in
-        boolean isHotspotter = false;
-        if (queryConfigDict != null && queryConfigDict.toString().indexOf("sv_on") > -1)
-            isHotspotter = true;
+        boolean isHotspotter = isHotspotterQueryConfig(queryConfigDict);
         if (fastlane && !isHotspotter) map.put("lane", "fast");
         map.put("matching_state_list",
             IBEISIAIdentificationMatchingState.allAsJSONArray(myShepherd));                             // this is "universal"

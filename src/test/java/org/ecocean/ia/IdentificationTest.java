@@ -4,6 +4,7 @@ import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.ia.*;
 import org.ecocean.IAJsonProperties;
+import org.ecocean.identity.IBEISIA;
 import org.ecocean.shepherd.core.Shepherd;
 
 import java.util.ArrayList;
@@ -87,5 +88,16 @@ class IdentificationTest {
         assertTrue(mv.length == 2);
         assertEquals(mv[0], "abc");
         assertEquals(mv[1], "123");
+    }
+
+    @Test void isHotspotterQueryConfigTest() {
+        // NOTE: this file imports org.junit.Assert (JUnit 4) — message is the FIRST arg.
+        assertTrue("sv_on:true must be HotSpotter",
+            IBEISIA.isHotspotterQueryConfig(new JSONObject("{\"sv_on\": true}")));
+        assertFalse("sv_on:false must NOT be HotSpotter",
+            IBEISIA.isHotspotterQueryConfig(new JSONObject("{\"sv_on\": false}")));
+        assertFalse("absent sv_on must NOT be HotSpotter",
+            IBEISIA.isHotspotterQueryConfig(new JSONObject("{\"pipeline_root\": \"MiewId\"}")));
+        assertFalse("null must NOT be HotSpotter", IBEISIA.isHotspotterQueryConfig(null));
     }
 }
