@@ -211,4 +211,25 @@ class IdentificationTest {
         assertFalse("unknown filter must not re-enable default:false algorithms",
             IBEISIA.isHotspotterQueryConfig(chosen.optJSONObject("query_config_dict")));
     }
+
+    @Test void hasHotspotterIdentOptTest() {
+        IAJsonProperties cfg = IAJsonProperties.iaConfig();
+        org.junit.Assume.assumeTrue(cfg != null);   // needs IA.json on test classpath
+
+        cfg.setJson(new JSONObject(
+            "{\"Giraffa\":{\"giraffe_whole\":{\"_id_conf\":["
+            + "{\"query_config_dict\":{\"pipeline_root\":\"MiewId\"},\"default\":true},"
+            + "{\"query_config_dict\":{\"sv_on\":true},\"description\":\"HotSpotter\"}"
+            + "]}}}"));
+        assertTrue("config with a HotSpotter opt must report available", cfg.hasHotspotterIdentOpt());
+
+        cfg.setJson(new JSONObject(
+            "{\"Giraffa\":{\"giraffe_whole\":{\"_id_conf\":["
+            + "{\"query_config_dict\":{\"pipeline_root\":\"MiewId\"},\"default\":true}"
+            + "]}}}"));
+        assertFalse("config without HotSpotter must report unavailable", cfg.hasHotspotterIdentOpt());
+
+        cfg.setJson(new JSONObject("{}"));
+        assertFalse("empty config must report unavailable", cfg.hasHotspotterIdentOpt());
+    }
 }
