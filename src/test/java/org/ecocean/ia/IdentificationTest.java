@@ -136,4 +136,79 @@ class IdentificationTest {
                 IA.annotationHasHotspotterOpt(myShepherd, ann));
         }
     }
+
+    private static List<JSONObject> giraffeOptsFixture() {
+        List<JSONObject> opts = new ArrayList<JSONObject>();
+        opts.add(new JSONObject("{\"query_config_dict\": {\"pipeline_root\": \"MiewId\"}, \"default\": true}"));
+        opts.add(new JSONObject("{\"query_config_dict\": {\"sv_on\": true}, \"default\": false, \"description\": \"HotSpotter\"}"));
+        return opts;
+    }
+
+    private static Task runIntake(String filterOrNull) {
+        Annotation ann = new Annotation();
+        ann.setIAClass("giraffe_whole");
+        ann.setId("ann-1");
+        List<Annotation> anns = new ArrayList<Annotation>();
+        anns.add(ann);
+
+        PersistenceManager mockPM = mock(PersistenceManager.class);
+        when(mockPM.makePersistent(any(Object.class))).thenReturn(null);
+        Shepherd myShepherd = mock(Shepherd.class);
+        when(myShepherd.getPM()).thenReturn(mockPM);
+
+        Encounter enc = new Encounter();
+        enc.setTaxonomyFromString("Giraffa giraffa");
+
+        IAJsonProperties mockIAConfig = mock(IAJsonProperties.class);
+        when(mockIAConfig.identOpts(any(Shepherd.class), any(Annotation.class)))
+            .thenAnswer(inv -> giraffeOptsFixture());
+
+        Task parentTask = new Task();
+        if (filterOrNull != null) {
+            parentTask.setParameters(new JSONObject().put("matchingAlgorithmFilter", filterOrNull));
+        }
+
+        try (MockedStatic<CommonConfiguration> mockConfig = mockStatic(CommonConfiguration.class)) {
+            mockConfig.when(() -> CommonConfiguration.getServerURL(any(String.class))).thenReturn("/fake/url");
+            try (MockedStatic<IAJsonProperties> mockJP = mockStatic(IAJsonProperties.class)) {
+                mockJP.when(() -> IAJsonProperties.iaConfig()).thenReturn(mockIAConfig);
+                try (MockedStatic<Encounter> mockEnc = mockStatic(Encounter.class,
+                        org.mockito.Answers.CALLS_REAL_METHODS)) {
+                    mockEnc.when(() -> Encounter.findByAnnotation(any(Annotation.class),
+                        any(Shepherd.class))).thenReturn(enc);
+                    return IA.intakeAnnotations(myShepherd, anns, parentTask, false);
+                }
+            }
+        }
+    }
+
+    private static JSONObject taskIdentOpt(Task t) {
+        // the chosen algorithm is recorded under "ibeis.identification" on the task's params
+        JSONObject params = t.getParameters();
+        return (params == null) ? null : params.optJSONObject("ibeis.identification");
+    }
+
+    @Test void hotspotterFilterSelectsHotspotterOpt() {
+        Task t = runIntake("hotspotter");
+        JSONObject chosen = taskIdentOpt(t);
+        assertNotNull("hotspotter filter must schedule an identification opt", chosen);
+        assertTrue("hotspotter filter must keep the HotSpotter opt even though it is default:false",
+            IBEISIA.isHotspotterQueryConfig(chosen.optJSONObject("query_config_dict")));
+    }
+
+    @Test void noFilterReproducesTodayBehavior() {
+        Task t = runIntake(null);
+        JSONObject chosen = taskIdentOpt(t);
+        assertNotNull("no filter must still schedule the default MiewID opt", chosen);
+        assertFalse("no filter must drop the default:false HotSpotter opt, leaving MiewID",
+            IBEISIA.isHotspotterQueryConfig(chosen.optJSONObject("query_config_dict")));
+    }
+
+    @Test void unknownFilterBehavesLikeNoFilter() {
+        Task t = runIntake("bogusvalue");
+        JSONObject chosen = taskIdentOpt(t);
+        assertNotNull("unknown filter must behave exactly like no filter", chosen);
+        assertFalse("unknown filter must not re-enable default:false algorithms",
+            IBEISIA.isHotspotterQueryConfig(chosen.optJSONObject("query_config_dict")));
+    }
 }
