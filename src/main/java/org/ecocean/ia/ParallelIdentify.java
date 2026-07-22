@@ -184,18 +184,31 @@ public class ParallelIdentify {
             Encounter enc = ws.getEncounter(encId);
             if (enc == null) { ws.rollbackDBTransaction(); return null; }
             JSONObject params = (paramsStr == null) ? new JSONObject() : new JSONObject(paramsStr);
-            Task subParentTask = new Task();
-            subParentTask.setParameters(params);
-            ws.storeNewTask(subParentTask);
-            ws.updateDBTransaction();
+
+            // re-check at the point of use: the encounter may have been assigned an individual
+            // between the driver building encIds and this worker running.
+            if (params.optBoolean("unidentifiedOnly", false) && enc.hasMarkedIndividual()) {
+                ws.rollbackDBTransaction();
+                return null;
+            }
+            boolean hotspotterOnly =
+                "hotspotter".equals(params.optString("matchingAlgorithmFilter", null));
 
             List<Annotation> matchMeAnns = new ArrayList<Annotation>();
             if (enc.getAnnotations() != null) {
                 for (Annotation queryAnn : enc.getAnnotations()) {
-                    if (IBEISIA.validForIdentification(queryAnn)) matchMeAnns.add(queryAnn);
+                    if (!IBEISIA.validForIdentification(queryAnn)) continue;
+                    if (hotspotterOnly && !IA.annotationHasHotspotterOpt(ws, queryAnn)) continue;
+                    matchMeAnns.add(queryAnn);
                 }
             }
-            if (matchMeAnns.isEmpty()) { ws.commitDBTransaction(); return null; }
+            if (matchMeAnns.isEmpty()) { ws.rollbackDBTransaction(); return null; }
+
+            // real work exists — create the sub-parent only now.
+            Task subParentTask = new Task();
+            subParentTask.setParameters(params);
+            ws.storeNewTask(subParentTask);
+            ws.updateDBTransaction();
 
             Task childTask = IA.intakeAnnotations(ws, matchMeAnns, subParentTask, false);
             ws.storeNewTask(childTask);
