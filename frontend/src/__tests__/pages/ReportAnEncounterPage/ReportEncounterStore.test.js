@@ -254,4 +254,57 @@ describe("ReportEncounterStore", () => {
     expect(store.validateFields()).toBe(false);
     expect(store.dateTimeSection.error).toBe(true);
   });
+
+  test("should set verbatimLocality in place section", () => {
+    store.setVerbatimLocality("reef off the north point");
+    expect(store.placeSection.verbatimLocality).toBe(
+      "reef off the north point",
+    );
+  });
+
+  test("should include verbatimLocality in payload when set", async () => {
+    axios.post.mockClear();
+    axios.post.mockResolvedValue({ status: 200, data: { message: "Success" } });
+
+    store.setImageRequired(false);
+    store.setDateTimeSectionValue("2024-03-18T12:00:00");
+    store.setLocationId("123-location");
+    store.setVerbatimLocality("reef off the north point");
+
+    await store.submitReport();
+
+    expect(axios.post).toHaveBeenCalledWith(
+      "/api/v3/encounters",
+      expect.objectContaining({
+        verbatimLocality: "reef off the north point",
+      }),
+    );
+  });
+
+  test("should omit verbatimLocality from payload when empty", async () => {
+    axios.post.mockClear();
+    axios.post.mockResolvedValue({ status: 200, data: { message: "Success" } });
+
+    store.setImageRequired(false);
+    store.setDateTimeSectionValue("2024-03-18T12:00:00");
+    store.setLocationId("123-location");
+
+    await store.submitReport();
+
+    expect(axios.post.mock.calls[0][1]).not.toHaveProperty("verbatimLocality");
+  });
+
+  test("should clear verbatimLocality after successful submission", async () => {
+    axios.post.mockClear();
+    axios.post.mockResolvedValue({ status: 200, data: { message: "Success" } });
+
+    store.setImageRequired(false);
+    store.setDateTimeSectionValue("2024-03-18T12:00:00");
+    store.setLocationId("123-location");
+    store.setVerbatimLocality("reef off the north point");
+
+    await store.submitReport();
+
+    expect(store.placeSection.verbatimLocality).toBe("");
+  });
 });
