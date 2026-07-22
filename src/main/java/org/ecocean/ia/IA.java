@@ -368,6 +368,21 @@ public class IA {
         }
     }
 
+    /**
+     * True if the annotation's taxonomy+iaClass has at least one HotSpotter identification
+     * option. Used to keep a hotspotter-only second pass from handing IA.intakeAnnotations an
+     * annotation whose class would filter down to no options. identOpts() returns null (not an
+     * empty list) for a class with no ident config, which must read as "not applicable".
+     */
+    public static boolean annotationHasHotspotterOpt(Shepherd myShepherd, Annotation ann) {
+        List<JSONObject> opts = IAJsonProperties.iaConfig().identOpts(myShepherd, ann);
+        if (opts == null) return false;
+        for (JSONObject opt : opts) {
+            if (IBEISIA.isHotspotterQueryConfig(opt.optJSONObject("query_config_dict"))) return true;
+        }
+        return false;
+    }
+
     // similar behavior to above: basically fake /ia api call, but via queue
     // parentTask is optional, but *will NOT* set task as child automatically. is used only for inheriting params
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {

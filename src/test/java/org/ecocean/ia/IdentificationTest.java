@@ -100,4 +100,40 @@ class IdentificationTest {
             IBEISIA.isHotspotterQueryConfig(new JSONObject("{\"pipeline_root\": \"MiewId\"}")));
         assertFalse("null must NOT be HotSpotter", IBEISIA.isHotspotterQueryConfig(null));
     }
+
+    @Test void annotationHasHotspotterOptTest() {
+        Annotation ann = new Annotation();
+        ann.setIAClass("giraffe_whole");
+        ann.setId("ann-hs");
+
+        List<JSONObject> optsWithHs = new ArrayList<JSONObject>();
+        optsWithHs.add(new JSONObject("{\"query_config_dict\": {\"pipeline_root\": \"MiewId\"}, \"default\": true}"));
+        optsWithHs.add(new JSONObject("{\"query_config_dict\": {\"sv_on\": true}, \"description\": \"HotSpotter\"}"));
+
+        List<JSONObject> optsNoHs = new ArrayList<JSONObject>();
+        optsNoHs.add(new JSONObject("{\"query_config_dict\": {\"pipeline_root\": \"MiewId\"}, \"default\": true}"));
+
+        Shepherd myShepherd = mock(Shepherd.class);
+
+        IAJsonProperties mockHas = mock(IAJsonProperties.class);
+        when(mockHas.identOpts(any(Shepherd.class), any(Annotation.class))).thenReturn(optsWithHs);
+        IAJsonProperties mockNo = mock(IAJsonProperties.class);
+        when(mockNo.identOpts(any(Shepherd.class), any(Annotation.class))).thenReturn(optsNoHs);
+        IAJsonProperties mockNull = mock(IAJsonProperties.class);
+        when(mockNull.identOpts(any(Shepherd.class), any(Annotation.class))).thenReturn(null);
+
+        try (MockedStatic<IAJsonProperties> mockJP = mockStatic(IAJsonProperties.class)) {
+            mockJP.when(() -> IAJsonProperties.iaConfig()).thenReturn(mockHas);
+            assertTrue("class with a HotSpotter opt must be applicable",
+                IA.annotationHasHotspotterOpt(myShepherd, ann));
+
+            mockJP.when(() -> IAJsonProperties.iaConfig()).thenReturn(mockNo);
+            assertFalse("class with only MiewID must NOT be applicable",
+                IA.annotationHasHotspotterOpt(myShepherd, ann));
+
+            mockJP.when(() -> IAJsonProperties.iaConfig()).thenReturn(mockNull);
+            assertFalse("null identOpts (no config) must NOT be applicable and must not throw",
+                IA.annotationHasHotspotterOpt(myShepherd, ann));
+        }
+    }
 }
