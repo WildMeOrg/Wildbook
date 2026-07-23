@@ -799,17 +799,7 @@
 					"id": "Azores",
 					"locationID": []
 				},
-				{
-					"name": "Gulf of Guinea",
-					"id": "Gulf of Guinea",
-					"locationID": [
-						{
-							"name": "Sao Tome and Principe",
-							"id": "Sao Tome and Principe",
-							"locationID": []
-						}
-					]
-				},
+
 				{
 					"name": "Mediterranean Sea", 
 					"id": "Mediterranean Sea", 
@@ -849,12 +839,7 @@
 		 "prefix": "SHA-", 
 		 "prefixDigitPadding": 3, 
 		 "locationID":[
-			{
-				"name": "St. Helena Island", 
-				"id": "St. Helena Island", 
-				"prefix": "SHA-", 
-				"prefixDigitPadding": 3 
-			},
+
 			{
 				"name": "Ascension Island", 
 				"id": "Ascension Island", 
@@ -865,6 +850,23 @@
 				"name": "Brazil", 
 				"id": "Brazil", 
 				"prefix": "BRZ-", 
+				"prefixDigitPadding": 3 
+			},
+			{
+					"name": "Gulf of Guinea",
+					"id": "Gulf of Guinea",
+					"locationID": [
+						{
+							"name": "Sao Tome and Principe",
+							"id": "Sao Tome and Principe",
+							"locationID": []
+						}
+					]
+			},
+			{
+				"name": "St. Helena Island", 
+				"id": "St. Helena Island", 
+				"prefix": "SHA-", 
 				"prefixDigitPadding": 3 
 			}
 		] 
