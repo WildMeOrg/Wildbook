@@ -368,6 +368,21 @@ public class IA {
         }
     }
 
+    /**
+     * True if the annotation's taxonomy+iaClass has at least one HotSpotter identification
+     * option. Used to keep a hotspotter-only second pass from handing IA.intakeAnnotations an
+     * annotation whose class would filter down to no options. identOpts() returns null (not an
+     * empty list) for a class with no ident config, which must read as "not applicable".
+     */
+    public static boolean annotationHasHotspotterOpt(Shepherd myShepherd, Annotation ann) {
+        List<JSONObject> opts = IAJsonProperties.iaConfig().identOpts(myShepherd, ann);
+        if (opts == null) return false;
+        for (JSONObject opt : opts) {
+            if (IBEISIA.isHotspotterQueryConfig(opt.optJSONObject("query_config_dict"))) return true;
+        }
+        return false;
+    }
+
     // similar behavior to above: basically fake /ia api call, but via queue
     // parentTask is optional, but *will NOT* set task as child automatically. is used only for inheriting params
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
@@ -415,9 +430,17 @@ public class IA {
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
         List<List<Annotation> > annotsByIaClass = binAnnotsByIaClass(anns);
         for (List<Annotation> annsOneIAClass : annotsByIaClass) {
+            // read params BEFORE filtering opts so matchingAlgorithmFilter can steer the filter
+            JSONObject newTaskParams =
+                (parentTask == null || parentTask.getParameters() == null)
+                    ? new JSONObject() : parentTask.getParameters();
+            boolean hotspotterOnly =
+                "hotspotter".equals(newTaskParams.optString("matchingAlgorithmFilter", null));
+
             List<JSONObject> opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
-            // now we remove ones with default=false (they may get added in below via matchingAlgorithms param (via newOpts)
-            if (opts != null) {
+            // remove ones with default=false, EXCEPT for a hotspotter-only second pass, where the
+            // HotSpotter opt is itself default:false and is exactly what we want to keep.
+            if (!hotspotterOnly && (opts != null)) {
                 Iterator<JSONObject> itr = opts.iterator();
                 while (itr.hasNext()) {
                     if (!itr.next().optBoolean("default", true)) itr.remove();
@@ -425,9 +448,7 @@ public class IA {
             }
             System.out.println("identOpts: " + opts);
             List<Task> tasks = new ArrayList<Task>();
-            JSONObject newTaskParams = new JSONObject(); // we merge parentTask.parameters in with opts from above
             if (parentTask != null && parentTask.getParameters() != null) {
-                newTaskParams = parentTask.getParameters();
                 System.out.println("newTaskParams: " + newTaskParams.toString());
                 if (newTaskParams.optJSONArray("matchingAlgorithms") != null) {
                     JSONArray matchingAlgorithms = newTaskParams.optJSONArray("matchingAlgorithms");
@@ -442,6 +463,16 @@ public class IA {
                         opts = newOpts;
                         System.out.println("Swapping opts for newOpts!!");
                     }
+                }
+            }
+            // hotspotter-only second pass: keep only HotSpotter options (sv_on nested in
+            // query_config_dict). Applied after the matchingAlgorithms swap so it filters
+            // whatever list we ended with.
+            if (hotspotterOnly && (opts != null)) {
+                Iterator<JSONObject> itr = opts.iterator();
+                while (itr.hasNext()) {
+                    if (!IBEISIA.isHotspotterQueryConfig(itr.next().optJSONObject("query_config_dict")))
+                        itr.remove();
                 }
             }
             if ((opts == null) || (opts.size() < 1)) continue; // no ID for this iaClass.

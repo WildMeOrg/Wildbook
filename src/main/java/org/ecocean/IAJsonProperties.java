@@ -50,6 +50,32 @@ public class IAJsonProperties extends JsonProperties {
         }
     }
 
+    /**
+     * Install-global: true if ANY object anywhere in the IA config has a query_config_dict that
+     * is a HotSpotter config. Walks the raw JSON so it is independent of taxonomy-name lists and
+     * of @-link resolution (an @-link target lives in the same tree and is still visited).
+     */
+    public boolean hasHotspotterIdentOpt() {
+        return walkForHotspotter(getJson());
+    }
+
+    private static boolean walkForHotspotter(Object node) {
+        if (node instanceof JSONObject) {
+            JSONObject obj = (JSONObject) node;
+            if (org.ecocean.identity.IBEISIA.isHotspotterQueryConfig(obj.optJSONObject("query_config_dict")))
+                return true;
+            for (String key : obj.keySet()) {
+                if (walkForHotspotter(obj.opt(key))) return true;
+            }
+        } else if (node instanceof JSONArray) {
+            JSONArray arr = (JSONArray) node;
+            for (int i = 0; i < arr.length(); i++) {
+                if (walkForHotspotter(arr.opt(i))) return true;
+            }
+        }
+        return false;
+    }
+
     // naming convention: not using 'get' on static methods
     public static String taxonomyKey(Taxonomy taxy) {
         return taxy.getScientificName().replace(' ', '.');
