@@ -33,8 +33,19 @@ class EncounterPatchValidatorTest {
     PersistenceManager mockPM;
     Encounter mockEnc;
     User mockUser;
+    java.util.HashMap<Integer, String> savedNamesCache;
 
-    @BeforeEach void setUp() {
+    @SuppressWarnings("unchecked")
+    private java.util.HashMap<Integer, String> namesCache()
+    throws Exception {
+        java.lang.reflect.Field f = MarkedIndividual.class.getDeclaredField("NAMES_CACHE");
+
+        f.setAccessible(true);
+        return (java.util.HashMap<Integer, String>)f.get(null);
+    }
+
+    @BeforeEach void setUp()
+    throws Exception {
         mockShepherd = mock(Shepherd.class);
         mockPM = mock(PersistenceManager.class);
         mockEnc = mock(Encounter.class);
@@ -42,6 +53,14 @@ class EncounterPatchValidatorTest {
         when(mockShepherd.getPM()).thenReturn(mockPM);
         when(mockEnc.getGenus()).thenReturn("Carcharodon");
         when(mockEnc.getSpecificEpithet()).thenReturn("carcharias");
+        // real addName() during the create path touches the global names cache
+        savedNamesCache = new java.util.HashMap<Integer, String>(namesCache());
+    }
+
+    @org.junit.jupiter.api.AfterEach void tearDown()
+    throws Exception {
+        namesCache().clear();
+        namesCache().putAll(savedNamesCache);
     }
 
     private JSONObject individualIdPatch(String value) {
@@ -106,6 +125,20 @@ class EncounterPatchValidatorTest {
             MarkedIndividual created = (MarkedIndividual)persisted.getValue();
             assertTrue(created.hasName("GNS-9999"));
             assertNotNull(res.optString("individualId", null));
+        }
+    }
+
+    @Test void semicolonNameRejected() {
+        when(mockShepherd.getMarkedIndividual("GNS;2620")).thenReturn(null);
+        try (MockedStatic<MarkedIndividual> mockedIndiv = mockStatic(MarkedIndividual.class,
+            CALLS_REAL_METHODS)) {
+            assertThrows(ApiException.class, () -> {
+                EncounterPatchValidator.applyPatch(mockEnc, individualIdPatch("GNS;2620"),
+                    mockUser, mockShepherd);
+            });
+            mockedIndiv.verify(() -> MarkedIndividual.findByExactName(any(Shepherd.class),
+                anyString(), any(), any()), never());
+            verify(mockPM, never()).makePersistent(any(MarkedIndividual.class));
         }
     }
 

@@ -96,6 +96,42 @@ class MarkedIndividualExactNameTest {
         assertTrue(!jdoql.getValue().contains("genus"));
     }
 
+    @Test void firstCacheSegmentIsIndividualIdNotAName()
+    throws Exception {
+        namesCache().put(11, "55555555-aaaa-bbbb-cccc-dddddddddddd;gns-1");
+
+        // the leading segment is the individual id and must not match as a name
+        List<MarkedIndividual> found = MarkedIndividual.findByExactName(mockShepherd,
+            "55555555-aaaa-bbbb-cccc-dddddddddddd", null, null);
+        assertEquals(0, found.size());
+        verify(mockPM, never()).newQuery(anyString());
+    }
+
+    @Test void blankTaxonomyMeansNoScope()
+    throws Exception {
+        namesCache().put(13, "66666666-aaaa-bbbb-cccc-dddddddddddd;gns-5");
+        MarkedIndividual indiv = mock(MarkedIndividual.class);
+        when(mockQuery.execute()).thenReturn(Arrays.asList(indiv));
+
+        List<MarkedIndividual> found = MarkedIndividual.findByExactName(mockShepherd, "GNS-5",
+            "", "  ");
+        assertEquals(1, found.size());
+        ArgumentCaptor<String> jdoql = ArgumentCaptor.forClass(String.class);
+        verify(mockPM).newQuery(jdoql.capture());
+        // blank genus/specificEpithet must not become an ''=='' taxonomy filter
+        assertTrue(!jdoql.getValue().contains("enc.genus"));
+    }
+
+    @Test void inputIsTrimmed()
+    throws Exception {
+        namesCache().put(15, "77777777-aaaa-bbbb-cccc-dddddddddddd;gns-7");
+        MarkedIndividual indiv = mock(MarkedIndividual.class);
+        when(mockQuery.execute()).thenReturn(Arrays.asList(indiv));
+
+        assertEquals(1,
+            MarkedIndividual.findByExactName(mockShepherd, "  GNS-7  ", null, null).size());
+    }
+
     @Test void regexMetacharactersInNameAreSafe()
     throws Exception {
         namesCache().put(9, "44444444-aaaa-bbbb-cccc-dddddddddddd;r(19+a]");

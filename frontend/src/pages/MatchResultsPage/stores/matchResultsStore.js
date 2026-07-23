@@ -618,21 +618,30 @@ export default class MatchResultsStore {
           firstResult.response?.data?.patchResults?.find(
             (r) => r?.individualId,
           )?.individualId;
-        const restOps = resolvedIndividualId
-          ? patchOps.map((op) =>
-              op.path === "individualId"
-                ? { ...op, value: resolvedIndividualId }
-                : op,
-            )
-          : patchOps;
-        const restResults = await Promise.all(
-          restIds.map((id) => doPatch(id, restOps)),
-        );
-        for (const r of restResults) {
-          if (r.status === "fulfilled") {
-            successes.push(r.encounterId);
-          } else {
-            failures.push({ encounterId: r.encounterId, error: r.error });
+        if (!resolvedIndividualId) {
+          // never re-send the name per-encounter: parallel creates by name
+          // are exactly what minted duplicates (issue 1318)
+          for (const id of restIds) {
+            failures.push({
+              encounterId: id,
+              error: new Error("could not resolve created individual id"),
+            });
+          }
+        } else {
+          const restOps = patchOps.map((op) =>
+            op.path === "individualId"
+              ? { ...op, value: resolvedIndividualId }
+              : op,
+          );
+          const restResults = await Promise.all(
+            restIds.map((id) => doPatch(id, restOps)),
+          );
+          for (const r of restResults) {
+            if (r.status === "fulfilled") {
+              successes.push(r.encounterId);
+            } else {
+              failures.push({ encounterId: r.encounterId, error: r.error });
+            }
           }
         }
       }

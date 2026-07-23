@@ -838,6 +838,43 @@ describe("MatchResultsStore — handleCreateNewIndividual", () => {
     });
     expect(axios.patch).toHaveBeenCalledTimes(1);
   });
+
+  test("does not re-send the name when the response lacks the created uuid", async () => {
+    store.setNewIndividualName("Nemo");
+    store.setSelectedMatch(true, "k1", "enc-a", null, null);
+    store.setSelectedMatch(true, "k2", "enc-b", null, null);
+    axios.patch.mockResolvedValue({ data: {} }); // no patchResults[].individualId
+    const result = await store.handleCreateNewIndividual(null);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("CREATE_NEW_INDIVIDUAL_PARTIAL");
+    // only the first encounter may be patched with the raw name
+    expect(axios.patch).toHaveBeenCalledTimes(1);
+    expect(result.failures).toHaveLength(1);
+  });
+
+  test("next-name (locationId) ops are also rewritten to the returned uuid", async () => {
+    store.setNewIndividualName("placeholder", true);
+    store._encounterLocationId = "loc-1";
+    store.setSelectedMatch(true, "k1", "enc-a", null, null);
+    store.setSelectedMatch(true, "k2", "enc-b", null, null);
+    axios.patch
+      .mockResolvedValueOnce({
+        data: { patchResults: [{ individualId: "uuid-777" }] },
+      })
+      .mockResolvedValue({ data: {} });
+    const result = await store.handleCreateNewIndividual(null);
+    expect(result.ok).toBe(true);
+    const firstOps = axios.patch.mock.calls[0][1];
+    expect(firstOps.find((op) => op.path === "individualId").value).toEqual({
+      type: "locationId",
+      value: "loc-1",
+    });
+    const secondOps = axios.patch.mock.calls[1][1];
+    // second encounter must NOT allocate another next-name
+    expect(secondOps.find((op) => op.path === "individualId").value).toBe(
+      "uuid-777",
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------

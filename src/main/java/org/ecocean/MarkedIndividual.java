@@ -2498,7 +2498,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
         if (nameIds.size() < 1) return rtn;
         String taxonomyStringFilter = "";
-        if ((genus != null) && (specificEpithet != null)) {
+        // blank ("") genus/specificEpithet must mean *no* taxonomy scope, not a
+        // filter for empty-string taxonomy fields
+        if (Util.stringExists(genus) && Util.stringExists(specificEpithet)) {
             genus = genus.trim();
             specificEpithet = specificEpithet.trim();
             taxonomyStringFilter = " && enc.genus == '" + genus + "' && enc.specificEpithet == '" +
@@ -2657,6 +2659,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     public void refreshNamesCache() {
         if (names == null) return;
         if (NAMES_CACHE == null) return; // snh
+        // an unpersisted MultiValue still has the default id (0); caching under
+        // that shared key would pollute the cache (and a rollback would leave a
+        // phantom name). callers must refresh again after persisting -- as
+        // BulkImporter and EncounterPatchValidator do.
+        if (names.getId() == 0) return;
         NAMES_CACHE.put(names.getId(),
             this.getId() + ";" + String.join(";", names.getAllValues()).toLowerCase());
     }

@@ -381,6 +381,12 @@ public class EncounterPatchValidator {
             idOrName = value.toString();
             indiv = myShepherd.getMarkedIndividual(idOrName);
             if (indiv != null) return indiv;
+            // the names cache is ';'-delimited, so a name containing ';' could
+            // never be reliably found again; reject rather than create an
+            // unfindable individual
+            if (idOrName.contains(";"))
+                throw new ApiException("individualId may not contain ';'",
+                        ApiException.ERROR_RETURN_CODE_INVALID);
             // no pk match; the value may be a human-readable id living in names
             // (e.g. an individual created via the match results page), so fall back
             // to an exact name lookup before minting a duplicate -- see issue 1318.
