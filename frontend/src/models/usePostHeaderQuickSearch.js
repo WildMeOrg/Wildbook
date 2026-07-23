@@ -17,7 +17,18 @@ export default function usePostHeaderQuickSearch(value) {
       const searchValue = value.trim();
       const searchValueLower = searchValue.toLowerCase();
       axios
-        .post("/api/v3/search/individual?size=10&sort=id&sortOrder=asc", {
+        .post("/api/v3/search/individual?size=10", {
+          // Rank by relevance (the boosted should-clauses below), then by name
+          // for deterministic order within a tier. A `sort` URL param would
+          // replace relevance ranking entirely, and `id` is a UUID for newer
+          // individuals, so sorting on it returns an arbitrary subset of the
+          // matches (issue #1541).
+          // (multi-valued names sort by their lowest value; unmapped_type keeps
+          // the query working on an index without the names mapping)
+          sort: [
+            { _score: { order: "desc" } },
+            { names: { order: "asc", unmapped_type: "keyword" } },
+          ],
           query: {
             bool: {
               minimum_should_match: 1,
