@@ -2485,8 +2485,18 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             return rtn;
         }
         // System.out.println("findByNames nameIds: "+nameIds.toString());
+        return findByNameIds(myShepherd, nameIds, genus, specificEpithet);
+    }
+
+    public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
+        return findByNames(myShepherd, regex, null, null);
+    }
+
+    private static List<MarkedIndividual> findByNameIds(Shepherd myShepherd, List<String> nameIds,
+        String genus, String specificEpithet) {
+        List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
+
         if (nameIds.size() < 1) return rtn;
-        // System.out.println("findByNames: "+genus+" "+specificEpithet);
         String taxonomyStringFilter = "";
         if ((genus != null) && (specificEpithet != null)) {
             genus = genus.trim();
@@ -2497,7 +2507,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         String jdoql =
             "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (names.id == "
             + String.join(" || names.id == ", nameIds) + ")" + taxonomyStringFilter;
-        System.out.println("findByNames jdoql: " + jdoql);
+        System.out.println("findByNameIds jdoql: " + jdoql);
         Query query = myShepherd.getPM().newQuery(jdoql);
         if (query == null) return rtn; // this is really only to save us while testing snh irl
         Collection c = (Collection)(query.execute());
@@ -2509,8 +2519,31 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return rtn;
     }
 
-    public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
-        return findByNames(myShepherd, regex, null, null);
+    // exact (whole-name), case-insensitive lookup backed by NAMES_CACHE. unlike
+    // findByNames() the name is never treated as a regex, so names containing
+    // regex metacharacters are safe. genus+specificEpithet (both required to
+    // apply) scope matches to individuals with at least one encounter of that
+    // taxonomy, same as findByNames().
+    public static List<MarkedIndividual> findByExactName(Shepherd myShepherd, String name,
+        String genus, String specificEpithet) {
+        List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
+
+        if ((name == null) || (NAMES_CACHE == null)) return rtn;
+        String trimmed = name.trim();
+        List<String> nameIds = new ArrayList<String>();
+        for (Integer nid : NAMES_CACHE.keySet()) {
+            String cached = NAMES_CACHE.get(nid);
+            if (cached == null) continue;
+            // cache value format: "<individualId>;<name1>;<name2>..."
+            String[] parts = cached.split(";");
+            for (int i = 1; i < parts.length; i++) {
+                if (parts[i].equalsIgnoreCase(trimmed)) {
+                    nameIds.add(Integer.toString(nid));
+                    break;
+                }
+            }
+        }
+        return findByNameIds(myShepherd, nameIds, genus, specificEpithet);
     }
 
     public static MarkedIndividual withName(Shepherd myShepherd, String name) {

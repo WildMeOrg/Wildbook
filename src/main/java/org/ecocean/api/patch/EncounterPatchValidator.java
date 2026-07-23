@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.json.JSONArray;
@@ -79,7 +80,10 @@ public class EncounterPatchValidator {
             if (path.equals("individualId") && (value != null)) {
                 MarkedIndividual currentIndiv = enc.getIndividual();
                 if (currentIndiv != null) mayNeedPruning.put(currentIndiv);
-                value = getOrCreateMarkedIndividual(value, myShepherd);
+                value = getOrCreateMarkedIndividual(value, enc, myShepherd);
+                // expose the resolved uuid so clients can reference this individual
+                // (e.g. to patch further encounters) without another name lookup
+                rtn.put("individualId", ((MarkedIndividual)value).getId());
                 System.out.println("applyPatch() path=individualId using " + value);
             }
             if (path.equals("occurrenceId") && (value != null)) {
@@ -343,7 +347,8 @@ public class EncounterPatchValidator {
     }
 
     // should never get called here with null value
-    private static MarkedIndividual getOrCreateMarkedIndividual(Object value, Shepherd myShepherd)
+    private static MarkedIndividual getOrCreateMarkedIndividual(Object value, Encounter enc,
+        Shepherd myShepherd)
     throws ApiException {
         String idOrName = null;
         MarkedIndividual indiv = null;
@@ -376,11 +381,26 @@ public class EncounterPatchValidator {
             idOrName = value.toString();
             indiv = myShepherd.getMarkedIndividual(idOrName);
             if (indiv != null) return indiv;
+            // no pk match; the value may be a human-readable id living in names
+            // (e.g. an individual created via the match results page), so fall back
+            // to an exact name lookup before minting a duplicate -- see issue 1318.
+            // scoped to the encounter taxonomy when set, like bulk import does.
+            List<MarkedIndividual> byName = MarkedIndividual.findByExactName(myShepherd, idOrName,
+                enc.getGenus(), enc.getSpecificEpithet());
+            if (byName.size() > 1)
+                throw new ApiException("multiple existing individuals are named '" + idOrName +
+                        "'; use the individual uuid instead",
+                        ApiException.ERROR_RETURN_CODE_INVALID);
+            if (byName.size() == 1) return byName.get(0);
         }
         indiv = new MarkedIndividual(); // will get assigned id
         indiv.addName(idOrName);
         // other properties like taxonomy set during actual patchOp
         myShepherd.getPM().makePersistent(indiv);
+        // names cache is keyed by the db-assigned MultiValue id, which only exists
+        // now that we persisted; without this the new individual cannot be found
+        // by name until a full cache rebuild (restart)
+        indiv.refreshNamesCache();
         return indiv;
     }
 

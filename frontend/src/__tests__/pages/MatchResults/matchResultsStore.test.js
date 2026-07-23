@@ -801,6 +801,43 @@ describe("MatchResultsStore — handleCreateNewIndividual", () => {
     await store.handleCreateNewIndividual(null);
     expect(store.matchRequestLoading).toBe(false);
   });
+
+  test("creates via first encounter, attaches the rest by returned uuid", async () => {
+    store.setNewIndividualName("Nemo");
+    store.setSelectedMatch(true, "k1", "enc-a", null, null);
+    store.setSelectedMatch(true, "k2", "enc-b", null, null);
+    axios.patch
+      .mockResolvedValueOnce({
+        data: { patchResults: [{ individualId: "uuid-123" }] },
+      })
+      .mockResolvedValue({ data: {} });
+    const result = await store.handleCreateNewIndividual(null);
+    expect(result.ok).toBe(true);
+    expect(axios.patch).toHaveBeenCalledTimes(2);
+    const firstOps = axios.patch.mock.calls[0][1];
+    const secondOps = axios.patch.mock.calls[1][1];
+    expect(firstOps.find((op) => op.path === "individualId").value).toBe(
+      "Nemo",
+    );
+    // the second encounter must reference the individual by uuid, not name,
+    // so parallel creates cannot mint duplicates (issue 1318)
+    expect(secondOps.find((op) => op.path === "individualId").value).toBe(
+      "uuid-123",
+    );
+  });
+
+  test("does not patch remaining encounters when the first patch fails", async () => {
+    store.setNewIndividualName("Nemo");
+    store.setSelectedMatch(true, "k1", "enc-a", null, null);
+    store.setSelectedMatch(true, "k2", "enc-b", null, null);
+    axios.patch.mockRejectedValueOnce(new Error("server error"));
+    const result = await store.handleCreateNewIndividual(null);
+    expect(result).toEqual({
+      ok: false,
+      error: "CREATE_NEW_INDIVIDUAL_FAILED",
+    });
+    expect(axios.patch).toHaveBeenCalledTimes(1);
+  });
 });
 
 // ---------------------------------------------------------------------------
