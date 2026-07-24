@@ -11,6 +11,8 @@ import org.ecocean.Encounter;
 import org.ecocean.grid.EncounterLite;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
+import org.ecocean.ia.MLService;
+import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.Keyword;
 import org.ecocean.media.*;
@@ -171,6 +173,31 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        myShepherd.getPM().makePersistent(unity);
 	        myShepherd.getPM().makePersistent(ann);
 	        System.out.println("    + saved annotation");
+	        // Queue background embedding extraction (mirrors
+	        // Annotation.createFromApi): without an Embedding row the React New
+	        // Match dialog hides vector algorithms entirely (NewMatchStore
+	        // shouldHideVectorAlgorithms), so the spot crop could never be offered
+	        // a MiewID vector match. The Task is persisted in this transaction but
+	        // the queue file is written only after the commit below succeeds, so
+	        // the queue consumer cannot race the uncommitted annotation row (the
+	        // createFromApi TODO notes exactly that race).
+	        Task embTask = null;
+	        if (speciesString != null) {
+	            embTask = new Task();
+	            embTask.addObject(ann);
+	            // extraction only: without this, MLService.processQueueJob's
+	            // completion callback runs IA.intakeAnnotations and silently
+	            // launches an identification job for every spot submission
+	            embTask.setParameters("skipIdent", true);
+	            embTask.setStatusDetailsAddLog("SubmitSpotsAndImage embedding extraction on " +
+	                ann);
+	            myShepherd.getPM().makePersistent(embTask);
+	        } else {
+	            System.out.println(
+	                "[WARNING] SubmitSpotsAndImage: null taxonomy on encounter " + encId +
+	                "; skipping embedding extraction for " + ann.getId() +
+	                " (it will never be offered vector matching)");
+	        }
 	
 	        if (rightSide) {
 	            enc.setRightSpots(spots);
@@ -189,6 +216,42 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        // Only add to the match graph once the spots are confirmed committed, so
 	        // a swallowed commit failure can't leave a phantom candidate. (#1608)
 	        boolean committed = myShepherd.commitDBTransactionWithStatus();
+	        if (committed && (embTask != null)) {
+	            // PM is still open here (reads only ids); see comment at embTask
+	            // creation for why this waits until after the commit
+	            try {
+	                new MLService().initiateRequest(ann, speciesString, embTask);
+	                System.out.println("    + queued embedding extraction task " + embTask.getId());
+	            } catch (IOException ex) {
+	                // non-fatal for the annotation: appadmin/catchUpEmbeddings.jsp
+	                // sweeps candidates with no embedding, so a lost queue write is
+	                // recoverable. But mark the task terminal so it does not sit
+	                // in "waiting to queue" forever.
+	                System.out.println(
+	                    "[ERROR] SubmitSpotsAndImage embedding extraction queue failed on " + ann +
+	                    ": " + ex);
+	                ex.printStackTrace();
+	                // safe to mark terminal: FileQueue.publish() only renames the
+	                // message visible to the consumer as its final non-throwing
+	                // step, so an exception here means the job was never enqueued
+	                try {
+	                    myShepherd.beginDBTransaction();
+	                    embTask.setStatus("error");
+	                    embTask.setStatusDetailsAddError("UNKNOWN", "queue publish failed: " + ex);
+	                    embTask.setCompletionDateInMilliseconds();
+	                    if (!myShepherd.commitDBTransactionWithStatus()) {
+	                        System.out.println(
+	                            "[ERROR] SubmitSpotsAndImage failed to commit error status on task "
+	                            + embTask.getId());
+	                    }
+	                } catch (Exception ex2) {
+	                    System.out.println(
+	                        "[ERROR] SubmitSpotsAndImage could not mark task " + embTask.getId() +
+	                        " as error: " + ex2);
+	                    if (myShepherd.isDBTransactionActive()) myShepherd.rollbackDBTransaction();
+	                }
+	            }
+	        }
 	        myShepherd.closeDBTransaction();
 	        if (committed) {
 	            gm.addMatchGraphEntry(encId, updatedLite);
