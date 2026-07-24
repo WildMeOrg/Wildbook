@@ -121,7 +121,19 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        String speciesString = enc.getTaxonomyString();
 	        Annotation ann = new Annotation(speciesString, crMa);
 	        ann.setMatchAgainst(true);
-	        String iaClass = "whalesharkCR"; // should we change this?
+	        String iaClass = "unknown";
+	        // WB-1841: only these species are currently matchable via spot maps
+	        if (speciesString != null && speciesString.equals("Rhincodon typus")) {
+	            iaClass = "whaleshark";
+	        } else if (speciesString != null && speciesString.equals("Stegostoma tigrinum")) {
+	            iaClass = "leopard_shark";
+	        } else if (speciesString != null && speciesString.equals("Scyliorhinus stellaris")) {
+	            iaClass = "nursehoundsharkCR";
+	        } else if (speciesString != null && speciesString.equals("Carcharias taurus")) {
+	            iaClass = "shark";
+	        } else if (speciesString != null && speciesString.equals("Notorynchus cepedianus")) {
+	            iaClass = "sevengill_shark";
+	        }
 	        ann.setIAClass(iaClass);
 	        if (rightSide) { ann.setViewpoint("right"); } else { ann.setViewpoint("left"); }
 	        enc.addAnnotation(ann);
