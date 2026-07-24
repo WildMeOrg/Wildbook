@@ -583,10 +583,9 @@ export default class MatchResultsStore {
         });
       }
 
-      // Run all PATCHes in parallel and track results
-      const patchPromises = encounterIds.map((id) =>
+      const doPatch = (id, ops) =>
         axios
-          .patch(`/api/v3/encounters/${encodeURIComponent(id)}`, patchOps, {
+          .patch(`/api/v3/encounters/${encodeURIComponent(id)}`, ops, {
             headers: {
               "Content-Type": "application/json-patch+json",
               Accept: "application/json",
@@ -595,22 +594,54 @@ export default class MatchResultsStore {
           .then(
             (response) => ({ status: "fulfilled", encounterId: id, response }),
             (error) => ({ status: "rejected", encounterId: id, error }),
-          ),
-      );
+          );
 
-      const results = await Promise.allSettled(patchPromises);
+      // Create (or resolve) the individual via the FIRST encounter only, then
+      // attach the remaining encounters by the returned uuid. Sending all
+      // PATCHes in parallel with the same name let each transaction miss the
+      // others' uncommitted individual and mint duplicates (issue 1318).
+      const [firstId, ...restIds] = encounterIds;
+      const firstResult = await doPatch(firstId, patchOps);
 
-      // Separate successes and failures
-      const successes = [];
+      if (firstResult.status !== "fulfilled") {
+        // no individual was created; don't retry the same ops per-encounter
+        this._matchRequestError = "CREATE_NEW_INDIVIDUAL_FAILED";
+        toast.error("Failed to create new individual");
+        return { ok: false, error: "CREATE_NEW_INDIVIDUAL_FAILED" };
+      }
+
+      const successes = [firstResult.encounterId];
       const failures = [];
 
-      for (const result of results) {
-        if (result.status === "fulfilled") {
-          const { status, encounterId, error } = result.value;
-          if (status === "fulfilled") {
-            successes.push(encounterId);
-          } else {
-            failures.push({ encounterId, error });
+      if (restIds.length > 0) {
+        const resolvedIndividualId =
+          firstResult.response?.data?.patchResults?.find(
+            (r) => r?.individualId,
+          )?.individualId;
+        if (!resolvedIndividualId) {
+          // never re-send the name per-encounter: parallel creates by name
+          // are exactly what minted duplicates (issue 1318)
+          for (const id of restIds) {
+            failures.push({
+              encounterId: id,
+              error: new Error("could not resolve created individual id"),
+            });
+          }
+        } else {
+          const restOps = patchOps.map((op) =>
+            op.path === "individualId"
+              ? { ...op, value: resolvedIndividualId }
+              : op,
+          );
+          const restResults = await Promise.all(
+            restIds.map((id) => doPatch(id, restOps)),
+          );
+          for (const r of restResults) {
+            if (r.status === "fulfilled") {
+              successes.push(r.encounterId);
+            } else {
+              failures.push({ encounterId: r.encounterId, error: r.error });
+            }
           }
         }
       }

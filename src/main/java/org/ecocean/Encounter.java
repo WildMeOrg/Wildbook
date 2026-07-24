@@ -5219,6 +5219,10 @@ public class Encounter extends Base implements java.io.Serializable {
     // user should already have been validated -- via obj.canUserEdit() -- in api/BaseObject, so this
     // does not need to be tested here. however, more detailed checks may require user (e.g. can user
     // also alter another object, such as Occurrence)
+    // not persisted; carries individuals touched by processPatch() to afterPatch()
+    // within a single request so they get indexed post-commit
+    private transient Set<MarkedIndividual> patchIndividualsToIndex = null;
+
     public org.json.JSONObject processPatch(org.json.JSONArray patchArr, User user,
         Shepherd myShepherd)
     throws ApiException {
@@ -5254,9 +5258,24 @@ public class Encounter extends Base implements java.io.Serializable {
                 occ.setSkipAutoIndexing(false);
             }
         }
+        this.patchIndividualsToIndex = new HashSet<MarkedIndividual>();
         for (MarkedIndividual indiv : indivNeedPruning) {
             if (!indiv.pruneIfNeeded(myShepherd)) {
                 indiv.setSkipAutoIndexing(false);
+                // removeIndividual() suppressed auto-indexing on this (old)
+                // individual, so afterPatch() must index it explicitly
+                this.patchIndividualsToIndex.add(indiv);
+            }
+        }
+        // a patched-in individual may be brand new (created this transaction);
+        // index it post-commit so it is searchable without waiting for the
+        // background reconciler -- see issue 1318
+        for (int i = 0; i < patchArr.length(); i++) {
+            org.json.JSONObject p = patchArr.optJSONObject(i);
+            if ((p != null) && "individualId".equals(p.optString("path", null)) &&
+                (this.getIndividual() != null)) {
+                this.patchIndividualsToIndex.add(this.getIndividual());
+                break;
             }
         }
         // no exceptions means success
@@ -5549,6 +5568,19 @@ public class Encounter extends Base implements java.io.Serializable {
             }
         }
         if (newAssetsArr.length() > 0) res.put("newMediaAssets", newAssetsArr);
+        // individuals touched by this patch (newly created, or detached old ones
+        // whose auto-indexing was suppressed) are indexed here, post-commit, so
+        // their documents are searchable promptly (best-effort; the background
+        // reconciler remains the backstop) -- see issue 1318
+        if (this.patchIndividualsToIndex != null) {
+            for (MarkedIndividual indiv : this.patchIndividualsToIndex) {
+                // the names cache key (MultiValue id) is db-assigned; refresh again
+                // now that commit definitely happened, in case it was unset earlier
+                indiv.refreshNamesCache();
+                needsIndexing.add(indiv);
+            }
+            this.patchIndividualsToIndex = null;
+        }
         BulkImportUtil.bulkOpensearchIndex(needsIndexing);
         return res;
     }
