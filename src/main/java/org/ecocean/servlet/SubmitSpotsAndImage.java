@@ -109,6 +109,10 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        crMa.addKeyword(crKeyword);
 	        crMa.updateMinimalMetadata();
 	        crMa.setDetectionStatus(IBEISIA.STATUS_COMPLETE);
+	        // the WBIA registration poller registers the image under its own uuid
+	        // (WildbookIAM.registerImageIfMissing), so acmId == uuid by
+	        // construction; it must be set for the annotation to be eligible
+	        crMa.setAcmId(crMa.getUUID());
 	        System.out.println("    + updated made media asset");
 	        MediaAssetFactory.save(crMa, myShepherd);
 	        System.out.println("    + saved media asset " + crMa.toString());
@@ -119,8 +123,32 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        System.out.println("    + updated children for asset " + crMa.toString() +
 	            "; hasFamily = " + crMa.hasFamily(myShepherd));
 	        String speciesString = enc.getTaxonomyString();
-	        Annotation ann = new Annotation(speciesString, crMa);
+	        // Bidirectional linkage (mirrors MlServiceProcessor): Feature.annotation
+	        // is the OWNING side of Annotation.features (mapped-by "annotation"), so
+	        // it must be set explicitly -- otherwise the join row depends on
+	        // DataNucleus relationship management and a reloaded annotation can come
+	        // back featureless (null bbox/mediaAsset -> never WBIA-registrable).
+	        Feature unity = crMa.generateUnityFeature(); // also sets Feature.asset
+	        Annotation ann = new Annotation(speciesString, unity);
+	        unity.setAnnotation(ann);
 	        ann.setMatchAgainst(true);
+	        // acmId is required for match candidacy: the OpenSearch indexer
+	        // (matchAgainst && acmId != null) and Annotation.getMatchingSetQuery
+	        // (exists: acmId) both filter on it. Assign it here in the request
+	        // transaction rather than trusting a WBIA round-trip to write it back;
+	        // the registration poller force-registers WBIA under this same id, so
+	        // no post-hoc remap is needed. Mirrors the v2 convention
+	        // (MlServiceProcessor, api-v3 manual annotation): the annotation's own
+	        // id.
+	        ann.setAcmId(ann.getId());
+	        // Hand WBIA registration to the DB-backed polling worker
+	        // (StartupWildbook.startWbiaRegistrationPollingThread): durable retry
+	        // state that survives restarts. The previous fire-and-forget thread
+	        // captured JDO objects owned by this request's PM, which closes before
+	        // the WBIA round-trip returns, so its acmId write-back was silently
+	        // lost.
+	        ann.setWbiaRegistered(Boolean.FALSE);
+	        ann.setWbiaRegisterAttempts(0);
 	        String iaClass = "unknown";
 	        // WB-1841: only these species are currently matchable via spot maps
 	        if (speciesString != null && speciesString.equals("Rhincodon typus")) {
@@ -140,36 +168,10 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        System.out.println("    + made annotation " + ann.toString());
 
 
+	        myShepherd.getPM().makePersistent(unity);
 	        myShepherd.getPM().makePersistent(ann);
 	        System.out.println("    + saved annotation");
 	
-	        // Send to IA in background — don't block the user on slow WBIA calls
-	        final String iaContext = context;
-	        final ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
-	        maList.add(crMa);
-	        final ArrayList<Annotation> annList = new ArrayList<Annotation>();
-	        annList.add(ann);
-	        new Thread(() -> {
-	            Shepherd iaShepherd = new Shepherd(iaContext);
-	            iaShepherd.setAction("SubmitSpotsAndImage_IA");
-	            iaShepherd.beginDBTransaction();
-	            try {
-	                System.out.println("    + sending asset to IA (background)");
-	                IBEISIA.sendMediaAssetsNew(maList, iaContext);
-	                iaShepherd.updateDBTransaction();
-	                System.out.println("    + asset sent, sending annot");
-	                IBEISIA.sendAnnotationsNew(annList, iaContext, iaShepherd);
-	                iaShepherd.commitDBTransaction();
-	                System.out.println("    + annot sent (background).");
-	            } catch (Exception e) {
-	                e.printStackTrace();
-	                System.out.println("hit above exception while trying to send CR ma & annot to IA");
-	                iaShepherd.rollbackDBTransaction();
-	            } finally {
-	                iaShepherd.closeDBTransaction();
-	            }
-	        }, "IA-register-" + encId).start();
-	        System.out.println("    + IA registration queued in background");
 	        if (rightSide) {
 	            enc.setRightSpots(spots);
 	            enc.setRightReferenceSpots(refSpots);
