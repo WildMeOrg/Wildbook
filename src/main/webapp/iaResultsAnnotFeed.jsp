@@ -204,7 +204,7 @@ if (request.getParameter("acmId") != null) {
 								if (project!=null) {
 									try {
 		
-										if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
+										if (project.containsEncounter(enc)) {
 											//System.out.println("num encounters in project: "+project.getEncounters().size());
 											//MarkedIndividual individual = enc.getIndividual();
 											if (individual!=null) {
