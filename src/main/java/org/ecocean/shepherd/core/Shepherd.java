@@ -3483,22 +3483,26 @@ public class Shepherd {
      * Closes a PersistenceManager
      */
     public void closeDBTransaction() {
+        boolean closed = false;
         try {
             if ((pm != null) && (!pm.isClosed())) {
                 pm.close();
             }
-            // ShepherdState.setShepherdState(action+"_"+shepherdID, "close");
-            ShepherdState.removeShepherdState(action + "_" + shepherdID);
-
-            // logger.info("A PersistenceManager has been successfully closed.");
-        } catch (JDOUserException jdoe) {
+            closed = true;
+        // Must catch everything (e.g. JDODataStoreException on a broken connection), not just
+        // JDOUserException: many callers invoke this inline without their own try/finally, and a
+        // throw from here propagates into page rendering.
+        } catch (Exception e) {
             System.out.println("I hit an error trying to close a DBTransaction.");
-            jdoe.printStackTrace();
-
-            // logger.error("I failed to close a PersistenceManager."+"\n"+jdoe.getStackTrace());
-        } catch (NullPointerException npe) {
-            System.out.println("I hit a NullPointerException trying to close a DBTransaction.");
-            npe.printStackTrace();
+            e.printStackTrace();
+        } finally {
+            // Only clear the diagnostic state entry if the close actually succeeded.
+            // If it threw, leave evidence behind so dbconnections.jsp can surface the leak.
+            if (closed) {
+                ShepherdState.removeShepherdState(action + "_" + shepherdID);
+            } else {
+                ShepherdState.setShepherdState(action + "_" + shepherdID, "close-failed");
+            }
         }
     }
 
@@ -3506,21 +3510,23 @@ public class Shepherd {
      * Undoes any changes made to an open database.
      */
     public void rollbackDBTransaction() {
+        boolean rolledBack = false;
         try {
             if ((pm != null) && (pm.currentTransaction().isActive())) {
-                // System.out.println("     Now rollingback a transaction with pm"+(String)pm.getUserObject());
                 pm.currentTransaction().rollback();
-                // System.out.println("A transaction has been successfully committed.");
-            } else {
-                // System.out.println("You are trying to rollback an inactive transaction.");
             }
-            ShepherdState.setShepherdState(action + "_" + shepherdID, "rollback");
-        } catch (JDOUserException jdoe) {
-            jdoe.printStackTrace();
-        } catch (JDOFatalUserException fdoe) {
-            fdoe.printStackTrace();
-        } catch (NullPointerException npe) {
-            npe.printStackTrace();
+            rolledBack = true;
+        // Must catch everything, not just JDO(Fatal)UserException: rollback on a broken connection
+        // throws JDOFatalDataStoreException, and ~80 JSPs call rollbackDBTransaction() then
+        // closeDBTransaction() sequentially in a finally -- a throw from here skips that close and
+        // leaks the PersistenceManager (the stuck "rollback-failed" rows on dbconnections.jsp).
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Always publish a terminal rollback state so leaked "begin" entries do not accumulate,
+            // but distinguish success from failure so close-follow-up can see the evidence.
+            ShepherdState.setShepherdState(action + "_" + shepherdID,
+                rolledBack ? "rollback" : "rollback-failed");
         }
     }
 

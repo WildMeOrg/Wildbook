@@ -242,8 +242,11 @@ public class IBEISIA {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.sendIdentify");
         myShepherd.beginDBTransaction();
-
+        // Declared outside the try so the POST below can use it AFTER the
+        // Shepherd/DB connection is released in the finally.
         HashMap<String, Object> map = new HashMap<String, Object>();
+        try {
+
         map.put("callback_url", callbackUrl(baseUrl));
         map.put("jobid", taskId);
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
@@ -289,8 +292,6 @@ public class IBEISIA {
         Util.mark("sendIdentify-2", startTime);
         // Do we have a qaan? We need one, or load a failure response.
         if (qlist.isEmpty()) {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
             JSONObject noQueryAnn = new JSONObject();
             noQueryAnn.put("status", new JSONObject().put("message", "rejected"));
             noQueryAnn.put("error", "No query annotation was valid for identification. ");
@@ -338,9 +339,6 @@ public class IBEISIA {
             status.put("emptyTargetAnnotations", true);
             emptyRtn.put("status", status);
 
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-
             return emptyRtn;
         }
         map.put("query_annot_uuid_list", qlist);
@@ -374,9 +372,14 @@ public class IBEISIA {
         System.out.println("qlist.size()=" + qlist.size() + " annnnd qnlist.size()=" +
             qnlist.size() + ". not printing the map about to be POSTed because it's a big'un.");
         // System.out.println(map);
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
         Util.mark("identify process pre-post end");
+        // Fall out of the try (releasing the Shepherd in the finally below)
+        // BEFORE the network POST, so a pooled DB connection is not pinned
+        // across IA HTTP latency/failure. The early-return paths above stay
+        // inside the try so they still close on the way out.
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
         return RestClient.post(url, hashMapToJSONObject2(map));
     }
 
@@ -1401,11 +1404,14 @@ public class IBEISIA {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.processCallback");
         myShepherd.beginDBTransaction();
+        // Declared outside the try so the post-commit identification block below
+        // (which runs after the Shepherd is released) can still read it.
+        JSONObject newAnns = null;
+        try {
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA",
             myShepherd);
         rtn.put("_logs", logs);
         if (((logs == null) || (logs.size() < 1)) && !fromEmbeddingExtraction) return rtn;
-        JSONObject newAnns = null;
         String type = getTaskType(logs);
         System.out.println("**** type ---------------> [" + type + "]");
         if ("detect".equals(type)) {
@@ -1441,7 +1447,13 @@ public class IBEISIA {
             rtn.put("error", "unknown task action type " + type);
         }
         myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        } finally {
+            // Always release the connection: the no-log early return above and
+            // any throw from the detect/identify branches previously leaked this
+            // Shepherd (the IBEISIA.processCallback:* stuck dbconnections entries).
+            // rollbackAndClose after a successful commit is a no-op rollback + close.
+            myShepherd.rollbackAndClose();
+        }
 
         boolean skipIdent = Util.booleanNotFalse(IA.getProperty(context,
             "IBEISIADisableIdentification"));
@@ -1452,6 +1464,7 @@ public class IBEISIA {
             Shepherd myShepherd2 = new Shepherd(context);
             myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
             myShepherd2.beginDBTransaction();
+            try {
             Task parentTask = Task.load(taskID, myShepherd2);
             // Task parametersSkipIdent looks at the parent task.. It works for non-ID Wildbooks. If you are sending multiple annotations from a
             // single image, and some need
@@ -1528,7 +1541,11 @@ public class IBEISIA {
                     "[INFO]: No annotations were suitable for identification. Check resulting identification class(es).");
                 myShepherd2.rollbackDBTransaction();
             }
-            myShepherd2.rollbackAndClose();
+            } finally {
+                // Guarantee release if Task.load / getObjectById / intakeAnnotations
+                // throws; previously a throw here skipped rollbackAndClose entirely.
+                myShepherd2.rollbackAndClose();
+            }
         }
         return rtn;
     }

@@ -82,8 +82,12 @@ describe("DateTimeSection Component", () => {
 
     await waitFor(() =>
       expect(mockStore.setDateTimeSectionValue).toHaveBeenCalledWith(
-        new Date("2024-03-12 15:30"),
+        expect.objectContaining({
+          format: expect.any(Function),
+        }),
       ),
     );
+    const selectedValue = mockStore.setDateTimeSectionValue.mock.calls.at(-1)[0];
+    expect(selectedValue.format("YYYY-MM-DDTHH:mm")).toBe("2024-03-12T15:30");
   });
 });
