@@ -184,6 +184,11 @@
 								"locationID": []
 							},
 							{
+								"name": "Gerringong",
+								"id": "Gerringong",
+								"locationID":[]
+							},
+							{
 								"name": "Green Island",
 								"id": "Green Island",
 								"geospatialInfo": {
@@ -283,6 +288,11 @@
 								"locationID": []
 							},
 							{
+								"name": "Oak Park, Sydney",
+								"id": "Oak Park, Sydney",
+								"locationID": []
+							},
+							{
 								"name": "Pinnacle Forster",
 								"id": "Pinnacle Forster",
 								"geospatialInfo": {
@@ -290,6 +300,12 @@
 									"long": 152.6013889
 								},
 								"locationID": []
+							},
+							{
+								"name": "Q Station Manly",
+								"id": "Q Station Manly",
+								"locationID": []
+
 							},
 							{
 								"name": "Seal Rocks",
@@ -364,6 +380,15 @@
 						"prefixDigitPadding": 3,
 						"locationID":[
 							{
+								"name": "Barwon Banks, Maroochydore",
+								"id": "Barwon Banks, Maroochydore",
+								"geospatialInfo": {
+									"lat": -26.46951782,
+									"long": 153.593775
+								},
+								"locationID": []
+							},
+							{
 								"name": "Cherubs Cave",
 								"id": "Cherubs Cave",
 								"geospatialInfo": {
@@ -403,6 +428,15 @@
 
 							},
 							{
+								"name": "HMAS Brisbane",
+								"id": "HMAS Brisbane",
+								"geospatialInfo": {
+									"lat": -26.62598,
+									"long": 153.14941
+								},
+								"locationID": []
+							},
+							{
 								"name": "Hutchinson Shoal, Moreton Island",
 								"id": "Hutchinson Shoal, Moreton Island",
 								"locationID":[]
@@ -411,6 +445,20 @@
 								"name": "Lady Elliot Island",
 								"id": "Lady Elliot Island",
 								"locationID":[]
+							},
+							{
+								"name": "Lady Musgrave Island",
+								"id": "Lady Musgrave Island",
+								"locationID": []
+							},
+							{
+								"name": "Mudjimba Island",
+								"id": "Mudjimba Island",
+								"geospatialInfo": {
+									"lat": -26.61468417485959,
+									"long": 153.11457889199653
+								},
+								"locationID": []
 							},
 							{
 								"name": "North Stradbroke Island",
@@ -428,6 +476,15 @@
 									"lat": -26.647254133407646,
 									"long": 153.20777256885754
 								}
+							},
+							{
+								"name": "Rottnest Island",
+								"id": "Rottnest Island",
+								"geospatialInfo": {
+									"lat": -32.016750,
+									"long": 115.547754
+								},
+								"locationID": []
 							},
 							{
 								"name": "Wolf Rock",
@@ -454,8 +511,33 @@
 						"id": "Victoria",
 						"locationID": [
 							{
+								"name": "Altona-Flemings Pool",
+								"id": "Altona-Flemings Pool",
+								"locationID": []
+							},
+							{
+								"name": "Altona Pier",
+								"id": "Altona Pier",
+								"locationID": []
+							},
+							{
 								"name": "The Crystals",
 								"id": "The Crystals",
+								"locationID": []
+							},
+							{
+								"name": "Jawbone Marine Sanctuary",
+								"id": "Jawbone Marine Sanctuary",
+								"locationID": []
+							},
+							{
+								"name": "Ricketts Point",
+								"id": "Ricketts Point",
+								"locationID": []
+							},
+							{
+								"name": "Sebastian's",
+								"id": "Sebastian's",
 								"locationID": []
 							}
 						]
