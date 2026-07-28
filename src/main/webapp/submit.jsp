@@ -432,10 +432,14 @@ $(function() {
 
 
 
-    $( "#datepicker" ).datetimepicker({
+    // merge locale labels first, then force ISO 8601 output (yyyy-mm-dd HH:mm)
+    // expected by ISODateTimeFormat.dateOptionalTimeParser() in EncounterForm.java
+    $( "#datepicker" ).datetimepicker( $.extend( {}, $.timepicker.regional[ "<%=langCode %>" ], {
       changeMonth: true,
       changeYear: true,
-      dateFormat: 'yyMdd',
+      dateFormat: 'yy-mm-dd',
+      timeFormat: 'HH:mm',
+      separator: ' ',
       maxDate: '+1d',
       controlType: 'select',
       alwaysSetTime: false,
@@ -443,15 +447,14 @@ $(function() {
       showMillisec:false,
       showMicrosec:false,
       showTimezone:false
-    });
-    $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+    } ) );
 
-    $( "#releasedatepicker" ).datepicker({
+    // ISO 8601 date (yyyy-mm-dd) expected by releaseDateFormat in commonConfiguration.properties
+    $( "#releasedatepicker" ).datepicker( $.extend( {}, $.datepicker.regional[ "<%=langCode %>" ], {
         changeMonth: true,
         changeYear: true,
-        dateFormat: 'yy-M-dd'
-    });
-    $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
+        dateFormat: 'yy-mm-dd'
+    } ) );
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
 
