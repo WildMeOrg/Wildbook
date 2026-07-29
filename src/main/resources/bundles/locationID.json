@@ -8,6 +8,42 @@
 			"locationID": []
 		},
 		{
+			"name": "Belgium",
+			"id": "Belgium",
+			"locationID": [
+				{
+					"name": "Bellegrange",
+					"id": "Bellegrange",
+					"locationID": []
+				},
+				{
+					"name": "Carrière de la Warche",
+					"id": "Carrière de la Warche",
+					"locationID": []
+				},
+				{
+					"name": "La Rochette",
+					"id": "La Rochette",
+					"locationID": []
+				},
+				{
+					"name": "Marche-en-Famenne",
+					"id": "Marche-en-Famenne",
+					"locationID": []
+				},
+				{
+					"name": "RNA Holzwarche",
+					"id": "RNA Holzwarche",
+					"locationID": []
+				},
+				{
+					"name": "RND Warche",
+					"id": "RND Warche",
+					"locationID": []
+				}
+			]
+		},
+		{
 			"name": "Bosnia and Herzegovina",
 			"id": "Bosnia and Herzegovina",
 			"locationID": []
@@ -77,6 +113,15 @@
 				{
 					"name": "Alte Rinne",
 					"id": "Alte Rinne",
+					"locationID": []
+				},
+				{
+					"name": "Bad Salzuflen",
+					"id": "Bad Salzuflen",
+					"geospatialInfo":{
+						"lat": 52.111707,
+						"long": 8.762255
+					},
 					"locationID": []
 				},
 				{
@@ -233,6 +278,15 @@
 				{
 					"name": "Heßles",
 					"id": "Heßles",
+					"locationID": []
+				},
+				{
+					"name": "Horn-Bad Meinberg",
+					"id": "Horn-Bad Meinberg",
+					"geospatialInfo":{
+						"lat": 51.885462,
+						"long": 8.980386
+					},
 					"locationID": []
 				},
 				{
@@ -1088,7 +1142,7 @@
 			"id":"Italy",
 			"locationID": []
 		},
-				{
+		{
 			"name": "Mauritius",
 			"id": "Mauritius",
 			"locationID":[
