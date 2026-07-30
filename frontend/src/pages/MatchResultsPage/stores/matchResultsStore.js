@@ -225,6 +225,7 @@ export default class MatchResultsStore {
         metadata: {
           numCandidates: first.numberCandidates ?? "-",
           date: first.date,
+          queryEncounterId: first.queryEncounterId ?? null,
           queryImageUrl:
             first.queryEncounterImageAsset?.url || first.queryEncounterImageUrl,
           queryEncounterImageAsset: first.queryEncounterImageAsset,
