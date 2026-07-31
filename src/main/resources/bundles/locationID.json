@@ -40,6 +40,12 @@
 	 			 	"lat":-23.44811,
 	 			 	"long":35.752483
  			 }, "locationID":[] },
+	{"name": "Colombia", "id": "Colombia", "locationID": [
+		{"name": "Bahía Solano", "id": "Bahía Solano", "locationID":[]},
+		{"name": "Gorgona National Natural Park", "id": "Gorgona National Natural Park", "locationID":[]},
+		{"name": "Gulf of Tribugá", "id": "Gulf of Tribugá", "locationID":[]},
+		{"name": "Malpelo Fauna and Flora Sanctuary", "id": "Malpelo Fauna and Flora Sanctuary", "locationID":[]}
+	]},
 	{ "name":"Costa Rica", "id":"Costa Rica","geospatialInfo":{
 	 			 	"lat":9.748917,
 	 			 	"long":-83.753428
