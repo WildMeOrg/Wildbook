@@ -561,6 +561,32 @@
 		"locationID": []
 	},
 	{
+		"name": "Colombia",
+		"id": "Colombia",
+		"locationID":[
+			{
+				"name": "Bahía Solano",
+				"id": "Bahía Solano",
+				"locationID":[]
+			},
+			{
+				"name": "Gorgona National Natural Park",
+				"id": "Gorgona National Natural Park",
+				"locationID":[]
+			},
+			{
+				"name": "Gulf of Tribugá",
+				"id": "Gulf of Tribugá",
+				"locationID":[]
+			},
+			{
+				"name": "Malpelo Fauna and Flora Sanctuary",
+				"id": "Malpelo Fauna and Flora Sanctuary",
+				"locationID":[]
+			}
+		]
+	},
+	{
 		"name": "Indonesia", 
 		"id": "Indonesia", 
 		"prefix": "ID-", 
