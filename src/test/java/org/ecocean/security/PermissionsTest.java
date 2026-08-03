@@ -183,6 +183,78 @@ class PermissionsTest {
         }
     }
 
+    // any logged-in user can edit a public encounter (issue 1626)
+    @Test void encounterPublicEditTest() {
+        User user = new User("test-user", null, null);
+        Encounter enc = new Encounter();
+        Shepherd myShepherd = mock(Shepherd.class);
+
+        when(myShepherd.getContext()).thenReturn("context0");
+        try (MockedStatic<Collaboration> mockCollab = mockStatic(Collaboration.class,
+                org.mockito.Answers.CALLS_REAL_METHODS)) {
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(any(String.class),
+                any(String.class), any(String.class))).thenReturn(null);
+            mockCollab.when(() -> Collaboration.securityEnabled(any(String.class))).thenReturn(
+                true);
+
+            enc.setSubmitterID("public");
+            assertTrue(enc.canUserEdit(user, myShepherd));
+            // anonymous (not logged in) still cannot edit
+            assertFalse(enc.canUserEdit(null, myShepherd));
+            // all the User.isUsernameAnonymous flavors of "ownerless" count as public
+            enc.setSubmitterID(null);
+            assertTrue(enc.canUserEdit(user, myShepherd));
+            enc.setSubmitterID("");
+            assertTrue(enc.canUserEdit(user, myShepherd));
+            enc.setSubmitterID("   ");
+            assertTrue(enc.canUserEdit(user, myShepherd));
+            enc.setSubmitterID("N/A");
+            assertTrue(enc.canUserEdit(user, myShepherd));
+            // encounters owned by someone else remain uneditable
+            enc.setSubmitterID("someone-else");
+            assertFalse(enc.canUserEdit(user, myShepherd));
+            // ...even on sites with collaboration security disabled
+            mockCollab.when(() -> Collaboration.securityEnabled(any(String.class))).thenReturn(
+                false);
+            assertFalse(enc.canUserEdit(user, myShepherd));
+        }
+    }
+
+    // edit access on a public encounter must not expose other users' emails (issue 1626)
+    @Test void encounterPublicEditEmailHiddenTest()
+    throws IOException {
+        User user = new User("test-user", null, null);
+        User contact = new User("contact-person", null, null);
+
+        contact.setEmailAddress("secret@example.com");
+        Encounter enc = org.mockito.Mockito.spy(new Encounter());
+        enc.setSubmitterID("public");
+        enc.addSubmitter(contact);
+        Shepherd myShepherd = mock(Shepherd.class);
+        when(myShepherd.getContext()).thenReturn("context0");
+        when(myShepherd.getAllRolesForUser(anyString())).thenReturn(new ArrayList<>());
+        org.mockito.Mockito.doReturn(new JSONObject()).when(enc).opensearchDocumentAsJSONObject(
+            any(Shepherd.class));
+        // avoids a real Shepherd (and thus a real database) inside the test
+        org.mockito.Mockito.doReturn(new JSONObject()).when(enc).spotMappingJsonForApiGet();
+
+        try (MockedStatic<Collaboration> mockCollab = mockStatic(Collaboration.class,
+                org.mockito.Answers.CALLS_REAL_METHODS)) {
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(any(String.class),
+                any(String.class), any(String.class))).thenReturn(null);
+            mockCollab.when(() -> Collaboration.securityEnabled(any(String.class))).thenReturn(
+                true);
+
+            JSONObject rtn = enc.jsonForApiGet(myShepherd, user);
+            // a random logged-in user gets edit access to the public encounter...
+            Assertions.assertEquals("write", rtn.getString("access"));
+            // ...but the submitter-list emails stay hidden
+            JSONArray subs = rtn.getJSONArray("submitters");
+            Assertions.assertEquals(1, subs.length());
+            assertFalse(subs.getJSONObject(0).has("email"));
+        }
+    }
+
     // Collaboration.canUserPartiallyEditMarkedIndividual() returns true if the user can edit
     // AT LEAST ONE encounter (ANY), vs canUserFullyEditMarkedIndividual() which needs ALL.
     // This ANY-vs-ALL distinction is the whole point of the method, so we pin it here.

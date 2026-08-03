@@ -171,8 +171,11 @@ public class BulkImporter {
             "------------ persistence complete; background indexing and MA children -------------\n");
         // clears shepherd/pmf cache, which we seem to do when we create encounters (?)
         myShepherd.cacheEvictAll();
-        BulkImportUtil.bulkOpensearchIndex(needIndexing);
-        MediaAsset.updateStandardChildrenBackground(myShepherd.getContext(), maIds);
+        MediaAsset.updateStandardChildrenBackground(myShepherd.getContext(), maIds, new Runnable() {
+            public void run() {
+                BulkImportUtil.bulkOpensearchIndex(needIndexing);
+            }
+        });
         logProgress("end createImport()");
         return rtn;
     }

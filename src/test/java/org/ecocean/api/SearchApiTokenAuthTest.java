@@ -64,6 +64,12 @@ class SearchApiTokenAuthTest {
             doNothing().when(m).rollbackAndClose();
             when(m.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(user.isAdmin(m)).thenReturn(admin);
+            // let the REAL OpenSearch.queryStore run against this mock: makePersistent is a
+            // no-op on the mock PM, the commit reports success, and the re-begun transaction
+            // reads as active (queryPrune swallows the mock PM null-query internally)
+            when(m.getPM()).thenReturn(mock(javax.jdo.PersistenceManager.class));
+            when(m.commitDBTransactionWithStatus()).thenReturn(true);
+            when(m.isDBTransactionActive()).thenReturn(true);
         });
     }
 
@@ -157,7 +163,7 @@ class SearchApiTokenAuthTest {
     /** Stub OpenSearch.queryLoad to return a stored-query doc (with indexName + creator). */
     private MockedStatic<OpenSearch> storedQuery(String indexName, String creator) {
         MockedStatic<OpenSearch> osStatic = mockStatic(OpenSearch.class);
-        osStatic.when(() -> OpenSearch.queryLoad(anyString())).thenReturn(
+        osStatic.when(() -> OpenSearch.queryLoad(anyString(), any())).thenReturn(
             new JSONObject().put("indexName", indexName).put("creator", creator)
                 .put("query", new JSONObject().put("match_all", new JSONObject())));
         osStatic.when(() -> OpenSearch.isValidIndexName(anyString())).thenReturn(true);
@@ -245,6 +251,94 @@ class SearchApiTokenAuthTest {
             new SearchApi().doPost(request, response);
         }
         verify(response).setStatus(200); // session path unaffected by token gates
+    }
+
+    @Test void sessionPost_storesQuery_andReturnsSearchQueryId() throws Exception {
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/encounter");
+        when(request.getHeader("Authorization")).thenReturn(null);
+        when(request.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR))
+            .thenReturn(null); // session path
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedStatic<OpenSearch> osStatic = mockStatic(OpenSearch.class)) {
+            osStatic.when(() -> OpenSearch.isValidIndexName(anyString())).thenReturn(true);
+            osStatic.when(() -> OpenSearch.querySanitize(any(), any(), any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+            osStatic.when(() -> OpenSearch.queryStore(any(), anyString(), any(), any()))
+                .thenReturn("11111111-2222-3333-4444-555555555555");
+            try (MockedConstruction<OpenSearch> os = mockConstruction(OpenSearch.class, (m, c) -> {
+                doNothing().when(m).deletePit(anyString());
+                when(m.queryPit(anyString(), any(JSONObject.class), anyInt(), anyInt(),
+                    any(), any())).thenReturn(EMPTY_HITS);
+            })) {
+                new SearchApi().doPost(request, response);
+            }
+        }
+        verify(response).setStatus(200);
+        verify(response).setHeader("X-Wildbook-Search-Query-Id",
+            "11111111-2222-3333-4444-555555555555");
+        assertTrue(out.toString().contains("11111111-2222-3333-4444-555555555555"),
+            "response body carries searchQueryId");
+    }
+
+    @Test void post_storeFailure_returns503_andDoesNotExecute() throws Exception {
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/encounter");
+        when(request.getHeader("Authorization")).thenReturn(null);
+        when(request.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR))
+            .thenReturn(null);
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
+            MockedStatic<OpenSearch> osStatic = mockStatic(OpenSearch.class)) {
+            osStatic.when(() -> OpenSearch.isValidIndexName(anyString())).thenReturn(true);
+            osStatic.when(() -> OpenSearch.querySanitize(any(), any(), any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+            osStatic.when(() -> OpenSearch.queryStore(any(), anyString(), any(), any()))
+                .thenReturn(null); // store failed: durability not confirmed
+            try (MockedConstruction<OpenSearch> os = mockConstruction(OpenSearch.class, (m, c) -> {
+                doNothing().when(m).deletePit(anyString());
+            })) {
+                new SearchApi().doPost(request, response);
+                for (OpenSearch constructed : os.constructed()) {
+                    verify(constructed, never()).queryPit(anyString(), any(JSONObject.class),
+                        anyInt(), anyInt(), any(), any());
+                }
+            }
+        }
+        verify(response).setStatus(503);
+        assertTrue(out.toString().contains("failed to store search query"),
+            "error surfaced in body");
+    }
+
+    @Test void post_storedButSessionRecoveryFailed_returns503_withId() throws Exception {
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getPathInfo()).thenReturn("/encounter");
+        when(request.getHeader("Authorization")).thenReturn(null);
+        when(request.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_AUTH_ATTR))
+            .thenReturn(null);
+        User user = mockUser("u1", false);
+        try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+            doNothing().when(m).beginDBTransaction();
+            doNothing().when(m).setAction(anyString());
+            doNothing().when(m).rollbackAndClose();
+            when(m.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(user.isAdmin(m)).thenReturn(false);
+            when(m.isDBTransactionActive()).thenReturn(false); // re-begin failed post-commit
+        });
+            MockedStatic<OpenSearch> osStatic = mockStatic(OpenSearch.class)) {
+            osStatic.when(() -> OpenSearch.isValidIndexName(anyString())).thenReturn(true);
+            osStatic.when(() -> OpenSearch.querySanitize(any(), any(), any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+            osStatic.when(() -> OpenSearch.queryStore(any(), anyString(), any(), any()))
+                .thenReturn("22222222-3333-4444-5555-666666666666"); // durable
+            new SearchApi().doPost(request, response);
+        }
+        verify(response).setStatus(503);
+        verify(response).setHeader("X-Wildbook-Search-Query-Id",
+            "22222222-3333-4444-5555-666666666666");
+        assertTrue(out.toString().contains("22222222-3333-4444-5555-666666666666"),
+            "durable id still returned when the request session could not continue");
     }
 
     @Test void storedQuery_ownEncounter_succeeds() throws Exception {

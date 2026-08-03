@@ -176,6 +176,10 @@ public class StartupWildbook implements ServletContextListener {
             return;
         }
         Setting.initialize(context);
+        // Eagerly build the shared OpenSearch REST client BEFORE any consumer threads start, so no
+        // match thread ever hits the (now double-checked, synchronized) cold init concurrently.
+        // Constructing the client does not contact OpenSearch, so this is safe here.
+        new OpenSearch();
         // initialize the plugin (instances)
         IAPluginManager.initPlugins(context);
         // this should be handling all plugin startups
@@ -355,10 +359,22 @@ public class StartupWildbook implements ServletContextListener {
             return;
         }
         IAMessageHandler qh = new IAMessageHandler();
+        // Concurrent IA match-consumer threads, applied to the IA queue ONLY (detection stays serial)
+        // so the aggregate stays <= N+1. The queue's consume(handler,int) is the authoritative gate:
+        // it probes the filesystem and clamps to 1 (serial) if atomic moves are unsupported, so a
+        // misconfigured value can never start unsafe concurrent consumers.
+        int iaWorkers = 1;
+        String cfg = CommonConfiguration.getProperty("iaMatchConsumerThreads", context);
+        if ((cfg != null) && (cfg.trim().length() > 0)) {
+            try { iaWorkers = Integer.parseInt(cfg.trim()); } catch (NumberFormatException nfe) {
+                System.out.println("+ WARNING: iaMatchConsumerThreads not an int ('" + cfg +
+                    "'); using 1");
+            }
+        }
         try {
-            queue.consume(qh);
+            queue.consume(qh, iaWorkers);
             System.out.println("+ StartupWildbook.startIAQueues() queue.consume() started on " +
-                queue.toString());
+                queue.toString() + " (requested " + iaWorkers + " worker(s))");
         } catch (IOException iox) {
             System.out.println("+ StartupWildbook.startIAQueues() queue.consume() FAILED on " +
                 queue.toString() + ": " + iox.toString());
@@ -895,6 +911,7 @@ public class StartupWildbook implements ServletContextListener {
         shutdownWbiaRegisterExecutor();
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
+        org.ecocean.ia.ParallelIdentify.shutdown();
         MetricsBot.cleanup();
         AcmIdBot.cleanup();
         IndexingManagerFactory.getIndexingManager().shutdown();

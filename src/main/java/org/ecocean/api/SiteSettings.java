@@ -118,6 +118,8 @@ public class SiteSettings extends ApiBase {
             Object[] iac = iaConfig.getAllIAClassesWithParts().toArray();
             Arrays.sort(iac);
             settings.put("iaClass", iac);
+            settings.put("hotspotterAvailable",
+                (iaConfig != null) && iaConfig.hasHotspotterIdentOpt());
 
             JSONObject iaForTx = new JSONObject();
             JSONObject iaConfigJson = new JSONObject();
