@@ -24,6 +24,11 @@
 					{ "name": "Cumberland Sound", "id": "Cumberland Sound", "locationID":[]}
 				]}
       ], "id": "Arctic Ocean", "defaultLatitude": 90.0, "defaultLongitude":0.0},
+      {"name": "Australia", "id": "Australia", "locationID":[
+        {"name": "New South Wales", "id": "New South Wales", "locationID":[
+          {"name": "Port Stephens", "id": "Port Stephens", "locationID":[]}
+        ]}
+      ]},
       {"name": "Atlantic Ocean (North)", "locationID": [
         {"name":"Azores", "id":"5", "locationID":[] },
         {"name": "Archipelago Sea", "id": "Archipelago Sea", "locationID":[]},
