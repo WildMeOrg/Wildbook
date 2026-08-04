@@ -321,6 +321,16 @@ if (commit) {
                     // ambiguous -- fail closed rather than clear a flag on an unverified
                     // uniqueness assumption.
                     int holdersOfAcmId = 1;
+                    // Whether every asset sharing this acmId is byte-identical. WBIA derives
+                    // an image UUID from image CONTENT, so N assets legitimately share one
+                    // acmId when the same photo was uploaded N times -- verified on the live
+                    // install: six assets on one acmId, no parent/child relationship, five of
+                    // them the same filename. In that case registering the bytes once serves
+                    // all of them and there is nothing ambiguous to protect against. But a
+                    // Wildbook-assigned (v4) acmId duplicated by some other path would NOT
+                    // imply identical content, and registering then WOULD overwrite whichever
+                    // image WBIA holds. So decide on evidence: MediaAsset.contentHash.
+                    boolean sharersAreIdentical = false;
                     if (Util.stringExists(priorAcmId)) {
                         Query dupQ = null;
                         try {
@@ -332,22 +342,37 @@ if (commit) {
                             // "ambiguous" -- blocking 100% of candidates. Accept either a
                             // bare aggregate or a single-element collection, since
                             // DataNucleus is not consistent about which it returns.
+                            // Project contentHash per holder: one query yields both the holder
+                            // count and the evidence about identity, and sidesteps the
+                            // aggregate-return-type trouble that count(id) caused earlier.
                             dupQ = sh.getPM().newQuery(MediaAsset.class, "acmId == acmIdParam");
                             dupQ.declareParameters("String acmIdParam");
-                            dupQ.setResult("count(this)");
-                            Object cnt = dupQ.execute(priorAcmId);
-                            if (cnt instanceof Number) {
-                                holdersOfAcmId = ((Number)cnt).intValue();
-                            } else if (cnt instanceof Collection) {
-                                Collection cc = (Collection)cnt;
-                                Object first = cc.isEmpty() ? null : cc.iterator().next();
-                                holdersOfAcmId = (first instanceof Number)
-                                    ? ((Number)first).intValue() : -1;
+                            dupQ.setResult("contentHash");
+                            Object res = dupQ.execute(priorAcmId);
+                            if (res instanceof Collection) {
+                                Collection<?> hashes = (Collection<?>)res;
+                                holdersOfAcmId = hashes.size();
+                                Set<String> distinctHashes = new HashSet<String>();
+                                boolean anyHashUnknown = false;
+                                for (Object h : hashes) {
+                                    String hs = (h == null) ? null : h.toString().trim();
+                                    if ((hs == null) || hs.isEmpty()) {
+                                        anyHashUnknown = true;
+                                    } else {
+                                        distinctHashes.add(hs);
+                                    }
+                                }
+                                // identical only if EVERY holder has a hash and they all agree;
+                                // an unknown hash is never treated as a match
+                                sharersAreIdentical = !anyHashUnknown
+                                    && (distinctHashes.size() == 1);
+                                row.put("sharersByteIdentical", sharersAreIdentical);
+                                if (anyHashUnknown) row.put("someContentHashUnknown", true);
                             } else {
                                 holdersOfAcmId = -1;
                                 System.out.println("repairQuarantinedImages: duplicate-acmId"
-                                    + " count returned unexpected type "
-                                    + ((cnt == null) ? "null" : cnt.getClass().getName())
+                                    + " projection returned unexpected type "
+                                    + ((res == null) ? "null" : res.getClass().getName())
                                     + " for asset " + id);
                             }
                         } catch (Exception dex) {
@@ -359,8 +384,12 @@ if (commit) {
                             if (dupQ != null) dupQ.closeAll();
                         }
                     }
+                    // Ambiguous only when the acmId is shared by assets we cannot prove are
+                    // the same image. Byte-identical sharers are safe: registering those bytes
+                    // once under that UUID is exactly what every one of them needs.
                     boolean acmIdAmbiguous = Util.stringExists(priorAcmId)
-                        && (holdersOfAcmId != 1);
+                        && (holdersOfAcmId != 1)
+                        && !(holdersOfAcmId > 1 && sharersAreIdentical);
                     if (((shared != null) && (shared.intValue() > 1)) || acmIdAmbiguous) {
                         // Two or more assets carry this acmId (or the count could not be
                         // established). One "present at WBIA" answer cannot say which asset
