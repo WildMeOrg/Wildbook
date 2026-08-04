@@ -5,7 +5,6 @@ org.ecocean.media.MediaAssetFactory,
 org.ecocean.ia.plugin.WildbookIAM,
 org.ecocean.identity.IBEISIA,
 org.ecocean.Annotation,
-org.ecocean.AcmIdBot,
 org.ecocean.Util,
 javax.jdo.Query,
 java.util.ArrayList,
@@ -378,7 +377,37 @@ if (commit) {
                         // even when the POST below fails. The URI WBIA receives is the
                         // parent's webURL, so children are not needed for registration.
                         JSONObject sendRtn = IBEISIA.sendMediaAssetsNew(one, context, false);
-                        if (AcmIdBot.sendConfirmedAcmId(sendRtn, ma.getAcmId())) {
+                        // Confirmation is inlined rather than calling
+                        // AcmIdBot.sendConfirmedAcmId so this page is STANDALONE: it can be
+                        // dropped into a running install that does not yet have this
+                        // branch's Java deployed, which is the whole point of a repair tool.
+                        // Mirrors that method exactly. sendMediaAssets returns
+                        // {"batchResults":[{"response":[{"__UUID__":"..."}]}]} and a heal
+                        // only counts when OUR uuid comes back in it -- never persist a
+                        // registration WBIA did not acknowledge.
+                        String expectAcm = ma.getAcmId();
+                        JSONArray batches = (sendRtn == null)
+                            ? null : sendRtn.optJSONArray("batchResults");
+                        boolean confirmed = false;
+                        if ((batches != null) && (expectAcm != null)) {
+                            for (int b = 0; (b < batches.length()) && !confirmed; b++) {
+                                // a skipped batch is the literal string "EMPTY BATCH", so
+                                // optJSONObject returns null for it
+                                JSONObject batch = batches.optJSONObject(b);
+                                JSONArray resp = (batch == null)
+                                    ? null : batch.optJSONArray("response");
+                                if (resp == null) continue;
+                                for (int i = 0; i < resp.length(); i++) {
+                                    JSONObject fancy = resp.optJSONObject(i);
+                                    if ((fancy != null) && expectAcm.equals(
+                                            fancy.optString("__UUID__", null))) {
+                                        confirmed = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (confirmed) {
                             // rectifyMediaAssetIds may have adopted WBIA's UUID. acmId IS in
                             // the MediaAsset OpenSearch document but setAcmId does not bump
                             // revision, so bump it or the index keeps the stale value.
