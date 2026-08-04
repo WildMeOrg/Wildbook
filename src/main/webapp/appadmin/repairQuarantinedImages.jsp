@@ -4,12 +4,15 @@ org.ecocean.media.MediaAsset,
 org.ecocean.media.MediaAssetFactory,
 org.ecocean.ia.plugin.WildbookIAM,
 org.ecocean.identity.IBEISIA,
+org.ecocean.Annotation,
 org.ecocean.AcmIdBot,
 org.ecocean.Util,
 javax.jdo.Query,
 java.util.ArrayList,
 java.util.Collection,
+java.util.HashSet,
 java.util.List,
+java.util.Set,
 org.json.JSONArray,
 org.json.JSONObject" %>
 <%
@@ -18,38 +21,46 @@ org.json.JSONObject" %>
  *
  * WHY THIS EXISTS
  * ---------------
- * validImageForIA == false is a terminal state in practice. WildbookIAM.sendMediaAssets
- * refuses to register a flagged asset with WBIA, AcmIdBot's reconciliation sweep drops
- * flagged assets before they are even probed, and nothing re-validates them (
- * MediaAsset.validateSourceImage() is only consulted when the flag is null). Meanwhile
+ * validImageForIA == false is terminal in practice. WildbookIAM.sendMediaAssets refuses to
+ * register a flagged asset with WBIA, AcmIdBot's reconciliation sweep drops flagged assets
+ * before they are even probed, and nothing re-validates them (MediaAsset
+ * .validateSourceImage() is only consulted when the flag is null). Meanwhile
  * WildbookIAM.sendAnnotations does NOT check the flag, so annotations on such an asset are
- * still POSTed to WBIA, which rejects them with
- * "image_uuid_list has invalid values [(0, None)]". So a stale flag actively breaks
- * identification rather than merely hiding a bad image.
- *
- * Historically the flag could also be set purely because WBIA answered HTTP 500 during an
- * image send -- an HTTP status, not a verdict about the file. That logic has been removed,
- * but the rows it created remain.
+ * still POSTed and WBIA rejects them with "image_uuid_list has invalid values [(0, None)]".
+ * A stale flag therefore actively breaks identification rather than merely hiding a bad
+ * image. The HTTP-500 path that could create these flags has been removed, but the rows it
+ * created remain.
  *
  * WHAT THIS DOES
  * --------------
- * Re-decodes each flagged asset's actual file via validateSourceImage() and lets the file
- * itself decide the flag. Genuinely corrupt images stay false on their own merits;
- * wrongly-flagged ones become true. Then, for whatever became valid, it asks WBIA which
- * acmIds it does not know and registers those.
+ * Re-decodes each flagged asset's real file and lets the file decide the flag. Then, for
+ * assets that now decode, asks WBIA which acmIds it does not know and registers those.
  *
- * It never sets the flag true directly -- only validateSourceImage() decides.
+ * THE CENTRAL SAFETY RULE: the flag is cleared ONLY together with a confirmed WBIA state --
+ * either WBIA already has the image, or it confirms the registration we just sent. A local
+ * decode proves ImageIO can read the file; it does NOT prove WBIA can fetch or accept it.
+ * Clearing the flag on a local decode alone would make a transient WBIA failure permanent,
+ * because the asset would no longer match this JSP's own selection filter and so could
+ * never be retried.
+ *
+ * Each asset is processed in its OWN transaction, so one failure cannot roll back or flush
+ * another, and commits are checked with commitDBTransactionWithStatus() because
+ * commitDBTransaction() swallows JDO failures and would let us report a durable success
+ * that never happened.
  *
  * PARAMS
- *   max=<n>        assets to process this run (default 100)
- *   commit=true    actually persist and register; DEFAULT IS A DRY RUN
- *   register=false revalidate only; skip the WBIA probe/registration step
- *   assetId=<id>   operate on exactly one asset (ignores max; good for a first look)
- *   verbose=true   include a per-asset detail array in the output
+ *   max=<n>         assets to consider this run (default 100)
+ *   commit=true     persist and register; DEFAULT IS A DRY RUN
+ *   probe=true      in a dry run, also ask WBIA which acmIds it lacks (remote GETs, read
+ *                   only). Off by default so a dry run touches nothing remote.
+ *   scope=matchable only assets backing a matchAgainst annotation (DEFAULT), since those
+ *                   are the ones identification needs. scope=all is an explicit,
+ *                   logged widening.
+ *   assetId=<id>    operate on exactly one asset; it must still be flagged.
+ *   verbose=true    include a per-asset detail array.
  *
- * NOTE validateSourceImage() only inspects the file for LOCAL asset stores. On any other
- * store it cannot decide, and such assets are reported as "unrevalidatable" rather than
- * being silently treated as either valid or corrupt.
+ * validateSourceImage() only inspects the file for LOCAL stores; on any other store it
+ * cannot decide, and such assets are reported "unrevalidatable" rather than guessed.
  */
 
 String context = ServletUtilities.getContext(request);
@@ -61,16 +72,15 @@ if (maxParam != null) {
         max = Integer.parseInt(maxParam.trim());
     } catch (NumberFormatException nfe) {
         response.setStatus(400);
-        out.println(new JSONObject().put("error", "invalid max parameter: " + maxParam).toString(4));
+        out.println(new JSONObject().put("error", "invalid max: " + maxParam).toString(4));
         return;
     }
     if (max < 1) {
         response.setStatus(400);
-        out.println(new JSONObject().put("error", "max must be a positive integer; got: " + maxParam).toString(4));
+        out.println(new JSONObject().put("error", "max must be positive; got " + maxParam).toString(4));
         return;
     }
 }
-
 Integer singleAssetId = null;
 String assetIdParam = request.getParameter("assetId");
 if (assetIdParam != null) {
@@ -78,196 +88,283 @@ if (assetIdParam != null) {
         singleAssetId = Integer.valueOf(assetIdParam.trim());
     } catch (NumberFormatException nfe) {
         response.setStatus(400);
-        out.println(new JSONObject().put("error", "invalid assetId parameter: " + assetIdParam).toString(4));
+        out.println(new JSONObject().put("error", "invalid assetId: " + assetIdParam).toString(4));
         return;
     }
 }
-
-boolean commit   = "true".equalsIgnoreCase(request.getParameter("commit"));
-boolean register = !"false".equalsIgnoreCase(request.getParameter("register"));
-boolean verbose  = "true".equalsIgnoreCase(request.getParameter("verbose"));
+String scope = request.getParameter("scope");
+if (scope == null) scope = "matchable";
+if (!"matchable".equals(scope) && !"all".equals(scope)) {
+    response.setStatus(400);
+    out.println(new JSONObject().put("error", "scope must be 'matchable' or 'all'").toString(4));
+    return;
+}
+boolean commit     = "true".equalsIgnoreCase(request.getParameter("commit"));
+boolean probeOnly  = "true".equalsIgnoreCase(request.getParameter("probe"));
+boolean doProbe    = commit || probeOnly;
+boolean verbose    = "true".equalsIgnoreCase(request.getParameter("verbose"));
+boolean matchableOnly = "matchable".equals(scope);
 
 JSONObject result = new JSONObject();
 result.put("dryRun", !commit);
-result.put("registerWithWbia", register && commit);
+result.put("scope", scope);
+result.put("willContactWbia", doProbe);
 JSONArray detail = new JSONArray();
 
-int examined = 0, nowValid = 0, stillInvalid = 0, unrevalidatable = 0, errored = 0;
-int probed = 0, missingAtWbia = 0, registered = 0, registerFailed = 0;
+int considered = 0, outOfScope = 0, wouldClear = 0, stillInvalid = 0, unrevalidatable = 0;
+int gone = 0, errored = 0, alreadyAtWbia = 0, registered = 0, notConfirmed = 0, commitFailed = 0;
 
-// ---- phase 1: collect the flagged asset ids (short transaction, primitives out) ----
+if ("all".equals(scope)) {
+    System.out.println("WARNING: repairQuarantinedImages.jsp running with scope=all "
+        + "(assets with no matchAgainst annotation included), commit=" + commit);
+}
+
+// ---- phase 1: select flagged asset ids (short tx, primitives out) ----
 List<Integer> ids = new ArrayList<Integer>();
-Shepherd readShepherd = new Shepherd(context);
-readShepherd.setAction("appadmin.repairQuarantinedImages.read");
-readShepherd.beginDBTransaction();
+String phase1Error = null;
+Shepherd readShepherd = null;
 Query q = null;
 try {
-    if (singleAssetId != null) {
-        ids.add(singleAssetId);
-    } else {
-        q = readShepherd.getPM().newQuery(MediaAsset.class, "validImageForIA == false");
-        q.setResult("id");            // project: no need to materialize the assets here
-        q.setOrdering("id ascending");
-        q.setRange(0, max);
-        Collection c = (Collection)q.execute();
-        for (Object o : c) {
-            if (o != null) ids.add(Integer.valueOf(o.toString()));
-        }
+    readShepherd = new Shepherd(context);
+    readShepherd.setAction("appadmin.repairQuarantinedImages.read");
+    readShepherd.beginDBTransaction();
+    // Always filter on the flag, even for a single assetId: this JSP's whole contract is
+    // "repair quarantined assets", and it must not be usable to re-send an arbitrary asset.
+    String filter = "validImageForIA == false";
+    if (singleAssetId != null) filter += " && id == " + singleAssetId.intValue();
+    q = readShepherd.getPM().newQuery(MediaAsset.class, filter);
+    q.setResult("id");
+    q.setOrdering("id ascending");
+    if (singleAssetId == null) q.setRange(0, max);
+    Collection c = (Collection)q.execute();
+    for (Object o : c) {
+        if (o != null) ids.add(Integer.valueOf(((Number)o).intValue()));
     }
 } catch (Exception ex) {
-    response.setStatus(500);
-    out.println(new JSONObject().put("error", "read phase failed: " + ex.toString()).toString(4));
-    return;
+    phase1Error = ex.toString();
 } finally {
-    if (q != null) q.closeAll();
-    readShepherd.rollbackAndClose();
+    try {
+        if (q != null) q.closeAll();
+    } finally {
+        if (readShepherd != null) readShepherd.rollbackAndClose();
+    }
+}
+if (phase1Error != null) {
+    response.setStatus(500);
+    out.println(new JSONObject().put("error", "read phase failed: " + phase1Error).toString(4));
+    return;
 }
 result.put("flaggedAssetsSelected", ids.size());
+if ((singleAssetId != null) && ids.isEmpty()) {
+    result.put("note", "asset " + singleAssetId
+        + " is not currently flagged validImageForIA=false; nothing to repair");
+    out.println(result.toString(4));
+    return;
+}
 
-// ---- phase 2: re-decode each file and let the file decide the flag ----
-// Collected for phase 3. In a dry run nothing is committed: the enclosing
-// rollbackAndClose() discards validateSourceImage()'s in-memory writes.
-List<Integer> becameValidIds = new ArrayList<Integer>();
-List<String> becameValidAcmIds = new ArrayList<String>();
+// ---- phase 2: decide candidacy WITHOUT persisting anything ----
+// Each asset gets its own transaction and is always rolled back here. validateSourceImage()
+// writes the flag on the managed instance, so the prior value is restored immediately (no PM
+// operation happens in between, so there is no flush point) and the rollback is a second
+// line of defence.
+List<Integer> candidateIds = new ArrayList<Integer>();
+List<String> probeAcmIds = new ArrayList<String>();   // deduped, well-formed only
+Set<String> probeSeen = new HashSet<String>();
 
-Shepherd vShepherd = new Shepherd(context);
-vShepherd.setAction("appadmin.repairQuarantinedImages.revalidate");
-vShepherd.beginDBTransaction();
-try {
-    for (Integer id : ids) {
-        examined++;
-        JSONObject row = new JSONObject();
-        row.put("assetId", id);
-        try {
-            MediaAsset ma = MediaAssetFactory.load(id.intValue(), vShepherd);
-            if (ma == null) {
-                row.put("outcome", "gone");
-                errored++;
-                if (verbose) detail.put(row);
-                continue;
-            }
+for (Integer id : ids) {
+    considered++;
+    JSONObject row = new JSONObject();
+    row.put("assetId", id);
+    Shepherd sh = null;
+    try {
+        sh = new Shepherd(context);
+        sh.setAction("appadmin.repairQuarantinedImages.check." + id);
+        sh.beginDBTransaction();
+        MediaAsset ma = MediaAssetFactory.load(id.intValue(), sh);
+        if (ma == null) {
+            row.put("outcome", "gone");
+            gone++;
+        } else {
             String storeType = null;
             try {
                 if (ma.getStore() != null) storeType = ma.getStore().getType().toString();
             } catch (Exception ignore) { }
             row.put("store", (storeType == null) ? "unknown" : storeType);
-            if (!"LOCAL".equals(storeType)) {
-                // validateSourceImage() is a no-op off LOCAL; do not guess either way
+            boolean inScope = true;
+            if (matchableOnly) {
+                inScope = false;
+                for (Annotation ann : ma.getAnnotations()) {
+                    if ((ann != null) && ann.getMatchAgainst()) { inScope = true; break; }
+                }
+            }
+            if (!inScope) {
+                row.put("outcome", "outOfScope");
+                outOfScope++;
+            } else if (!"LOCAL".equals(storeType)) {
                 row.put("outcome", "unrevalidatable");
                 unrevalidatable++;
-                if (verbose) detail.put(row);
-                continue;
-            }
-            boolean valid = ma.validateSourceImage();   // reads the actual file
-            row.put("outcome", valid ? "nowValid" : "stillInvalid");
-            if (valid) {
-                nowValid++;
-                becameValidIds.add(id);
-                if (Util.stringExists(ma.getAcmId()) && Util.isUUID(ma.getAcmId()))
-                    becameValidAcmIds.add(ma.getAcmId());
-                row.put("acmId", ma.getAcmId());
-                if (commit) vShepherd.updateDBTransaction();
             } else {
-                stillInvalid++;
-                // leave it flagged: the file genuinely does not decode
+                Boolean priorFlag = ma.isValidImageForIA();
+                boolean decodes = ma.validateSourceImage();
+                ma.setIsValidImageForIA(priorFlag);   // leave the instance clean
+                if (decodes) {
+                    wouldClear++;
+                    candidateIds.add(id);
+                    row.put("outcome", "decodesOk");
+                    String acm = ma.getAcmId();
+                    row.put("acmId", acm);
+                    if (Util.stringExists(acm) && Util.isUUID(acm)) {
+                        if (probeSeen.add(acm)) probeAcmIds.add(acm);
+                    } else {
+                        row.put("acmIdNote", "null/malformed; will be assigned on register");
+                    }
+                } else {
+                    stillInvalid++;
+                    row.put("outcome", "stillInvalid");
+                }
             }
-        } catch (Exception ex) {
-            errored++;
-            row.put("outcome", "error");
-            row.put("error", ex.toString());
-            System.out.println("repairQuarantinedImages: asset " + id + " failed: " + ex);
         }
-        if (verbose) detail.put(row);
+    } catch (Exception ex) {
+        errored++;
+        row.put("outcome", "error");
+        row.put("error", ex.toString());
+        System.out.println("repairQuarantinedImages: check failed for asset " + id + ": " + ex);
+    } finally {
+        if (sh != null) sh.rollbackAndClose();   // phase 2 NEVER persists
     }
-} finally {
-    vShepherd.rollbackAndClose();   // dry run: discards; commit run: trailing empty tx only
+    if (verbose) detail.put(row);
 }
 
-result.put("examined", examined);
-result.put("nowValid", nowValid);
+result.put("considered", considered);
+result.put("outOfScope", outOfScope);
+result.put("decodesOk", wouldClear);
 result.put("stillInvalid", stillInvalid);
 result.put("unrevalidatable", unrevalidatable);
+result.put("gone", gone);
 result.put("errored", errored);
 
-// ---- phase 3: ask WBIA which of the newly-valid acmIds it does not know (no tx open) ----
-List<String> missing = new ArrayList<String>();
-if (register && !becameValidAcmIds.isEmpty()) {
+// ---- phase 3: ask WBIA which acmIds it lacks (no transaction open) ----
+Set<String> missingAtWbia = new HashSet<String>();
+boolean probeOk = false;
+if (doProbe && !probeAcmIds.isEmpty()) {
     try {
-        probed = becameValidAcmIds.size();
-        missing = WildbookIAM.iaMissingImageIds(becameValidAcmIds, context);
-        missingAtWbia = missing.size();
+        missingAtWbia.addAll(WildbookIAM.iaMissingImageIds(probeAcmIds, context));
+        probeOk = true;
     } catch (Exception ex) {
         result.put("probeError", ex.toString());
-        missing = new ArrayList<String>();
     }
+    result.put("probedAtWbia", probeAcmIds.size());
+    result.put("missingFromWbia", probeOk ? missingAtWbia.size() : -1);
 }
-result.put("probedAtWbia", probed);
-result.put("missingFromWbia", missingAtWbia);
 
-// ---- phase 4: register the missing ones (own transaction, commit per confirmation) ----
-if (commit && register && !missing.isEmpty()) {
-    Shepherd sShepherd = new Shepherd(context);
-    sShepherd.setAction("appadmin.repairQuarantinedImages.register");
-    sShepherd.beginDBTransaction();
-    try {
-        for (String acmId : missing) {
+// ---- phase 4: per asset, register if needed and clear the flag only on confirmed state ----
+if (commit) {
+    if (!probeOk && !probeAcmIds.isEmpty()) {
+        result.put("abort", "WBIA probe failed; refusing to clear any flag without knowing "
+            + "WBIA's state. Nothing was changed. Retry when WBIA is reachable.");
+    } else {
+        for (Integer id : candidateIds) {
             JSONObject row = new JSONObject();
-            row.put("acmId", acmId);
+            row.put("assetId", id);
+            Shepherd sh = null;
+            boolean ok = false;
             try {
-                MediaAsset ma = MediaAssetFactory.loadByAcmId(acmId, sShepherd);
+                sh = new Shepherd(context);
+                sh.setAction("appadmin.repairQuarantinedImages.repair." + id);
+                sh.beginDBTransaction();
+                // reload by PRIMARY KEY: acmId is explicitly not unique
+                // (MediaAssetFactory.loadByAcmId returns the oldest match), so keying phase
+                // 4 off acmId could repair a different row than the one we examined.
+                MediaAsset ma = MediaAssetFactory.load(id.intValue(), sh);
                 if (ma == null) {
-                    row.put("outcome", "assetGoneBeforeRegister");
-                    registerFailed++;
-                    if (verbose) detail.put(row);
-                    continue;
-                }
-                String before = ma.getAcmId();
-                if (!ma.hasFamily(sShepherd)) ma.updateStandardChildren();
-                ArrayList<MediaAsset> one = new ArrayList<MediaAsset>();
-                one.add(ma);
-                // checkFirst=false: phase 3 already established absence
-                JSONObject sendRtn = IBEISIA.sendMediaAssetsNew(one, context, false);
-                if (AcmIdBot.sendConfirmedAcmId(sendRtn, ma.getAcmId())) {
-                    // rectifyMediaAssetIds may have adopted WBIA's UUID. acmId IS part of
-                    // the MediaAsset OpenSearch document but setAcmId does not bump
-                    // revision, so bump it explicitly or the index keeps the old value.
-                    if ((before == null) || !before.equals(ma.getAcmId())) {
-                        row.put("acmIdChanged", before + " -> " + ma.getAcmId());
-                        ma.setRevision();
-                    }
-                    sShepherd.updateDBTransaction();
-                    registered++;
-                    row.put("outcome", "registered");
+                    row.put("outcome", "goneBeforeRepair");
+                    gone++;
+                } else if (!ma.validateSourceImage()) {
+                    // re-decided under this transaction; validateSourceImage left it false,
+                    // which is the correct persisted state, so commit that verdict
+                    row.put("outcome", "stillInvalidOnRecheck");
+                    ok = sh.commitDBTransactionWithStatus();
+                    if (!ok) commitFailed++;
                 } else {
-                    registerFailed++;
-                    row.put("outcome", "unconfirmedByWbia");
-                    System.out.println("repairQuarantinedImages: WBIA did not confirm " + acmId);
+                    String priorAcmId = ma.getAcmId();
+                    boolean needsRegister =
+                        !Util.stringExists(priorAcmId) || !Util.isUUID(priorAcmId)
+                        || missingAtWbia.contains(priorAcmId);
+                    if (!needsRegister) {
+                        // WBIA already holds this image: clearing the flag is backed by
+                        // confirmed remote state
+                        alreadyAtWbia++;
+                        row.put("outcome", "clearedFlagWbiaAlreadyHadImage");
+                        ok = sh.commitDBTransactionWithStatus();
+                        if (!ok) commitFailed++;
+                    } else {
+                        if (!Util.stringExists(priorAcmId) || !Util.isUUID(priorAcmId))
+                            ma.setAcmId(ma.getUUID());
+                        ArrayList<MediaAsset> one = new ArrayList<MediaAsset>();
+                        one.add(ma);
+                        // NOTE: deliberately no updateStandardChildren() here. It writes
+                        // files into the asset store and creates child MediaAssets as a
+                        // side effect; those writes are not rollbackable and would happen
+                        // even when the POST below fails. The URI WBIA receives is the
+                        // parent's webURL, so children are not needed for registration.
+                        JSONObject sendRtn = IBEISIA.sendMediaAssetsNew(one, context, false);
+                        if (AcmIdBot.sendConfirmedAcmId(sendRtn, ma.getAcmId())) {
+                            // rectifyMediaAssetIds may have adopted WBIA's UUID. acmId IS in
+                            // the MediaAsset OpenSearch document but setAcmId does not bump
+                            // revision, so bump it or the index keeps the stale value.
+                            if ((priorAcmId == null) || !priorAcmId.equals(ma.getAcmId())) {
+                                row.put("acmIdChanged", priorAcmId + " -> " + ma.getAcmId());
+                                ma.setRevision();
+                            }
+                            ok = sh.commitDBTransactionWithStatus();
+                            if (ok) {
+                                registered++;
+                                row.put("outcome", "registeredAndFlagCleared");
+                            } else {
+                                commitFailed++;
+                                row.put("outcome", "registeredButCommitFailed");
+                            }
+                        } else {
+                            // WBIA did not acknowledge: roll back so the flag STAYS false
+                            // and this asset is selected again on a later run
+                            notConfirmed++;
+                            row.put("outcome", "notConfirmedByWbiaLeftFlagged");
+                            System.out.println("repairQuarantinedImages: WBIA did not confirm asset "
+                                + id + "; leaving it flagged for retry");
+                        }
+                    }
                 }
             } catch (Exception ex) {
-                registerFailed++;
-                row.put("outcome", "registerError");
+                errored++;
+                row.put("outcome", "error");
                 row.put("error", ex.toString());
-                System.out.println("repairQuarantinedImages: register failed for " + acmId +
-                    ": " + ex);
+                System.out.println("repairQuarantinedImages: repair failed for asset " + id
+                    + ": " + ex);
+            } finally {
+                // rollbackAndClose is a no-op rollback after a successful commit, and
+                // discards everything on any unconfirmed or failed path
+                if (sh != null) sh.rollbackAndClose();
             }
             if (verbose) detail.put(row);
         }
-    } finally {
-        sShepherd.rollbackAndClose();
     }
 }
-result.put("registeredWithWbia", registered);
-result.put("registerFailed", registerFailed);
+
+result.put("clearedBecauseWbiaAlreadyHadImage", alreadyAtWbia);
+result.put("registeredWithWbiaAndCleared", registered);
+result.put("notConfirmedLeftFlagged", notConfirmed);
+result.put("commitFailed", commitFailed);
 
 if (!commit) {
-    result.put("note",
-        "DRY RUN: nothing persisted and nothing sent to WBIA. Re-run with &commit=true to apply. "
-        + "Flag changes shown here were computed by actually decoding each file.");
+    result.put("note", "DRY RUN: nothing persisted, nothing registered. 'decodesOk' counts "
+        + "assets whose files really were decoded just now and which would be candidates. "
+        + "Re-run with &commit=true to apply."
+        + (doProbe ? "" : " Add &probe=true to also ask WBIA what it is missing."));
 }
+result.put("safetyNote", "A flag is only ever cleared together with confirmed WBIA state "
+    + "(image already present, or registration acknowledged). Assets left flagged -- "
+    + "stillInvalid or notConfirmed -- are selected again on the next run, by design.");
 if (verbose) result.put("detail", detail);
-result.put("remainingHint",
-    "Re-run until flaggedAssetsSelected is 0. Assets reported stillInvalid keep the flag by "
-    + "design -- their files do not decode -- and will be selected again on every run.");
 
 out.println(result.toString(4));
 %>
