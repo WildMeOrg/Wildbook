@@ -174,7 +174,7 @@ public class AcmIdBot {
     // WBIA? add_images_json returns the registered image UUIDs; require ours
     // among them before counting (and committing) a heal — otherwise a locally
     // pre-assigned acmId could be persisted although WBIA never registered it
-    static boolean sendConfirmedAcmId(org.json.JSONObject sendRtn, String expectedAcmId) {
+    public static boolean sendConfirmedAcmId(org.json.JSONObject sendRtn, String expectedAcmId) {
         if ((sendRtn == null) || (expectedAcmId == null)) return false;
         org.json.JSONArray batches = sendRtn.optJSONArray("batchResults");
         if (batches == null) return false;
