@@ -260,13 +260,9 @@ for (Integer id : ids) {
     if (verbose) detail.put(row);
 }
 
-result.put("considered", considered);
-result.put("outOfScope", outOfScope);
-result.put("decodesOk", wouldClear);
-result.put("stillInvalid", stillInvalid);
-result.put("unrevalidatable", unrevalidatable);
-result.put("gone", gone);
-result.put("errored", errored);
+// NOTE: all counters are reported AFTER phase 4, below. Writing any of them here would
+// silently drop phase 4's increments -- a live run showed "errored": 0 alongside a detail
+// row that plainly errored, because errored/gone/stillInvalid had already been serialized.
 
 // ---- phase 3: ask WBIA which acmIds it lacks (no transaction open) ----
 Set<String> missingAtWbia = new HashSet<String>();
@@ -485,6 +481,13 @@ if (commit) {
     }
 }
 
+result.put("considered", considered);
+result.put("outOfScope", outOfScope);
+result.put("decodesOk", wouldClear);
+result.put("stillInvalid", stillInvalid);
+result.put("unrevalidatable", unrevalidatable);
+result.put("gone", gone);
+result.put("errored", errored);
 result.put("clearedBecauseWbiaAlreadyHadImage", alreadyAtWbia);
 result.put("registeredWithWbiaAndCleared", registered);
 result.put("notConfirmedLeftFlagged", notConfirmed);
