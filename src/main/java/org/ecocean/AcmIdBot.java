@@ -38,6 +38,7 @@ public class AcmIdBot {
             int numAcmIdFixesSent = 0;
             int numAcmIdFixesSuccessful = 0;
             int numInvalidForIA = 0;
+            int numSendFailures = 0;
             for (Feature feat : feats) {
                 MediaAsset asset = feat.getMediaAsset();
                 myShepherd.setAction("AcmIDBot_" + summaryMessage + "_asset_" + asset.getId());
@@ -68,15 +69,20 @@ public class AcmIdBot {
                         }
                     }
                 } catch (Exception ec) {
-                    System.out.println("Exception in AcmIdBot.fixFeats");
+                    // An HTTP status is not a file-integrity verdict, so a failed send must
+                    // NOT flag the image invalid for IA. That flag is terminal in practice:
+                    // WildbookIAM.sendMediaAssets refuses to register a flagged asset, the
+                    // reconciliation sweep skips it before it is even probed, and nothing
+                    // re-validates it (validateSourceImage is only consulted when the flag
+                    // is null). The result was a silent permanent quarantine -- and because
+                    // sendAnnotations does not check the flag, annotations on such an asset
+                    // still get POSTed, which is what produces WBIA's
+                    // "image_uuid_list has invalid values [(0, None)]" 500. Image validity
+                    // belongs to validateSourceImage(), which reads the actual file.
+                    numSendFailures++;
+                    System.out.println("Exception in AcmIdBot.fixFeats for asset " +
+                        ((asset == null) ? "?" : asset.getId()) + ": " + ec.toString());
                     ec.printStackTrace();
-                    // as of now we don't know of a commonality that would suggest a fix
-                    if (ec.toString().contains("HTTP error code : 500")) {
-                        asset.setIsValidImageForIA(false);
-                        myShepherd.updateDBTransaction();
-                        numValidIAFixes--;
-                        numInvalidForIA++;
-                    }
                 }
             }
             System.out.println(summaryMessage);
@@ -87,6 +93,8 @@ public class AcmIdBot {
                 numAcmIdFixesSent);
             System.out.println("......num media assets successfully updated with Acm ID: " +
                 numAcmIdFixesSuccessful);
+            System.out.println("......num sends that failed (retried later, NOT quarantined): " +
+                numSendFailures);
         }
     }
 
@@ -461,20 +469,18 @@ public class AcmIdBot {
                         // can persist an acmId WBIA never acknowledged; probed-missing
                         // assets revert to their original non-null DB acmId
                         if (priorCaptured && asset != null) asset.setAcmId(priorAcmId);
+                        // Deliberately does NOT flag the image invalid for IA on an HTTP
+                        // failure (see the matching note in fixFeats): that flag is a
+                        // terminal, silently self-reinforcing quarantine -- sendMediaAssets
+                        // then refuses to register the asset, this sweep skips it before it
+                        // is ever probed, and nothing re-validates it. Meanwhile
+                        // sendAnnotations ignores the flag and still POSTs annotations on the
+                        // unregistered image, producing WBIA's
+                        // "image_uuid_list has invalid values [(0, None)]" 500. A send
+                        // failure just means retry on a later pass.
                         System.out.println("Exception in AcmIdBot sweep heal for asset " +
-                            assetId);
+                            assetId + ": " + ec.toString());
                         ec.printStackTrace();
-                        // mirror fixFeats: a 500 from WBIA marks the image invalid for IA
-                        if (ec.toString().contains("HTTP error code : 500")) {
-                            try {
-                                if (asset != null) {
-                                    asset.setIsValidImageForIA(false);
-                                    healShepherd.updateDBTransaction();
-                                }
-                            } catch (Exception inner) {
-                                inner.printStackTrace();
-                            }
-                        }
                     }
                 }
             } finally {
