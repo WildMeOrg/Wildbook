@@ -759,22 +759,35 @@ public class AcmIdBot {
             page.nullAcmAnnotIds.size()) + " candidates (" + page.acmIdToAnnotId.size() +
             " probed, " + page.nullAcmAnnotIds.size() + " null/malformed acmId)");
         System.out.println("......missing from WBIA: " + missingAcmIds.size());
-        System.out.println("......heals sent: " + tally.sent + ", heals confirmed: " +
-            tally.healed + (tally.maxFixesHit ? " (maxFixes cap hit)" : ""));
-        System.out.println("......skipped: " + tally.skippedNoAsset + " no media asset, " +
-            tally.blockedOnAsset + " image not registered at WBIA, " +
-            tally.skippedInvalid + " invalid for identification");
+        System.out.println("......heal candidates: " + candidateIds.size() +
+            "; POSTs sent: " + tally.sent + ", confirmed: " + tally.healed +
+            (tally.maxFixesHit ? " (maxFixes cap hit)" : ""));
+        // buckets are mutually exclusive and, absent a maxFixes break, sum to the
+        // candidate count -- so a mismatch is itself a signal worth investigating
+        System.out.println("......not healed: " + tally.unconfirmed +
+            " unconfirmed by WBIA, " + tally.blockedOnAsset +
+            " image not registered at WBIA, " + tally.skippedInvalid +
+            " invalid for identification, " + tally.skippedNoAsset + " no media asset, " +
+            tally.gone + " deleted mid-run, " + tally.errored + " errored");
         System.out.println("......cursor now '" + annotSweepCursor + "'" +
             (page.rawExhausted && !tally.maxFixesHit ? " (sweep complete, wrapped)" : ""));
     }
 
-    /** Per-run heal accounting, kept in one object so the summary log stays honest. */
+    /**
+     * Per-run heal accounting, kept in one object so the summary log stays honest.
+     * Every candidate lands in exactly one of gone / skippedNoAsset / skippedInvalid /
+     * blockedOnAsset / healed / unconfirmed / errored, so an operator can check that the
+     * buckets add up to the candidate count instead of wondering where rows went.
+     */
     static class AnnotHealTally {
-        int sent = 0;
-        int healed = 0;
+        int sent = 0;         // POSTs attempted (healed + unconfirmed)
+        int healed = 0;       // WBIA echoed our acmId
+        int unconfirmed = 0;  // POST returned, but not with our acmId
+        int gone = 0;         // annotation deleted between read and heal
         int skippedNoAsset = 0;
         int blockedOnAsset = 0;
         int skippedInvalid = 0;
+        int errored = 0;      // threw; see the stack trace above the summary
         boolean maxFixesHit = false;
         String resumeAnnotId = null;
     }
@@ -807,6 +820,7 @@ public class AcmIdBot {
                     if (ann == null) {
                         System.out.println("WARNING: AcmIdBot annotation sweep skipping " + annId +
                             " (no longer exists)");
+                        tally.gone++;
                         continue;
                     }
                     MediaAsset ma = ann.getMediaAsset();
@@ -860,6 +874,7 @@ public class AcmIdBot {
                             break;
                         }
                     } else {
+                        tally.unconfirmed++;
                         System.out.println(
                             "WARNING: AcmIdBot annotation sweep could not confirm WBIA registration for "
                             + annId + "; not counting as healed");
@@ -871,6 +886,7 @@ public class AcmIdBot {
                         if (annAcmIdAdopted) ann.setAcmId(priorAnnAcmId);
                     }
                 } catch (Exception ec) {
+                    tally.errored++;
                     // revert BEFORE any later candidate's commit can persist an identifier
                     // WBIA never acknowledged
                     if (annAcmIdAdopted && (ann != null)) ann.setAcmId(priorAnnAcmId);
