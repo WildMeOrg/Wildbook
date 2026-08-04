@@ -10,8 +10,10 @@ org.ecocean.Util,
 javax.jdo.Query,
 java.util.ArrayList,
 java.util.Collection,
+java.util.HashMap,
 java.util.HashSet,
 java.util.List,
+java.util.Map,
 java.util.Set,
 org.json.JSONArray,
 org.json.JSONObject" %>
@@ -113,6 +115,7 @@ JSONArray detail = new JSONArray();
 
 int considered = 0, outOfScope = 0, wouldClear = 0, stillInvalid = 0, unrevalidatable = 0;
 int gone = 0, errored = 0, alreadyAtWbia = 0, registered = 0, notConfirmed = 0, commitFailed = 0;
+int ambiguous = 0;
 
 if ("all".equals(scope)) {
     System.out.println("WARNING: repairQuarantinedImages.jsp running with scope=all "
@@ -170,6 +173,15 @@ if ((singleAssetId != null) && ids.isEmpty()) {
 List<Integer> candidateIds = new ArrayList<Integer>();
 List<String> probeAcmIds = new ArrayList<String>();   // deduped, well-formed only
 Set<String> probeSeen = new HashSet<String>();
+// The exact acmId each asset carried when we probed for it. Phase 4 will only accept
+// "WBIA already has this" if the asset STILL carries that same value -- probe evidence has
+// to be bound to the state we later commit, or a value that changed underneath us (another
+// thread, a sweep heal) would be treated as proven present though it was never asked about.
+Map<Integer, String> probedAcmIdByAsset = new HashMap<Integer, String>();
+// acmId is explicitly NOT unique (MediaAssetFactory.loadByAcmId returns the oldest of
+// several). If two candidates share one, a single "present at WBIA" answer cannot tell us
+// WHICH local asset is the registered image, so neither may be auto-cleared.
+Map<String, Integer> candidatesPerAcmId = new HashMap<String, Integer>();
 
 for (Integer id : ids) {
     considered++;
@@ -215,6 +227,10 @@ for (Integer id : ids) {
                     row.put("acmId", acm);
                     if (Util.stringExists(acm) && Util.isUUID(acm)) {
                         if (probeSeen.add(acm)) probeAcmIds.add(acm);
+                        probedAcmIdByAsset.put(id, acm);
+                        Integer seen = candidatesPerAcmId.get(acm);
+                        candidatesPerAcmId.put(acm,
+                            Integer.valueOf((seen == null) ? 1 : seen.intValue() + 1));
                     } else {
                         row.put("acmIdNote", "null/malformed; will be assigned on register");
                     }
@@ -280,23 +296,49 @@ if (commit) {
                     row.put("outcome", "goneBeforeRepair");
                     gone++;
                 } else if (!ma.validateSourceImage()) {
-                    // re-decided under this transaction; validateSourceImage left it false,
-                    // which is the correct persisted state, so commit that verdict
+                    // Re-decided under this transaction and it does not decode after all
+                    // (it decoded in phase 2, so the file changed underneath us, or the
+                    // read was flaky). The flag is already false and must stay false, so
+                    // there is nothing to persist -- fall through to the finally's rollback
+                    // rather than committing a no-op write.
+                    stillInvalid++;
                     row.put("outcome", "stillInvalidOnRecheck");
-                    ok = sh.commitDBTransactionWithStatus();
-                    if (!ok) commitFailed++;
                 } else {
                     String priorAcmId = ma.getAcmId();
-                    boolean needsRegister =
-                        !Util.stringExists(priorAcmId) || !Util.isUUID(priorAcmId)
-                        || missingAtWbia.contains(priorAcmId);
-                    if (!needsRegister) {
-                        // WBIA already holds this image: clearing the flag is backed by
-                        // confirmed remote state
-                        alreadyAtWbia++;
+                    String probedAcmId = probedAcmIdByAsset.get(id);
+                    Integer shared = (probedAcmId == null)
+                        ? null : candidatesPerAcmId.get(probedAcmId);
+                    if ((shared != null) && (shared.intValue() > 1)) {
+                        // Two or more candidates carry this same acmId. One "present at
+                        // WBIA" answer cannot say which of them is the registered image, and
+                        // re-POSTing would just overwrite whichever WBIA holds. Leave both
+                        // flagged and surface it for a human.
+                        ambiguous++;
+                        row.put("outcome", "ambiguousDuplicateAcmId");
+                        row.put("acmId", probedAcmId);
+                        row.put("sharedByCandidates", shared);
+                        System.out.println("repairQuarantinedImages: asset " + id
+                            + " shares acmId " + probedAcmId + " with " + (shared.intValue() - 1)
+                            + " other candidate(s); leaving flagged for manual reconciliation");
+                    } else {
+                    // "WBIA already has it" may ONLY be concluded when the asset still
+                    // carries the exact acmId we probed. Anything else -- null, malformed,
+                    // never probed, or changed since phase 2 -- is unproven and falls through
+                    // to the register branch, which POSTs and demands confirmation.
+                    boolean provenPresent = Util.stringExists(priorAcmId)
+                        && Util.isUUID(priorAcmId)
+                        && priorAcmId.equals(probedAcmId)
+                        && !missingAtWbia.contains(priorAcmId);
+                    if (provenPresent) {
+                        // clearing the flag here is backed by a probe of this exact value
                         row.put("outcome", "clearedFlagWbiaAlreadyHadImage");
                         ok = sh.commitDBTransactionWithStatus();
-                        if (!ok) commitFailed++;
+                        if (ok) {
+                            alreadyAtWbia++;
+                        } else {
+                            commitFailed++;
+                            row.put("outcome", "wbiaHadImageButCommitFailed");
+                        }
                     } else {
                         if (!Util.stringExists(priorAcmId) || !Util.isUUID(priorAcmId))
                             ma.setAcmId(ma.getUUID());
@@ -333,6 +375,7 @@ if (commit) {
                                 + id + "; leaving it flagged for retry");
                         }
                     }
+                    }
                 }
             } catch (Exception ex) {
                 errored++;
@@ -353,6 +396,7 @@ if (commit) {
 result.put("clearedBecauseWbiaAlreadyHadImage", alreadyAtWbia);
 result.put("registeredWithWbiaAndCleared", registered);
 result.put("notConfirmedLeftFlagged", notConfirmed);
+result.put("ambiguousDuplicateAcmIdLeftFlagged", ambiguous);
 result.put("commitFailed", commitFailed);
 
 if (!commit) {
