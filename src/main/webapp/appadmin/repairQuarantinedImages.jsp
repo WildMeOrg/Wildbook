@@ -308,18 +308,46 @@ if (commit) {
                     String probedAcmId = probedAcmIdByAsset.get(id);
                     Integer shared = (probedAcmId == null)
                         ? null : candidatesPerAcmId.get(probedAcmId);
-                    if ((shared != null) && (shared.intValue() > 1)) {
-                        // Two or more candidates carry this same acmId. One "present at
-                        // WBIA" answer cannot say which of them is the registered image, and
-                        // re-POSTing would just overwrite whichever WBIA holds. Leave both
-                        // flagged and surface it for a human.
+                    // acmId is explicitly NOT unique. Counting duplicates only among this
+                    // run's candidates is not enough: a sharing asset outside this page (or
+                    // not flagged at all) would still make WBIA's "present" answer ambiguous,
+                    // since it could belong to that other asset. So count ALL assets holding
+                    // this acmId, inside this same transaction. A failed count is treated as
+                    // ambiguous -- fail closed rather than clear a flag on an unverified
+                    // uniqueness assumption.
+                    int holdersOfAcmId = 1;
+                    if (Util.stringExists(priorAcmId)) {
+                        Query dupQ = null;
+                        try {
+                            dupQ = sh.getPM().newQuery(MediaAsset.class, "acmId == :a");
+                            dupQ.setResult("count(id)");
+                            Object cnt = dupQ.execute(priorAcmId);
+                            holdersOfAcmId = (cnt instanceof Number)
+                                ? ((Number)cnt).intValue() : -1;
+                        } catch (Exception dex) {
+                            holdersOfAcmId = -1;
+                            System.out.println("repairQuarantinedImages: duplicate-acmId check"
+                                + " failed for asset " + id + " (" + priorAcmId + "): " + dex);
+                        } finally {
+                            if (dupQ != null) dupQ.closeAll();
+                        }
+                    }
+                    boolean acmIdAmbiguous = Util.stringExists(priorAcmId)
+                        && (holdersOfAcmId != 1);
+                    if (((shared != null) && (shared.intValue() > 1)) || acmIdAmbiguous) {
+                        // Two or more assets carry this acmId (or the count could not be
+                        // established). One "present at WBIA" answer cannot say which asset
+                        // is the registered image, and re-POSTing would overwrite whichever
+                        // one WBIA holds. Leave it flagged and surface it for a human.
                         ambiguous++;
                         row.put("outcome", "ambiguousDuplicateAcmId");
-                        row.put("acmId", probedAcmId);
-                        row.put("sharedByCandidates", shared);
-                        System.out.println("repairQuarantinedImages: asset " + id
-                            + " shares acmId " + probedAcmId + " with " + (shared.intValue() - 1)
-                            + " other candidate(s); leaving flagged for manual reconciliation");
+                        row.put("acmId", priorAcmId);
+                        row.put("assetsHoldingThisAcmId", holdersOfAcmId);
+                        if (shared != null) row.put("sharedByCandidatesThisRun", shared);
+                        System.out.println("repairQuarantinedImages: asset " + id + " acmId "
+                            + priorAcmId + " is held by " + holdersOfAcmId
+                            + " asset(s) (-1 = count failed); leaving flagged for manual"
+                            + " reconciliation");
                     } else {
                     // "WBIA already has it" may ONLY be concluded when the asset still
                     // carries the exact acmId we probed. Anything else -- null, malformed,
