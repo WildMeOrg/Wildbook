@@ -133,9 +133,19 @@ try {
     // Always filter on the flag, even for a single assetId: this JSP's whole contract is
     // "repair quarantined assets", and it must not be usable to re-send an arbitrary asset.
     String filter = "validImageForIA == false";
+    // Push the matchable-scope test into the QUERY rather than filtering after selection.
+    // Filtering afterwards meant out-of-scope assets consumed the window -- one run examined
+    // 200 and found 185 of them out of scope, leaving 15 real candidates. Worse, because
+    // there is no cursor and skipped assets stay flagged, every subsequent run re-selected
+    // the exact same 200 and made no progress at all. Selecting only in-scope assets makes
+    // the window entirely useful and lets the backlog actually drain.
+    if (matchableOnly)
+        filter += " && features.contains(feat) && feat.annotation.matchAgainst == true";
     if (singleAssetId != null) filter += " && id == " + singleAssetId.intValue();
     q = readShepherd.getPM().newQuery(MediaAsset.class, filter);
-    q.setResult("id");
+    if (matchableOnly) q.declareVariables("org.ecocean.media.Feature feat");
+    // distinct: an asset with several matchable features would otherwise repeat
+    q.setResult("distinct id");
     q.setOrdering("id ascending");
     if (singleAssetId == null) q.setRange(0, max);
     Collection c = (Collection)q.execute();
@@ -318,15 +328,37 @@ if (commit) {
                     if (Util.stringExists(priorAcmId)) {
                         Query dupQ = null;
                         try {
-                            dupQ = sh.getPM().newQuery(MediaAsset.class, "acmId == :a");
-                            dupQ.setResult("count(id)");
+                            // count(this) with an explicitly declared parameter, matching the
+                            // one working precedent in this codebase (Shepherd:3197, which
+                            // casts the result to Long). An earlier version used count(id)
+                            // with an implicit :param and produced a non-Number result for
+                            // EVERY asset, which the fail-closed guard below then read as
+                            // "ambiguous" -- blocking 100% of candidates. Accept either a
+                            // bare aggregate or a single-element collection, since
+                            // DataNucleus is not consistent about which it returns.
+                            dupQ = sh.getPM().newQuery(MediaAsset.class, "acmId == acmIdParam");
+                            dupQ.declareParameters("String acmIdParam");
+                            dupQ.setResult("count(this)");
                             Object cnt = dupQ.execute(priorAcmId);
-                            holdersOfAcmId = (cnt instanceof Number)
-                                ? ((Number)cnt).intValue() : -1;
+                            if (cnt instanceof Number) {
+                                holdersOfAcmId = ((Number)cnt).intValue();
+                            } else if (cnt instanceof Collection) {
+                                Collection cc = (Collection)cnt;
+                                Object first = cc.isEmpty() ? null : cc.iterator().next();
+                                holdersOfAcmId = (first instanceof Number)
+                                    ? ((Number)first).intValue() : -1;
+                            } else {
+                                holdersOfAcmId = -1;
+                                System.out.println("repairQuarantinedImages: duplicate-acmId"
+                                    + " count returned unexpected type "
+                                    + ((cnt == null) ? "null" : cnt.getClass().getName())
+                                    + " for asset " + id);
+                            }
                         } catch (Exception dex) {
                             holdersOfAcmId = -1;
                             System.out.println("repairQuarantinedImages: duplicate-acmId check"
-                                + " failed for asset " + id + " (" + priorAcmId + "): " + dex);
+                                + " FAILED for asset " + id + " (" + priorAcmId + "): " + dex);
+                            dex.printStackTrace();
                         } finally {
                             if (dupQ != null) dupQ.closeAll();
                         }
@@ -339,7 +371,10 @@ if (commit) {
                         // is the registered image, and re-POSTing would overwrite whichever
                         // one WBIA holds. Leave it flagged and surface it for a human.
                         ambiguous++;
-                        row.put("outcome", "ambiguousDuplicateAcmId");
+                        // distinguish a genuine duplicate from a failed count, so a broken
+                        // guard can never again masquerade as a data problem
+                        row.put("outcome", (holdersOfAcmId < 0)
+                            ? "duplicateCheckFailed" : "ambiguousDuplicateAcmId");
                         row.put("acmId", priorAcmId);
                         row.put("assetsHoldingThisAcmId", holdersOfAcmId);
                         if (shared != null) row.put("sharedByCandidatesThisRun", shared);
