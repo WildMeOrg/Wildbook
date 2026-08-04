@@ -146,6 +146,31 @@ class AcmIdBotAnnotSweepTest {
         assertEquals("id-2", page.lastAnnotId);
     }
 
+    // ---------- database-order preservation ----------
+
+    @Test void recordsEveryDistinctIdInDatabaseOrder() {
+        // The heal phase must walk candidates in the order the DB returned them, because
+        // the cursor's "id > x" comparison happens in Postgres collation, which need not
+        // agree with Java's UTF-16 ordering for hyphenated UUID text. These ids are
+        // deliberately NOT in Java sort order.
+        List<String[]> in = Arrays.asList(
+            row("zz-1", UUID_A), row("aa-2", null), row("mm-3", UUID_B));
+        AcmIdBot.AnnotSweepPage page = AcmIdBot.collectAnnotSweepPage(in.iterator(), 10);
+
+        assertEquals(Arrays.asList("zz-1", "aa-2", "mm-3"), page.orderedAnnotIds,
+            "page order must be the database's, not re-sorted");
+        assertEquals("mm-3", page.lastAnnotId, "cursor follows the last row the DB gave");
+    }
+
+    @Test void orderedIdsExcludeSkippedRowsAndDuplicates() {
+        List<String[]> in = Arrays.asList(
+            row("id-1", UUID_A), null, row(null, UUID_B), row("id-1", UUID_A),
+            row("id-2", UUID_C));
+        AcmIdBot.AnnotSweepPage page = AcmIdBot.collectAnnotSweepPage(in.iterator(), 10);
+
+        assertEquals(Arrays.asList("id-1", "id-2"), page.orderedAnnotIds);
+    }
+
     // ---------- partial-read progress (Codex finding #4) ----------
 
     @Test void partialProgressSurvivesAnIterationFailure() {

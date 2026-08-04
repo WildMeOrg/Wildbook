@@ -458,7 +458,9 @@ public class StartupWildbook implements ServletContextListener {
      * migration in {@code archive/sql/ml_service_idempotency.sql} backfills
      * their {@code wbiaRegistered} to {@code TRUE} on deploy.</p>
      */
-    private static final int WBIA_REGISTER_MAX_ATTEMPTS = 10;
+    // package-visible so AcmIdBot's annotation reconciliation sweep can define its scope as
+    // the exact complement of this poller's queue instead of racing it for the same rows
+    static final int WBIA_REGISTER_MAX_ATTEMPTS = 10;
     private static final int WBIA_REGISTER_BATCH_LIMIT = 50;
     private static final long WBIA_REGISTER_POLL_SECONDS = 30L;
 

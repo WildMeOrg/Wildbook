@@ -511,6 +511,13 @@ public class AcmIdBot {
         final List<String> nullAcmAnnotIds = new ArrayList<String>();
         final java.util.LinkedHashMap<String, String> acmIdToAnnotId =
             new java.util.LinkedHashMap<String, String>();
+        // every distinct annotation id on this page, in the order the DATABASE returned
+        // them. The heal phase walks candidates in this order rather than Java's String
+        // ordering: the cursor's "id > x" comparison happens in Postgres collation, which
+        // is not guaranteed to agree with Java's UTF-16 ordering for hyphenated UUID text.
+        // Resuming from a Java-sorted position could therefore step over candidates the
+        // database considers earlier, silently skipping them for a whole sweep.
+        final List<String> orderedAnnotIds = new ArrayList<String>();
         boolean rawExhausted = false;
         String lastAnnotId = null; // null = nothing read yet
     }
@@ -559,6 +566,7 @@ public class AcmIdBot {
             if (seen.size() >= pageSize) return; // rawExhausted stays false: more remains
             seen.add(annId);
             page.lastAnnotId = annId;
+            page.orderedAnnotIds.add(annId);
             // null or malformed acmId: route straight to the heal path rather than the
             // probe, since a non-UUID value would make WBIA reject the whole probe chunk
             // and could strand the rest of the page
@@ -615,8 +623,21 @@ public class AcmIdBot {
             // to an Encounter and binds the variable (an unbound VARIABLES declaration is
             // a silent no-op). The cursor is a bound parameter: a String concatenated into
             // JDOQL would be an invalid unquoted literal.
+            //
+            // The trailing clause is the anti-race with StartupWildbook's 30s registration
+            // poller, which claims exactly `wbiaRegistered == false && attempts < MAX`.
+            // This sweep takes the precise complement of that queue, so the two workers can
+            // never hold the same annotation: without it, both could POST the same row
+            // concurrently, and because the poller forces `id` while the sweep forces
+            // `acmId`, an `id != acmId` row would end up as TWO WBIA annotations on one
+            // box. Partitioning by the flag beats a lease here because the sweep's whole
+            // purpose is the rows the poller ignores -- the ones whose flag is lying
+            // (wbiaRegistered TRUE or NULL) and the ones it permanently parked.
             query = readShepherd.getPM().newQuery(org.ecocean.Annotation.class,
-                "matchAgainst == true && enc.annotations.contains(this) && id > cursor");
+                "matchAgainst == true && enc.annotations.contains(this) && id > cursor" +
+                " && (wbiaRegistered == null || wbiaRegistered == true" +
+                " || wbiaRegisterAttempts >= " + StartupWildbook.WBIA_REGISTER_MAX_ATTEMPTS +
+                ")");
             query.declareVariables("org.ecocean.Encounter enc");
             query.declareParameters("String cursor");
             // project only what the sweep needs; materializing 10k managed Annotation
@@ -635,16 +656,23 @@ public class AcmIdBot {
 
                 public String[] next() {
                     Object o = rawIter.next();
-                    // a two-column projection yields Object[]; be tolerant of a
-                    // single-column collapse rather than throwing mid-page
-                    if (o instanceof Object[]) {
-                        Object[] arr = (Object[])o;
-                        return new String[] {
-                                   (arr.length > 0 && arr[0] != null) ? arr[0].toString() : null,
-                                   (arr.length > 1 && arr[1] != null) ? arr[1].toString() : null
-                        };
-                    }
-                    return new String[] { (o == null) ? null : o.toString(), null };
+                    // A two-column projection yields Object[]. Anything else must FAIL, not
+                    // be coerced: silently treating an unexpected row shape as
+                    // "id with no acmId" would route every annotation into the
+                    // heal-without-probe bucket, force-adopt acmIds, and re-POST the entire
+                    // corpus to WBIA. A failed read just retries this page.
+                    if (!(o instanceof Object[]))
+                        throw new IllegalStateException(
+                            "annotation sweep expected a two-column projection row, got " +
+                            ((o == null) ? "null" : o.getClass().getName()));
+                    Object[] arr = (Object[])o;
+                    if (arr.length < 2)
+                        throw new IllegalStateException(
+                            "annotation sweep expected 2 projected columns, got " + arr.length);
+                    return new String[] {
+                               (arr[0] == null) ? null : arr[0].toString(),
+                               (arr[1] == null) ? null : arr[1].toString()
+                    };
                 }
             };
             collectAnnotSweepPageInto(page, rowIter, ANNOT_SWEEP_PAGE_SIZE);
@@ -709,12 +737,17 @@ public class AcmIdBot {
         }
 
         // ---- heal phase (own transaction, explicit commits) ----
-        List<String> candidateIds = new ArrayList<String>(page.nullAcmAnnotIds);
+        java.util.Set<String> candidateSet = new java.util.HashSet<String>(page.nullAcmAnnotIds);
         for (String acmId : missingAcmIds) {
             String annId = page.acmIdToAnnotId.get(acmId);
-            if (annId != null) candidateIds.add(annId);
+            if (annId != null) candidateSet.add(annId);
         }
-        java.util.Collections.sort(candidateIds); // ascending id = cursor order
+        // walk in database order (see AnnotSweepPage.orderedAnnotIds), NOT Java String
+        // order, so a maxFixes resume point is a cursor value that cannot skip candidates
+        List<String> candidateIds = new ArrayList<String>();
+        for (String annId : page.orderedAnnotIds) {
+            if (candidateSet.contains(annId)) candidateIds.add(annId);
+        }
         AnnotHealTally tally = new AnnotHealTally();
         tally.resumeAnnotId = page.lastAnnotId;
         if (candidateIds.size() > 0) healAnnotations(context, candidateIds, maxFixes, tally);
@@ -763,11 +796,12 @@ public class AcmIdBot {
                 // hoisted so the catch block can revert identifiers we adopted locally
                 // but WBIA never acknowledged
                 Annotation ann = null;
-                MediaAsset ma = null;
                 String priorAnnAcmId = null;
-                String priorMaAcmId = null;
-                boolean annPriorCaptured = false;
-                boolean maPriorCaptured = false;
+                // The asset's acmId is owned entirely by ensureImageRegistered(); this loop
+                // never touches it. Once that method confirms a registration, the asset's
+                // acmId is the UUID WBIA holds the image under and must survive a later
+                // failure on the annotation half of the work.
+                boolean annAcmIdAdopted = false;
                 try {
                     ann = healShepherd.getAnnotation(annId);
                     if (ann == null) {
@@ -775,7 +809,7 @@ public class AcmIdBot {
                             " (no longer exists)");
                         continue;
                     }
-                    ma = ann.getMediaAsset();
+                    MediaAsset ma = ann.getMediaAsset();
                     if (ma == null) {
                         tally.skippedNoAsset++;
                         continue;
@@ -787,10 +821,6 @@ public class AcmIdBot {
                         tally.skippedInvalid++;
                         continue;
                     }
-                    priorMaAcmId = ma.getAcmId();
-                    maPriorCaptured = true;
-                    if ((priorMaAcmId == null) || !Util.isUUID(priorMaAcmId))
-                        ma.setAcmId(ma.getUUID());
                     // WBIA cannot hold an annotation whose image it does not have: the
                     // annotation POST fails with
                     // "image_uuid_list has invalid values [(0, None)]". A non-null
@@ -801,15 +831,15 @@ public class AcmIdBot {
                     // image here rather than assuming the asset sweep got there first.
                     if (!ensureImageRegistered(ma, context, healShepherd)) {
                         tally.blockedOnAsset++;
-                        if (maPriorCaptured) ma.setAcmId(priorMaAcmId);
                         continue;
                     }
                     priorAnnAcmId = ann.getAcmId();
-                    annPriorCaptured = true;
                     // legacy null or malformed acmIds adopt the annotation's own id before
                     // sending, matching MlServiceProcessor's convention
-                    if ((priorAnnAcmId == null) || !Util.isUUID(priorAnnAcmId))
+                    if ((priorAnnAcmId == null) || !Util.isUUID(priorAnnAcmId)) {
                         ann.setAcmId(ann.getId());
+                        annAcmIdAdopted = true;
+                    }
                     boolean confirmed = iam.sendAnnotationForcedByAcmId(ann, healShepherd);
                     tally.sent++;
                     if (confirmed) {
@@ -833,15 +863,17 @@ public class AcmIdBot {
                         System.out.println(
                             "WARNING: AcmIdBot annotation sweep could not confirm WBIA registration for "
                             + annId + "; not counting as healed");
-                        // never persist an identifier WBIA did not acknowledge
-                        ann.setAcmId(priorAnnAcmId);
-                        ma.setAcmId(priorMaAcmId);
+                        // Never persist an annotation identifier WBIA did not acknowledge --
+                        // but only write the field if we actually changed it, since setAcmId
+                        // bumps version and would otherwise queue a pointless reindex for
+                        // every unconfirmed annotation. The asset's acmId stays as-is: the
+                        // image registration under it was already confirmed.
+                        if (annAcmIdAdopted) ann.setAcmId(priorAnnAcmId);
                     }
                 } catch (Exception ec) {
                     // revert BEFORE any later candidate's commit can persist an identifier
                     // WBIA never acknowledged
-                    if (annPriorCaptured && (ann != null)) ann.setAcmId(priorAnnAcmId);
-                    if (maPriorCaptured && (ma != null)) ma.setAcmId(priorMaAcmId);
+                    if (annAcmIdAdopted && (ann != null)) ann.setAcmId(priorAnnAcmId);
                     System.out.println("Exception in AcmIdBot annotation sweep heal for " + annId);
                     ec.printStackTrace();
                 }
@@ -852,39 +884,63 @@ public class AcmIdBot {
     }
 
     /**
-     * Probe WBIA for this image and register it if absent. Returns true when WBIA is
-     * known to hold the asset's acmId, i.e. when it is safe to POST an annotation
-     * referencing it. Reuses the asset sweep's own probe and send so there is one
-     * definition of "registered".
+     * Probe WBIA for this image and register it if absent. Returns true when WBIA is known
+     * to hold the asset's acmId, i.e. when it is safe to POST an annotation referencing it.
+     * Reuses the asset sweep's own probe and send so there is one definition of
+     * "registered", and owns the asset's acmId outright so the caller never has to reason
+     * about reverting it.
+     *
+     * <p>Step order matters and is not incidental. {@code updateDBTransaction()} is
+     * commit-plus-begin, so it commits <b>every</b> dirty object in the transaction, not
+     * just the field the caller had in mind. Validity is therefore resolved and committed
+     * <b>before</b> any provisional acmId is adopted, and the adopted acmId is committed
+     * only <b>after</b> WBIA confirms it. Otherwise an unconfirmed identifier would be
+     * committed by the validity flush and the later in-memory revert would simply be
+     * discarded by the enclosing {@code rollbackAndClose()}, leaving Wildbook holding an
+     * acmId WBIA never acknowledged.</p>
      */
     private static boolean ensureImageRegistered(MediaAsset ma, String context,
         Shepherd myShepherd) {
-        String maAcmId = ma.getAcmId();
-
-        if (!Util.stringExists(maAcmId) || !Util.isUUID(maAcmId)) return false;
         try {
-            List<String> missing = org.ecocean.ia.plugin.WildbookIAM.iaMissingImageIds(
-                java.util.Arrays.asList(maAcmId), context);
-            if (missing.isEmpty()) return true; // WBIA already has it
+            // 1. resolve validity first, while nothing provisional is pending
             if (ma.isValidImageForIA() == null) {
                 ma.validateSourceImage();
                 myShepherd.updateDBTransaction();
             }
             if (!ma.isValidImageForIAForced()) {
-                System.out.println("WARNING: AcmIdBot annotation sweep cannot register unhealable image "
-                    + ma.getId() + " (invalid or unvalidatable for IA)");
+                System.out.println(
+                    "WARNING: AcmIdBot annotation sweep cannot register unhealable image " +
+                    ma.getId() + " (invalid or unvalidatable for IA)");
                 return false;
             }
-            if (!ma.hasFamily(myShepherd)) ma.updateStandardChildren();
-            ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
-            fixMe.add(ma);
-            // checkFirst=false: the probe above already established absence
-            org.json.JSONObject sendRtn = IBEISIA.sendMediaAssetsNew(fixMe, context, false);
-            if (!sendConfirmedAcmId(sendRtn, ma.getAcmId())) {
-                System.out.println(
-                    "WARNING: AcmIdBot annotation sweep could not confirm image registration for asset "
-                    + ma.getId() + "; deferring its annotations");
-                return false;
+            // 2. if the asset already carries a well-formed acmId, ask WBIA about it; a
+            // present image needs no further work
+            String maAcmId = ma.getAcmId();
+            if (Util.stringExists(maAcmId) && Util.isUUID(maAcmId)) {
+                if (org.ecocean.ia.plugin.WildbookIAM.iaMissingImageIds(
+                        java.util.Collections.singletonList(maAcmId), context).isEmpty())
+                    return true;
+            }
+            // 3. adopt provisionally, POST, and commit only on confirmation
+            String priorMaAcmId = ma.getAcmId();
+            if ((priorMaAcmId == null) || !Util.isUUID(priorMaAcmId))
+                ma.setAcmId(ma.getUUID());
+            try {
+                if (!ma.hasFamily(myShepherd)) ma.updateStandardChildren();
+                ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
+                fixMe.add(ma);
+                // checkFirst=false: step 2 already established absence
+                org.json.JSONObject sendRtn = IBEISIA.sendMediaAssetsNew(fixMe, context, false);
+                if (!sendConfirmedAcmId(sendRtn, ma.getAcmId())) {
+                    System.out.println(
+                        "WARNING: AcmIdBot annotation sweep could not confirm image registration for asset "
+                        + ma.getId() + "; deferring its annotations");
+                    ma.setAcmId(priorMaAcmId);
+                    return false;
+                }
+            } catch (Exception sendEx) {
+                ma.setAcmId(priorMaAcmId);
+                throw sendEx;
             }
             // persist the confirmed image registration before the annotation POST
             myShepherd.updateDBTransaction();

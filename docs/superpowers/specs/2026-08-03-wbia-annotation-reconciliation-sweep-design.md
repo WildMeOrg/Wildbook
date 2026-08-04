@@ -1,6 +1,6 @@
 # WBIA Annotation Reconciliation Sweep — Design
 
-**Date:** 2026-08-03 (rev 2, post-Codex review)
+**Date:** 2026-08-03 (rev 3, post-Codex round 2 on the implementation)
 **Status:** Approved
 **Branch:** `feature/wbia-annotation-reconciliation-sweep` (off `main`)
 
@@ -95,7 +95,23 @@ result:   distinct id, acmId
 ordering: id ascending
 ```
 
-Three deliberate choices:
+plus an anti-race clause taking the exact complement of the 30s poller's queue:
+
+```java
+&& (wbiaRegistered == null || wbiaRegistered == true
+    || wbiaRegisterAttempts >= StartupWildbook.WBIA_REGISTER_MAX_ATTEMPTS)
+```
+
+The poller claims precisely `wbiaRegistered == false && attempts < MAX`. Without this
+clause both workers could POST the same annotation concurrently — and since the poller
+forces `id` while the sweep forces `acmId`, an `id != acmId` row would land in WBIA as
+**two annotations on one box**. Partitioning by the flag beats a lease here because the
+sweep's whole purpose is the rows the poller ignores: those whose flag is lying
+(`TRUE`, or `NULL` for rows the backfill never touched) and those it permanently parked.
+Note `wbiaRegistered` is a nullable `Boolean`, so the null case is spelled out rather
+than relying on `!= false` — SQL three-valued logic would drop null rows.
+
+Three further deliberate choices:
 
 - **Bound parameter, not concatenation** — a String cursor concatenated into JDOQL is
   invalid as an unquoted literal and brittle if quoted.
@@ -138,16 +154,26 @@ also covers the featureless-legacy-annotation hole where the asset sweep never s
 asset at all. Per candidate, in order:
 
 1. Load the annotation; skip if gone.
-2. Resolve the MediaAsset; skip (count `skippedNoAsset`) if absent. If its `acmId` is
-   null or malformed, adopt `acmId = ma.getUUID()` (the asset sweep's own convention).
+2. Resolve the MediaAsset; skip (count `skippedNoAsset`) if absent.
 3. **Context-aware** eligibility: `IBEISIA.validForIdentification(ann, context)`. The
    no-context overload skips the `validIAClassForIdentification` check, so using it would
    let the sweep register annotations identify then rejects.
-4. **Image presence:** probe `iaMissingImageIds([ma.getAcmId()])`. If missing, register
-   via the existing `IBEISIA.sendMediaAssetsNew([ma], context, false)` and require
-   `AcmIdBot.sendConfirmedAcmId(rtn, ma.getAcmId())`. Unconfirmed ⇒ count
-   `blockedOnAsset`, revert any adopted asset acmId, continue — the annotation is
-   retried on a later pass, not parked.
+4. **Image presence**, delegated wholly to `ensureImageRegistered`, which owns the asset's
+   `acmId` so the heal loop never has to reason about reverting it. **Step order inside it
+   is load-bearing**, because `updateDBTransaction()` is commit-plus-begin and so commits
+   *every* dirty object in the transaction, not just the field the caller had in mind:
+   1. resolve and commit image validity **first**, while nothing provisional is pending;
+   2. if the asset already carries a well-formed acmId, probe
+      `iaMissingImageIds([acmId])` — present ⇒ done, no writes at all;
+   3. only then adopt `acmId = ma.getUUID()` if needed, POST via
+      `IBEISIA.sendMediaAssetsNew([ma], context, false)`, require
+      `sendConfirmedAcmId(rtn, ma.getAcmId())`, and commit **only after** confirmation.
+
+   Adopting before the validity commit would let an unconfirmed identifier be committed by
+   that flush, after which the in-memory revert is silently discarded by the enclosing
+   `rollbackAndClose()` — leaving Wildbook holding an acmId WBIA never acknowledged.
+   Unconfirmed ⇒ count `blockedOnAsset` and continue; the annotation is retried on a later
+   pass, never parked.
 5. Adopt the annotation's `acmId = getId()` if null/malformed.
 6. `WildbookIAM.sendAnnotationForcedByAcmId(ann, shepherd)` — forces
    `annot_uuid_list = acmId`, performs **no already-present check** (the probe already
@@ -158,8 +184,11 @@ asset at all. Per candidate, in order:
    `wbiaRegisterAttempts = 0`, **each only if its value actually changes**, since both
    setters bump `Annotation.version` and would otherwise cause needless OpenSearch
    reindex churn across a systemic WBIA loss. Then `updateDBTransaction()`.
-   Not confirmed ⇒ revert the adopted acmId. Reverting happens on **every**
-   non-confirmed outcome, not only a thrown send.
+   Not confirmed ⇒ revert the annotation's acmId, on **every** non-confirmed outcome and
+   not only a thrown send — but only when an adoption actually happened, since a
+   no-op `setAcmId` still bumps `version`. The asset's acmId is deliberately **not**
+   reverted here: its registration was already confirmed in step 4, and undoing it would
+   make Wildbook forget an image WBIA really holds.
 
 Setting `wbiaRegistered = TRUE` also un-parks annotations the 30s poller abandoned at
 `attempts >= MAX`, which nothing else in the codebase does — closing problem #3.
@@ -239,3 +268,22 @@ Pure-logic unit tests (no scheduler, no network), mirroring `AcmIdBotSweepTest` 
 | 6 | Major | Deferred eligibility defect partly load-bearing; sweep used the context-free `validForIdentification` | §4.3: context-aware form; image presence in this same PR |
 | 7 | Major | Scale understated; entity materialization not proven heap-safe; pool claim wrong | §1 projects `id, acmId`; §6 states 25h healthy / 21d worst case plainly; unverified pool number dropped |
 | 8 | Minor | Revert on every non-confirmed outcome; setters always bump version → reindex churn | §4.7: revert on all non-confirmed paths; set each flag only when its value changes |
+
+## Codex round 2 disposition (implementation review; rev 2 → rev 3)
+
+Round 2 confirmed findings 1–7 FIXED in code and 8 partially fixed. Three items remained,
+all now closed:
+
+| # | Severity | Finding | Disposition |
+|---|---|---|---|
+| 8 | Minor | An unconfirmed POST called `setAcmId(prior)` even when no adoption had occurred, bumping `version` for nothing | Track `annAcmIdAdopted`; revert only when true, on both the else-branch and catch paths |
+| 9 | Major | A provisional asset acmId could be **committed** by the validity `updateDBTransaction()` before image confirmation; the later revert was then discarded by `rollbackAndClose()`, leaving an unconfirmed acmId persisted | `ensureImageRegistered` reordered to commit validity before adopting, and to commit the adopted acmId only after confirmation; it now owns the asset acmId end-to-end so the heal loop never touches it |
+| 10 | Major | The sweep raced the 30s poller; for an `id != acmId` row both could POST, creating two WBIA annotations for one box | §1 anti-race clause: sweep scope is the exact complement of the poller's queue |
+
+Also confirmed correct in round 2, having been fixed between rounds without being asked:
+page-exhaustion logic (size-limit return cannot mark exhaustion, including an exactly-full
+final page); fail-closed projection-shape handling (an unexpected row shape throws instead
+of mass-routing every row into the null-acmId bucket and re-POSTing the corpus);
+database-order candidate processing (so the heal-cap resume cursor cannot skip candidates
+when Postgres collation disagrees with Java String ordering); and that the `iaMissingIds`
+extraction preserved `iaMissingImageIds` behavior for its existing caller.
