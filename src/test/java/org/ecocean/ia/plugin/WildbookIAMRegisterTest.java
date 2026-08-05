@@ -63,6 +63,40 @@ class WildbookIAMRegisterTest {
         assertEquals("____", map.get("annot_name_list").get(0));
     }
 
+    // --- buildForcedRequestMap: explicit forced UUID ----------------------
+    // (WBIA annotation reconciliation sweep spec §4; Codex finding #1)
+
+    @Test void forcedUuidOverloadSendsTheAcmIdNotTheAnnotationId() {
+        // The reconciliation sweep must force the acmId, because that -- not id -- is
+        // what IBEISIA.sendIdentify asks WBIA about. For legacy annotations whose acmId
+        // WBIA minted, the two differ, and forcing the id would register a UUID
+        // identification never looks up: exactly the bug under repair. Presence of the
+        // id at WBIA is never evidence that the acmId is registered.
+        HashMap<String, ArrayList> map =
+            WildbookIAM.buildForcedRequestMap(sampleDto(), "ann-acm-1");
+        JSONObject annUuid = (JSONObject)map.get("annot_uuid_list").get(0);
+
+        assertEquals("ann-acm-1", WildbookIAM.fromFancyUUID(annUuid));
+    }
+
+    @Test void forcedUuidOverloadLeavesTheRestOfThePayloadAlone() {
+        HashMap<String, ArrayList> map =
+            WildbookIAM.buildForcedRequestMap(sampleDto(), "ann-acm-1");
+        JSONObject imgUuid = (JSONObject)map.get("image_uuid_list").get(0);
+
+        assertEquals("ma-acm-1", WildbookIAM.fromFancyUUID(imgUuid));
+        assertEquals("right_dorsalfin", map.get("annot_species_list").get(0));
+        assertEquals("indiv-1", map.get("annot_name_list").get(0));
+    }
+
+    @Test void defaultBuildForcedRequestMapStillForcesTheAnnotationId() {
+        // the existing 30s poller path must be unchanged by the new overload
+        HashMap<String, ArrayList> map = WildbookIAM.buildForcedRequestMap(sampleDto());
+        JSONObject annUuid = (JSONObject)map.get("annot_uuid_list").get(0);
+
+        assertEquals("ann-uuid-1", WildbookIAM.fromFancyUUID(annUuid));
+    }
+
     // --- validateForcedResponse ------------------------------------------
 
     @Test void validateForcedResponseAcceptsMatchingId() throws IOException {
