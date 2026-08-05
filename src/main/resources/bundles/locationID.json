@@ -6,6 +6,11 @@
 			"id": "Angola",
 			"locationID": [
 				{
+					"name": "Bicuar National Park",
+					"id": "Bicuar National Park",
+					"locationID": []
+				},
+				{
 					"name": "Iona National Park",
 					"id": "Iona National Park",
 					"geospatialInfo": {
