@@ -639,6 +639,17 @@
 							"locationID": []
 						},
 						{
+							"name": "Lüttringhausen",
+							"id": "Lüttringhausen",
+							"prefix": "LH",
+							"prefixDigitPadding": 4,
+							"geospatialInfo":{
+								"lat": 51.210300,
+								"long": 7.237800
+							},
+							"locationID": []
+						},
+						{
 							"name": "Ochsensiefen",
 							"id": "Ochsensiefen",
 							"prefix": "RO-",
