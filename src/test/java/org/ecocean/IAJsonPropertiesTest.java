@@ -1,8 +1,12 @@
 package org.ecocean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -173,5 +177,59 @@ class IAJsonPropertiesTest {
                                 .put("pipeline_root", "vector"))))));
         IAJsonProperties iac = iaConfigWith(json);
         assertNull(iac.getActiveMlServiceConfigs(TAXY));
+    }
+
+    // --- issue #1298: subspecies must not appear as selectable IA classes ---
+
+    private static final Taxonomy PHOCA = new Taxonomy("Phoca vitulina");
+
+    // object-valued subspecies listed in the species node's "_subspecies" marker
+    // is excluded from the dropdown, while a sibling real IA class is kept.
+    @Test void getValidIAClassesIgnoreRedirects_excludesObjectSubspeciesInMarkerList() {
+        JSONObject json = new JSONObject()
+            .put("Phoca", new JSONObject()
+                .put("vitulina", new JSONObject()
+                    .put("_subspecies", new JSONArray().put("vitulina"))
+                    .put("vitulina", new JSONObject())   // subspecies, object-valued
+                    .put("seal", new JSONObject())        // real IA class
+                    .put("seal+head", new JSONObject()))); // real IA class
+        IAJsonProperties iac = iaConfigWith(json);
+        List<String> classes = iac.getValidIAClassesIgnoreRedirects(PHOCA);
+        assertTrue(classes.contains("seal"), "real IA class 'seal' should be selectable");
+        assertTrue(classes.contains("seal+head"),
+            "real IA class 'seal+head' should be selectable");
+        assertFalse(classes.contains("vitulina"),
+            "subspecies 'vitulina' must not be selectable");
+    }
+
+    // a self-referencing redirect subspecies ("@Phoca.vitulina.vitulina") would be
+    // INCLUDED by the endsWith(".vitulina") heuristic; the "_subspecies" marker must
+    // take precedence and exclude it.
+    @Test void getValidIAClassesIgnoreRedirects_markerOverridesSelfRedirectHeuristic() {
+        JSONObject json = new JSONObject()
+            .put("Phoca", new JSONObject()
+                .put("vitulina", new JSONObject()
+                    .put("_subspecies", new JSONArray().put("vitulina"))
+                    .put("vitulina", "@Phoca.vitulina.vitulina")  // self-redirect subspecies
+                    .put("seal", new JSONObject())));
+        IAJsonProperties iac = iaConfigWith(json);
+        List<String> classes = iac.getValidIAClassesIgnoreRedirects(PHOCA);
+        assertTrue(classes.contains("seal"), "real IA class 'seal' should be selectable");
+        assertFalse(classes.contains("vitulina"),
+            "marker must override the self-redirect suffix heuristic");
+    }
+
+    // control: with no "_subspecies" marker, behavior is unchanged (real classes kept).
+    @Test void getValidIAClassesIgnoreRedirects_noMarkerKeepsRealClasses() {
+        JSONObject json = new JSONObject()
+            .put("Phoca", new JSONObject()
+                .put("vitulina", new JSONObject()
+                    .put("seal", new JSONObject())
+                    .put("seal+head", new JSONObject())));
+        IAJsonProperties iac = iaConfigWith(json);
+        List<String> classes = iac.getValidIAClassesIgnoreRedirects(PHOCA);
+        assertTrue(classes.contains("seal"), "real IA class 'seal' should be selectable");
+        assertTrue(classes.contains("seal+head"),
+            "real IA class 'seal+head' should be selectable");
     }
 }

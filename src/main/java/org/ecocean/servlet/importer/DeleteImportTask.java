@@ -45,6 +45,13 @@ public class DeleteImportTask extends HttpServlet {
         PrintWriter out = response.getWriter();
         boolean locked = false;
 
+        // GH-1514: collect surviving individuals touched by this delete so we can
+        // queue deep reindex post-commit. Only individuals that survive (i.e. had
+        // other encounters besides those being removed) need reindex; dead-empty
+        // individuals are thrown away.
+        java.util.Set<String> touchedSurvivingIndividualIds =
+            new java.util.LinkedHashSet<String>();
+
         myShepherd.beginDBTransaction();
         if (request.getParameter("taskID") != null &&
             myShepherd.getImportTask(request.getParameter("taskID")) != null &&
@@ -91,6 +98,10 @@ public class DeleteImportTask extends HttpServlet {
                             }
                             myShepherd.throwAwayMarkedIndividual(mark);
                             myShepherd.updateDBTransaction();
+                        } else {
+                            // GH-1514: individual survives; its remaining encounters
+                            // need a fresh individualNumberEncounters after commit.
+                            touchedSurvivingIndividualIds.add(mark.getIndividualID());
                         }
                     }
                     // handle projects
@@ -124,6 +135,11 @@ public class DeleteImportTask extends HttpServlet {
                 myShepherd.closeDBTransaction();
             }
             if (!locked) {
+                // GH-1514: post-commit, queue deep reindex for individuals that
+                // survived the delete so their remaining encounters get fresh
+                // individualNumberEncounters in OpenSearch.
+                org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(
+                    myShepherd, touchedSurvivingIndividualIds);
                 out.println(ServletUtilities.getHeader(request));
                 out.println("<strong>Success!</strong> I have successfully removed ImportTask " +
                     request.getParameter("taskID") + ".");

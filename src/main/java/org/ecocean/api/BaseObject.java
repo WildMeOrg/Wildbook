@@ -250,7 +250,8 @@ public class BaseObject extends ApiBase {
         try {
             User currentUser = myShepherd.getUser(request);
             Base obj = null;
-            if (args.length > 0) obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
+            if ((args.length > 1) && Util.stringExists(args[1]))
+                obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
             if (obj == null) {
                 rtn.put("statusCode", 404);
                 rtn.put("error", "not found");

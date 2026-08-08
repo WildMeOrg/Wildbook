@@ -187,25 +187,61 @@ public class ProjectUpdate extends HttpServlet {
 
     private void addOrRemoveUsersFromProject(Project project, Shepherd myShepherd,
         JSONArray usersToAddJSONArr, String action, JSONObject res) {
+        JSONArray unresolved = res.optJSONArray("unresolvedUserIds");
+        if (unresolved == null) {
+            unresolved = new JSONArray();
+            res.put("unresolvedUserIds", unresolved);
+        }
         for (int i = 0; i < usersToAddJSONArr.length(); i++) {
             String userId = usersToAddJSONArr.getString(i);
-            User user = null;
-            if (Util.isUUID(userId)) {
-                user = myShepherd.getUserByUUID(userId);
-            } else {
-                user = myShepherd.getUser(userId);
-            }
+            User user = resolveUser(myShepherd, userId);
             if (user != null && !StringUtils.isNullOrEmpty(action)) {
                 if ("add".equals(action)) {
                     project.addUser(user);
                 } else if ("remove".equals(action)) {
                     project.removeUser(user);
                 }
+            } else {
+                unresolved.put(userId);
+                System.out.println(
+                    "ProjectUpdate.addOrRemoveUsersFromProject: could not resolve userId=" +
+                    userId + " for action=" + action + " project=" + project.getId());
             }
         }
         myShepherd.updateDBTransaction();
         res.put("modified", true);
         res.put("success", true);
+    }
+
+    // GH-1545: Resolve a user from an autocomplete-supplied identifier.
+    //
+    // Ordering matters. Some legacy User accounts have an email stored in their UUID
+    // primary key (see UserCreate.java history and the deprecated User(String uuid)
+    // constructor). For those rows, the frontend posts `u.getId()` which is the email.
+    //
+    // We therefore try the PK lookup FIRST, not last — and regardless of whether the
+    // string looks UUID-shaped — because:
+    //   (1) for real UUIDs it's the direct, correct path; and
+    //   (2) for legacy email-as-UUID rows it still resolves via the literal PK
+    //       ("alice@example.org" IS that user's primary key), which avoids a wrong
+    //       match if some other account happens to have that email as their username.
+    //
+    // Only after the PK miss do we try username and then email-address lookups.
+    // Every email-fallback hit is logged so operators can gauge the migration backlog.
+    static User resolveUser(Shepherd myShepherd, String userId) {
+        if (StringUtils.isNullOrEmpty(userId)) return null;
+        User user = myShepherd.getUserByUUID(userId);
+        if (user != null) return user;
+        user = myShepherd.getUser(userId);
+        if (user != null) return user;
+        user = myShepherd.getUserByEmailAddress(userId);
+        if (user != null) {
+            System.out.println(
+                "ProjectUpdate.resolveUser: resolved userId=" + userId +
+                " via email-address fallback (GH-1545 legacy uuid). user.uuid=" +
+                user.getUUID());
+        }
+        return user;
     }
 
     private JSONArray removeUnauthorizedEncounters(JSONArray encountersToAddJSONArr,

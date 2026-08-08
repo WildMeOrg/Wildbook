@@ -612,6 +612,18 @@ class EncounterStore {
     );
   }
 
+  get hasMatchableAnnotations() {
+    const annotations =
+      this.encounterData?.mediaAssets?.[this._selectedImageIndex]?.annotations ||
+      [];
+    return annotations.some(
+      (a) =>
+        a?.encounterId === this.encounterData?.id &&
+        a?.matchAgainst === true &&
+        a?.acmId != null,
+    );
+  }
+
   get selectedAnnotationId() {
     return this._selectedAnnotationId;
   }
@@ -1278,6 +1290,13 @@ class EncounterStore {
 
     try {
       const searchQuery = {
+        // Wildcard should-clauses are constant-scoring, so without an explicit
+        // sort the hits come back in arbitrary index order (same class of
+        // problem as quicksearch issue #1541). Sort by name, Z→A per request.
+        // (multi-valued names sort by their highest value under desc order;
+        // unmapped_type keeps the query working on an index without the
+        // names mapping)
+        sort: [{ names: { order: "desc", unmapped_type: "keyword" } }],
         query: {
           bool: {
             filter: [

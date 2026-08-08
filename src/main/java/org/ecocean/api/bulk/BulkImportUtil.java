@@ -273,6 +273,9 @@ public class BulkImportUtil {
             }
         };
         executor.execute(rn);
+        // let the submitted task finish, then terminate the worker thread;
+        // without this every call leaks an idle non-daemon thread for the JVM lifetime
+        executor.shutdown();
     }
 
     public static String bulkImportArchiveFilepath(String id, String suffix) {

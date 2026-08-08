@@ -26,9 +26,16 @@ describe("usePostHeaderQuickSearch", () => {
       await new Promise((resolve) => setTimeout(resolve, 300));
     });
 
+    // No sort URL param: an explicit sort would replace relevance ranking
+    // and the boosted should-clauses would have no effect on ordering.
     expect(axios.post).toHaveBeenCalledWith(
-      "/api/v3/search/individual?size=10&sort=id&sortOrder=asc",
-      expect.any(Object),
+      "/api/v3/search/individual?size=10",
+      expect.objectContaining({
+        sort: [
+          { _score: { order: "desc" } },
+          { names: { order: "asc", unmapped_type: "keyword" } },
+        ],
+      }),
     );
     expect(result.current.searchResults).toEqual(mockData.data.hits);
     expect(result.current.loading).toBe(false);

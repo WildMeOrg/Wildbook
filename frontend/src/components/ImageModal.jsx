@@ -213,9 +213,7 @@ export const ImageModal = observer(
       );
     }, [rects]);
 
-    const hasNonTrivialAnnotations = imageStore.encounterAnnotations?.some(
-      (a) => !a.isTrivial && (a.boundingBox?.[2] || 0) > 0 && (a.boundingBox?.[3] || 0) > 0
-    );
+    const hasMatchableAnnotations = imageStore.hasMatchableAnnotations;
 
     // Guard placed after all hooks so hook order stays stable across renders
     // (Rules of Hooks). All hooks above are null-safe when assets is empty.
@@ -1106,9 +1104,9 @@ export const ImageModal = observer(
                     backgroundColor={themeColor?.wildMeColors?.cyan700}
                     borderColor={themeColor?.wildMeColors?.cyan700}
                     target={true}
-                    disabled={!hasNonTrivialAnnotations}
+                    disabled={!hasMatchableAnnotations}
                     onClick={() => {
-                      if (!hasNonTrivialAnnotations) {
+                      if (!hasMatchableAnnotations) {
                         return;
                       }
                       if (
