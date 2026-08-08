@@ -205,4 +205,32 @@ describe("ReportEncounterStore", () => {
     store.setSignInModalShow(false);
     expect(store.signInModalShow).toBe(false);
   });
+
+  test("should return false and set error when dateTimeSection is a future date", () => {
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+    store.setImageRequired(false);
+    store.setDateTimeSectionValue(futureDate);
+    store.setLocationId("123-location");
+
+    expect(store.validateFields()).toBe(false);
+    expect(store.dateTimeSection.error).toBe(true);
+  });
+
+  test("should clear dateTimeSection error when setting a new value", () => {
+    store.setDateTimeSectionError(true);
+    expect(store.dateTimeSection.error).toBe(true);
+
+    store.setDateTimeSectionValue("2024-03-18T12:00:00");
+    expect(store.dateTimeSection.error).toBe(false);
+  });
+
+  test("should return false and set error when dateTimeSection is an invalid date string", () => {
+    store.setImageRequired(false);
+    store.setDateTimeSectionValue("not-a-real-date");
+    store.setLocationId("123-location");
+
+    expect(store.validateFields()).toBe(false);
+    expect(store.dateTimeSection.error).toBe(true);
+  });
 });

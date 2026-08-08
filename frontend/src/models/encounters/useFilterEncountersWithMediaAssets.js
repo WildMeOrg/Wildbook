@@ -1,4 +1,6 @@
 import { get, partition } from "lodash-es";
+import { useCallback } from "react";
+import axios from "axios";
 import { useFetchManual } from "../../hooks/useFetchManual";
 import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
 
@@ -41,7 +43,25 @@ export default function useFilterEncountersWithMediaAssets({
   const compositeQuery = { query: { bool: boolQuery } };
   const { sortOrder, sort, size, from } = params;
 
-  return useFetchManual({
+  const fetchMediaAssets = useCallback(
+    async (overrideParams = {}) => {
+      const response = await axios.request({
+        url: "/api/v3/search/encounter",
+        method: "post",
+        data: compositeQuery,
+        params: {
+          sort: overrideParams.sort || sort?.sortname || "date",
+          sortOrder: overrideParams.sortOrder || sort?.sortorder || "desc",
+          size: overrideParams.size || size || 20,
+          from: overrideParams.from ?? from ?? 0,
+        },
+      });
+      return response;
+    },
+    [compositeQuery, sort, sortOrder, size, from],
+  );
+
+  const hookResult = useFetchManual({
     method: "post",
     queryKey: getEncounterFilterQueryKey(queries, sort, sortOrder),
     url: "/search/encounter",
@@ -70,4 +90,6 @@ export default function useFilterEncountersWithMediaAssets({
       };
     },
   });
+
+  return { ...hookResult, fetchMediaAssets };
 }

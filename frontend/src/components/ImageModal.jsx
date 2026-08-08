@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import useWheelZoom from "../hooks/useWheelZoom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { observer } from "mobx-react-lite";
@@ -18,13 +19,15 @@ import Tooltip from "../components/ToolTip";
 export const ImageModal = observer(
   ({
     onClose,
-    assets = [],
+    assets: assetsProp = [],
     index = 0,
     setIndex,
     rects = [],
     imageStore = {},
   }) => {
-    if (!assets || !assets.length) return null;
+    // Normalize once (handles null, not just undefined) so all hooks/render below
+    // are array-safe and the empty guard can sit after the hooks (Rules of Hooks).
+    const assets = Array.isArray(assetsProp) ? assetsProp : [];
     const intl = useIntl();
     const deleteAnnotationConfirmMsg = intl.formatMessage({
       id: "CONFIRM_DELETE_ANNOTATION",
@@ -37,8 +40,11 @@ export const ImageModal = observer(
     const themeColor = React.useContext(ThemeColorContext);
     const thumbsRef = useRef(null);
     const imgRef = useRef(null);
+    const imageContainerRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
+    const [imageReady, setImageReady] = useState(false);
+    const [imageError, setImageError] = useState(false);
 
     const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
     const a = assets[safeIndex] || {};
@@ -51,12 +57,24 @@ export const ImageModal = observer(
       setPan({ x: 0, y: 0 });
     }, [zoom, safeIndex]);
 
+    useEffect(() => {
+      setImageReady(false);
+      setImageError(false);
+    }, [safeIndex, assets]);
+
     const onMouseDown = (e) => {
       if (e.button !== 0) return;
       if (zoom <= 1) return;
       e.preventDefault();
       setDragStart({ x: e.clientX, y: e.clientY, startPan: pan });
     };
+
+    // Mouse-wheel zoom matches the zoom-in / reset buttons (step 0.25, range 1..3);
+    // pan re-centers via the [zoom, safeIndex] effect above.
+    const handleWheelZoom = (direction) => {
+      setZoom((z) => Math.min(3, Math.max(1, z + direction * 0.25)));
+    };
+    useWheelZoom(imageContainerRef, handleWheelZoom);
 
     useEffect(() => {
       if (!dragStart) return;
@@ -102,14 +120,52 @@ export const ImageModal = observer(
       if (!s || s.destroyed) return;
       const target = Math.max(0, Math.min(index - 1, assets.length - 1));
       s.slideTo(target, 250);
-      const naturalWidth = assets[index]?.width;
-      const naturalHeight = assets[index]?.height;
-      const displayWidth = imgRef.current.clientWidth;
-      const displayHeight = imgRef.current.clientHeight;
-
-      setScaleX(naturalWidth / displayWidth);
-      setScaleY(naturalHeight / displayHeight);
     }, [index, assets.length]);
+
+    useEffect(() => {
+      if (!imgRef.current) return;
+
+      const handleImageLoad = () => {
+        const naturalWidth = assets[safeIndex]?.width || imgRef.current?.naturalWidth;
+        const naturalHeight =
+          assets[safeIndex]?.height || imgRef.current?.naturalHeight;
+        const displayWidth = imgRef.current?.clientWidth;
+        const displayHeight = imgRef.current?.clientHeight;
+
+        if (
+          !naturalWidth ||
+          !naturalHeight ||
+          !displayWidth ||
+          !displayHeight
+        ) {
+          return;
+        }
+
+        setScaleX(naturalWidth / displayWidth);
+        setScaleY(naturalHeight / displayHeight);
+        setImageReady(true);
+      };
+
+      const handleError = () => {
+        setImageError(true);
+        setImageReady(true);
+      };
+
+      const imgElement = imgRef.current;
+      if (imgElement && imgElement.complete) {
+        handleImageLoad();
+      } else if (imgElement) {
+        imgElement.addEventListener("load", handleImageLoad);
+        imgElement.addEventListener("error", handleError);
+      }
+
+      return () => {
+        if (imgElement) {
+          imgElement.removeEventListener("load", handleImageLoad);
+          imgElement.removeEventListener("error", handleError);
+        }
+      };
+    }, [safeIndex, assets]);
 
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -156,6 +212,14 @@ export const ImageModal = observer(
         1,
       );
     }, [rects]);
+
+    const hasNonTrivialAnnotations = imageStore.encounterAnnotations?.some(
+      (a) => !a.isTrivial && (a.boundingBox?.[2] || 0) > 0 && (a.boundingBox?.[3] || 0) > 0
+    );
+
+    // Guard placed after all hooks so hook order stays stable across renders
+    // (Rules of Hooks). All hooks above are null-safe when assets is empty.
+    if (!assets || !assets.length) return null;
 
     return (
       <div
@@ -235,13 +299,13 @@ export const ImageModal = observer(
                       marginRight: "8px",
                     }}
                     onClick={() => {
-                      const cur = assets[index];
+                      const cur = assets[safeIndex];
                       if (!cur?.url) return;
                       const a = document.createElement("a");
                       a.href = cur.url;
                       a.download =
                         cur.filename ||
-                        `encounter-image-${cur.id || index}.jpg`;
+                        `encounter-image-${cur.id || safeIndex}.jpg`;
                       a.click();
                     }}
                     aria-label="Download"
@@ -305,6 +369,7 @@ export const ImageModal = observer(
                 </button>
                 <div
                   id="image-modal-image-container"
+                  ref={imageContainerRef}
                   className="position-relative d-flex justify-content-center align-items-center"
                   style={{
                     width: "100%",
@@ -349,17 +414,13 @@ export const ImageModal = observer(
                         objectFit: "contain",
                         margin: "auto",
                       }}
-                      onLoad={() => {
-                        const iw = imgRef.current?.clientWidth || 1;
-                        const ih = imgRef.current?.clientHeight || 1;
-                        setScaleX((assets[safeIndex]?.width || iw) / iw);
-                        setScaleY((assets[safeIndex]?.height || ih) / ih);
-                      }}
                     />
                     <Tooltip show={tip.show} x={tip.x} y={tip.y}>
                       {tip.text}
                     </Tooltip>
-                    {imageStore.showAnnotations &&
+                    {imageReady &&
+                      !imageError &&
+                      imageStore.showAnnotations &&
                       rects.length > 0 &&
                       rects.map((rect, index) => {
                         let newRect = { ...rect };
@@ -995,7 +1056,10 @@ export const ImageModal = observer(
                       const taskId = imageStore.encounterAnnotations.filter(
                         (a) => a.id === imageStore.selectedAnnotationId,
                       )?.[0]?.iaTaskId;
-                      window.open(`/iaResults.jsp?taskId=${taskId}`, "_blank");
+                      window.open(
+                        `/react/match-results?taskId=${taskId}`,
+                        "_blank",
+                      );
                     }}
                     style={{
                       margin: "5px 0",
@@ -1042,7 +1106,11 @@ export const ImageModal = observer(
                     backgroundColor={themeColor?.wildMeColors?.cyan700}
                     borderColor={themeColor?.wildMeColors?.cyan700}
                     target={true}
+                    disabled={!hasNonTrivialAnnotations}
                     onClick={() => {
+                      if (!hasNonTrivialAnnotations) {
+                        return;
+                      }
                       if (
                         !imageStore.encounterData?.mediaAssets?.[
                           imageStore.selectedImageIndex
@@ -1074,7 +1142,7 @@ export const ImageModal = observer(
                         return;
                       }
                       window.open(
-                        `/react/manual-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[index]?.id}`,
+                        `/react/manual-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[safeIndex]?.id}`,
                         "_blank",
                       );
                     }}

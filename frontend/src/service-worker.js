@@ -68,9 +68,10 @@ registerRoute(
   }),
 );
 
+// Never cache API endpoints — responses are not idempotent and stale data
+// (e.g. boundingBox, detectionStatus) breaks polling-driven UI updates.
 registerRoute(
-  // ({url}) => true,
-  () => true,
+  ({ url }) => !url.pathname.startsWith("/api/"),
   new NetworkFirst(),
 );
 

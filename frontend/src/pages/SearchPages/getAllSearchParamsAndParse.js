@@ -1,13 +1,10 @@
-const helperFunction = async (
-  searchParams,
-  store,
-  setFilterPanel,
-  setTempFormFilters = () => {},
-) => {
+const helperFunction = async (searchParams, store, setFilterPanel) => {
   const params = Object.fromEntries(searchParams.entries()) || {};
   if (Object.keys(params).length === 0) {
     return;
   }
+
+  let didAddFilter = false;
 
   for (const [key, _] of Object.entries(params)) {
     if (key === "username") {
@@ -21,6 +18,7 @@ const helperFunction = async (
         },
         "Assigned User",
       );
+      didAddFilter = true;
     }
     if (key === "state") {
       store.addFilter(
@@ -33,9 +31,10 @@ const helperFunction = async (
         },
         "Encounter State",
       );
+      didAddFilter = true;
     }
     if (key === "searchQueryId") {
-      store.formFilters = JSON.parse(sessionStorage.getItem("formData")) || [];
+      store.getFiltersFromStorage();
     }
     if (key === "individualIDExact") {
       store.addFilter(
@@ -48,10 +47,14 @@ const helperFunction = async (
         },
         "Individual ID",
       );
+      didAddFilter = true;
     }
   }
-  setTempFormFilters([...store.formFilters]);
-  setFilterPanel(false);
+  if (didAddFilter) {
+    store.applyFilters();
+    setFilterPanel(false);
+  }
+
   return;
 };
 

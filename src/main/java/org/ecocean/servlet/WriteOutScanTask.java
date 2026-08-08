@@ -70,6 +70,12 @@ public class WriteOutScanTask extends HttpServlet {
             String newEncShark = "";
             String newEncSize = "";
             Encounter newEnc = myShepherd.getEncounter(encNumber);
+            // Resolve species from the in-memory match graph (same source as ScanWorkItemCreationThread),
+            // not from the DB encounter, so the Groth params are consistent with the async creation thread.
+            EncounterLite qle = GridManager.getMatchGraph().get(encNumber);
+            String wqGenus = (qle != null) ? qle.getGenus() : null;
+            String wqEpithet = (qle != null) ? qle.getSpecificEpithet() : null;
+            org.ecocean.grid.GrothParams gp = CommonConfiguration.getGrothParams(wqGenus, wqEpithet, context);
             newEncDate = newEnc.getDate();
             if (newEnc.getIndividualID() != null) {
                 newEncShark = newEnc.getIndividualID();
@@ -83,10 +89,10 @@ public class WriteOutScanTask extends HttpServlet {
             if (taskID.startsWith("scanR")) {
                 righty = true;
             }
-            boolean successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(context),
-                CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context),
-                CommonConfiguration.getMaxTriangleRotation(context),
-                CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty,
+            boolean successfulWrite = writeResult(res, encNumber, String.valueOf(gp.getR()),
+                String.valueOf(gp.getEpsilon()), String.valueOf(gp.getSizelim()),
+                String.valueOf(gp.getMaxTriangleRotation()),
+                String.valueOf(gp.getC()), newEncDate, newEncShark, newEncSize, righty,
                 cutoff, myShepherd, context, "", null);
             boolean successfulI3SWrite = i3sWriteThis(myShepherd, res, encNumber, newEncDate,
                 newEncShark, newEncSize, righty, 2.5, context);
@@ -118,10 +124,10 @@ public class WriteOutScanTask extends HttpServlet {
                     Arrays.sort(resLoc, new MatchComparator());
                     // System.out.println("resLoc="+resLoc.length+"; filtered="+filtered.size());
                     successfulLocationIDWrite = writeResult(resLoc, encNumber,
-                        CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context),
-                        CommonConfiguration.getSizelim(context),
-                        CommonConfiguration.getMaxTriangleRotation(context),
-                        CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize,
+                        String.valueOf(gp.getR()), String.valueOf(gp.getEpsilon()),
+                        String.valueOf(gp.getSizelim()),
+                        String.valueOf(gp.getMaxTriangleRotation()),
+                        String.valueOf(gp.getC()), newEncDate, newEncShark, newEncSize,
                         righty, cutoff, myShepherd, context, "LocationID", locs);
                 }
             }

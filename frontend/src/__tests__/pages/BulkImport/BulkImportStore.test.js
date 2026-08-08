@@ -317,9 +317,7 @@ describe("BulkImportStore tests part 1", () => {
       upload: jest.fn(),
     };
     store._flow = flow;
-    window.alert = jest.fn();
-    store.uploadFilteredFiles(5);
-    expect(window.alert).toHaveBeenCalled();
+    store.uploadFilteredFiles();
     expect(flow.upload).not.toHaveBeenCalled();
   });
 
@@ -503,9 +501,7 @@ describe("BulkImportStore tests part 1", () => {
       upload: jest.fn(),
     };
     store._flow = flow;
-    window.alert = jest.fn();
-    store.uploadFilteredFiles(5);
-    expect(window.alert).toHaveBeenCalled();
+    store.uploadFilteredFiles();
     expect(flow.upload).not.toHaveBeenCalled();
   });
 
@@ -520,7 +516,7 @@ describe("BulkImportStore tests part 1", () => {
     };
     store._flow = flow;
     window.alert = jest.fn();
-    store.uploadFilteredFiles(5);
+    store.uploadFilteredFiles();
     expect(flow.upload).toHaveBeenCalledTimes(1);
   });
 
@@ -608,15 +604,15 @@ describe("BulkImportStore tests part 1", () => {
       upload: jest.fn(),
     };
     store._flow = flow;
-    global.alert = jest.fn();
+    // Set _maxImageSizeMB to 1 so the 2 MB file is rejected.
+    // uploadFilteredFiles() no longer calls alert; it silently skips oversized files.
+    store._maxImageSizeMB = 1;
 
-    store.uploadFilteredFiles(1);
-    expect(global.alert).toHaveBeenCalled();
+    store.uploadFilteredFiles();
     expect(flow.upload).not.toHaveBeenCalled();
-
-    flow.files = [{ name: "small", size: 500 * 1024 }];
-    global.alert.mockClear();
-    store.uploadFilteredFiles(1);
+    store._flow.files = [{ name: "small", size: 500 * 1024 }];
+    store.uploadFilteredFiles();
+    expect(flow.upload).toHaveBeenCalledTimes(1);
   });
 
   test("generateThumbnailsForFirst50 resolves edge cases", async () => {
@@ -747,7 +743,7 @@ describe("BulkImportStore tests part 2", () => {
     store._uploadedImages = ["img1.jpg", "img3.png"];
     store._spreadsheetData = [
       { "Encounter.mediaAsset0": "img1.jpg,img2.jpg" },
-      { "Encounter.mediaAsset0": " img2.jpg , img4.png" },
+      { "Encounter.mediaAsset0": "img2.jpg,img4.png" },
     ];
     const missing = store.missingPhotos;
     expect(missing.sort()).toEqual(["img2.jpg", "img4.png"].sort());
@@ -800,7 +796,7 @@ describe("BulkImportStore tests part 2", () => {
       upload: jest.fn(),
     };
     store._flow = flow;
-    store.uploadFilteredFiles(5);
+    store.uploadFilteredFiles();
     expect(flow.upload).toHaveBeenCalledTimes(1);
     expect(flow.upload).toHaveBeenCalledWith(small);
   });

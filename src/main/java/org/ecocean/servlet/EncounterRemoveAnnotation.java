@@ -15,12 +15,11 @@ import javax.servlet.ServletException;
 import java.io.*;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class EncounterRemoveAnnotation extends HttpServlet {
-    /** SLF4J logger instance for writing log entries. */
-    public static Logger log = LoggerFactory.getLogger(EncounterRemoveAnnotation.class);
+    private static final Logger log = LogManager.getLogger(EncounterRemoveAnnotation.class);
 
     public void init(ServletConfig config)
     throws ServletException {
@@ -105,6 +104,9 @@ public class EncounterRemoveAnnotation extends HttpServlet {
                         enc.addComments("<p data-annot-id=\"" + ann.getId() +
                             "\">Annotation deleted by " + user.getDisplayName() + " on " +
                             Util.prettyTimeStamp() + "</p>");
+                        ann.deleteMatchResults(myShepherd);
+                        ann.deleteMatchResultProspects(myShepherd);
+                        ann.deleteEmbeddings(myShepherd);
                         myShepherd.getPM().deletePersistent(ann);
                         myShepherd.updateDBTransaction();
                         res.put("revertToTrivial", true);
@@ -122,6 +124,9 @@ public class EncounterRemoveAnnotation extends HttpServlet {
                             "\">Annotation deleted by " + user.getDisplayName() + " on " +
                             Util.prettyTimeStamp() + "</p>");
                         enc.removeAnnotation(ann);
+                        ann.deleteMatchResults(myShepherd);
+                        ann.deleteMatchResultProspects(myShepherd);
+                        ann.deleteEmbeddings(myShepherd);
                         myShepherd.getPM().deletePersistent(ann);
                         myShepherd.commitDBTransaction();
                     }

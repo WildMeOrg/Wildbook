@@ -79,7 +79,7 @@ public class EncounterPatchValidator {
             if (path.equals("individualId") && (value != null)) {
                 MarkedIndividual currentIndiv = enc.getIndividual();
                 if (currentIndiv != null) mayNeedPruning.put(currentIndiv);
-                value = getOrCreateMarkedIndividual(value.toString(), myShepherd);
+                value = getOrCreateMarkedIndividual(value, myShepherd);
                 System.out.println("applyPatch() path=individualId using " + value);
             }
             if (path.equals("occurrenceId") && (value != null)) {
@@ -234,9 +234,7 @@ public class EncounterPatchValidator {
                     throw new ApiException("no such annotation id=" + value.toString(),
                             ApiException.ERROR_RETURN_CODE_INVALID);
                 MediaAsset ma = ann.getMediaAsset();
-                ann.detachFromTasks(myShepherd);
-                enc.removeAnnotation(ann);
-                ann.detachFromMediaAsset();
+                ann.prepareForDeletion(myShepherd, enc);
                 // "most likely" this encounter is now detached from the asset, but we want them still connected
                 // TODO parts might be connecting these, but how do we determine if we still need to add the trivial?
                 if (ma != null) {
@@ -344,11 +342,41 @@ public class EncounterPatchValidator {
         return jval;
     }
 
-    private static MarkedIndividual getOrCreateMarkedIndividual(String idOrName,
-        Shepherd myShepherd) {
-        MarkedIndividual indiv = myShepherd.getMarkedIndividual(idOrName);
+    // should never get called here with null value
+    private static MarkedIndividual getOrCreateMarkedIndividual(Object value, Shepherd myShepherd)
+    throws ApiException {
+        String idOrName = null;
+        MarkedIndividual indiv = null;
 
-        if (indiv != null) return indiv;
+        if (value instanceof JSONObject) {
+            // in theory there is small risk of race-condition here as we make this indiv
+            // but we ignore that for now :) related, we dont check if this individual
+            // exists with getMarkedIndividual() first
+            JSONObject nameData = (JSONObject)value;
+            String type = nameData.optString("type", "NO_TYPE_GIVEN");
+            // right now we only support type=locationId, but may expand later
+            if (type.equals("locationId")) {
+                String locationId = nameData.optString("value", null);
+                try {
+                    idOrName = MarkedIndividual.nextNameByLocationId(locationId);
+                } catch (IllegalArgumentException ex) {
+                    // can fail for various reasons like invalid locationId or one without a prefix
+                    throw new ApiException("could not get next individual name for locationId (" +
+                            locationId + "): " + ex.getMessage(),
+                            ApiException.ERROR_RETURN_CODE_INVALID);
+                }
+            } else {
+                throw new ApiException("invalid type passed for new individual creation: " + type,
+                        ApiException.ERROR_RETURN_CODE_INVALID);
+            }
+            // if we fall through to here we should have idOrName to create a new one
+            System.out.println("[DEBUG] getOrCreateMarkedIndividual() creating '" + idOrName +
+                "' based on " + nameData);
+        } else { // not json, so must have a name to find/create
+            idOrName = value.toString();
+            indiv = myShepherd.getMarkedIndividual(idOrName);
+            if (indiv != null) return indiv;
+        }
         indiv = new MarkedIndividual(); // will get assigned id
         indiv.addName(idOrName);
         // other properties like taxonomy set during actual patchOp

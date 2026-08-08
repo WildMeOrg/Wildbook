@@ -105,6 +105,7 @@ public class WildbookIAM extends IAPlugin {
         if (checkFirst) iaImageIds = iaImageIds();
         HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
         map.put("image_uri_list", new ArrayList<JSONObject>());
+        map.put("image_uuid_list", new ArrayList<JSONObject>());
         map.put("image_unixtime_list", new ArrayList<Integer>());
         map.put("image_gps_lat_list", new ArrayList<Double>());
         map.put("image_gps_lon_list", new ArrayList<Double>());
@@ -128,6 +129,8 @@ public class WildbookIAM extends IAPlugin {
                 continue;
             }
             acmList.add(ma);
+            String uuidToSend = (ma.getAcmId() != null) ? ma.getAcmId() : ma.getUUID();
+            map.get("image_uuid_list").add(toFancyUUID(uuidToSend));
             map.get("image_uri_list").add(mediaAssetToUri(ma));
             map.get("image_gps_lat_list").add(ma.getLatitude());
             map.get("image_gps_lon_list").add(ma.getLongitude());
@@ -157,10 +160,97 @@ public class WildbookIAM extends IAPlugin {
                     bres.put(rtn);
                     // initialize for next batch (if any)
                     map.put("image_uri_list", new ArrayList<JSONObject>());
+                    map.put("image_uuid_list", new ArrayList<JSONObject>());
                     map.put("image_unixtime_list", new ArrayList<Integer>());
                     map.put("image_gps_lat_list", new ArrayList<Double>());
                     map.put("image_gps_lon_list", new ArrayList<Double>());
                     acmList = new ArrayList<MediaAsset>();
+                } else {
+                    bres.put("EMPTY BATCH");
+                }
+                batchCt++;
+            }
+        }
+        allRtn.put("batchResults", bres);
+        return allRtn;
+    }
+
+    public JSONObject sendMediaAssetsForceId(ArrayList<MediaAsset> mas, boolean checkFirst)
+    throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
+        InvalidKeyException {
+        String u = IA.getProperty(context, "IBEISIARestUrlAddImages");
+
+        if (u == null)
+            throw new MalformedURLException(
+                      "WildbookIAM configuration value IBEISIARestUrlAddImages is not set");
+        URL url = new URL(u);
+        int batchSize = 30;
+        int numBatches = Math.round(mas.size() / batchSize + 1);
+
+        // sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
+        List<String> iaImageIds = new ArrayList<String>();
+        if (checkFirst) iaImageIds = iaImageIds();
+        HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
+        map.put("image_uri_list", new ArrayList<JSONObject>());
+        map.put("image_uuid_list", new ArrayList<JSONObject>());
+        map.put("image_unixtime_list", new ArrayList<Integer>());
+        map.put("image_gps_lat_list", new ArrayList<Double>());
+        map.put("image_gps_lon_list", new ArrayList<Double>());
+        int batchCt = 1;
+        JSONObject allRtn = new JSONObject();
+        allRtn.put("_batchSize", batchSize);
+        allRtn.put("_totalSize", mas.size());
+        JSONArray bres = new JSONArray();
+        for (int i = 0; i < mas.size(); i++) {
+            MediaAsset ma = mas.get(i);
+            if (iaImageIds.contains(ma.getAcmId())) continue;
+            if (ma.isValidImageForIA() != null && !ma.isValidImageForIA()) {
+                IA.log(
+                    "WARNING: WildbookIAM.sendMediaAssetsForceId() found a corrupt or otherwise invalid MediaAsset with Id: "
+                    + ma.getId());
+                continue;
+            }
+            if (!validMediaAsset(ma)) {
+                IA.log("WARNING: WildbookIAM.sendMediaAssetsForceId() skipping invalid " + ma);
+                continue;
+            }
+            map.get("image_uri_list").add(mediaAssetToUri(ma));
+            map.get("image_uuid_list").add(toFancyUUID(ma.getUUID()));
+            map.get("image_gps_lat_list").add(ma.getLatitude());
+            map.get("image_gps_lon_list").add(ma.getLongitude());
+            DateTime t = ma.getDateTime();
+            if (t == null) {
+                map.get("image_unixtime_list").add(null);
+            } else {
+                map.get("image_unixtime_list").add((int)Math.floor(t.getMillis() / 1000)); // IA wants seconds since epoch
+            }
+            int sendSize = map.get("image_uri_list").size();
+            if ((i == (mas.size() - 1)) || ((i > 0) && (i % batchSize == 0))) { // end of all; or end of a batch
+                if (sendSize > 0) {
+                    IA.log("INFO: WildbookIAM.sendMediaAssetsForceId() is sending " + sendSize +
+                        " with batchSize=" + batchSize + " (" + batchCt + " of " + numBatches +
+                        " batches)");
+                    JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
+                    System.out.println(batchCt + "]  sendMediaAssetsForceId() -> " + rtn);
+/*
+                    if (acmIds == null) {
+                        IA.log(
+                            "WARNING: WildbookIAM.sendMediaAssetsForceId() could not get list of acmIds from response: "
+ + rtn);
+                    } else {
+                        int numChanged = AcmUtil.rectifyMediaAssetIds(acmList, acmIds);
+                        IA.log("INFO: WildbookIAM.sendMediaAssetsForceId() updated " + numChanged +
+                            " MediaAsset(s) acmId(s) via rectifyMediaAssetIds()");
+                    }
+ */
+                    bres.put(rtn);
+                    // initialize for next batch (if any)
+                    map.put("image_uri_list", new ArrayList<JSONObject>());
+                    map.put("image_uuid_list", new ArrayList<JSONObject>());
+                    map.put("image_unixtime_list", new ArrayList<Integer>());
+                    map.put("image_gps_lat_list", new ArrayList<Double>());
+                    map.put("image_gps_lon_list", new ArrayList<Double>());
+                    // acmList = new ArrayList<MediaAsset>();
                 } else {
                     bres.put("EMPTY BATCH");
                 }
@@ -196,6 +286,7 @@ public class WildbookIAM extends IAPlugin {
         List<Annotation> acmList = new ArrayList<Annotation>(); // for rectifyAnnotationIds below
         for (Annotation ann : anns) {
             if (iaAnnotIds.contains(ann.getAcmId())) continue;
+            if (iaAnnotIds.contains(ann.getId())) continue;
             if (ann.getMediaAsset() == null) {
                 IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find asset for " + ann +
                     "; skipping!");
@@ -251,6 +342,714 @@ public class WildbookIAM extends IAPlugin {
         return rtn;
     }
 
+    public JSONObject sendAnnotationsForceId(ArrayList<Annotation> anns, boolean checkFirst,
+        Shepherd myShepherd)
+    throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
+        InvalidKeyException {
+        String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
+
+        if (u == null)
+            throw new MalformedURLException(
+                      "WildbookIAM configuration value IBEISIARestUrlAddAnnotations is not set");
+        URL url = new URL(u);
+        int ct = 0;
+        // may be different shepherd, but findIndividualId() below will only work if its all persisted anyway. :/
+        // sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
+        List<String> iaAnnotIds = new ArrayList<String>();
+        if (checkFirst) iaAnnotIds = iaAnnotationIds();
+        HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
+        map.put("image_uuid_list", new ArrayList<String>());
+        map.put("annot_uuid_list", new ArrayList<String>());
+        map.put("annot_species_list", new ArrayList<String>());
+        map.put("annot_bbox_list", new ArrayList<int[]>());
+        map.put("annot_name_list", new ArrayList<String>());
+        map.put("annot_theta_list", new ArrayList<Double>());
+        for (Annotation ann : anns) {
+            if (iaAnnotIds.contains(ann.getAcmId())) continue;
+            if (iaAnnotIds.contains(ann.getId())) continue;
+            if (ann.getMediaAsset() == null) {
+                IA.log("WARNING: WildbookIAM.sendAnnotationsForceId() unable to find asset for " +
+                    ann + "; skipping!");
+                continue;
+            }
+            if (!IBEISIA.validForIdentification(ann)) {
+                IA.log("WARNING: WildbookIAM.sendAnnotationsForceId() skipping invalid " + ann);
+                continue;
+            }
+            JSONObject iid = toFancyUUID(ann.getMediaAsset().getAcmId());
+            if (iid == null) {
+                IA.log(
+                    "WARNING: WildbookIAM.sendAnnotationsForceId() unable to find asset.acmId for "
+                    + ann.getMediaAsset() + " on " + ann + "; skipping!");
+                continue;
+            }
+            map.get("image_uuid_list").add(iid);
+            JSONObject aid = toFancyUUID(ann.getId());
+            map.get("annot_uuid_list").add(aid);
+            int[] bbox = ann.getBbox();
+            map.get("annot_bbox_list").add(bbox);
+            // yuck - IA class is not species
+            // map.get("annot_species_list").add(getIASpecies(ann, myShepherd));
+            // better
+            map.get("annot_species_list").add(ann.getIAClass());
+
+            map.get("annot_theta_list").add(ann.getTheta());
+            String name = ann.findIndividualId(myShepherd);
+            map.get("annot_name_list").add((name == null) ? "____" : name);
+            ct++;
+        }
+        // myShepherd.rollbackDBTransaction();
+
+        IA.log("INFO: WildbookIAM.sendAnnotationsForceId() is sending " + ct);
+        if (ct < 1) return null; // null for "none to send" ?  is this cool?
+        System.out.println("sendAnnotationsForceId(): data -->\n" + map);
+        JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
+        System.out.println("sendAnnotationsForceId() -> " + rtn);
+        checkForcedIds(map.get("annot_uuid_list"), rtn.optJSONArray("response"));
+        return rtn;
+    }
+
+    // ------------------------------------------------------------------
+    // ml-service migration v2: no-Shepherd WBIA registration helpers.
+    //
+    // The polling thread in StartupWildbook splits the work into:
+    //   Phase A (write tx) - load DTO + close.
+    //   Phase B (no DB)    - call into the helpers below.
+    //   Phase C (write tx) - persist result.
+    // Phase B must not hold a Shepherd transaction across the WBIA call.
+    // ------------------------------------------------------------------
+
+    /**
+     * Outcome of a Phase-B WBIA registration attempt.
+     * REGISTERED_OK              - POST succeeded, ids match.
+     * REGISTERED_ALREADY_PRESENT - WBIA already knew the annotation; no POST.
+     * NETWORK_FAIL               - GET or POST threw / non-2xx.
+     * RESPONSE_BAD               - POST returned 200 but body shape was wrong
+     *                              (id mismatch, length mismatch, missing field).
+     */
+    public enum WbiaRegisterOutcome {
+        REGISTERED_OK,
+        REGISTERED_ALREADY_PRESENT,
+        NETWORK_FAIL,
+        RESPONSE_BAD,
+    }
+
+    /**
+     * Plain-data DTO that holds everything Phase B needs about one
+     * Annotation. Built under a Shepherd transaction in Phase A, then
+     * passed across the close/open boundary into Phase B.
+     *
+     * <p>Phase A is responsible for pre-validating that all required
+     * fields are populated; Phase B treats the DTO as opaque and does
+     * not re-touch any JDO-managed state.</p>
+     */
+    public static final class WbiaRegisterRequest {
+        public final String annotationId;       // Annotation.id (the WBIA annot id we send)
+        public final String annotationAcmId;    // Annotation.acmId, may differ from id on legacy rows
+        public final String mediaAssetAcmId;    // MediaAsset.acmId (the WBIA image id we send)
+        public final int[]  bbox;               // x,y,w,h
+        public final double theta;
+        public final String iaClass;            // species/class string
+        public final String individualName;     // "____" if absent
+
+        // Image-side fields. Phase 0 (image registration) sends these into
+        // WBIA's /api/image/json/ payload when the image isn't already
+        // known to WBIA. Captured under Shepherd in Phase A so Phase B has
+        // no JDO touchpoints. (Empty-match-prospects design Track 1 C5.)
+        public final String imageUri;            // double-encoded URL string; from mediaAssetToUri(ma)
+        public final Double imageLatitude;       // nullable; ma.getLatitude()
+        public final Double imageLongitude;      // nullable; ma.getLongitude()
+        public final Long   imageDateTimeMillis; // nullable epoch-ms; ma.getDateTime().getMillis()
+
+        public WbiaRegisterRequest(String annotationId, String annotationAcmId,
+            String mediaAssetAcmId, int[] bbox, double theta, String iaClass,
+            String individualName, String imageUri, Double imageLatitude,
+            Double imageLongitude, Long imageDateTimeMillis) {
+            this.annotationId        = annotationId;
+            this.annotationAcmId     = annotationAcmId;
+            this.mediaAssetAcmId     = mediaAssetAcmId;
+            this.bbox                = bbox;
+            this.theta               = theta;
+            this.iaClass             = iaClass;
+            this.individualName      = individualName;
+            this.imageUri            = imageUri;
+            this.imageLatitude       = imageLatitude;
+            this.imageLongitude      = imageLongitude;
+            this.imageDateTimeMillis = imageDateTimeMillis;
+        }
+
+        /**
+         * Pre-C5 constructor preserved for backward-compatibility with
+         * test fixtures that don't exercise the Phase 0 image-registration
+         * path. Equivalent to the 11-arg constructor with all four
+         * image fields null. New production callers should use the
+         * 11-arg form.
+         */
+        public WbiaRegisterRequest(String annotationId, String annotationAcmId,
+            String mediaAssetAcmId, int[] bbox, double theta, String iaClass,
+            String individualName) {
+            this(annotationId, annotationAcmId, mediaAssetAcmId, bbox, theta,
+                iaClass, individualName, null, null, null, null);
+        }
+    }
+
+    /**
+     * Strict variant of {@link #iaAnnotationIds(String)}: throws on
+     * fetch failure rather than returning an empty list. Phase B needs
+     * this so a network failure during the already-present check is
+     * not silently treated as "go ahead and POST".
+     *
+     * <p>Honors the 15-minute QueryCache the same way the lenient
+     * variant does, so a cache hit avoids the network entirely.</p>
+     */
+    public static List<String> iaAnnotationIdsStrict(String context) throws IOException {
+        String cacheName = "iaAnnotationIds";
+        // QueryCacheFactory.getQueryCache(context) can return null on a
+        // context that has never been initialized; treat that as "no cache"
+        // rather than NPE-ing out and aborting the poll cycle.
+        QueryCache qc = null;
+        try {
+            qc = QueryCacheFactory.getQueryCache(context);
+        } catch (Exception ex) {
+            // Defensive: cache factory init can fail; degrade to no-cache.
+        }
+        if (qc != null && qc.getQueryByName(cacheName) != null &&
+            System.currentTimeMillis() <
+            qc.getQueryByName(cacheName).getNextExpirationTimeout()) {
+            try {
+                org.datanucleus.api.rest.orgjson.JSONObject jobj = Util.toggleJSONObject(
+                    qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
+                JSONArray cached = Util.toggleJSONArray(jobj.getJSONArray("iaAnnotationIds"));
+                return parseAnnotationIdsArrayStrict(cached);
+            } catch (Exception ex) {
+                IA.log("WARNING: WildbookIAM.iaAnnotationIdsStrict() cache parse failed; refetching: "
+                    + ex.getMessage());
+            }
+        }
+        JSONArray jids;
+        try {
+            jids = apiGetJSONArray("/api/annot/json/", context);
+        } catch (Exception ex) {
+            throw new IOException("WBIA /api/annot/json/ fetch failed: " + ex.getMessage(), ex);
+        }
+        if (jids == null) throw new IOException("WBIA /api/annot/json/ returned null");
+        if (qc != null) {
+            try {
+                org.datanucleus.api.rest.orgjson.JSONObject jobj =
+                    new org.datanucleus.api.rest.orgjson.JSONObject();
+                jobj.put("iaAnnotationIds", Util.toggleJSONArray(jids));
+                CachedQuery cq = new CachedQuery(cacheName, Util.toggleJSONObject(jobj));
+                cq.nextExpirationTimeout = System.currentTimeMillis() + (15 * 60 * 1000);
+                qc.addCachedQuery(cq);
+            } catch (Exception cacheEx) {
+                // Cache store failure is non-fatal; we still have the ids.
+            }
+        }
+        return parseAnnotationIdsArrayStrict(jids);
+    }
+
+    /**
+     * Strict element parser: throws IOException if any element is not a
+     * decodable fancy-UUID. The non-strict {@link #parseAnnotationIdsArray}
+     * skips/null-pads malformed entries, which is fine for legacy paths but
+     * would let a corrupt response masquerade as "annotation not yet
+     * registered" in the polling thread's already-present check.
+     */
+    static List<String> parseAnnotationIdsArrayStrict(JSONArray jids) throws IOException {
+        return parseFancyUuidArrayStrict(jids, "iaAnnotationIds");
+    }
+
+    static List<String> parseAnnotationIdsArray(JSONArray jids) {
+        List<String> ids = new ArrayList<String>();
+        if (jids == null) return ids;
+        for (int i = 0; i < jids.length(); i++) {
+            JSONObject jo = jids.optJSONObject(i);
+            if (jo != null) ids.add(fromFancyUUID(jo));
+        }
+        return ids;
+    }
+
+    /**
+     * Strict variant of {@link #iaImageIds(String)}: throws on fetch
+     * failure rather than returning an empty list. The new Phase 0 of
+     * the v2 WBIA registration polling thread needs this so a network
+     * failure during the "is the image already registered with WBIA?"
+     * check is not silently treated as "go ahead and POST".
+     *
+     * <p>Honors a 15-minute QueryCache under the key {@code "iaImageIds"}
+     * (same pattern as {@link #iaAnnotationIdsStrict(String)} sharing
+     * {@code "iaAnnotationIds"}). The lenient {@link #iaImageIds(String)}
+     * variant remains cache-free. (Empty-match-prospects design Track 1 C3.)</p>
+     */
+    public static List<String> iaImageIdsStrict(String context) throws IOException {
+        String cacheName = "iaImageIds";
+        // QueryCacheFactory.getQueryCache(context) can return null on a
+        // context that has never been initialized; treat that as "no cache"
+        // rather than NPE-ing out and aborting the poll cycle.
+        QueryCache qc = null;
+        try {
+            qc = QueryCacheFactory.getQueryCache(context);
+        } catch (Exception ex) {
+            // Defensive: cache factory init can fail; degrade to no-cache.
+        }
+        if (qc != null && qc.getQueryByName(cacheName) != null &&
+            System.currentTimeMillis() <
+            qc.getQueryByName(cacheName).getNextExpirationTimeout()) {
+            try {
+                org.datanucleus.api.rest.orgjson.JSONObject jobj = Util.toggleJSONObject(
+                    qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
+                JSONArray cached = Util.toggleJSONArray(jobj.getJSONArray("iaImageIds"));
+                return parseImageIdsArrayStrict(cached);
+            } catch (Exception ex) {
+                IA.log("WARNING: WildbookIAM.iaImageIdsStrict() cache parse failed; refetching: "
+                    + ex.getMessage());
+            }
+        }
+        JSONArray jids;
+        try {
+            jids = apiGetJSONArray("/api/image/json/", context);
+        } catch (Exception ex) {
+            throw new IOException("WBIA /api/image/json/ fetch failed: " + ex.getMessage(), ex);
+        }
+        if (jids == null) throw new IOException("WBIA /api/image/json/ returned null");
+        if (qc != null) {
+            try {
+                org.datanucleus.api.rest.orgjson.JSONObject jobj =
+                    new org.datanucleus.api.rest.orgjson.JSONObject();
+                jobj.put("iaImageIds", Util.toggleJSONArray(jids));
+                CachedQuery cq = new CachedQuery(cacheName, Util.toggleJSONObject(jobj));
+                cq.nextExpirationTimeout = System.currentTimeMillis() + (15 * 60 * 1000);
+                qc.addCachedQuery(cq);
+            } catch (Exception cacheEx) {
+                // Cache store failure is non-fatal; we still have the ids.
+            }
+        }
+        return parseImageIdsArrayStrict(jids);
+    }
+
+    /**
+     * Strict element parser: throws IOException if any element is not a
+     * decodable fancy-UUID. Symmetric with {@link #parseAnnotationIdsArrayStrict};
+     * both delegate to {@link #parseFancyUuidArrayStrict(JSONArray, String)}
+     * with the appropriate label for error-message clarity.
+     */
+    static List<String> parseImageIdsArrayStrict(JSONArray jids) throws IOException {
+        return parseFancyUuidArrayStrict(jids, "iaImageIds");
+    }
+
+    /**
+     * Chunk size for the /api/image/rowid/uuid/ existence probe. 50 fancy
+     * UUIDs is ~3.5 KB of query string — safely under common proxy URL
+     * limits. (AcmIdBot reconciliation sweep spec §3/§6.)
+     */
+    static final int PROBE_CHUNK_SIZE = 50;
+
+    /**
+     * Split a list into consecutive sublists of at most {@code size}
+     * elements, preserving order. Returns an empty list for null/empty
+     * input or a non-positive size.
+     */
+    static <T> java.util.List<java.util.List<T>> chunkList(java.util.List<T> items, int size) {
+        java.util.List<java.util.List<T>> out = new ArrayList<java.util.List<T>>();
+
+        if ((items == null) || items.isEmpty() || (size < 1)) return out;
+        for (int i = 0; i < items.size(); i += size) {
+            out.add(new ArrayList<T>(items.subList(i, Math.min(items.size(), i + size))));
+        }
+        return out;
+    }
+
+    /**
+     * Interpret one /api/image/rowid/uuid/ response chunk. WBIA returns a
+     * rowid per requested UUID, with JSON null where the UUID is unknown;
+     * those unknown acmIds are returned. Throws IOException on a null
+     * response or a request/response length mismatch so a malformed reply
+     * is treated as a failed probe, never as "all present". (AcmIdBot
+     * reconciliation sweep spec §3.)
+     */
+    static List<String> parseRowidProbeResponse(List<String> chunkAcmIds, JSONArray response)
+    throws IOException {
+        if (response == null)
+            throw new IOException("rowid probe returned null response for chunk of " +
+                    chunkAcmIds.size());
+        if (response.length() != chunkAcmIds.size())
+            throw new IOException("rowid probe response length " + response.length() +
+                    " != request length " + chunkAcmIds.size());
+        List<String> missing = new ArrayList<String>();
+        for (int i = 0; i < response.length(); i++) {
+            if (response.isNull(i)) missing.add(chunkAcmIds.get(i));
+        }
+        return missing;
+    }
+
+    /**
+     * Ask WBIA which of the given image acmIds it does NOT have, via
+     * GET /api/image/rowid/uuid/ in {@link #PROBE_CHUNK_SIZE} chunks
+     * (a null rowid in the response marks that UUID unknown — see
+     * wildbook-ia get_image_gids_from_uuid). Null or malformed (non-UUID)
+     * acmIds are skipped (callers treat those assets as heal candidates
+     * without probing; a malformed value in a chunk could otherwise make
+     * WBIA reject the whole chunk). Throws IOException if any chunk fails
+     * so callers never mistake a failed probe for "all present". (AcmIdBot
+     * sweep spec §3.)
+     */
+    public static List<String> iaMissingImageIds(List<String> acmIds, String context)
+    throws IOException {
+        List<String> missing = new ArrayList<String>();
+
+        if (acmIds == null) return missing;
+        List<String> probeable = new ArrayList<String>();
+        for (String acmId : acmIds) {
+            if (acmId != null && Util.isUUID(acmId)) probeable.add(acmId);
+        }
+        for (List<String> chunk : chunkList(probeable, PROBE_CHUNK_SIZE)) {
+            StringBuilder sb = new StringBuilder();
+            for (String acmId : chunk) {
+                if (sb.length() > 0) sb.append(",");
+                sb.append(toFancyUUID(acmId).toString());
+            }
+            JSONArray resp = null;
+            try {
+                resp = apiGetJSONArray("/api/image/rowid/uuid/?uuid_list=[" + sb.toString() +
+                    "]", context);
+            } catch (Exception ex) {
+                throw new IOException("WBIA /api/image/rowid/uuid/ probe failed: " +
+                        ex.getMessage(), ex);
+            }
+            // apiGetJSONArray returns null when status.success is false or
+            // the payload is unparseable; parseRowidProbeResponse throws on it
+            missing.addAll(parseRowidProbeResponse(chunk, resp));
+        }
+        return missing;
+    }
+
+    /**
+     * Shared body for {@link #parseAnnotationIdsArrayStrict} and
+     * {@link #parseImageIdsArrayStrict}. The {@code label} is the
+     * source-array name (e.g. {@code "iaAnnotationIds"},
+     * {@code "iaImageIds"}); it appears in IOException messages so
+     * operators can tell which WBIA endpoint a malformed response
+     * came from.
+     *
+     * <p>(Empty-match-prospects design Track 1 C4: extracted from
+     * duplicated parser bodies on Codex's round-1 C2 review
+     * recommendation; the two named entry points stay so call sites
+     * grep cleanly.)</p>
+     */
+    static List<String> parseFancyUuidArrayStrict(JSONArray jids, String label)
+    throws IOException {
+        List<String> ids = new ArrayList<String>();
+        if (jids == null) return ids;
+        for (int i = 0; i < jids.length(); i++) {
+            JSONObject jo = jids.optJSONObject(i);
+            if (jo == null)
+                throw new IOException(label + " entry " + i + " is not a JSONObject");
+            String decoded = fromFancyUUID(jo);
+            if (decoded == null)
+                throw new IOException(label + " entry " + i + " could not be decoded: " + jo);
+            ids.add(decoded);
+        }
+        return ids;
+    }
+
+    /**
+     * Build the forced-id POST body for a single DTO. Pure function;
+     * factored out so unit tests can verify the request shape without
+     * a network round trip.
+     */
+    static HashMap<String, ArrayList> buildForcedRequestMap(WbiaRegisterRequest dto) {
+        HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
+        map.put("image_uuid_list", new ArrayList<JSONObject>());
+        map.put("annot_uuid_list", new ArrayList<JSONObject>());
+        map.put("annot_species_list", new ArrayList<String>());
+        map.put("annot_bbox_list", new ArrayList<int[]>());
+        map.put("annot_name_list", new ArrayList<String>());
+        map.put("annot_theta_list", new ArrayList<Double>());
+        map.get("image_uuid_list").add(toFancyUUID(dto.mediaAssetAcmId));
+        map.get("annot_uuid_list").add(toFancyUUID(dto.annotationId));
+        map.get("annot_species_list").add(dto.iaClass);
+        map.get("annot_bbox_list").add(dto.bbox);
+        map.get("annot_name_list").add(
+            (dto.individualName == null) ? "____" : dto.individualName);
+        map.get("annot_theta_list").add(dto.theta);
+        return map;
+    }
+
+    /**
+     * Validate a forced-id response. Throws on any contract violation
+     * (length mismatch, missing entry, id mismatch). Pure function.
+     */
+    static void validateForcedResponse(String sentAnnotId, JSONObject resp) throws IOException {
+        if (resp == null) throw new IOException("null forced-id response");
+        if (resp.has("status")) {
+            JSONObject status = resp.optJSONObject("status");
+            if (status != null && status.has("success") && !status.optBoolean("success", true)) {
+                throw new IOException("forced-id response status.success=false: " + resp);
+            }
+        }
+        JSONArray respArr = resp.optJSONArray("response");
+        if (respArr == null) throw new IOException("no response array: " + resp);
+        if (respArr.length() != 1)
+            throw new IOException("expected response array length 1, got " + respArr.length());
+        JSONObject jid = respArr.optJSONObject(0);
+        if (jid == null) throw new IOException("response[0] is not a JSONObject: " + respArr);
+        String respId = fromFancyUUID(jid);
+        if (respId == null) throw new IOException("response[0] could not be decoded: " + jid);
+        if (!respId.equals(sentAnnotId))
+            throw new IOException("forced-id mismatch: sent=" + sentAnnotId + " got=" + respId);
+    }
+
+    /**
+     * Phase B entry point. Sequence:
+     * <ol>
+     *   <li><b>Phase 0</b> (image registration, new in C6): GET the
+     *       WBIA-known image-ids; if the DTO's mediaAssetAcmId isn't
+     *       in the list, POST the image to /api/image/json/ and
+     *       invalidate the {@code "iaImageIds"} cache on success.
+     *       Without this, the legacy v2 routing path that skips
+     *       sendMediaAssets leaves WBIA unaware of the image, and
+     *       Phase 1's annotation POST returns HTTP 500 with
+     *       {@code image_uuid_list has invalid values [(0, None)]}.</li>
+     *   <li><b>Phase 1</b> (annotation registration, existing): the
+     *       already-present check, the forced-id POST, classification.</li>
+     * </ol>
+     *
+     * Does NOT touch any Shepherd or JDO state; callers must hand it
+     * a DTO that was pre-validated and detached in Phase A.
+     * (Empty-match-prospects design Track 1 C6.)
+     */
+    public WbiaRegisterOutcome registerOneByDto(WbiaRegisterRequest dto) {
+        if (dto == null) return WbiaRegisterOutcome.RESPONSE_BAD;
+        // Phase 0: image registration. If the image isn't already at
+        // WBIA, POST it before attempting the annotation POST.
+        WbiaRegisterOutcome phase0 = registerImageIfMissing(dto);
+        if (phase0 != null && phase0 != WbiaRegisterOutcome.REGISTERED_OK &&
+            phase0 != WbiaRegisterOutcome.REGISTERED_ALREADY_PRESENT) {
+            // NETWORK_FAIL or RESPONSE_BAD; propagate so the polling
+            // thread retries / parks (Codex round-2 #6: no new outcome
+            // enum needed — Phase C log line distinguishes phase).
+            return phase0;
+        }
+        // Phase 1: annotation registration. Property check first since
+        // a missing property is a config error, not a network error.
+        String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
+        if (u == null) {
+            IA.log("WARNING: WildbookIAM.registerOneByDto() Phase 1 property IBEISIARestUrlAddAnnotations not set for ann=" +
+                dto.annotationId);
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        List<String> known;
+        try {
+            known = iaAnnotationIdsStrict(context);
+        } catch (IOException ex) {
+            IA.log("WARNING: WildbookIAM.registerOneByDto() Phase 1 iaAnnotationIds fetch failed for ann=" +
+                dto.annotationId + ": " + ex.getMessage());
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        // iaAnnotationIds returns ANNOTATION uuids (not image uuids), so
+        // only check the annotation's id and acmId here. Comparing against
+        // the media-asset's acmId is wrong - that would compare an image
+        // identifier against a list of annotation identifiers.
+        if (known.contains(dto.annotationId) ||
+            (Util.stringExists(dto.annotationAcmId) && known.contains(dto.annotationAcmId))) {
+            return WbiaRegisterOutcome.REGISTERED_ALREADY_PRESENT;
+        }
+        URL url;
+        try {
+            url = new URL(u);
+        } catch (MalformedURLException ex) {
+            IA.log("WARNING: WildbookIAM.registerOneByDto() Phase 1 malformed URL " + u +
+                " for ann=" + dto.annotationId);
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        HashMap<String, ArrayList> map = buildForcedRequestMap(dto);
+        JSONObject rtn;
+        try {
+            rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
+        } catch (Exception ex) {
+            IA.log("WARNING: WildbookIAM.registerOneByDto() Phase 1 POST failed for " +
+                dto.annotationId + ": " + ex.getMessage());
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        // POST landed at WBIA. Invalidate the cache BEFORE classifying so
+        // a RESPONSE_BAD verdict on a successful POST doesn't leave the
+        // retry path looking at a stale "annotation absent" cache and
+        // POSTing the same annotation again (Codex round 2 of C6 review:
+        // Finding 1, applied to both phases).
+        QueryCacheFactory.safeInvalidate(context, "iaAnnotationIds");
+        try {
+            validateForcedResponse(dto.annotationId, rtn);
+        } catch (IOException ex) {
+            IA.log("WARNING: WildbookIAM.registerOneByDto() Phase 1 response invalid for " +
+                dto.annotationId + ": " + ex.getMessage());
+            return WbiaRegisterOutcome.RESPONSE_BAD;
+        }
+        return WbiaRegisterOutcome.REGISTERED_OK;
+    }
+
+    /**
+     * Phase 0 of registerOneByDto: ensure the image referenced by
+     * {@code dto.mediaAssetAcmId} is registered with WBIA before the
+     * Phase 1 annotation POST.
+     *
+     * <p>Returns:</p>
+     * <ul>
+     *   <li>{@link WbiaRegisterOutcome#REGISTERED_ALREADY_PRESENT} if the
+     *       image is already in WBIA's id list (no POST done).</li>
+     *   <li>{@link WbiaRegisterOutcome#REGISTERED_OK} if the image was
+     *       not present and the POST succeeded. Also invalidates the
+     *       {@code "iaImageIds"} cache so the next caller sees the
+     *       image as already present.</li>
+     *   <li>{@link WbiaRegisterOutcome#NETWORK_FAIL} on missing
+     *       {@code IBEISIARestUrlAddImages} property, fetch failure,
+     *       or POST exception.</li>
+     *   <li>{@link WbiaRegisterOutcome#RESPONSE_BAD} if the POST
+     *       returned an unexpected response shape.</li>
+     * </ul>
+     *
+     * Package-visible so unit tests can cover it without going
+     * through {@link #registerOneByDto(WbiaRegisterRequest)}.
+     */
+    WbiaRegisterOutcome registerImageIfMissing(WbiaRegisterRequest dto) {
+        if (dto == null) return WbiaRegisterOutcome.RESPONSE_BAD;
+        if (!Util.stringExists(dto.mediaAssetAcmId)) {
+            // Phase A required mediaAssetAcmId; a null here is a contract
+            // bug, not a state we should silently work around.
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 null mediaAssetAcmId in DTO for ann=" +
+                dto.annotationId);
+            return WbiaRegisterOutcome.RESPONSE_BAD;
+        }
+        if (!Util.stringExists(dto.imageUri)) {
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 null/empty imageUri in DTO for ann=" +
+                dto.annotationId);
+            return WbiaRegisterOutcome.RESPONSE_BAD;
+        }
+        String urlProp = IA.getProperty(context, "IBEISIARestUrlAddImages");
+        if (urlProp == null) {
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 property IBEISIARestUrlAddImages not set for ann=" +
+                dto.annotationId);
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        List<String> knownImages;
+        try {
+            knownImages = iaImageIdsStrict(context);
+        } catch (IOException ex) {
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 iaImageIds fetch failed for ann=" +
+                dto.annotationId + ": " + ex.getMessage());
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        if (knownImages.contains(dto.mediaAssetAcmId)) {
+            return WbiaRegisterOutcome.REGISTERED_ALREADY_PRESENT;
+        }
+        URL url;
+        try {
+            url = new URL(urlProp);
+        } catch (MalformedURLException ex) {
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 malformed URL " + urlProp +
+                " for ann=" + dto.annotationId);
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        HashMap<String, ArrayList> map = buildImageRequestMap(dto);
+        JSONObject rtn;
+        try {
+            rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
+        } catch (Exception ex) {
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 POST failed for ann=" +
+                dto.annotationId + " ma=" + dto.mediaAssetAcmId + ": " + ex.getMessage());
+            return WbiaRegisterOutcome.NETWORK_FAIL;
+        }
+        // POST landed at WBIA. Invalidate the cache BEFORE classifying
+        // so a RESPONSE_BAD verdict on a successful POST doesn't leave
+        // the retry path looking at a stale "image absent" cache and
+        // POSTing the same image again (Codex C6 review Finding 1).
+        QueryCacheFactory.safeInvalidate(context, "iaImageIds");
+        try {
+            validateImageResponse(dto.mediaAssetAcmId, rtn);
+        } catch (IOException ex) {
+            IA.log("WARNING: WildbookIAM.registerImageIfMissing() Phase 0 response invalid for ann=" +
+                dto.annotationId + " ma=" + dto.mediaAssetAcmId + ": " + ex.getMessage());
+            return WbiaRegisterOutcome.RESPONSE_BAD;
+        }
+        return WbiaRegisterOutcome.REGISTERED_OK;
+    }
+
+    /**
+     * Build the WBIA /api/image/json/ POST body for a single DTO.
+     * Pure function; factored out so unit tests can verify the request
+     * shape without a network round trip. Mirrors the same field-set
+     * {@link #sendMediaAssetsForceId} populates per asset (uri, fancy
+     * uuid, unix-seconds time, lat, lon).
+     */
+    static HashMap<String, ArrayList> buildImageRequestMap(WbiaRegisterRequest dto) {
+        HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
+        map.put("image_uri_list", new ArrayList<String>());
+        map.put("image_uuid_list", new ArrayList<JSONObject>());
+        map.put("image_unixtime_list", new ArrayList<Integer>());
+        map.put("image_gps_lat_list", new ArrayList<Double>());
+        map.put("image_gps_lon_list", new ArrayList<Double>());
+        map.get("image_uri_list").add(dto.imageUri);
+        map.get("image_uuid_list").add(toFancyUUID(dto.mediaAssetAcmId));
+        if (dto.imageDateTimeMillis == null) {
+            map.get("image_unixtime_list").add(null);
+        } else {
+            // IA expects seconds since epoch, not milliseconds.
+            map.get("image_unixtime_list").add(
+                (int)Math.floor(dto.imageDateTimeMillis / 1000));
+        }
+        map.get("image_gps_lat_list").add(dto.imageLatitude);
+        map.get("image_gps_lon_list").add(dto.imageLongitude);
+        return map;
+    }
+
+    /**
+     * Validate a /api/image/json/ response. Mirrors
+     * {@link #validateForcedResponse} in shape: expect a length-1
+     * response array whose first element decodes via fromFancyUUID to
+     * exactly the {@code sentImageUuid} we sent.
+     */
+    static void validateImageResponse(String sentImageUuid, JSONObject resp)
+    throws IOException {
+        if (resp == null) throw new IOException("null image response");
+        if (resp.has("status")) {
+            JSONObject status = resp.optJSONObject("status");
+            if (status != null && status.has("success") &&
+                !status.optBoolean("success", true)) {
+                throw new IOException("image response status.success=false: " + resp);
+            }
+        }
+        JSONArray respArr = resp.optJSONArray("response");
+        if (respArr == null) throw new IOException("no response array: " + resp);
+        if (respArr.length() != 1)
+            throw new IOException("expected response array length 1, got " + respArr.length());
+        JSONObject jid = respArr.optJSONObject(0);
+        if (jid == null) throw new IOException("response[0] is not a JSONObject: " + respArr);
+        String respId = fromFancyUUID(jid);
+        if (respId == null) throw new IOException("response[0] could not be decoded: " + jid);
+        if (!respId.equals(sentImageUuid))
+            throw new IOException("image-id mismatch: sent=" + sentImageUuid + " got=" + respId);
+    }
+
+    private static void checkForcedIds(List<JSONObject> sentIds, JSONArray respArr)
+    throws IOException {
+        if ((sentIds == null) || (respArr == null))
+            throw new IOException("null arg(s) passed: " + sentIds + ", " + respArr);
+        if (sentIds.size() != respArr.length())
+            throw new IOException("args diff length: " + sentIds.size() + " != " +
+                    respArr.length());
+        for (int i = 0; i < sentIds.size(); i++) {
+            String sentId = fromFancyUUID(sentIds.get(i));
+            if (sentId == null)
+                throw new IOException("bad sentId at i=" + i + "; sentIds.get=" + sentIds.get(i));
+            JSONObject jid = respArr.optJSONObject(i);
+            if (jid == null) throw new IOException("no JSONObject at respArr[" + i + "]");
+            String respId = fromFancyUUID(jid);
+            if (respId == null) throw new IOException("bad respId at i=" + i + "; jid=" + jid);
+            if (!respId.equals(sentId))
+                throw new IOException("mismatch of ids at i=" + i + ": sentId=" + sentId +
+                        "; respId=" + respId);
+        }
+    }
+
     public static List<String> acmIdsFromResponse(JSONObject rtn) {
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) return null;
         List<String> ids = new ArrayList<String>();
@@ -277,17 +1076,57 @@ public class WildbookIAM extends IAPlugin {
         JSONArray jids = null;
         String cacheName = "iaAnnotationIds";
 
+        // Cache-hit attempt first. Wrapped in its own try-catch so a
+        // parse failure (e.g., the cache entry exists but its serialized
+        // JSON is null after invalidateByName) falls through to a fresh
+        // network refetch instead of bubbling out as "return empty"
+        // (C18: regression fix for the safeInvalidate call C6 added —
+        // CachedQuery.invalidate() leaves the entry present with null
+        // JSON, and the prior outer-only catch returned empty, breaking
+        // the legacy HotSpotter sendAnnotationsAsNeeded path).
+        QueryCache qc = null;
         try {
-            QueryCache qc = QueryCacheFactory.getQueryCache(context);
-            if (qc.getQueryByName(cacheName) != null &&
-                System.currentTimeMillis() <
-                qc.getQueryByName(cacheName).getNextExpirationTimeout()) {
-                org.datanucleus.api.rest.orgjson.JSONObject jobj = Util.toggleJSONObject(
-                    qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
-                jids = Util.toggleJSONArray(jobj.getJSONArray("iaAnnotationIds"));
-            } else {
+            qc = QueryCacheFactory.getQueryCache(context);
+        } catch (Exception ex) {
+            // Defensive: cache factory init can fail; degrade to no-cache.
+        }
+        if (qc != null) {
+            // Lookup + expiration check inside the cache-attempt try so
+            // even a lazy loadQueries() failure inside getQueryByName
+            // falls through to the network refetch rather than escaping
+            // the method (Codex C18 Low 1).
+            try {
+                CachedQuery cached = qc.getQueryByName(cacheName);
+                if (cached != null &&
+                    System.currentTimeMillis() < cached.getNextExpirationTimeout()) {
+                    org.datanucleus.api.rest.orgjson.JSONObject jobj =
+                        Util.toggleJSONObject(cached.getJSONSerializedQueryResult());
+                    if (jobj != null) {
+                        jids = Util.toggleJSONArray(jobj.getJSONArray("iaAnnotationIds"));
+                    } else {
+                        // Invalidated entry: present but serialized JSON
+                        // nulled by CachedQuery.invalidate(). Log so ops
+                        // can correlate WARN noise with safeInvalidate
+                        // calls (Codex C18 Low 2).
+                        IA.log("WARNING: WildbookIAM.iaAnnotationIds() cache entry " +
+                            "present but serialized JSON is null (likely after " +
+                            "safeInvalidate); refetching");
+                    }
+                }
+            } catch (Exception ex) {
+                IA.log("WARNING: WildbookIAM.iaAnnotationIds() cache parse failed; refetching: "
+                    + ex.getMessage());
+                // jids remains null → falls through to the network refetch below.
+            }
+        }
+        // Cache miss or parse failure → refetch from WBIA. Wrapped in
+        // its own try-catch so a network error still returns the empty
+        // list per the original lenient contract (callers may treat
+        // empty as "no annotations registered yet").
+        if (jids == null) {
+            try {
                 jids = apiGetJSONArray("/api/annot/json/", context);
-                if (jids != null) {
+                if ((jids != null) && (qc != null)) {
                     org.datanucleus.api.rest.orgjson.JSONObject jobj =
                         new org.datanucleus.api.rest.orgjson.JSONObject();
                     jobj.put("iaAnnotationIds", Util.toggleJSONArray(jids));
@@ -295,11 +1134,11 @@ public class WildbookIAM extends IAPlugin {
                     cq.nextExpirationTimeout = System.currentTimeMillis() + (15 * 60 * 1000);
                     qc.addCachedQuery(cq);
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                IA.log("ERROR: WildbookIAM.iaAnnotationIds() returning empty; failed due to " +
+                    ex.toString());
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            IA.log("ERROR: WildbookIAM.iaAnnotationIds() returning empty; failed due to " +
-                ex.toString());
         }
         if (jids != null) {
             try {
@@ -379,21 +1218,27 @@ public class WildbookIAM extends IAPlugin {
         return j;
     }
 
-    private static Object mediaAssetToUri(MediaAsset ma) {
+    /**
+     * Build the URL string WBIA expects in {@code image_uri_list}. The
+     * double-encoded "?" pattern preserves filenames that contain "?" so
+     * WBIA's HTTP layer doesn't truncate them at the query boundary.
+     *
+     * <p>Returns {@code null} when {@link MediaAsset#webURL()} returns
+     * {@code null}. Promoted from {@code private Object} to
+     * {@code public String} (and the leading-NPE on {@code curl.toString()}
+     * tightened) so the ml-service v2 WBIA registration polling thread
+     * can call it from Phase A while building the {@link WbiaRegisterRequest}
+     * DTO. (Empty-match-prospects design Track 1 C2.)</p>
+     */
+    public static String mediaAssetToUri(MediaAsset ma) {
+        if (ma == null) return null;
         URL curl = ma.webURL();
+        if (curl == null) return null;
         String urlStr = curl.toString();
-
+        if (urlStr == null) return null;
         // THIS WILL BREAK if you need to append a query to the filename...
         // we are double encoding the '?' in order to allow filenames that contain it to go to IA
-        if (urlStr != null) {
-            urlStr = urlStr.replaceAll("\\?", "%3F");
-            if (ma.getStore() instanceof LocalAssetStore) {
-                return urlStr;
-            } else {
-                return urlStr;
-            }
-        }
-        return null;
+        return urlStr.replaceAll("\\?", "%3F");
     }
 
     // basically "should we send to IA?"

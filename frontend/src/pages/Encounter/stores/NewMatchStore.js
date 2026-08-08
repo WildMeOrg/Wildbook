@@ -28,13 +28,34 @@ class NewMatchStore {
       { fireImmediately: true },
     );
 
+    reaction(
+      () => this.shouldHideVectorAlgorithms,
+      (shouldHide) => {
+        if (shouldHide) {
+          this._algorithms = this._algorithms.filter(
+            (value) => !String(value).toLowerCase().includes("vector"),
+          );
+        }
+      },
+      { fireImmediately: true },
+    );
+
     // Auto-select default algorithms when iaConfig becomes available
     reaction(
       () => this.iaConfigBasedOnTaxonomy,
       (iaConfig) => {
         if (this._algorithms.length === 0 && iaConfig?.length > 0) {
           const defaults = iaConfig
-            .filter((d) => d.default === true)
+            .filter((d) => {
+              if (d.default !== true) return false;
+
+              const isVector = String(d.description)
+                .toLowerCase()
+                .includes("vector");
+
+              if (this.shouldHideVectorAlgorithms && isVector) return false;
+              return true;
+            })
             .map((d) => d.description);
           if (defaults.length > 0) {
             this._algorithms = defaults;
@@ -94,21 +115,58 @@ class NewMatchStore {
       .map((d) => d.id);
   }
 
+  get shouldHideVectorAlgorithms() {
+    const encounterData = this.encounterStore?.encounterData;
+    const allMediaAssets = encounterData?.mediaAssets || [];
+    const mediaAsset =
+      allMediaAssets[this.encounterStore?.selectedImageIndex] || {};
+    const annotations = mediaAsset?.annotations || [];
+    const encounterId = encounterData?.id || "";
+
+    const currentEncounterAnnotations = annotations.filter(
+      (annotation) => annotation?.encounterId === encounterId,
+    );
+
+    const hasEmbedding = currentEncounterAnnotations.some((annotation) => {
+      const embeddingCounts = annotation?.embeddingCounts;
+
+      return (
+        embeddingCounts &&
+        typeof embeddingCounts === "object" &&
+        !Array.isArray(embeddingCounts) &&
+        Object.keys(embeddingCounts).length > 0
+      );
+    });
+
+    return !hasEmbedding;
+  }
+
   get algorithmOptions() {
-    return (
+    const options =
       this.iaConfigBasedOnTaxonomy?.map((d) => ({
         label: d.description,
         value: d.description,
-      })) || []
+      })) || [];
+
+    if (!this.shouldHideVectorAlgorithms) return options;
+
+    return options.filter(
+      (option) => !String(option?.value).toLowerCase().includes("vector"),
     );
   }
 
   get matchingAlgorithms() {
     const selected = new Set(this._algorithms || []);
     return (
-      this.iaConfigBasedOnTaxonomy?.filter((cfg) =>
-        selected.has(cfg.description),
-      ) || []
+      this.iaConfigBasedOnTaxonomy?.filter((cfg) => {
+        const isSelected = selected.has(cfg.description);
+        const isVector = String(cfg.description)
+          .toLowerCase()
+          .includes("vector");
+
+        if (this.shouldHideVectorAlgorithms && isVector) return false;
+        return isSelected;
+      }) || []
     );
   }
 

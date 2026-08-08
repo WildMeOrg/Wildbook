@@ -6,6 +6,7 @@ import Description from "../Form/Description";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import _ from "lodash-es";
 import { observer } from "mobx-react-lite";
+import ContainerWithSpinner from "../ContainerWithSpinner";
 
 const LocationFilterMap = observer(({ data, store }) => {
   const [bounds, setBounds] = useState(null);
@@ -149,16 +150,19 @@ const LocationFilterMap = observer(({ data, store }) => {
         setBounds={setBounds}
         setTempBounds={setTempBounds}
       />
-      <FormGroupMultiSelect
-        isMulti={true}
-        noDesc={true}
-        label="FILTER_LOCATION_ID"
-        options={locationIDOptions}
-        term="terms"
-        field="locationId"
-        filterKey="Location ID"
-        store={store}
-      />
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          noDesc={true}
+          label="FILTER_LOCATION_ID"
+          options={locationIDOptions}
+          term="terms"
+          field="locationId"
+          filterKey="Location ID"
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
     </div>
   );
 });
