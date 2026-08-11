@@ -147,6 +147,23 @@ class AnnotationTest {
         assertNull(Annotation.findTrivialPlaceholder(encWithoutTrivial, ma));
     }
 
+    // multiple placeholders on one encounter is malformed data, but lock in
+    // the intentional selection rule (last one wins, matching the historical
+    // asset-wide scan)
+    @Test void findTrivialPlaceholderKeepsLastOfMultiple() {
+        AssetStore store = null;
+        MediaAsset ma = new MediaAsset(store, null);
+        Annotation first = new Annotation("species", ma);
+        Annotation second = new Annotation("species", ma);
+        first.getFeatures().get(0).setAnnotation(first);
+        second.getFeatures().get(0).setAnnotation(second);
+        Encounter enc = new Encounter();
+        enc.addAnnotation(first);
+        enc.addAnnotation(second);
+
+        assertEquals(second, Annotation.findTrivialPlaceholder(enc, ma));
+    }
+
     @Test void findTrivialPlaceholderNullEncounterSearchesAsset() {
         AssetStore store = null;
         MediaAsset ma = new MediaAsset(store, null);
