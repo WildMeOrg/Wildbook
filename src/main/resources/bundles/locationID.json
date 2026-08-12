@@ -244,6 +244,7 @@
 					{ "name":"OCAMPO", "id":"OCAMPO", "locationID":[] },
 					{ "name":"SAN CARLOS", "id":"SAN CARLOS", "locationID":[] },
 					{ "name":"SOTO LA MARINA", "id":"SOTO LA MARINA", "locationID":[] },
+					{"name": "Victoria", "id": "Victoria", "locationID":[] },
 					{"name": "Xicotencatl", "id": "Xicotencatl", "locationID":[] }
 				] },
 				{"name": "Yucatán", "id": "Yucatán", "locationID":[] },
