@@ -260,11 +260,16 @@ class MarkedIndividualTaxonomyTest {
                 " display as blank, so they are candidates too: " + sql);
         }
         // A row this query misses can never be fixed, so it must not be narrower than
-        // hasNoTaxonomyOfItsOwn(): btrim() would leave the tabs String.trim() removes, and a backslash
-        // pattern would be eaten on a connection with standard_conforming_strings off.
-        assertTrue(sql.contains("regexp_replace") && sql.contains("[[:space:][:cntrl:]]"),
+        // hasNoTaxonomyOfItsOwn(): btrim() would leave the tabs String.trim() removes. The regex
+        // is bound as a parameter, not written into the SQL, because DataNucleus misparses the
+        // POSIX classes' colons as named parameters (and a literal backslash pattern would be
+        // eaten on a connection with standard_conforming_strings off).
+        assertTrue(sql.contains("regexp_replace(\"GENUS\", ?") &&
+            sql.contains("regexp_replace(\"SPECIFICEPITHET\", ?"),
             "the query must treat as blank everything hasNoTaxonomyOfItsOwn() does: " + sql);
-        assertFalse(sql.contains("\\"), "and must not depend on backslash escaping to do it: " + sql);
+        assertEquals("[[:space:][:cntrl:]]", MarkedIndividual.TAXONOMY_BACKFILL_BLANK_REGEX,
+            "the bound pattern strips every space and control character");
+        assertFalse(sql.contains("\\"), "the SQL must not depend on backslash escaping: " + sql);
     }
 
     @Test void backfillBatchSizeIsBounded() {
