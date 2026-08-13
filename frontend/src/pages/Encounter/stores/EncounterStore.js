@@ -1296,7 +1296,7 @@ class EncounterStore {
         // (multi-valued names sort by their highest value under desc order;
         // unmapped_type keeps the query working on an index without the
         // names mapping)
-        sort: [{ names: { order: "desc", unmapped_type: "keyword" } }],
+        sort: [{ names: { order: "desc", mode: "min", unmapped_type: "keyword" } }],
         query: {
           bool: {
             filter: [
