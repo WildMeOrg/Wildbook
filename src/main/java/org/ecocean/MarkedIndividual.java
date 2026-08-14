@@ -1259,11 +1259,16 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     // nothing else. So it strips every space and control character instead of trying to reproduce
     // exactly what String.trim() removes, and Java has the final say per row.
     //
-    // [[:space:][:cntrl:]] rather than \s: a backslash in the pattern is consumed before the regex
-    // engine sees it on a connection with standard_conforming_strings off.
+    // The pattern is bound as a query parameter, never written into the SQL text: DataNucleus
+    // scans the whole SQL string for :name tokens without respecting string literals, so the
+    // POSIX classes ([:space:] etc) would be misparsed as named parameters. Binding also delivers
+    // the pattern to the regex engine byte-for-byte, so it owes nothing to
+    // standard_conforming_strings the way a backslash in a literal would.
+    static final String TAXONOMY_BACKFILL_BLANK_REGEX = "[[:space:][:cntrl:]]";
+
     private static String blankTaxonomyPartSql(String column) {
         return "COALESCE(lower(regexp_replace(\"" + column +
-               "\", '[[:space:][:cntrl:]]', '', 'g')), '') IN ('', 'none', 'unknown')";
+               "\", ?, '', 'g')), '') IN ('', 'none', 'unknown')";
     }
 
     /**
@@ -1292,7 +1297,8 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         List<MarkedIndividual> candidates = null;
         try {
             candidates = new ArrayList<MarkedIndividual>(
-                (Collection<MarkedIndividual>)query.execute(startId));
+                (Collection<MarkedIndividual>)query.executeWithArray(startId,
+                TAXONOMY_BACKFILL_BLANK_REGEX, TAXONOMY_BACKFILL_BLANK_REGEX));
         } finally {
             query.closeAll();
         }
