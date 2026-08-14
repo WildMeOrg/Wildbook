@@ -370,6 +370,7 @@
 
 				# ===== Logs and System Admin =====
 				/logs/** = authc, roles[admin]
+				/obrowse.jsp = authc, roles[admin]
 
 				# ===== Mass Operations =====
 				#/MassSetInformOthers = authc, roles[admin]
