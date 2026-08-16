@@ -3,7 +3,7 @@
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties,
-                 java.util.List,java.util.ArrayList,java.util.Map,
+                 java.util.List,java.util.ArrayList,
                  java.util.Locale" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
@@ -343,7 +343,7 @@ $(function() {
       changeMonth: true,
       changeYear: true,
       dateFormat: 'yy-mm-dd',
-      maxDate: '+1d',
+      maxDate: '0',
       controlType: 'select',
       alwaysSetTime: false,
       showSecond:false,
@@ -989,7 +989,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <select class="form-control" name="genusSpecies" id="genusSpecies">
+            <select class="form-control" name="genusSpecies" id="genusSpecies" onChange="$('.required-missing').removeClass('required-missing'); return true;">
              	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
   <%
 
@@ -1094,36 +1094,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <input class="form-control" name="occurrenceID" type="text" id="occurrenceID" size="75">
           </div>
         </div>
-        
-        
-        <%
-  if(CommonConfiguration.showProperty("showPatterningCode",context)){
-%>
-  <fieldset>
-    <div class="form-group" data-toggle="tooltip" title="<%=props.getProperty("patterningCode.tooltip")%>">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("patterningCode")%></label>
-      </div>
-
-      <div class="col-xs-6 col-lg-8">
-        <select class="form-control" name="patterningCode" id="patterningCode">
-          <option value="" selected="selected"> </option>
-<%
-    Map<String, String> mapPC = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
-    for (Map.Entry<String, String> item : mapPC.entrySet()) {
-%>
-          <option value="<%=item.getValue()%>"><%=props.getProperty(item.getKey())%></option>
-<%
-    }
-%>
-        </select>
-      </div>
-    </div>
-
-<%
-  }
-%>
-        
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -1134,9 +1104,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <input class="form-control" name="behavior" type="text" id="behavior" size="75">
           </div>
         </div>
-
-
-
 
 
 
@@ -1368,6 +1335,13 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
+    if ($('#agreeToTerms').length && !$('#agreeToTerms').is(':checked')) {
+      window.setTimeout(function () {
+        alert('Please agree to the Terms of Use and Privacy Policy before submitting.');
+      }, 100);
+      return false;
+    }
+
 	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
 		$('#location').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
@@ -1390,11 +1364,39 @@ function sendButtonClicked() {
 		return false;
 	}
 
-	//if (!$('#genusSpecies').val()) {
-	//	$('#genusSpecies').closest('.form-group').addClass('required-missing');
-	//	window.setTimeout(function() { alert('You must set a species first.'); }, 100);
-	//	return false;
-	//}
+  var dateValue = $('#datepicker').val().trim();
+  var parsedDate = null;
+
+  if (/^\d{4}$/.test(dateValue)) {
+    parsedDate = new Date(Number(dateValue), 0, 1);
+  } else if (/^\d{4}-\d{2}$/.test(dateValue)) {
+    var parts = dateValue.split('-');
+    parsedDate = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+    var parts = dateValue.split('-');
+    parsedDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  } else if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/.test(dateValue)) {
+    var parts = dateValue.split(/[- :]/);
+    parsedDate = new Date(
+      Number(parts[0]),
+      Number(parts[1]) - 1,
+      Number(parts[2]),
+      Number(parts[3]),
+      Number(parts[4])
+    );
+  }
+
+  if (parsedDate && !isNaN(parsedDate.getTime()) && parsedDate > new Date()) {
+    $('#datepicker').closest('.form-group').addClass('required-missing');
+    window.setTimeout(function() { alert('Date cannot be in the future.'); }, 100);
+    return false;
+  }
+
+	if (!$('#genusSpecies').val()) {
+		$('#genusSpecies').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must set a species first.'); }, 100);
+		return false;
+	}
 
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
@@ -1432,6 +1434,37 @@ function sendButtonClicked() {
 }
 </script>
 
+    <% if (request.getRemoteUser() == null) { %>
+      <!-- Terms / Privacy agreement  -->
+      <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
+        <div class="col-xs-12" style="display:flex; align-items:flex-start; gap:8px;">
+          <input
+            type="checkbox"
+            id="agreeToTerms"
+            name="agreeToTerms"
+            style="margin-top: 3px;"
+          />
+          <label for="agreeToTerms" style="font-weight: normal; margin: 0;">
+            I agree to
+            <a
+              href="<%=request.getContextPath()%>/react/policies-and-data?section=terms_of_use"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Terms of Use
+            </a>
+            and
+            <a
+              href="<%=request.getContextPath()%>/react/policies-and-data?section=privacy_policy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Privacy Policy
+            </a>
+          </label>
+        </div>
+      </div>
+    <% } %>
 
       <p class="text-center">
         <button id="submitEncounterButton" class="large" type="submit" onclick="sendButtonClicked();">

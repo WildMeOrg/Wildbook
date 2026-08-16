@@ -49,6 +49,9 @@ export default function AvatarAndUserProfile({ avatar }) {
         <NavDropdown.Item href={"/myAccount.jsp"} style={{ color: "black" }}>
           <FormattedMessage id="USER_PROFILE" />
         </NavDropdown.Item>
+        <NavDropdown.Item href={`${process.env.PUBLIC_URL}/api-access`} style={{ color: "black" }}>
+          API Access
+        </NavDropdown.Item>
         <NavDropdown.Item onClick={logout} style={{ color: "black" }}>
           <FormattedMessage id="LOGIN_LOGOUT" />
         </NavDropdown.Item>

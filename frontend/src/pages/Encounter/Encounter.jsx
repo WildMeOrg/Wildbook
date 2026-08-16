@@ -12,7 +12,7 @@ import LocationIcon from "../../components/icons/LocationIcon";
 import AttributesIcon from "../../components/icons/AttributesIcon";
 import ImageCard from "./ImageCard";
 import CardWithEditButton from "../../components/CardWithEditButton";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import PillWithDropdown from "../../components/PillWithDropdown";
 import ContactIcon from "../../components/icons/ContactIcon";
 import HistoryIcon from "../../components/icons/HistoryIcon";
@@ -38,10 +38,17 @@ import { Divider } from "antd";
 import { get } from "lodash-es";
 import CollabModal from "./CollabModal";
 import Alert from "react-bootstrap/Alert";
+import {
+  isAssetActivelyAwaitingDetection,
+  shouldContinuePollingEncounter,
+  POLL_INTERVAL_MS,
+  MAX_POLL_CYCLES,
+} from "./pollingHelpers";
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
-  const { data: siteSettings } = useGetSiteSettings();
+  const { data: siteSettings, isLoading: siteSettingsLoading } =
+    useSiteSettings();
   const [encounterValid, setEncounterValid] = useState(true);
   const [encounterDeleted, setEncounterDeleted] = useState(false);
   const intl = useIntl();
@@ -61,24 +68,104 @@ const Encounter = observer(() => {
   useEffect(() => {
     if (!siteSettings) return;
     store.setSiteSettings(siteSettings);
-  }, [siteSettings, store]);
+    store.setSiteSettingsLoading(siteSettingsLoading);
+  }, [siteSettings, store, siteSettingsLoading]);
 
   const params = new URLSearchParams(window.location.search);
   const encounterId = params.get("number");
 
+  // Effect 1: initial fetch — runs on mount and whenever the user navigates
+  // to a different encounter. Owns "encounter not found" modal state.
   useEffect(() => {
     let cancelled = false;
-    axios
-      .get(`/api/v3/encounters/${encounterId}`)
-      .then((res) => {
-        if (!cancelled) store.setEncounterData(res.data);
+
+    const fetchInitial = async () => {
+      try {
+        const res = await axios.get(`/api/v3/encounters/${encounterId}`);
+        if (cancelled) return;
+        store.setEncounterData(res.data);
         store.setAccess(get(res.data, "access", "read"));
-      })
-      .catch((_err) => setEncounterValid(false));
+        setEncounterValid(true);
+      } catch (_err) {
+        if (!cancelled) setEncounterValid(false);
+      }
+    };
+
+    fetchInitial();
+
     return () => {
       cancelled = true;
     };
   }, [encounterId, store]);
+
+  // Effect 2: polling loop. Re-arms whenever the set of media assets in a
+  // non-terminal detection state changes (image upload, annotation
+  // edit/delete, bbox redraw, etc.). The loaded-id guard prevents
+  // stale-encounter polling: when the user navigates from encounter A to
+  // encounter B, encounterId flips immediately but store.encounterData
+  // still holds A's data until Effect 1's fetch resolves. Without the
+  // guard, Effect 2 would poll against B's URL using A's status.
+  //
+  // The dep is a sorted "id:status" signature (not just a boolean) so that
+  // a new user action which puts another asset into a non-terminal state —
+  // OR transitions an already-awaiting asset to a different non-terminal
+  // status (e.g. re-detection while still pending) — starts a fresh
+  // polling session with a fresh MAX_POLL_CYCLES budget, instead of
+  // inheriting the leftover budget from an earlier (possibly exhausted)
+  // session.
+  const awaitingAssetSignature =
+    store.encounterData?.id === encounterId
+      ? (store.encounterData?.mediaAssets ?? [])
+          .filter((a) =>
+            isAssetActivelyAwaitingDetection(a, store.encounterData),
+          )
+          .map((a) => `${a.id}:${a.detectionStatus ?? ""}`)
+          .sort()
+          .join(",")
+      : "";
+
+  useEffect(() => {
+    if (awaitingAssetSignature === "") return undefined;
+
+    let cancelled = false;
+    let timeoutId = null;
+    let pollCount = 0;
+
+    const poll = async () => {
+      // On success use the fresh response for the reschedule check; on
+      // error fall back to the most recent store value so a transient
+      // failure doesn't kill the polling chain.
+      let dataForRecheck = store.encounterData;
+      try {
+        const res = await axios.get(`/api/v3/encounters/${encounterId}`);
+        if (!cancelled) {
+          store.setMediaAssets(res.data.mediaAssets);
+          dataForRecheck = res.data;
+        }
+      } catch (_err) {
+        // Swallow transient errors. The reschedule below is still bounded
+        // by MAX_POLL_CYCLES, so a flaky API won't poll forever and a
+        // single failure won't kill the polling session.
+      } finally {
+        if (!cancelled) {
+          pollCount += 1;
+          if (
+            pollCount < MAX_POLL_CYCLES &&
+            shouldContinuePollingEncounter(dataForRecheck)
+          ) {
+            timeoutId = window.setTimeout(poll, POLL_INTERVAL_MS);
+          }
+        }
+      }
+    };
+
+    timeoutId = window.setTimeout(poll, POLL_INTERVAL_MS);
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, [encounterId, awaitingAssetSignature, store]);
 
   if (store.access === "read") {
     return (
@@ -300,21 +387,29 @@ const Encounter = observer(() => {
           </Modal.Body>
         </Modal>
       )}
-      <ContactInfoModal
-        isOpen={store.modals.openContactInfoModal}
-        onClose={() => store.modals.setOpenContactInfoModal(false)}
-        store={store}
-      />
-      <EncounterHistoryModal
-        isOpen={store.modals.openEncounterHistoryModal}
-        onClose={() => store.modals.setOpenEncounterHistoryModal(false)}
-        store={store}
-      />
-      <MatchCriteriaModal
-        store={store}
-        isOpen={store.modals.openMatchCriteriaModal}
-        onClose={() => store.modals.setOpenMatchCriteriaModal(false)}
-      />
+
+      {store.modals.openContactInfoModal && (
+        <ContactInfoModal
+          isOpen={store.modals.openContactInfoModal}
+          onClose={() => store.modals.setOpenContactInfoModal(false)}
+          store={store}
+        />
+      )}
+      {store.modals.openEncounterHistoryModal && (
+        <EncounterHistoryModal
+          isOpen={store.modals.openEncounterHistoryModal}
+          onClose={() => store.modals.setOpenEncounterHistoryModal(false)}
+          store={store}
+        />
+      )}
+      {store.modals.openMatchCriteriaModal && (
+        <MatchCriteriaModal
+          store={store}
+          isOpen={store.modals.openMatchCriteriaModal}
+          onClose={() => store.modals.setOpenMatchCriteriaModal(false)}
+        />
+      )}
+
       <Row>
         <Col md={6}>
           <h2>

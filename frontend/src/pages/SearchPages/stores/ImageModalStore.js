@@ -132,9 +132,12 @@ class ImageModalStore {
     const identActive = iaTaskId && !skipId;
 
     const encounterData = this.encounterData;
+    // ml-service migration v2 (commit #5): "complete-mlservice" is terminal.
+    const detectionStatus =
+      encounterData?.mediaAssets?.[this.selectedImageIndex]?.detectionStatus;
     const detectionComplete =
-      encounterData?.mediaAssets?.[this.selectedImageIndex]?.detectionStatus ===
-      "complete";
+      detectionStatus === "complete" ||
+      detectionStatus === "complete-mlservice";
     const identificationStatus =
       selectedAnnotation?.identificationStatus === "complete" ||
       selectedAnnotation?.identificationStatus === "pending";

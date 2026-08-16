@@ -3,12 +3,12 @@ import { Form } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { observer } from "mobx-react-lite";
 import { Loader } from "@googlemaps/js-api-loader";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import { useIntl } from "react-intl";
 
 export const CoordinatesInput = observer(({ store }) => {
   const intl = useIntl();
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   const mapCenterLat = data?.mapCenterLat || 51;
   const mapCenterLon = data?.mapCenterLon || 7;
   const mapZoom = data?.mapZoom || 4;

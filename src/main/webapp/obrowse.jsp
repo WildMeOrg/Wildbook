@@ -12,6 +12,7 @@ org.ecocean.movement.*,
 java.net.URL,
 java.util.Vector,
 java.util.ArrayList,
+java.util.Set,
 org.json.JSONObject,
 org.json.JSONArray,
 java.util.Properties" %>
@@ -63,14 +64,22 @@ java.util.Properties" %>
 	private String niceJson(JSONObject j) {
 		if (j == null) return format(null, "none");
 		//return "<pre class=\"json\">" + j.toString().replaceAll(",", ",\n") + "</pre>";
-		return "<pre class=\"json\">" + j.toString(3) + "</pre>";
+		return "<pre class=\"json\">" + noHtml(j.toString(3)) + "</pre>";
 	}
 
 	private String niceJson(JSONArray j) {
 		if (j == null) return format(null, "none");
 		//return "<pre class=\"json\">" + j.toString().replaceAll(",", ",\n") + "</pre>";
-		return "<pre class=\"json\">" + j.toString(3) + "</pre>";
+		return "<pre class=\"json\">" + noHtml(j.toString(3)) + "</pre>";
 	}
+
+        // marks up stuff like '<null>'
+        private String noHtml(String h) {
+            if (h == null) return h;
+            h = h.replaceAll("<", "&lt;");
+            h = h.replaceAll(">", "&gt;");
+            return h;
+        }
 
 	private String showEncounter(Encounter enc, HttpServletRequest req) {
 		if (enc == null) return "<b>[none]</b>";
@@ -140,6 +149,16 @@ java.util.Properties" %>
         return "obrowse.jsp?type=Annotation&id="+ann.getId();
     }
 
+     private String showEmbeddingList(Set<Embedding> embs, HttpServletRequest req, Shepherd myShepherd) {
+        if (Util.collectionIsEmptyOrNull(embs)) return "<b>[none]</b>";
+        String h = "<div class=\"embedding\"><ul>";
+        for (Embedding emb : embs) {
+            h += "<li>" + emb + "</li>";
+        }
+        h += "</ul></div>";
+        return h;
+    }
+
 	private String showAnnotation(Annotation ann, HttpServletRequest req, Shepherd myShepherd) {
 		if (ann == null) return "annotation: <b>[none]</b>";
 		if (shown.contains(ann)) return "<div class=\"annotation shown\">Annotation <b>" + ann.getId() + "</b></div>";
@@ -154,6 +173,7 @@ java.util.Properties" %>
 		h += "<li>" + format("identificationStatus", ann.getIdentificationStatus()) + "</li>";
                 h += "<li>" + format("AoI", ann.getIsOfInterest()) + "</li>";
 		h += "<li>features: " + showFeatureList(ann.getFeatures(), req, myShepherd) + "</li>";
+		h += "<li>embeddings: " + showEmbeddingList(ann.getEmbeddings(), req, myShepherd) + "</li>";
 		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd), req) + "</li>";
 		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset(), req, myShepherd) + "</li>";
 		return h + "</ul></div>";
@@ -253,6 +273,7 @@ java.util.Properties" %>
         h += "<li>parameters: " + niceJson(task.getParameters()) + "</li>";
         h += "<li>detectionStatusSummary: " + niceJson(new JSONObject(task.detectionStatusSummary())) + "</li>";
         h += "<li>identificationStatusSummary: " + niceJson(new JSONObject(task.identificationStatusSummary())) + "</li>";
+        h += "<li>statusDetails: " + niceJson(task.getStatusDetails()) + "</li>";
         h += "<li><a target=\"_new\" href=\"iaResults.jsp?taskId=" + task.getId() + "\">iaResults</a></li>";
         h += "<li><a target=\"_new\" href=\"ia?v2&includeChildren&taskId=" + task.getId() + "\">JSON task tree</a></li>";
         h += "</ul>";

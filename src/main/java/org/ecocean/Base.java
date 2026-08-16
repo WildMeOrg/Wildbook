@@ -107,6 +107,17 @@ import org.json.JSONObject;
         return skipAutoIndexing;
     }
 
+    // this is not persisted, but is a place to keep score when from search query results
+    public double opensearchScore = 0.0d;
+
+    public void setOpensearchScore(double s) {
+        opensearchScore = s;
+    }
+
+    public double getOpensearchScore() {
+        return opensearchScore;
+    }
+
     public abstract String opensearchIndexName();
 
     public void opensearchCreateIndex()
@@ -127,6 +138,15 @@ import org.json.JSONObject;
         map.put("viewUsers", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         map.put("editUsers", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         return map;
+    }
+
+    // Whether this object should have a document in its OpenSearch index at all.
+    // Default true; overridden by classes (e.g. Annotation) that keep non-candidate
+    // records out of the index. Enforced centrally in OpenSearch.index(), so both
+    // opensearchIndex() and the reconciler's direct os.index() honor it; keep the
+    // class's getAllVersionsSql() filtered to the same set.
+    public boolean shouldIndexInOpenSearch() {
+        return true;
     }
 
     public void opensearchIndex()
@@ -320,6 +340,9 @@ import org.json.JSONObject;
         case "annotations":
             tmp = new Annotation();
             break;
+        case "individuals":
+            tmp = new MarkedIndividual();
+            break;
         default:
             return null;
         }
@@ -347,47 +370,61 @@ import org.json.JSONObject;
             return rtn;
         }
         OpenSearch.setActiveIndexingBackground();
-        OpenSearch os = new OpenSearch();
-        List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd,
-            baseObj.getAllVersionsSql()), os.getAllVersions(indexName));
-        if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
-        List<String> needIndexing = changes.get(0);
-        List<String> needRemoval = changes.get(1);
-        rtn[0] = needIndexing.size();
-        rtn[1] = needRemoval.size();
-        System.out.println("Base.opensearchSyncIndex(" + indexName + "): stopAfter=" + stopAfter +
-            ", needIndexing=" + rtn[0] + ", needRemoval=" + rtn[1]);
-        int ct = 0;
-        for (String id : needIndexing) {
-            Base obj = baseObj.getById(myShepherd, id);
-            try {
-                if (obj != null) os.index(indexName, obj);
-            } catch (Exception ex) {
-                System.out.println("Base.opensearchSyncIndex(" + indexName + "): index failed " +
-                    obj + " => " + ex.toString());
-                ex.printStackTrace();
+        // The background flag MUST be cleared however we leave this method. Previously an
+        // exception between here and the unset (the resolveVersions IOException below, a
+        // getAllVersions/scroll failure, or an os.delete throwing in the needRemoval loop)
+        // leaked the flag: it stayed set, so every later opensearchSyncIndex() call
+        // short-circuited at the indexingActive() check above and the reconciler was
+        // permanently wedged. try/finally guarantees the unset.
+        try {
+            OpenSearch os = new OpenSearch();
+            List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd,
+                baseObj.getAllVersionsSql()), os.getAllVersions(indexName));
+            if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
+            List<String> needIndexing = changes.get(0);
+            List<String> needRemoval = changes.get(1);
+            rtn[0] = needIndexing.size();
+            rtn[1] = needRemoval.size();
+            System.out.println("Base.opensearchSyncIndex(" + indexName + "): stopAfter=" + stopAfter +
+                ", needIndexing=" + rtn[0] + ", needRemoval=" + rtn[1]);
+            int ct = 0;
+            for (String id : needIndexing) {
+                Base obj = baseObj.getById(myShepherd, id);
+                try {
+                    if (obj != null) os.index(indexName, obj);
+                } catch (Exception ex) {
+                    // Log the id only -- never "" + obj, because obj.toString() can itself throw
+                    // (e.g. an orphaned Annotation whose MediaAsset row was deleted -> lazy-load
+                    // NucleusObjectNotFoundException). A throw here would escape this per-item catch
+                    // and abort the whole reconcile pass instead of skipping the one bad object.
+                    String failId = (obj == null) ? "?" : obj.getId();
+                    System.out.println("Base.opensearchSyncIndex(" + indexName + "): index failed id=" +
+                        failId + " => " + ex.toString());
+                    ex.printStackTrace();
+                }
+                if (ct % 500 == 0)
+                    System.out.println("Base.opensearchSyncIndex(" + indexName + ") needIndexing: " +
+                        ct + "/" + rtn[0]);
+                ct++;
+                if ((stopAfter > 0) && (ct > stopAfter)) {
+                    System.out.println("Base.opensearchSyncIndex(" + indexName +
+                        ") breaking due to stopAfter");
+                    break;
+                }
             }
-            if (ct % 500 == 0)
-                System.out.println("Base.opensearchSyncIndex(" + indexName + ") needIndexing: " +
-                    ct + "/" + rtn[0]);
-            ct++;
-            if ((stopAfter > 0) && (ct > stopAfter)) {
-                System.out.println("Base.opensearchSyncIndex(" + indexName +
-                    ") breaking due to stopAfter");
-                break;
+            System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needIndexing");
+            ct = 0;
+            for (String id : needRemoval) {
+                os.delete(indexName, id);
+                if (ct % 500 == 0)
+                    System.out.println("Base.opensearchSyncIndex(" + indexName + ") needRemoval: " +
+                        ct + "/" + rtn[1]);
+                ct++;
             }
+            System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needRemoval");
+        } finally {
+            OpenSearch.unsetActiveIndexingBackground();
         }
-        System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needIndexing");
-        ct = 0;
-        for (String id : needRemoval) {
-            os.delete(indexName, id);
-            if (ct % 500 == 0)
-                System.out.println("Base.opensearchSyncIndex(" + indexName + ") needRemoval: " +
-                    ct + "/" + rtn[1]);
-            ct++;
-        }
-        System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needRemoval");
-        OpenSearch.unsetActiveIndexingBackground();
         return rtn;
     }
 

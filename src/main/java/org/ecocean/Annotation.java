@@ -12,6 +12,10 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.api.ApiException;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.IAException;
+import org.ecocean.ia.MatchResult;
+import org.ecocean.ia.MatchResultProspect;
+import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.Feature;
@@ -25,6 +29,13 @@ import org.json.JSONObject;
 public class Annotation extends Base implements java.io.Serializable {
     public Annotation() {}
     private String id;
+    // Number of nearest neighbors the OpenSearch knn query returns
+    // for vector matching. Was 4, which after self-encounter exclusion
+    // produced only ~3 prospects regardless of how large the matching
+    // set was — far fewer than the legacy WBIA paths. Bumped to 50 so
+    // vector matching can populate the match-results page comparably
+    // to MiewID's 12-default and HotSpotter's larger result sets.
+    public static final int KNN_K_DISTANCE_VALUE = 50;
     private static final String[][] VALID_VIEWPOINTS = new String[][] {
         { "up", "up", "up", "up", "up", "up", "up", "up", }, {
             "upfront", "upfrontright", "upright", "upbackright", "upback", "upbackleft", "upleft",
@@ -44,7 +55,30 @@ public class Annotation extends Base implements java.io.Serializable {
     private Boolean isOfInterest = null; // aka AoI (Annotation of Interest)
     protected String identificationStatus;
     private ArrayList<Feature> features;
+    private Set<Embedding> embeddings;
     protected String acmId;
+
+    // ----- ml-service migration v2: WBIA registration -----
+    // (commit #4 of the v2 plan)
+    //
+    // wbiaRegistered drives the DB-backed background poller that tells WBIA
+    // about ml-service-created annotations so HotSpotter remains available.
+    //
+    //   null  — legacy annotation (column is new; starts null on existing
+    //           rows). The DDL migration sets nulls to TRUE wherever
+    //           acmId IS NOT NULL ("already registered via the historical
+    //           IBEISIA flow"). Excluded from polling.
+    //   false — new ml-service annotation awaiting WBIA registration.
+    //           Polling thread picks these up.
+    //   true  — WBIA acknowledged. Terminal success.
+    //
+    // Contract: MlServiceProcessor MUST set this to false (not null) on
+    // new ml-service annotations.
+    protected Boolean wbiaRegistered;
+
+    // Failed-attempt counter. Polling filters wbiaRegisterAttempts < MAX so
+    // chronically-failing rows park rather than spin forever.
+    protected int wbiaRegisterAttempts = 0;
 
     // this is used to decide "should we match against this"  problem is: that is not very (IA-)algorithm agnostic
     // TODO: was this made obsolete by ACM and friends?
@@ -122,7 +156,10 @@ public class Annotation extends Base implements java.io.Serializable {
     }
 
     public long setVersion() {
-        version = System.currentTimeMillis();
+        // Monotonic: the OpenSearch reconciler treats an annotation as stale only when DB version is
+        // strictly greater than the indexed version, so two bumps within the same millisecond must
+        // still advance the value (otherwise a change could silently fail to reindex).
+        version = Math.max(version + 1, System.currentTimeMillis());
         return version;
     }
 
@@ -145,9 +182,32 @@ public class Annotation extends Base implements java.io.Serializable {
         map.put("encounterLocationId", keywordType);
         map.put("encounterTaxonomy", keywordType);
         map.put("encounterProjectIds", keywordType);
+        // parent encounter's sighting date, denormalized so temporal analyses need no encounter join
+        map.put("encounterDateMillis", new JSONObject("{\"type\": \"date\", \"format\": \"epoch_millis\"}"));
+
+        // ACL fields (viewUsers is inherited from Base.opensearchMapping())
+        map.put("publiclyReadable", new JSONObject("{\"type\": \"boolean\"}"));
+        map.put("submitterUserIds", keywordType);
 
         // all case-insensitive keyword-ish types
         // map.put("fubar", keywordNormalType);
+
+        // embeddings have some metadata (algorithm etc)
+        // and then the vector that is the embedding
+        JSONObject embMap = new JSONObject();
+        embMap.put("type", "nested");
+        embMap.put("dynamic", false);
+        JSONObject embProps = new JSONObject();
+        embProps.put("method", keywordType);
+        embProps.put("methodVersion", keywordType);
+        JSONObject embVect = new JSONObject();
+        // https://docs.opensearch.org/docs/latest/vector-search/creating-vector-index/
+        embVect.put("type", "knn_vector");
+        embVect.put("dimension", Embedding.getVectorDimension());
+        embVect.put("space_type", "cosinesimil");
+        embProps.put("vector", embVect);
+        embMap.put("properties", embProps);
+        map.put("embeddings", embMap);
 
         return map;
     }
@@ -170,6 +230,10 @@ public class Annotation extends Base implements java.io.Serializable {
             jgen.writeStringField("encounterSubmitterId", enc.getSubmitterID());
             jgen.writeStringField("encounterLocationId", enc.getLocationID());
             jgen.writeStringField("encounterTaxonomy", enc.getTaxonomyString());
+            // denormalize the sighting date so temporal re-ID analyses avoid a second round-trip to
+            // the encounter index (mirrors Encounter's own dateMillis serialization)
+            Long encDateMillis = enc.getDateInMillisecondsFallback();
+            if (encDateMillis != null) jgen.writeNumberField("encounterDateMillis", encDateMillis);
             // per discussion on issue 874, including this in indexing, but not (yet) using in matchingSet
             jgen.writeStringField("encounterLivingStatus", enc.getLivingStatus());
             User owner = enc.getSubmitterUser(myShepherd);
@@ -187,12 +251,52 @@ public class Annotation extends Base implements java.io.Serializable {
                 if (tod > 0) jgen.writeNumberField("encounterIndividualTimeOfDeath", tod);
             }
         }
+        this.writeAclFields(jgen, myShepherd);
+        jgen.writeArrayFieldStart("embeddings");
+        if (this.embeddings != null)
+            for (Embedding emb : this.embeddings) {
+                jgen.writeStartObject();
+                jgen.writeStringField("id", emb.getId());
+                jgen.writeStringField("method", emb.getMethod());
+                jgen.writeStringField("methodVersion", emb.getMethodVersion());
+                jgen.writeNumberField("created", emb.getCreated());
+
+                float[] vecFloat = emb.vectorToFloatArray();
+                // System.out.println("[INFO] indexing emb " + emb.getId() + " vector length " + ((vecFloat == null) ? "null" : vecFloat.length));
+                if ((vecFloat != null) && (vecFloat.length > 0)) {
+                    jgen.writeFieldName("vector");
+                    jgen.writeStartArray();
+                    for (int i = 0; i < vecFloat.length; i++) {
+                        jgen.writeNumber(vecFloat[i]);
+                    }
+                    jgen.writeEndArray();
+                }
+                jgen.writeEndObject();
+            }
+        jgen.writeEndArray();
     }
 
-    // TODO should this also be limited by matchAgainst and acmId?
     @Override public String getAllVersionsSql() {
+        // Desired-state for the OpenSearch reconciler: only annotations that should have
+        // an index doc -- match candidates (matchAgainst) or anything carrying an
+        // embedding. MUST stay semantically identical to shouldIndexInOpenSearch() below.
+        // Non-candidate/"trivial" (undetected, no-embedding) annotations are excluded so
+        // the reconciler neither re-indexes them nor flags them as missing (which would
+        // churn forever), and removes any already-indexed ones via its needRemoval pass.
         return
-                "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY \"MATCHAGAINST\" DESC, version";
+                "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" " +
+                "WHERE \"MATCHAGAINST\" = true OR EXISTS " +
+                "(SELECT 1 FROM \"EMBEDDING\" e WHERE e.\"ANNOTATION_ID\" = \"ANNOTATION\".\"ID\") " +
+                "ORDER BY \"MATCHAGAINST\" DESC, version";
+    }
+
+    // Keep non-candidate / "trivial" (undetected, no-embedding) annotations OUT of the
+    // OpenSearch annotation index: they bloat it and get churned by encounter deep-index
+    // cascades without ever being match candidates. Do NOT use isTrivial() (bbox
+    // geometry) -- matchable whole-image/unity/spot-crop annotations are geometrically
+    // trivial but MUST be indexed. MUST stay identical to the getAllVersionsSql() filter.
+    @Override public boolean shouldIndexInOpenSearch() {
+        return getMatchAgainst() || (numberEmbeddings() > 0);
     }
 
     @Override public Base getById(Shepherd myShepherd, String id) {
@@ -244,6 +348,22 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public boolean hasAcmId() {
         return (this.acmId != null);
+    }
+
+    // ----- ml-service migration v2 WBIA-registration accessors -----
+
+    public Boolean getWbiaRegistered() { return wbiaRegistered; }
+    public void setWbiaRegistered(Boolean b) { this.wbiaRegistered = b; this.setVersion(); }
+
+    // Convenience: hides the tri-state from frontend JSON. Returns true only
+    // when the column is explicitly TRUE.
+    public boolean isWbiaRegistered() { return Boolean.TRUE.equals(this.wbiaRegistered); }
+
+    public int getWbiaRegisterAttempts() { return wbiaRegisterAttempts; }
+    public void setWbiaRegisterAttempts(int n) { this.wbiaRegisterAttempts = n; this.setVersion(); }
+    public void incrementWbiaRegisterAttempts() {
+        this.wbiaRegisterAttempts++;
+        this.setVersion();
     }
 
     public ArrayList<Feature> getFeatures() {
@@ -342,6 +462,13 @@ public class Annotation extends Base implements java.io.Serializable {
 
         if (enc == null) return null;
         return enc.getTaxonomy(myShepherd);
+    }
+
+    public String getTaxonomyString(Shepherd myShepherd) {
+        Encounter enc = findEncounter(myShepherd);
+
+        if (enc == null) return null;
+        return enc.getTaxonomyString();
     }
 
     public boolean isTrivial() {
@@ -679,6 +806,44 @@ public class Annotation extends Base implements java.io.Serializable {
         return bbox;
     }
 
+    public boolean equalsBbox(Annotation other) {
+        if (other == null) return false;
+        int[] mine = this.getBbox();
+        if (mine == null) return false;
+        int[] otherBbox = other.getBbox();
+        if (otherBbox == null) return false;
+        if (mine.length != otherBbox.length) return false;
+        for (int i = 0; i < mine.length; i++) {
+            if (mine[i] != otherBbox[i]) return false;
+        }
+        return true;
+    }
+
+    public boolean equalsTheta(Annotation other) {
+        if (other == null) return false;
+        return (this.getTheta() == other.getTheta());
+    }
+
+    // combines theta + bbox
+    public boolean equalsShape(Annotation other) {
+        if (!equalsTheta(other)) return false;
+        return equalsBbox(other);
+    }
+
+    public boolean equalsIAClass(Annotation other) {
+        if (other == null) return false;
+        if ((other.getIAClass() == null) && (iaClass == null)) return true; // sketchy?
+        if (iaClass == null) return false;
+        return iaClass.equals(other.getIAClass());
+    }
+
+    public boolean equalsViewpoint(Annotation other) {
+        if (other == null) return false;
+        if ((other.getViewpoint() == null) && (viewpoint == null)) return true; // sketchy?
+        if (viewpoint == null) return false;
+        return viewpoint.equals(other.getViewpoint());
+    }
+
     public String getBboxAsString() {
         return Arrays.toString(this.getBbox());
     }
@@ -689,6 +854,7 @@ public class Annotation extends Base implements java.io.Serializable {
                    .append("species", species)
                    .append("iaClass", iaClass)
                    .append("bbox", getBbox())
+                   .append("numEmbed", numberEmbeddings())
                    .toString();
     }
 
@@ -959,6 +1125,9 @@ public class Annotation extends Base implements java.io.Serializable {
             }
            }
          */
+
+        // this exludes the very noisy embeddings from opensearch results since we dont need it
+        query.put("_source", new JSONObject("{ \"excludes\": [\"embeddings\"] }"));
         System.out.println("getMatchingSetQuery() returning query=" + query.toString(4));
         return query;
     }
@@ -979,6 +1148,13 @@ public class Annotation extends Base implements java.io.Serializable {
         long startTime = System.currentTimeMillis();
 
         if (query == null) return anns;
+        // This path uses ONLY hit._id and hit._score (the Annotations themselves are loaded from
+        // the DB below), so returning _source is pure waste. Fetching full _source for up to
+        // pageSize (10k) candidate docs cost ~20ms/doc, and for large matching sets (e.g. a 34k
+        // whaleshark location) that blew past the OpenSearch socket timeout -> empty target set ->
+        // WBIA rejects "Empty target annotation list" -> the PIE/WBIA match failed with a generic
+        // "Unknown error". Return ids/scores only so the query is fast regardless of set size.
+        query.put("_source", false);
         JSONObject queryRes = null;
         int hitSize = -1;
         try {
@@ -986,21 +1162,174 @@ public class Annotation extends Base implements java.io.Serializable {
             try {
                 pageSize = os.getSettings("annotation").optInt("max_result_window", 10000);
             } catch (Exception ex) {}
-            os.deletePit("annotation");
-            queryRes = os.queryPit("annotation", query, 0, pageSize, null, null);
+            queryRes = os.querySearch("annotation", query, 0, pageSize);
             hitSize = queryRes.optJSONObject("hits").optJSONObject("total").optInt("value");
         } catch (Exception ex) {
             System.out.println("getMatchingSet() exception: " + ex);
             ex.printStackTrace();
         }
         JSONArray hits = OpenSearch.getHits(queryRes);
+        // Batch-load the candidate set in one query instead of one getAnnotation() per hit (O(N)
+        // DB round-trips over the full matching set). No top-N cap here: this is the candidate
+        // POOL (e.g. for WBIA matchers), not the ranked prospect list. Preserve hit order.
+        java.util.LinkedHashMap<String, Double> idToScore = new java.util.LinkedHashMap<String, Double>();
         for (int i = 0; i < hits.length(); i++) {
             JSONObject hit = hits.optJSONObject(i);
             if (hit == null) continue;
-            Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
-            if (ann != null) anns.add(ann);
+            String hid = hit.optString("_id", null);
+            if (hid != null) idToScore.put(hid, hit.optDouble("_score", 0.0d));
+        }
+        java.util.Map<String, Annotation> byId = new java.util.HashMap<String, Annotation>();
+        for (Annotation a : myShepherd.getAnnotations(idToScore.keySet())) {
+            if ((a != null) && (a.getId() != null)) byId.put(a.getId(), a);
+        }
+        for (java.util.Map.Entry<String, Double> e : idToScore.entrySet()) {
+            Annotation ann = byId.get(e.getKey());
+            if (ann != null) {
+                ann.setOpensearchScore(e.getValue());
+                anns.add(ann);
+            }
         }
         System.out.println("getMatchingSet() results: hitSize=" + hitSize + "; hits length=" +
+            hits.length() + "; anns size=" + anns.size() + "; " +
+            (System.currentTimeMillis() - startTime) + "ms");
+        return anns;
+    }
+
+    // a variation of matchingSet query, but includes the vector stuff - thus returns actual matches(!)
+    // method and methodVersion are used to determine *which* embedding to use; if null it will use 1st embedding
+    // return null when this annot has no embeddings to match, sorry!
+
+    // this version will construct matchingSetQuery
+    public JSONObject getMatchQuery(Shepherd myShepherd, JSONObject taskParams, boolean useClauses,
+        String method, String methodVersion) {
+        Embedding emb = getEmbeddingByMethod(method, methodVersion);
+
+        if (emb == null) return null;
+        return getMatchQuery(method, methodVersion,
+                getMatchingSetQuery(myShepherd, taskParams, useClauses));
+    }
+
+    // this version if you already have matchingSetQuery
+    public JSONObject getMatchQuery(String method, String methodVersion,
+        JSONObject matchingSetQuery) {
+        if (matchingSetQuery == null) return null;
+        Embedding emb = getEmbeddingByMethod(method, methodVersion);
+
+        if (emb == null) return null;
+        // we work on a copy here so we dont modify matchingSetQuery
+        JSONObject mq = new JSONObject(matchingSetQuery.toString());
+        JSONObject nested = new JSONObject(
+            "{\"nested\": {\"path\": \"embeddings\", \"query\": {\"bool\": {}}}}");
+        // Inside the nested bool, keep ONLY the knn clause in `must` so the
+        // per-hit score is exactly the OS knn similarity (no spurious
+        // +1.0-per-term-clause offset). method/methodVersion become
+        // `filter` clauses — they still constrain results but contribute
+        // 0 to score. (Empty-match-prospects C17: MiewID score parity.)
+        JSONArray must = new JSONArray();
+        JSONObject knn = new JSONObject("{\"knn\": {\"embeddings.vector\": {}}}");
+        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("vector",
+            new JSONArray(emb.vectorToFloatArray()));
+        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("k", KNN_K_DISTANCE_VALUE);
+        must.put(knn);
+        JSONArray filter = new JSONArray();
+        if (method != null)
+            filter.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
+        if (methodVersion != null)
+            filter.put(new JSONObject("{\"term\": {\"embeddings.methodVersion\":\"" + methodVersion +
+                "\"}}"));
+        nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("must",
+            must);
+        if (filter.length() > 0) {
+            nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put(
+                "filter", filter);
+        }
+
+        // we put nested under its own top-level must, that way its score counts (whereas filter does not)
+        JSONArray nestedMust = new JSONArray();
+        nestedMust.put(nested);
+        mq.getJSONObject("query").getJSONObject("bool").put("must", nestedMust);
+        return mq;
+    }
+
+    /**
+     * Maps an OpenSearch knn hit to the score we persist on the
+     * matched Annotation. Identity mapping by design: OS Lucene knn
+     * with {@code cosinesimil} emits {@code score = (1 + cos) / 2},
+     * which is also the formula WBIA-MiewID's
+     * {@code distance_to_score = (2 - distance) / 2} uses
+     * (with {@code distance = 1 - cos}). Storing the OS score
+     * unchanged gives vector prospects the same [0, 1] scale as
+     * legacy MiewID-via-WBIA prospects, so the two pipelines
+     * agree numerically per (query, candidate) pair.
+     *
+     * <p>If a future deployment opts into a non-Lucene knn engine
+     * that scores {@code cosinesimil} differently (OS 2.15 NMSLIB
+     * and Faiss return {@code 1 / (1 + d)} per the OS knn-spaces
+     * docs), this is the single call site to adjust. The unit test
+     * {@code osHitScore_isIdentity_noBackTransform} pins the
+     * identity-mapping contract so an accidental re-introduction
+     * of the C17 {@code 2*x - 1} back-transform trips a failure.</p>
+     */
+    static double osHitScore(org.json.JSONObject hit) {
+        return hit.optDouble("_score", 0.0d);
+    }
+
+    // finds annotations based on embedding vector matches
+    // null means we didnt have an embedding to query with
+    public List<Annotation> getMatches(Shepherd myShepherd, JSONObject taskParams,
+        boolean useClauses, String method, String methodVersion) {
+        return getMatches(myShepherd,
+                getMatchQuery(myShepherd, taskParams, useClauses, method, methodVersion));
+    }
+
+    // where we already have the query
+    public List<Annotation> getMatches(Shepherd myShepherd, JSONObject matchQuery) {
+        if (matchQuery == null) return null;
+        List<Annotation> anns = new ArrayList<Annotation>();
+        OpenSearch os = new OpenSearch();
+        long startTime = System.currentTimeMillis();
+        JSONObject queryRes = null;
+        int hitSize = -1;
+        try {
+            int pageSize = 10000;
+            try {
+                pageSize = os.getSettings("annotation").optInt("max_result_window", 10000);
+            } catch (Exception ex) {}
+            queryRes = os.querySearch("annotation", matchQuery, 0, pageSize);
+            hitSize = queryRes.optJSONObject("hits").optJSONObject("total").optInt("value");
+        } catch (Exception ex) {
+            System.out.println("getMatches() exception: " + ex);
+            ex.printStackTrace();
+        }
+        JSONArray hits = OpenSearch.getHits(queryRes);
+        // Take the top-N hits (OpenSearch returns them score-sorted) and BATCH-load them in one
+        // query. Previously this did one myShepherd.getAnnotation() per hit -- O(N) DB round-trips
+        // that dominated match time (hundreds of prospects -> tens of seconds to minutes, often
+        // tripping the socket timeout -> empty result). Cap at MAXIMUM_PROSPECTS_STORED since
+        // nothing downstream keeps more than that. LinkedHashMap preserves the kNN score order.
+        int cap = org.ecocean.ia.MatchResult.MAXIMUM_PROSPECTS_STORED;
+        java.util.LinkedHashMap<String, Double> idToScore = new java.util.LinkedHashMap<String, Double>();
+        for (int i = 0; (i < hits.length()) && (idToScore.size() < cap); i++) {
+            JSONObject hit = hits.optJSONObject(i);
+            if (hit == null) continue;
+            String hid = hit.optString("_id", null);
+            // See osHitScore javadoc for why the OS score is persisted unchanged
+            // (vector <-> WBIA-MiewID parity).
+            if (hid != null) idToScore.put(hid, osHitScore(hit));
+        }
+        java.util.Map<String, Annotation> byId = new java.util.HashMap<String, Annotation>();
+        for (Annotation a : myShepherd.getAnnotations(idToScore.keySet())) {
+            if ((a != null) && (a.getId() != null)) byId.put(a.getId(), a);
+        }
+        for (java.util.Map.Entry<String, Double> e : idToScore.entrySet()) {
+            Annotation ann = byId.get(e.getKey());
+            if (ann != null) {
+                ann.setOpensearchScore(e.getValue());
+                anns.add(ann);
+            }
+        }
+        System.out.println("getMatches() results: hitSize=" + hitSize + "; hits length=" +
             hits.length() + "; anns size=" + anns.size() + "; " +
             (System.currentTimeMillis() - startTime) + "ms");
         return anns;
@@ -1063,6 +1392,43 @@ public class Annotation extends Base implements java.io.Serializable {
     // convenience!
     public Encounter findEncounter(Shepherd myShepherd) {
         return Encounter.findByAnnotation(this, myShepherd);
+    }
+
+    /** All parent encounters of this annotation (0 = orphan; >1 = anomalous). */
+    public java.util.List<Encounter> parentEncounters(Shepherd myShepherd) {
+        return Encounter.findAllByAnnotation(this, myShepherd);
+    }
+
+    /**
+     * Write the denormalized ACL from this annotation's SINGLE parent encounter.
+     * 0 parents (orphan) or >1 parents (anomalous) -> fail closed (admin-only), because the doc's
+     * encounter* metadata fields come from only the first parent and must not be exposed to a user
+     * authorized via a different parent.
+     */
+    public void writeAclFields(com.fasterxml.jackson.core.JsonGenerator jgen, Shepherd myShepherd)
+    throws java.io.IOException {
+        boolean pub = false;
+        java.util.Set<String> submitters = new java.util.LinkedHashSet<String>();
+        java.util.Set<String> viewers = new java.util.LinkedHashSet<String>();
+        java.util.List<Encounter> parents = this.parentEncounters(myShepherd);
+        if (parents.size() == 1) { // exactly one parent: use its ACL
+            org.json.JSONObject acl = parents.get(0).opensearchAclFields(myShepherd);
+            if (acl.optBoolean("publiclyReadable", false)) pub = true;
+            String sid = acl.optString("submitterUserId", null);
+            if (sid != null) submitters.add(sid);
+            org.json.JSONArray vu = acl.optJSONArray("viewUsers");
+            if (vu != null) for (int i = 0; i < vu.length(); i++) viewers.add(vu.optString(i));
+        } else if (parents.size() > 1) {
+            System.out.println("Annotation.writeAclFields: " + this.getId() + " has " + parents.size()
+                + " parent encounters -> indexing admin-only (fail closed)");
+        }
+        jgen.writeBooleanField("publiclyReadable", pub); // false for 0/many parents
+        jgen.writeArrayFieldStart("submitterUserIds");
+        for (String s : submitters) jgen.writeString(s);
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("viewUsers");
+        for (String v : viewers) jgen.writeString(v);
+        jgen.writeEndArray();
     }
 
     // this is a little tricky. the idea is the end result will get us an Encounter, which *may* be new
@@ -1234,6 +1600,7 @@ public class Annotation extends Base implements java.io.Serializable {
             throw new ApiException("invalid MediaAsset id=" + maId, error);
         }
         Encounter enc = null;
+        String txStr = null;
         if (encId != null) {
             enc = myShepherd.getEncounter(encId);
             if (enc == null) {
@@ -1255,6 +1622,7 @@ public class Annotation extends Base implements java.io.Serializable {
         IAJsonProperties iaConf = IAJsonProperties.iaConfig();
         if (enc != null) {
             Taxonomy tx = enc.getTaxonomy(myShepherd);
+            txStr = enc.getTaxonomyString(); // used for embedding MLService call later
             if (!iaConf.isValidIAClass(tx, iaClass)) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                 error.put("fieldName", "iaClass");
@@ -1278,6 +1646,14 @@ public class Annotation extends Base implements java.io.Serializable {
         Feature ft = new Feature("org.ecocean.boundingBox", fparams);
         Annotation ann = new Annotation(null, ft, iaClass);
         ann.setViewpoint(viewpoint);
+        // acmId is required for an annotation to be indexed and considered as a
+        // match CANDIDATE: both the OpenSearch indexer (matchAgainst==true &&
+        // acmId != null) and Annotation.getMatchingSetQuery (exists: acmId)
+        // filter on it. The v2 detection path sets it (MlServiceProcessor does
+        // setAcmId(getId())); manual creation omitted it, so manually-drawn
+        // annotations got an embedding but were never matchable candidates.
+        // Mirror the v2 convention: use the annotation's own id.
+        ann.setAcmId(ann.getId());
         ma.addFeature(ft);
         ma.setDetectionStatus("complete");
         myShepherd.getPM().makePersistent(ft);
@@ -1345,9 +1721,9 @@ public class Annotation extends Base implements java.io.Serializable {
                     cloneEncounter = true;
                 }
             }
-            //handle multiple parts case, such as a pre-existing elphant+head 
+            // handle multiple parts case, such as a pre-existing elphant+head
             // and a new elephant+head added in a single image
-            else{
+            else {
                 List<Annotation> encAnnots = enc.getAnnotations(ma);
                 System.out.println("DEBUG Annotation.createFromApi(): encAnnots = " + encAnnots);
                 // we see if we have a non-part annot, which would force us to clone (parts we ignore)
@@ -1414,18 +1790,48 @@ public class Annotation extends Base implements java.io.Serializable {
                     foundTrivial + " (and Feature) from " + ma + " and " + enc);
             }
         }
-        // send to IA as needed
-        try {
-            if (ma.getAcmId() == null) {
-                ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
-                mas.add(ma);
-                IBEISIA.sendMediaAssetsNew(mas, context);
-            }
-            ArrayList<Annotation> anns = new ArrayList<Annotation>();
-            anns.add(ann);
-            IBEISIA.sendAnnotationsNew(anns, context, myShepherd);
-        } catch (Exception ex) {} // silently fail; they will be synced up later
+        // we queue for embedding extraction so this is done in the background
+        // and frees up foreground api process to return results to user
+        // TODO myShepherd commit doesnt happen until we return; potential race condition on IA queue?
+        Task task = new Task();
+        task.addObject(ann);
+        task.setStatusDetailsAddLog("Annotation.createFromApi() embedding extraction on " + ann);
+        myShepherd.getPM().makePersistent(task);
+        System.out.println(
+            "[INFO] Annotation.createFromApi(): queueing for embedding extraction with " + task);
+        ann.queueForEmbeddingExtraction(task, myShepherd);
         return ann;
+    }
+
+    // note: this will throw an IAException if the txStr does not support embeddings
+    // in IA.json, which can be construed as more informational than error
+    public void extractEmbeddings(String txStr, Shepherd myShepherd)
+    throws IAException {
+        MLService mls = new MLService();
+
+        mls.send(this, txStr, myShepherd);
+        System.out.println("[INFO] extractEmbeddings(): embedding processed for " + this);
+    }
+
+    // this is more expensive when we dont have txStr; so use above if txStr is already known
+    public void extractEmbeddings(Shepherd myShepherd)
+    throws IAException {
+        Encounter enc = this.findEncounter(myShepherd);
+
+        if (enc == null) throw new IAException("cannot determine Encounter for " + this);
+        extractEmbeddings(enc.getTaxonomyString(), myShepherd);
+    }
+
+    public void queueForEmbeddingExtraction(Task task, Shepherd myShepherd) {
+        MLService mlserv = new MLService();
+
+        try {
+            mlserv.initiateRequest(this, this.getSpecies(myShepherd), task);
+        } catch (IOException ex) {
+            System.out.println("[ERROR] queueForEmbeddingExtraction() failed on " + this + ": " +
+                ex);
+            ex.printStackTrace();
+        }
     }
 
     public static Object validateFieldValue(String fieldName, JSONObject data)
@@ -1512,6 +1918,13 @@ public class Annotation extends Base implements java.io.Serializable {
         return Task.getRootTasksFor(this, myShepherd);
     }
 
+    // C15: pick the single task to surface as "Match Results" for this
+    // annotation. Used by Encounter.jsonForApiGet so the encounter page
+    // and bulk-import page agree on which task they link to.
+    public Task getPreferredMatchResultsTask(Shepherd myShepherd) {
+        return Task.getPreferredMatchResultsTaskForAnnotation(this, myShepherd);
+    }
+
     public int detachFromTasks(Shepherd myShepherd) {
         List<Task> tasks = Task.getTasksFor(this, myShepherd);
 
@@ -1520,6 +1933,61 @@ public class Annotation extends Base implements java.io.Serializable {
             task.removeObject(this);
         }
         return tasks.size();
+    }
+
+    // we cant just detach the annots from match results, so we need
+    // to kill them off before we can delete an Annotation
+    public long deleteMatchResults(Shepherd myShepherd) {
+        return myShepherd.deleteMatchResults(this);
+    }
+
+    // similar as above for MatchResultProspects
+    public int deleteMatchResultProspects(Shepherd myShepherd) {
+        List<MatchResultProspect> mrps = myShepherd.getMatchResultProspects(this);
+        int ct = 0;
+
+        for (MatchResultProspect mrp : mrps) {
+            ct++;
+            System.out.println("[DEBUG] (" + ct + ") ann.deleteMatchResultProspects() on id=" +
+                this.getId() + " deleting " + mrp);
+            myShepherd.getPM().deletePersistent(mrp);
+        }
+        return ct;
+    }
+
+    // when we delete an Annotation, we usually dont want to leave the Embeddings around
+    public int deleteEmbeddings(Shepherd myShepherd) {
+        int rtn = numberEmbeddings();
+
+        if (rtn < 1) return 0;
+        for (Embedding emb : embeddings) {
+            System.out.println("[DEBUG] ann.deleteEmbeddings() on id=" + this.getId() +
+                " deleting " + emb);
+            myShepherd.getPM().deletePersistent(emb);
+        }
+        // bump version so the reconciler reindexes and the now-removed vector(s) leave the _source
+        this.setVersion();
+        return rtn;
+    }
+
+    // a convenient method which does a typical set of steps to ready Annotation for deletion from db
+    // if encounter is already known, it can be passed (null will be ignored)
+    public void prepareForDeletion(Shepherd myShepherd, Encounter enc) {
+        int nt = this.detachFromTasks(myShepherd);
+        long t = System.currentTimeMillis();
+
+        if (enc != null) enc.removeAnnotation(this);
+        this.detachFromMediaAsset();
+        long nm = this.deleteMatchResults(myShepherd);
+        int np = this.deleteMatchResultProspects(myShepherd);
+        int ne = this.deleteEmbeddings(myShepherd);
+        System.out.println("[INFO] ann.prepareForDeletion() [" + (System.currentTimeMillis() - t) + "ms]: " + nt + " Tasks, " + nm +
+            " MatchResults, " + np + " MatchResultProspects, " + ne + " Embeddings on " + this);
+    }
+
+    // this version takes no enc, but will attempt to find it
+    public void prepareForDeletion(Shepherd myShepherd) {
+        prepareForDeletion(myShepherd, this.findEncounter(myShepherd));
     }
 
     public static boolean isValidViewpoint(String vp) {
@@ -1660,8 +2128,105 @@ public class Annotation extends Base implements java.io.Serializable {
         return null;
     }
 
+    public Set<Embedding> getEmbeddings() {
+        return embeddings;
+    }
+
+    public int numberEmbeddings() {
+        return Util.collectionSize(embeddings);
+    }
+
+    public Map<String, Integer> getEmbeddingCounts() {
+        Map<String, Integer> cts = new HashMap<String, Integer>();
+
+        if (Util.collectionIsEmptyOrNull(embeddings)) return cts;
+        for (Embedding emb : embeddings) {
+            String md = emb.getMethodDescription();
+            if (!cts.containsKey(md)) cts.put(md, 0);
+            cts.put(md, cts.get(md) + 1);
+        }
+        return cts;
+    }
+
+    public Set<Embedding> addEmbedding(Embedding emb) {
+        if (embeddings == null) embeddings = new HashSet<Embedding>();
+        if (emb == null) return embeddings;
+        boolean added = embeddings.add(emb);
+        boolean linked = false;
+        if (!this.equals(emb.getAnnotation())) {
+            emb.setAnnotation(this);
+            linked = true;
+        }
+        // bump version only on a real change so the OpenSearch reconciler reindexes this annotation
+        // and writes the embedding vector into the document _source (otherwise the vector is
+        // kNN-searchable but never surfaces in the token-readable _source). Skipping no-op duplicate
+        // adds avoids needless reconciler churn.
+        if (added || linked) this.setVersion();
+        return embeddings;
+    }
+
+    public boolean hasEmbedding(Embedding emb) {
+        if (embeddings == null) return false;
+        return embeddings.contains(emb);
+    }
+
+    // since embeddings is a set, there isnt really an order so...
+    // pretty much random; null if we have none
+    public Embedding getAnEmbedding() {
+        return getEmbeddingByMethod(null, null);
+    }
+
+    public Embedding getEmbeddingByMethod(String method) {
+        return getEmbeddingByMethod(method, null);
+    }
+
+    // suppose we could order by created?
+    public Embedding getEmbeddingByMethod(String method, String methodVersion) {
+        if (numberEmbeddings() < 1) return null;
+        Iterator it = embeddings.iterator();
+        if (method == null) return (Embedding)it.next();
+        while (it.hasNext()) {
+            Embedding emb = (Embedding)it.next();
+            if (!method.equals(emb.getMethod())) continue;
+            if ((methodVersion == null) || (methodVersion.equals(emb.getMethodVersion())))
+                return emb;
+        }
+        return null;
+    }
+
+    // this will match only vector (not other properties)
+    public Embedding findEmbeddingByVector(Embedding find) {
+        if (find == null) return null;
+        if (numberEmbeddings() < 1) return null;
+        Iterator it = embeddings.iterator();
+        while (it.hasNext()) {
+            Embedding emb = (Embedding)it.next();
+            if (emb.hasEqualVector(find)) return emb;
+        }
+        return null;
+    }
+
+/*
+    public void loadEmbeddingVectors(Shepherd myShepherd) {
+        if (embeddings == null) return;
+        for (Embedding emb : this.embeddings) {
+            emb.loadVector(myShepherd);
+        }
+    }
+ */
+
+    // need these two so we can use things like List.contains()
+    // note: this basically is "id-equivalence" rather than *content* equivalence, so will not compare semantic similarity of 2 annots
+    public boolean equals(final Object o2) {
+        if (o2 == null) return false;
+        if (!(o2 instanceof Annotation)) return false;
+        Annotation two = (Annotation)o2;
+        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
+        return this.id.equals(two.getId());
+    }
+
     public int hashCode() {
-        if (id == null) return Util.generateUUID().hashCode(); // random(ish) so we dont get two users with no uuid equals! :/
+        if (id == null) return Util.generateUUID().hashCode();
         return id.hashCode();
     }
 }
