@@ -30,6 +30,7 @@
 		},
 
 		"camelopardalis": {
+			"_subspecies": ["camelopardalis", "antiquorum", "peralta"],
 			"camelopardalis": "@Giraffa.tippelskirchi",
 			"antiquorum": "@Giraffa.tippelskirchi",
 			"peralta": "@Giraffa.tippelskirchi",
@@ -43,6 +44,7 @@
 		},
 
 		"tippelskirchi": {
+			"_subspecies": ["thornicrofti"],
 			"thornicrofti": "@Giraffa.tippelskirchi",
 			"_detect_conf": [
 				{

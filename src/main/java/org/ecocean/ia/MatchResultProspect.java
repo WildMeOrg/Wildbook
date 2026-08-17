@@ -80,9 +80,14 @@ public class MatchResultProspect implements java.io.Serializable, Comparable<Mat
     }
 
     public JSONObject jsonForApiGet(Shepherd myShepherd) {
+        return jsonForApiGet(myShepherd, null);
+    }
+
+    public JSONObject jsonForApiGet(Shepherd myShepherd,
+        java.util.Map<String, org.ecocean.Encounter> encByAnnId) {
         JSONObject rtn = new JSONObject();
 
-        rtn.put("annotation", MatchResult.annotationDetails(annotation, myShepherd));
+        rtn.put("annotation", MatchResult.annotationDetails(annotation, myShepherd, encByAnnId));
         rtn.put("score", score);
         // skipping scoreType since this is currently only used filtered by scoreType already
         if (asset != null) {
