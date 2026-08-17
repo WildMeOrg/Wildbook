@@ -19,6 +19,7 @@
 				{"name": "Namibia", "id":"Namibia", "locationID":[
 					{"name": "Fish River Canyon", "id": "Fish River Canyon", "locationID":[]},
 					{"name": "Klip River Valley", "id": "Klip River Valley", "locationID":[]},
+					{"name": "North-western Namibia", "id": "North-western Namibia", "locationID":[]},
 					{"name": "Otjiwa", "id": "Otjiwa", "locationID":[]}
 				]},
 				{"name": "South Africa", "id": "South Africa", "locationID":[
@@ -243,12 +244,16 @@
 					{ "name":"OCAMPO", "id":"OCAMPO", "locationID":[] },
 					{ "name":"SAN CARLOS", "id":"SAN CARLOS", "locationID":[] },
 					{ "name":"SOTO LA MARINA", "id":"SOTO LA MARINA", "locationID":[] },
+					{"name": "Victoria", "id": "Victoria", "locationID":[] },
 					{"name": "Xicotencatl", "id": "Xicotencatl", "locationID":[] }
 				] },
 				{"name": "Yucatán", "id": "Yucatán", "locationID":[] },
 				{"name": "Zacatecas", "id": "Zacatecas", "locationID":[] }
 			] },
 			{"name": "USA", "id": "USA", "locationID":[
+				{"name": "Alaska", "id": "Alaska", "locationID":[
+					{"name": "Lake Clark National Park", "id": "Lake Clark National Park", "locationID":[]}
+				]},
 				{"name": "California", "id": "California", "locationID":[
 					{"name": "AguaChinon", "id": "AguaChinon", "locationID":[] },
 					{"name": "FremontCanyon", "id": "FremontCanyon", "locationID":[] },
