@@ -33,7 +33,7 @@ class MarkedIndividualTaxonomyBackfillTest {
         shepherd = mock(Shepherd.class);
         when(shepherd.getPM()).thenReturn(pm);
         when(pm.newQuery(anyString(), anyString())).thenReturn(query);
-        when(query.execute(any())).thenReturn(candidates);
+        when(query.executeWithArray(any(), any(), any())).thenReturn(candidates);
         return shepherd;
     }
 
@@ -51,6 +51,18 @@ class MarkedIndividualTaxonomyBackfillTest {
         enc.setGenus(genus);
         enc.setSpecificEpithet(specificEpithet);
         return enc;
+    }
+
+    @Test void candidateSqlContainsNoColonForDataNucleusToMistakeForANamedParameter() {
+        // DataNucleus scans the whole SQL text for :name tokens without respecting string
+        // literals, so a POSIX class like [:space:] in a regex literal is parsed as a named
+        // parameter and execution fails with "SQL query has parameter ... yet not found"
+        String sql = MarkedIndividual.backfillTaxonomySql(5);
+
+        assertEquals(-1, sql.indexOf(':'),
+            "any colon in the SQL text is misparsed as a named parameter: " + sql);
+        assertEquals(3, sql.length() - sql.replace("?", "").length(),
+            "cursor plus one bound regex per taxonomy column: " + sql);
     }
 
     @Test void committingRunWritesFixablesAndAdvancesThePastEverythingExamined() {
@@ -137,7 +149,7 @@ class MarkedIndividualTaxonomyBackfillTest {
             JSONObject res = MarkedIndividual.backfillTaxonomyFromEncounters(sh, null, 100, false);
             assertEquals("ind-500", res.getString("_startId"),
                 "a run with no explicit startId picks up where the last committing run stopped");
-            verify(query).execute("ind-500");
+            verify(query).executeWithArray(eq("ind-500"), any(), any());
         }
     }
 
@@ -147,7 +159,7 @@ class MarkedIndividualTaxonomyBackfillTest {
         try (MockedStatic<SystemValue> sv = mockStatic(SystemValue.class)) {
             sv.when(() -> SystemValue.getString(any(), anyString())).thenReturn("ind-500");
             MarkedIndividual.backfillTaxonomyFromEncounters(sh, "ind-100", 100, false);
-            verify(query).execute("ind-100");
+            verify(query).executeWithArray(eq("ind-100"), any(), any());
         }
     }
 
@@ -159,7 +171,9 @@ class MarkedIndividualTaxonomyBackfillTest {
             JSONObject res = MarkedIndividual.backfillTaxonomyFromEncounters(sh, null, 100, false);
             assertEquals("", res.getString("_startId"),
                 "with no stored cursor every id sorts after the starting point");
-            verify(query).execute("");
+            verify(query).executeWithArray(eq(""),
+                eq(MarkedIndividual.TAXONOMY_BACKFILL_BLANK_REGEX),
+                eq(MarkedIndividual.TAXONOMY_BACKFILL_BLANK_REGEX));
         }
     }
 
