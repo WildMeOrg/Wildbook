@@ -104,9 +104,7 @@ const ImageCard = observer(({ store = {} }) => {
   };
   const handleLeave = () => setTip({ show: false, x: 0, y: 0, text: "" });
 
-  const hasNonTrivialAnnotations = store.encounterAnnotations?.some(
-    (a) => !a.isTrivial && (a.boundingBox?.[2] || 0) > 0 && (a.boundingBox?.[3] || 0) > 0
-  );
+  const hasMatchableAnnotations = store.hasMatchableAnnotations;
 
   useEffect(() => {
     if (
@@ -790,7 +788,7 @@ const ImageCard = observer(({ store = {} }) => {
             <div
               className="d-flex align-items-center justify-content-center flex-column"
               onClick={() => {
-                if (!hasNonTrivialAnnotations) return;
+                if (!hasMatchableAnnotations) return;
 
                 if (
                   !store.encounterData?.mediaAssets?.[store.selectedImageIndex]
@@ -801,9 +799,9 @@ const ImageCard = observer(({ store = {} }) => {
                 store.modals.setOpenMatchCriteriaModal(true);
               }}
               style={{
-                cursor: hasNonTrivialAnnotations ? "pointer" : "not-allowed",
+                cursor: hasMatchableAnnotations ? "pointer" : "not-allowed",
                 paddingTop: "20px",
-                opacity: hasNonTrivialAnnotations ? 1 : 0.5,
+                opacity: hasMatchableAnnotations ? 1 : 0.5,
               }}
             >
               <RefreshIcon />

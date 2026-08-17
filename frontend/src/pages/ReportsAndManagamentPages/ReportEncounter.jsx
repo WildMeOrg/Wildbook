@@ -14,6 +14,10 @@ import { ReportEncounterStore } from "./ReportEncounterStore";
 import { ReportEncounterSpeciesSection } from "./SpeciesSection";
 import { useNavigate } from "react-router-dom";
 import { useSiteSettings } from "../../SiteSettingsContext";
+import {
+  formatReportDateTime,
+  parseReportDateTime,
+} from "./reportDateTime";
 import "./recaptcha.css";
 
 const ReportEncounter = observer(() => {
@@ -71,7 +75,9 @@ const ReportEncounter = observer(() => {
         store.setImageSectionFileNames(fileName, "add");
       });
     localStorage.getItem("datetime") &&
-      store.setDateTimeSectionValue(new Date(localStorage.getItem("datetime")));
+      store.setDateTimeSectionValue(
+        parseReportDateTime(localStorage.getItem("datetime")),
+      );
     localStorage.getItem("exifDateTime") &&
       store.setExifDateTime(localStorage.getItem("exifDateTime"));
     localStorage.getItem("locationID") &&
@@ -369,7 +375,7 @@ const ReportEncounter = observer(() => {
                   store.dateTimeSection.value &&
                     localStorage.setItem(
                       "datetime",
-                      store.dateTimeSection.value?.toISOString(),
+                      formatReportDateTime(store.dateTimeSection.value),
                     );
                   store.exifDateTime &&
                     localStorage.setItem("exifDateTime", store.exifDateTime);

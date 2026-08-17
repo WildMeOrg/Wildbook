@@ -7,6 +7,7 @@ import {
 } from "react-bootstrap";
 import Flow from "@flowjs/flow.js";
 import { FormattedMessage } from "react-intl";
+import { formatReportDateTime } from "./reportDateTime";
 import ThemeContext from "../../ThemeColorProvider";
 import MainButton from "../../components/MainButton";
 import { v4 as uuidv4 } from "uuid";
@@ -372,7 +373,7 @@ export const ImageSection = observer(({ store }) => {
                 );
                 localStorage.setItem(
                   "datetime",
-                  store.dateTimeSection.value?.toISOString(),
+                  formatReportDateTime(store.dateTimeSection.value),
                 );
                 localStorage.setItem("exifDateTime", store.exifDateTime);
                 localStorage.setItem(
