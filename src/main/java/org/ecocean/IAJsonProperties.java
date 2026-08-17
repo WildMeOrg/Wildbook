@@ -439,6 +439,12 @@ public class IAJsonProperties extends JsonProperties {
             return false;
         } else if (key.equals("match_trivial")) {
             return false;
+        } else if (isSubspeciesKey(key, underTaxy)) {
+            // issue #1298: subspecies are taxonomic children, not matchable IA
+            // classes, but they sit as sibling keys under the species node. A
+            // species node marks its subspecies via a "_subspecies" list of child
+            // key names so they are excluded from the Manual Annotation dropdown.
+            return false;
         } else if (underTaxy.get(key) instanceof String &&
             ((String)underTaxy.get(key)).startsWith("@")) {
             return ((String)underTaxy.get(key)).endsWith("." + key);
@@ -450,6 +456,19 @@ public class IAJsonProperties extends JsonProperties {
             }
         }
         return true;
+    }
+
+    // issue #1298: a species node lists its subspecies child keys in "_subspecies"
+    // so they can be distinguished from matchable IA classes (both are non-"_"
+    // sibling keys with no structural difference otherwise).
+    private boolean isSubspeciesKey(String key, JSONObject underTaxy) {
+        JSONArray subspecies = underTaxy.optJSONArray("_subspecies");
+
+        if (subspecies == null) return false;
+        for (int i = 0; i < subspecies.length(); i++) {
+            if (key.equals(subspecies.optString(i))) return true;
+        }
+        return false;
     }
 
     public List<String> getValidIAClassesIgnoreRedirects(Taxonomy taxy) {

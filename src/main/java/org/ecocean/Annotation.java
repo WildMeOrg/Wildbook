@@ -1162,8 +1162,7 @@ public class Annotation extends Base implements java.io.Serializable {
             try {
                 pageSize = os.getSettings("annotation").optInt("max_result_window", 10000);
             } catch (Exception ex) {}
-            os.deletePit("annotation");
-            queryRes = os.queryPit("annotation", query, 0, pageSize, null, null);
+            queryRes = os.querySearch("annotation", query, 0, pageSize);
             hitSize = queryRes.optJSONObject("hits").optJSONObject("total").optInt("value");
         } catch (Exception ex) {
             System.out.println("getMatchingSet() exception: " + ex);
@@ -1297,8 +1296,7 @@ public class Annotation extends Base implements java.io.Serializable {
             try {
                 pageSize = os.getSettings("annotation").optInt("max_result_window", 10000);
             } catch (Exception ex) {}
-            os.deletePit("annotation");
-            queryRes = os.queryPit("annotation", matchQuery, 0, pageSize, null, null);
+            queryRes = os.querySearch("annotation", matchQuery, 0, pageSize);
             hitSize = queryRes.optJSONObject("hits").optJSONObject("total").optInt("value");
         } catch (Exception ex) {
             System.out.println("getMatches() exception: " + ex);

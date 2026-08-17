@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -114,9 +115,11 @@ public class EncounterSearchExportCOCO extends HttpServlet {
         ExportJob job = new ExportJob(jobId);
         jobs.put(jobId, job);
 
-        // Background thread opens its own Shepherd and re-fetches encounters
+        // Background thread opens its own Shepherd, extracts data, closes the
+        // DB transaction, then does the long-running image I/O without a DB connection.
         List<String> encIds = encounterIds;
         Thread exportThread = new Thread(() -> {
+            // Phase 1: extract all JDO data while transaction is alive
             Shepherd bgShepherd = new Shepherd(context);
             bgShepherd.setAction("EncounterSearchExportCOCO.export-" + jobId);
             bgShepherd.beginDBTransaction();
@@ -126,8 +129,20 @@ public class EncounterSearchExportCOCO extends HttpServlet {
                     Encounter enc = bgShepherd.getEncounter(id);
                     if (enc != null) encounters.add(enc);
                 }
+                // Constructor eagerly extracts all JDO data into plain objects
                 job.exportFile = new EncounterCOCOExportFile(encounters, bgShepherd);
+            } catch (Throwable t) {
+                t.printStackTrace();
+                job.status = "error";
+                job.errorMessage = t.getMessage() != null ? t.getMessage() : t.getClass().getName();
+                return;
+            } finally {
+                bgShepherd.rollbackDBTransaction();
+                bgShepherd.closeDBTransaction();
+            }
 
+            // Phase 2: write ZIP (image downloads + JSON manifest) — no DB needed
+            try {
                 File tmpDir = new File(CommonConfiguration.getUploadTmpDir(context));
                 if (!tmpDir.exists()) tmpDir.mkdirs();
                 File tempFile = File.createTempFile("wildbook-coco-export-", ".zip", tmpDir);
@@ -137,13 +152,10 @@ public class EncounterSearchExportCOCO extends HttpServlet {
                 }
                 job.tempFile = tempFile;
                 job.status = "complete";
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Throwable t) {
+                t.printStackTrace();
                 job.status = "error";
-                job.errorMessage = e.getMessage();
-            } finally {
-                bgShepherd.rollbackDBTransaction();
-                bgShepherd.closeDBTransaction();
+                job.errorMessage = t.getMessage() != null ? t.getMessage() : t.getClass().getName();
             }
         }, "coco-export-" + jobId);
         exportThread.setDaemon(true);
@@ -167,6 +179,7 @@ public class EncounterSearchExportCOCO extends HttpServlet {
             json.append(",\"totalImages\":").append(job.exportFile.getTotalImages());
             json.append(",\"processedImages\":").append(job.exportFile.getProcessedImages());
             json.append(",\"failedImages\":").append(job.exportFile.getFailedImages());
+            json.append(",\"phase\":\"").append(job.exportFile.getPhase()).append("\"");
         }
         if (job.errorMessage != null) {
             json.append(",\"error\":\"").append(escapeJson(job.errorMessage)).append("\"");
@@ -175,31 +188,99 @@ public class EncounterSearchExportCOCO extends HttpServlet {
         sendJson(response, 200, json.toString());
     }
 
+    private static final java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(EncounterSearchExportCOCO.class.getName());
+
     private void handleDownload(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         String jobId = request.getParameter("jobId");
-        // Atomic remove prevents concurrent downloads of the same job
-        ExportJob job = (jobId != null) ? jobs.remove(jobId) : null;
+        ExportJob job = (jobId != null) ? jobs.get(jobId) : null;
         if (job == null) {
+            log.warning("COCO Download: job not found, jobId=" + jobId);
             sendJson(response, 404, "{\"error\":\"Job not found\"}");
             return;
         }
         if (!"complete".equals(job.status) || job.tempFile == null || !job.tempFile.exists()) {
+            log.warning("COCO Download: job not ready, jobId=" + jobId +
+                " status=" + job.status + " tempFile=" + job.tempFile +
+                " exists=" + (job.tempFile != null && job.tempFile.exists()));
             sendJson(response, 400, "{\"error\":\"Export not ready\"}");
             return;
         }
 
-        try {
-            response.setContentType("application/zip");
-            response.setHeader("Content-Disposition",
-                "attachment; filename=\"wildbook-coco-export.zip\"");
-            response.setContentLengthLong(job.tempFile.length());
-            OutputStream out = response.getOutputStream();
-            Files.copy(job.tempFile.toPath(), out);
-            out.flush();
-        } finally {
-            job.tempFile.delete();
+        long fileLength = job.tempFile.length();
+        long start = 0;
+        long end = fileLength - 1;
+
+        String rangeHeader = request.getHeader("Range");
+        log.info("COCO Download: jobId=" + jobId + " fileLength=" + fileLength +
+            " Range=" + rangeHeader + " method=" + request.getMethod());
+
+        if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+            String rangeSpec = rangeHeader.substring(6).trim();
+            String[] parts = rangeSpec.split("-", 2);
+            try {
+                if (!parts[0].isEmpty()) {
+                    start = Long.parseLong(parts[0]);
+                }
+                if (parts.length > 1 && !parts[1].isEmpty()) {
+                    end = Long.parseLong(parts[1]);
+                }
+            } catch (NumberFormatException e) {
+                response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+                response.setHeader("Content-Range", "bytes */" + fileLength);
+                return;
+            }
+            if (start < 0 || start > end || start >= fileLength) {
+                response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+                response.setHeader("Content-Range", "bytes */" + fileLength);
+                return;
+            }
+            if (end >= fileLength) {
+                end = fileLength - 1;
+            }
+            long contentLength = end - start + 1;
+            response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+            response.setHeader("Content-Range",
+                "bytes " + start + "-" + end + "/" + fileLength);
+            response.setContentLengthLong(contentLength);
+            log.info("COCO Download: sending 206, start=" + start + " end=" + end +
+                " contentLength=" + contentLength);
+        } else {
+            response.setContentLengthLong(fileLength);
+            log.info("COCO Download: sending 200, full file, length=" + fileLength);
         }
+
+        response.setContentType("application/zip");
+        response.setHeader("Content-Disposition",
+            "attachment; filename=\"wildbook-coco-export.zip\"");
+        response.setHeader("Accept-Ranges", "bytes");
+        // Tell nginx to stream directly to the client instead of buffering.
+        // Without this, nginx buffers up to proxy_max_temp_file_size (default 1GB),
+        // then stalls Tomcat's writes, eventually timing out and cutting the connection
+        // — causing browsers to restart the download in an infinite loop.
+        response.setHeader("X-Accel-Buffering", "no");
+
+        long bytesSent = 0;
+        OutputStream out = response.getOutputStream();
+        try (RandomAccessFile raf = new RandomAccessFile(job.tempFile, "r")) {
+            raf.seek(start);
+            byte[] buffer = new byte[65536];
+            long remaining = end - start + 1;
+            int read;
+            while (remaining > 0 && (read = raf.read(buffer, 0,
+                    (int) Math.min(buffer.length, remaining))) != -1) {
+                out.write(buffer, 0, read);
+                remaining -= read;
+                bytesSent += read;
+            }
+        } catch (IOException e) {
+            log.warning("COCO Download: connection broken after " + bytesSent +
+                " bytes (of " + (end - start + 1) + " expected). " + e.getMessage());
+            throw e;
+        }
+        out.flush();
+        log.info("COCO Download: completed, sent " + bytesSent + " bytes for jobId=" + jobId);
     }
 
     /** Synchronous fallback for legacy/non-JS callers. */
@@ -211,7 +292,8 @@ public class EncounterSearchExportCOCO extends HttpServlet {
         myShepherd.setAction("EncounterSearchExportCOCO.class");
         myShepherd.beginDBTransaction();
 
-        File tempFile = null;
+        // Phase 1: extract data while transaction is alive
+        EncounterCOCOExportFile exportFile;
         try {
             EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(
                 myShepherd, request, "year descending, month descending, day descending");
@@ -224,12 +306,25 @@ public class EncounterSearchExportCOCO extends HttpServlet {
                     encounters.add(enc);
                 }
             }
+            exportFile = new EncounterCOCOExportFile(encounters, myShepherd);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (!response.isCommitted()) {
+                sendJson(response, 500, "{\"error\":\"" + escapeJson(e.getMessage()) + "\"}");
+            }
+            return;
+        } finally {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+        }
 
+        // Phase 2: write ZIP (no DB needed)
+        File tempFile = null;
+        try {
             File tmpDir = new File(CommonConfiguration.getUploadTmpDir(context));
             if (!tmpDir.exists()) tmpDir.mkdirs();
             tempFile = File.createTempFile("wildbook-coco-export-", ".zip", tmpDir);
             tempFile.deleteOnExit();
-            EncounterCOCOExportFile exportFile = new EncounterCOCOExportFile(encounters, myShepherd);
             try (FileOutputStream fos = new FileOutputStream(tempFile)) {
                 exportFile.writeTo(fos);
             }
@@ -248,8 +343,6 @@ public class EncounterSearchExportCOCO extends HttpServlet {
                 sendJson(response, 500, "{\"error\":\"" + escapeJson(e.getMessage()) + "\"}");
             }
         } finally {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
             if (tempFile != null) {
                 tempFile.delete();
             }

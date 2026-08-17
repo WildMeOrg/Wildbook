@@ -115,6 +115,13 @@ public class User implements Serializable {
         this.lastLogin = -1;
     }
 
+    /**
+     * @deprecated GH-1545: Callers have historically misused this constructor by passing
+     * an email address where a UUID is expected, producing accounts whose primary key
+     * is the email. Prefer {@code new User(email, Util.generateUUID())} or another
+     * constructor when you do not already have a real UUID.
+     */
+    @Deprecated
     public User(String uuid) {
         this.uuid = uuid;
         setReceiveEmails(false);

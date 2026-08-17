@@ -3362,9 +3362,21 @@ public class Encounter extends Base implements java.io.Serializable {
         if (user == null) return false;
         if (isUserOwner(user)) return true;
         if (user.isAdmin(myShepherd)) return true;
+        // any logged-in user can edit a public (ownerless) encounter, matching the
+        // legacy ServletUtilities.isUserAuthorizedForEncounter() behavior
+        if (User.isUsernameAnonymous(this.getSubmitterID())) return true;
         if (Collaboration.canEditEncounter(this, user, myShepherd.getContext())) return true;
         // TODO there seems to be some legacy stuff about roles based on location. is this real?
         return false;
+    }
+
+    // edit access on a public encounter (see canUserEdit) does not by itself
+    // grant visibility of other users' contact emails
+    public boolean canUserViewContactInfo(User user, Shepherd myShepherd) {
+        if (user == null) return false;
+        if (isUserOwner(user)) return true;
+        if (user.isAdmin(myShepherd)) return true;
+        return Collaboration.canEditEncounter(this, user, myShepherd.getContext());
     }
 
     public boolean isUserOwner(User user) { // the definition of this might change?
@@ -4482,6 +4494,8 @@ public class Encounter extends Base implements java.io.Serializable {
                     jgen.writeStringField("iaClass", ann.getIAClass());
                     jgen.writeStringField("viewpoint", ann.getViewpoint());
                     jgen.writeBooleanField("isTrivial", ann.isTrivial());
+                    jgen.writeBooleanField("matchAgainst", ann.getMatchAgainst());
+                    jgen.writeStringField("acmId", ann.getAcmId());
                     jgen.writeNumberField("theta", ann.getTheta());
                     jgen.writeArrayFieldStart("boundingBox");
                     Feature ft = ann.getFeature(); // attempt force loading features for getBbox()
@@ -4970,11 +4984,15 @@ public class Encounter extends Base implements java.io.Serializable {
             if (canUserEdit(user, myShepherd)) {
                 rtn.put("access", "write");
                 blocked = false;
-                // we can allow email being shown when access=write
-                hideUserEmail = false;
-                if (submitter != null)
-                    rtn.put("submitterInfo",
-                        submitter.infoJSONObject(myShepherd, true, hideUserEmail));
+                // we can allow email being shown when the user has a real
+                // relationship to the encounter (owner/admin/edit-collab);
+                // write access via the public-encounter grant is not enough
+                if (canUserViewContactInfo(user, myShepherd)) {
+                    hideUserEmail = false;
+                    if (submitter != null)
+                        rtn.put("submitterInfo",
+                            submitter.infoJSONObject(myShepherd, true, hideUserEmail));
+                }
             } else if (canUserView(user, myShepherd)) {
                 blocked = false;
             }
@@ -5159,6 +5177,7 @@ public class Encounter extends Base implements java.io.Serializable {
         Encounter enc = new Encounter(false);
         if (Util.isUUID(payload.optString("_id"))) enc.setId(payload.getString("_id"));
         enc.setLocationID(locationID);
+        enc.setVerbatimLocality(payload.optString("verbatimLocality", null));
         enc.setDecimalLatitude(decimalLatitude);
         enc.setDecimalLongitude(decimalLongitude);
         enc.setDateFromISO8601String(dateTime);
@@ -5201,6 +5220,10 @@ public class Encounter extends Base implements java.io.Serializable {
     // user should already have been validated -- via obj.canUserEdit() -- in api/BaseObject, so this
     // does not need to be tested here. however, more detailed checks may require user (e.g. can user
     // also alter another object, such as Occurrence)
+    // not persisted; carries individuals touched by processPatch() to afterPatch()
+    // within a single request so they get indexed post-commit
+    private transient Set<MarkedIndividual> patchIndividualsToIndex = null;
+
     public org.json.JSONObject processPatch(org.json.JSONArray patchArr, User user,
         Shepherd myShepherd)
     throws ApiException {
@@ -5236,9 +5259,24 @@ public class Encounter extends Base implements java.io.Serializable {
                 occ.setSkipAutoIndexing(false);
             }
         }
+        this.patchIndividualsToIndex = new HashSet<MarkedIndividual>();
         for (MarkedIndividual indiv : indivNeedPruning) {
             if (!indiv.pruneIfNeeded(myShepherd)) {
                 indiv.setSkipAutoIndexing(false);
+                // removeIndividual() suppressed auto-indexing on this (old)
+                // individual, so afterPatch() must index it explicitly
+                this.patchIndividualsToIndex.add(indiv);
+            }
+        }
+        // a patched-in individual may be brand new (created this transaction);
+        // index it post-commit so it is searchable without waiting for the
+        // background reconciler -- see issue 1318
+        for (int i = 0; i < patchArr.length(); i++) {
+            org.json.JSONObject p = patchArr.optJSONObject(i);
+            if ((p != null) && "individualId".equals(p.optString("path", null)) &&
+                (this.getIndividual() != null)) {
+                this.patchIndividualsToIndex.add(this.getIndividual());
+                break;
             }
         }
         // no exceptions means success
@@ -5247,6 +5285,9 @@ public class Encounter extends Base implements java.io.Serializable {
         this.setDWCDateLastModified();
         this._log(resArr);
         this.setSkipAutoIndexing(false);
+        // explicitly reindex since postStore fired while skipAutoIndexing was true;
+        // enqueueAclReindex honors the global skipAutoIndexing guard
+        this.enqueueAclReindex();
         return rtn;
     }
 
@@ -5531,6 +5572,19 @@ public class Encounter extends Base implements java.io.Serializable {
             }
         }
         if (newAssetsArr.length() > 0) res.put("newMediaAssets", newAssetsArr);
+        // individuals touched by this patch (newly created, or detached old ones
+        // whose auto-indexing was suppressed) are indexed here, post-commit, so
+        // their documents are searchable promptly (best-effort; the background
+        // reconciler remains the backstop) -- see issue 1318
+        if (this.patchIndividualsToIndex != null) {
+            for (MarkedIndividual indiv : this.patchIndividualsToIndex) {
+                // the names cache key (MultiValue id) is db-assigned; refresh again
+                // now that commit definitely happened, in case it was unset earlier
+                indiv.refreshNamesCache();
+                needsIndexing.add(indiv);
+            }
+            this.patchIndividualsToIndex = null;
+        }
         BulkImportUtil.bulkOpensearchIndex(needsIndexing);
         return res;
     }
