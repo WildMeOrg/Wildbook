@@ -2911,6 +2911,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public List<Annotation> getAnnotations(MediaAsset ma) {
         List<Annotation> anns = new ArrayList<Annotation>();
 
+        if (getAnnotations() == null) return anns;
         for (Annotation ann : getAnnotations()) {
             if (ann.getMediaAsset() == ma) anns.add(ann);
         }
