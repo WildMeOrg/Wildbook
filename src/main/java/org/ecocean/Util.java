@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.ecocean.media.AssetStore;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdProperties;
 import org.ecocean.tag.MetalTag;
@@ -490,6 +491,32 @@ public class Util {
         return rtn;
     }
 
+    public static List<Integer> jsonArrayToIntegerList(JSONArray arr) {
+        if (arr == null) return null;
+        List<Integer> rtn = new ArrayList<Integer>();
+        for (int i = 0; i < arr.length(); i++) {
+            Integer jint = null;
+            try {
+                jint = arr.getInt(i);
+            } catch (org.json.JSONException je) {}
+            if (jint != null) rtn.add(jint);
+        }
+        return rtn;
+    }
+
+    public static List<Double> jsonArrayToDoubleList(JSONArray arr) {
+        if (arr == null) return null;
+        List<Double> rtn = new ArrayList<Double>();
+        for (int i = 0; i < arr.length(); i++) {
+            Double jdbl = null;
+            try {
+                jdbl = arr.getDouble(i);
+            } catch (org.json.JSONException je) {}
+            if (jdbl != null) rtn.add(jdbl);
+        }
+        return rtn;
+    }
+
     public static boolean jsonArrayContains(JSONArray arr, String str) {
         if ((str == null) || (arr == null)) return false; // might be a matter of philosophical debate
         return jsonArrayToStringList(arr).contains(str);
@@ -711,10 +738,34 @@ public class Util {
         return (currentToString);
     }
 
+    // how do we not have this?
+    public static String prettyPrintDateTime(long millis) {
+        return prettyPrintDateTime(new DateTime(millis));
+    }
+
+    public static String prettyPrintDateTime() {
+        return prettyPrintDateTime(System.currentTimeMillis());
+    }
+
     public static String prettyTimeStamp() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
         return sdf.format(new Date());
+    }
+
+    public static String millisToHumanApprox(Long millis) {
+        if (millis == null) return "unknown";
+        if (millis < 2000L) return "1 second";
+        if (millis < 60000L) return Math.round(millis / 1000L) + " seconds";
+        if (millis < 60L * 60L * 1000L) return Math.round(millis / (60L * 1000L)) + " minutes";
+        if (millis < 24L * 60L * 60L * 1000L) return Math.round(millis / (60L * 60L * 1000L)) + " hours";
+        return Math.round(millis / (24L * 60L * 60L * 1000L)) + " days";
+    }
+
+    public static String millisToISO8601String(Long millis) {
+        if (millis == null) return null;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        return sdf.format(new Date(millis));
     }
 
     public static boolean dateTimeIsOnlyDate(DateTime dt) {
@@ -1234,6 +1285,16 @@ public class Util {
         return iso8601;
     }
 
+    // mildly hacky, use with care
+    public static File getDataDir() {
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.beginDBTransaction();
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        File ddir = astore.getBasePath().toFile();
+        myShepherd.rollbackAndClose();
+        return ddir;
+    }
+
     // from issue #1227, there are a couple ways to derive a list of valid countries (e.g. for validating
     // bulk import data), including some based on CommonConfiguration. for now we are using a canned list
     // but might be adjusted later to allow customization
@@ -1260,7 +1321,7 @@ public class Util {
     public static java.awt.Dimension hackSanselanGetImageSize(File file, String filename)
     throws IOException {
         java.awt.Dimension dim = new java.awt.Dimension();
-        JSONObject attr = org.ecocean.media.AssetStore.extractMetadataAttributes(file);
+        JSONObject attr = AssetStore.extractMetadataAttributes(file);
         // optInt will truncate values that are floats
         dim.setSize(attr.optInt("width"), attr.optInt("height"));
         return dim;

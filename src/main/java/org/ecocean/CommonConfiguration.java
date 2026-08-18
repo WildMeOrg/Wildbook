@@ -8,6 +8,10 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.function.Function;
+import java.util.Locale;
+
+import org.ecocean.grid.GrothParams;
 
 import javax.servlet.ServletContext;
 
@@ -20,6 +24,9 @@ import javax.servlet.http.HttpServletRequest;
 public class CommonConfiguration {
     private static final String COMMON_CONFIGURATION_PROPERTIES = "commonConfiguration.properties";
     private static final String GOOGLE_CONFIGURATION_PROPERTIES = "googleKeys.properties";
+    // API-access (JWT) settings live in their own file so the signing key can be held privately
+    // in the data-dir override and kept out of git. See getApiAccessProperty().
+    private static final String API_ACCESS_KEYS_PROPERTIES = "apiAccessKeys.properties";
 
     // class setup
     // private static Properties props = new Properties();
@@ -29,6 +36,8 @@ public class CommonConfiguration {
     // private static String currentContext;
 
     private static Map<String, Properties> contextToPropsCache = new HashMap<String, Properties>();
+    // Only ever populated by initializeApiAccess() (a test seam). Production reads the file fresh.
+    private static Map<String, Properties> apiAccessPropsCache = new HashMap<String, Properties>();
 
     public static void initialize(String context, Properties overrideProps) {
         contextToPropsCache.put(context, overrideProps);
@@ -433,6 +442,67 @@ public class CommonConfiguration {
         return getProperty("C", context).trim();
     }
 
+    // --- Species-aware Modified Groth parameters (June 2026) ---
+    // Safe-constant defaults = corrected whale-shark optimum.
+    private static final double GROTH_DEFAULT_EPSILON = 0.015;
+    private static final double GROTH_DEFAULT_R = 8.8;
+    private static final double GROTH_DEFAULT_SIZELIM = 0.94;
+    private static final double GROTH_DEFAULT_MAXROT = 20.0;
+    private static final double GROTH_DEFAULT_C = 1.146;
+
+    /** Normalized property-key suffix from a species, or null if either part is blank. */
+    public static String speciesKey(String genus, String specificEpithet) {
+        if (genus == null || specificEpithet == null) return null;
+        String g = genus.trim(), s = specificEpithet.trim();
+        if (g.isEmpty() || s.isEmpty()) return null;
+        String key = (g + "_" + s).toLowerCase(Locale.ROOT)
+                        .replaceAll("[^a-z0-9]+", "_")
+                        .replaceAll("^_+|_+$", "");
+        return key.isEmpty() ? null : key;
+    }
+
+    /** Parse a positive, finite double, or null if missing/blank/invalid. */
+    private static Double positiveFiniteOrNull(String raw) {
+        if (raw == null) return null;
+        String t = raw.trim();
+        if (t.isEmpty()) return null;
+        try {
+            double d = Double.parseDouble(t);
+            if (!Double.isFinite(d) || d <= 0.0) return null;
+            return d;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private static double resolveOne(String name, String speciesKey,
+                                     Function<String,String> lookup, double dflt) {
+        if (speciesKey != null) {
+            Double v = positiveFiniteOrNull(lookup.apply(name + "." + speciesKey));
+            if (v != null) return v;
+        }
+        Double g = positiveFiniteOrNull(lookup.apply(name));
+        if (g != null) return g;
+        return dflt;
+    }
+
+    /** Testable core: resolve all five params against an arbitrary property lookup. */
+    public static GrothParams resolveGrothParams(String genus, String specificEpithet,
+                                                 Function<String,String> lookup) {
+        String sk = speciesKey(genus, specificEpithet);
+        return new GrothParams(
+            resolveOne("epsilon", sk, lookup, GROTH_DEFAULT_EPSILON),
+            resolveOne("R", sk, lookup, GROTH_DEFAULT_R),
+            resolveOne("sizelim", sk, lookup, GROTH_DEFAULT_SIZELIM),
+            resolveOne("maxTriangleRotation", sk, lookup, GROTH_DEFAULT_MAXROT),
+            resolveOne("C", sk, lookup, GROTH_DEFAULT_C));
+    }
+
+    /** Resolve the Groth params for a query species using configured properties. */
+    public static GrothParams getGrothParams(String genus, String specificEpithet, String context) {
+        return resolveGrothParams(genus, specificEpithet, name -> getProperty(name, context));
+    }
+
     public static String getHTMLDescription(String context) {
         return getProperty("htmlDescription", context).trim();
     }
@@ -527,6 +597,29 @@ public class CommonConfiguration {
     public static String getGoogleAnalyticsId(String context) {
         return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES, "",
                 context).getProperty("ga_id", context);
+    }
+
+    /**
+     * Reads an API-access (JWT) setting from apiAccessKeys.properties -- a peer of
+     * commonConfiguration.properties -- so the signing key can be kept private in the data-dir
+     * override and out of git. NOT read from commonConfiguration.properties. Returns null when
+     * the key is unset (callers treat null as "not configured").
+     */
+    public static String getApiAccessProperty(String name, String context) {
+        Properties seeded = apiAccessPropsCache.get(context);
+        if (seeded != null) return seeded.getProperty(name);
+        return ShepherdProperties.getProperties(API_ACCESS_KEYS_PROPERTIES, "", context)
+                .getProperty(name);
+    }
+
+    /** Test seam: seed in-memory API-access props for a context (mirrors initialize(String, Properties)). */
+    public static void initializeApiAccess(String context, Properties overrideProps) {
+        apiAccessPropsCache.put(context, overrideProps);
+    }
+
+    /** Test cleanup: clear seeded API-access props to avoid cross-test contamination. */
+    public static void clearApiAccessCache() {
+        apiAccessPropsCache.clear();
     }
 
     public static String getDefaultGoogleMapsCenter(String context) {

@@ -4,7 +4,7 @@
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,
-java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 
@@ -82,7 +82,10 @@ try {
     org.removeMember(user);
     %>Successfully removed user from org! Org is now <%=org%>. hasMember(user) = <%=org.hasMember(user)%><%
   }
-  if (committing) myShepherd.commitDBTransaction();
+  if (committing) {
+    myShepherd.commitDBTransaction();
+    OpenSearch.setPermissionsNeeded(true);
+  }
   myShepherd.closeDBTransaction();
   %>
   </p>

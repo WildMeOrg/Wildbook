@@ -8,8 +8,9 @@ import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import BioMeasurements from "../Form/BioMeasurements";
 import { useIntl } from "react-intl";
 import { observer } from "mobx-react-lite";
+import ContainerWithSpinner from "../ContainerWithSpinner";
 
-const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
+const BiologicalSamplesAndAnalysesFilter = observer(({ data, store }) => {
   const intl = useIntl();
   const label = <FormattedMessage id="FILTER_HAS_BIOLOGICAL_SAMPLE" />;
   const bioMeasurementOptions =
@@ -266,30 +267,34 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
         filterKey={"Biological Sample ID"}
         store={store}
       />
-      <FormGroupMultiSelect
-        isMulti={true}
-        noDesc={true}
-        label="FILTER_HAPLO_TYPE"
-        options={haploTypeOptions || []}
-        field={"haplotype"}
-        filterId={"haplotype"}
-        term={"terms"}
-        filterKey={"Haplotype"}
-        store={store}
-      />
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        noDesc={true}
-        label="FILTER_GENETIC_SEX"
-        options={geneticSexOptions || []}
-        field={"geneticSex"}
-        term={"terms"}
-        filterId={"geneticSex"}
-        filterKey={"Genetic Sex"}
-        store={store}
-      />
-
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          noDesc={true}
+          label="FILTER_HAPLO_TYPE"
+          options={haploTypeOptions || []}
+          field={"haplotype"}
+          filterId={"haplotype"}
+          term={"terms"}
+          filterKey={"Haplotype"}
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          noDesc={true}
+          label="FILTER_GENETIC_SEX"
+          options={geneticSexOptions || []}
+          field={"geneticSex"}
+          term={"terms"}
+          filterId={"geneticSex"}
+          filterKey={"Genetic Sex"}
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
       <BioMeasurements
         data={bioMeasurementOptions}
         filterId={"biologicalMeasurements"}
@@ -404,6 +409,6 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
       })}
     </div>
   );
-};
+});
 
-export default observer(BiologicalSamplesAndAnalysesFilter);
+export default BiologicalSamplesAndAnalysesFilter;

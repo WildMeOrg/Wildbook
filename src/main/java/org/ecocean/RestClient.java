@@ -322,10 +322,24 @@ public class RestClient {
     // much more generic form...
     public static String postRaw(URL url, String data, Map<String, String> headers)
     throws IOException, java.net.ProtocolException {
+        return postRaw(url, data, headers, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT);
+    }
+
+    // ml-service migration v2 (commit #6): overload with separate connect/read
+    // timeouts. The shared CONNECTION_TIMEOUT (5 minutes) is too long for the
+    // ml-service path — a hung request would stall the single-consumer
+    // detection queue. ml-service callers pass shorter values (e.g. 30s
+    // connect / 120s read). Per HttpURLConnection.setConnectTimeout /
+    // setReadTimeout: 0 means infinite; negative values throw
+    // IllegalArgumentException. Callers are responsible for passing positive
+    // values or 0 — this method does not clamp.
+    public static String postRaw(URL url, String data, Map<String, String> headers,
+        int connectTimeoutMs, int readTimeoutMs)
+    throws IOException, java.net.ProtocolException {
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
 
-        conn.setReadTimeout(CONNECTION_TIMEOUT);
-        conn.setConnectTimeout(CONNECTION_TIMEOUT);
+        conn.setReadTimeout(readTimeoutMs);
+        conn.setConnectTimeout(connectTimeoutMs);
         conn.setDoOutput((data != null));
         conn.setDoInput(true);
         conn.setRequestMethod("POST");
@@ -368,9 +382,17 @@ public class RestClient {
     // JSON-friendly generic  (can pass null for headers and it will get set)
     public static JSONObject postJSON(URL url, JSONObject data, Map<String, String> headers)
     throws IOException, java.net.ProtocolException {
+        return postJSON(url, data, headers, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT);
+    }
+
+    // ml-service migration v2 (commit #6): timeout-aware overload.
+    public static JSONObject postJSON(URL url, JSONObject data, Map<String, String> headers,
+        int connectTimeoutMs, int readTimeoutMs)
+    throws IOException, java.net.ProtocolException {
         if (headers == null) headers = new HashMap<String, String>();
         if (headers.get("Content-type") == null) headers.put("Content-type", "application/json");
-        String rtn = postRaw(url, (data == null) ? (String)null : data.toString(), headers);
+        String rtn = postRaw(url, (data == null) ? (String)null : data.toString(), headers,
+            connectTimeoutMs, readTimeoutMs);
         JSONObject jrtn = Util.stringToJSONObject(rtn);
         if (jrtn == null)
             throw new IOException("could not convert postRaw() to JSONObject: " + rtn);

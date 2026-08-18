@@ -8,8 +8,14 @@ import { Modal } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 
 export const ContactInfoModal = observer(({ isOpen, onClose, store = {} }) => {
-  if (!isOpen) return null;
   const theme = React.useContext(ThemeColorContext);
+
+  const submitterInfo = store?.encounterData?.submitterInfo;
+  const submitters = store?.encounterData?.submitters;
+  const photographers = store?.encounterData?.photographers;
+  const informOthers = store?.encounterData?.informOthers;
+
+  if (!isOpen) return null;
 
   return (
     <Modal
@@ -32,50 +38,56 @@ export const ContactInfoModal = observer(({ isOpen, onClose, store = {} }) => {
             padding: "10px",
           }}
         ></div>
-        {Object.keys(store.encounterData?.submitterInfo).length > 0 && (
+
+        {submitterInfo && Object.keys(submitterInfo).length > 0 && (
           <ContactInfoCard
             title="MANAGING_RESEARCHER"
             type="submitterID"
-            data={[store.encounterData?.submitterInfo]}
+            data={[submitterInfo]}
             store={store}
           />
         )}
-        {store.encounterData?.submitters.length > 0 && (
+
+        {Array.isArray(submitters) && submitters.length > 0 && (
           <ContactInfoCard
             title="SUBMITTER"
             type="submitters"
-            data={store.encounterData?.submitters}
+            data={submitters}
             store={store}
           />
         )}
-        {store.encounterData?.photographers.length > 0 && (
+
+        {Array.isArray(photographers) && photographers.length > 0 && (
           <ContactInfoCard
             title="PHOTOGRAPHER"
             type="photographers"
             store={store}
-            data={store.encounterData?.photographers}
+            data={photographers}
           />
         )}
-        {store.encounterData?.informOthers.length > 0 && (
+
+        {Array.isArray(informOthers) && informOthers.length > 0 && (
           <ContactInfoCard
             title="INFORM_OTHERS"
             type="informOthers"
             store={store}
-            data={store.encounterData?.informOthers}
+            data={informOthers}
           />
         )}
-        {store.access === "write" && (
+
+        {store?.access === "write" && (
           <MainButton
-            onClick={() => store.modals.setOpenAddPeopleModal(true)}
+            onClick={() => store?.modals?.setOpenAddPeopleModal?.(true)}
             noArrow={true}
             backgroundColor={theme.primaryColors.primary700}
             color="white"
             style={{ marginLeft: 0, marginTop: "20px" }}
           >
-            {<FormattedMessage id="ADD_PEOPLE" />}
+            <FormattedMessage id="ADD_PEOPLE" />
           </MainButton>
         )}
-        {store.access === "write" && store.modals.openAddPeopleModal && (
+
+        {store?.access === "write" && store?.modals?.openAddPeopleModal && (
           <AddPeople store={store} />
         )}
       </Modal.Body>

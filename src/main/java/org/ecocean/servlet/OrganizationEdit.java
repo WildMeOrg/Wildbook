@@ -17,6 +17,7 @@ import javax.servlet.ServletException;
 import org.ecocean.AccessControl;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.OpenSearch;
 import org.ecocean.Organization;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
@@ -270,6 +271,7 @@ public class OrganizationEdit extends HttpServlet {
         }
         if (rtn.optBoolean("success", false)) {
             myShepherd.commitDBTransaction();
+            OpenSearch.setPermissionsNeeded(true);
         } else {
             myShepherd.rollbackDBTransaction();
         }

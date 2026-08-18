@@ -4,8 +4,8 @@ import { FormattedMessage } from "react-intl";
 import { observer } from "mobx-react-lite";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
-import moment from "moment";
 import ThemeContext from "../../ThemeColorProvider";
+import { parseReportDateTime } from "./reportDateTime";
 
 export const DateTimeSection = observer(({ store }) => {
   const theme = useContext(ThemeContext);
@@ -33,11 +33,7 @@ export const DateTimeSection = observer(({ store }) => {
                 store.setDateTimeSectionError(false);
                 return;
               }
-              const isValidFormat = moment(
-                new Date(inputDate),
-                moment.ISO_8601,
-                true,
-              ).isValid();
+              const isValidFormat = parseReportDateTime(inputDate).isValid();
               if (!isValidFormat) {
                 store.setDateTimeSectionError(true);
               }
@@ -79,7 +75,7 @@ export const DateTimeSection = observer(({ store }) => {
             id="exifDateTime"
             onChange={(e) => {
               const inputDate = e.target.value;
-              store.setDateTimeSectionValue(new Date(inputDate));
+              store.setDateTimeSectionValue(parseReportDateTime(inputDate));
             }}
           >
             <option value="">
