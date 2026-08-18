@@ -178,6 +178,7 @@ const MatchProspectTable = ({
   date,
   selectedMatch,
   onToggleSelected,
+  thisEncounterId,
   thisEncounterImageUrl,
   thisEncounterAnnotations,
   thisEncounterImageAsset,
@@ -377,6 +378,25 @@ const MatchProspectTable = ({
     taskStatusOverall !== "error";
 
   const isError = taskStatusOverall === "error";
+
+  // Label linking back to the query annotation's encounter; falls back to
+  // plain text when the match result carried no encounter id.
+  const renderThisEncounterLabel = (labelLinkId) =>
+    thisEncounterId ? (
+      <a
+        href={`/react/encounter?number=${encodeURIComponent(thisEncounterId)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-decoration-underline"
+        style={{ color: "inherit" }}
+        id={labelLinkId}
+        data-testid={labelLinkId}
+      >
+        <FormattedMessage id="THIS_ENCOUNTER" />
+      </a>
+    ) : (
+      <FormattedMessage id="THIS_ENCOUNTER" />
+    );
 
   return (
     <div
@@ -677,7 +697,9 @@ const MatchProspectTable = ({
               style={styles.cornerLabel(themeColor)}
               data-testid={`match-prospect-left-label-${sectionId}`}
             >
-              <FormattedMessage id="THIS_ENCOUNTER" />
+              {renderThisEncounterLabel(
+                `match-prospect-left-label-link-${sectionId}`,
+              )}
             </div>
             <div
               style={styles.imageContainer}
@@ -945,7 +967,9 @@ const MatchProspectTable = ({
                     style={styles.fullscreenLabel}
                     data-testid={`match-prospect-fullscreen-left-label-${sectionId}`}
                   >
-                    <FormattedMessage id="THIS_ENCOUNTER" />
+                    {renderThisEncounterLabel(
+                      `match-prospect-fullscreen-left-label-link-${sectionId}`,
+                    )}
                   </div>
 
                   <div
