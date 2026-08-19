@@ -821,6 +821,39 @@ public class Shepherd {
         return filteredSpaces;
     }
 
+    // Relationship uses JDO datastore identity (a bigint surrogate key); the social UI submits
+    // the full identity string, e.g. "1011[OID]org.ecocean.social.Relationship". Accepts that
+    // form or a bare numeric key; returns null for anything else, so callers can answer 400 for
+    // malformed input before ever touching the datastore.
+    public static Long parseRelationshipKey(String persistenceID) {
+        if (persistenceID == null) return null;
+        String key = persistenceID.trim();
+        String oidSuffix = "[OID]" + Relationship.class.getName();
+        if (key.endsWith(oidSuffix)) key = key.substring(0, key.length() - oidSuffix.length());
+        if (!key.matches("\\d+")) return null;
+        try {
+            return Long.valueOf(key);
+        } catch (NumberFormatException e) { // all digits but beyond Long range
+            return null;
+        }
+    }
+
+    // Null means malformed id or no such row; datastore/transaction failures still throw so
+    // callers don't report an outage as a stale record.
+    public Relationship getRelationship(String persistenceID) {
+        Long key = parseRelationshipKey(persistenceID);
+
+        if (key == null) return null;
+        try {
+            return (Relationship)pm.getObjectById(pm.newObjectIdInstance(Relationship.class, key),
+                true);
+        } catch (JDOObjectNotFoundException e) {
+            System.out.println("Shepherd.getRelationship(" + persistenceID + ") found nothing: " +
+                e);
+            return null;
+        }
+    }
+
     public Relationship getRelationship(String type, String indie1, String indie2) {
         Relationship tempRel = null;
         String filter = "this.type == \"" + type + "\" && ((this.markedIndividualName1 == \"" +
