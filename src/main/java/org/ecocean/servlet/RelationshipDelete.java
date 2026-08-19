@@ -35,14 +35,9 @@ public class RelationshipDelete extends HttpServlet {
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("RelationshipDelete.class");
 
-            Relationship rel = new Relationship();
-
             myShepherd.beginDBTransaction();
             try {
-                // rel=((Relationship) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Relationship.class,
-                // request.getParameter("persistenceID")), true)));
-
-                rel = (Relationship)myShepherd.getPM().getObjectById(Relationship.class,
+                Relationship rel = myShepherd.getRelationship(
                     request.getParameter("persistenceID"));
                 if (rel != null) {
                     myShepherd.getPM().deletePersistent(rel);
@@ -51,17 +46,22 @@ public class RelationshipDelete extends HttpServlet {
                         request.getParameter("type") + " between " +
                         request.getParameter("markedIndividualName1") + " and " +
                         request.getParameter("markedIndividualName2") + " was deleted.");
+                } else {
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    out.println(
+                        "<strong>Failure:</strong> The relationship to delete was not found. It may have already been deleted.");
                 }
             } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 out.println(
-                    "<strong>Failure:</strong> I did not have all of the information required.");
+                    "<strong>Failure:</strong> The relationship could not be deleted due to a server error. Have your administrator check the log files.");
                 e.printStackTrace();
             } finally {
                 myShepherd.rollbackAndClose();
                 out.close();
-                return;
             }
         } else {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.println(
                 "<strong>Failure:</strong> I did not have all of the information required.");
             out.close();

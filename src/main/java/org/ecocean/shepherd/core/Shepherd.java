@@ -821,6 +821,25 @@ public class Shepherd {
         return filteredSpaces;
     }
 
+    // Relationship uses JDO datastore identity (a bigint surrogate key); the social UI submits
+    // the full identity string, e.g. "1011[OID]org.ecocean.social.Relationship". Accepts that
+    // form or a bare numeric key; returns null (never throws) for anything else or a missing row.
+    public Relationship getRelationship(String persistenceID) {
+        if (persistenceID == null) return null;
+        String key = persistenceID.trim();
+        String oidSuffix = "[OID]" + Relationship.class.getName();
+        if (key.endsWith(oidSuffix)) key = key.substring(0, key.length() - oidSuffix.length());
+        if (!key.matches("\\d+")) return null;
+        try {
+            return (Relationship)pm.getObjectById(pm.newObjectIdInstance(Relationship.class,
+                Long.valueOf(key)), true);
+        } catch (Exception e) {
+            System.out.println("Shepherd.getRelationship(" + persistenceID + ") found nothing: " +
+                e);
+            return null;
+        }
+    }
+
     public Relationship getRelationship(String type, String indie1, String indie2) {
         Relationship tempRel = null;
         String filter = "this.type == \"" + type + "\" && ((this.markedIndividualName1 == \"" +

@@ -42,7 +42,7 @@ public class RelationshipCreate extends HttpServlet {
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("RelationshipCreate.class");
 
-            Relationship rel = new Relationship();
+            Relationship rel = null;
             SocialUnit comm = new SocialUnit();
 
             myShepherd.beginDBTransaction();
@@ -58,11 +58,15 @@ public class RelationshipCreate extends HttpServlet {
                         request.getParameter("markedIndividualName2"));
                     if ((request.getParameter("persistenceID") != null) &&
                         (!request.getParameter("persistenceID").equals(""))) {
-                        // Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class,
-                        // request.getParameter("persistenceID"));
-                        // rel=(Relationship)myShepherd.getPM().getObjectById(identity);
-                        rel = (Relationship)myShepherd.getPM().getObjectById(Relationship.class,
-                            request.getParameter("persistenceID"));
+                        rel = myShepherd.getRelationship(request.getParameter("persistenceID"));
+                        if (rel == null) {
+                            myShepherd.rollbackDBTransaction();
+                            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                            out.println(
+                                "<strong>Failure:</strong> The relationship to edit was not found. It may have been deleted.");
+                            out.close();
+                            return;
+                        }
                     } else {
                         rel = new Relationship(request.getParameter("type"), individual1,
                             individual2);
