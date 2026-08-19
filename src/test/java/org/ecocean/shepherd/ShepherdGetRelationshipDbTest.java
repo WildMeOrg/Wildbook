@@ -11,6 +11,7 @@ import org.ecocean.social.Relationship;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -26,6 +27,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * test can't catch this: the bug lives in how DataNucleus interprets the id argument.
  */
 @Testcontainers
+@ResourceLock("wildbook.context0.pmf") // all classes share the static context0 PMF cache
 class ShepherdGetRelationshipDbTest {
     @Container
     static PostgreSQLContainer<?> postgres =

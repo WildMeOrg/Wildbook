@@ -46,6 +46,11 @@ public class RelationshipDelete extends HttpServlet {
                         request.getParameter("type") + " between " +
                         request.getParameter("markedIndividualName1") + " and " +
                         request.getParameter("markedIndividualName2") + " was deleted.");
+                } else if (Shepherd.parseRelationshipKey(request.getParameter("persistenceID")) ==
+                    null) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.println(
+                        "<strong>Failure:</strong> That is not a valid relationship id.");
                 } else {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     out.println(

@@ -17,6 +17,7 @@ import org.ecocean.social.Relationship;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -32,6 +33,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * row) -> 404 Failure so the JSP's .fail() handler shows the error; blank/missing param -> 400.
  */
 @Testcontainers
+@ResourceLock("wildbook.context0.pmf") // all classes share the static context0 PMF cache
 class RelationshipDeleteServletDbTest {
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -148,6 +150,14 @@ class RelationshipDeleteServletDbTest {
         Response r = post("");
 
         assertEquals(HttpServletResponse.SC_BAD_REQUEST, r.status);
+        assertTrue(r.body.contains("Failure"), "body: " + r.body);
+    }
+
+    @Test void malformedPersistenceIdReports400Not404() throws Exception {
+        Response r = post("abc");
+
+        assertEquals(HttpServletResponse.SC_BAD_REQUEST, r.status,
+            "malformed input is a bad request, not a stale record; body: " + r.body);
         assertTrue(r.body.contains("Failure"), "body: " + r.body);
     }
 }

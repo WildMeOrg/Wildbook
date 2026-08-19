@@ -19,6 +19,7 @@ import org.ecocean.social.Relationship;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -33,6 +34,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * persistenceID -> 404 Failure, nothing changed, transaction rolled back.
  */
 @Testcontainers
+@ResourceLock("wildbook.context0.pmf") // all classes share the static context0 PMF cache
 class RelationshipCreateEditServletDbTest {
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -154,6 +156,15 @@ class RelationshipCreateEditServletDbTest {
         assertEquals(HttpServletResponse.SC_NOT_FOUND, r.status, "body: " + r.body);
         assertTrue(r.body.contains("Failure"), "failure body routes to the JSP .fail(): "
             + r.body);
+        assertEquals(before, persistedType(), "a failed edit must not alter the row");
+    }
+
+    @Test void editWithMalformedPersistenceIdReports400AndChangesNothing() throws Exception {
+        String before = persistedType();
+        Response r = postEdit("abc", "poisoned");
+
+        assertEquals(HttpServletResponse.SC_BAD_REQUEST, r.status,
+            "malformed input is a bad request, not a stale record; body: " + r.body);
         assertEquals(before, persistedType(), "a failed edit must not alter the row");
     }
 }
