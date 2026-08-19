@@ -1188,6 +1188,113 @@
 			"locationID": []
 		},
 		{
+			"name": "Poland",
+			"id": "Poland",
+			"locationID": [
+				{
+					"name": "Magura National Park",
+					"id": "Magura National Park",
+					"locationID": [
+						{
+							"name": "Baranie Leśniczówka",
+							"id": "Baranie Leśniczówka",
+							"locationID": []
+						},
+						{
+							"name": "Bednarka las",
+							"id": "Bednarka las",
+							"locationID": []
+						},
+						{
+							"name": "Bednarka skraj lasu",
+							"id": "Bednarka skraj lasu",
+							"locationID": []
+						},
+						{
+							"name": "Ciechań Łąka",
+							"id": "Ciechań Łąka",
+							"locationID": []
+						},
+						{
+							"name": "Ciechań Środek Droga",
+							"id": "Ciechań Środek Droga",
+							"locationID": []
+						},
+						{
+							"name": "Ciechań Zimna Woda Droga",
+							"id": "Ciechań Zimna Woda Droga",
+							"locationID": []
+						},
+						{
+							"name": "Folusz oczko wodne POIS",
+							"id": "Folusz oczko wodne POIS",
+							"locationID": []
+						},
+						{
+							"name": "Folusz Składownia",
+							"id": "Folusz Składownia",
+							"locationID": []
+						},
+						{
+							"name": "Huta Krempska",
+							"id": "Huta Krempska",
+							"locationID": []
+						},
+						{
+							"name": "Korbowa Łąka",
+							"id": "Korbowa Łąka",
+							"locationID": []
+						},
+						{
+							"name": "Magura Północ Stokówka",
+							"id": "Magura Północ Stokówka",
+							"locationID": []
+						},
+						{
+							"name": "Ostrysz",
+							"id": "Ostrysz",
+							"locationID": []
+						},
+						{
+							"name": "Pielgrzymka Las",
+							"id": "Pielgrzymka Las",
+							"locationID": []
+						},
+						{
+							"name": "Rostajne",
+							"id": "Rostajne",
+							"locationID": []
+						},
+						{
+							"name": "Świerzowa droga",
+							"id": "Świerzowa droga",
+							"locationID": []
+						},
+						{
+							"name": "Wilsznia Bobry",
+							"id": "Wilsznia Bobry",
+							"locationID": []
+						},
+						{
+							"name": "Wilsznia kałuża",
+							"id": "Wilsznia kałuża",
+							"locationID": []
+						},
+						{
+							"name": "Żydowskie kałuża Zuzanny",
+							"id": "Żydowskie kałuża Zuzanny",
+							"locationID": []
+						},
+						{
+							"name": "Żydowskie za PGR",
+							"id": "Żydowskie za PGR",
+							"locationID": []
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Slovenia",
 			"id": "Slovenia",
 			"locationID": []
