@@ -172,7 +172,7 @@ public class RelationshipCreate extends HttpServlet {
             }
             // output success statement
             // out.println(ServletUtilities.getHeader(request));
-            if (createThisRelationship) {
+            if (createThisRelationship && !serverError) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.println("<strong>Success:</strong> A relationship of type " +
                     request.getParameter("type") + " was created between " +
