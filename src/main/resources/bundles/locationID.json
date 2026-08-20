@@ -1759,6 +1759,15 @@
 			"id": "Uganda",
 			"locationID": [
 				{
+					"name": "Ajai",
+					"id": "Ajai",
+					"geospatialInfo":{
+						"lat": 2.867,
+						"long": 31.283
+					},
+					"locationID": []
+				},
+				{
 					"name": "Kidepo",
 					"id": "Kidepo",
 					"geospatialInfo":{
@@ -1789,6 +1798,15 @@
 				{
 					"name": "Pian Upe",
 					"id": "Pian Upe",
+					"locationID":[]
+				},
+				{
+					"name": "Ziwa",
+					"id": "Ziwa",
+					"geospatialInfo":{
+						"lat": 1.4482,
+						"long": 32.0777
+					},
 					"locationID":[]
 				}
 			]
