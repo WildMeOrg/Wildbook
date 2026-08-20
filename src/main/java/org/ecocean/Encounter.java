@@ -3541,22 +3541,50 @@ public class Encounter extends Base implements java.io.Serializable {
         return LocationID.getPrefixDigitPaddingForLocationID(this.getLocationID(), null);
     }
 
-    public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
-        String queryString =
-            "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id =='" +
-            annot.getId() + "'";
-        Encounter returnEnc = null;
-        Query query = myShepherd.getPM().newQuery(queryString);
-        List results = (List)query.execute();
+    // Resolves parent encounter catalogNumbers via the ENCOUNTER_ANNOTATIONS join table
+    // with native SQL rather than a JDOQL annotations.contains() query: the JDOQL
+    // candidate query makes DataNucleus 5.2.7 bulk-fetch every default-fetch-group
+    // collection on Encounter, and it can emit malformed SQL for those statements
+    // (e.g. the measurements fetch), which PostgreSQL rejects.
+    private static List<String> findCatalogNumbersByAnnotationId(String annId,
+        Shepherd myShepherd) {
+        List<String> catalogNumbers = new ArrayList<String>();
 
-        if ((results != null) && (results.size() >= 1)) {
-            if (results.size() > 1)
-                System.out.println("WARNING: Encounter.findByAnnotation() found " + results.size() +
-                    " Encounters that contain Annotation " + annot.getId());
-            returnEnc = (Encounter)results.get(0);
+        if (annId == null) return catalogNumbers;
+        Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
+            "SELECT DISTINCT \"CATALOGNUMBER_OID\" FROM \"ENCOUNTER_ANNOTATIONS\" WHERE \"ID_EID\" = ?");
+        try {
+            List results = (List)query.execute(annId);
+            if (results != null)
+                for (Object o : results) {
+                    if (o != null) catalogNumbers.add((String)o);
+                }
+        } finally {
+            query.closeAll();
         }
-        query.closeAll();
-        return returnEnc;
+        return catalogNumbers;
+    }
+
+    public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
+        if (annot == null) return null;
+        List<String> catalogNumbers = findCatalogNumbersByAnnotationId(annot.getId(), myShepherd);
+        if (catalogNumbers.isEmpty()) return null;
+        if (catalogNumbers.size() > 1)
+            System.out.println("WARNING: Encounter.findByAnnotation() found " +
+                catalogNumbers.size() + " Encounters that contain Annotation " + annot.getId());
+        return myShepherd.getEncounter(catalogNumbers.get(0));
+    }
+
+    /** All encounters whose annotations contain this annotation (usually 0 or 1; >1 is anomalous). */
+    public static java.util.List<Encounter> findAllByAnnotation(Annotation annot, Shepherd myShepherd) {
+        java.util.List<Encounter> out = new java.util.ArrayList<Encounter>();
+
+        if (annot == null) return out;
+        for (String catalogNumber : findCatalogNumbersByAnnotationId(annot.getId(), myShepherd)) {
+            Encounter enc = myShepherd.getEncounter(catalogNumber);
+            if (enc != null) out.add(enc);
+        }
+        return out;
     }
 
     public static Encounter findByAnnotationId(String annid, Shepherd myShepherd) {
