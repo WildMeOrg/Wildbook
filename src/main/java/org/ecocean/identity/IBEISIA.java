@@ -238,8 +238,11 @@ public class IBEISIA {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.sendIdentify");
         myShepherd.beginDBTransaction();
-
+        // Declared outside the try so the POST below can use it AFTER the
+        // Shepherd/DB connection is released in the finally.
         HashMap<String, Object> map = new HashMap<String, Object>();
+        try {
+
         map.put("callback_url", callbackUrl(baseUrl));
         map.put("jobid", taskId);
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
@@ -285,8 +288,6 @@ public class IBEISIA {
         Util.mark("sendIdentify-2", startTime);
         // Do we have a qaan? We need one, or load a failure response.
         if (qlist.isEmpty()) {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
             JSONObject noQueryAnn = new JSONObject();
             noQueryAnn.put("status", new JSONObject().put("message", "rejected"));
             noQueryAnn.put("error", "No query annotation was valid for identification. ");
@@ -334,9 +335,6 @@ public class IBEISIA {
             status.put("emptyTargetAnnotations", true);
             emptyRtn.put("status", status);
 
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-
             return emptyRtn;
         }
         map.put("query_annot_uuid_list", qlist);
@@ -370,9 +368,14 @@ public class IBEISIA {
         System.out.println("qlist.size()=" + qlist.size() + " annnnd qnlist.size()=" +
             qnlist.size() + ". not printing the map about to be POSTed because it's a big'un.");
         // System.out.println(map);
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
         Util.mark("identify process pre-post end");
+        // Fall out of the try (releasing the Shepherd in the finally below)
+        // BEFORE the network POST, so a pooled DB connection is not pinned
+        // across IA HTTP latency/failure. The early-return paths above stay
+        // inside the try so they still close on the way out.
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
         return RestClient.post(url, hashMapToJSONObject2(map));
     }
 
