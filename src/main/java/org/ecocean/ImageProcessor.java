@@ -7,15 +7,15 @@ import java.util.Calendar;
 import org.ecocean.media.MediaAsset;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 // Does actual comparison processing of batch-uploaded images.
 public final class ImageProcessor implements Runnable {
-    private static Logger log = LoggerFactory.getLogger(ImageProcessor.class);
+    private static final Logger log = LogManager.getLogger(ImageProcessor.class);
 
     private String context = "context0";
     private String command = null;

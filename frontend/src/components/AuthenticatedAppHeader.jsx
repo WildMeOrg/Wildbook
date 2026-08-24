@@ -15,6 +15,7 @@ export default function AuthenticatedAppHeader({
   avatar,
   showclassicsubmit,
   showClassicEncounterSearch,
+  showHowToPhotograph,
 }) {
   const { visible } = useContext(FooterVisibilityContext);
 
@@ -77,6 +78,7 @@ export default function AuthenticatedAppHeader({
                   username={username}
                   showclassicsubmit={showclassicsubmit}
                   showClassicEncounterSearch={showClassicEncounterSearch}
+                  showHowToPhotograph={showHowToPhotograph}
                 />
               </Nav>
               <HeaderQuickSearch />

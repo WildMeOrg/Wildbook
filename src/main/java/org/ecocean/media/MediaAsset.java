@@ -114,6 +114,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
         if (params != null) this.parametersAsString = params.toString();
         this.setRevision();
         this.setHashCode();
+        if (this.acmId == null) this.acmId = this.getUUID();
     }
 
     public AccessControl getAccessControl() {
@@ -215,6 +216,11 @@ public class MediaAsset extends Base implements java.io.Serializable {
 
     public void setDetectionStatus(String status) {
         this.detectionStatus = status;
+        // ml-service migration v2 (commit #5): bump revision so the
+        // OpenSearch reindexer picks up detection-status changes and so the
+        // stale-job reconciler in commit #12 has a real "when did this
+        // detectionStatus change" timestamp via REVISION.
+        this.setRevision();
     }
 
     public String getIdentificationStatus() {
@@ -669,6 +675,25 @@ public class MediaAsset extends Base implements java.io.Serializable {
         }
     }
 
+    // will find one with same qualities on this asset (will not return self!)
+    public Annotation findAnnotation(Annotation match, boolean shapeOnly) {
+        if (match == null) return null;
+        if (numAnnotations() < 1) return null;
+        Annotation found = null;
+        for (Annotation ann : getAnnotations()) {
+            if (ann.equals(match)) continue;
+            if (ann.equalsShape(match)) {
+                found = ann;
+                break;
+            }
+        }
+        if (shapeOnly || (found == null)) return found;
+        // TODO what else do we want to compare here?
+        if (!found.equalsIAClass(match)) return null;
+        if (!found.equalsViewpoint(match)) return null;
+        return found;
+    }
+
     /**
      * Return a full web-accessible url to the asset, or null if the asset is not web-accessible. NOTE: now you should *almost always* use .safeURL()
      * to return something to a user -- this will hide original files when necessary
@@ -715,10 +740,14 @@ public class MediaAsset extends Base implements java.io.Serializable {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MediaAsset.safeURL");
         myShepherd.beginDBTransaction();
-        URL u = safeURL(myShepherd, request);
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        return u;
+        // try/finally so a throw from safeURL(myShepherd, request) -- e.g. a JDO lazy-load/query
+        // failure inside bestSafeAsset() -- cannot skip the close and leak the PersistenceManager.
+        // Those leaks are the "MediaAsset.safeURL:begin" Shepherds stuck on dbconnections.jsp.
+        try {
+            return safeURL(myShepherd, request);
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
     }
 
     public URL safeURL() {
@@ -976,7 +1005,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
     public JSONObject toSimpleJSONObject() {
         JSONObject j = new JSONObject();
 
-        j.put("id", getId());
+        j.put("id", getIdInt());
         j.put("uuid", getUUID());
         j.put("url", safeURL());
         if ((getMetadata() != null) && (getMetadata().getData() != null) &&
@@ -1164,7 +1193,20 @@ public class MediaAsset extends Base implements java.io.Serializable {
  */
     public static void updateStandardChildrenBackground(final String context,
         final List<Integer> ids) {
-        if ((ids == null) || (ids.size() < 1)) return;
+        updateStandardChildrenBackground(context, ids, null);
+    }
+
+    /**
+     * Creates standard child assets in the background, then runs {@code afterCommit} only after
+     * the child assets have been committed. Callers that index a parent object from its child URLs
+     * can use the callback to avoid indexing before a _master child is visible.
+     */
+    public static void updateStandardChildrenBackground(final String context,
+        final List<Integer> ids, final Runnable afterCommit) {
+        if ((ids == null) || (ids.size() < 1)) {
+            if (afterCommit != null) afterCommit.run();
+            return;
+        }
         final String tid = Util.generateUUID().substring(0, 8);
         System.out.println("updateStandardChildrenBackground() [" + tid + "] forking for " +
             ids.size() + " MediaAsset ids >>>>");
@@ -1173,18 +1215,32 @@ public class MediaAsset extends Base implements java.io.Serializable {
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("updateStandardChildrenBackground:" + tid);
                 myShepherd.beginDBTransaction();
-                int ct = 0;
-                for (Integer id : ids) {
-                    ct++;
-                    MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
-                    if (ma == null) continue;
-                    ma.setSkipAutoIndexing(true);
-                    ArrayList<MediaAsset> kids = ma.updateStandardChildren(myShepherd);
-                    System.out.println("+ [" + ct + "] updateStandardChildrenBackground() [" + tid +
-                        "] completed " + kids.size() + " children for id=" + id);
+                // try/finally so a throw from load/updateStandardChildren cannot skip the close and
+                // leak this background Shepherd. commit stays inside try; the finally rollback is a
+                // harmless no-op once the commit has succeeded.
+                try {
+                    int ct = 0;
+                    for (Integer id : ids) {
+                        ct++;
+                        try {
+                            MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                            if (ma == null) continue;
+                            ma.setSkipAutoIndexing(true);
+                            ArrayList<MediaAsset> kids = ma.updateStandardChildren(myShepherd);
+                            System.out.println("+ [" + ct + "] updateStandardChildrenBackground() [" +
+                                tid + "] completed " + kids.size() + " children for id=" + id);
+                        } catch (Exception ex) {
+                            System.out.println("updateStandardChildrenBackground() [" + tid +
+                                "] failed for id=" + id + ": " + ex);
+                            ex.printStackTrace();
+                        }
+                    }
+                    if (myShepherd.commitDBTransactionWithStatus() && (afterCommit != null)) {
+                        afterCommit.run();
+                    }
+                } finally {
+                    myShepherd.rollbackAndClose();
                 }
-                myShepherd.commitDBTransaction();
-                myShepherd.closeDBTransaction();
             }
         };
         new Thread(rn).start();
@@ -1205,7 +1261,8 @@ public class MediaAsset extends Base implements java.io.Serializable {
 
     // convenience, XXX  BUT see not above about sending multiple ids when possible!  XXX
     public static void updateStandardChildrenBackground(final String context, int id) {
-        updateStandardChildrenBackground(context, new ArrayList<Integer>(id));
+        // note: new ArrayList<Integer>(id) here would be the *capacity* constructor (empty list)
+        updateStandardChildrenBackground(context, Collections.singletonList(id));
     }
 
     public void updateStandardChildrenBackground(String context) { // convenience

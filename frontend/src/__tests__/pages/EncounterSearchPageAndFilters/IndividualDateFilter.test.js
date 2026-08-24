@@ -3,6 +3,24 @@ import { screen, fireEvent } from "@testing-library/react";
 import IndividualDateFilter from "../../../components/filterFields/IndividualDateFilter";
 import { renderWithProviders } from "../../../utils/utils";
 
+jest.mock("antd", () => ({
+  DatePicker: ({ onChange, value, className = "" }) => (
+    <input
+      type="date"
+      className={`form-control ${className}`.trim()}
+      value={
+        value && typeof value.format === "function"
+          ? value.format("YYYY-MM-DD")
+          : value || ""
+      }
+      onChange={(e) => {
+        const val = e.target.value;
+        onChange(val ? { format: () => val } : null);
+      }}
+    />
+  ),
+}));
+
 const mockStore = {
   formFilters: [],
   addFilter: jest.fn(),

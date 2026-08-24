@@ -20,13 +20,12 @@ import java.util.Map;
 // import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.ecocean.shepherd.core.Shepherd;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class EncounterDelete extends HttpServlet {
-    /** SLF4J logger instance for writing log entries. */
-    public static Logger log = LoggerFactory.getLogger(EncounterDelete.class);
+    private static final Logger log = LogManager.getLogger(EncounterDelete.class);
 
     public void init(ServletConfig config)
     throws ServletException {
@@ -56,6 +55,22 @@ public class EncounterDelete extends HttpServlet {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         boolean locked = false;
+
+        // Refuse deletion while the match graph is rebuilding from the DB (only
+        // for ~15 min after a restart on spot-matching installs). A concurrent
+        // deletion during the rebuild could be undone by the rebuild's stale read
+        // and resurrect the encounter as a match candidate. (#1608)
+        if (CommonConfiguration.useSpotPatternRecognition(context) &&
+            !GridManager.isMatchGraphReady()) {
+            myShepherd.closeDBTransaction(); // PM opened in ctor; no tx begun yet
+            out.println(ServletUtilities.getHeader(request));
+            out.println(
+                "<strong>Please wait:</strong> the match graph is rebuilding. Please try deleting this encounter again in a few minutes.");
+            out.println(ServletUtilities.getFooter(context));
+            response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+            out.close();
+            return;
+        }
 
         // setup data dir
         String rootWebappPath = getServletContext().getRealPath("/");
@@ -163,15 +178,7 @@ public class EncounterDelete extends HttpServlet {
                     ArrayList<Annotation> anns = enc2trash.getAnnotations();
                     for (Annotation ann : anns) {
                         myShepherd.beginDBTransaction();
-                        enc2trash.removeAnnotation(ann);
-                        myShepherd.updateDBTransaction();
-                        List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
-                        if (iaTasks != null && !iaTasks.isEmpty()) {
-                            for (Task iaTask : iaTasks) {
-                                iaTask.removeObject(ann);
-                                myShepherd.updateDBTransaction();
-                            }
-                        }
+                        ann.prepareForDeletion(myShepherd, enc2trash);
                         myShepherd.throwAwayAnnotation(ann);
                         myShepherd.commitDBTransaction();
                     }
@@ -180,14 +187,15 @@ public class EncounterDelete extends HttpServlet {
                     enc2trash.setSkipAutoIndexing(false);
                     myShepherd.throwAwayEncounter(enc2trash);
 
-                    // remove from grid too
-                    GridManager gm = GridManagerFactory.getGridManager();
-                    gm.removeMatchGraphEntry(request.getParameter("number"));
-
-                    myShepherd.commitDBTransaction();
+                    // Only drop the match-graph entry once the deletion is confirmed
+                    // committed, so a swallowed commit failure can't remove a
+                    // still-present encounter from the candidate set. (#1608)
+                    if (myShepherd.commitDBTransactionWithStatus()) {
+                        GridManager gm = GridManagerFactory.getGridManager();
+                        gm.removeMatchGraphEntry(request.getParameter("number"));
+                    }
 
                     // log it
-                    Logger log = LoggerFactory.getLogger(EncounterDelete.class);
                     log.info("Click to restore deleted encounter: <a href=\"" +
                         request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) +
                         "/ResurrectDeletedEncounter?number=" + request.getParameter("number") +

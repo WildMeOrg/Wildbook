@@ -2,8 +2,21 @@ import React from "react";
 import { renderWithProviders } from "../../../utils/utils";
 import LoginPage from "../../../pages/Login";
 import { screen } from "@testing-library/react";
+import { useSiteSettings } from "../../../SiteSettingsContext";
+
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: jest.fn(),
+}));
 
 describe("LoginPage - Links", () => {
+  beforeEach(() => {
+    useSiteSettings.mockReturnValue({
+      data: {},
+      isLoading: false,
+      error: null,
+    });
+  });
+
   test('renders "Forgot Password" link with correct href', () => {
     renderWithProviders(<LoginPage />);
 

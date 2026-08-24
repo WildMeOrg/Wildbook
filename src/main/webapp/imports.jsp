@@ -8,6 +8,7 @@ java.util.ArrayList,
 java.util.Collection,
 java.util.List,
 java.util.Map" %>
+
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%-- Batch count methods are in ImportTask.java --%>

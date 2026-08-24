@@ -1,0 +1,410 @@
+// ============================================
+// LOGGING CONFIGURATION FOR ALLOY ITSELF
+// ============================================
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+// ============================================
+// DOCKER CONTAINER LOG DISCOVERY
+// ============================================
+// Discover all Docker containers with the 'logging=alloy' label
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+
+  filter {
+    name   = "label"
+    values = ["logging=alloy"]
+  }
+
+  refresh_interval = "5s"
+}
+
+// ============================================
+// RELABELING FOR DOCKER LOGS
+// ============================================
+// Extract metadata from Docker container labels and create Loki labels
+discovery.relabel "docker_logs" {
+  targets = discovery.docker.containers.targets
+
+  // Extract container name (remove leading /)
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  // Extract service name from container label
+  rule {
+    source_labels = ["__meta_docker_container_label_service"]
+    target_label  = "service"
+  }
+
+  // Extract environment from container label
+  rule {
+    source_labels = ["__meta_docker_container_label_environment"]
+    target_label  = "environment"
+  }
+
+  // Extract domain from container label
+  rule {
+    source_labels = ["__meta_docker_container_label_domain"]
+    target_label  = "domain"
+  }
+
+  // Extract log_type from container label
+  rule {
+    source_labels = ["__meta_docker_container_label_log_type"]
+    target_label  = "log_type"
+  }
+
+  // Add hostname from environment variable
+  rule {
+    replacement   = env("HOSTNAME")
+    target_label  = "host"
+  }
+}
+
+// ============================================
+// DOCKER LOG COLLECTION
+// ============================================
+loki.source.docker "docker_logs" {
+  host    = "unix:///var/run/docker.sock"
+  targets = discovery.relabel.docker_logs.output
+
+  forward_to = [loki.process.parse_logs.receiver]
+
+  relabel_rules = discovery.relabel.docker_logs.rules
+}
+
+// ============================================
+// LOG PROCESSING AND PARSING
+// ============================================
+loki.process "parse_logs" {
+  forward_to = [loki.write.loki_endpoint.receiver]
+
+  // Regex runs first: extracts level from plain-text logs (smtp, alloy, etc.).
+  // For JSON logs, stage.json below will overwrite with the authoritative value.
+  stage.regex {
+    expression = "(?i)(?P<level>TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|SEVERE)"
+  }
+
+  // Parse all fields from the JSON log line in one stage.
+  // Overwrites any values already extracted by the regex stage above.
+  stage.json {
+    expressions = {
+      // ECS fields - keys with special chars (like '.' or '@') must be quoted
+      level       = "\"log.level\"",
+      logger      = "\"log.logger\"",
+      message     = "message",
+      timestamp   = "\"@timestamp\"",
+      thread      = "\"process.thread.name\"",
+
+      // Custom app fields
+      action      = "action",
+      username    = "username",
+      user_id     = "user_id",
+      client_ip   = "client_ip",
+      session_id  = "session_id",
+      duration_ms = "duration_ms",
+      error_type  = "error_type",
+      error_message = "error_message",
+      request_id  = "request_id",
+      endpoint    = "endpoint",
+      http_method = "http_method",
+      status_code = "status_code",
+      user_agent  = "user_agent",
+      domain      = "domain",
+
+      // rsyslog fields (postfix/smtp — alternative names to ECS)
+      severity    = "severity",
+      syslog_ts   = "timestamp",
+    }
+  }
+
+  // Coalesce ECS and rsyslog field names into single keys so that
+  // stage.timestamp and stage.labels see consistent values regardless
+  // of JSON schema.  Plain-text logs (where neither JSON stage set
+  // these fields) pass through unchanged.
+  stage.template {
+    source   = "level"
+    template = "{{ if .Value }}{{ .Value }}{{ else }}{{ .severity }}{{ end }}"
+  }
+  stage.template {
+    source   = "timestamp"
+    template = "{{ if .Value }}{{ .Value }}{{ else }}{{ .syslog_ts }}{{ end }}"
+  }
+
+  // Use the timestamp from the log if available
+  stage.timestamp {
+    source = "timestamp"
+    format = "RFC3339"
+  }
+
+  // Promote critical, low-cardinality fields to labels for fast querying
+  stage.labels {
+      values = {
+        level       = "",
+        action      = "",
+        endpoint    = "",
+        status_code = "",
+        domain      = "",
+      }
+  }
+}
+
+// ============================================
+// FILE-BASED LOG SOURCES
+// ============================================
+
+// Wildbook Tomcat access logs
+local.file_match "wildbook_access" {
+  path_targets = [{
+    __path__    = "/logs/wildbook/localhost_access_log*.log",
+    job         = "wildbook-access",
+    service     = "wildbook",
+    log_type    = "access",
+    domain      = env("DOMAIN_NAME"),
+    environment = env("ENVIRONMENT"),
+    host        = env("HOSTNAME"),
+  }]
+
+  sync_period = "5s"
+}
+
+loki.source.file "wildbook_access" {
+  targets    = local.file_match.wildbook_access.targets
+  forward_to = [loki.process.parse_tomcat_access.receiver]
+}
+
+loki.process "parse_tomcat_access" {
+  forward_to = [loki.write.loki_endpoint.receiver]
+
+  stage.json {
+    expressions = {
+      timestamp              = "",
+      remote_addr            = "",
+      http_method            = "",
+      endpoint               = "",
+      status_code            = "",
+      bytes                  = "",
+      http_referer           = "",
+      http_user_agent        = "",
+      request_time_ms        = "",
+    }
+  }
+
+  stage.labels {
+    values = {
+      http_method = "",
+      status_code = "",
+    }
+  }
+
+  stage.timestamp {
+    source = "timestamp"
+    format = "RFC3339"
+  }
+}
+
+// Tomcat/Catalina server logs — lifecycle, startup, webapp deployment.
+// Differentiated from wildbook application logs via log_type=catalina.
+// catalina.*.log  = engine-level events (startup, shutdown, class loading)
+// localhost.*.log = per-webapp events (deployment, context lifecycle)
+local.file_match "catalina" {
+  path_targets = [{
+    __path__    = "/logs/wildbook/catalina.*.log",
+    job         = "catalina",
+    service     = "wildbook",
+    log_type    = "catalina",
+    domain      = env("DOMAIN_NAME"),
+    environment = env("ENVIRONMENT"),
+    host        = env("HOSTNAME"),
+  }, {
+    __path__    = "/logs/wildbook/localhost.[0-9]*.log",
+    job         = "catalina",
+    service     = "wildbook",
+    log_type    = "catalina",
+    domain      = env("DOMAIN_NAME"),
+    environment = env("ENVIRONMENT"),
+    host        = env("HOSTNAME"),
+  }]
+
+  sync_period = "5s"
+}
+
+loki.source.file "catalina" {
+  targets    = local.file_match.catalina.targets
+  forward_to = [loki.process.parse_catalina.receiver]
+}
+
+loki.process "parse_catalina" {
+  forward_to = [loki.write.loki_endpoint.receiver]
+
+  // Tomcat JUL format: 15-Jan-2024 10:30:00.123 UTC [thread] LEVEL logger -- message
+  stage.regex {
+    expression = "^(?P<timestamp>\\d{2}-\\w{3}-\\d{4} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+) \\[(?P<thread>[^\\]]+)\\] (?P<level>\\w+) (?P<logger>\\S+)"
+  }
+
+  stage.labels {
+    values = {
+      level = "",
+    }
+  }
+
+  stage.timestamp {
+    source = "timestamp"
+    format = "02-Jan-2006 15:04:05.000 MST"
+  }
+}
+
+// Nginx access logs
+local.file_match "nginx_access" {
+  path_targets = [{
+    __path__    = "/logs/nginx/access.log",
+    job         = "nginx-access",
+    service     = "nginx",
+    log_type    = "access",
+    domain      = env("DOMAIN_NAME"),
+    environment = env("ENVIRONMENT"),
+    host        = env("HOSTNAME"),
+  }]
+
+  sync_period = "5s"
+}
+
+loki.source.file "nginx_access" {
+  targets    = local.file_match.nginx_access.targets
+  forward_to = [loki.process.parse_nginx_access.receiver]
+}
+
+loki.process "parse_nginx_access" {
+  forward_to = [loki.write.loki_endpoint.receiver]
+
+  stage.json {
+    expressions = {
+      timestamp              = "",
+      remote_addr            = "",
+      http_method            = "",
+      endpoint               = "",
+      status_code            = "",
+      bytes                  = "",
+      http_referer           = "",
+      http_user_agent        = "",
+      request_time           = "",
+      upstream_response_time = "",
+    }
+  }
+
+  stage.labels {
+    values = {
+      http_method = "",
+      status_code = "",
+    }
+  }
+
+  stage.timestamp {
+    source = "timestamp"
+    format = "RFC3339"
+  }
+}
+
+// Nginx error logs
+local.file_match "nginx_error" {
+  path_targets = [{
+    __path__    = "/logs/nginx/error.log",
+    job         = "nginx-error",
+    service     = "nginx",
+    log_type    = "error",
+    domain      = env("DOMAIN_NAME"),
+    environment = env("ENVIRONMENT"),
+    host        = env("HOSTNAME"),
+  }]
+
+  sync_period = "5s"
+}
+
+loki.source.file "nginx_error" {
+  targets    = local.file_match.nginx_error.targets
+  forward_to = [loki.process.parse_nginx_error.receiver]
+}
+
+loki.process "parse_nginx_error" {
+  forward_to = [loki.write.loki_endpoint.receiver]
+
+  // nginx error_log format: 2026/02/03 10:30:45 [level] PID#TID: ...
+  stage.regex {
+    expression = "^(?P<time>\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}) \\[(?P<level>\\w+)\\]"
+  }
+
+  stage.labels {
+    values = {
+      level = "",
+    }
+  }
+
+  stage.timestamp {
+    source = "time"
+    format = "2006/01/02 15:04:05"
+  }
+}
+
+// PostgreSQL logs
+local.file_match "postgresql" {
+  path_targets = [{
+    __path__    = "/logs/postgresql/*.log",
+    job         = "postgresql",
+    service     = "postgresql",
+    log_type    = "database",
+    domain      = env("DOMAIN_NAME"),
+    environment = env("ENVIRONMENT"),
+    host        = env("HOSTNAME"),
+  }]
+
+  sync_period = "5s"
+}
+
+loki.source.file "postgresql" {
+  targets    = local.file_match.postgresql.targets
+  forward_to = [loki.process.parse_postgresql.receiver]
+}
+
+loki.process "parse_postgresql" {
+  forward_to = [loki.write.loki_endpoint.receiver]
+
+  // Matches log_line_prefix = '%m [%p] user=%u db=%d app=%a '
+  // user/db/app may be empty during startup before any connection exists
+  stage.regex {
+    expression = "^(?P<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+) \\[(?P<pid>\\d+)\\] user=(?P<user>\\S*) db=(?P<db>\\S*) app=(?P<app>\\S*) (?P<level>\\w+):"
+  }
+
+  stage.labels {
+    values = {
+      level = "",
+      db    = "",
+    }
+  }
+
+  stage.timestamp {
+    source = "timestamp"
+    format = "2006-01-02 15:04:05.000 MST"
+  }
+}
+
+// ============================================
+// WRITE TO LOKI
+// ============================================
+loki.write "loki_endpoint" {
+  endpoint {
+    url = env("LOKI_URL")
+
+    tls_config {
+            insecure_skip_verify = true
+          }
+    basic_auth {
+            username = env("LOKI_USERNAME")
+            password = env("LOKI_PASSWORD")
+          }
+  }
+}
