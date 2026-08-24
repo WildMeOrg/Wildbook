@@ -10,7 +10,88 @@
 		{
 			"name": "Bahamas",
 			"id": "Bahamas",
-			"locationID": []
+			"locationID": [
+		{
+			"name": "Bahamas",
+			"id": "Bahamas",
+			"locationID": [
+				{
+					"name": "San Salvador Island",
+					"id": "San Salvador Island",
+					"locationID": [
+						{
+							"name": "Cut Cay",
+							"id": "Cut Cay",
+							"locationID": []
+						},
+						{
+							"name": "Fortune Hill",
+							"id": "Fortune Hill",
+							"locationID": []
+						},
+						{
+							"name": "Gerace Research Center",
+							"id": "Gerace Research Center",
+							"locationID": []
+						},
+						{
+							"name": "Goulding Cay",
+							"id": "Goulding Cay",
+							"locationID": []
+						},
+						{
+							"name": "Guana Cay",
+							"id": "Guana Cay",
+							"locationID": []
+						},
+						{
+							"name": "Green Cay",
+							"id": "Green Cay",
+							"locationID": []
+						},
+						{
+							"name": "High Cay",
+							"id": "High Cay",
+							"locationID": []
+						},
+						{
+							"name": "Irene Cay",
+							"id": "Irene Cay",
+							"locationID": []
+						},
+						{
+							"name": "Low Cay",
+							"id": "Low Cay",
+							"locationID": []
+						},
+						{
+							"name": "Middle Cay",
+							"id": "Middle Cay",
+							"locationID": []
+						},
+						{
+							"name": "Manhead Cay",
+							"id": "Manhead Cay",
+							"locationID": []
+						},
+						{
+							"name": "Pigeon Cay",
+							"id": "Pigeon Cay",
+							"locationID": []
+						},
+						{
+							"name": "Scat Cay",
+							"id": "Scat Cay",
+							"locationID": []
+						},
+						{
+							"name": "Snow Bay",
+							"id": "Snow Bay",
+							"locationID": []
+						}
+					]
+				}
+			]
 		},
 		{
 			"name": "Belgium",
