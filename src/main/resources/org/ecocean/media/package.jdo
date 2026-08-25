@@ -116,9 +116,9 @@
             	<field name="revision" persistence-modifier="persistent">
                 	<column jdbc-type="BIGINT" allows-null="false"/>
             	</field>
-		<property name="parametersAsString" persistence-modifier="persistent">
+		<field name="parametersAsString" persistence-modifier="persistent">
                 	<column jdbc-type="LONGVARCHAR" name="parameters" />
-		</property>
+		</field>
 
 		<field name="annotation" />
 		<field name="asset" />

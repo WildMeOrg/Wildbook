@@ -465,6 +465,17 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     // Adds a new encounter to this MarkedIndividual.
+    /** Enqueue a (deep) reindex of this individual — refreshes the individual + its member
+     *  encounters. Honors skipAutoIndexing so bulk import / deserialization don't storm. */
+    public void enqueueAclReindex() {
+        if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
+        try {
+            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+        } catch (Exception ex) {
+            System.out.println("MarkedIndividual.enqueueAclReindex failed for " + this.getId() + ": " + ex);
+        }
+    }
+
     public boolean addEncounter(Encounter newEncounter) {
         // get and therefore set the haplotype if necessary
         getHaplotype();
@@ -482,6 +493,13 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             numberEncounters++;
             refreshDependentProperties();
             setVersion();
+            // membership change: the joining encounter's ACL must reflect this individual.
+            // Deep-reindexing the encounter also refreshes this individual + its annotations.
+            // Also reindex THIS individual directly: callers (AnnotationEdit, IBEISIA) do not set
+            // newEncounter.individual = this, so newEncounter.opensearchIndexDeep() would refresh a
+            // different (or null) individual, leaving this individual's ACL stale.
+            this.enqueueAclReindex();
+            if (newEncounter != null) newEncounter.enqueueAclReindex();
         }
         setTaxonomyFromEncounters(); // will only set if has no value
         setSexFromEncounters(); // likewise
@@ -528,6 +546,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         getHaplotype();
 
         setVersion();
+        // membership change: refresh this individual (drops the departed encounter from its ACL)
+        // and the departed encounter itself (its individual link is now gone).
+        this.enqueueAclReindex();
+        if (getRidOfMe != null) getRidOfMe.enqueueAclReindex();
         return changed;
     }
 
@@ -870,6 +892,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return many.get(0);
     }
 
+    public String getAlternateID() {
+        return alternateid;
+    }
+
     public void setNickName(String newName) {
         this.addNameByKey(NAMES_KEY_NICKNAME, newName);
     }
@@ -1072,25 +1098,255 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return Util.taxonomyString(getGenus(), getSpecificEpithet());
     }
 
-    ///this is really only for when dont have a value set; i.e. it should not be run after set on the instance;
+    /// this is really only for when dont have a value set; i.e. it should not be run after set on the instance;
     /// therefore we dont allow that unless you pass boolean true to force it
-    ///   we only pick first from all encounters
+    // The "already has a value" test must not be a null test: genus defaults to the empty string, which
+    // getTaxonomyString() reports as no taxonomy at all, so a null test made this method a no-op for
+    // every individual built from an encounter (issue #1113).
     public String setTaxonomyFromEncounters(boolean force) {
-        if (!force && ((genus != null) || (specificEpithet != null))) return getTaxonomyString();
-        if ((encounters == null) || (encounters.size() < 1)) return getTaxonomyString();
-        for (Encounter enc : encounters) {
-            if ((enc.getGenus() != null) && (enc.getSpecificEpithet() != null)) {
-                genus = enc.getGenus();
-                specificEpithet = enc.getSpecificEpithet();
-                setVersion();
-                return getTaxonomyString();
-            }
-        }
+        if (!force && !hasNoTaxonomyOfItsOwn()) return getTaxonomyString();
+        String[] derived = unanimousTaxonomyFromEncounters(getEncounters());
+        // never trade a taxonomy we have for one we could not derive
+        if (derived == null) return getTaxonomyString();
+        if (Util.taxonomyString(derived[0], derived[1]).equals(getTaxonomyString()))
+            return getTaxonomyString();
+        // set the parts, not the assembled string: setTaxonomyString() reads a lone word as the
+        // specific epithet, which would turn a genus-only derivation into an epithet-only individual
+        setGenus(derived[0]);
+        setSpecificEpithet(derived[1]);
         return getTaxonomyString();
+    }
+
+    /**
+     * The taxonomy the encounters of an individual agree on, as { genus, specificEpithet } -- either
+     * part may be null -- or null when they state no taxonomy at all or disagree about one.
+     *
+     * Genus and specific epithet are judged separately, so a sighting identified only to genus does not
+     * contradict one identified to species (case and surrounding whitespace are ignored). Any real
+     * disagreement derives nothing, including a subspecies against the species it belongs to: that is a
+     * different identification, not a refinement of one.
+     *
+     * The pair returned is always the one a single encounter states. Pairing one sighting's genus with
+     * another sighting's epithet would assert a species nobody recorded.
+     */
+    public static String[] unanimousTaxonomyFromEncounters(Collection<Encounter> encs) {
+        Set<String> genera = new HashSet<String>();
+        Set<String> epithets = new HashSet<String>();
+        String[] best = null;
+
+        if (encs == null) return null;
+        for (Encounter enc : encs) {
+            String[] stated = statedTaxonomy(enc);
+            if (stated == null) continue;
+            if (stated[0] != null) genera.add(stated[0].toLowerCase(Locale.ROOT));
+            if (stated[1] != null) epithets.add(stated[1].toLowerCase(Locale.ROOT));
+            if ((genera.size() > 1) || (epithets.size() > 1)) return null;
+            if (isBetterTaxonomy(stated, best)) best = stated;
+        }
+        return best;
+    }
+
+    /**
+     * Whether this individual has no taxonomy of its own -- what the header quicksearch and the
+     * individual search results show as a blank species, and what the encounters are then asked for.
+     * Padded placeholders count as blank: getTaxonomyString() defers to Util.stringExists(), which
+     * compares against "unknown"/"none" before trimming and so reports " unknown " as a real value.
+     */
+    public boolean hasNoTaxonomyOfItsOwn() {
+        return (statedTaxonomyPart(getGenus()) == null) &&
+               (statedTaxonomyPart(getSpecificEpithet()) == null);
+    }
+
+    // what an encounter states about its animal, as { genus, specificEpithet } with anything unstated
+    // (empty, whitespace, "unknown", "none") left null, or null when it states neither
+    private static String[] statedTaxonomy(Encounter enc) {
+        if (enc == null) return null;
+        String genus = statedTaxonomyPart(enc.getGenus());
+        String epithet = statedTaxonomyPart(enc.getSpecificEpithet());
+        if ((genus == null) && (epithet == null)) return null;
+        return new String[] { genus, epithet };
+    }
+
+    // trim before asking stringExists(): it compares against "none"/"unknown" untrimmed, so it would
+    // otherwise accept " unknown " as an identification and let a placeholder be treated as data
+    private static String statedTaxonomyPart(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return Util.stringExists(trimmed) ? trimmed : null;
+    }
+
+    // Which of two encounters' identifications to carry: the more completely identified one, and
+    // failing that the lower-sorting values, so the answer never depends on the order the encounters
+    // come in. Any two candidates that reach here state the same taxonomy, differing only in how much
+    // of it they fill in and in capitalization.
+    private static boolean isBetterTaxonomy(String[] stated, String[] best) {
+        if (best == null) return true;
+        int rank = taxonomyRank(stated) - taxonomyRank(best);
+        if (rank != 0) return rank > 0;
+        int cmp = compareTaxonomyPart(stated[0], best[0]);
+        if (cmp != 0) return cmp < 0;
+        return compareTaxonomyPart(stated[1], best[1]) < 0;
+    }
+
+    // both parts beats a genus alone beats a stray epithet with no genus to attach it to
+    private static int taxonomyRank(String[] stated) {
+        if ((stated[0] != null) && (stated[1] != null)) return 2;
+        return (stated[0] != null) ? 1 : 0;
+    }
+
+    private static int compareTaxonomyPart(String a, String b) {
+        if (a == null) return (b == null) ? 0 : 1;
+        if (b == null) return -1;
+        return a.compareTo(b);
+    }
+
+    /**
+     * Every distinct taxonomy held by the encounters of an individual, for reporting what a set of
+     * encounters that could not agree actually says. More than one value here is not necessarily a
+     * disagreement -- unanimousTaxonomyFromEncounters() compares the parts, so "Delphinus" and
+     * "Delphinus delphis" agree -- so read this alongside it rather than on its own.
+     */
+    public static Set<String> distinctTaxonomiesFromEncounters(Collection<Encounter> encs) {
+        Set<String> found = new LinkedHashSet<String>();
+
+        if (encs == null) return found;
+        for (Encounter enc : encs) {
+            String tax = encounterTaxonomy(enc);
+            if (tax != null) found.add(tax);
+        }
+        return found;
+    }
+
+    // what an encounter contributes to its individual's taxonomy: the same value individuals.jsp
+    // already displays for it, so a genus-only sighting counts and "unknown" does not
+    private static String encounterTaxonomy(Encounter enc) {
+        if (enc == null) return null;
+        return Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet());
     }
 
     public String setTaxonomyFromEncounters() {
         return setTaxonomyFromEncounters(false);
+    }
+
+    public static final String TAXONOMY_BACKFILL_CURSOR = "INDIVIDUAL_TAXONOMY_BACKFILL_CURSOR";
+    private static final int TAXONOMY_BACKFILL_DEFAULT_BATCH_SIZE = 100;
+    // a run stays small enough to keep one short transaction and to not flood the indexing queue
+    private static final int TAXONOMY_BACKFILL_MAX_BATCH_SIZE = 1000;
+
+    static int backfillBatchSize(int requested) {
+        if (requested < 1) return TAXONOMY_BACKFILL_DEFAULT_BATCH_SIZE;
+        return Math.min(requested, TAXONOMY_BACKFILL_MAX_BATCH_SIZE);
+    }
+
+    // Selects what hasNoTaxonomyOfItsOwn() calls blank, and must keep agreeing with it: a row this
+    // misses is one the backfill can never reach, and one it selects that Java then considers
+    // non-blank is a wasted slot in the batch. Hence the regex rather than btrim(), which strips
+    // spaces but not the tabs and newlines String.trim() removes.
+    //
+    // Walks by ascending id from a cursor: the individuals we cannot fix (no source taxonomy, or
+    // encounters that disagree) stay in the candidate set, so a run without a cursor would keep
+    // re-examining them and never reach the rest of the table.
+    static String backfillTaxonomySql(int batchSize) {
+        return "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\" WHERE \"INDIVIDUALID\" > ?"
+               + " AND " + blankTaxonomyPartSql("GENUS")
+               + " AND " + blankTaxonomyPartSql("SPECIFICEPITHET")
+               + " ORDER BY \"INDIVIDUALID\" LIMIT " + batchSize;
+    }
+
+    // Deliberately a superset of hasNoTaxonomyOfItsOwn(): the two only have to agree on which rows are
+    // worth loading, and the errors are not symmetric. A row this predicate misses is one the backfill
+    // can never reach, while one it offers that Java then judges non-blank costs a slot in the batch and
+    // nothing else. So it strips every space and control character instead of trying to reproduce
+    // exactly what String.trim() removes, and Java has the final say per row.
+    //
+    // The pattern is bound as a query parameter, never written into the SQL text: DataNucleus
+    // scans the whole SQL string for :name tokens without respecting string literals, so the
+    // POSIX classes ([:space:] etc) would be misparsed as named parameters. Binding also delivers
+    // the pattern to the regex engine byte-for-byte, so it owes nothing to
+    // standard_conforming_strings the way a backslash in a literal would.
+    static final String TAXONOMY_BACKFILL_BLANK_REGEX = "[[:space:][:cntrl:]]";
+
+    private static String blankTaxonomyPartSql(String column) {
+        return "COALESCE(lower(regexp_replace(\"" + column +
+               "\", ?, '', 'g')), '') IN ('', 'none', 'unknown')";
+    }
+
+    /**
+     * Gives individuals with no taxonomy of their own the taxonomy their encounters agree on -- the
+     * inheritance that setTaxonomyFromEncounters() should have done when they were created but did
+     * not (issue #1113), which is why the header quicksearch shows a blank species for them.
+     *
+     * Reports rather than guesses: an individual whose encounters were identified as different
+     * animals is listed under "conflicts" and left alone, which doubles as a data-quality report.
+     *
+     * Reads (and, when committing, advances) a stored cursor so repeated runs walk the whole table;
+     * a run that finds no candidates clears the cursor, so the next one reports afresh. Writing a
+     * taxonomy bumps the individual's version, so the OpenSearch reconciler picks it up even if the
+     * postStore indexing queue is suppressed at the time.
+     *
+     * Dry by default: pass commit=true to write.
+     */
+    public static org.json.JSONObject backfillTaxonomyFromEncounters(Shepherd myShepherd,
+        String startId, int batchSize, boolean commit) {
+        batchSize = backfillBatchSize(batchSize);
+        if (startId == null) startId = SystemValue.getString(myShepherd, TAXONOMY_BACKFILL_CURSOR);
+        if (startId == null) startId = "";
+        Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
+            backfillTaxonomySql(batchSize));
+        query.setClass(MarkedIndividual.class);
+        List<MarkedIndividual> candidates = null;
+        try {
+            candidates = new ArrayList<MarkedIndividual>(
+                (Collection<MarkedIndividual>)query.executeWithArray(startId,
+                TAXONOMY_BACKFILL_BLANK_REGEX, TAXONOMY_BACKFILL_BLANK_REGEX));
+        } finally {
+            query.closeAll();
+        }
+        org.json.JSONObject updates = new org.json.JSONObject();
+        org.json.JSONObject conflicts = new org.json.JSONObject();
+        int noSource = 0;
+        int hasStoredTaxonomy = 0;
+        String lastId = null;
+        for (MarkedIndividual indiv : candidates) {
+            lastId = indiv.getId();
+            // the sql filter should agree with this, but this is the authoritative test
+            if (!indiv.hasNoTaxonomyOfItsOwn()) {
+                hasStoredTaxonomy++;
+                continue;
+            }
+            String[] derived = unanimousTaxonomyFromEncounters(indiv.getEncounters());
+            if (derived == null) {
+                Set<String> disagreement = distinctTaxonomiesFromEncounters(indiv.getEncounters());
+                if (disagreement.isEmpty()) {
+                    noSource++;
+                } else {
+                    conflicts.put(indiv.getId(), new org.json.JSONArray(disagreement));
+                }
+                continue;
+            }
+            updates.put(indiv.getId(), Util.taxonomyString(derived[0], derived[1]));
+            if (commit) {
+                indiv.setGenus(derived[0]);
+                indiv.setSpecificEpithet(derived[1]);
+            }
+        }
+        boolean finished = candidates.isEmpty();
+        if (commit) SystemValue.set(myShepherd, TAXONOMY_BACKFILL_CURSOR, finished ? null : lastId);
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        rtn.put("_batchSize", batchSize);
+        rtn.put("_commit", commit);
+        rtn.put("_startId", startId);
+        rtn.put("_lastId", lastId);
+        rtn.put("_finished", finished);
+        rtn.put("_examined", candidates.size());
+        rtn.put("_updated", updates.length());
+        rtn.put("_noTaxonomyOnEncounters", noSource);
+        rtn.put("_conflicted", conflicts.length());
+        rtn.put("_skippedHasStoredTaxonomy", hasStoredTaxonomy);
+        rtn.put("updates", updates);
+        rtn.put("conflicts", conflicts);
+        System.out.println("MarkedIndividual.backfillTaxonomyFromEncounters: " + rtn);
+        return rtn;
     }
 
     // similar to above
@@ -2100,6 +2356,20 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessMarkedIndividual(this, request);
     }
 
+    // view ACL for the generic /api/v3 GET path (see Base.jsonForApiGet). a user may view this
+    // individual if they are an admin or can view at least one of its encounters. an individual
+    // with no encounters grants no view access (rather than being visible to any logged-in user).
+    @Override public boolean canUserView(User user, Shepherd myShepherd) {
+        if (user == null) return false;
+        if (user.isAdmin(myShepherd)) return true;
+        Vector<Encounter> all = this.getEncounters();
+        if ((all == null) || all.isEmpty()) return false;
+        for (Encounter enc : all) {
+            if (enc.canUserView(user, myShepherd)) return true;
+        }
+        return false;
+    }
+
     // see note on Base class
     public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
@@ -2445,10 +2715,22 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             return rtn;
         }
         // System.out.println("findByNames nameIds: "+nameIds.toString());
+        return findByNameIds(myShepherd, nameIds, genus, specificEpithet);
+    }
+
+    public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
+        return findByNames(myShepherd, regex, null, null);
+    }
+
+    private static List<MarkedIndividual> findByNameIds(Shepherd myShepherd, List<String> nameIds,
+        String genus, String specificEpithet) {
+        List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
+
         if (nameIds.size() < 1) return rtn;
-        // System.out.println("findByNames: "+genus+" "+specificEpithet);
         String taxonomyStringFilter = "";
-        if ((genus != null) && (specificEpithet != null)) {
+        // blank ("") genus/specificEpithet must mean *no* taxonomy scope, not a
+        // filter for empty-string taxonomy fields
+        if (Util.stringExists(genus) && Util.stringExists(specificEpithet)) {
             genus = genus.trim();
             specificEpithet = specificEpithet.trim();
             taxonomyStringFilter = " && enc.genus == '" + genus + "' && enc.specificEpithet == '" +
@@ -2457,7 +2739,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         String jdoql =
             "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (names.id == "
             + String.join(" || names.id == ", nameIds) + ")" + taxonomyStringFilter;
-        System.out.println("findByNames jdoql: " + jdoql);
+        System.out.println("findByNameIds jdoql: " + jdoql);
         Query query = myShepherd.getPM().newQuery(jdoql);
         if (query == null) return rtn; // this is really only to save us while testing snh irl
         Collection c = (Collection)(query.execute());
@@ -2469,8 +2751,31 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return rtn;
     }
 
-    public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
-        return findByNames(myShepherd, regex, null, null);
+    // exact (whole-name), case-insensitive lookup backed by NAMES_CACHE. unlike
+    // findByNames() the name is never treated as a regex, so names containing
+    // regex metacharacters are safe. genus+specificEpithet (both required to
+    // apply) scope matches to individuals with at least one encounter of that
+    // taxonomy, same as findByNames().
+    public static List<MarkedIndividual> findByExactName(Shepherd myShepherd, String name,
+        String genus, String specificEpithet) {
+        List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
+
+        if ((name == null) || (NAMES_CACHE == null)) return rtn;
+        String trimmed = name.trim();
+        List<String> nameIds = new ArrayList<String>();
+        for (Integer nid : NAMES_CACHE.keySet()) {
+            String cached = NAMES_CACHE.get(nid);
+            if (cached == null) continue;
+            // cache value format: "<individualId>;<name1>;<name2>..."
+            String[] parts = cached.split(";");
+            for (int i = 1; i < parts.length; i++) {
+                if (parts[i].equalsIgnoreCase(trimmed)) {
+                    nameIds.add(Integer.toString(nid));
+                    break;
+                }
+            }
+        }
+        return findByNameIds(myShepherd, nameIds, genus, specificEpithet);
     }
 
     public static MarkedIndividual withName(Shepherd myShepherd, String name) {
@@ -2529,6 +2834,16 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return String.format("%s%0" + zeroPadding + "d", prefix, val.add(new BigInteger("1")));
     }
 
+    // convenience method which uses the above prefix stuff
+    public static String nextNameByLocationId(String locationId)
+    throws IllegalArgumentException {
+        if (!LocationID.isValidLocationID(locationId)) throw new IllegalArgumentException("invalid location id: " + locationId);
+        String locPrefix = LocationID.getPrefixForLocationID(locationId, null);
+        if (Util.stringIsEmptyOrNull(locPrefix)) throw new IllegalArgumentException("no prefix value for locationId: " + locationId);
+        int locPad = LocationID.getPrefixDigitPaddingForLocationID(locationId, null);
+        return nextNameByPrefix(locPrefix, locPad);
+    }
+
     public static List<String> findNames(String regex) {
         List<String> names = new ArrayList<String>();
 
@@ -2574,6 +2889,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     public void refreshNamesCache() {
         if (names == null) return;
         if (NAMES_CACHE == null) return; // snh
+        // an unpersisted MultiValue still has the default id (0); caching under
+        // that shared key would pollute the cache (and a rollback would leave a
+        // phantom name). callers must refresh again after persisting -- as
+        // BulkImporter and EncounterPatchValidator do.
+        if (names.getId() == 0) return;
         NAMES_CACHE.put(names.getId(),
             this.getId() + ";" + String.join(";", names.getAllValues()).toLowerCase());
     }
@@ -2596,12 +2916,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     // Need request to record which user did it
     public void mergeIndividual(MarkedIndividual other, String username, Shepherd myShepherd) {
-        IndexingManager im = IndexingManagerFactory.getIndexingManager();
         for (Encounter enc : other.getEncounters()) {
             other.removeEncounter(enc);
             enc.setIndividual(this);
-            // Reindex each transferred encounter
-            if (im != null) im.addIndexingQueueEntry(enc, false);
         }
         this.names.merge(other.getNames());
         this.setComments(getMergedComments(other, username));
@@ -2646,11 +2963,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             myShepherd.updateDBTransaction();
         }
         refreshDependentProperties();
-        // Reindex both individuals after merge
-        if (im != null) {
-            im.addIndexingQueueEntry(this, false);
-            im.addIndexingQueueEntry(other, false);
-        }
+        // merge moved every encounter from other -> this (per-encounter hooks already fired via
+        // removeEncounter/setIndividual). Enqueue both individuals as a safety net; the indexing
+        // queue dedups by id so this does not multiply work.
+        this.enqueueAclReindex();
+        if (other != null) other.enqueueAclReindex();
     }
 
     public String getMergedComments(MarkedIndividual other, HttpServletRequest request,
@@ -2689,6 +3006,32 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         myShepherd.throwAwayMarkedIndividual(other);
     }
 
+    /** Denormalized ACL union over member encounters; 0 encounters -> world-readable (matches the live gate). */
+    public void writeAclFields(com.fasterxml.jackson.core.JsonGenerator jgen, Shepherd myShepherd)
+    throws java.io.IOException {
+        java.util.List<Encounter> encs = this.getEncounters();
+        boolean pub = (encs == null) || encs.isEmpty(); // encounterless -> visible to anyone
+        java.util.Set<String> submitters = new java.util.LinkedHashSet<String>();
+        java.util.Set<String> viewers = new java.util.LinkedHashSet<String>();
+        if (encs != null) {
+            for (Encounter enc : encs) {
+                org.json.JSONObject acl = enc.opensearchAclFields(myShepherd);
+                if (acl.optBoolean("publiclyReadable", false)) pub = true;
+                String sid = acl.optString("submitterUserId", null);
+                if (sid != null) submitters.add(sid);
+                org.json.JSONArray vu = acl.optJSONArray("viewUsers");
+                if (vu != null) for (int i = 0; i < vu.length(); i++) viewers.add(vu.optString(i));
+            }
+        }
+        jgen.writeBooleanField("publiclyReadable", pub);
+        jgen.writeArrayFieldStart("submitterUserIds");
+        for (String s : submitters) jgen.writeString(s);
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("viewUsers");
+        for (String v : viewers) jgen.writeString(v);
+        jgen.writeEndArray();
+    }
+
     public org.json.JSONObject opensearchMapping() {
         org.json.JSONObject map = super.opensearchMapping();
         org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
@@ -2715,12 +3058,15 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         map.put("relationships", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("cooccurrenceIndividualMap",
             new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
+        map.put("publiclyReadable", new org.json.JSONObject("{\"type\": \"boolean\"}"));
+        map.put("submitterUserIds", keywordType);
         return map;
     }
 
     public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
     throws IOException, JsonProcessingException {
         super.opensearchDocumentSerializer(jgen, myShepherd);
+        this.writeAclFields(jgen, myShepherd);
 
         jgen.writeStringField("sex", this.getSex());
         jgen.writeStringField("displayName", this.getDisplayName());

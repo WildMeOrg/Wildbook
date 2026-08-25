@@ -10,11 +10,14 @@ export const ContactInfoCard = observer(
     data = [],
     store = {},
   }) => {
-    const Intl = useIntl();
-    const confirmMsg = Intl.formatMessage({
+    const intl = useIntl();
+    const confirmMsg = intl.formatMessage({
       id: "CONFIRM_DELETE_CONTACT",
       defaultMessage: "Are you sure you want to remove this contact?",
     });
+
+    const contactList = Array.isArray(data) ? data : [];
+
     return (
       <div
         id={title}
@@ -26,16 +29,19 @@ export const ContactInfoCard = observer(
           position: "relative",
         }}
       >
-        <h6>{<FormattedMessage id={title} />}</h6>
+        <h6>
+          <FormattedMessage id={title} defaultMessage={title} />
+        </h6>
+
         <div className="mt-3 mb-3">
-          {data?.map((item, index) => {
+          {contactList.map((item, index) => {
             return (
               <div
                 key={index}
                 className="d-flex flex-row align-items-center mb-2"
               >
                 <span className="avatar">
-                  {item.image ? (
+                  {item?.image ? (
                     <img
                       src={item.image}
                       alt="Avatar"
@@ -54,20 +60,21 @@ export const ContactInfoCard = observer(
                         color: "#6c757d",
                         marginRight: "10px",
                       }}
-                    ></i>
+                    />
                   )}
                 </span>
+
                 <div>
-                  {" "}
-                  {store.access === "write" &&
+                  {store?.access === "write" &&
                     (item?.username || item?.email || item?.displayName)}
                 </div>
+
                 <div>
-                  {" "}
-                  {store.access === "read" &&
+                  {store?.access === "read" &&
                     (item?.username || item?.displayName)}
                 </div>
-                {store.access === "write" && type !== "submitterID" && (
+
+                {store?.access === "write" && type !== "submitterID" && (
                   <div
                     style={{
                       marginLeft: "auto",
@@ -75,8 +82,8 @@ export const ContactInfoCard = observer(
                     }}
                     onClick={() => {
                       if (window.confirm(confirmMsg)) {
-                        store.removeContact(type, item.id);
-                        store.refreshEncounterData();
+                        store?.removeContact?.(type, item?.id);
+                        store?.refreshEncounterData?.();
                       }
                     }}
                   >

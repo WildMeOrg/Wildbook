@@ -584,7 +584,7 @@ function allGood(d) {
 		return;
 	}
 	console.info('SUCCESS saving image: %o', d);
-	$('#imageTools-message').html('spot data and image saved.<div style="margin-top: 7px;"><input type="button" value="start ScanTask" onClick="var win = window.open(\'../ScanTaskHandler?action=addTask&encounterNumber=' + encounterNumber + '&rightSide=' + ((side == 'right') ? 'true' : 'false') + '&cutoff=0.02&writeThis=true\', \'_blank\'); win.focus(); return true;" /> <input type="button" value="return to encounter" onClick="spotsCancel();" /></div>');
+	$('#imageTools-message').html('spot data and image saved.<div style="margin-top: 7px;"><input type="button" value="start scan" onClick="var win = window.open(\'../GrothMatch?encounterNumber=' + encounterNumber + '&rightSide=' + ((side == 'right') ? 'true' : 'false') + '\', \'_blank\'); win.focus(); return true;" /> <input type="button" value="return to encounter" onClick="spotsCancel();" /></div>');
 }
 
   </script>

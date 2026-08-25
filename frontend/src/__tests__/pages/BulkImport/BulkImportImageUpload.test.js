@@ -1,10 +1,11 @@
 import React from "react";
 import { render, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
-jest.mock("../../../models/useGetSiteSettings", () => ({
+jest.mock("../../../SiteSettingsContext", () => ({
   __esModule: true,
-  default: () => ({ data: { maximumMediaSizeMegabytes: 5 } }),
+  useSiteSettings: jest.fn(),
 }));
 jest.mock("../../../pages/BulkImport/BulkImportImageUploadInfo", () => ({
   __esModule: true,
@@ -52,11 +53,17 @@ describe("BulkImportImageUpload", () => {
   };
 
   beforeEach(() => {
+    useSiteSettings.mockReturnValue({
+      data: { maximumMediaSizeMegabytes: 5 },
+      isLoading: false,
+      error: null,
+    });
     store = {
       filesParsed: false,
       imagePreview: [],
       maxImageCount: 10,
       setMaxImageCount: jest.fn(),
+      setMaxImageSizeMB: jest.fn(),
       initializeFlow: jest.fn(() => {}),
       triggerUploadAfterFileInput: jest.fn(),
       generateThumbnailsForFirst50: jest.fn(),
@@ -132,7 +139,7 @@ describe("BulkImportImageUpload", () => {
     };
     fireEvent.drop(dropArea, { dataTransfer });
     expect(store.flow.addFile).toHaveBeenCalledWith(file);
-    expect(store.uploadFilteredFiles).toHaveBeenCalledWith(5);
+    expect(store.uploadFilteredFiles).toHaveBeenCalled();
   });
 
   test("does not add non-image files", () => {
@@ -152,7 +159,7 @@ describe("BulkImportImageUpload", () => {
     const item = { webkitGetAsEntry: () => entry };
     const dataTransfer = { items: [item], types: ["Files"] };
     fireEvent.drop(dropArea, { dataTransfer });
-    expect(store.traverseFileTree).toHaveBeenCalledWith(entry, 5);
+    expect(store.traverseFileTree).toHaveBeenCalledWith(entry);
   });
 
   test("renders image error alert when imageSectionError is true", () => {

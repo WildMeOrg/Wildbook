@@ -18,13 +18,18 @@ import org.ecocean.shepherd.core.Shepherd;
  * Wildbook requires shared UUIDs (a.k.a. acmID) between MediaAsset objects in the Wildbook database and images in WBIA. AcmIDs are a prerequisite for
  * detection and therefore can be a blocker in the IA pipeline if for any reason WBIA times out or is otherwise unavailable to provide an acmId to
  * Wildbook when new data is submitted. This bot provides some automated backend healing to get images registered if for any reason acmId registration
- * fails. It first checks bulk ImportTasks for appropriate images that may be missing an acmId, and then it checks Encounters submitted within the
- * past 24 hours.
+ * fails. It first checks bulk ImportTasks for appropriate images that may be missing an acmId (fast path for fresh imports), and then runs one
+ * page of a continuous reconciliation sweep: every MediaAsset backing a matchAgainst annotation is eventually probed against WBIA
+ * (/api/image/rowid/uuid/) and re-registered if WBIA does not know its acmId.
+ *
+ * Annotations get the same treatment in a second sweep (/api/annot/rowid/uuid/). They need their own because
+ * StartupWildbook's 30-second registration poller only pushes newly created annotations once and then trusts
+ * Annotation.wbiaRegistered forever -- so anything that flag lies about stays broken silently and permanently.
+ * See sweepMatchableAnnotations() and
+ * docs/superpowers/specs/2026-08-03-wbia-annotation-reconciliation-sweep-design.md.
  *
  */
 public class AcmIdBot {
-    static String context = "context0";
-
     private static void fixFeats(List<Feature> feats, Shepherd myShepherd, String summaryMessage,
                                  int maxFixes) {
         if (feats != null && feats.size() > 0) {
@@ -33,6 +38,7 @@ public class AcmIdBot {
             int numAcmIdFixesSent = 0;
             int numAcmIdFixesSuccessful = 0;
             int numInvalidForIA = 0;
+            int numSendFailures = 0;
             for (Feature feat : feats) {
                 MediaAsset asset = feat.getMediaAsset();
                 myShepherd.setAction("AcmIDBot_" + summaryMessage + "_asset_" + asset.getId());
@@ -50,8 +56,11 @@ public class AcmIdBot {
                         if (!asset.hasFamily(myShepherd)) asset.updateStandardChildren();
                         ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
                         fixMe.add(asset);
-                        IBEISIA.sendMediaAssetsNew(fixMe, context);
+                        IBEISIA.sendMediaAssetsNew(fixMe, myShepherd.getContext());
                         numAcmIdFixesSent++;
+                        // commit now: rectifyMediaAssetIds set acmId on this asset, and
+                        // fixAcmIds() ends with rollbackAndClose() which would discard it
+                        myShepherd.updateDBTransaction();
                         if (asset.getAcmId() != null) {
                             numAcmIdFixesSuccessful++;
                             // allow the bot to determine how many fixes it wants the logic to consider before exiting
@@ -60,15 +69,20 @@ public class AcmIdBot {
                         }
                     }
                 } catch (Exception ec) {
-                    System.out.println("Exception in AcmIdBot.fixFeats");
+                    // An HTTP status is not a file-integrity verdict, so a failed send must
+                    // NOT flag the image invalid for IA. That flag is terminal in practice:
+                    // WildbookIAM.sendMediaAssets refuses to register a flagged asset, the
+                    // reconciliation sweep skips it before it is even probed, and nothing
+                    // re-validates it (validateSourceImage is only consulted when the flag
+                    // is null). The result was a silent permanent quarantine -- and because
+                    // sendAnnotations does not check the flag, annotations on such an asset
+                    // still get POSTed, which is what produces WBIA's
+                    // "image_uuid_list has invalid values [(0, None)]" 500. Image validity
+                    // belongs to validateSourceImage(), which reads the actual file.
+                    numSendFailures++;
+                    System.out.println("Exception in AcmIdBot.fixFeats for asset " +
+                        ((asset == null) ? "?" : asset.getId()) + ": " + ec.toString());
                     ec.printStackTrace();
-                    // as of now we don't know of a commonality that would suggest a fix
-                    if (ec.toString().contains("HTTP error code : 500")) {
-                        asset.setIsValidImageForIA(false);
-                        myShepherd.updateDBTransaction();
-                        numValidIAFixes--;
-                        numInvalidForIA++;
-                    }
                 }
             }
             System.out.println(summaryMessage);
@@ -79,11 +93,114 @@ public class AcmIdBot {
                 numAcmIdFixesSent);
             System.out.println("......num media assets successfully updated with Acm ID: " +
                 numAcmIdFixesSuccessful);
+            System.out.println("......num sends that failed (retried later, NOT quarantined): " +
+                numSendFailures);
         }
     }
 
+    // ------- reconciliation sweep (spec: 2026-07-01-acmidbot-reconciliation-sweep-design.md) -------
+
+    static final int SWEEP_PAGE_SIZE = 10000; // distinct assets examined per 15-minute run
+    static final int PAGE_FAIL_LIMIT = 3; // failed runs on one page before skipping it
+    // in-memory sweep state; a restart just restarts the sweep (probes are cheap)
+    static int sweepCursor = 0; // highest asset id processed
+    static int sweepFailCount = 0; // consecutive failures at the current cursor
+
+    // one page of sweep candidates, reduced to primitives so no JDO object
+    // outlives the read transaction
+    static class SweepPage {
+        final List<Integer> nullAcmAssetIds = new ArrayList<Integer>();
+        final java.util.LinkedHashMap<String, Integer> acmIdToAssetId =
+            new java.util.LinkedHashMap<String, Integer>();
+        boolean rawExhausted = false;
+        int lastAssetId = -1; // -1 = empty page
+    }
+
+    // walk assets (ascending id order, may contain duplicates from multiple
+    // Features per asset) collecting up to pageSize distinct assets.
+    // rawExhausted is true only when the input ran out — never inferred from
+    // a post-dedup count (spec §1/§2).
+    static SweepPage collectSweepPage(java.util.Iterator<MediaAsset> assetsInIdOrder,
+        int pageSize) {
+        SweepPage page = new SweepPage();
+        java.util.Set<Integer> seen = new java.util.HashSet<Integer>();
+
+        page.rawExhausted = true;
+        while (assetsInIdOrder.hasNext()) {
+            MediaAsset asset = assetsInIdOrder.next();
+            if (asset == null) continue;
+            // NOTE: MediaAsset.getId() returns String; getIdInt() is the int accessor
+            if (seen.contains(asset.getIdInt())) continue;
+            if (seen.size() >= pageSize) {
+                page.rawExhausted = false;
+                return page;
+            }
+            seen.add(asset.getIdInt());
+            page.lastAssetId = asset.getIdInt();
+            // known-invalid assets are unhealable: counted as processed, never probed
+            if (asset.isValidImageForIA() != null && !asset.isValidImageForIA()) continue;
+            // null or malformed acmId: route straight to the heal path rather than
+            // the probe, since a non-UUID value would make WBIA reject the whole
+            // probe chunk and could strand the rest of the page (see Fix B)
+            if (asset.getAcmId() == null || !Util.isUUID(asset.getAcmId())) {
+                page.nullAcmAssetIds.add(asset.getIdInt());
+            } else {
+                Integer displaced = page.acmIdToAssetId.put(asset.getAcmId(), asset.getIdInt());
+                if (displaced != null) {
+                    System.out.println("WARNING: AcmIdBot sweep found duplicate acmId " +
+                        asset.getAcmId() + " on assets " + displaced + " and " +
+                        asset.getIdInt() + "; only the latter will be probed/healed this sweep");
+                }
+            }
+        }
+        return page;
+    }
+
+    // cursor policy (spec §2): maxFixes clamp wins (resume mid-page next run),
+    // else wrap to 0 on true exhaustion, else advance past the page
+    static int nextCursorAfterSuccess(SweepPage page, boolean maxFixesHit, int resumeAssetId) {
+        if (maxFixesHit) return resumeAssetId;
+        if (page.rawExhausted) return 0;
+        return page.lastAssetId;
+    }
+
+    // poisoned-page guard (spec §5): after PAGE_FAIL_LIMIT consecutive failures
+    // on the same page, skip it so one bad page cannot stall the sweep forever
+    static boolean shouldSkipPoisonedPage(int consecutiveFailures) {
+        return consecutiveFailures >= PAGE_FAIL_LIMIT;
+    }
+
+    // did a sendMediaAssetsNew() round-trip actually register this acmId with
+    // WBIA? add_images_json returns the registered image UUIDs; require ours
+    // among them before counting (and committing) a heal — otherwise a locally
+    // pre-assigned acmId could be persisted although WBIA never registered it
+    static boolean sendConfirmedAcmId(org.json.JSONObject sendRtn, String expectedAcmId) {
+        if ((sendRtn == null) || (expectedAcmId == null)) return false;
+        org.json.JSONArray batches = sendRtn.optJSONArray("batchResults");
+        if (batches == null) return false;
+        for (int b = 0; b < batches.length(); b++) {
+            org.json.JSONObject rtn = batches.optJSONObject(b);
+            if (rtn == null) continue; // "EMPTY BATCH" marker string
+            org.json.JSONArray resp = rtn.optJSONArray("response");
+            if (resp == null) continue;
+            for (int i = 0; i < resp.length(); i++) {
+                org.json.JSONObject fancy = resp.optJSONObject(i);
+                if ((fancy != null) &&
+                    expectedAcmId.equals(fancy.optString("__UUID__", null))) return true;
+            }
+        }
+        return false;
+    }
+
     // background workers
-    public static boolean startServices(String context) {
+    private static ScheduledExecutorService schedExec = null;
+
+    public static synchronized boolean startServices(String context) {
+        if ((schedExec != null) && !schedExec.isShutdown()) {
+            System.out.println("WARNING: AcmIdBot.startServices(" + context +
+                ") called but collector already running; ignoring");
+            return false;
+        }
         startCollector(context);
         return true;
     }
@@ -94,14 +211,15 @@ public class AcmIdBot {
         long initialDelay = 1; // number minutes before first execution occurs
 
         System.out.println("+ AcmIdBot.startCollector(" + context + ") starting.");
-        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(1);
-        final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
+        schedExec = Executors.newScheduledThreadPool(1);
+        final ScheduledExecutorService execRef = schedExec;
+        final ScheduledFuture schedFuture = execRef.scheduleWithFixedDelay(new Runnable() {
             // DO WORK HERE
             public void run() {
                 if (new java.io.File("/tmp/WB_AcmIdBot_SHUTDOWN").exists()) {
                     System.out.println("INFO: AcmIdBot.startCollection(" + context +
                     ") shutting down due to file signal");
-                    schedExec.shutdown();
+                    execRef.shutdown();
                     return;
                 }
                 fixAcmIds(context);
@@ -112,7 +230,7 @@ public class AcmIdBot {
 
         System.out.println("Let's get AcmIdBot's time running.");
         try {
-            schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
+            execRef.awaitTermination(5000, TimeUnit.MILLISECONDS);
         } catch (java.lang.InterruptedException ex) {
             System.out.println("WARNING: AcmIdBot.startCollector(" + context + ") interrupted: " +
                 ex.toString());
@@ -120,62 +238,739 @@ public class AcmIdBot {
         System.out.println("+ AcmIdBot.startCollector(" + context + ") backgrounded");
     }
 
-    // mostly for ContextDestroyed in StartupWildbook..... i think?
-    public static void cleanup() {
+    // called from StartupWildbook contextDestroyed
+    public static synchronized void cleanup() {
+        if (schedExec != null) {
+            schedExec.shutdown();
+            schedExec = null;
+        }
         System.out.println(
             "================ = = = = = = ===================== AcmIdBot.cleanup() finished.");
     }
 
+    // fixAcmIds is public and mutates static sweep state; guard against a
+    // concurrent manual invocation racing the scheduled run
+    private static final java.util.concurrent.atomic.AtomicBoolean botRunning =
+        new java.util.concurrent.atomic.AtomicBoolean(false);
+
     public static void fixAcmIds(String context) {
-        Shepherd myShepherd = new Shepherd(context);
-
-        myShepherd.setAction("AcmIdBot.java");
-        myShepherd.beginDBTransaction();
-
-        Query query2 = null;
-        Query query3 = null;
-        try {
+        if (!botRunning.compareAndSet(false, true)) {
             System.out.println(
-                "Looking for complete import tasks with media assets with missing acmIds");
+                "WARNING: AcmIdBot.fixAcmIds() already running; skipping this invocation");
+            return;
+        }
+        try {
+            Shepherd myShepherd = new Shepherd(context);
+
+            myShepherd.setAction("AcmIdBot.java");
+            myShepherd.beginDBTransaction();
 
             // number of fixes to consider before finishing and letting a new round of work restart the effort
             int maxFixes = 500;
-            String filter2 =
-                "select from org.ecocean.media.Feature where itask.status == 'complete' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
-            query2 = myShepherd.getPM().newQuery(filter2);
-            query2.setOrdering("revision desc");
-            Collection c2 = (Collection)(query2.execute());
-            List<Feature> feats = new ArrayList<Feature>(c2);
-            query2.closeAll();
-            query2 = null;  // Mark as closed
+            Query query2 = null;
+            try {
+                System.out.println(
+                    "Looking for complete import tasks with media assets with missing acmIds");
 
-            fixFeats(feats, myShepherd, "ACM ID ImportTask fixing summary", maxFixes);
+                String filter2 =
+                    "select from org.ecocean.media.Feature where itask.status == 'complete' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
+                query2 = myShepherd.getPM().newQuery(filter2);
+                query2.setOrdering("revision desc");
+                Collection c2 = (Collection)(query2.execute());
+                List<Feature> feats = new ArrayList<Feature>(c2);
+                query2.closeAll();
+                query2 = null;  // Mark as closed
 
-            // check recent Encounter submissions in last 24 hours for missing acmIds
-            long currentTimeInMillis = System.currentTimeMillis();
-            long twenyFourHoursAgo = currentTimeInMillis - (1000 * 60 * 60 * 24);
-            System.out.println(
-                "Looking for recent Encounters (24 hours) with media assets with missing acmIds");
-            // dwcDateAddedLong >=
-            String filter3 =
-                "select from org.ecocean.media.Feature where enc45.dwcDateAddedLong >= " +
-                twenyFourHoursAgo +
-                " && enc45.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc45;org.ecocean.Annotation annot";
-            query3 = myShepherd.getPM().newQuery(filter3);
-            query3.setOrdering("revision desc");
-            Collection c3 = (Collection)(query3.execute());
-            List<Feature> feats2 = new ArrayList<Feature>(c3);
-            query3.closeAll();
-            query3 = null;  // Mark as closed
+                fixFeats(feats, myShepherd, "ACM ID ImportTask fixing summary", maxFixes);
+            } catch (Exception f) {
+                System.out.println("Exception in AcmIdBot!");
+                f.printStackTrace();
+            } finally {
+                if (query2 != null) query2.closeAll();
+                myShepherd.rollbackAndClose();
+            }
 
-            fixFeats(feats2, myShepherd, "Recent Encounter ACM ID Fixing Summary", maxFixes);
-        } catch (Exception f) {
-            System.out.println("Exception in AcmIdBot!");
-            f.printStackTrace();
+            // full reconciliation sweep of the matchable set (replaces the old
+            // 24-hour Encounter query); manages its own transactions
+            sweepMatchableAssets(context, maxFixes);
+            // annotation-side equivalent; also manages its own transactions. Runs after
+            // the asset sweep so a tick heals images before annotations, though the
+            // annotation sweep does NOT rely on that -- the two have independent cursors,
+            // so it confirms image presence itself (see sweepMatchableAnnotations).
+            sweepMatchableAnnotations(context, maxFixes);
         } finally {
-            if (query2 != null) query2.closeAll();
-            if (query3 != null) query3.closeAll();
-            myShepherd.rollbackAndClose();
+            botRunning.set(false);
+        }
+    }
+
+    /**
+     * One 15-minute bite of the reconciliation sweep (spec
+     * docs/superpowers/specs/2026-07-01-acmidbot-reconciliation-sweep-design.md).
+     * Phase-separated: (1) read one page of distinct matchable assets inside a
+     * short transaction, reduced to primitives; (2) probe WBIA for unknown
+     * acmIds over HTTP with no transaction open; (3) heal missing assets in a
+     * fresh transaction with explicit commits so rectified acmIds survive
+     * rollbackAndClose.
+     */
+    static void sweepMatchableAssets(String context, int maxFixes) {
+        // ---- read phase ----
+        SweepPage page = null;
+        Shepherd readShepherd = new Shepherd(context);
+
+        readShepherd.setAction("AcmIdBot.sweepRead");
+        readShepherd.beginDBTransaction();
+        Query query = null;
+        try {
+            System.out.println("AcmIdBot sweep: reading matchable assets from cursor " +
+                sweepCursor);
+            String filter =
+                "select from org.ecocean.media.Feature where annot.matchAgainst == true && annot.features.contains(this) && asset.id > "
+                + sweepCursor + " VARIABLES org.ecocean.Annotation annot";
+            query = readShepherd.getPM().newQuery(filter);
+            query.setOrdering("asset.id ascending");
+            // stream the result instead of buffering ~1M Feature rows client-side
+            // (pgjdbc default fetchSize=0 buffers the whole ResultSet); setRange
+            // would break rawExhausted semantics, a cursor fetch does not
+            query.getFetchPlan().setFetchSize(1000);
+            Collection c = (Collection)(query.execute());
+            final java.util.Iterator featIter = c.iterator();
+            java.util.Iterator<MediaAsset> assetIter = new java.util.Iterator<MediaAsset>() {
+                public boolean hasNext() {
+                    return featIter.hasNext();
+                }
+                public MediaAsset next() {
+                    return ((Feature)featIter.next()).getMediaAsset();
+                }
+            };
+            page = collectSweepPage(assetIter, SWEEP_PAGE_SIZE);
+        } catch (Exception ex) {
+            System.out.println("Exception in AcmIdBot.sweepMatchableAssets read phase!");
+            ex.printStackTrace();
+        } finally {
+            if (query != null) query.closeAll();
+            readShepherd.rollbackAndClose();
+        }
+        if (page == null) {
+            // read phase failed: this counts toward the same poisoned-page guard as
+            // probe failures, since a corrupt row at this cursor could otherwise
+            // stall the sweep forever. There is no page.lastAssetId to resume from
+            // here, so a skip is a blind advance rather than a targeted one.
+            sweepFailCount++;
+            System.out.println("WARNING: AcmIdBot sweep read phase failed (attempt " +
+                sweepFailCount + " of " + PAGE_FAIL_LIMIT + " at cursor " + sweepCursor +
+                ")");
+            if (shouldSkipPoisonedPage(sweepFailCount)) {
+                System.out.println(
+                    "WARNING: AcmIdBot sweep SKIPPING page after repeated read failures; " +
+                    "blind-advancing cursor " + sweepCursor + " -> " +
+                    (sweepCursor + SWEEP_PAGE_SIZE) +
+                    " (no page ids available; wrap-around will resweep the skipped range)");
+                sweepCursor += SWEEP_PAGE_SIZE;
+                sweepFailCount = 0;
+            }
+            return; // cursor otherwise unchanged: same page retried next run
+        }
+
+        // ---- probe phase (no transaction open) ----
+        List<String> missingAcmIds = null;
+        try {
+            missingAcmIds = org.ecocean.ia.plugin.WildbookIAM.iaMissingImageIds(
+                new ArrayList<String>(page.acmIdToAssetId.keySet()), context);
+        } catch (java.io.IOException ex) {
+            sweepFailCount++;
+            System.out.println("WARNING: AcmIdBot sweep probe failed (attempt " +
+                sweepFailCount + " of " + PAGE_FAIL_LIMIT + " at cursor " + sweepCursor +
+                "): " + ex.toString());
+            if (shouldSkipPoisonedPage(sweepFailCount)) {
+                System.out.println(
+                    "WARNING: AcmIdBot sweep SKIPPING page after repeated failures; cursor " +
+                    sweepCursor + " -> " + page.lastAssetId);
+                if (page.lastAssetId >= 0) sweepCursor = page.lastAssetId;
+                sweepFailCount = 0;
+            }
+            return; // cursor otherwise unchanged: same page retried next run
+        }
+
+        // ---- heal phase (own transaction, explicit commits) ----
+        List<Integer> candidateIds = new ArrayList<Integer>(page.nullAcmAssetIds);
+        for (String acmId : missingAcmIds) {
+            Integer assetId = page.acmIdToAssetId.get(acmId);
+            if (assetId != null) candidateIds.add(assetId);
+        }
+        java.util.Collections.sort(candidateIds); // ascending id = cursor order
+        int healedCount = 0;
+        int sentCount = 0;
+        boolean maxFixesHit = false;
+        int resumeAssetId = page.lastAssetId;
+        if (candidateIds.size() > 0) {
+            Shepherd healShepherd = new Shepherd(context);
+            healShepherd.setAction("AcmIdBot.sweepHeal");
+            healShepherd.beginDBTransaction();
+            try {
+                for (Integer assetId : candidateIds) {
+                    healShepherd.setAction("AcmIdBot.sweepHeal_asset_" + assetId);
+                    // hoisted so the catch block can revert a pre-assigned acmId that
+                    // WBIA never acknowledged (send threw before confirmation)
+                    MediaAsset asset = null;
+                    String priorAcmId = null;
+                    boolean priorCaptured = false;
+                    try {
+                        asset = org.ecocean.media.MediaAssetFactory.load(
+                            assetId.intValue(), healShepherd);
+                        if (asset == null) {
+                            System.out.println("WARNING: AcmIdBot sweep skipping unhealable asset "
+                                + assetId + " (no longer exists)");
+                            continue;
+                        }
+                        if (asset.isValidImageForIA() == null) {
+                            asset.validateSourceImage();
+                            healShepherd.updateDBTransaction();
+                        }
+                        if (!asset.isValidImageForIAForced()) {
+                            System.out.println("WARNING: AcmIdBot sweep skipping unhealable asset "
+                                + assetId + " (invalid or unvalidatable image for IA)");
+                            continue;
+                        }
+                        if (!asset.hasFamily(healShepherd)) asset.updateStandardChildren();
+                        // legacy null or malformed acmIds adopt the asset UUID before sending
+                        priorAcmId = asset.getAcmId();
+                        priorCaptured = true;
+                        if ((priorAcmId == null) || !Util.isUUID(priorAcmId))
+                            asset.setAcmId(asset.getUUID());
+                        ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
+                        fixMe.add(asset);
+                        // checkFirst=false: the probe already established absence
+                        org.json.JSONObject sendRtn = IBEISIA.sendMediaAssetsNew(fixMe,
+                            context, false);
+                        sentCount++;
+                        // NOTE: compared against the POST-rectify acmId on purpose. If WBIA
+                        // already knew this image under a different UUID, rectifyMediaAssetIds
+                        // (inside the send) adopted WBIA's authoritative UUID — that
+                        // convergence IS the heal, and committing it is correct. A strict
+                        // compare against the pre-send UUID would revert and re-probe forever.
+                        if (sendConfirmedAcmId(sendRtn, asset.getAcmId())) {
+                            // commit so the confirmed acmId survives rollbackAndClose
+                            healShepherd.updateDBTransaction();
+                            healedCount++;
+                            if (healedCount >= maxFixes) {
+                                maxFixesHit = true;
+                                resumeAssetId = assetId.intValue();
+                                break;
+                            }
+                        } else {
+                            System.out.println(
+                                "WARNING: AcmIdBot sweep could not confirm WBIA registration for asset "
+                                + assetId + "; not counting as healed");
+                            // don't persist an acmId WBIA never acknowledged
+                            asset.setAcmId(priorAcmId);
+                        }
+                    } catch (Exception ec) {
+                        // revert BEFORE any commit below (or a later asset's commit)
+                        // can persist an acmId WBIA never acknowledged; probed-missing
+                        // assets revert to their original non-null DB acmId
+                        if (priorCaptured && asset != null) asset.setAcmId(priorAcmId);
+                        // Deliberately does NOT flag the image invalid for IA on an HTTP
+                        // failure (see the matching note in fixFeats): that flag is a
+                        // terminal, silently self-reinforcing quarantine -- sendMediaAssets
+                        // then refuses to register the asset, this sweep skips it before it
+                        // is ever probed, and nothing re-validates it. Meanwhile
+                        // sendAnnotations ignores the flag and still POSTs annotations on the
+                        // unregistered image, producing WBIA's
+                        // "image_uuid_list has invalid values [(0, None)]" 500. A send
+                        // failure just means retry on a later pass.
+                        System.out.println("Exception in AcmIdBot sweep heal for asset " +
+                            assetId + ": " + ec.toString());
+                        ec.printStackTrace();
+                    }
+                }
+            } finally {
+                healShepherd.rollbackAndClose();
+            }
+        }
+        sweepCursor = nextCursorAfterSuccess(page, maxFixesHit, resumeAssetId);
+        sweepFailCount = 0;
+        System.out.println("AcmIdBot Reconciliation Sweep Summary");
+        System.out.println("...page: " + (page.acmIdToAssetId.size() +
+            page.nullAcmAssetIds.size()) + " candidates (" + page.acmIdToAssetId.size() +
+            " probed, " + page.nullAcmAssetIds.size() + " null acmId)");
+        System.out.println("......missing from WBIA: " + missingAcmIds.size());
+        System.out.println("......heals sent: " + sentCount + ", heals successful: " +
+            healedCount + (maxFixesHit ? " (maxFixes cap hit)" : ""));
+        System.out.println("......cursor now " + sweepCursor +
+            (page.rawExhausted && !maxFixesHit ? " (sweep complete, wrapped)" : ""));
+    }
+
+    // ------- annotation reconciliation sweep -------
+    // (spec: docs/superpowers/specs/2026-08-03-wbia-annotation-reconciliation-sweep-design.md)
+
+    static final int ANNOT_SWEEP_PAGE_SIZE = 10000; // distinct annotations per 15-minute run
+    // Annotation.id is a String UUID primary key (package.jdo: <column length="36"/>), so
+    // unlike the asset cursor this one is lexicographic and its "from the beginning"
+    // sentinel is the empty string, which sorts below every UUID.
+    static String annotSweepCursor = "";
+    static int annotSweepFailCount = 0;
+
+    // one page of annotation sweep candidates, reduced to primitives so no JDO
+    // object outlives the read transaction
+    static class AnnotSweepPage {
+        // annotations to heal without probing: no acmId, or a non-UUID one
+        final List<String> nullAcmAnnotIds = new ArrayList<String>();
+        final java.util.LinkedHashMap<String, String> acmIdToAnnotId =
+            new java.util.LinkedHashMap<String, String>();
+        // every distinct annotation id on this page, in the order the DATABASE returned
+        // them. The heal phase walks candidates in this order rather than Java's String
+        // ordering: the cursor's "id > x" comparison happens in Postgres collation, which
+        // is not guaranteed to agree with Java's UTF-16 ordering for hyphenated UUID text.
+        // Resuming from a Java-sorted position could therefore step over candidates the
+        // database considers earlier, silently skipping them for a whole sweep.
+        final List<String> orderedAnnotIds = new ArrayList<String>();
+        boolean rawExhausted = false;
+        String lastAnnotId = null; // null = nothing read yet
+    }
+
+    /**
+     * Convenience wrapper allocating the page for callers that don't need partial
+     * progress on failure (i.e. tests).
+     */
+    static AnnotSweepPage collectAnnotSweepPage(java.util.Iterator<String[]> rowsInIdOrder,
+        int pageSize) {
+        AnnotSweepPage page = new AnnotSweepPage();
+
+        collectAnnotSweepPageInto(page, rowsInIdOrder, pageSize);
+        return page;
+    }
+
+    /**
+     * Walk projected {@code (id, acmId)} rows in ascending id order, collecting up to
+     * {@code pageSize} distinct annotations into {@code page}.
+     *
+     * <p>Populates the caller's page <b>in place</b> on purpose: if iteration throws
+     * partway (a corrupt row, a dead cursor), the caller still sees the last safely-read
+     * id and can make a targeted skip. A String cursor has no {@code cursor += PAGE_SIZE}
+     * blind advance available to it, so without partial progress a single poison row
+     * would stall the sweep forever.</p>
+     *
+     * <p>The scope query joins through Encounter, so an annotation attached to more than
+     * one encounter can appear more than once even with SQL {@code distinct} applied;
+     * hence the in-memory dedup. {@code rawExhausted} is set true only when the input
+     * actually ran out — never inferred from a post-dedup count, or a page whose
+     * duplicates collapsed below {@code pageSize} would falsely end the sweep.</p>
+     */
+    static void collectAnnotSweepPageInto(AnnotSweepPage page,
+        java.util.Iterator<String[]> rowsInIdOrder, int pageSize) {
+        java.util.Set<String> seen = new java.util.HashSet<String>();
+
+        while (rowsInIdOrder.hasNext()) {
+            String[] row = rowsInIdOrder.next();
+            if ((row == null) || (row.length < 1)) continue;
+            String annId = row[0];
+            String acmId = (row.length > 1) ? row[1] : null;
+            // an id-less row could not be re-loaded in the heal phase, and must not
+            // become the cursor either
+            if (!Util.stringExists(annId)) continue;
+            if (seen.contains(annId)) continue;
+            if (seen.size() >= pageSize) return; // rawExhausted stays false: more remains
+            seen.add(annId);
+            page.lastAnnotId = annId;
+            page.orderedAnnotIds.add(annId);
+            // null or malformed acmId: route straight to the heal path rather than the
+            // probe, since a non-UUID value would make WBIA reject the whole probe chunk
+            // and could strand the rest of the page
+            if ((acmId == null) || !Util.isUUID(acmId)) {
+                page.nullAcmAnnotIds.add(annId);
+            } else {
+                String displaced = page.acmIdToAnnotId.put(acmId, annId);
+                if (displaced != null) {
+                    System.out.println("WARNING: AcmIdBot annotation sweep found duplicate acmId " +
+                        acmId + " on annotations " + displaced + " and " + annId +
+                        "; only the latter will be probed/healed this sweep");
+                }
+            }
+        }
+        page.rawExhausted = true; // input ran out: sweep has reached the end
+    }
+
+    // cursor policy, mirroring nextCursorAfterSuccess: maxFixes clamp wins (resume
+    // mid-page next run), else wrap on true exhaustion, else advance past the page
+    static String nextAnnotCursorAfterSuccess(AnnotSweepPage page, boolean maxFixesHit,
+        String resumeAnnotId) {
+        if (maxFixesHit && Util.stringExists(resumeAnnotId)) return resumeAnnotId;
+        if (page.rawExhausted) return "";
+        // lastAnnotId is null only when nothing was read, which the exhaustion branch
+        // above already covers. Guard anyway so a null never reaches the cursor.
+        return (page.lastAnnotId == null) ? "" : page.lastAnnotId;
+    }
+
+    /**
+     * One 15-minute bite of the annotation reconciliation sweep.
+     * Phase-separated exactly like {@link #sweepMatchableAssets}: (1) read one page of
+     * distinct matchable annotations inside a short transaction, projected to primitives;
+     * (2) probe WBIA over HTTP with no transaction open; (3) heal missing annotations in
+     * a fresh transaction with explicit commits so results survive
+     * {@code rollbackAndClose()}.
+     *
+     * <p>Scope is annotations with {@code matchAgainst == true} that are attached to an
+     * Encounter, deliberately <b>ignoring {@code wbiaRegistered}</b> — that flag is the
+     * thing this sweep exists to stop trusting.</p>
+     */
+    static void sweepMatchableAnnotations(String context, int maxFixes) {
+        // ---- read phase ----
+        AnnotSweepPage page = new AnnotSweepPage();
+        boolean readOk = false;
+        Shepherd readShepherd = new Shepherd(context);
+
+        readShepherd.setAction("AcmIdBot.annotSweepRead");
+        readShepherd.beginDBTransaction();
+        Query query = null;
+        try {
+            System.out.println("AcmIdBot annotation sweep: reading from cursor '" +
+                annotSweepCursor + "'");
+            // enc.annotations.contains(this) both restricts scope to annotations attached
+            // to an Encounter and binds the variable (an unbound VARIABLES declaration is
+            // a silent no-op). The cursor is a bound parameter: a String concatenated into
+            // JDOQL would be an invalid unquoted literal.
+            //
+            // The trailing clause is the anti-race with StartupWildbook's 30s registration
+            // poller, which claims exactly `wbiaRegistered == false && attempts < MAX`.
+            // This sweep takes the precise complement of that queue, so the two workers can
+            // never hold the same annotation: without it, both could POST the same row
+            // concurrently, and because the poller forces `id` while the sweep forces
+            // `acmId`, an `id != acmId` row would end up as TWO WBIA annotations on one
+            // box. Partitioning by the flag beats a lease here because the sweep's whole
+            // purpose is the rows the poller ignores -- the ones whose flag is lying
+            // (wbiaRegistered TRUE or NULL) and the ones it permanently parked.
+            query = readShepherd.getPM().newQuery(org.ecocean.Annotation.class,
+                "matchAgainst == true && enc.annotations.contains(this) && id > cursor" +
+                " && (wbiaRegistered == null || wbiaRegistered == true" +
+                " || wbiaRegisterAttempts >= " + StartupWildbook.WBIA_REGISTER_MAX_ATTEMPTS +
+                ")");
+            query.declareVariables("org.ecocean.Encounter enc");
+            query.declareParameters("String cursor");
+            // project only what the sweep needs; materializing 10k managed Annotation
+            // graphs to read two fields would be gratuitous heap pressure
+            query.setResult("distinct id, acmId");
+            query.setOrdering("id ascending");
+            // stream rather than buffer the whole ResultSet client-side (pgjdbc default
+            // fetchSize=0 buffers everything); setRange would break rawExhausted semantics
+            query.getFetchPlan().setFetchSize(1000);
+            Collection c = (Collection)(query.execute(annotSweepCursor));
+            final java.util.Iterator rawIter = c.iterator();
+            java.util.Iterator<String[]> rowIter = new java.util.Iterator<String[]>() {
+                public boolean hasNext() {
+                    return rawIter.hasNext();
+                }
+
+                public String[] next() {
+                    Object o = rawIter.next();
+                    // A two-column projection yields Object[]. Anything else must FAIL, not
+                    // be coerced: silently treating an unexpected row shape as
+                    // "id with no acmId" would route every annotation into the
+                    // heal-without-probe bucket, force-adopt acmIds, and re-POST the entire
+                    // corpus to WBIA. A failed read just retries this page.
+                    if (!(o instanceof Object[]))
+                        throw new IllegalStateException(
+                            "annotation sweep expected a two-column projection row, got " +
+                            ((o == null) ? "null" : o.getClass().getName()));
+                    Object[] arr = (Object[])o;
+                    if (arr.length < 2)
+                        throw new IllegalStateException(
+                            "annotation sweep expected 2 projected columns, got " + arr.length);
+                    return new String[] {
+                               (arr[0] == null) ? null : arr[0].toString(),
+                               (arr[1] == null) ? null : arr[1].toString()
+                    };
+                }
+            };
+            collectAnnotSweepPageInto(page, rowIter, ANNOT_SWEEP_PAGE_SIZE);
+            readOk = true;
+        } catch (Exception ex) {
+            System.out.println("Exception in AcmIdBot.sweepMatchableAnnotations read phase!");
+            ex.printStackTrace();
+        } finally {
+            if (query != null) query.closeAll();
+            readShepherd.rollbackAndClose();
+        }
+        if (!readOk) {
+            annotSweepFailCount++;
+            System.out.println("WARNING: AcmIdBot annotation sweep read phase failed (attempt " +
+                annotSweepFailCount + " of " + PAGE_FAIL_LIMIT + " at cursor '" +
+                annotSweepCursor + "')");
+            if (shouldSkipPoisonedPage(annotSweepFailCount)) {
+                if (Util.stringExists(page.lastAnnotId)) {
+                    // partial progress survived the failure: skip precisely past what we
+                    // did manage to read, so the offending row is stepped over once
+                    System.out.println(
+                        "WARNING: AcmIdBot annotation sweep SKIPPING past partially-read page; cursor '"
+                        + annotSweepCursor + "' -> '" + page.lastAnnotId + "'");
+                    annotSweepCursor = page.lastAnnotId;
+                } else {
+                    // Nothing was read at all, so there is no id to skip to and a String
+                    // cursor has no arithmetic to blind-advance with. A read failure this
+                    // early is almost always cursor-independent (DB down, pool exhausted),
+                    // so wrap and keep going. If it IS a poison row at this position,
+                    // wrapping re-reaches it and this line recurs -- which is the point:
+                    // never silently skip a range, because an unswept range is invisible
+                    // while a recurring log line is not.
+                    System.out.println("WARNING: ANNOT SWEEP STUCK at cursor '" +
+                        annotSweepCursor + "' after " + PAGE_FAIL_LIMIT +
+                        " consecutive read failures with no rows read; wrapping to restart. " +
+                        "If this repeats, investigate the annotation rows just past this id.");
+                    annotSweepCursor = "";
+                }
+                annotSweepFailCount = 0;
+            }
+            return; // cursor otherwise unchanged: same page retried next run
+        }
+
+        // ---- probe phase (no transaction open) ----
+        List<String> missingAcmIds = null;
+        try {
+            missingAcmIds = org.ecocean.ia.plugin.WildbookIAM.iaMissingAnnotationIds(
+                new ArrayList<String>(page.acmIdToAnnotId.keySet()), context);
+        } catch (java.io.IOException ex) {
+            annotSweepFailCount++;
+            System.out.println("WARNING: AcmIdBot annotation sweep probe failed (attempt " +
+                annotSweepFailCount + " of " + PAGE_FAIL_LIMIT + " at cursor '" +
+                annotSweepCursor + "'): " + ex.toString());
+            if (shouldSkipPoisonedPage(annotSweepFailCount)) {
+                System.out.println(
+                    "WARNING: AcmIdBot annotation sweep SKIPPING page after repeated failures; cursor '"
+                    + annotSweepCursor + "' -> '" + page.lastAnnotId + "'");
+                if (Util.stringExists(page.lastAnnotId)) annotSweepCursor = page.lastAnnotId;
+                annotSweepFailCount = 0;
+            }
+            return; // cursor otherwise unchanged: same page retried next run
+        }
+
+        // ---- heal phase (own transaction, explicit commits) ----
+        java.util.Set<String> candidateSet = new java.util.HashSet<String>(page.nullAcmAnnotIds);
+        for (String acmId : missingAcmIds) {
+            String annId = page.acmIdToAnnotId.get(acmId);
+            if (annId != null) candidateSet.add(annId);
+        }
+        // walk in database order (see AnnotSweepPage.orderedAnnotIds), NOT Java String
+        // order, so a maxFixes resume point is a cursor value that cannot skip candidates
+        List<String> candidateIds = new ArrayList<String>();
+        for (String annId : page.orderedAnnotIds) {
+            if (candidateSet.contains(annId)) candidateIds.add(annId);
+        }
+        AnnotHealTally tally = new AnnotHealTally();
+        tally.resumeAnnotId = page.lastAnnotId;
+        if (candidateIds.size() > 0) healAnnotations(context, candidateIds, maxFixes, tally);
+        annotSweepCursor = nextAnnotCursorAfterSuccess(page, tally.maxFixesHit,
+            tally.resumeAnnotId);
+        annotSweepFailCount = 0;
+        System.out.println("AcmIdBot Annotation Reconciliation Sweep Summary");
+        System.out.println("...page: " + (page.acmIdToAnnotId.size() +
+            page.nullAcmAnnotIds.size()) + " candidates (" + page.acmIdToAnnotId.size() +
+            " probed, " + page.nullAcmAnnotIds.size() + " null/malformed acmId)");
+        System.out.println("......missing from WBIA: " + missingAcmIds.size());
+        System.out.println("......heal candidates: " + candidateIds.size() +
+            "; POSTs sent: " + tally.sent + ", confirmed: " + tally.healed +
+            (tally.maxFixesHit ? " (maxFixes cap hit)" : ""));
+        // buckets are mutually exclusive and, absent a maxFixes break, sum to the
+        // candidate count -- so a mismatch is itself a signal worth investigating
+        System.out.println("......not healed: " + tally.unconfirmed +
+            " unconfirmed by WBIA, " + tally.blockedOnAsset +
+            " image not registered at WBIA, " + tally.skippedInvalid +
+            " invalid for identification, " + tally.skippedNoAsset + " no media asset, " +
+            tally.gone + " deleted mid-run, " + tally.errored + " errored");
+        System.out.println("......cursor now '" + annotSweepCursor + "'" +
+            (page.rawExhausted && !tally.maxFixesHit ? " (sweep complete, wrapped)" : ""));
+    }
+
+    /**
+     * Per-run heal accounting, kept in one object so the summary log stays honest.
+     * Every candidate lands in exactly one of gone / skippedNoAsset / skippedInvalid /
+     * blockedOnAsset / healed / unconfirmed / errored, so an operator can check that the
+     * buckets add up to the candidate count instead of wondering where rows went.
+     */
+    static class AnnotHealTally {
+        int sent = 0;         // POSTs attempted (healed + unconfirmed)
+        int healed = 0;       // WBIA echoed our acmId
+        int unconfirmed = 0;  // POST returned, but not with our acmId
+        int gone = 0;         // annotation deleted between read and heal
+        int skippedNoAsset = 0;
+        int blockedOnAsset = 0;
+        int skippedInvalid = 0;
+        int errored = 0;      // threw; see the stack trace above the summary
+        boolean maxFixesHit = false;
+        String resumeAnnotId = null;
+    }
+
+    /**
+     * Heal phase: re-register each candidate annotation with WBIA under its own acmId.
+     * Split out of {@link #sweepMatchableAnnotations} to keep that method readable.
+     */
+    private static void healAnnotations(String context, List<String> candidateIds, int maxFixes,
+        AnnotHealTally tally) {
+        Shepherd healShepherd = new Shepherd(context);
+
+        healShepherd.setAction("AcmIdBot.annotSweepHeal");
+        healShepherd.beginDBTransaction();
+        org.ecocean.ia.plugin.WildbookIAM iam = new org.ecocean.ia.plugin.WildbookIAM(context);
+        try {
+            for (String annId : candidateIds) {
+                healShepherd.setAction("AcmIdBot.annotSweepHeal_annot_" + annId);
+                // hoisted so the catch block can revert identifiers we adopted locally
+                // but WBIA never acknowledged
+                Annotation ann = null;
+                String priorAnnAcmId = null;
+                // The asset's acmId is owned entirely by ensureImageRegistered(); this loop
+                // never touches it. Once that method confirms a registration, the asset's
+                // acmId is the UUID WBIA holds the image under and must survive a later
+                // failure on the annotation half of the work.
+                boolean annAcmIdAdopted = false;
+                try {
+                    ann = healShepherd.getAnnotation(annId);
+                    if (ann == null) {
+                        System.out.println("WARNING: AcmIdBot annotation sweep skipping " + annId +
+                            " (no longer exists)");
+                        tally.gone++;
+                        continue;
+                    }
+                    MediaAsset ma = ann.getMediaAsset();
+                    if (ma == null) {
+                        tally.skippedNoAsset++;
+                        continue;
+                    }
+                    // context-aware on purpose: the no-context overload skips the
+                    // validIAClassForIdentification check, so using it would let the sweep
+                    // register annotations identify then rejects
+                    if (!IBEISIA.validForIdentification(ann, context)) {
+                        tally.skippedInvalid++;
+                        continue;
+                    }
+                    // WBIA cannot hold an annotation whose image it does not have: the
+                    // annotation POST fails with
+                    // "image_uuid_list has invalid values [(0, None)]". A non-null
+                    // MediaAsset.acmId is NOT evidence of WBIA presence -- closing that gap
+                    // is the whole point of the asset sweep -- and featureless legacy
+                    // annotations reach their asset via the deprecated direct association,
+                    // which the Feature-based asset sweep never traverses. So confirm the
+                    // image here rather than assuming the asset sweep got there first.
+                    if (!ensureImageRegistered(ma, context, healShepherd)) {
+                        tally.blockedOnAsset++;
+                        continue;
+                    }
+                    priorAnnAcmId = ann.getAcmId();
+                    // legacy null or malformed acmIds adopt the annotation's own id before
+                    // sending, matching MlServiceProcessor's convention
+                    if ((priorAnnAcmId == null) || !Util.isUUID(priorAnnAcmId)) {
+                        ann.setAcmId(ann.getId());
+                        annAcmIdAdopted = true;
+                    }
+                    boolean confirmed = iam.sendAnnotationForcedByAcmId(ann, healShepherd);
+                    tally.sent++;
+                    if (confirmed) {
+                        // Setters bump Annotation.version (and so trigger an OpenSearch
+                        // reindex), so only write a field whose value actually changes --
+                        // otherwise a systemic WBIA loss would reindex the whole corpus for
+                        // nothing. Marking registered also un-parks annotations the 30s
+                        // poller abandoned at attempts >= MAX, which nothing else does.
+                        if (!Boolean.TRUE.equals(ann.getWbiaRegistered()))
+                            ann.setWbiaRegistered(Boolean.TRUE);
+                        if (ann.getWbiaRegisterAttempts() != 0) ann.setWbiaRegisterAttempts(0);
+                        // commit so the confirmed acmId + flags survive rollbackAndClose
+                        healShepherd.updateDBTransaction();
+                        tally.healed++;
+                        if (tally.healed >= maxFixes) {
+                            tally.maxFixesHit = true;
+                            tally.resumeAnnotId = annId;
+                            break;
+                        }
+                    } else {
+                        tally.unconfirmed++;
+                        System.out.println(
+                            "WARNING: AcmIdBot annotation sweep could not confirm WBIA registration for "
+                            + annId + "; not counting as healed");
+                        // Never persist an annotation identifier WBIA did not acknowledge --
+                        // but only write the field if we actually changed it, since setAcmId
+                        // bumps version and would otherwise queue a pointless reindex for
+                        // every unconfirmed annotation. The asset's acmId stays as-is: the
+                        // image registration under it was already confirmed.
+                        if (annAcmIdAdopted) ann.setAcmId(priorAnnAcmId);
+                    }
+                } catch (Exception ec) {
+                    tally.errored++;
+                    // revert BEFORE any later candidate's commit can persist an identifier
+                    // WBIA never acknowledged
+                    if (annAcmIdAdopted && (ann != null)) ann.setAcmId(priorAnnAcmId);
+                    System.out.println("Exception in AcmIdBot annotation sweep heal for " + annId);
+                    ec.printStackTrace();
+                }
+            }
+        } finally {
+            healShepherd.rollbackAndClose();
+        }
+    }
+
+    /**
+     * Probe WBIA for this image and register it if absent. Returns true when WBIA is known
+     * to hold the asset's acmId, i.e. when it is safe to POST an annotation referencing it.
+     * Reuses the asset sweep's own probe and send so there is one definition of
+     * "registered", and owns the asset's acmId outright so the caller never has to reason
+     * about reverting it.
+     *
+     * <p>Step order matters and is not incidental. {@code updateDBTransaction()} is
+     * commit-plus-begin, so it commits <b>every</b> dirty object in the transaction, not
+     * just the field the caller had in mind. Validity is therefore resolved and committed
+     * <b>before</b> any provisional acmId is adopted, and the adopted acmId is committed
+     * only <b>after</b> WBIA confirms it. Otherwise an unconfirmed identifier would be
+     * committed by the validity flush and the later in-memory revert would simply be
+     * discarded by the enclosing {@code rollbackAndClose()}, leaving Wildbook holding an
+     * acmId WBIA never acknowledged.</p>
+     */
+    private static boolean ensureImageRegistered(MediaAsset ma, String context,
+        Shepherd myShepherd) {
+        try {
+            // 1. resolve validity first, while nothing provisional is pending
+            if (ma.isValidImageForIA() == null) {
+                ma.validateSourceImage();
+                myShepherd.updateDBTransaction();
+            }
+            if (!ma.isValidImageForIAForced()) {
+                System.out.println(
+                    "WARNING: AcmIdBot annotation sweep cannot register unhealable image " +
+                    ma.getId() + " (invalid or unvalidatable for IA)");
+                return false;
+            }
+            // 2. if the asset already carries a well-formed acmId, ask WBIA about it; a
+            // present image needs no further work
+            String maAcmId = ma.getAcmId();
+            if (Util.stringExists(maAcmId) && Util.isUUID(maAcmId)) {
+                if (org.ecocean.ia.plugin.WildbookIAM.iaMissingImageIds(
+                        java.util.Collections.singletonList(maAcmId), context).isEmpty())
+                    return true;
+            }
+            // 3. adopt provisionally, POST, and commit only on confirmation
+            String priorMaAcmId = ma.getAcmId();
+            if ((priorMaAcmId == null) || !Util.isUUID(priorMaAcmId))
+                ma.setAcmId(ma.getUUID());
+            try {
+                if (!ma.hasFamily(myShepherd)) ma.updateStandardChildren();
+                ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
+                fixMe.add(ma);
+                // checkFirst=false: step 2 already established absence
+                org.json.JSONObject sendRtn = IBEISIA.sendMediaAssetsNew(fixMe, context, false);
+                if (!sendConfirmedAcmId(sendRtn, ma.getAcmId())) {
+                    System.out.println(
+                        "WARNING: AcmIdBot annotation sweep could not confirm image registration for asset "
+                        + ma.getId() + "; deferring its annotations");
+                    ma.setAcmId(priorMaAcmId);
+                    return false;
+                }
+            } catch (Exception sendEx) {
+                ma.setAcmId(priorMaAcmId);
+                throw sendEx;
+            }
+            // persist the confirmed image registration before the annotation POST
+            myShepherd.updateDBTransaction();
+            return true;
+        } catch (Exception ex) {
+            System.out.println("WARNING: AcmIdBot annotation sweep image check failed for asset " +
+                ma.getId() + ": " + ex.toString());
+            return false;
         }
     }
 }

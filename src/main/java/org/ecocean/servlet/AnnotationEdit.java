@@ -45,7 +45,6 @@ public class AnnotationEdit extends HttpServlet {
         myShepherd.beginDBTransaction();
         JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
         PrintWriter out = response.getWriter();
-
         User user = AccessControl.getUser(request, myShepherd);
         boolean isAdmin = false;
         if (user != null)
@@ -172,6 +171,9 @@ public class AnnotationEdit extends HttpServlet {
                             myShepherd.getPM().deletePersistent(enc);
                             rtn.put("encounterDeleted", true);
                         }
+                        annot.deleteMatchResults(myShepherd);
+                        annot.deleteMatchResultProspects(myShepherd);
+                        annot.deleteEmbeddings(myShepherd);
                         myShepherd.getPM().deletePersistent(annot);
                         myShepherd.getPM().deletePersistent(feat);
                         System.out.println(
@@ -203,7 +205,9 @@ public class AnnotationEdit extends HttpServlet {
                 } else {
                     indiv.addEncounter(enc);
                 }
-                touchedIndividualIds.add(assignIndivId);
+                // use the datastore id — for a newly created individual,
+                // assignIndivId is a name, not the generated individualID
+                touchedIndividualIds.add(indiv.getIndividualID());
                 // enc.setIndividualID(assignIndivId);
                 System.out.println("INFO: AnnotationEdit assigned " + indiv + " on " + enc +
                     " via " + annot);

@@ -112,17 +112,24 @@ public class ProjectCreate extends HttpServlet {
                     }
                 }
                 if (projectUserIds != null && projectUserIds.length() > 0) {
+                    JSONArray unresolved = res.optJSONArray("unresolvedUserIds");
+                    if (unresolved == null) {
+                        unresolved = new JSONArray();
+                        res.put("unresolvedUserIds", unresolved);
+                    }
                     for (int i = 0; i < projectUserIds.length(); i++) {
                         String userIdentifier = projectUserIds.getString(i);
                         if (!Util.stringIsEmptyOrNull(userIdentifier)) {
-                            User user = null;
-                            if (Util.isUUID(userIdentifier)) {
-                                user = myShepherd.getUserByUUID(userIdentifier);
-                            } else {
-                                user = myShepherd.getUser(userIdentifier);
-                            }
+                            // GH-1545: use shared resolver with email-address fallback for
+                            // legacy accounts whose UUID primary key stores an email.
+                            User user = ProjectUpdate.resolveUser(myShepherd, userIdentifier);
                             if (user != null) {
                                 newProject.addUser(user);
+                            } else {
+                                unresolved.put(userIdentifier);
+                                System.out.println(
+                                    "ProjectCreate: could not resolve userIdentifier=" +
+                                    userIdentifier);
                             }
                         }
                     }

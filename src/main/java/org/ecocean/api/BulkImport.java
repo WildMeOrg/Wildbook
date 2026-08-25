@@ -36,13 +36,13 @@ public class BulkImport extends ApiBase {
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         int statusCode = 500;
-        Shepherd myShepherd = new Shepherd(context);
-
-        myShepherd.setAction("api.Bulk.doGet");
-        myShepherd.beginDBTransaction();
         JSONObject rtn = new JSONObject("{\"success\": false}");
+        Shepherd myShepherd = null;
 
         try {
+            myShepherd = new Shepherd(context);
+            myShepherd.setAction("api.Bulk.doGet");
+            myShepherd.beginDBTransaction();
             User currentUser = myShepherd.getUser(request);
             if (currentUser == null) {
                 response.setStatus(401);
@@ -121,7 +121,7 @@ public class BulkImport extends ApiBase {
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-            myShepherd.rollbackAndClose();
+            if (myShepherd != null) myShepherd.rollbackAndClose();
         }
         rtn.put("statusCode", statusCode);
         response.setStatus(statusCode);
@@ -147,12 +147,13 @@ public class BulkImport extends ApiBase {
         // reindex of individuals the foreground importer touched.
         BulkImporter fgImporter = null;
         long startProcess = System.currentTimeMillis();
-        Shepherd myShepherd = new Shepherd(context);
+        Shepherd myShepherd = null;
 
-        myShepherd.setAction("api.Bulk.doPost");
-        myShepherd.beginDBTransaction();
         long startTime = System.currentTimeMillis();
         try {
+            myShepherd = new Shepherd(context);
+            myShepherd.setAction("api.Bulk.doPost");
+            myShepherd.beginDBTransaction();
             User currentUser = myShepherd.getUser(request);
             if (currentUser == null) {
                 response.setStatus(401);
@@ -419,10 +420,11 @@ public class BulkImport extends ApiBase {
                     final boolean bgSkipDetection = skipDetection;
                     final boolean bgSkipIdentification = skipIdentification;
                     final String currentUsername = currentUser.getUsername();
+                    final String bgContext = myShepherd.getContext();
                     Runnable r = new Runnable() {
                         public void run() {
                             // make our background thread safely use our own Shepherd
-                            Shepherd bgShepherd = new Shepherd(myShepherd.getContext());
+                            Shepherd bgShepherd = new Shepherd(bgContext);
                             bgShepherd.setAction("api.Bulk.processBackground");
                             bgShepherd.beginDBTransaction();
 
@@ -635,15 +637,17 @@ public class BulkImport extends ApiBase {
             statusCode = 500;
             ex.printStackTrace();
         } finally {
-            if ((statusCode == 200) && !validateOnly) {
-                myShepherd.commitDBTransaction();
-            } else {
-                myShepherd.rollbackDBTransaction();
+            if (myShepherd != null) {
+                if ((statusCode == 200) && !validateOnly) {
+                    myShepherd.commitDBTransaction();
+                } else {
+                    myShepherd.rollbackDBTransaction();
+                }
+                myShepherd.closeDBTransaction();
             }
-            myShepherd.closeDBTransaction();
             // GH-1514: post-commit, queue deep reindex of individuals touched by
             // the foreground import so sibling encounters refresh individualNumberEncounters.
-            if ((statusCode == 200) && !validateOnly && fgImporter != null) {
+            if ((statusCode == 200) && !validateOnly && (fgImporter != null)) {
                 org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
                     fgImporter.getTouchedIndividualIds());
             }
@@ -941,7 +945,14 @@ public class BulkImport extends ApiBase {
                         encj.put("individualId", enc.getIndividualID());
                         encj.put("individualDisplayName", enc.getDisplayName());
                     }
-                    encj.put("numberMediaAssets", enc.numAnnotations());
+                    // The JSON key is numberMediaAssets and the UI labels the
+                    // column "image count", so it must reflect the number of
+                    // MediaAssets uploaded for this encounter — not the
+                    // annotation count. numAnnotations can inflate post-
+                    // detection (multiple objects per image) and is zero
+                    // pre-detection, neither of which match user expectation.
+                    encj.put("numberMediaAssets",
+                        enc.getMedia() == null ? 0 : enc.getMedia().size());
                     User sub = enc.getSubmitterUser(myShepherd);
                     if (sub != null)
                         encj.put("submitter", sub.infoJSONObject(myShepherd));

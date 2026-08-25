@@ -34,8 +34,8 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Class providing centralized image-related services, such as image rescaling, JPEG saving, thumbnail generation, etc.
@@ -43,8 +43,7 @@ import org.slf4j.LoggerFactory;
  * @author Giles Winstanley
  */
 public final class MediaUtilities {
-    /** SLF4J logger instance for writing log entries. */
-    private static Logger log = LoggerFactory.getLogger(MediaUtilities.class);
+    private static final Logger log = LogManager.getLogger(MediaUtilities.class);
     /** ColorSpace for sRGB images (used for conversions). */
     private static final ICC_ColorSpace CS_sRGB = new ICC_ColorSpace(ICC_Profile.getInstance(
         ColorSpace.CS_sRGB));
