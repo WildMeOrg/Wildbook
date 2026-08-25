@@ -422,6 +422,34 @@ public class Util {
         return gs;
     }
 
+    // parses a user-submitted "genusSpecies" form value (e.g. "Delphinus capensis
+    // tropicalis") into { genus, specificEpithet }. everything after the genus is kept as
+    // the specific epithet, which is how Encounter/Taxonomy already store trinomials --
+    // see setTaxonomyFromString() and Taxonomy.getGenusSpecificEpithet(). also applies the
+    // normalization the submit/edit servlets have always done (drop commas from the
+    // epithet, underscores become spaces). returns null only when there is no epithet at
+    // all, so callers keep their own "malformed genusSpecies" handling.
+    // two things here are load-bearing, both matching what the servlets' old two-token
+    // StringTokenizer did:
+    //   - the parsed parts are NOT screened with stringExists(), which is false for the
+    //     literal values "unknown" and "none" -- those have always been passed through and
+    //     judged downstream.
+    //   - commas are dropped from the epithet only. a comma left on the genus is a config
+    //     typo that survives into the taxonomy, as it always has.
+    // the one intentional difference: whitespace is normalized before the split, so any
+    // run of it separates the parts and none of it ends up inside them. precisely, trim()
+    // strips leading/trailing characters <= U+0020 (stray control characters go with the
+    // whitespace) and interior \s runs collapse to one space. the old tokenizer split on
+    // the literal space alone, which both rejected e.g. a tab-separated value as malformed
+    // (silently costing the encounter its taxonomy) and embedded stray tabs, newlines and
+    // control characters in the stored genus or epithet.
+    public static String[] parseGenusSpecies(String value) {
+        if (value == null) return null;
+        String[] gs = stringToGenusSpecificEpithet(value.trim().replaceAll("\\s+", " "));
+        if ((gs == null) || (gs.length < 2)) return null;
+        return new String[] { gs[0], gs[1].replaceAll(",", "").replaceAll("_", " ") };
+    }
+
     // a generic version of our uuid-dir-structure-creating algorithm -- adjust as needed!?
     // TODO: check for incoming slashes and similar weirdness
     public static String hashDirectories(String in, String separator) {
