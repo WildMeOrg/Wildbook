@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import javax.jdo.PersistenceManagerFactory;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
@@ -275,5 +277,54 @@ class MatchResultTest {
         assertEquals(0.7, pj.getJSONArray("annot").getJSONObject(0).getDouble("score"), 1e-9);
         assertEquals(1, pj.getJSONArray("indiv").length());
         assertEquals(0.5, pj.getJSONArray("indiv").getJSONObject(0).getDouble("score"), 1e-9);
+    }
+
+    // The match-results endpoint is login-gated, so the image URL it emits should be the
+    // highest-resolution derivative available. MediaAsset.toSimpleJSONObject() resolves its
+    // url via the no-request safeURL(), which always falls to the anonymous "mid" (1024px)
+    // derivative -- too small to inspect fluke/fin detail at zoom.
+    @Test void annotationDetailsPrefersMasterOverMid()
+    throws Exception {
+        Shepherd myShepherd = mock(Shepherd.class);
+        MediaAsset ma = mock(MediaAsset.class);
+        JSONObject simple = new JSONObject();
+
+        simple.put("url", "http://example.org/mid.jpg");
+        when(ma.toSimpleJSONObject()).thenReturn(simple);
+        when(ma.safeURL(any(), any(), eq("master"))).thenReturn(new URL(
+            "http://example.org/master.jpg"));
+        when(ma.safeURL(any(), any(), eq("mid"))).thenReturn(new URL("http://example.org/mid.jpg"));
+
+        Annotation ann = mock(Annotation.class);
+        when(ann.getMediaAsset()).thenReturn(ma);
+
+        JSONObject aj = MatchResult.annotationDetails(ann, myShepherd);
+        org.junit.jupiter.api.Assertions.assertEquals("http://example.org/master.jpg",
+            aj.getJSONObject("asset").getString("url"),
+            "match-results should serve the _master derivative, not the anonymous _mid one");
+    }
+
+    // bestSafeAsset() matches its bestType exactly and returns null rather than degrading, so an
+    // asset with no _master child must still yield its _mid URL -- never a missing image.
+    @Test void annotationDetailsFallsBackToMidWhenNoMaster()
+    throws Exception {
+        Shepherd myShepherd = mock(Shepherd.class);
+        MediaAsset ma = mock(MediaAsset.class);
+        JSONObject simple = new JSONObject();
+
+        // org.json omits a null value, so an asset whose anonymous resolution yields nothing
+        // reaches us with no "url" key at all.
+        simple.put("id", 42);
+        when(ma.toSimpleJSONObject()).thenReturn(simple);
+        when(ma.safeURL(any(), any(), eq("master"))).thenReturn(null);
+        when(ma.safeURL(any(), any(), eq("mid"))).thenReturn(new URL("http://example.org/mid.jpg"));
+
+        Annotation ann = mock(Annotation.class);
+        when(ann.getMediaAsset()).thenReturn(ma);
+
+        JSONObject aj = MatchResult.annotationDetails(ann, myShepherd);
+        org.junit.jupiter.api.Assertions.assertEquals("http://example.org/mid.jpg",
+            aj.getJSONObject("asset").optString("url"),
+            "a _mid-only asset must still render, not drop its url");
     }
 }
