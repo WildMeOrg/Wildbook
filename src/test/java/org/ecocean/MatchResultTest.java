@@ -287,10 +287,7 @@ class MatchResultTest {
     throws Exception {
         Shepherd myShepherd = mock(Shepherd.class);
         MediaAsset ma = mock(MediaAsset.class);
-        JSONObject simple = new JSONObject();
-
-        simple.put("url", "http://example.org/mid.jpg");
-        when(ma.toSimpleJSONObject()).thenReturn(simple);
+        echoResolvedUrl(ma);
         when(ma.safeURL(any(), any(), eq("master"))).thenReturn(new URL(
             "http://example.org/master.jpg"));
         when(ma.safeURL(any(), any(), eq("mid"))).thenReturn(new URL("http://example.org/mid.jpg"));
@@ -300,7 +297,7 @@ class MatchResultTest {
 
         JSONObject aj = MatchResult.annotationDetails(ann, myShepherd);
         org.junit.jupiter.api.Assertions.assertEquals("http://example.org/master.jpg",
-            aj.getJSONObject("asset").getString("url"),
+            aj.getJSONObject("asset").optString("url"),
             "match-results should serve the _master derivative, not the anonymous _mid one");
     }
 
@@ -310,12 +307,7 @@ class MatchResultTest {
     throws Exception {
         Shepherd myShepherd = mock(Shepherd.class);
         MediaAsset ma = mock(MediaAsset.class);
-        JSONObject simple = new JSONObject();
-
-        // org.json omits a null value, so an asset whose anonymous resolution yields nothing
-        // reaches us with no "url" key at all.
-        simple.put("id", 42);
-        when(ma.toSimpleJSONObject()).thenReturn(simple);
+        echoResolvedUrl(ma);
         when(ma.safeURL(any(), any(), eq("master"))).thenReturn(null);
         when(ma.safeURL(any(), any(), eq("mid"))).thenReturn(new URL("http://example.org/mid.jpg"));
 
@@ -326,5 +318,37 @@ class MatchResultTest {
         org.junit.jupiter.api.Assertions.assertEquals("http://example.org/mid.jpg",
             aj.getJSONObject("asset").optString("url"),
             "a _mid-only asset must still render, not drop its url");
+    }
+
+    // bestSafeAsset() throws when an asset's parent row is missing. That must not cost us the
+    // image -- the walk should carry on to the next derivative.
+    @Test void annotationDetailsFallsBackToMidWhenMasterLookupThrows()
+    throws Exception {
+        Shepherd myShepherd = mock(Shepherd.class);
+        MediaAsset ma = mock(MediaAsset.class);
+
+        echoResolvedUrl(ma);
+        when(ma.safeURL(any(), any(), eq("master"))).thenThrow(new RuntimeException(
+            "bestSafeAsset() failed to find parent"));
+        when(ma.safeURL(any(), any(), eq("mid"))).thenReturn(new URL("http://example.org/mid.jpg"));
+
+        Annotation ann = mock(Annotation.class);
+        when(ann.getMediaAsset()).thenReturn(ma);
+
+        JSONObject aj = MatchResult.annotationDetails(ann, myShepherd);
+        org.junit.jupiter.api.Assertions.assertEquals("http://example.org/mid.jpg",
+            aj.getJSONObject("asset").optString("url"),
+            "a throwing master lookup must not cost us the image");
+    }
+
+    // Serialize whatever url annotationDetails resolved, so the assertions read the real
+    // decision instead of a canned mock value.
+    private static void echoResolvedUrl(MediaAsset ma) {
+        when(ma.toSimpleJSONObject(any())).thenAnswer(inv -> {
+            JSONObject j = new JSONObject();
+
+            j.put("url", (URL)inv.getArgument(0));
+            return j;
+        });
     }
 }

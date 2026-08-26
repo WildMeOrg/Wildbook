@@ -314,8 +314,11 @@ const MatchProspectTable = ({
   const [hoveredRow, setHoveredRow] = React.useState(null);
 
   const handleRowClick = (rowData, rowKey) => {
+    // No reset() here: at this point the overlay still holds the previous
+    // prospect's geometry, so resetting would frame the outgoing annotation for
+    // a beat. The overlay returns to its default view when the image changes and
+    // fits the new annotation once it loads.
     setPreviewedRow({ ...rowData, _rowKey: rowKey });
-    rightOverlayRef.current?.reset?.();
   };
 
   const isSelected = (rowKey) => selectedMatch?.some((d) => d.key === rowKey);
