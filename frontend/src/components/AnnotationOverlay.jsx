@@ -59,9 +59,15 @@ const InteractiveAnnotationOverlay = forwardRef(
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
     const [imageLoaded, setImageLoaded] = useState(false);
-    // Pixel width of the image we were actually served, and the width it is
-    // drawn at -- together these say how much detail is left to zoom into.
-    const [sourceSize, setSourceSize] = useState({ natural: 0, display: 0 });
+    // Pixel width of the image we were actually served, and the width it is drawn
+    // at -- together these say how much detail is left to zoom into. Stamped with
+    // the url they were measured from: scaleX/scaleY are set in the same batch, so
+    // a matching url means every measurement below belongs to the current image.
+    const [sourceSize, setSourceSize] = useState({
+      natural: 0,
+      display: 0,
+      url: null,
+    });
 
     const [internalShowAnn, setInternalShowAnn] = useState(true);
     const showAnn =
@@ -107,6 +113,7 @@ const InteractiveAnnotationOverlay = forwardRef(
           setSourceSize({
             natural: imgRef.current.naturalWidth,
             display: displayWidth,
+            url: imageUrl,
           });
           setImageLoaded(true);
         }
@@ -263,10 +270,22 @@ const InteractiveAnnotationOverlay = forwardRef(
 
     useEffect(() => {
       if (!imageLoaded || !fitSignature) return;
+      // A cached image re-runs this effect on the url change before the new
+      // measurements are committed; fitting then would use the previous image's
+      // scale. Wait for the measurements to catch up -- they will, next render.
+      if (sourceSize.url !== imageUrl) return;
       fitRef.current();
       // fitRef always holds the latest closure; re-running on its identity would loop.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [imageLoaded, imageUrl, fitSignature, effectiveMaxZoom, scaleX, scaleY]);
+    }, [
+      imageLoaded,
+      imageUrl,
+      fitSignature,
+      effectiveMaxZoom,
+      scaleX,
+      scaleY,
+      sourceSize.url,
+    ]);
 
     useImperativeHandle(ref, () => ({
       zoomIn: () => {
