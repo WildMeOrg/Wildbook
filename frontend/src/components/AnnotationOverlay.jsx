@@ -71,15 +71,23 @@ const InteractiveAnnotationOverlay = forwardRef(
 
     const hasRotation = !!rotationInfo;
 
+    // A new image starts from the default view -- otherwise the zoom chosen for the
+    // previous prospect carries over onto the next one. Keyed on imageUrl alone, so a
+    // metadata-only change to the dimensions does not throw away the user's zoom, and
+    // run as a layout effect so a cached replacement cannot paint at the old transform
+    // first. The auto-fit effect reframes once the new image has loaded.
+    useLayoutEffect(() => {
+      setZoom(Number.isFinite(initialZoom) ? initialZoom : 1);
+      setPan((prev) => (prev.x === 0 && prev.y === 0 ? prev : { x: 0, y: 0 }));
+      // initialZoom is the default view, not a trigger: changing it alone should not
+      // yank the image out from under the user.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [imageUrl]);
+
     useEffect(() => {
       if (!imgRef.current) return;
 
       setImageLoaded(false);
-      // A new image starts from the default view -- otherwise the zoom chosen for
-      // the previous prospect carries over onto the next one. The auto-fit effect
-      // reframes once this image has loaded and its scale is known.
-      setZoom(Number.isFinite(initialZoom) ? initialZoom : 1);
-      setPan({ x: 0, y: 0 });
 
       const handleImageLoad = () => {
         if (imgRef.current) {
