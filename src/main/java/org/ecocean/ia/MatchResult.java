@@ -739,6 +739,10 @@ public class MatchResult implements java.io.Serializable {
      * bestSafeAsset() matches its bestType exactly and returns null rather than degrading, hence the
      * explicit master -> mid walk. The final no-bestType call preserves the previous behavior for
      * anything the walk cannot resolve, so this can only ever widen what we serve, never narrow it.
+     *
+     * Resolving here rather than inside toSimpleJSONObject() also means one lookup per asset on the
+     * caller's Shepherd instead of two, one of them on a throwaway Shepherd -- and it puts the whole
+     * resolution behind this method's fail-soft, where a missing parent row would otherwise throw.
      */
     private static URL bestResolutionURL(MediaAsset ma, Shepherd myShepherd) {
         if (ma == null) return null;
@@ -790,9 +794,7 @@ public class MatchResult implements java.io.Serializable {
             }
         }
         if (ma != null) {
-            JSONObject mj = ma.toSimpleJSONObject();
-            URL best = bestResolutionURL(ma, myShepherd);
-            if (best != null) mj.put("url", best.toString());
+            JSONObject mj = ma.toSimpleJSONObject(bestResolutionURL(ma, myShepherd));
             mj.put("rotationInfo", ma.getRotationInfo());
             aj.put("asset", mj);
         }

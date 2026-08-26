@@ -2,6 +2,7 @@ import {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -74,6 +75,11 @@ const InteractiveAnnotationOverlay = forwardRef(
       if (!imgRef.current) return;
 
       setImageLoaded(false);
+      // A new image starts from the default view -- otherwise the zoom chosen for
+      // the previous prospect carries over onto the next one. The auto-fit effect
+      // reframes once this image has loaded and its scale is known.
+      setZoom(Number.isFinite(initialZoom) ? initialZoom : 1);
+      setPan({ x: 0, y: 0 });
 
       const handleImageLoad = () => {
         if (imgRef.current) {
@@ -157,7 +163,7 @@ const InteractiveAnnotationOverlay = forwardRef(
     // The imperative handle is built once, so it must read the ceiling through a
     // ref -- closing over effectiveMaxZoom would pin it to the pre-load value.
     const maxZoomRef = useRef(effectiveMaxZoom);
-    useEffect(() => {
+    useLayoutEffect(() => {
       maxZoomRef.current = effectiveMaxZoom;
     }, [effectiveMaxZoom]);
 
@@ -228,9 +234,10 @@ const InteractiveAnnotationOverlay = forwardRef(
       return true;
     };
 
-    // Same reason as maxZoomRef: the imperative handle needs the current closure.
+    // Same reason as maxZoomRef: the imperative handle needs the current closure,
+    // and it must be in place before a parent effect can call reset().
     const fitRef = useRef(() => false);
-    useEffect(() => {
+    useLayoutEffect(() => {
       fitRef.current = fitAnnotationView;
     });
 
