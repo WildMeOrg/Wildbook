@@ -686,6 +686,7 @@ const MatchProspectTable = ({
               {hasLeftImage ? (
                 <InteractiveAnnotationOverlay
                   ref={leftOverlayRef}
+                  fitToAnnotation
                   imageUrl={leftImageUrl}
                   originalWidth={leftOrigW}
                   originalHeight={leftOrigH}
@@ -766,6 +767,7 @@ const MatchProspectTable = ({
               {hasRightImage ? (
                 <InteractiveAnnotationOverlay
                   ref={rightOverlayRef}
+                  fitToAnnotation
                   imageUrl={rightImageUrl}
                   originalWidth={rightOrigW}
                   originalHeight={rightOrigH}
@@ -988,6 +990,7 @@ const MatchProspectTable = ({
 
                   <InteractiveAnnotationOverlay
                     ref={fsLeftRef}
+                    fitToAnnotation
                     imageUrl={leftImageUrl}
                     originalWidth={leftOrigW}
                     originalHeight={leftOrigH}
@@ -1117,6 +1120,7 @@ const MatchProspectTable = ({
 
                   <InteractiveAnnotationOverlay
                     ref={fsRightRef}
+                    fitToAnnotation
                     imageUrl={rightImageUrl}
                     originalWidth={rightOrigW}
                     originalHeight={rightOrigH}

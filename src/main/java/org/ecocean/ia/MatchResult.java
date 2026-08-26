@@ -726,6 +726,37 @@ public class MatchResult implements java.io.Serializable {
     // Prefer a pre-batched annotation-id -> Encounter map (one loader call for the whole result) and
     // fall back to the per-annotation query when the map is absent or lacks this id (e.g. the single
     // queryAnnotation call). Absent id -> findEncounter; the map never holds null values.
+    /**
+     * Highest-resolution servable URL for a match-results image.
+     *
+     * MediaAsset.toSimpleJSONObject() resolves its url through the no-argument safeURL(), which has
+     * no request and so always resolves as anonymous -- pinning every caller to the "mid" (1024px)
+     * derivative. The match-results endpoint is login-gated (GenericObject returns 401 without a
+     * currentUser), and the legacy iaResults page served "master" (4096px) here via
+     * sanitizeJson(request, ...), so 1024px is both a regression and too small to inspect fluke or
+     * fin detail at zoom.
+     *
+     * bestSafeAsset() matches its bestType exactly and returns null rather than degrading, hence the
+     * explicit master -> mid walk. The final no-bestType call preserves the previous behavior for
+     * anything the walk cannot resolve, so this can only ever widen what we serve, never narrow it.
+     */
+    private static URL bestResolutionURL(MediaAsset ma, Shepherd myShepherd) {
+        if (ma == null) return null;
+        for (String bestType : new String[] { "master", "mid" }) {
+            try {
+                URL u = ma.safeURL(myShepherd, null, bestType);
+                if (u != null) return u;
+            } catch (RuntimeException ex) {
+                // e.g. bestSafeAsset() throws when a parent asset row is missing; try the next type
+            }
+        }
+        try {
+            return ma.safeURL(myShepherd);
+        } catch (RuntimeException ex) {
+            return null;
+        }
+    }
+
     private static Encounter resolveEncounter(Annotation ann, Shepherd myShepherd,
         java.util.Map<String, Encounter> encByAnnId) {
         if ((encByAnnId != null) && (ann.getId() != null) && encByAnnId.containsKey(ann.getId())) {
@@ -760,6 +791,8 @@ public class MatchResult implements java.io.Serializable {
         }
         if (ma != null) {
             JSONObject mj = ma.toSimpleJSONObject();
+            URL best = bestResolutionURL(ma, myShepherd);
+            if (best != null) mj.put("url", best.toString());
             mj.put("rotationInfo", ma.getRotationInfo());
             aj.put("asset", mj);
         }
