@@ -1003,11 +1003,23 @@ public class MediaAsset extends Base implements java.io.Serializable {
 
     // carefree, safe json version
     public JSONObject toSimpleJSONObject() {
+        return toSimpleJSONObject(safeURL());
+    }
+
+    /**
+     * As toSimpleJSONObject(), but with the url already resolved by the caller.
+     *
+     * The no-argument safeURL() builds a throwaway Shepherd per call and resolves as anonymous.
+     * A caller that already holds a Shepherd, or that wants a particular derivative, should
+     * resolve once and pass the result rather than paying for a lookup it is about to discard.
+     * A null url is omitted from the object, exactly as before.
+     */
+    public JSONObject toSimpleJSONObject(URL url) {
         JSONObject j = new JSONObject();
 
         j.put("id", getIdInt());
         j.put("uuid", getUUID());
-        j.put("url", safeURL());
+        j.put("url", url);
         if ((getMetadata() != null) && (getMetadata().getData() != null) &&
             (getMetadata().getData().opt("attributes") != null)) {
             j.put("attributes", getMetadata().getData().opt("attributes"));
