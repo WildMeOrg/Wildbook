@@ -260,6 +260,36 @@ describe("MatchResultsStore — loadData", () => {
     );
   });
 
+  test("sets queryEncounterId in metadata for both view modes", () => {
+    store.loadData(makeApiResponse());
+    expect(store.processedIndivs[0].metadata.queryEncounterId).toBe(
+      "enc-query",
+    );
+    expect(store.processedAnnots[0].metadata.queryEncounterId).toBe(
+      "enc-query",
+    );
+  });
+
+  test("a two-child task tree yields per-section queryEncounterIds", () => {
+    const childA = makeProspect({ id: "task-a" });
+    childA.matchResults.queryAnnotation.encounter = { id: "enc-a" };
+    const childB = makeProspect({ id: "task-b" });
+    childB.matchResults.queryAnnotation.encounter = { id: "enc-b" };
+    const root = makeProspect({
+      id: "task-root",
+      matchResults: null,
+      children: [childA, childB],
+    });
+    store.loadData({ matchResultsRoot: root });
+
+    for (const sections of [store.processedIndivs, store.processedAnnots]) {
+      const a = sections.find((s) => s.taskId === "task-a");
+      const b = sections.find((s) => s.taskId === "task-b");
+      expect(a.metadata.queryEncounterId).toBe("enc-a");
+      expect(b.metadata.queryEncounterId).toBe("enc-b");
+    }
+  });
+
   test("clears selectedMatch after loading (resetSelectionToQuery called)", () => {
     store._selectedMatch = [{ key: "k1", encounterId: "e1" }];
     store.loadData(makeApiResponse());
@@ -390,6 +420,7 @@ describe("MatchResultsStore — _processData", () => {
         date: "2024-07-04",
         methodName: "mymeth",
         methodDescription: "desc",
+        queryEncounterId: "enc-t1-query",
         queryEncounterImageAsset: { url: "http://asset.test/img.jpg" },
         queryEncounterImageUrl: "http://asset.test/img.jpg",
         queryEncounterAnnotation: { x: 1 },
@@ -405,6 +436,73 @@ describe("MatchResultsStore — _processData", () => {
     expect(meta.methodName).toBe("mymeth");
     expect(meta.algorithm).toBe("mymeth");
     expect(meta.queryImageUrl).toBe("http://asset.test/img.jpg");
+    expect(meta.queryEncounterId).toBe("enc-t1-query");
+  });
+
+  test("each task section carries its own queryEncounterId", () => {
+    const base = {
+      numberCandidates: 1,
+      date: "d",
+      methodName: "m",
+      methodDescription: "d",
+      queryEncounterImageAsset: null,
+      queryEncounterImageUrl: null,
+      queryEncounterAnnotation: {},
+      taskStatus: "done",
+      taskStatusOverall: "done",
+      algorithm: "m",
+    };
+    const items = [
+      { ...base, taskId: "t1", score: 0.9, queryEncounterId: "enc-t1" },
+      { ...base, taskId: "t2", score: 0.8, queryEncounterId: "enc-t2" },
+    ];
+    const sections = store._processData(items);
+    const t1 = sections.find((s) => s.taskId === "t1");
+    const t2 = sections.find((s) => s.taskId === "t2");
+    expect(t1.metadata.queryEncounterId).toBe("enc-t1");
+    expect(t2.metadata.queryEncounterId).toBe("enc-t2");
+  });
+
+  test("placeholder section for a running task keeps its queryEncounterId", () => {
+    const items = [
+      {
+        taskId: "t-running",
+        numberCandidates: 3,
+        date: "d",
+        methodName: "m",
+        methodDescription: "d",
+        queryEncounterId: "enc-running",
+        queryEncounterImageAsset: null,
+        queryEncounterImageUrl: null,
+        queryEncounterAnnotation: {},
+        taskStatus: "running",
+        taskStatusOverall: "running",
+        algorithm: "m",
+        hasResults: false,
+      },
+    ];
+    const sections = store._processData(items);
+    expect(sections[0].metadata.queryEncounterId).toBe("enc-running");
+  });
+
+  test("section metadata queryEncounterId is null when items lack it", () => {
+    const items = [
+      {
+        taskId: "t1",
+        numberCandidates: 0,
+        date: "d",
+        methodName: "m",
+        methodDescription: "d",
+        queryEncounterImageAsset: null,
+        queryEncounterImageUrl: null,
+        queryEncounterAnnotation: {},
+        taskStatus: null,
+        taskStatusOverall: null,
+        algorithm: "m",
+      },
+    ];
+    const sections = store._processData(items);
+    expect(sections[0].metadata.queryEncounterId).toBeNull();
   });
 
   test("items without taskId are grouped under 'unknown-task'", () => {
