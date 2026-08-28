@@ -13,7 +13,7 @@
     "exif-js": "^2.3.0",
     "flow.js": "^0.2.6",
     "google-map-react": "^2.2.1",
-    "js-cookie": "^3.0.5",
+    "js-cookie": "^3.0.7",
     "lodash-es": "^4.17.23",
     "mobx": "6.13.3",
     "mobx-react-lite": "^4.0.7",
