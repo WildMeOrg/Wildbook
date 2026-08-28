@@ -996,11 +996,23 @@ public class MediaAsset extends Base implements java.io.Serializable {
 
     // carefree, safe json version
     public JSONObject toSimpleJSONObject() {
+        return toSimpleJSONObject(safeURL());
+    }
+
+    /**
+     * As toSimpleJSONObject(), but with the url already resolved by the caller.
+     *
+     * The no-argument safeURL() builds a throwaway Shepherd per call and resolves as anonymous.
+     * A caller that already holds a Shepherd, or that wants a particular derivative, should
+     * resolve once and pass the result rather than paying for a lookup it is about to discard.
+     * A null url is omitted from the object, exactly as before.
+     */
+    public JSONObject toSimpleJSONObject(URL url) {
         JSONObject j = new JSONObject();
 
         j.put("id", getIdInt());
         j.put("uuid", getUUID());
-        j.put("url", safeURL());
+        j.put("url", url);
         if ((getMetadata() != null) && (getMetadata().getData() != null) &&
             (getMetadata().getData().opt("attributes") != null)) {
             j.put("attributes", getMetadata().getData().opt("attributes"));
@@ -1186,7 +1198,20 @@ public class MediaAsset extends Base implements java.io.Serializable {
  */
     public static void updateStandardChildrenBackground(final String context,
         final List<Integer> ids) {
-        if ((ids == null) || (ids.size() < 1)) return;
+        updateStandardChildrenBackground(context, ids, null);
+    }
+
+    /**
+     * Creates standard child assets in the background, then runs {@code afterCommit} only after
+     * the child assets have been committed. Callers that index a parent object from its child URLs
+     * can use the callback to avoid indexing before a _master child is visible.
+     */
+    public static void updateStandardChildrenBackground(final String context,
+        final List<Integer> ids, final Runnable afterCommit) {
+        if ((ids == null) || (ids.size() < 1)) {
+            if (afterCommit != null) afterCommit.run();
+            return;
+        }
         final String tid = Util.generateUUID().substring(0, 8);
         System.out.println("updateStandardChildrenBackground() [" + tid + "] forking for " +
             ids.size() + " MediaAsset ids >>>>");
@@ -1199,17 +1224,25 @@ public class MediaAsset extends Base implements java.io.Serializable {
                 // leak this background Shepherd. commit stays inside try; the finally rollback is a
                 // harmless no-op once the commit has succeeded.
                 try {
-                int ct = 0;
-                for (Integer id : ids) {
-                    ct++;
-                    MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
-                    if (ma == null) continue;
-                    ma.setSkipAutoIndexing(true);
-                    ArrayList<MediaAsset> kids = ma.updateStandardChildren(myShepherd);
-                    System.out.println("+ [" + ct + "] updateStandardChildrenBackground() [" + tid +
-                        "] completed " + kids.size() + " children for id=" + id);
-                }
-                myShepherd.commitDBTransaction();
+                    int ct = 0;
+                    for (Integer id : ids) {
+                        ct++;
+                        try {
+                            MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                            if (ma == null) continue;
+                            ma.setSkipAutoIndexing(true);
+                            ArrayList<MediaAsset> kids = ma.updateStandardChildren(myShepherd);
+                            System.out.println("+ [" + ct + "] updateStandardChildrenBackground() [" +
+                                tid + "] completed " + kids.size() + " children for id=" + id);
+                        } catch (Exception ex) {
+                            System.out.println("updateStandardChildrenBackground() [" + tid +
+                                "] failed for id=" + id + ": " + ex);
+                            ex.printStackTrace();
+                        }
+                    }
+                    if (myShepherd.commitDBTransactionWithStatus() && (afterCommit != null)) {
+                        afterCommit.run();
+                    }
                 } finally {
                     myShepherd.rollbackAndClose();
                 }

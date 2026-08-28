@@ -33,7 +33,11 @@ function buildQuery(queries) {
   };
 }
 
-export default function useFilterEncounters({ queries, params = {} }) {
+export default function useFilterEncounters({
+  queries,
+  params = {},
+  enabled = true,
+}) {
   const boolQuery = buildQuery(queries);
   const compositeQuery = { query: { bool: boolQuery } };
   const { sortOrder, sort, size, from } = params;
@@ -64,11 +68,7 @@ export default function useFilterEncounters({ queries, params = {} }) {
         resultCount,
         maxResultWindow,
         results: get(result, ["data", "data", "hits"], []),
-        searchQueryId: get(
-          result,
-          ["data", "data", "searchQueryId"],
-          "defaultSearchQueryId",
-        ),
+        searchQueryId: get(result, ["data", "data", "searchQueryId"], ""),
         success: get(result, ["data", "data", "success"], false),
       };
     },
@@ -79,7 +79,7 @@ export default function useFilterEncounters({ queries, params = {} }) {
         const status = err?.response?.status;
         return (!status || status >= 500) && failureCount < 2;
       },
-      enable: false,
+      enabled,
     },
   });
 }

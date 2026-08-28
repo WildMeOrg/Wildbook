@@ -78,6 +78,7 @@ const EncounterSearch = observer(() => {
       size: perPage,
       from: page * perPage,
     },
+    enabled: !queryID,
   });
 
   const { fetchMediaAssets } = useFilterEncountersWithMediaAssets({
@@ -324,7 +325,7 @@ const EncounterSearch = observer(() => {
       />
       <DataTable
         store={store}
-        searchQueryId={searchQueryId}
+        searchQueryId={queryID || searchQueryId}
         refetchMediaAssets={fetchMediaAssets}
         pg={pg}
         isLoading={loading}
@@ -380,7 +381,7 @@ const EncounterSearch = observer(() => {
       <ExportModal
         open={exportModalOpen}
         setOpen={setExportModalOpen}
-        searchQueryId={searchQueryId}
+        searchQueryId={queryID || searchQueryId}
       />
     </div>
   );

@@ -22,6 +22,10 @@ var getData = function(individualID, displayName) {
     var encArrWithUUID = [];
     var occurrenceArray = [];
     var dataObject = {};
+    // sex and location of each co-occurring individual, keyed by the same "name id=uuid" string
+    // used for dataObject. These belong to the individual whose row they are shown in, so they
+    // cannot be held in a variable shared by every row.
+    var individualDetails = {};
 
 	console.log("QUERY: "+wildbookGlobals.baseUrl + "/api?useProjectContext=true&query="+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"));
 
@@ -39,10 +43,8 @@ var getData = function(individualID, displayName) {
             // make encounterArray, containing the individualIDs of every encounter in thisOcc;
             for(var j=0; j < encounterSize; j++) {
 				console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
-				var thisEncIndID = getIndividualIDFromEncounterToString(thisOcc.encounters[j]);
-				var sex=thisOcc.encounters[j].sex;
-				var haplotype=thisOcc.encounters[j].haplotype;
-				var location=thisOcc.encounters[j].locationID;
+				var thisEnc = thisOcc.encounters[j];
+				var thisEncIndID = getIndividualIDFromEncounterToString(thisEnc);
 				//console.log("thisEncIndID="+thisEncIndID);
 		
 				//var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
@@ -50,6 +52,18 @@ var getData = function(individualID, displayName) {
 				if (!thisEncIndID) continue;
 				var individualName = thisEncIndID.split(" id=")[0];
 				if (individualName === displayName) continue;  //unknown indiv -> false
+
+				// record against this individual, not against the loop: an individual can be seen in
+				// several occurrences, and each of them may state a different location
+				var indivDetails = individualDetails[thisEncIndID];
+				if (!indivDetails) {
+					indivDetails = {sex: thisEnc.sex, locations: []};
+					individualDetails[thisEncIndID] = indivDetails;
+				}
+				if (thisEnc.locationID && indivDetails.locations.indexOf(thisEnc.locationID) < 0) {
+					indivDetails.locations.push(thisEnc.locationID);
+				}
+
 				if(!encounterArray.includes(individualName)) {
 					encounterArray.push(individualName);
 					encArrWithUUID.push(thisEncIndID);
@@ -79,8 +93,11 @@ var getData = function(individualID, displayName) {
             ++dataObject[occurrenceArray[i]];
 	}
 	for (var prop in dataObject) {
+            var rowDetails = individualDetails[prop] || {};
             var whale = new Object();
-            whale = {text:prop, count:dataObject[prop], sex: sex, location: location};
+            whale = {text:prop, count:dataObject[prop],
+                     sex: rowDetails.sex || dict['unknown'],
+                     location: (rowDetails.locations || []).join(", ")};
             items.push(whale);	
 	}
 	//if (items.length > 0) {
@@ -486,88 +503,42 @@ var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn)
 };
 
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
-    var encounterData = [];
-    var occurringWith = "";
-    d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE individualID == \"" + individualID + "\"" ), function(error, json) {
-	if(error) {
-            console.log("error")
-	}
-	jsonData = json[0];
-	for(var i=0; i < jsonData.encounters.length; i++) {
-    	    var occurringWith = "";
-            for(var j = 0; j < occurrenceObjectArray.length; j++) {
-				if (typeof occurrenceObjectArray[j].occurrenceID !== 'undefined' && typeof jsonData.encounters[i].occurrenceID !== 'undefined' && occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
-			    	if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
-						
-			    	} 
-					else {
-						var occurringWith = occurrenceObjectArray[j].occurringWith;
-						console.log("occurringWith: "+occurringWith+" in "+jsonData.encounters[i].occurrenceID+" and "+occurrenceObjectArray[j].occurrenceID);
-			    	}
-				}
-            }
-            var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
-            if(dateInMilliseconds > 0) {
-		//console.log("Trying millis...");
-		date = dateInMilliseconds.toISOString().substring(0, 10);
-		if(jsonData.encounters[i].day<1){date=date.substring(0,7);}
-		if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
-            } else if (jsonData.encounters[i].year) {
-		//console.log("Tryin plaintext...");
-		date = jsonData.encounters[i].year;
-		if (jsonData.encounters[i].month) { date+= "-"+jsonData.encounters[i].month;}
-		if (jsonData.encounters[i].day) { date+= "-"+jsonData.encounters[i].day;} 
-            } else {  
-		date = dict['unknown'];
-            }
-
-            if(jsonData.encounters[i].locationID) {
-				var location = jsonData.encounters[i].locationID;
-			} else {
-				var location = "";
-			}
-            var catalogNumber = jsonData.encounters[i].catalogNumber;
-            console.log("Here's what we are working with : "+jsonData.encounters[i]);
-            if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
-		if (jsonData.encounters[i].tissueSamples && jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0){
-                    var dataTypes = "both"
-		} 
-		else if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
-		    var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
-		} 
-		else if((jsonData.encounters[i].annotations)&&(jsonData.encounters[i].annotations.length > 0)) {
-		    
-        	    if((jsonData.encounters[i].eventID)&&(jsonData.encounters[i].eventID.indexOf("youtube") > -1)){
-        		var dataTypes = "youtube-image";
-        	    }
-        	    //otherwise it's just a plain old image
-        	    else{
-        		var dataTypes = "image";
-        	    }
-        	    
-		}
-		else {
-		    var dataTypes = "";
-		}
-            }
-            var sex = jsonData.encounters[i].sex;
-            var behavior = jsonData.encounters[i].behavior;
-            var alternateID = jsonData.encounters[i].alternateid;
-            var encounter = new Object();
-            if(occurringWith === undefined) {
-				var occurringWith = "";
-            }
-
-            encounter = {catalogNumber: catalogNumber, date: date, location: location, dataTypes: dataTypes, alternateID: alternateID, sex: sex, occurringWith: occurringWith, behavior: behavior};
+    d3.json(wildbookGlobals.baseUrl + "/api/v3/individuals/info/social-data?id=" + encodeURIComponent(individualID), function(error, json) {
+        if (error) { console.log("error"); return; }
+        var encounterData = [];
+        var encs = (json && json.encounters) ? json.encounters : [];
+        for (var i = 0; i < encs.length; i++) {
+            var row = encs[i];
+            var date;
+            var dim = new Date(row.dateInMilliseconds);
+            if (dim > 0) {
+                date = dim.toISOString().substring(0, 10);
+                if (row.day < 1) { date = date.substring(0, 7); }
+                if (row.month < 0) { date = date.substring(0, 4); }
+            } else if (row.year) {
+                date = row.year;
+                if (row.month) { date += "-" + row.month; }
+                if (row.day) { date += "-" + row.day; }
+            } else { date = dict['unknown']; }
+            var encounter = {
+                catalogNumber: row.catalogNumber,
+                date: date,
+                location: row.locationID || "",
+                dataTypes: row.dataTypes || "",
+                alternateID: row.alternateid,
+                sex: row.sex,
+                occurringWith: row.occurringWith || "",
+                behavior: row.behavior
+            };
             encounterData.push(encounter);
-	}
-	makeTable(encounterData, "#encountHead", "#encountBody", "date", null);
-	$('#encountTable tr').attr("onClick", "return encountTableAuxClick(this);")
-						 .attr("onAuxClick", "return encountTableAuxClick(this);")
-						 .each(function() {
-							encountUrl = "encounters/encounter.jsp?number=" + ($(this).attr("class"));
-							$(this).find("td").first().wrapInner("<a href=\""+encountUrl+"\"></a>");
-						 });
+        }
+        makeTable(encounterData, "#encountHead", "#encountBody", "date", null);
+        $('#encountTable tr').attr("onClick", "return encountTableAuxClick(this);")
+                             .attr("onAuxClick", "return encountTableAuxClick(this);")
+                             .each(function() {
+                                encountUrl = "encounters/encounter.jsp?number=" + ($(this).attr("class"));
+                                $(this).find("td").first().wrapInner("<a href=\"" + encountUrl + "\"></a>");
+                             });
     });
 }
 
@@ -651,91 +622,34 @@ var resetForm = function($form, markedIndividual) {
 }
 
 var getRelationshipTableData = function(individualID) {
-	console.log("getTelationshipTableData");
-    d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.social.Relationship WHERE (this.markedIndividualName1 == \"" + individualID + "\" || this.markedIndividualName2 == \"" + individualID + "\")"), function(error, json) {
-		if(error) {
-	    	console.log("error")
-		}
-		var relationshipArray = [];
-		let jsonData = json;
-		for(var i = 0; i < jsonData.length; i++) {
-	   		var relationshipID = jsonData[i]._id;
-	    	var startTime = jsonData[i].startTime;
-	    	var endTime = jsonData[i].endTime;
-	    	if (startTime == "-1") {
-				startTime = "Start Time";
-	    	} 
-	    	if (endTime == "-1") {
-				endTime = "End Time";
-	    	}
-	    
-	    	if(jsonData[i].markedIndividualName1 != individualID) {
-				var whaleID = jsonData[i].markedIndividualName1;
-				var markedIndividual = jsonData[i].markedIndividualName2;
-				var relationshipWithRole = jsonData[i].markedIndividualRole1;
-				var markedIndividualRole = jsonData[i].markedIndividualRole2;
-	    	}
-	    	if(jsonData[i].markedIndividualName2 != individualID) {
-				var whaleID = jsonData[i].markedIndividualName2;
-				var markedIndividual = jsonData[i].markedIndividualName1;
-				var markedIndividualRole = jsonData[i].markedIndividualRole1;
-				var relationshipWithRole = jsonData[i].markedIndividualRole2;
-	    	}
-	    	var relatedSocialUnitName = jsonData[i].relatedSocialUnitName;
-	    	var type = jsonData[i].type;
-	    	var relationship = new Object();
-	    	relationship = {"roles": [markedIndividualRole, relationshipWithRole], "relationshipWith": [whaleID], "type": type, "socialUnit": relatedSocialUnitName, "edit": ["edit", relationshipID], "remove": ["remove", relationshipID]};
-	    	relationshipArray.push(relationship);
-		}
-		getIndividualData(relationshipArray, function (relationshipTableData) {
-			console.log("All data has been processed:", JSON.stringify(relationshipTableData));
-			makeRelTable(relationshipTableData, "#relationshipHead", "#relationshipBody", "text");
-		});
-
+    d3.json(wildbookGlobals.baseUrl + "/api/v3/individuals/info/social-data?id=" + encodeURIComponent(individualID), function(error, json) {
+        if (error) { console.log("error"); return; }
+        var relationshipTableData = [];
+        var rels = (json && json.relationships) ? json.relationships : [];
+        for (var i = 0; i < rels.length; i++) {
+            var rel = rels[i];
+            var relationshipID = rel._id;
+            var markedIndividualRole, relationshipWithRole;
+            if (rel.markedIndividualName1 != individualID) {
+                markedIndividualRole = rel.markedIndividualRole2;
+                relationshipWithRole = rel.markedIndividualRole1;
+            } else {
+                markedIndividualRole = rel.markedIndividualRole1;
+                relationshipWithRole = rel.markedIndividualRole2;
+            }
+            var p = rel.partner || {};
+            relationshipTableData.push({
+                "roles": [markedIndividualRole, relationshipWithRole],
+                "relationshipWith": [p.individualID, p.nickName, p.alternateid, p.sex, p.localHaplotypeReflection, p.displayName],
+                "type": rel.type,
+                "socialUnit": rel.relatedSocialUnitName,
+                "edit": ["edit", relationshipID],
+                "remove": ["remove", relationshipID]
+            });
+        }
+        makeRelTable(relationshipTableData, "#relationshipHead", "#relationshipBody", "text");
     });
 }
-
-var getIndividualData = function (relationshipArray, onComplete) {
-	var relationshipTableData = [];
-	var completedRequests = 0;
-
-	for (var i = 0; i < relationshipArray.length; i++) {
-		d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + relationshipArray[i].relationshipWith[0], function (error, json) {
-			if (error) {
-				console.log("Error loading data");
-				return;
-			}
-
-			let jsonData = json;
-			var individualInfo = relationshipArray.filter(function (obj) {
-				return obj.relationshipWith[0] === jsonData.individualID;
-			})[0];
-
-			individualInfo.relationshipWith[1] = jsonData.nickName;
-			individualInfo.relationshipWith[2] = jsonData.alternateid;
-			individualInfo.relationshipWith[3] = jsonData.sex;
-			individualInfo.relationshipWith[4] = jsonData.localHaplotypeReflection;
-			individualInfo.relationshipWith[5] = jsonData.displayName;
-
-			relationshipTableData.push(individualInfo);
-			completedRequests++;
-
-			if (completedRequests === relationshipArray.length) {
-				for (var j = 0; j < relationshipArray.length; j++) {
-					if (relationshipArray[j].relationshipWith.length == 1) {
-						relationshipArray[j].relationshipWith[1] = jsonData.nickName;
-						relationshipArray[j].relationshipWith[2] = jsonData.alternateid;
-						relationshipArray[j].relationshipWith[3] = jsonData.sex;
-						relationshipArray[j].relationshipWith[4] = jsonData.localHaplotypeReflection;
-						relationshipArray[j].relationshipWith[5] = jsonData.displayName;
-					}
-				}
-				onComplete(relationshipTableData);
-			}
-		});
-	}
-}
-
 function whatIsIt(object) {
 	var stringConstructor = "test".constructor;
 	var arrayConstructor = [].constructor;
