@@ -472,14 +472,24 @@ public class MatchResult implements java.io.Serializable {
         // we need this to find MLService endpoint
         Encounter enc = ann1.findEncounter(myShepherd);
         if (enc == null) return null;
+        // One IA.json read for endpoint + model id + layer key. A null block
+        // means the config is unreadable or absent: skip PairX rather than
+        // POST a default model id this deployment may not have loaded.
+        JSONObject pairxConf = _getPairxConfig(enc.getTaxonomyString());
+        if (pairxConf == null) {
+            System.out.println(
+                "[WARNING] createInspectionPairxAsset() no MLService config for tx=" +
+                enc.getTaxonomyString() + "; skipping PairX");
+            return null;
+        }
         JSONObject payload = new JSONObject();
         payload.put("algorithm", "pairx");
         payload.put("visualization_type", "only_colors");
         payload.put("k_colors", 5);
         // payload.put("k_lines", 20);
-        payload.put("model_id", "miewid-msv4.1");
+        payload.put("model_id", _pairxModelIdFromConfig(pairxConf));
         payload.put("crop_bbox", false);
-        payload.put("layer_key", "backbone.blocks.3");
+        payload.put("layer_key", _pairxLayerKeyFromConfig(pairxConf));
         payload.put("image1_uris", new JSONArray(new String[] { ma1.webURL().toString() }));
         payload.put("image2_uris", new JSONArray(new String[] { ma2.webURL().toString() }));
         payload.put("theta1", new JSONArray(new Double[] { ann1.getTheta() }));
@@ -506,7 +516,7 @@ public class MatchResult implements java.io.Serializable {
         JSONObject res = null;
         URL pairxUrl = null;
         try {
-            pairxUrl = _getPairxUrl(enc.getTaxonomyString());
+            pairxUrl = _pairxUrlFromConfig(pairxConf);
             if (pairxUrl == null) return null;
             res = RestClient.postJSON(pairxUrl, payload, null);
         } catch (Exception ex) {
@@ -614,6 +624,84 @@ public class MatchResult implements java.io.Serializable {
     static void addBboxPayload(JSONObject payload, int[] bbox1, int[] bbox2) {
         payload.put("bb1", new JSONArray().put(bboxToJsonArray(bbox1)));
         payload.put("bb2", new JSONArray().put(bboxToJsonArray(bbox2)));
+    }
+
+    /**
+     * Default PairX model id, used when the MLService config names none.
+     * Historic hardcoded value; kept as the fallback so installations that
+     * configure nothing behave exactly as before.
+     */
+    public static final String DEFAULT_PAIRX_MODEL_ID = "miewid-msv4.1";
+
+    /**
+     * Default PairX layer key. Model-architecture specific: configuring a
+     * different model id does not guarantee this layer exists, so it is
+     * configurable alongside the model id rather than hardcoded.
+     */
+    public static final String DEFAULT_PAIRX_LAYER_KEY = "backbone.blocks.3";
+
+    /**
+     * The taxonomy's first MLService config block, or {@code null}.
+     *
+     * <p>Each call constructs {@link MLService}, which re-reads and
+     * re-parses IA.json from disk ({@code JsonProperties} does not cache).
+     * Callers needing both the endpoint and the model id must therefore
+     * fetch the block once and use the {@code *FromConfig} helpers rather
+     * than resolving each one separately, which would re-read the file
+     * once per value per visualisation.
+     */
+    static JSONObject _getPairxConfig(String txStr) {
+        if (txStr == null) return null;
+        try {
+            MLService mls = new MLService();
+            List<JSONObject> confs = mls.getConfigs(txStr);
+            if (confs.size() < 1) {
+                System.out.println("[WARNING] _getPairxConfig() empty MLService configs for tx=" +
+                    txStr);
+                return null;
+            }
+            return confs.get(0);
+        } catch (Exception ex) {
+            System.out.println("[WARNING] _getPairxConfig(" + txStr + ") failed: " + ex);
+            return null;
+        }
+    }
+
+    /**
+     * PairX model id from an MLService config block.
+     *
+     * <p>Prefers an explicit {@code pairx_model_id}, else reuses
+     * {@code extract_model_id} — PairX visualises the embedding space the
+     * match was computed in, so the two must not drift — else the default.
+     *
+     * <p>ml-service registries differ per installation (kaiju loads
+     * {@code miewid-msv4_v3}, not {@code miewid-msv4.1}); sending an id the
+     * target has not loaded previously produced an HTTP 500 that Wildbook
+     * then retried indefinitely.
+     */
+    static String _pairxModelIdFromConfig(JSONObject conf) {
+        if (conf == null) return DEFAULT_PAIRX_MODEL_ID;
+        String modelId = conf.optString("pairx_model_id", null);
+        if (!Util.stringExists(modelId)) modelId = conf.optString("extract_model_id", null);
+        if (!Util.stringExists(modelId)) return DEFAULT_PAIRX_MODEL_ID;
+        return modelId;
+    }
+
+    /** PairX layer key from an MLService config block. */
+    static String _pairxLayerKeyFromConfig(JSONObject conf) {
+        if (conf == null) return DEFAULT_PAIRX_LAYER_KEY;
+        String layerKey = conf.optString("pairx_layer_key", null);
+        if (!Util.stringExists(layerKey)) return DEFAULT_PAIRX_LAYER_KEY;
+        return layerKey;
+    }
+
+    /** The {@code /explain/} endpoint from an MLService config block, or null. */
+    static URL _pairxUrlFromConfig(JSONObject conf)
+    throws IOException {
+        if (conf == null) return null;
+        String urlStr = conf.optString("api_endpoint", null);
+        if (urlStr == null) return null;
+        return new URL(urlStr + "/explain/");
     }
 
     public static URL _getPairxUrl(String txStr)
