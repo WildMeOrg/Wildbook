@@ -6,7 +6,7 @@ org.datanucleus.api.rest.orgjson.JSONException,
 org.ecocean.media.MediaAsset,
 java.net.URL,
 org.datanucleus.ExecutionContext,java.text.SimpleDateFormat,
-		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, org.ecocean.security.HiddenEncReporter, com.google.gson.Gson,
+		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,org.ecocean.servlet.IndividualSetTaxonomy,org.apache.commons.lang3.StringEscapeUtils,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, org.ecocean.security.HiddenEncReporter, com.google.gson.Gson,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.text.SimpleDateFormat, org.apache.commons.lang3.StringUtils" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
@@ -434,8 +434,8 @@ input.nameKey, input.nameValue {
 
     // edit button click area!!
     $("#edit").click(function() {
-      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue,.nameValue .hidden,.namebutton .hidden, .deletename .hidden").hide();
-      $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID, input.nameKey, input.nameValue, #NicknameColon, #defaultNameColon, input.btn.deletename, input.namebutton, div.newnameButton").show();
+      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #taxonomyCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #taxonomyError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue,.nameValue .hidden,.namebutton .hidden, .deletename .hidden").hide();
+      $(".editForm, .clickDateText, #Name, #Add, #taxonomyUpdate, #birthy, #deathy, #AltID, input.nameKey, input.nameValue, #NicknameColon, #defaultNameColon, input.btn.deletename, input.namebutton, div.newnameButton").show();
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-success");
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-error");
     });
@@ -971,13 +971,117 @@ if (sharky.getNames() != null) {
           <%
             if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
-            String genusSpeciesFound=props.getProperty("notAvailable");
-            if(sharky.getGenusSpeciesDeep()!=null){genusSpeciesFound=sharky.getGenusSpeciesDeep();}
+            // what the individual itself records -- this is what the editor below changes
+            String ownTaxonomy = sharky.getTaxonomyString();
+            // what gets displayed: falls back to an encounter when the individual records nothing
+            // of its own, so say when that has happened rather than passing it off as its own
+            String deepTaxonomy = sharky.getGenusSpeciesDeep();
+            boolean taxonomyIsInherited = !Util.stringExists(ownTaxonomy) && (deepTaxonomy != null);
+            String genusSpeciesFound = (deepTaxonomy != null) ? deepTaxonomy : props.getProperty("notAvailable");
+
+            // Taxonomy is shared by every encounter of this individual, so changing it takes edit
+            // rights over all of them -- stricter than the isOwner above, which gates the Edit button.
+            boolean canEditTaxonomy = CommonConfiguration.isCatalogEditable(context) &&
+                                      Collaboration.canUserFullyEditMarkedIndividual(sharky, request);
             %>
-            <p>
-              <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
+            <%-- .noEditText only when there is an edit form to swap in; without one the edit-mode
+                 toggle would hide this line and leave nothing in its place --%>
+            <p<%=canEditTaxonomy ? " class=\"noEditText\"" : ""%>>
+              <%=props.getProperty("taxonomy")%>: <em><span id="displayTaxonomy"><%=genusSpeciesFound%></span></em><%if(taxonomyIsInherited){%> <span class="taxonomyInherited" id="taxonomyInheritedNote">(<%=props.getProperty("taxonomyFromEncounters")%>)</span><%}%>
             </p>
             <%
+            if(canEditTaxonomy){
+            // only walked for someone who can actually act on it
+            String[] derivable = MarkedIndividual.unanimousTaxonomyFromEncounters(sharky.getEncounters());
+            String derivedTaxonomy = (derivable == null) ? null : Util.taxonomyString(derivable[0], derivable[1]);
+            %>
+            <div class="highlight" id="taxonomyErrorDiv"></div>
+            <form name="set_taxonomy" class="editForm">
+              <div class="form-group row">
+                <div class="col-sm-4">
+                  <label><%=props.getProperty("taxonomy")%>: </label>
+                </div>
+                <div class="col-sm-7 col-xs-11 editFormInput">
+                  <select id="newTaxonomy" name="taxonomy" size="1" class="form-control">
+                    <%-- placeholder, so an untouched dropdown cannot assign the first species --%>
+                    <option value="" disabled <%=Util.stringExists(ownTaxonomy) ? "" : "selected=\"selected\""%>><%=props.getProperty("notAvailable")%></option>
+                    <%
+                    boolean ownIsListed = false;
+                    boolean showCommonNames = "true".equals(CommonConfiguration.getProperty("showCommonSpeciesNames",context));
+                    List<String> configSpecies = CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
+                    for(int tx=0; tx<configSpecies.size(); tx++){
+                      String speciesValue = configSpecies.get(tx).replaceAll("_"," ");
+                      String speciesLabel = speciesValue;
+                      if(showCommonNames){
+                        String commonName = CommonConfiguration.getProperty("commonName"+tx, context);
+                        if(Util.stringExists(commonName)) speciesLabel = speciesValue + " (" + commonName + ")";
+                      }
+                      boolean isOwn = speciesValue.equals(ownTaxonomy);
+                      if(isOwn) ownIsListed = true;
+                      // selected is emitted here rather than set in jQuery: the sex block's
+                      // option[value=...] selector is unquoted, which a value containing a space breaks
+                    %>
+                    <option value="<%=StringEscapeUtils.escapeHtml4(speciesValue)%>"<%=isOwn ? " selected=\"selected\"" : ""%>><%=StringEscapeUtils.escapeHtml4(speciesLabel)%></option>
+                    <%
+                    }
+                    // keep a stored taxonomy this site no longer configures: opening the editor
+                    // must not be able to quietly replace a value nobody chose to change
+                    if(Util.stringExists(ownTaxonomy) && !ownIsListed){
+                    %>
+                    <option value="<%=StringEscapeUtils.escapeHtml4(ownTaxonomy)%>" selected="selected"><%=StringEscapeUtils.escapeHtml4(ownTaxonomy)%></option>
+                    <%
+                    }
+                    // only worth offering when the encounters agree on something else; the servlet
+                    // checks again, since they can change while this page sits open
+                    if((derivedTaxonomy != null) && !derivedTaxonomy.equals(ownTaxonomy)){
+                    %>
+                    <option value="<%=IndividualSetTaxonomy.FROM_ENCOUNTERS%>" data-derived="<%=StringEscapeUtils.escapeHtml4(derivedTaxonomy)%>"><%=props.getProperty("taxonomyUseFromEncounters")%> (<%=StringEscapeUtils.escapeHtml4(derivedTaxonomy)%>)</option>
+                    <%
+                    }
+                    %>
+                  </select>
+                </div>
+                <input class="btn btn-sm editFormBtn" name="taxonomyUpdate" type="submit" id="taxonomyUpdate" value="<%=update%>">
+                  <span id="taxonomyCheck">&check;</span>
+                  <span id="taxonomyError">X</span>
+              </div>
+            </form>
+
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#taxonomyUpdate").click(function(event) {
+                  event.preventDefault();
+                  var selected = $("#newTaxonomy option:selected");
+                  var chosen = $("#newTaxonomy").val();
+                  if (!chosen) return;
+                  $("#taxonomyUpdate").hide();
+
+                  // the sentinel submits an instruction rather than a value, so take what to
+                  // display from the option itself
+                  var display = selected.attr("data-derived") || chosen;
+
+                  $.post("IndividualSetTaxonomy",
+                    {"individual": "<%=sharky.getIndividualID()%>", "taxonomy": chosen},
+                  function() {
+                    $("#taxonomyErrorDiv").hide();
+                    $("#taxonomyCheck").show();
+                    $("#displayTaxonomy").text(display);
+                    $("#taxonomyInheritedNote").remove();
+                  })
+                  .fail(function(response) {
+                    $("#taxonomyError, #taxonomyErrorDiv").show();
+                    $("#taxonomyErrorDiv").html(response.responseText);
+                  });
+                });
+
+                $("#newTaxonomy").click(function() {
+                  $("#taxonomyError, #taxonomyCheck, #taxonomyErrorDiv").hide();
+                  $("#taxonomyUpdate").show();
+                });
+              });
+            </script>
+            <%
+            }
               }
               %>
                 </div>
