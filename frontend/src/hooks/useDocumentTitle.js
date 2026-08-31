@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import { useSiteSettings } from "../SiteSettingsContext";
 
 export default function useDocumentTitle() {
-  const { data: siteSettings } = useGetSiteSettings();
+  const { data: siteSettings } = useSiteSettings();
 
   document.title = siteSettings?.siteName || "wildbook";
   useEffect(() => {

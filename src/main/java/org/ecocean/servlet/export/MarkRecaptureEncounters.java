@@ -9,7 +9,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 // import java.util.StringTokenizer;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,8 +74,8 @@ public class MarkRecaptureEncounters extends HttpServlet {
             end[j] = parser2.parseDateTime(enddate);
             // System.out.println(("datepicker"+j+"end")+": "+end.toString());
 
-            sessionsSummary += ("Session " + (j + 1) + ": " + start[j].toString() + " to " +
-                end[j].toString() + "\n");
+            sessionsSummary += ("Session " + (j + 1) + ": " + start[j].toLocalDate().toString() +
+                " to " + end[j].toLocalDate().toString() + "\n");
         }
         sessionsSummary += "\n*/\n";
 
@@ -130,14 +129,18 @@ public class MarkRecaptureEncounters extends HttpServlet {
             // ServletContext ctx = getServletContext();
             // InputStream is = ctx.getResourceAsStream("/encounters/"+emailFilename);
             InputStream is = new FileInputStream(inpFile);
-            int read = 0;
-            byte[] bytes = new byte[BYTES_DOWNLOAD];
-            OutputStream os = response.getOutputStream();
-            while ((read = is.read(bytes)) != -1) {
-                os.write(bytes, 0, read);
+            try {
+                int read = 0;
+                byte[] bytes = new byte[BYTES_DOWNLOAD];
+                OutputStream os = response.getOutputStream();
+                while ((read = is.read(bytes)) != -1) {
+                    os.write(bytes, 0, read);
+                }
+                os.flush();
+                os.close();
+            } finally {
+                is.close();
             }
-            os.flush();
-            os.close();
         } catch (Exception e) {
             e.printStackTrace();
             response.setContentType("text/html");
@@ -182,35 +185,30 @@ public class MarkRecaptureEncounters extends HttpServlet {
             }
             // store the individual's displayName if need be
             if (includeIndID && !indIDToDisplayName.containsKey(indID)) {
-                indIDToDisplayName.put(indID, enc.getIndividual().getDisplayName(request));
+                MarkedIndividual individual = enc.getIndividual();
+                String displayName = (individual != null) ? individual.getDisplayName(request) : indID;
+                indIDToDisplayName.put(indID, displayName);
             }
         }
         // done constructing the markRecapture matrix, now we construct the string
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < numIndividuals; i++) {
             boolean[] row = markRecapture[i];
-            String boolRow = Arrays.toString(row);
-            result.append(boolRow);
-            // final column of row
-            String finalColumn = (hasTrue(row)) ? " 1;" : " 0;";
-            result.append(finalColumn);
+            if (!hasTrue(row)) continue; // skip individuals with no captures
+            // build capture history as 0/1 string directly (avoids replaceAll corrupting comments)
+            for (boolean captured : row) {
+                result.append(captured ? "1" : "0");
+            }
+            result.append(" 1;");
             // append individual info if necessary
             if (includeIndID) {
                 String indID = individualIDs.get(i);
                 String displayName = indIDToDisplayName.get(indID);
                 String webUrl = MarkedIndividual.getWebUrl(indID, request);
-                String indDetails = "\t\t/* " + displayName + " (" + webUrl + ") */";
-                result.append(indDetails);
+                result.append("\t\t/* ").append(displayName).append(" (").append(webUrl).append(") */");
             }
             result.append("\n");
         }
-        String bigResult = result.toString();
-        // do all the string replacements at the end for efficiency (?)
-        bigResult = bigResult.replaceAll("true", "1")
-                .replaceAll("false", "0")
-                .replace("[", "")
-                .replace("]", "")
-                .replaceAll(", ", "");
-        return bigResult;
+        return result.toString();
     }
 }

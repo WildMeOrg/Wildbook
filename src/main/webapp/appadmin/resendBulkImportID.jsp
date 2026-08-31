@@ -49,7 +49,7 @@ try {
       	  	JSONObject j = new JSONObject();
        		JSONObject taskParameters = j.optJSONObject("taskParameters");
        		if (taskParameters == null) taskParameters = new JSONObject(); 
-      	  	taskParameters.optString("importTaskId", itask.getId());
+      	  	taskParameters.put("importTaskId", itask.getId());
             
             JSONObject tp = new JSONObject();
             JSONObject mf = new JSONObject();
@@ -69,6 +69,20 @@ try {
             List<Encounter> targetEncs = itask.getEncounters();
             //List<Annotation> targetAnns = new ArrayList<>();
             JSONArray initiatedJobs = new JSONArray();
+
+            // iaMatchThreads > 1 -> match encounters in parallel (each on its own Shepherd) via the
+            // app-scoped bounded pool. Default 1 keeps the original serial loop below, untouched.
+            int iaMatchThreads = 1;
+            try {
+                String mtCfg = CommonConfiguration.getProperty("iaMatchThreads", context);
+                if (Util.stringExists(mtCfg)) iaMatchThreads = Integer.parseInt(mtCfg.trim());
+            } catch (NumberFormatException nfe) { iaMatchThreads = 1; }
+            if (iaMatchThreads > 1) {
+                List<String> encIds = new ArrayList<String>();
+                for (Encounter qe : targetEncs) { if (qe != null) encIds.add(qe.getId()); }
+                // root parentTask already committed above; workers only echo its id.
+                initiatedJobs = ParallelIdentify.identifyEncounters(context, parentTask.getId(), encIds, taskParameters, iaMatchThreads);
+            } else {
             for(Encounter queryEnc:targetEncs) {
             	
             	Task subParentTask = new Task();  
@@ -106,6 +120,7 @@ try {
               }
 
             }
+            } // end serial branch (iaMatchThreads <= 1)
             res.put("success","true");
             res.put("initiatedJobs", initiatedJobs);
             response.setStatus(HttpServletResponse.SC_OK);

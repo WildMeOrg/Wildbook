@@ -1,17 +1,14 @@
 import React from "react";
 import { render, waitFor } from "@testing-library/react";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
 jest.mock("mobx-react-lite", () => ({
   observer: (Comp) => Comp,
 }));
 
-jest.mock("../../../models/useGetSiteSettings", () => ({
+jest.mock("../../../SiteSettingsContext", () => ({
   __esModule: true,
-  default: () => ({
-    data: {
-      googleMapsKey: "FAKE_KEY",
-    },
-  }),
+  useSiteSettings: jest.fn(),
 }));
 
 jest.mock("@googlemaps/js-api-loader", () => {
@@ -28,6 +25,15 @@ import { MapDisplay } from "../../../pages/Encounter/MapDisplay";
 describe("MapDisplay", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useSiteSettings.mockReturnValue({
+      data: {
+        googleMapsKey: "FAKE_KEY",
+        mapCenterLat: 10,
+        mapCenterLon: 20,
+      },
+      isLoading: false,
+      error: null,
+    });
 
     global.window.google = {
       maps: {
@@ -46,7 +52,7 @@ describe("MapDisplay", () => {
   });
 
   test("with coords uses them as center and creates marker", async () => {
-    const store = { lat: "43.7", lon: "-79.4" };
+    const store = { lat: 43.7, lon: -79.4 };
     render(<MapDisplay store={store} />);
 
     await waitFor(() => {
@@ -63,15 +69,9 @@ describe("MapDisplay", () => {
     });
   });
 
-  test("without coords falls back to fallbackCenter", async () => {
+  test("without coords falls back to site settings defaultCenter", async () => {
     const store = { lat: undefined, lon: undefined };
-    render(
-      <MapDisplay
-        store={store}
-        fallbackCenter={{ lat: 10, lng: 20 }}
-        zoom={5}
-      />,
-    );
+    render(<MapDisplay store={store} zoom={5} />);
 
     await waitFor(() => {
       expect(window.google.maps.Map).toHaveBeenCalled();

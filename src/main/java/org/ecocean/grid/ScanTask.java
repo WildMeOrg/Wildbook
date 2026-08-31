@@ -81,6 +81,10 @@ public class ScanTask implements Serializable {
         endTime = end;
     }
 
+    public void setStartTime(long start) {
+        startTime = start;
+    }
+
     // returns the number of spots in the encounter to look for
     // this is generally used grid load balancing
     public int getNumSpots() {
