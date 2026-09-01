@@ -21,6 +21,9 @@ const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
   const store = useMemo(() => new MatchResultsStore(), []);
   const [instructionsVisible, setInstructionsVisible] = React.useState(false);
+  const [numResultsInput, setNumResultsInput] = React.useState(
+    String(store.numResults),
+  );
   const [params, setParams] = useSearchParams();
   const taskId = params.get("taskId");
   const projectIdPrefix = params.get("projectIdPrefix");
@@ -45,6 +48,10 @@ const MatchResults = observer(() => {
       label: value?.name || key,
     }));
   }, [projectsForUser]);
+
+  useEffect(() => {
+    setNumResultsInput(String(store.numResults));
+  }, [store.numResults]);
 
   useEffect(() => {
     if (taskId) {
@@ -257,17 +264,27 @@ const MatchResults = observer(() => {
                 data-testid="match-results-num-results-input"
                 type="text"
                 size="sm"
-                value={store.numResults}
+                value={numResultsInput}
                 onChange={(e) => {
                   const val = e.target.value;
                   if (/^\d*$/.test(val)) {
-                    store.setNumResults(val === "" ? 1 : Number(val));
+                    setNumResultsInput(val);
                   }
                 }}
                 onFocus={() => setIsInputFocused(true)}
-                onBlur={() => setIsInputFocused(false)}
+                onBlur={() => {
+                  setIsInputFocused(false);
+                  store.setNumResults(
+                    numResultsInput === "" ? 1 : Number(numResultsInput),
+                  );
+                  setNumResultsInput(String(store.numResults));
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
+                    store.setNumResults(
+                      numResultsInput === "" ? 1 : Number(numResultsInput),
+                    );
+                    setNumResultsInput(String(store.numResults));
                     store.fetchMatchResults();
                   }
                 }}
@@ -282,7 +299,13 @@ const MatchResults = observer(() => {
                   id="match-results-num-results-apply"
                   data-testid="match-results-num-results-apply"
                   type="button"
-                  onClick={() => store.fetchMatchResults()}
+                  onClick={() => {
+                    store.setNumResults(
+                      numResultsInput === "" ? 1 : Number(numResultsInput),
+                    );
+                    setNumResultsInput(String(store.numResults));
+                    store.fetchMatchResults();
+                  }}
                   onMouseDown={(e) => e.preventDefault()}
                   style={{
                     position: "absolute",

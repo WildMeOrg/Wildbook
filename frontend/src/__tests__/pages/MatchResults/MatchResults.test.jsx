@@ -311,6 +311,19 @@ describe("MatchResults component", () => {
     expect(input.value).toBe("20");
   });
 
+  test("numResults input can be cleared before entering a new value", async () => {
+    axios.get.mockResolvedValue({ data: makeApiResponse() });
+    renderComponent();
+    await screen.findByTestId("prospect-table-task-1");
+    const input = screen.getByDisplayValue("12");
+
+    fireEvent.change(input, { target: { value: "" } });
+    expect(input.value).toBe("");
+
+    fireEvent.change(input, { target: { value: "20" } });
+    expect(input.value).toBe("20");
+  });
+
   test("non-numeric input is rejected in numResults field", async () => {
     axios.get.mockResolvedValue({ data: makeApiResponse() });
     renderComponent();
