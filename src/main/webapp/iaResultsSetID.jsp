@@ -41,6 +41,28 @@ private static void setImportTaskComplete(Shepherd myShepherd, Encounter enc) {
 	catch(Exception e){e.printStackTrace();}
 }
 
+// updateDBTransaction() commits via commitDBTransaction(), which SWALLOWS commit failures --
+// so a commit that never landed would still let this page answer {"success":true} and tell the
+// user their match was saved. Commit with a status instead, then reopen for the work that
+// follows (the caller aborts with success:false when this returns false).
+// Deliberately does NOT say "not saved". commitDBTransactionWithStatus() returns false when the
+// commit THREW, and a commit can throw after the database has already made it durable (e.g. the
+// connection drops while the acknowledgement comes back). Telling the user to retry a write that
+// may have landed invites a duplicate; telling them to check is honest about what we know.
+// For the case-1 commits that run BEFORE any encounter is associated: we know for certain no
+// assignment was attempted, so say so rather than sending the user to check an encounter.
+private static final String COMMIT_UNCONFIRMED_PRE_ASSIGN_MSG =
+	"the new individual could not be confirmed as saved and no encounter was assigned -- reload the individual before trying again";
+
+private static final String COMMIT_UNCONFIRMED_MSG =
+	"the individual assignment could not be confirmed -- reload the encounter to check whether it was applied before trying again";
+
+private static boolean commitAndContinue(Shepherd myShepherd) {
+	boolean committed = myShepherd.commitDBTransactionWithStatus();
+	myShepherd.beginDBTransaction();
+	return committed;
+}
+
 
 %>
 <%
@@ -70,9 +92,17 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 
         System.out.println("iaResultsSetID: INITIALIZED res=" + res);
 	Shepherd myShepherd = new Shepherd(request);
+
+	// Guaranteed cleanup. Only the assignment section below was guarded, so an exception in the
+	// encounter lookup, the authorization checks or refresh() escaped the page leaving the
+	// PersistenceManager open -- a leaked pool connection per occurrence. Every early return
+	// already rolls back and closes; rollbackAndClose() is safe to run again on a closed PM.
+	// NOTE: deliberately not reindenting the body, so this stays a reviewable diff.
+	// setAction/beginDBTransaction are INSIDE the try: the Shepherd constructor already opened a
+	// PersistenceManager, so a throw from begin() would otherwise leak it.
+	try {
 	myShepherd.setAction("iaResultsSetID.jsp");
 	myShepherd.beginDBTransaction();
-
 	Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
 	if (enc == null) {
 		res.put("error", "no such encounter: " + request.getParameter("number"));
@@ -82,6 +112,10 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 		return;
 	}
 	else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd)){
+		// 403, not the default 200. This used to answer "200 {success:false}", which the
+		// React match-results page treated as a successful save -- the user got a green
+		// confirmation while nothing was written. The body is kept for clients that read it.
+		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 		res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
 		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
@@ -100,7 +134,9 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
         List<MarkedIndividual> otherIndivs = new ArrayList<MarkedIndividual>();
         if (otherEncIds != null) for (String oeId : otherEncIds) {
 		Encounter oenc = myShepherd.getEncounter(oeId);
-		myShepherd.getPM().refresh(oenc);
+		// null check BEFORE refresh(): refresh(null) throws, so an unknown encOther used to
+		// produce a server error instead of the intended JSON refusal below.
+		if (oenc != null) myShepherd.getPM().refresh(oenc);
 
 		if (oenc == null) {
 			res.put("error", "no such encounter: " + oeId);
@@ -110,6 +146,10 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 			return;
 		}
 		else if(!ServletUtilities.isUserAuthorizedForEncounter(oenc, request,myShepherd)){
+			// see note above. This branch is the common one: every selected unnamed
+			// candidate is authorized separately, so ONE candidate owned by another user
+			// refuses the whole operation.
+			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 			res.put("error", "User unauthorized for encounter: " + oeId);
 			out.println(res.toString());
 			myShepherd.rollbackDBTransaction();
@@ -171,6 +211,10 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 			out.println(res.toString());
 			myShepherd.rollbackDBTransaction();
 			myShepherd.closeDBTransaction();
+			// MUST return: without it the page carried on against a closed transaction and
+			// appended a second JSON object, so the response was not parseable and the client
+			// could not show this message at all.
+			return;
 		}
 	} catch (Exception e) {
 		e.printStackTrace();
@@ -219,13 +263,23 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 						Project project = myShepherd.getProjectByProjectIdPrefix(projectId);
 						if (project!=null&&project.getNextIncrementalIndividualId().equals(individualID)) {
 							project.getNextIncrementalIndividualIdAndAdvance();
-							myShepherd.updateDBTransaction();
+							if (!commitAndContinue(myShepherd)) {
+								res.put("error", COMMIT_UNCONFIRMED_PRE_ASSIGN_MSG);
+								out.println(res.toString());
+								myShepherd.rollbackAndClose();
+								return;
+							}
 						}
 
 						indiv.addNameByKey(projectId, individualID);
 						res.put("newIncrementalId", indiv.getDisplayName(projectId));
 					}
-					myShepherd.updateDBTransaction();
+					if (!commitAndContinue(myShepherd)) {
+						res.put("error", COMMIT_UNCONFIRMED_PRE_ASSIGN_MSG);
+						out.println(res.toString());
+						myShepherd.rollbackAndClose();
+						return;
+					}
 					//res.put("newIndividualUUID", indiv.getId());
 					res.put("individualName", indiv.getDisplayName(request, myShepherd));
 					res.put("individualId", indiv.getId());
@@ -240,24 +294,52 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 						oenc.setMatchedBy("Pattern match");
                     }
 
-					myShepherd.updateDBTransaction();
+					if (!commitAndContinue(myShepherd)) {
+						res.put("error", COMMIT_UNCONFIRMED_MSG);
+						out.println(res.toString());
+						myShepherd.rollbackAndClose();
+						return;
+					}
                     setImportTaskComplete(myShepherd, enc);
                     for (Encounter oenc : otherEncs) {
                         setImportTaskComplete(myShepherd, oenc);
                     }
-                    indiv.refreshNamesCache();
+                    // post-commit, like the email/import-task work below: a failure here must
+                    // not turn a durable assignment into success:false
+                    try {
+                        indiv.refreshNamesCache();
+                    } catch (Exception cacheEx) { cacheEx.printStackTrace(); }
 
-                    if ((indiv != null) && (enc != null)) IndividualAddEncounter.executeEmails(myShepherd, request, indiv, isNewIndiv, enc, context, langCode);
+                    // The assignment is already committed above. Notification failures must not
+                    // flip this into success:false -- that would tell the user their match did not
+                    // save when it did.
+                    try {
+                        if ((indiv != null) && (enc != null)) IndividualAddEncounter.executeEmails(myShepherd, request, indiv, isNewIndiv, enc, context, langCode);
+                    } catch (Exception emailEx) { emailEx.printStackTrace(); }
+                    // ...and one per OTHER encounter. executeEmails() notifies the recipients of
+                    // the encounter it is handed and writes that encounter's RSS/ATOM entry, so
+                    // these are distinct notifications, not repeats of the one above. Case 2 used
+                    // to emit them as a side effect of running after case 1; now that the cases
+                    // are chained, case 1 has to do it itself or they are silently lost.
+                    for (Encounter oenc : otherEncs) {
+                        try {
+                            IndividualAddEncounter.executeEmails(myShepherd, request, indiv, false, oenc, context, langCode);
+                        } catch (Exception emailEx) { emailEx.printStackTrace(); }
+                    }
 
 
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
-			}
 
 			// query enc has indy, or already stashed in URL params
 			//if (indiv!=null&&indiv2==null) {
-			if ((indiv != null) && (otherIndivs.size() < 1)) {
+			// `else if`, not `if`: case 1 leaves indiv non-null and otherIndivs empty, so this
+			// block used to run straight after it and redo the whole otherEncs loop -- appending
+			// a SECOND "Added to ..." comment to each encounter and the individual, sending the
+			// notification emails twice, and issuing a redundant commit whose failure reported
+			// "could not be confirmed" for an assignment that had already been committed.
+			} else if ((indiv != null) && (otherIndivs.size() < 1)) {
 				System.out.println("CASE 2: query enc indy is null");
                                 for (Encounter oenc : otherEncs) {
                                     oenc.setIndividual(indiv);
@@ -268,17 +350,23 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 									oenc.setMatchedBy("Pattern match");
                                 }
 				res.put("individualName", indiv.getDisplayName(request, myShepherd));
-				myShepherd.updateDBTransaction();
+				if (!commitAndContinue(myShepherd)) {
+					res.put("error", COMMIT_UNCONFIRMED_MSG);
+					out.println(res.toString());
+					myShepherd.rollbackAndClose();
+					return;
+				}
 				// if(enc2!=null){
                                 for (Encounter oenc : otherEncs) {
-                                    IndividualAddEncounter.executeEmails(myShepherd, request, indiv, false, oenc, context, langCode);
+                                    try {
+                                        IndividualAddEncounter.executeEmails(myShepherd, request, indiv, false, oenc, context, langCode);
+                                    } catch (Exception emailEx) { emailEx.printStackTrace(); } // see note above
                                     setImportTaskComplete(myShepherd, oenc);
                                 }
-			}
 
 			// target enc has indy
 			//if (indiv==null&&indiv2!=null) {
-			if ((indiv == null) && (allEncIndivs.size() == 1)) {
+			} else if ((indiv == null) && (allEncIndivs.size() == 1)) {
 				System.out.println("CASE 3: target enc indy is null");
                                 Iterator<MarkedIndividual> it = allEncIndivs.iterator();
                                 MarkedIndividual oindiv = it.next();
@@ -291,9 +379,16 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 				enc.setMatchedBy("Pattern match");
 				
 				res.put("individualName", oindiv.getDisplayName(request, myShepherd));
-				myShepherd.updateDBTransaction();
+				if (!commitAndContinue(myShepherd)) {
+					res.put("error", COMMIT_UNCONFIRMED_MSG);
+					out.println(res.toString());
+					myShepherd.rollbackAndClose();
+					return;
+				}
 
-				IndividualAddEncounter.executeEmails(myShepherd, request, oindiv, false, enc, context, langCode);
+				try {
+					IndividualAddEncounter.executeEmails(myShepherd, request, oindiv, false, enc, context, langCode);
+				} catch (Exception emailEx) { emailEx.printStackTrace(); } // see note above
                                 setImportTaskComplete(myShepherd, enc);
 			}
 
@@ -338,6 +433,14 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 	res.put("error", "Unknown error setting individual " + individualID);
 	out.println(res.toString());
 	return;
+	} finally {
+		// Only if the body did not already close it. Every early return closes explicitly, and
+		// rollbackDBTransaction() on a closed PersistenceManager throws internally (caught, but
+		// it prints a stack trace and publishes a bogus "rollback-failed" state that operators
+		// read on dbconnections.jsp). This keeps the guarantee without the noise.
+		if ((myShepherd.getPM() != null) && !myShepherd.getPM().isClosed())
+			myShepherd.rollbackAndClose();
+	}
 }
 
 

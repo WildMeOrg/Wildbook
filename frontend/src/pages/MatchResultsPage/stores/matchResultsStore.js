@@ -743,6 +743,15 @@ export default class MatchResultsStore {
         ),
       );
 
+      // Nothing to assign: every selected encounter, the query encounter included, already
+      // carries the target individual. iaResultsSetID.jsp answers success:true for that without
+      // writing anything, which reads to the user as a confirmed match that never happened.
+      if (unnamedEncounterIds.length === 0) {
+        this._matchRequestError = "MATCH_NOTHING_TO_ASSIGN";
+        toast.error("Nothing to confirm — the selected encounters already have this ID");
+        return null;
+      }
+
       const params = new URLSearchParams();
       if (this._encounterId) params.set("number", this._encounterId);
       if (this._taskId) params.set("taskId", this._taskId);
@@ -758,12 +767,25 @@ export default class MatchResultsStore {
         headers: { Accept: "application/json" },
       });
 
+      // iaResultsSetID.jsp reports authorization and validation failures in the BODY
+      // ({success: false, error: "..."}), and historically did so with HTTP 200 -- so a
+      // denied request resolved here and was reported to the user as a successful save
+      // while nothing had been written. The JSP now returns 403 on an authorization
+      // failure, but the body remains the source of truth for every other refusal
+      // (unknown encounter, encounters that already have an ID, ...), so check it.
+      if (res?.data?.success !== true) {
+        this._matchRequestError = "MATCH_FAILED";
+        toast.error(res?.data?.error || "Failed to confirm match");
+        return null;
+      }
+
       this.resetSelectionToQuery();
       toast.success("Match confirmed successfully!");
       return res.data;
-    } catch {
+    } catch (error) {
       this._matchRequestError = "MATCH_FAILED";
-      toast.error("Failed to confirm match");
+      // surface the server's reason (e.g. the 403 body) rather than a generic message
+      toast.error(error?.response?.data?.error || "Failed to confirm match");
       return null;
     } finally {
       this._matchRequestLoading = false;
