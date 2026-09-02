@@ -68,6 +68,17 @@ public class Shepherd {
     private String action = "undefined";
     private String shepherdID = "";
 
+    // The PersistenceManager this Shepherd has already registered a WildbookLifecycleListener on.
+    // Compared by identity: beginDBTransaction() runs again on every updateDBTransaction()
+    // (= commit + begin) and used to add ANOTHER listener each time, so one store event fanned out
+    // to N duplicate callbacks. A brand-new pm (pm was null/closed) does not match and gets one.
+    private PersistenceManager listenerRegisteredOn = null;
+
+    // Serializes this Shepherd's transaction lifecycle (begin/commit/rollback/close) so the
+    // deferred-indexing park cannot be drained and discarded concurrently -- a close() racing a
+    // commit() would otherwise drop a committed object's index request.
+    private final Object txLock = new Object();
+
     // Constructor to create a new shepherd thread object
     public Shepherd(String context) { this(context, null); }
 
@@ -110,10 +121,15 @@ public class Shepherd {
         // that fails (e.g. on an already-broken connection) skips the close, leaking the
         // PersistenceManager/DB connection and leaving a stale ShepherdState entry -- exactly the
         // "rollback-failed" rows seen accumulating on dbconnections.jsp until the pool exhausts.
-        try {
-            rollbackDBTransaction();
-        } finally {
-            closeDBTransaction();
+        //
+        // Held across BOTH halves: releasing txLock in between would let another thread begin a
+        // fresh transaction in the gap, whose parked index requests this close would then discard.
+        synchronized (txLock) {
+            try {
+                rollbackDBTransactionInternal();
+            } finally {
+                closeDBTransactionInternal();
+            }
         }
     }
 
@@ -3377,17 +3393,48 @@ public class Shepherd {
      * Opens the database up for information retrieval, storage, and removal
      */
     public void beginDBTransaction() {
+        synchronized (txLock) {
+            beginDBTransactionInternal();
+        }
+    }
+
+    /*
+     * Register the store listener, install the deferred-indexing park, and only THEN activate the
+     * transaction. The order is the contract, not an accident: a store callback can only fire once
+     * the transaction is active, and by then it needs both the listener and a LIVE park already in
+     * place. Activating first leaves a window in which a callback sees an active transaction next
+     * to the PREVIOUS transaction's terminal park, and would either enqueue immediately (a drained
+     * park -- reintroducing the pre-commit stale read this whole mechanism exists to prevent) or
+     * silently drop the request (a discarded park), for a transaction that is genuinely open.
+     *
+     * Package-private and static so that ordering can be asserted against a mock PersistenceManager
+     * without standing up a datastore. Returns the pm the listener is now registered on.
+     */
+    static PersistenceManager prepareAndBeginTransaction(PersistenceManager pm,
+        PersistenceManager listenerRegisteredOn) {
+        if (pm == null) return listenerRegisteredOn;
+        // One listener per PersistenceManager (see the field of the same name).
+        if (listenerRegisteredOn != pm) {
+            pm.addInstanceLifecycleListener(new WildbookLifecycleListener(), null);
+            listenerRegisteredOn = pm;
+        }
+        IndexingManager.installPendingBucket(pm);
+        if (!pm.currentTransaction().isActive()) pm.currentTransaction().begin();
+        return listenerRegisteredOn;
+    }
+
+    private void beginDBTransactionInternal() {
         // PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
         try {
-            if (pm == null || pm.isClosed()) {
+            if (pm == null || pm.isClosed())
                 pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
-                pm.currentTransaction().begin();
-            } else if (!pm.currentTransaction().isActive()) {
-                pm.currentTransaction().begin();
+            if (pm == null) {
+                System.out.println(
+                    "Shepherd.beginDBTransaction(): could not obtain a PersistenceManager");
+                return;
             }
+            listenerRegisteredOn = prepareAndBeginTransaction(pm, listenerRegisteredOn);
             ShepherdState.setShepherdState(action + "_" + shepherdID, "begin");
-
-            pm.addInstanceLifecycleListener(new WildbookLifecycleListener(), null);
         } catch (JDOUserException jdoe) {
             jdoe.printStackTrace();
         } catch (NullPointerException npe) {
@@ -3405,12 +3452,26 @@ public class Shepherd {
      */
     // TODO: Either (a) throw an exception itself or (b) return boolean of success (the latter was disabled, needs investigation)
     public void commitDBTransaction() {
+        synchronized (txLock) {
+            commitDBTransactionInternal();
+        }
+    }
+
+    private void commitDBTransactionInternal() {
+        boolean committed = false;
+        // A commit can throw AFTER the database has durably committed (e.g. the connection drops
+        // while the acknowledgement comes back). Treat that as "outcome unknown" and drain anyway:
+        // draining is safe either way, because the indexing job re-reads the object from the
+        // database -- worst case it re-indexes state that never changed.
+        boolean outcomeUnknown = false;
+
         try {
             // System.out.println("     shepherd:"+identifyMe+" is trying to commit a transaction");
             // System.out.println("Is the pm null? " + Boolean.toString(pm == null));
             if ((pm != null) && (pm.currentTransaction().isActive())) {
                 // System.out.println("     Now commiting a transaction with pm"+(String)pm.getUserObject());
                 pm.currentTransaction().commit();
+                committed = true;
 
                 // return true;
                 // System.out.println("A transaction has been successfully committed.");
@@ -3420,30 +3481,51 @@ public class Shepherd {
             }
             ShepherdState.setShepherdState(action + "_" + shepherdID, "commit");
         } catch (JDOUserException jdoe) {
+            outcomeUnknown = true;
             jdoe.printStackTrace();
             System.out.println("I failed to commit a transaction." + "\n" + jdoe.getStackTrace());
             // return false;
         } catch (JDOException jdoe2) {
+            outcomeUnknown = true;
             jdoe2.printStackTrace();
-            Throwable[] throwables = jdoe2.getNestedExceptions();
-            int numThrowables = throwables.length;
-            for (int i = 0; i < numThrowables; i++) {
-                Throwable t = throwables[i];
-                if (t instanceof java.sql.SQLException) {
-                    java.sql.SQLException exc = (java.sql.SQLException)t;
-                    java.sql.SQLException g = exc.getNextException();
-                    g.printStackTrace();
-                }
-                t.printStackTrace();
-            }
+            logNestedExceptions(jdoe2);
             // return false;
         }
         // added to prevent conflicting calls jah 1/19/04
         catch (NullPointerException npe) {
+            outcomeUnknown = true;
             System.out.println(
                 "A null pointer exception was thrown while trying to commit a transaction!");
             npe.printStackTrace();
             // return false;
+        } finally {
+            // Post-commit indexing handoff. Everything WildbookLifecycleListener parked during
+            // this transaction is only queued now, so the background indexer can no longer load
+            // and index pre-commit state.
+            //
+            // In a finally, not after the try: if anything above throws on its way out (the
+            // diagnostic logging used to be able to), a durable-but-unacknowledged commit would
+            // lose every parked request -- worse than the old behavior, which had already queued
+            // them. drainPendingEntries() is itself non-throwing.
+            if (committed || outcomeUnknown) IndexingManager.drainPendingEntries(pm);
+        }
+    }
+
+    /* Dump the nested causes of a JDOException. Null-safe at every hop: getNestedExceptions() can
+     * be null (JDOException has message-only constructors) and so can SQLException.getNextException().
+     * An NPE here used to escape the caller's catch block entirely. */
+    static void logNestedExceptions(JDOException jdoe) {
+        if (jdoe == null) return;
+        Throwable[] throwables = jdoe.getNestedExceptions();
+        if (throwables == null) return;
+        for (int i = 0; i < throwables.length; i++) {
+            Throwable t = throwables[i];
+            if (t == null) continue;
+            if (t instanceof java.sql.SQLException) {
+                java.sql.SQLException g = ((java.sql.SQLException)t).getNextException();
+                if (g != null) g.printStackTrace();
+            }
+            t.printStackTrace();
         }
     }
 
@@ -3456,18 +3538,30 @@ public class Shepherd {
      * once the encounter change is confirmed committed. (#1608)
      */
     public boolean commitDBTransactionWithStatus() {
+        synchronized (txLock) {
+            return commitDBTransactionWithStatusInternal();
+        }
+    }
+
+    private boolean commitDBTransactionWithStatusInternal() {
+        boolean handoff = false;
+
         try {
             if ((pm != null) && pm.currentTransaction().isActive()) {
                 pm.currentTransaction().commit();
+                handoff = true;
                 ShepherdState.setShepherdState(action + "_" + shepherdID, "commit");
                 return true;
             }
             System.out.println("commitDBTransactionWithStatus: transaction was not active.");
             return false;
         } catch (Exception e) {
+            handoff = true; // outcome unknown -- drain anyway; see commitDBTransactionInternal()
             System.out.println("commitDBTransactionWithStatus: commit failed: " + e);
             e.printStackTrace();
             return false;
+        } finally {
+            if (handoff) IndexingManager.drainPendingEntries(pm);
         }
     }
 
@@ -3475,15 +3569,30 @@ public class Shepherd {
      * Since we call these together all over Wildbook
      */
     public void updateDBTransaction() {
-        commitDBTransaction();
-        beginDBTransaction();
+        // one lock across commit+begin; see rollbackAndClose() for why the gap matters
+        synchronized (txLock) {
+            commitDBTransactionInternal();
+            beginDBTransactionInternal();
+        }
     }
 
     /**
      * Closes a PersistenceManager
      */
     public void closeDBTransaction() {
+        synchronized (txLock) {
+            closeDBTransactionInternal();
+        }
+    }
+
+    private void closeDBTransactionInternal() {
         boolean closed = false;
+        // Cleanup only. "Transaction not active" is NOT proof that a commit succeeded -- it is
+        // equally true after a raw rollback or a commit that threw -- so close never drains the
+        // deferred-indexing park, it only drops it. Must run BEFORE pm.close(), because the park
+        // is held in the PersistenceManager's user-object map. A successful commitDBTransaction()
+        // has already drained and removed it by this point.
+        IndexingManager.discardPendingEntries(pm);
         try {
             if ((pm != null) && (!pm.isClosed())) {
                 pm.close();
@@ -3510,7 +3619,16 @@ public class Shepherd {
      * Undoes any changes made to an open database.
      */
     public void rollbackDBTransaction() {
+        synchronized (txLock) {
+            rollbackDBTransactionInternal();
+        }
+    }
+
+    private void rollbackDBTransactionInternal() {
         boolean rolledBack = false;
+        // Nothing committed, so nothing to index. Drop the deferred-indexing park before rolling
+        // back, so a later close() cannot see it.
+        IndexingManager.discardPendingEntries(pm);
         try {
             if ((pm != null) && (pm.currentTransaction().isActive())) {
                 pm.currentTransaction().rollback();

@@ -2,6 +2,7 @@ package org.ecocean;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -20,6 +21,11 @@ import org.mockito.MockedStatic;
  * Verifies that encounter<->individual membership changes enqueue a deep reindex of the
  * affected encounter + old/new individuals via IndexingManager, and that skipAutoIndexing
  * suppresses the enqueue (so bulk import / deserialization do not storm the queue).
+ *
+ * enqueueAclReindex() now routes through IndexingManager.addPendingEntry(), which DEFERS to
+ * after the commit when a transaction is open. These objects are transient (no PersistenceManager),
+ * so they take the immediate fallback and land on the (id, class, unindex) overload -- same
+ * request, different signature. The deferral itself is covered by IndexingDeferredEnqueueTest.
  *
  * The ACL-propagation path inside Encounter.opensearchIndexPermissions() requires a live
  * Shepherd + OpenSearch and is covered by the Task 9 integration test, not here.
@@ -50,6 +56,7 @@ class ChildReindexTriggerTest {
     @Test void setIndividual_enqueuesEncounterAndOldIndividual() throws Exception {
         Encounter enc = spy(new Encounter());
         enc.setSkipAutoIndexing(false);
+        enc.setCatalogNumber("enc-0"); // getId() must be non-null or there is nothing to enqueue
         MarkedIndividual oldInd = spy(new MarkedIndividual());
         oldInd.setSkipAutoIndexing(false);
         setIndividualField(enc, oldInd);
@@ -62,9 +69,9 @@ class ChildReindexTriggerTest {
             enc.setIndividual(newInd);
         }
         // enc (its new individual + annotations refresh via deep index)
-        verify(im).addIndexingQueueEntry(eq(enc), eq(false));
+        verify(im).addIndexingQueueEntry(eq("enc-0"), eq(Encounter.class), eq(false));
         // old individual the encounter left
-        verify(im).addIndexingQueueEntry(eq(oldInd), eq(false));
+        verify(im).addIndexingQueueEntry(eq(oldInd.getId()), eq(MarkedIndividual.class), eq(false));
     }
 
     // skipAutoIndexing on the encounter (and old individual) suppresses all enqueues.
@@ -82,7 +89,8 @@ class ChildReindexTriggerTest {
             factory.when(IndexingManagerFactory::getIndexingManager).thenReturn(im);
             enc.setIndividual(newInd);
         }
-        verify(im, never()).addIndexingQueueEntry(any(), anyBoolean());
+        verify(im, never()).addIndexingQueueEntry(any(Base.class), anyBoolean());
+        verify(im, never()).addIndexingQueueEntry(anyString(), any(), anyBoolean());
     }
 
     // MarkedIndividual.removeEncounter enqueues the individual AND the departed encounter.
@@ -101,8 +109,8 @@ class ChildReindexTriggerTest {
             factory.when(IndexingManagerFactory::getIndexingManager).thenReturn(im);
             ind.removeEncounter(enc);
         }
-        verify(im).addIndexingQueueEntry(eq(ind), eq(false));
-        verify(im).addIndexingQueueEntry(eq(enc), eq(false));
+        verify(im).addIndexingQueueEntry(eq(ind.getId()), eq(MarkedIndividual.class), eq(false));
+        verify(im).addIndexingQueueEntry(eq("enc-1"), eq(Encounter.class), eq(false));
     }
 
     // MarkedIndividual.addEncounter enqueues the joining encounter.
@@ -119,6 +127,6 @@ class ChildReindexTriggerTest {
             factory.when(IndexingManagerFactory::getIndexingManager).thenReturn(im);
             ind.addEncounter(enc);
         }
-        verify(im).addIndexingQueueEntry(eq(enc), eq(false));
+        verify(im).addIndexingQueueEntry(eq("enc-2"), eq(Encounter.class), eq(false));
     }
 }

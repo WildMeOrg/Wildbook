@@ -466,11 +466,14 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     // Adds a new encounter to this MarkedIndividual.
     /** Enqueue a (deep) reindex of this individual — refreshes the individual + its member
-     *  encounters. Honors skipAutoIndexing so bulk import / deserialization don't storm. */
+     *  encounters. Honors skipAutoIndexing so bulk import / deserialization don't storm.
+     *
+     *  Deferred while a transaction is open — see Encounter.enqueueAclReindex() for why. */
     public void enqueueAclReindex() {
         if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
         try {
-            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+            IndexingManager.addPendingEntry(javax.jdo.JDOHelper.getPersistenceManager(this), this,
+                false);
         } catch (Exception ex) {
             System.out.println("MarkedIndividual.enqueueAclReindex failed for " + this.getId() + ": " + ex);
         }

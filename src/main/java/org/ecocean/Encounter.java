@@ -1243,13 +1243,33 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     /** Enqueue a (deep) reindex of this encounter — refreshes its individual + annotations' ACL.
-     *  Honors skipAutoIndexing so bulk import / deserialization don't storm. */
+     *  Honors skipAutoIndexing so bulk import / deserialization don't storm.
+     *
+     *  Deferred: while a transaction is open this only PARKS the request, and Shepherd releases it
+     *  after the commit. Enqueuing from inside the transaction is what let the indexing job load
+     *  and index pre-commit state. A caller that has already committed still gets an immediate
+     *  enqueue (addPendingEntry falls through when no transaction is active); a caller that is
+     *  post-commit but holding an unrelated open transaction must use enqueueAclReindexNow(). */
     public void enqueueAclReindex() {
+        if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
+        try {
+            IndexingManager.addPendingEntry(javax.jdo.JDOHelper.getPersistenceManager(this), this,
+                false);
+        } catch (Exception ex) {
+            System.out.println("Encounter.enqueueAclReindex failed for " + this.getId() + ": " + ex);
+        }
+    }
+
+    /** enqueueAclReindex() for callers that are already past their commit but still hold an open
+     *  (typically read-only) transaction that will be rolled back — parking there would discard
+     *  the request. Only the background permissions pass needs this. */
+    public void enqueueAclReindexNow() {
         if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
         try {
             IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
         } catch (Exception ex) {
-            System.out.println("Encounter.enqueueAclReindex failed for " + this.getId() + ": " + ex);
+            System.out.println("Encounter.enqueueAclReindexNow failed for " + this.getId() + ": " +
+                ex);
         }
     }
 
@@ -1261,6 +1281,16 @@ public class Encounter extends Base implements java.io.Serializable {
         // and the OLD individual it left (so the departed encounter is dropped from its ACL).
         // Only enqueue when membership actually changed; a no-op set (old == indiv) changes nothing.
         if (old != indiv) {
+            // Gaining or losing an individual IS a modification, but none of the setters on this
+            // path touch `modified` -- not setIndividual(), not addComments(), not setMatchedBy().
+            // getVersion() is derived from `modified`, and the reconciler only reindexes when the
+            // DB version is strictly greater than the indexed version, so without this bump a
+            // document that went stale here could never be repaired by the background sweep.
+            // NOTE: setDWCDateLastModified() has one-second resolution, so two membership changes
+            // inside the same second still collapse to one version. That is a backstop-only gap --
+            // the post-commit drain in IndexingManager is what actually guarantees a correct
+            // document -- but it is the reason this is not a complete fix on its own.
+            this.setDWCDateLastModified();
             this.enqueueAclReindex();
             if (old != null) old.enqueueAclReindex();
         }
@@ -4410,7 +4440,9 @@ public class Encounter extends Base implements java.io.Serializable {
                 if (childReindexNeeded) {
                     try {
                         Encounter enc = myShepherd.getEncounter(id);
-                        if (enc != null) enc.enqueueAclReindex(); // refresh individual + annotations
+                        // Now-flavored: this pass's Shepherd holds a read transaction that is
+                        // rolled back at the end, so a deferred park would be discarded.
+                        if (enc != null) enc.enqueueAclReindexNow(); // refresh individual + annotations
                     } catch (Exception ex) {
                         // best-effort; reconciler / corrective reindex recovers a missed child refresh
                     }
