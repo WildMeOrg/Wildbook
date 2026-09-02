@@ -15,7 +15,7 @@ import FilterIcon from "./icons/FilterIcon";
 import MatchCriteriaDrawer from "./components/MatchCriteriaDrawer";
 import MultiSelectWithCheckbox from "../../components/MultiSelectWithCheckbox";
 import ContainerWithSpinner from "../../components/ContainerWithSpinner";
-import { MAX_NUM_RESULTS } from "./constants";
+import { DEFAULT_NUM_RESULTS, MAX_NUM_RESULTS } from "./constants";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
@@ -38,6 +38,14 @@ const MatchResults = observer(() => {
 
   const [filterVisible, setFilterVisible] = React.useState(false);
   const [isInputFocused, setIsInputFocused] = React.useState(false);
+  const [resultsText, setResultsText] = React.useState(String(store.numResults));
+
+  const applyResultsCount = () => {
+    const trimmed = resultsText.trim();
+    store.setNumResults(trimmed === "" ? DEFAULT_NUM_RESULTS : Number(trimmed));
+    setResultsText(String(store.numResults));
+    store.fetchMatchResults();
+  };
 
   const projectOptions = useMemo(() => {
     return Object.entries(projectsForUser).map(([key, value]) => ({
@@ -257,18 +265,18 @@ const MatchResults = observer(() => {
                 data-testid="match-results-num-results-input"
                 type="text"
                 size="sm"
-                value={store.numResults}
+                value={resultsText}
                 onChange={(e) => {
                   const val = e.target.value;
                   if (/^\d*$/.test(val)) {
-                    store.setNumResults(val === "" ? 1 : Number(val));
+                    setResultsText(val);
                   }
                 }}
                 onFocus={() => setIsInputFocused(true)}
                 onBlur={() => setIsInputFocused(false)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    store.fetchMatchResults();
+                    applyResultsCount();
                   }
                 }}
                 style={{
@@ -282,7 +290,7 @@ const MatchResults = observer(() => {
                   id="match-results-num-results-apply"
                   data-testid="match-results-num-results-apply"
                   type="button"
-                  onClick={() => store.fetchMatchResults()}
+                  onClick={applyResultsCount}
                   onMouseDown={(e) => e.preventDefault()}
                   style={{
                     position: "absolute",
