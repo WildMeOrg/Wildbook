@@ -199,6 +199,7 @@
 				/IndividualRemoveDataFile = authc, roles[researcher]
 				/IndividualAddComment = authc, roles[researcher]
 				/IndividualSetSex = authc, roles[researcher]
+				/IndividualSetTaxonomy = authc, roles[researcher]
 				/IndividualSetYearOfBirth = authc, roles[researcher]
 				/IndividualSetYearOfDeath = authc, roles[researcher]
 				/IndividualCreateForProject = authc, roles[researcher]
@@ -965,6 +966,14 @@
 	<servlet-mapping>
 		<servlet-name>IndividualSetSex</servlet-name>
 		<url-pattern>/IndividualSetSex</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>IndividualSetTaxonomy</servlet-name>
+		<servlet-class>org.ecocean.servlet.IndividualSetTaxonomy</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>IndividualSetTaxonomy</servlet-name>
+		<url-pattern>/IndividualSetTaxonomy</url-pattern>
 	</servlet-mapping>
 	<servlet>
 		<servlet-name>IndividualRemoveDataFile</servlet-name>
