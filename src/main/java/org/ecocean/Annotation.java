@@ -1575,6 +1575,26 @@ public class Annotation extends Base implements java.io.Serializable {
         return ann;
     }
 
+    // Find the trivial placeholder annotation that manual-annotation creation
+    // should consume. A MediaAsset shared by multiple encounters (e.g. one
+    // image imported on several bulk-import rows) carries one trivial
+    // placeholder per encounter, so the search must be scoped to the target
+    // encounter's annotations on this asset: detaching another encounter's
+    // placeholder deletes its feature while enc.removeAnnotation() silently
+    // no-ops, stranding a featureless annotation on that encounter and
+    // dropping the image from it. With no encounter given, falls back to the
+    // historical asset-wide search. Package-visible for testing.
+    static Annotation findTrivialPlaceholder(Encounter enc, MediaAsset ma) {
+        if (ma == null) return null;
+        List<Annotation> candidates = (enc == null) ? ma.getAnnotations() : enc.getAnnotations(ma);
+        if (candidates == null) return null;
+        Annotation foundTrivial = null;
+        for (Annotation a : candidates) {
+            if (a.isTrivial()) foundTrivial = a;
+        }
+        return foundTrivial;
+    }
+
     public static Base createFromApi(JSONObject payload, List<File> files, Shepherd myShepherd)
     throws ApiException {
         if (payload == null) throw new ApiException("empty payload");
@@ -1772,10 +1792,7 @@ public class Annotation extends Base implements java.io.Serializable {
             }
         }
         // NOTE: manualAnnotation.jsp allowed 'removeTrivial' (boolean) to be set via url, but was default true
-        Annotation foundTrivial = null; // note this will only remove (at most) ONE (but "should never" have > 1 anyway)
-        for (Annotation a : ma.getAnnotations()) {
-            if (a.isTrivial()) foundTrivial = a;
-        }
+        Annotation foundTrivial = findTrivialPlaceholder(enc, ma); // note this will only remove (at most) ONE (but "should never" have > 1 anyway)
         if (foundTrivial == null) {
             System.out.println(
                 "Annotation.createFromApi(): no trivial annotation found to remove from " + ma);
