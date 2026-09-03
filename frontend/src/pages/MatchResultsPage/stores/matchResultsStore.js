@@ -48,6 +48,8 @@ export default class MatchResultsStore {
   _rootStillRunning = false;
   _rootHasError = false;
   _currentRequestId = null;
+  // Issue #1744: taskId -> query context of that section (see activeQuery).
+  _queryByTaskId = new Map();
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -117,6 +119,7 @@ export default class MatchResultsStore {
       this._processedAnnots = [];
       this._processedIndivs = [];
       this._encounterId = null;
+      this._queryByTaskId = new Map();
       this._matchingSetFilter = {};
       this._individualId = null;
       this._individualDisplayName = null;
@@ -170,6 +173,10 @@ export default class MatchResultsStore {
     this._rawIndivs = Array.isArray(this._indivResults)
       ? this._indivResults
       : [];
+    this._queryByTaskId = this._indexQueriesByTask([
+      ...this._rawIndivs,
+      ...this._rawAnnots,
+    ]);
     this._hasResults = this._rawAnnots.length > 0 || this._rawIndivs.length > 0;
     this._processedAnnots = this._processData(this._rawAnnots);
     this._processedIndivs = this._processData(this._rawIndivs);
@@ -234,6 +241,10 @@ export default class MatchResultsStore {
           taskStatus: first.taskStatus,
           taskStatusOverall: first.taskStatusOverall,
           algorithm: first.algorithm,
+          queryEncounterId: first.queryEncounterId ?? null,
+          queryIndividualId: first.queryIndividualId ?? null,
+          queryIndividualDisplayName: first.queryIndividualDisplayName ?? null,
+          encounterLocationId: first.encounterLocationId ?? null,
           emptyStateType: first.emptyStateType ?? null,
           errors: first.errors ?? null,
         },
@@ -241,6 +252,27 @@ export default class MatchResultsStore {
     }
 
     return sections;
+  }
+
+  // Issue #1744: one query context per section (task node). A task tree can
+  // hold several sections whose query annotations belong to DIFFERENT
+  // encounters (an image-wide umbrella task with one child per annotation),
+  // so the query encounter an action applies to must come from the section
+  // the user selected in — never from whichever section happened to be
+  // listed first.
+  _indexQueriesByTask(rows) {
+    const byTask = new Map();
+    for (const row of rows) {
+      const taskId = row?.taskId;
+      if (!taskId || byTask.has(taskId) || !row?.queryEncounterId) continue;
+      byTask.set(taskId, {
+        encounterId: row.queryEncounterId,
+        individualId: row.queryIndividualId || null,
+        individualDisplayName: row.queryIndividualDisplayName || null,
+        locationId: row.encounterLocationId || "",
+      });
+    }
+    return byTask;
   }
 
   clearResults() {
@@ -251,6 +283,7 @@ export default class MatchResultsStore {
     this._processedAnnots = [];
     this._processedIndivs = [];
     this._encounterId = null;
+    this._queryByTaskId = new Map();
     this._encounterLocationId = "";
     this._matchingSetFilter = {};
     this._individualId = null;
@@ -316,12 +349,76 @@ export default class MatchResultsStore {
     return this.currentViewData.length > 0;
   }
 
+  // Distinct query encounters across every section of the loaded tree.
+  get queryEncounterIds() {
+    const ids = new Set();
+    for (const q of this._queryByTaskId.values()) {
+      if (q?.encounterId) ids.add(q.encounterId);
+    }
+    return Array.from(ids);
+  }
+
+  // The query context every action and display element operates on.
+  // With a single query encounter in the tree this is simply that query.
+  // In a multi-query tree it is the query of the section the selected
+  // candidates came from, and there is NO context until a candidate is
+  // ticked (encounterId null hides the action bar) — the first-listed
+  // section is never a default target. The context is ambiguous, and every
+  // action refuses, when the selection spans sections with different query
+  // encounters, when a candidate's section is unknown in a multi-query tree,
+  // or when a candidate's section no longer exists (e.g. after a polling
+  // refresh changed the tree) (issue #1744).
+  get activeQuery() {
+    const fallback = {
+      encounterId: this._encounterId || null,
+      individualId: this._individualId || null,
+      individualDisplayName: this._individualDisplayName || null,
+      locationId: this._encounterLocationId || "",
+      ambiguous: false,
+    };
+    const ambiguous = { ...fallback, ambiguous: true };
+    const multiQuery = this.queryEncounterIds.length > 1;
+
+    const byEncounter = new Map();
+    for (const m of this._selectedMatch) {
+      if (m?.sectionTaskId == null) {
+        // no section recorded: only acceptable when there is a single query
+        if (multiQuery) return ambiguous;
+        continue;
+      }
+      const q = this._queryByTaskId.get(m.sectionTaskId);
+      if (!q?.encounterId) return ambiguous; // section vanished or unknown
+      byEncounter.set(q.encounterId, q);
+    }
+    if (byEncounter.size > 1) return ambiguous;
+    if (byEncounter.size === 1) {
+      const q = byEncounter.values().next().value;
+      return {
+        encounterId: q.encounterId,
+        individualId: q.individualId || null,
+        individualDisplayName: q.individualDisplayName || null,
+        locationId: q.locationId || "",
+        ambiguous: false,
+      };
+    }
+    if (multiQuery) {
+      return {
+        encounterId: null,
+        individualId: null,
+        individualDisplayName: null,
+        locationId: "",
+        ambiguous: false,
+      };
+    }
+    return fallback;
+  }
+
   get encounterId() {
-    return this._encounterId;
+    return this.activeQuery.encounterId;
   }
 
   get encounterLocationId() {
-    return this._encounterLocationId;
+    return this.activeQuery.locationId;
   }
 
   get matchingSetFilter() {
@@ -329,11 +426,11 @@ export default class MatchResultsStore {
   }
 
   get individualId() {
-    return this._individualId;
+    return this.activeQuery.individualId;
   }
 
   get individualDisplayName() {
-    return this._individualDisplayName;
+    return this.activeQuery.individualDisplayName;
   }
 
   get projectNames() {
@@ -374,9 +471,10 @@ export default class MatchResultsStore {
 
   get uniqueIndividualIds() {
     const ids = new Set();
+    const query = this.activeQuery;
 
-    if (this._individualId) {
-      ids.add(this._individualId);
+    if (query.individualId) {
+      ids.add(query.individualId);
     }
 
     this._selectedMatch.forEach((match) => {
@@ -389,11 +487,12 @@ export default class MatchResultsStore {
   }
 
   get querySelectionItem() {
-    if (!this._encounterId) return null;
+    const query = this.activeQuery;
+    if (!query.encounterId) return null;
     return {
-      encounterId: this._encounterId,
-      individualId: this._individualId || null,
-      individualDisplayName: this.individualDisplayName || null,
+      encounterId: query.encounterId,
+      individualId: query.individualId || null,
+      individualDisplayName: query.individualDisplayName || null,
     };
   }
 
@@ -536,6 +635,13 @@ export default class MatchResultsStore {
     this._matchRequestError = null;
 
     try {
+      const query = this.activeQuery;
+      if (query.ambiguous) {
+        // the bottom bar already shows the localized alert for this state
+        this._matchRequestError = "MULTIPLE_QUERY_ENCOUNTERS";
+        return { ok: false, error: "MULTIPLE_QUERY_ENCOUNTERS" };
+      }
+
       const newName = (this._newIndividualName || "").trim();
 
       if (!newName) {
@@ -567,7 +673,7 @@ export default class MatchResultsStore {
             path: "individualId",
             value: {
               type: "locationId",
-              value: this._encounterLocationId,
+              value: query.locationId,
             },
           },
         ];
@@ -666,7 +772,7 @@ export default class MatchResultsStore {
 
       this.resetSelectionToQuery();
       toast.success("New individual created successfully!");
-      return { ok: true, successes };
+      return { ok: true, successes, encounterId: query.encounterId };
     } catch {
       this._matchRequestError = "CREATE_NEW_INDIVIDUAL_FAILED";
       toast.error("Failed to create new individual");
@@ -682,6 +788,7 @@ export default class MatchResultsStore {
     encounterId,
     individualId,
     individualDisplayName,
+    sectionTaskId = null,
   ) {
     if (!key || !encounterId) return;
 
@@ -694,6 +801,8 @@ export default class MatchResultsStore {
           encounterId,
           individualId: individualId || null,
           individualDisplayName: individualDisplayName || null,
+          // task node the candidate was ticked in (issue #1744)
+          sectionTaskId: sectionTaskId || null,
         },
       ];
     } else {
@@ -720,6 +829,13 @@ export default class MatchResultsStore {
     this._matchRequestError = null;
 
     try {
+      const query = this.activeQuery;
+      if (query.ambiguous) {
+        // the bottom bar already shows the localized alert for this state
+        this._matchRequestError = "MULTIPLE_QUERY_ENCOUNTERS";
+        return null;
+      }
+
       const all = this.selectedIncludingQuery;
 
       const uniqueIndividuals = Array.from(
@@ -753,12 +869,12 @@ export default class MatchResultsStore {
       }
 
       const params = new URLSearchParams();
-      if (this._encounterId) params.set("number", this._encounterId);
+      if (query.encounterId) params.set("number", query.encounterId);
       if (this._taskId) params.set("taskId", this._taskId);
       params.set("individualID", targetIndividualId);
 
       unnamedEncounterIds
-        .filter((id) => id !== this._encounterId)
+        .filter((id) => id !== query.encounterId)
         .forEach((id) => params.append("encOther", id));
 
       const url = `/iaResultsSetID.jsp?${params.toString()}`;
@@ -798,6 +914,12 @@ export default class MatchResultsStore {
     this._matchRequestError = null;
 
     try {
+      if (this.activeQuery.ambiguous) {
+        // the bottom bar already shows the localized alert for this state
+        this._matchRequestError = "MULTIPLE_QUERY_ENCOUNTERS";
+        return null;
+      }
+
       const all = this.selectedIncludingQuery;
 
       const uniqueIndividuals = Array.from(
@@ -847,6 +969,8 @@ export default class MatchResultsStore {
   }
 
   get matchingState() {
+    if (this.activeQuery.ambiguous) return "multiple_query_encounters";
+
     const all = this.selectedIncludingQuery;
 
     const uniqueIndividuals = Array.from(
