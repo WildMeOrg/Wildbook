@@ -805,6 +805,7 @@
     "CONFIRM_MATCH": "Confirm Match",
     "MERGE_INDIVIDUALS": "Merge Individuals",
     "CANNOT_MERGE_MORE_THAN_TWO": "Cannot merge more than two individuals",
+    "CANNOT_MATCH_ACROSS_QUERY_ENCOUNTERS": "Selected candidates belong to different query encounters. Select candidates from one encounter's results at a time.",
     "MERGE": "Merge",
     "MERGE_INDIVIDUAL": "Merge individual",
     "AND": "and",

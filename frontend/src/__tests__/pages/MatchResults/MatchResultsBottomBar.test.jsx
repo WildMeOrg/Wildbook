@@ -42,11 +42,16 @@ jest.mock(
   "../../../pages/MatchResultsPage/components/NewIndividualCreatedModal",
   () => {
     const React = require("react");
-    function NewIndividualCreatedModal({ show, onHide }) {
+    function NewIndividualCreatedModal({ show, onHide, encounterId }) {
       if (!show) return null;
       return React.createElement(
         "div",
         { "data-testid": "new-individual-created-modal" },
+        React.createElement(
+          "span",
+          { "data-testid": "new-individual-created-encounter" },
+          encounterId,
+        ),
         React.createElement("button", { onClick: onHide }, "Close"),
       );
     }
@@ -229,6 +234,41 @@ describe("MatchResultsBottomBar — two_individuals state", () => {
     renderBar(twoStore);
     expect(document.body).toHaveTextContent("MERGE");
     expect(screen.getByText("Willy")).toBeInTheDocument();
+  });
+});
+
+describe("MatchResultsBottomBar — multiple_query_encounters state (issue #1744)", () => {
+  test("shows CANNOT_MATCH_ACROSS_QUERY_ENCOUNTERS alert", () => {
+    renderBar({ matchingState: "multiple_query_encounters" });
+    expect(
+      screen.getByText("CANNOT_MATCH_ACROSS_QUERY_ENCOUNTERS"),
+    ).toBeInTheDocument();
+  });
+
+  test("does not render action buttons", () => {
+    renderBar({ matchingState: "multiple_query_encounters" });
+    expect(screen.queryByText("CONFIRM_MATCH")).not.toBeInTheDocument();
+    expect(screen.queryByText("MERGE_INDIVIDUALS")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("MARK_AS_NEW_INDIVIDUAL"),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("MatchResultsBottomBar — create-new success reports the acted-on encounter (issue #1744)", () => {
+  test("success modal shows the encounter the store acted on, not the current default", async () => {
+    renderBar({
+      matchingState: "no_individuals",
+      encounterId: "enc-default",
+      handleCreateNewIndividual: jest
+        .fn()
+        .mockResolvedValue({ ok: true, encounterId: "enc-acted-on" }),
+    });
+    fireEvent.click(screen.getByText("MARK_AS_NEW_INDIVIDUAL"));
+    fireEvent.click(screen.getByTestId("modal-confirm"));
+    expect(
+      await screen.findByTestId("new-individual-created-encounter"),
+    ).toHaveTextContent("enc-acted-on");
   });
 });
 
