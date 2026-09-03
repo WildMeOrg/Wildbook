@@ -27,6 +27,7 @@ import org.ecocean.grid.I3SMatchObject;
 import org.ecocean.grid.I3SResultWriter;
 import org.ecocean.grid.MatchComparator;
 import org.ecocean.grid.MatchObject;
+import org.ecocean.grid.ScanRecord;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.VertexPointMatch;
 import org.ecocean.shepherd.core.Shepherd;
@@ -55,6 +56,10 @@ public final class GrothScanRunnable implements Runnable {
     private final double epsilon, R, Sizelim, maxTriangleRotation, C;
     private final String encDate, encSex, encIndividualID, encSize, encLocation, encLocationID;
     private final File shepherdDataDir;
+    // Metrics run id, generated ONCE per run: it is the ScanRecord primary key, so
+    // retried inserts stay idempotent (see persistScanRecord). Never derive this from
+    // taskID — taskID is intentionally reused across reruns of the same encounter side.
+    private final String runId = org.ecocean.Util.generateUUID();
 
     public GrothScanRunnable(String context, String taskID, long token, String encNumber,
         boolean rightScan, SuperSpot[] queryArray, EncounterLite queryLite,
@@ -85,6 +90,10 @@ public final class GrothScanRunnable implements Runnable {
     @Override public void run() {
         GridManager gm = GridManagerFactory.getGridManager();
         long startTime = System.currentTimeMillis();
+        // Per-algorithm success for the metrics ScanRecord: one run executes BOTH the
+        // Modified Groth and I3S matchers, so each result write is tracked separately.
+        boolean grothSucceeded = false;
+        boolean i3sSucceeded = false;
 
         try {
             // Remove stale result files first so a failed or partial run can never display
@@ -163,8 +172,18 @@ public final class GrothScanRunnable implements Runnable {
             // the tx, then write files (no DB transaction held during file I/O).
             Document document = buildMatchDocument(matchArray);
             writeScanXml(document);
-            I3SResultWriter.write(matchArray, queryLite, scannedI3SLites, encNumber, encDate,
-                encSex, encIndividualID, encSize, rightScan, shepherdDataDir);
+            grothSucceeded = true;
+            // I3S write success is the writer's RETURN VALUE (it catches internally and
+            // returns false). Its own try/catch so an I3S-only failure cannot mark the
+            // whole run failed — the Groth result XML is already on disk and usable.
+            try {
+                i3sSucceeded = I3SResultWriter.write(matchArray, queryLite, scannedI3SLites,
+                    encNumber, encDate, encSex, encIndividualID, encSize, rightScan,
+                    shepherdDataDir);
+            } catch (Exception i3sWriteEx) {
+                log.severe("I3S result write failed for " + encNumber + " (task " + taskID +
+                    "): " + i3sWriteEx.getMessage());
+            }
         } catch (Exception e) {
             log.severe("Async Groth scan failed for " + encNumber + " (task " + taskID + "): " +
                 e.getMessage());
@@ -174,8 +193,10 @@ public final class GrothScanRunnable implements Runnable {
             // shows the "results could not be written" branch since the XML was deleted up
             // front). The owner check is defensive — with no stale-reclaim this run owns the
             // slot throughout — and endScan releases it atomically by token.
+            long finishedAt = System.currentTimeMillis();
             if (gm.isScanOwner(taskID, token)) {
-                markScanTaskFinished();
+                markScanTaskFinished(finishedAt);
+                persistScanRecord(startTime, finishedAt, grothSucceeded, i3sSucceeded);
                 gm.clearScanProgress(taskID);
             }
             gm.endScan(taskID, token);
@@ -327,7 +348,7 @@ public final class GrothScanRunnable implements Runnable {
      * and explicitly roll back a failed/uncommitted transaction (commitDBTransactionWithStatus
      * does not roll back on failure, and closeDBTransaction does not roll back an active tx).
      */
-    private void markScanTaskFinished() {
+    private void markScanTaskFinished(long finishedAt) {
         for (int attempt = 1; attempt <= 3; attempt++) {
             Shepherd sh = new Shepherd(context);
             sh.setAction("GrothScanRunnable.finish");
@@ -337,7 +358,7 @@ public final class GrothScanRunnable implements Runnable {
                 ScanTask st = sh.getScanTask(taskID);
                 if (st != null) {
                     st.setFinished(true);
-                    st.setEndTime(System.currentTimeMillis());
+                    st.setEndTime(finishedAt);
                 }
                 ok = sh.commitDBTransactionWithStatus();
             } catch (Exception e) {
@@ -354,5 +375,51 @@ public final class GrothScanRunnable implements Runnable {
         }
         log.severe("Failed to persist finished ScanTask " + taskID +
             " after retries; the progress page may keep polling.");
+    }
+
+    /**
+     * Best-effort metrics telemetry: insert one {@link ScanRecord} row for this run so
+     * MetricsBot can report Modified Groth / I3S scan counts in /metrics. Runs in its
+     * OWN transaction, after {@link #markScanTaskFinished(long)} — a telemetry failure
+     * must never block the finished flag the polling JSP depends on. Idempotent across
+     * retries: the pre-generated {@link #runId} is the primary key, and each attempt
+     * checks for an existing row first (a commit that failed on the client side but
+     * landed in the database would otherwise double-count on retry). After 3 failed
+     * attempts the record is dropped and logged (metrics undercount this run).
+     */
+    private void persistScanRecord(long startedAt, long finishedAt, boolean grothOk,
+        boolean i3sOk) {
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            Shepherd sh = new Shepherd(context);
+            sh.setAction("GrothScanRunnable.persistScanRecord");
+            sh.beginDBTransaction();
+            boolean ok = false;
+            try {
+                boolean exists = true;
+                try {
+                    sh.getPM().getObjectById(
+                        sh.getPM().newObjectIdInstance(ScanRecord.class, runId), true);
+                } catch (Exception notFound) {
+                    exists = false;
+                }
+                if (!exists) {
+                    sh.getPM().makePersistent(new ScanRecord(runId, taskID, encNumber,
+                        rightScan, startedAt, finishedAt, grothOk, i3sOk));
+                }
+                ok = sh.commitDBTransactionWithStatus();
+            } catch (Exception e) {
+                log.severe("Error persisting ScanRecord " + runId + " for task " + taskID +
+                    " (attempt " + attempt + "): " + e.getMessage());
+                ok = false;
+            } finally {
+                if (!ok) {
+                    try { sh.rollbackDBTransaction(); } catch (Exception ignore) {}
+                }
+                sh.closeDBTransaction();
+            }
+            if (ok) return;
+        }
+        log.warning("Failed to persist ScanRecord " + runId + " for task " + taskID +
+            " after retries; scan metrics will undercount this run.");
     }
 }
