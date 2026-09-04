@@ -55,52 +55,66 @@ public class QueueUtil {
             runningSF.add(schedFuture);
         }
         runningSES.add(schedExec);
-
-        System.out.println("---- about to awaitTermination() (" + n + " worker(s)) ----");
-        try {
-            schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
-        } catch (java.lang.InterruptedException ex) {
-            System.out.println("WARNING: queue interrupted! " + ex.toString());
-        }
-        System.out.println("==== schedExec.shutdown() called, apparently");
+        System.out.println("---- " + queue.toString() + " started " + n + " consumer worker(s) ----");
     }
 
     // One consumer poll loop. Each call returns a fresh Runnable with its own `count`, so multiple
-    // workers on the same queue do not share mutable state. Logic is unchanged from the original
-    // single-consumer implementation.
+    // workers on the same queue do not share mutable state.
+    //
+    // Resilience contract: this runs via scheduleWithFixedDelay, whose spec SILENTLY CANCELS the
+    // periodic task if any execution throws — so nothing may escape run() (short of a
+    // VirtualMachineError, where the JVM is unrecoverable and hiding it would be worse). Only an
+    // intentional stop (QueueStopException: operator STOP file, SHUTDOWN message) shuts the
+    // executor down; any other failure costs one tick or one message, never the consumer.
     private static Runnable newConsumerRunnable(final Queue queue,
         final ScheduledExecutorService schedExec) {
         return new Runnable() {
             int count = 0;
             public void run() {
-                ++count;
-                String message = null;
-                boolean cont = true;
                 try {
-                    message = queue.getNext();
-                } catch (Exception ex) {
-                    System.out.println(queue.toString() + " getNext() got an exception; halting: " +
-                    ex.toString());
-                    cont = false;
-                }
-                if (count % 100 == 1)
-                    System.out.println("==== " + queue.toString() + " run [count " + count +
-                    "]; queue=" + queue.toString() + "; continue = " + cont + " ====");
-                boolean ok = true;
-                // note message == null means it was read, but there is nothign to handle
-                if (cont && (message != null)) {
+                    ++count;
+                    if (count % 100 == 1)
+                        System.out.println("==== " + queue.toString() + " run [count " + count +
+                        "] ====");
+                    String message = null;
                     try {
-                        ok = queue.messageHandler.handler(message);
-                    } catch (IOException ioex) {
-                        System.out.println("WARNING: swallowed IOException from message handler: " +
-                        ioex.toString());
+                        message = queue.getNext();
+                    } catch (QueueStopException stop) {
+                        // the ONLY path that stops the consumer; keep the legacy log line —
+                        // operators (and runbooks) grep for it
+                        System.out.println(":::: " + queue.toString() +
+                            " intentional stop: " + stop.getMessage() + " ::::");
+                        System.out.println(":::: " + queue.toString() +
+                            " shutdown via discontinue signal ::::");
+                        schedExec.shutdown();
+                        return;
+                    } catch (Exception ex) {
+                        // transient poll failure (disk hiccup, unreadable spool file): log and
+                        // retry next tick; the fixed delay is the backoff
+                        System.out.println("WARNING: " + queue.toString() +
+                            " getNext() failed (will retry next tick): " + ex.toString());
+                        ex.printStackTrace();
+                        return;
                     }
-                }
-// System.out.println("count=" + count + "; handled-ok=" + ok + "; cont=" + cont + "; msg=" + message);
-                if (!cont) {
-                    System.out.println(":::: " + queue.toString() +
-                    " shutdown via discontinue signal ::::");
-                    schedExec.shutdown();
+                    // note message == null means it was read, but there is nothing to handle
+                    if (message == null) return;
+                    try {
+                        queue.messageHandler.handler(message);
+                    } catch (Throwable t) {
+                        if (t instanceof VirtualMachineError) throw (VirtualMachineError)t;
+                        System.out.println("ERROR: " + queue.toString() +
+                            " message handler threw; message dropped: " + t.toString());
+                        t.printStackTrace();
+                    }
+                } catch (Throwable t) {
+                    if (t instanceof VirtualMachineError) throw (VirtualMachineError)t;
+                    // best-effort logging: toString()/printStackTrace() on arbitrary objects can
+                    // themselves throw, and a throw from HERE silently cancels the periodic task
+                    try {
+                        System.out.println("ERROR: " + queue.toString() +
+                            " consumer tick threw unexpectedly; continuing: " + t.toString());
+                        t.printStackTrace();
+                    } catch (Throwable ignored) {}
                 }
             }
         };

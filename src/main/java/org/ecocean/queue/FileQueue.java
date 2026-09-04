@@ -2,7 +2,6 @@ package org.ecocean.queue;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Util;
 
@@ -82,6 +81,14 @@ public class FileQueue extends Queue {
         System.out.println("[INFO] FileQueue.init(" + context + ") complete");
     }
 
+    // TEST-ONLY seam: point the static base dir at an isolated temp dir so tests do not
+    // permanently claim the production spool location for the whole JVM (pass null to restore
+    // the lazy property-based init). Package-private on purpose; production code must go
+    // through init()/setQueueDir().
+    static synchronized void overrideQueueBaseDirForTesting(File dir) {
+        queueBaseDir = dir;
+    }
+
     public static synchronized File setQueueDir(String context)
     throws IOException {
         if (queueBaseDir != null) return queueBaseDir; // hey we have one already!
@@ -103,10 +110,17 @@ public class FileQueue extends Queue {
             throw new IOException("FileQueue.publish() failed, queueDir is not set");
         String qid = Util.generateUUID();
         File tmpFile = new File(queueDir, "addToQueue-" + qid + ".tmp"); // write to tmp file first so it doesnt (yet) get picked up by queue til done
-        PrintWriter qout = new PrintWriter(tmpFile);
-        qout.print(msg);
-        qout.close();
-        tmpFile.renameTo(new File(queueDir, qid));
+        // Files.write/Files.move throw on failure. The previous PrintWriter+renameTo version
+        // swallowed write errors and ignored the rename result, so a failed publish logged
+        // success while the job silently never entered the queue.
+        Files.write(tmpFile.toPath(),
+            msg.getBytes(java.nio.charset.Charset.defaultCharset()));
+        try {
+            Files.move(tmpFile.toPath(), new File(queueDir, qid).toPath());
+        } catch (IOException ex) {
+            tmpFile.delete(); // best-effort: don't leave orphaned .tmp litter
+            throw ex;
+        }
         System.out.println("INFO: FileQueue.publish() added " + queueDir + " -> " + qid);
     }
 
@@ -229,7 +243,7 @@ public class FileQueue extends Queue {
             return null;
         }
         if (this.isConsumerShutdownMessage(fcontents))
-            throw new IOException("SHUTDOWN message received");
+            throw new QueueStopException(this.toString() + " SHUTDOWN message received");
         return fcontents;
     }
 
@@ -261,7 +275,7 @@ public class FileQueue extends Queue {
 // System.out.println("queueDir file=" + f);
             // this always wins... so we can just grind everything to a halt
             if (isStopFile(f))
-                throw new IOException(this.toString() + " FileQueue STOP FILE found");
+                throw new QueueStopException(this.toString() + " FileQueue STOP FILE found");
             if (f.isDirectory() || !Util.isUUID(f.getName())) continue; // ignore!
             BasicFileAttributes attr = null;
             try {
