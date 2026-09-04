@@ -101,6 +101,7 @@ const makeImageStore = (overrides = {}) => ({
   setSelectedAnnotationId: jest.fn(),
   selectedAnnotationId: null,
   matchResultClickable: true,
+  hasMatchableAnnotations: true,
   encounterAnnotations: [{ id: "ann-1", iaTaskId: "task-123" }],
   tags: [],
   addTagsFieldOpen: false,
@@ -239,6 +240,22 @@ describe("ImageModal", () => {
     renderModal({ imageStore: store });
 
     const btn = screen.getByText("MATCH_RESULTS").closest("button");
+    expect(btn).toBeDisabled();
+  });
+
+  test("NEW_MATCH button is disabled when hasMatchableAnnotations is false", () => {
+    // encounterAnnotations has a positive-bbox annotation so the OLD isTrivial/bbox
+    // gate would ENABLE the button — the button is disabled ONLY once the gate reads
+    // hasMatchableAnnotations. This guarantees the test fails before the impl.
+    const store = makeImageStore({
+      hasMatchableAnnotations: false,
+      encounterAnnotations: [
+        { id: "ann-1", isTrivial: false, boundingBox: [0, 0, 10, 10] },
+      ],
+    });
+    renderModal({ imageStore: store });
+
+    const btn = screen.getByText("NEW_MATCH").closest("button");
     expect(btn).toBeDisabled();
   });
 

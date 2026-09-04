@@ -421,6 +421,7 @@ const MatchResults = observer(() => {
                         encounterId,
                         individualId,
                         individualDisplayName,
+                        taskId,
                       );
                     }}
                   />

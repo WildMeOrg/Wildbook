@@ -367,6 +367,10 @@ public class YouTubeAssetStore extends AssetStore {
             public void run() {
                 myShepherd.setAction("YouTubeAssetStore.backgroundGrabAndParse");
                 myShepherd.beginDBTransaction();
+                // try/finally so a throw from load/save/metadata cannot skip the close and leak this
+                // background Shepherd. commit stays inside try; the finally rollback is a harmless
+                // no-op once the commit has succeeded.
+                try {
                 MediaAsset ma = MediaAssetFactory.load(otherMa.getIdInt(), myShepherd);
                 System.out.println("about to grab!");
                 boolean ok = false;
@@ -379,7 +383,9 @@ public class YouTubeAssetStore extends AssetStore {
                     null) ? "(null metadata)" : ma.getMetadata().getDataAsString()));
                 MediaAssetFactory.save(ma, myShepherd);
                 myShepherd.commitDBTransaction();
-                myShepherd.closeDBTransaction();
+                } finally {
+                    myShepherd.rollbackAndClose();
+                }
             }
         };
         new Thread(rn).start();

@@ -77,6 +77,10 @@ if (OpenSearch.indexingActive()) {
 }
 
 OpenSearch.setActiveIndexingForeground();
+// try/finally so the foreground flag can never leak on an exception. A leaked flag
+// leaves OpenSearch.indexingActive() permanently true, which makes the background
+// reconciler (Base.opensearchSyncIndex) skip every pass and wedges all indexing.
+try {
 
 if (!os.existsIndex(indexName)) {
         obj.opensearchCreateIndex();
@@ -118,7 +122,12 @@ if (endNum > 0) {
                 iObj.opensearchIndex();
                 numProcessed++;
             } catch (Exception ex) {
-                System.out.println("opensearchSync.jsp: exception failure on " + iObj);
+                // Log the id only -- never "" + iObj, because iObj.toString() can itself throw
+                // (e.g. an orphaned Annotation whose MediaAsset row was deleted -> lazy-load
+                // NucleusObjectNotFoundException). A throw here would escape this per-item catch
+                // and abort the whole reindex instead of skipping the one bad object.
+                String failId = (iObj == null) ? "?" : iObj.getId();
+                System.out.println("opensearchSync.jsp: exception failure on id=" + failId);
                 ex.printStackTrace();
             }
             if (ct % 100 == 0) System.out.println("opensearchSync.jsp: count " + ct);
@@ -132,10 +141,13 @@ if (endNum > 0) {
     out.println("<p>removed: <b>" + res[1] + "</b></p>");
 }
 
-myShepherd.rollbackAndClose();
-
-OpenSearch.unsetActiveIndexingForeground();
-os.deleteAllPits();
+} finally {
+    // Isolate each cleanup so a failure in one cannot skip the others (especially the
+    // foreground-flag unset -- the whole point of this block) or mask the original exception.
+    try { myShepherd.rollbackAndClose(); } catch (Exception cex) { cex.printStackTrace(); }
+    try { OpenSearch.unsetActiveIndexingForeground(); } catch (Exception cex) { cex.printStackTrace(); }
+    try { os.deleteAllPits(); } catch (Exception cex) { cex.printStackTrace(); }
+}
 
 double totalMin = System.currentTimeMillis() - timer;
 totalMin = totalMin / 60000D;

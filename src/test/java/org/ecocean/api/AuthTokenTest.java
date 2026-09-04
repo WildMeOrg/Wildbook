@@ -139,8 +139,8 @@ class AuthTokenTest {
                      doNothing().when(mock).rollbackAndClose();
                      when(mock.getUser("alice")).thenReturn(alice);
                  })) {
-            // All CommonConfiguration.getProperty calls return null → JwtService disabled
-            mockConfig.when(() -> org.ecocean.CommonConfiguration.getProperty(
+            // All API-access key lookups return null → JwtService disabled
+            mockConfig.when(() -> org.ecocean.CommonConfiguration.getApiAccessProperty(
                 anyString(), anyString())).thenReturn(null);
 
             AuthToken servlet = new AuthToken();

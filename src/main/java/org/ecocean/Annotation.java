@@ -156,7 +156,10 @@ public class Annotation extends Base implements java.io.Serializable {
     }
 
     public long setVersion() {
-        version = System.currentTimeMillis();
+        // Monotonic: the OpenSearch reconciler treats an annotation as stale only when DB version is
+        // strictly greater than the indexed version, so two bumps within the same millisecond must
+        // still advance the value (otherwise a change could silently fail to reindex).
+        version = Math.max(version + 1, System.currentTimeMillis());
         return version;
     }
 
@@ -179,6 +182,8 @@ public class Annotation extends Base implements java.io.Serializable {
         map.put("encounterLocationId", keywordType);
         map.put("encounterTaxonomy", keywordType);
         map.put("encounterProjectIds", keywordType);
+        // parent encounter's sighting date, denormalized so temporal analyses need no encounter join
+        map.put("encounterDateMillis", new JSONObject("{\"type\": \"date\", \"format\": \"epoch_millis\"}"));
 
         // ACL fields (viewUsers is inherited from Base.opensearchMapping())
         map.put("publiclyReadable", new JSONObject("{\"type\": \"boolean\"}"));
@@ -225,6 +230,10 @@ public class Annotation extends Base implements java.io.Serializable {
             jgen.writeStringField("encounterSubmitterId", enc.getSubmitterID());
             jgen.writeStringField("encounterLocationId", enc.getLocationID());
             jgen.writeStringField("encounterTaxonomy", enc.getTaxonomyString());
+            // denormalize the sighting date so temporal re-ID analyses avoid a second round-trip to
+            // the encounter index (mirrors Encounter's own dateMillis serialization)
+            Long encDateMillis = enc.getDateInMillisecondsFallback();
+            if (encDateMillis != null) jgen.writeNumberField("encounterDateMillis", encDateMillis);
             // per discussion on issue 874, including this in indexing, but not (yet) using in matchingSet
             jgen.writeStringField("encounterLivingStatus", enc.getLivingStatus());
             User owner = enc.getSubmitterUser(myShepherd);
@@ -267,10 +276,27 @@ public class Annotation extends Base implements java.io.Serializable {
         jgen.writeEndArray();
     }
 
-    // TODO should this also be limited by matchAgainst and acmId?
     @Override public String getAllVersionsSql() {
+        // Desired-state for the OpenSearch reconciler: only annotations that should have
+        // an index doc -- match candidates (matchAgainst) or anything carrying an
+        // embedding. MUST stay semantically identical to shouldIndexInOpenSearch() below.
+        // Non-candidate/"trivial" (undetected, no-embedding) annotations are excluded so
+        // the reconciler neither re-indexes them nor flags them as missing (which would
+        // churn forever), and removes any already-indexed ones via its needRemoval pass.
         return
-                "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY \"MATCHAGAINST\" DESC, version";
+                "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" " +
+                "WHERE \"MATCHAGAINST\" = true OR EXISTS " +
+                "(SELECT 1 FROM \"EMBEDDING\" e WHERE e.\"ANNOTATION_ID\" = \"ANNOTATION\".\"ID\") " +
+                "ORDER BY \"MATCHAGAINST\" DESC, version";
+    }
+
+    // Keep non-candidate / "trivial" (undetected, no-embedding) annotations OUT of the
+    // OpenSearch annotation index: they bloat it and get churned by encounter deep-index
+    // cascades without ever being match candidates. Do NOT use isTrivial() (bbox
+    // geometry) -- matchable whole-image/unity/spot-crop annotations are geometrically
+    // trivial but MUST be indexed. MUST stay identical to the getAllVersionsSql() filter.
+    @Override public boolean shouldIndexInOpenSearch() {
+        return getMatchAgainst() || (numberEmbeddings() > 0);
     }
 
     @Override public Base getById(Shepherd myShepherd, String id) {
@@ -1122,6 +1148,13 @@ public class Annotation extends Base implements java.io.Serializable {
         long startTime = System.currentTimeMillis();
 
         if (query == null) return anns;
+        // This path uses ONLY hit._id and hit._score (the Annotations themselves are loaded from
+        // the DB below), so returning _source is pure waste. Fetching full _source for up to
+        // pageSize (10k) candidate docs cost ~20ms/doc, and for large matching sets (e.g. a 34k
+        // whaleshark location) that blew past the OpenSearch socket timeout -> empty target set ->
+        // WBIA rejects "Empty target annotation list" -> the PIE/WBIA match failed with a generic
+        // "Unknown error". Return ids/scores only so the query is fast regardless of set size.
+        query.put("_source", false);
         JSONObject queryRes = null;
         int hitSize = -1;
         try {
@@ -1129,20 +1162,31 @@ public class Annotation extends Base implements java.io.Serializable {
             try {
                 pageSize = os.getSettings("annotation").optInt("max_result_window", 10000);
             } catch (Exception ex) {}
-            os.deletePit("annotation");
-            queryRes = os.queryPit("annotation", query, 0, pageSize, null, null);
+            queryRes = os.querySearch("annotation", query, 0, pageSize);
             hitSize = queryRes.optJSONObject("hits").optJSONObject("total").optInt("value");
         } catch (Exception ex) {
             System.out.println("getMatchingSet() exception: " + ex);
             ex.printStackTrace();
         }
         JSONArray hits = OpenSearch.getHits(queryRes);
+        // Batch-load the candidate set in one query instead of one getAnnotation() per hit (O(N)
+        // DB round-trips over the full matching set). No top-N cap here: this is the candidate
+        // POOL (e.g. for WBIA matchers), not the ranked prospect list. Preserve hit order.
+        java.util.LinkedHashMap<String, Double> idToScore = new java.util.LinkedHashMap<String, Double>();
         for (int i = 0; i < hits.length(); i++) {
             JSONObject hit = hits.optJSONObject(i);
             if (hit == null) continue;
-            Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
+            String hid = hit.optString("_id", null);
+            if (hid != null) idToScore.put(hid, hit.optDouble("_score", 0.0d));
+        }
+        java.util.Map<String, Annotation> byId = new java.util.HashMap<String, Annotation>();
+        for (Annotation a : myShepherd.getAnnotations(idToScore.keySet())) {
+            if ((a != null) && (a.getId() != null)) byId.put(a.getId(), a);
+        }
+        for (java.util.Map.Entry<String, Double> e : idToScore.entrySet()) {
+            Annotation ann = byId.get(e.getKey());
             if (ann != null) {
-                ann.setOpensearchScore(hit.optDouble("_score", 0.0d));
+                ann.setOpensearchScore(e.getValue());
                 anns.add(ann);
             }
         }
@@ -1252,22 +1296,36 @@ public class Annotation extends Base implements java.io.Serializable {
             try {
                 pageSize = os.getSettings("annotation").optInt("max_result_window", 10000);
             } catch (Exception ex) {}
-            os.deletePit("annotation");
-            queryRes = os.queryPit("annotation", matchQuery, 0, pageSize, null, null);
+            queryRes = os.querySearch("annotation", matchQuery, 0, pageSize);
             hitSize = queryRes.optJSONObject("hits").optJSONObject("total").optInt("value");
         } catch (Exception ex) {
             System.out.println("getMatches() exception: " + ex);
             ex.printStackTrace();
         }
         JSONArray hits = OpenSearch.getHits(queryRes);
-        for (int i = 0; i < hits.length(); i++) {
+        // Take the top-N hits (OpenSearch returns them score-sorted) and BATCH-load them in one
+        // query. Previously this did one myShepherd.getAnnotation() per hit -- O(N) DB round-trips
+        // that dominated match time (hundreds of prospects -> tens of seconds to minutes, often
+        // tripping the socket timeout -> empty result). Cap at MAXIMUM_PROSPECTS_STORED since
+        // nothing downstream keeps more than that. LinkedHashMap preserves the kNN score order.
+        int cap = org.ecocean.ia.MatchResult.MAXIMUM_PROSPECTS_STORED;
+        java.util.LinkedHashMap<String, Double> idToScore = new java.util.LinkedHashMap<String, Double>();
+        for (int i = 0; (i < hits.length()) && (idToScore.size() < cap); i++) {
             JSONObject hit = hits.optJSONObject(i);
             if (hit == null) continue;
-            Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
+            String hid = hit.optString("_id", null);
+            // See osHitScore javadoc for why the OS score is persisted unchanged
+            // (vector <-> WBIA-MiewID parity).
+            if (hid != null) idToScore.put(hid, osHitScore(hit));
+        }
+        java.util.Map<String, Annotation> byId = new java.util.HashMap<String, Annotation>();
+        for (Annotation a : myShepherd.getAnnotations(idToScore.keySet())) {
+            if ((a != null) && (a.getId() != null)) byId.put(a.getId(), a);
+        }
+        for (java.util.Map.Entry<String, Double> e : idToScore.entrySet()) {
+            Annotation ann = byId.get(e.getKey());
             if (ann != null) {
-                // See osHitScore javadoc for why the OS score is
-                // persisted unchanged (vector ↔ WBIA-MiewID parity).
-                ann.setOpensearchScore(osHitScore(hit));
+                ann.setOpensearchScore(e.getValue());
                 anns.add(ann);
             }
         }
@@ -1517,6 +1575,26 @@ public class Annotation extends Base implements java.io.Serializable {
         return ann;
     }
 
+    // Find the trivial placeholder annotation that manual-annotation creation
+    // should consume. A MediaAsset shared by multiple encounters (e.g. one
+    // image imported on several bulk-import rows) carries one trivial
+    // placeholder per encounter, so the search must be scoped to the target
+    // encounter's annotations on this asset: detaching another encounter's
+    // placeholder deletes its feature while enc.removeAnnotation() silently
+    // no-ops, stranding a featureless annotation on that encounter and
+    // dropping the image from it. With no encounter given, falls back to the
+    // historical asset-wide search. Package-visible for testing.
+    static Annotation findTrivialPlaceholder(Encounter enc, MediaAsset ma) {
+        if (ma == null) return null;
+        List<Annotation> candidates = (enc == null) ? ma.getAnnotations() : enc.getAnnotations(ma);
+        if (candidates == null) return null;
+        Annotation foundTrivial = null;
+        for (Annotation a : candidates) {
+            if (a.isTrivial()) foundTrivial = a;
+        }
+        return foundTrivial;
+    }
+
     public static Base createFromApi(JSONObject payload, List<File> files, Shepherd myShepherd)
     throws ApiException {
         if (payload == null) throw new ApiException("empty payload");
@@ -1714,10 +1792,7 @@ public class Annotation extends Base implements java.io.Serializable {
             }
         }
         // NOTE: manualAnnotation.jsp allowed 'removeTrivial' (boolean) to be set via url, but was default true
-        Annotation foundTrivial = null; // note this will only remove (at most) ONE (but "should never" have > 1 anyway)
-        for (Annotation a : ma.getAnnotations()) {
-            if (a.isTrivial()) foundTrivial = a;
-        }
+        Annotation foundTrivial = findTrivialPlaceholder(enc, ma); // note this will only remove (at most) ONE (but "should never" have > 1 anyway)
         if (foundTrivial == null) {
             System.out.println(
                 "Annotation.createFromApi(): no trivial annotation found to remove from " + ma);
@@ -1907,6 +1982,8 @@ public class Annotation extends Base implements java.io.Serializable {
                 " deleting " + emb);
             myShepherd.getPM().deletePersistent(emb);
         }
+        // bump version so the reconciler reindexes and the now-removed vector(s) leave the _source
+        this.setVersion();
         return rtn;
     }
 
@@ -2091,8 +2168,17 @@ public class Annotation extends Base implements java.io.Serializable {
     public Set<Embedding> addEmbedding(Embedding emb) {
         if (embeddings == null) embeddings = new HashSet<Embedding>();
         if (emb == null) return embeddings;
-        embeddings.add(emb);
-        if (!this.equals(emb.getAnnotation())) emb.setAnnotation(this);
+        boolean added = embeddings.add(emb);
+        boolean linked = false;
+        if (!this.equals(emb.getAnnotation())) {
+            emb.setAnnotation(this);
+            linked = true;
+        }
+        // bump version only on a real change so the OpenSearch reconciler reindexes this annotation
+        // and writes the embedding vector into the document _source (otherwise the vector is
+        // kNN-searchable but never surfaces in the token-readable _source). Skipping no-op duplicate
+        // adds avoids needless reconciler churn.
+        if (added || linked) this.setVersion();
         return embeddings;
     }
 

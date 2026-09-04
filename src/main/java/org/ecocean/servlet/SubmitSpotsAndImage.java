@@ -11,6 +11,8 @@ import org.ecocean.Encounter;
 import org.ecocean.grid.EncounterLite;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
+import org.ecocean.ia.MLService;
+import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.Keyword;
 import org.ecocean.media.*;
@@ -109,6 +111,10 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        crMa.addKeyword(crKeyword);
 	        crMa.updateMinimalMetadata();
 	        crMa.setDetectionStatus(IBEISIA.STATUS_COMPLETE);
+	        // the WBIA registration poller registers the image under its own uuid
+	        // (WildbookIAM.registerImageIfMissing), so acmId == uuid by
+	        // construction; it must be set for the annotation to be eligible
+	        crMa.setAcmId(crMa.getUUID());
 	        System.out.println("    + updated made media asset");
 	        MediaAssetFactory.save(crMa, myShepherd);
 	        System.out.println("    + saved media asset " + crMa.toString());
@@ -119,45 +125,80 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        System.out.println("    + updated children for asset " + crMa.toString() +
 	            "; hasFamily = " + crMa.hasFamily(myShepherd));
 	        String speciesString = enc.getTaxonomyString();
-	        Annotation ann = new Annotation(speciesString, crMa);
+	        // Bidirectional linkage (mirrors MlServiceProcessor): Feature.annotation
+	        // is the OWNING side of Annotation.features (mapped-by "annotation"), so
+	        // it must be set explicitly -- otherwise the join row depends on
+	        // DataNucleus relationship management and a reloaded annotation can come
+	        // back featureless (null bbox/mediaAsset -> never WBIA-registrable).
+	        Feature unity = crMa.generateUnityFeature(); // also sets Feature.asset
+	        Annotation ann = new Annotation(speciesString, unity);
+	        unity.setAnnotation(ann);
 	        ann.setMatchAgainst(true);
-	        String iaClass = "whalesharkCR"; // should we change this?
+	        // acmId is required for match candidacy: the OpenSearch indexer
+	        // (matchAgainst && acmId != null) and Annotation.getMatchingSetQuery
+	        // (exists: acmId) both filter on it. Assign it here in the request
+	        // transaction rather than trusting a WBIA round-trip to write it back;
+	        // the registration poller force-registers WBIA under this same id, so
+	        // no post-hoc remap is needed. Mirrors the v2 convention
+	        // (MlServiceProcessor, api-v3 manual annotation): the annotation's own
+	        // id.
+	        ann.setAcmId(ann.getId());
+	        // Hand WBIA registration to the DB-backed polling worker
+	        // (StartupWildbook.startWbiaRegistrationPollingThread): durable retry
+	        // state that survives restarts. The previous fire-and-forget thread
+	        // captured JDO objects owned by this request's PM, which closes before
+	        // the WBIA round-trip returns, so its acmId write-back was silently
+	        // lost.
+	        ann.setWbiaRegistered(Boolean.FALSE);
+	        ann.setWbiaRegisterAttempts(0);
+	        String iaClass = "unknown";
+	        // WB-1841: only these species are currently matchable via spot maps
+	        if (speciesString != null && speciesString.equals("Rhincodon typus")) {
+	            iaClass = "whaleshark";
+	        } else if (speciesString != null && speciesString.equals("Stegostoma tigrinum")) {
+	            iaClass = "leopard_shark";
+	        } else if (speciesString != null && speciesString.equals("Scyliorhinus stellaris")) {
+	            iaClass = "nursehoundsharkCR";
+	        } else if (speciesString != null && speciesString.equals("Carcharias taurus")) {
+	            iaClass = "shark";
+	        } else if (speciesString != null && speciesString.equals("Notorynchus cepedianus")) {
+	            iaClass = "sevengill_shark";
+	        }
 	        ann.setIAClass(iaClass);
 	        if (rightSide) { ann.setViewpoint("right"); } else { ann.setViewpoint("left"); }
 	        enc.addAnnotation(ann);
 	        System.out.println("    + made annotation " + ann.toString());
 
 
+	        myShepherd.getPM().makePersistent(unity);
 	        myShepherd.getPM().makePersistent(ann);
 	        System.out.println("    + saved annotation");
+	        // Queue background embedding extraction (mirrors
+	        // Annotation.createFromApi): without an Embedding row the React New
+	        // Match dialog hides vector algorithms entirely (NewMatchStore
+	        // shouldHideVectorAlgorithms), so the spot crop could never be offered
+	        // a MiewID vector match. The Task is persisted in this transaction but
+	        // the queue file is written only after the commit below succeeds, so
+	        // the queue consumer cannot race the uncommitted annotation row (the
+	        // createFromApi TODO notes exactly that race).
+	        Task embTask = null;
+	        if (speciesString != null) {
+	            embTask = new Task();
+	            embTask.addObject(ann);
+	            // extraction only: without this, MLService.processQueueJob's
+	            // completion callback runs IA.intakeAnnotations and silently
+	            // launches an identification job for every spot submission
+	            embTask.setParameters("skipIdent", true);
+	            embTask.setStatusDetailsAddLog("SubmitSpotsAndImage embedding extraction on " +
+	                ann);
+	            myShepherd.getPM().makePersistent(embTask);
+	        } else {
+	            System.out.println(
+	                "[WARNING] SubmitSpotsAndImage: null taxonomy on encounter " + encId +
+	                "; skipping embedding extraction for " + ann.getId() +
+	                " (it will never be offered vector matching)");
+	        }
 	
-	        // Send to IA in background — don't block the user on slow WBIA calls
-	        final String iaContext = context;
-	        final ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
-	        maList.add(crMa);
-	        final ArrayList<Annotation> annList = new ArrayList<Annotation>();
-	        annList.add(ann);
-	        new Thread(() -> {
-	            Shepherd iaShepherd = new Shepherd(iaContext);
-	            iaShepherd.setAction("SubmitSpotsAndImage_IA");
-	            iaShepherd.beginDBTransaction();
-	            try {
-	                System.out.println("    + sending asset to IA (background)");
-	                IBEISIA.sendMediaAssetsNew(maList, iaContext);
-	                iaShepherd.updateDBTransaction();
-	                System.out.println("    + asset sent, sending annot");
-	                IBEISIA.sendAnnotationsNew(annList, iaContext, iaShepherd);
-	                iaShepherd.commitDBTransaction();
-	                System.out.println("    + annot sent (background).");
-	            } catch (Exception e) {
-	                e.printStackTrace();
-	                System.out.println("hit above exception while trying to send CR ma & annot to IA");
-	                iaShepherd.rollbackDBTransaction();
-	            } finally {
-	                iaShepherd.closeDBTransaction();
-	            }
-	        }, "IA-register-" + encId).start();
-	        System.out.println("    + IA registration queued in background");
 	        if (rightSide) {
 	            enc.setRightSpots(spots);
 	            enc.setRightReferenceSpots(refSpots);
@@ -175,6 +216,42 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        // Only add to the match graph once the spots are confirmed committed, so
 	        // a swallowed commit failure can't leave a phantom candidate. (#1608)
 	        boolean committed = myShepherd.commitDBTransactionWithStatus();
+	        if (committed && (embTask != null)) {
+	            // PM is still open here (reads only ids); see comment at embTask
+	            // creation for why this waits until after the commit
+	            try {
+	                new MLService().initiateRequest(ann, speciesString, embTask);
+	                System.out.println("    + queued embedding extraction task " + embTask.getId());
+	            } catch (IOException ex) {
+	                // non-fatal for the annotation: appadmin/catchUpEmbeddings.jsp
+	                // sweeps candidates with no embedding, so a lost queue write is
+	                // recoverable. But mark the task terminal so it does not sit
+	                // in "waiting to queue" forever.
+	                System.out.println(
+	                    "[ERROR] SubmitSpotsAndImage embedding extraction queue failed on " + ann +
+	                    ": " + ex);
+	                ex.printStackTrace();
+	                // safe to mark terminal: FileQueue.publish() only renames the
+	                // message visible to the consumer as its final non-throwing
+	                // step, so an exception here means the job was never enqueued
+	                try {
+	                    myShepherd.beginDBTransaction();
+	                    embTask.setStatus("error");
+	                    embTask.setStatusDetailsAddError("UNKNOWN", "queue publish failed: " + ex);
+	                    embTask.setCompletionDateInMilliseconds();
+	                    if (!myShepherd.commitDBTransactionWithStatus()) {
+	                        System.out.println(
+	                            "[ERROR] SubmitSpotsAndImage failed to commit error status on task "
+	                            + embTask.getId());
+	                    }
+	                } catch (Exception ex2) {
+	                    System.out.println(
+	                        "[ERROR] SubmitSpotsAndImage could not mark task " + embTask.getId() +
+	                        " as error: " + ex2);
+	                    if (myShepherd.isDBTransactionActive()) myShepherd.rollbackDBTransaction();
+	                }
+	            }
+	        }
 	        myShepherd.closeDBTransaction();
 	        if (committed) {
 	            gm.addMatchGraphEntry(encId, updatedLite);

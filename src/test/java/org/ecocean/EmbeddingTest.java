@@ -89,4 +89,31 @@ class EmbeddingTest {
         assertTrue(task.statusInEndState());
         assertNotNull(task.getCompletionDateInMilliseconds());
     }
+
+    // catchUpEmbeddings backfill must only target match candidates
+    // (matchAgainst=true); non-candidates never appear in a matching set and
+    // query-side annots get embeddings on the fly via findMatchProspects().
+
+    static final String CATCHUP_SQL_BASE =
+        "select \"ANNOTATION\".\"ID\" as \"ID\" from \"ANNOTATION\" left join \"EMBEDDING\" on (\"ANNOTATION\".\"ID\" = \"ANNOTATION_ID\") where \"VECTORFLOATARRAY\" is null and \"MATCHAGAINST\" = true";
+
+    @Test void catchUpEmbeddingsSql_filtersToMatchAgainst() {
+        // exact query shape: join, null-vector filter, matchAgainst filter,
+        // ordering, limit -- and no cursor clause without a startId
+        assertEquals(CATCHUP_SQL_BASE + " order by \"ANNOTATION\".\"ID\" limit 50",
+            Embedding.catchUpEmbeddingsSql(null, 50));
+    }
+
+    @Test void catchUpEmbeddingsSql_includesCursorForValidUUID() {
+        String startId = "00000000-0000-0000-0000-000000000000";
+        assertEquals(CATCHUP_SQL_BASE + " AND \"ANNOTATION\".\"ID\" > '" + startId +
+            "' order by \"ANNOTATION\".\"ID\" limit 100",
+            Embedding.catchUpEmbeddingsSql(startId, 100));
+    }
+
+    @Test void catchUpEmbeddingsSql_ignoresNonUUIDStartId() {
+        // non-UUID startId must not reach the SQL (injection guard + cursor reset)
+        assertEquals(CATCHUP_SQL_BASE + " order by \"ANNOTATION\".\"ID\" limit 50",
+            Embedding.catchUpEmbeddingsSql("not-a-uuid'; drop table", 50));
+    }
 }

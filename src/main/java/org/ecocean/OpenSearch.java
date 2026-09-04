@@ -49,10 +49,22 @@ import java.util.concurrent.TimeUnit;
 // https://github.com/opensearch-project/opensearch-java/blob/main/USER_GUIDE.md
 
 public class OpenSearch {
-    public static OpenSearchClient client = null;
-    public static RestClient restClient = null;
+    public static volatile OpenSearchClient client = null;
+    public static volatile RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
-    public static Map<String, String> PIT_CACHE = new HashMap<String, String>();
+    // ConcurrentHashMap: PIT_CACHE is read/mutated from concurrent request threads (SearchApi,
+    // EncounterQueryProcessor, MediaResolveApi) and, once IA match consumers can run concurrently,
+    // from those too. This only removes the structural-corruption hazard of an unsynchronized
+    // HashMap; it does NOT make the shared one-PIT-per-index lifecycle request-safe (a deletePit on
+    // one caller can still drop another's snapshot; queryPit's retry self-heals it). Match read
+    // paths avoid PIT entirely via querySearch(); proper per-request PIT scoping is a separate change.
+    public static Map<String, String> PIT_CACHE = new java.util.concurrent.ConcurrentHashMap<String, String>();
+    public static final int DEFAULT_MAX_RESULT_WINDOW = 10000;
+    // per-index max_result_window: {value, expiresAtMillis}; read live (briefly cached)
+    // because Wildbook raises the setting on indexes that grow past the default
+    private static final Map<String, long[]> MAX_RESULT_WINDOW_CACHE =
+        new java.util.concurrent.ConcurrentHashMap<String, long[]>();
+    private static final long MAX_RESULT_WINDOW_CACHE_MILLIS = 60000L;
     public static String SEARCH_SCROLL_TIME = (String)getConfigurationValue("searchScrollTime",
         "10m");
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
@@ -70,14 +82,52 @@ public class OpenSearch {
         "backgroundPermissionsMaxForceMinutes", 45);
     public static String PERMISSIONS_LAST_RUN_KEY = "OpenSearch_permissions_last_run_timestamp";
     public static String PERMISSIONS_NEEDED_KEY = "OpenSearch_permissions_needed";
-    public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
+    // kNN match warmup: after startup, load the faiss/kNN native graph for the match index into
+    // off-heap memory (and warm the filter/segment paths) so the FIRST user match doesn't pay the
+    // cold-load, which can exceed the socket timeout and surface to the user as an empty result.
+    public static String WARMUP_INDEX = (String)getConfigurationValue("matchWarmupIndex",
+        "annotation");
+    // Retry cadence while OpenSearch is still coming up / the index isn't built yet (e.g. a
+    // `docker compose up` where both containers start at once). Kept short so we warm as soon as
+    // OpenSearch is reachable.
+    public static int WARMUP_RETRY_MINUTES = (Integer)getConfigurationValue("matchWarmupRetryMinutes",
+        1);
+    // Re-warm cadence once warmed, to survive segment merges / native-cache eviction. 0 disables
+    // re-warming (warm once at startup only).
+    public static int WARMUP_REWARM_MINUTES = (Integer)getConfigurationValue(
+        "matchWarmupRewarmMinutes", 20);
+    // True while the match kNN graph is warmed into native memory in THIS JVM: set on a successful
+    // warm pass, reset if a later (re)warm fails (e.g. OpenSearch restarted under us). In-memory,
+    // so correctly starts false on restart. Exposed for health/readiness use; not a gate on matching.
+    private static volatile boolean matchWarmupReady = false;
+    // Ensures a single self-rescheduling warmup chain, even if backgroundStartup is ever called twice.
+    private static final java.util.concurrent.atomic.AtomicBoolean warmupChainStarted =
+        new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    public static boolean isMatchWarmupReady() {
+        return matchWarmupReady;
+    }
+    // stored search queries (see queryStore): pruned opportunistically at most this often
+    static final long QUERY_PRUNE_INTERVAL_MILLIS = 3600000L; // 1 hour
+    static final int QUERY_TTL_DAYS_DEFAULT = 90;
+    private static volatile long queryLastPruneMillis = 0L;
     static String ACTIVE_TYPE_FOREGROUND = "opensearch_indexing_foreground";
     static String ACTIVE_TYPE_BACKGROUND = "opensearch_indexing_background";
 
-    private int pitRetry = 0;
 
     public OpenSearch() {
+        // Double-checked, synchronized one-time init: concurrent first-callers (e.g. parallel match
+        // consumers hitting cold init) must not each build and overwrite the shared static client.
+        // client/restClient are volatile; initializeClient sets restClient before client, so any
+        // thread that observes client != null also observes a fully-built restClient.
         if (client != null) return;
+        synchronized (OpenSearch.class) {
+            if (client != null) return;
+            initializeClientOnce();
+        }
+    }
+
+    private static void initializeClientOnce() {
         // System.setProperty("javax.net.ssl.trustStore", "/full/path/to/keystore");
         // System.setProperty("javax.net.ssl.trustStorePassword", "password-to-keystore");
 
@@ -125,11 +175,36 @@ public class OpenSearch {
     }
 
     public static void initializeClient(HttpHost host) {
-        restClient = RestClient.builder(host).build();
+        // Raise the socket timeout well above the 30s default. A slow query (e.g. a
+        // cold/large kNN, or a match over a big candidate set) otherwise throws
+        // SocketTimeoutException, which the match path surfaces to users as an empty
+        // "0 matches" result -- and a failed match reads as "no match found", which is
+        // WORSE for a user than a slow one. 240s gives cold/large matches room to
+        // complete rather than silently returning empty. (The batch-load + top-N cap in
+        // Annotation.getMatches keep normal matches to a few seconds; this is the safety
+        // net for the cold/outlier case.)
+        restClient = RestClient.builder(host)
+            .setRequestConfigCallback(
+                rc -> rc.setConnectTimeout(10000).setSocketTimeout(240000))
+            .build();
         final OpenSearchTransport transport = new RestClientTransport(restClient,
             new JacksonJsonpMapper());
 
         client = new OpenSearchClient(transport);
+    }
+
+    // Stateless single-page search (no PIT, no shared static state) -- safe under concurrency.
+    // Used by the match read paths (getMatches / getMatchingSet), which fetch one page (from=0) and
+    // never paginate across pages. track_total_hits=true keeps hits.total.value exact so callers
+    // that read it (e.g. getMatchingSet hitSize) are unaffected.
+    public JSONObject querySearch(String indexName, final JSONObject query, int from, int size)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request searchRequest = new Request("POST", indexName + "/_search?track_total_hits=true");
+        query.put("from", from);
+        query.put("size", size);
+        searchRequest.setJsonEntity(query.toString());
+        return new JSONObject(getRestResponse(searchRequest));
     }
 
     public static boolean isValidIndexName(String indexName) {
@@ -168,30 +243,127 @@ public class OpenSearch {
                 ") interrupted: " + ex.toString());
         }
         System.out.println("OpenSearch.backgroundStartup(" + context + ") backgrounded");
+
+        // Warm the match kNN graph so the first user match after this restart isn't cold. Self-
+        // reschedules: retry quickly while OpenSearch/the index are still coming up, then re-warm
+        // on a slow cadence to survive merges/eviction. Guarded so only one chain ever runs.
+        if (warmupChainStarted.compareAndSet(false, true)) {
+            scheduleMatchWarmup(schedExec, context, WARMUP_RETRY_MINUTES);
+        }
+    }
+
+    // Self-rescheduling warmup. Reschedules itself on the same executor: WARMUP_RETRY_MINUTES until
+    // the first successful warm (OpenSearch may still be starting on a `docker compose up`), then
+    // WARMUP_REWARM_MINUTES thereafter (0 = warm once only). Never throws out of the task.
+    private static void scheduleMatchWarmup(final ScheduledExecutorService schedExec,
+        final String context, long delayMinutes) {
+        try {
+            schedExec.schedule(new Runnable() {
+                public void run() {
+                    boolean warmed = false;
+                    try {
+                        warmed = warmupMatching(context);
+                    } catch (Throwable t) { // belt-and-suspenders: a task must never die silently
+                        System.out.println("OpenSearch.warmupMatching threw (will retry): " + t);
+                    }
+                    long next = warmed ? WARMUP_REWARM_MINUTES : WARMUP_RETRY_MINUTES;
+                    if (next > 0) scheduleMatchWarmup(schedExec, context, next);
+                }
+            }, delayMinutes, TimeUnit.MINUTES);
+        } catch (Exception ex) {
+            // e.g. executor shutting down on tomcat stop -- nothing to do, warmup simply ends.
+            System.out.println("OpenSearch.scheduleMatchWarmup: could not schedule (" + ex + ")");
+        }
+    }
+
+    // Warm the match index. Returns true only if the graph was actually warmed this pass. Any
+    // failure (OpenSearch unreachable, index not built yet) is treated as "not ready, retry" -- it
+    // logs and returns false rather than throwing, so a racing startup degrades gracefully.
+    public static boolean warmupMatching(String context) {
+        OpenSearch os;
+        try {
+            os = new OpenSearch(); // client is lazy; ctor won't fail if OpenSearch is still down
+        } catch (Exception ex) {
+            System.out.println("warmupMatching: OpenSearch client not available yet (will retry): " +
+                ex);
+            matchWarmupReady = false;
+            return false;
+        }
+        String indexName = WARMUP_INDEX;
+        try {
+            if (!os.existsIndex(indexName)) {
+                System.out.println("warmupMatching: '" + indexName +
+                    "' index not ready yet (OpenSearch may still be starting / reindexing); will retry");
+                matchWarmupReady = false;
+                return false;
+            }
+            long t = System.currentTimeMillis();
+            System.out.println("warmupMatching: warming kNN graph for '" + indexName + "' ...");
+            os.warmupKnn(indexName);
+            // Also warm the filter/segment/doc-value paths a real match query touches (the graph
+            // warmup alone doesn't). A cheap _count with the matchAgainst filter is enough.
+            try {
+                JSONObject warmQuery = new JSONObject(
+                    "{\"query\":{\"bool\":{\"filter\":[{\"term\":{\"matchAgainst\":true}}]}}}");
+                os.queryCount(indexName, warmQuery);
+            } catch (Exception ex) {
+                System.out.println("warmupMatching: filter-path warm query failed (non-fatal): " +
+                    ex);
+            }
+            matchWarmupReady = true;
+            System.out.println("warmupMatching: kNN warmup complete in " +
+                (System.currentTimeMillis() - t) + "ms; matchWarmupReady=true");
+            return true;
+        } catch (Exception ex) {
+            System.out.println("warmupMatching: warmup failed (OpenSearch may still be starting); " +
+                "will retry: " + ex);
+            matchWarmupReady = false;
+            return false;
+        }
+    }
+
+    // Load an index's kNN native graphs into off-heap memory ahead of the first query.
+    // https://docs.opensearch.org/latest/vector-search/api/knn/#warmup
+    public void warmupKnn(String indexName) throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request req = new Request("GET", "/_plugins/_knn/warmup/" + indexName);
+        String rtn = getRestResponse(req);
+        System.out.println("OpenSearch.warmupKnn(" + indexName + "): " + rtn);
+        // Treat the warmup as failed only if a shard actually errored (failed>0) or nothing warmed
+        // at all (successful<1). Do NOT require successful==total: on a single-node cluster the
+        // index's replica shards are unassigned, so warmup legitimately reports e.g.
+        // total=2,successful=1,failed=0 -- the primary (which serves queries) is warmed. Requiring
+        // successful==total would make warmup throw forever and never latch on single-node.
+        JSONObject shards = new JSONObject(rtn).optJSONObject("_shards");
+        int successful = (shards == null) ? 0 : shards.optInt("successful", 0);
+        int failed = (shards == null) ? 0 : shards.optInt("failed", 0);
+        if ((failed > 0) || (successful < 1)) {
+            throw new IOException("kNN warmup incomplete for '" + indexName + "': " + rtn);
+        }
     }
 
     private static void updatePermissionsIndex(String context) {
-        Shepherd myShepherd = new Shepherd(context);
-
-        myShepherd.setAction("OpenSearch.backgroundPermissions");
+        Shepherd myShepherd = null;
         try {
+            myShepherd = new Shepherd(context);
+            myShepherd.setAction("OpenSearch.backgroundPermissions");
             myShepherd.beginDBTransaction();
             System.out.println("OpenSearch background permissions running...");
             Encounter.opensearchIndexPermissionsBackground(myShepherd);
             System.out.println("OpenSearch background permissions finished.");
             myShepherd.commitDBTransaction(); // need commit since we might have changed SystemValues
-            myShepherd.closeDBTransaction();
         } catch (Exception ex) {
             ex.printStackTrace();
-            myShepherd.rollbackAndClose();
+        } finally {
+            if (myShepherd != null) myShepherd.rollbackAndClose();
         }
     }
 
     public static void updateEncounterIndexes(String context) {
-        Shepherd myShepherd = new Shepherd(context);
-
-        myShepherd.setAction("OpenSearch.backgroundIndexing");
+        Shepherd myShepherd = null;
         try {
+            myShepherd = new Shepherd(context);
+            myShepherd.setAction("OpenSearch.backgroundIndexing");
             myShepherd.beginDBTransaction();
             System.out.println("OpenSearch background indexing running...");
             Base.opensearchSyncIndex(myShepherd, Encounter.class, BACKGROUND_SLICE_SIZE);
@@ -203,7 +375,7 @@ public class OpenSearch {
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-            myShepherd.rollbackAndClose();
+            if (myShepherd != null) myShepherd.rollbackAndClose();
             unsetActiveIndexingBackground();
         }
     }
@@ -270,6 +442,15 @@ public class OpenSearch {
         String id = obj.getId();
         if (!Util.stringExists(id))
             throw new RuntimeException("must have id property to index: " + obj);
+        // Central gate: objects that opt out (e.g. non-candidate/"trivial" annotations)
+        // must not have an index doc. Delete any stale doc (covers matchAgainst->false or
+        // last-embedding-removed transitions) and skip indexing. This makes BOTH
+        // Base.opensearchIndex() and the reconciler's direct os.index(obj) honor the
+        // predicate. Synchronous delete: callers are already on background threads.
+        if (!obj.shouldIndexInOpenSearch()) {
+            delete(indexName, id);   // delete() no-ops if the index/doc is absent
+            return;
+        }
         ensureIndex(indexName, obj.opensearchMapping());
         IndexRequest<Base> indexRequest = new IndexRequest.Builder<Base>()
                 .index(indexName)
@@ -365,21 +546,26 @@ public class OpenSearch {
         String pitId = PIT_CACHE.get(indexName);
 
         if (pitId == null) return;
+        deletePitId(pitId);
+        PIT_CACHE.remove(indexName);
+        System.out.println("OpenSearch.deletePit(" + indexName + ") [" + pitId + "] completed");
+    }
+
+    // server-side delete of one specific PIT id; no cache interaction
+    void deletePitId(String pitId)
+    throws IOException {
         Request req = new Request("DELETE", "/_search/point_in_time");
         JSONObject body = new JSONObject();
+
         body.put("pit_id", pitId);
         req.setJsonEntity(body.toString());
         getRestResponse(req);
-        PIT_CACHE.remove(indexName);
-        System.out.println("OpenSearch.deletePit(" + indexName + ") [" + pitId + "] completed");
     }
 
     public JSONObject queryPit(String indexName, final JSONObject query, int numFrom, int pageSize,
         String sort, String sortOrder)
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
-        String pitId = createPit(indexName);
-        Request searchRequest = new Request("POST", "/_search?track_total_hits=true");
         query.put("from", numFrom);
         query.put("size", pageSize);
         // "sort": [ {"@timestamp": {"order": "asc"}} ]
@@ -389,28 +575,88 @@ public class OpenSearch {
             sortArr.put(new JSONObject("{\"" + sort + "\":{\"order\":\"" + sortOrder + "\"}}"));
             query.put("sort", sortArr);
         }
-        JSONObject jpit = new JSONObject();
-        jpit.put("id", pitId);
-        jpit.put("keep_alive", SEARCH_PIT_TIME);
-        query.put("pit", jpit);
-        searchRequest.setJsonEntity(query.toString());
-        String rtn = null;
-        try {
-            rtn = getRestResponse(searchRequest);
-            pitRetry = 0;
-        } catch (ResponseException ex) {
-            System.out.println("queryPit() using pitId=" + pitId + " failed[" + pitRetry +
-                "] with: " + ex);
-            pitRetry++;
-            if (pitRetry > 5) {
-                ex.printStackTrace();
-                throw new IOException("queryPit() failed to POST query");
+        int attempt = 0;
+        while (true) {
+            String pitId = createPit(indexName);
+            JSONObject jpit = new JSONObject();
+            jpit.put("id", pitId);
+            jpit.put("keep_alive", SEARCH_PIT_TIME);
+            query.put("pit", jpit);
+            Request searchRequest = new Request("POST", "/_search?track_total_hits=true");
+            searchRequest.setJsonEntity(query.toString());
+            try {
+                return new JSONObject(getRestResponse(searchRequest));
+            } catch (ResponseException ex) {
+                // always drop OUR cached PIT: a possibly-bad cached id would otherwise
+                // poison every subsequent search on this index
+                discardPitQuietly(indexName, pitId);
+                if (!isStaleSearchContextError(ex.getMessage())) {
+                    // deterministic rejection (bad query, result window exceeded, ...):
+                    // retrying cannot succeed and would burn a new server-side PIT per attempt
+                    throw ex;
+                }
+                attempt++;
+                System.out.println("queryPit() using pitId=" + pitId + " failed[" + attempt +
+                    "] with: " + ex);
+                if (attempt > 5) {
+                    ex.printStackTrace();
+                    throw new IOException("queryPit() failed to POST query");
+                }
+                // we try again with a fresh PIT
             }
-            // we try again, but attempt to get new PIT
-            PIT_CACHE.remove(indexName);
-            return queryPit(indexName, query, numFrom, pageSize, sort, sortOrder);
         }
-        return new JSONObject(rtn);
+    }
+
+    // queryPit()'s cached PIT can expire server-side; ONLY that failure class is worth
+    // a retry with a fresh PIT, matched on the typed OpenSearch cause. Anything else
+    // (including a bare 404) is deterministic - retrying cannot succeed.
+    static boolean isStaleSearchContextError(String message) {
+        if (message == null) return false;
+        return message.contains("search_context_missing")
+            || message.contains("No search context found");
+    }
+
+    // best-effort: drop the pit THIS request used from cache, then delete it server-side.
+    // The atomic remove(key, value) detaches ONLY our pit, so we never destroy a fresh
+    // PIT installed by a concurrent request between our failure and this cleanup.
+    void discardPitQuietly(String indexName, String pitId) {
+        if ((pitId == null) || !PIT_CACHE.remove(indexName, pitId)) return;
+        try {
+            deletePitId(pitId);
+        } catch (Exception ex) {
+            // best-effort only: the stale id is already out of the cache; the server
+            // expires the orphaned PIT at keep_alive
+        }
+    }
+
+    // the effective pagination ceiling (from + size limit) for queries on this index
+    public int getMaxResultWindow(String indexName) {
+        if (indexName == null) return DEFAULT_MAX_RESULT_WINDOW;
+        long[] cached = MAX_RESULT_WINDOW_CACHE.get(indexName);
+        if ((cached != null) && (cached[1] > System.currentTimeMillis())) return (int)cached[0];
+        try {
+            int window = parseMaxResultWindow(getSettings(indexName));
+            MAX_RESULT_WINDOW_CACHE.put(indexName,
+                new long[] { window, System.currentTimeMillis() + MAX_RESULT_WINDOW_CACHE_MILLIS });
+            return window;
+        } catch (Exception ex) {
+            // do NOT cache the fallback: retry the settings read on the next request
+            System.out.println("OpenSearch.getMaxResultWindow(" + indexName +
+                ") settings unavailable, using default: " + ex);
+            return DEFAULT_MAX_RESULT_WINDOW;
+        }
+    }
+
+    static int parseMaxResultWindow(JSONObject indexSettings) {
+        if (indexSettings == null) return DEFAULT_MAX_RESULT_WINDOW;
+        try {
+            // _settings returns values as strings; tolerate numbers too
+            int window = Integer.parseInt(indexSettings.opt("max_result_window").toString());
+            // a broken/misconfigured value must never lock search out entirely
+            return (window < 1) ? DEFAULT_MAX_RESULT_WINDOW : window;
+        } catch (Exception ex) {
+            return DEFAULT_MAX_RESULT_WINDOW;
+        }
     }
 
     // just return the actual hit results
@@ -713,6 +959,7 @@ public class OpenSearch {
             putSettings(indexName,
                 new JSONObject("{\"index.max_result_window\": " +
                 Math.round(1.2 * versions.size()) + "}"));
+            MAX_RESULT_WINDOW_CACHE.remove(indexName);
         }
         return versions;
     }
@@ -919,17 +1166,17 @@ public class OpenSearch {
     }
 
     public static void setPermissionsNeeded(boolean value) {
-        Shepherd myShepherd = new Shepherd("context0");
-
-        myShepherd.setAction("OpenSearch.setPermissionsNeeded");
-        myShepherd.beginDBTransaction();
+        Shepherd myShepherd = null;
         try {
+            myShepherd = new Shepherd("context0");
+            myShepherd.setAction("OpenSearch.setPermissionsNeeded");
+            myShepherd.beginDBTransaction();
             setPermissionsNeeded(myShepherd, value);
             myShepherd.commitDBTransaction();
-            myShepherd.closeDBTransaction();
         } catch (Exception ex) {
             ex.printStackTrace();
-            myShepherd.rollbackAndClose();
+        } finally {
+            if (myShepherd != null) myShepherd.rollbackAndClose();
         }
     }
 
@@ -1032,6 +1279,89 @@ public class OpenSearch {
     // fields, script_fields, search_after, pit, runtime_mappings, ...) is rejected fail-closed.
     private static final java.util.Set<String> ALLOWED_TOP_LEVEL_KEYS =
         new java.util.HashSet<>(java.util.Arrays.asList("query", "from", "size"));
+
+    // ---- Token search aggregations (deny-by-default; see docs/superpowers/specs/2026-06-28-token-search-aggregations.md)
+    /** Max terms buckets a caller may request. */
+    public static final int AGG_MAX_BUCKETS = 1000;
+    // Only these top-level body keys may accompany an aggregation request (blocks runtime_mappings,
+    // post_filter, script_fields, fields, _source, body sort/from/size, collapse, rescore, suggest,
+    // caller pit, ...). Pagination is via the ?from=/?size= URL params (queryPit ignores body
+    // from/size), so reject body from/size on an agg request rather than silently dropping it; for a
+    // counts-only request pass ?size=0 on the URL.
+    private static final java.util.Set<String> AGG_BODY_TOP_LEVEL = new java.util.HashSet<>(
+        java.util.Arrays.asList("query", "aggs", "aggregations"));
+    // Per-index allow-list of fields a terms aggregation may bucket on. ONLY fields confirmed to be
+    // explicitly keyword-mapped (terms-aggregatable) in opensearchMapping(); never identity/PII/ACL.
+    private static final java.util.Map<String, java.util.Set<String>> AGG_ALLOWED_FIELDS;
+    static {
+        java.util.Map<String, java.util.Set<String>> m = new java.util.HashMap<>();
+        m.put("encounter", new java.util.HashSet<>(java.util.Arrays.asList(
+            "locationId", "taxonomy", "country", "lifeStage")));
+        m.put("annotation", new java.util.HashSet<>(java.util.Arrays.asList(
+            "viewpoint", "iaClass", "encounterLocationId", "encounterTaxonomy")));
+        m.put("individual", new java.util.HashSet<>(java.util.Arrays.asList(
+            "taxonomy", "sex")));
+        AGG_ALLOWED_FIELDS = java.util.Collections.unmodifiableMap(m);
+    }
+
+    /**
+     * Validate an aggregation-bearing token-search body, deny-by-default. Returns null when the body
+     * has NO aggregation (a normal search) OR a fully-valid one; otherwise returns a human-readable
+     * reason to reject with HTTP 400 (so an unsupported aggregation is an explicit error, never a
+     * silent empty result). Permits ONLY a direct `terms` aggregation on an allow-listed keyword field
+     * with an optional bounded integer `size` — no wrappers (global/filter/nested/...), no
+     * sub-aggregations, no pipeline/metric/script aggregations, no extra terms params, and no other
+     * top-level body keys. The caller surfaces `aggregations` from the response only on success.
+     */
+    public static String aggregationError(JSONObject body, String indexName) {
+        if (body == null) return null;
+        boolean hasAggs = body.has("aggs");
+        boolean hasAggregations = body.has("aggregations");
+        if (!hasAggs && !hasAggregations) return null; // no aggregation requested
+        if (hasAggs && hasAggregations) return "specify only one of 'aggs' or 'aggregations'";
+        // (A) strict whole-body top-level allow-list
+        for (String key : body.keySet()) {
+            if (!AGG_BODY_TOP_LEVEL.contains(key)) {
+                return "top-level field '" + key + "' is not allowed alongside an aggregation";
+            }
+        }
+        JSONObject aggs = body.optJSONObject(hasAggs ? "aggs" : "aggregations");
+        if ((aggs == null) || (aggs.length() == 0)) return "aggregation must be a non-empty object";
+        java.util.Set<String> allowedFields = AGG_ALLOWED_FIELDS.get(indexName);
+        if (allowedFields == null) return "aggregations are not supported for this index";
+        for (String name : aggs.keySet()) {
+            JSONObject named = aggs.optJSONObject(name);
+            if (named == null) return "aggregation '" + name + "' must be an object";
+            // (B) exactly one direct 'terms' — no sub-aggs, no wrapper/other agg type
+            if ((named.length() != 1) || !named.has("terms")) {
+                return "aggregation '" + name
+                    + "' must be exactly a 'terms' aggregation (no sub-aggregations or other types)";
+            }
+            JSONObject terms = named.optJSONObject("terms");
+            if (terms == null) return "aggregation '" + name + "' has an invalid 'terms' body";
+            // (C) terms params allow-list: field (required) + optional bounded integer size
+            for (String tk : terms.keySet()) {
+                if (!"field".equals(tk) && !"size".equals(tk)) {
+                    return "terms parameter '" + tk + "' is not allowed (only 'field' and 'size')";
+                }
+            }
+            Object field = terms.opt("field");
+            if (!(field instanceof String) || !allowedFields.contains((String) field)) {
+                return "terms field '" + field + "' is not allowed for index '" + indexName + "'";
+            }
+            if (terms.has("size")) {
+                Object sz = terms.opt("size");
+                long size;
+                if (sz instanceof Integer) size = (Integer) sz;
+                else if (sz instanceof Long) size = (Long) sz;
+                else return "terms 'size' must be an integer";
+                if ((size < 1) || (size > AGG_MAX_BUCKETS)) {
+                    return "terms 'size' must be between 1 and " + AGG_MAX_BUCKETS;
+                }
+            }
+        }
+        return null;
+    }
 
     /**
      * Fail-closed: returns true ONLY if every field the query/sort/aggs could reference is in `allowed`.
@@ -1215,32 +1545,32 @@ public class OpenSearch {
 
     static void setActive(String type) {
         // we want our own shepherd as the main shepherd may not persist this til later
-        Shepherd myShepherd = new Shepherd("context0");
-
-        myShepherd.setAction("OpenSearch.setActive");
-        myShepherd.beginDBTransaction();
+        Shepherd myShepherd = null;
         try {
+            myShepherd = new Shepherd("context0");
+            myShepherd.setAction("OpenSearch.setActive");
+            myShepherd.beginDBTransaction();
             SystemValue.set(myShepherd, type, true);
             myShepherd.commitDBTransaction();
-            myShepherd.closeDBTransaction();
         } catch (Exception ex) {
             ex.printStackTrace();
-            myShepherd.rollbackAndClose();
+        } finally {
+            if (myShepherd != null) myShepherd.rollbackAndClose();
         }
     }
 
     static void unsetActive(String type) {
-        Shepherd myShepherd = new Shepherd("context0");
-
-        myShepherd.setAction("OpenSearch.unsetActive");
-        myShepherd.beginDBTransaction();
+        Shepherd myShepherd = null;
         try {
+            myShepherd = new Shepherd("context0");
+            myShepherd.setAction("OpenSearch.unsetActive");
+            myShepherd.beginDBTransaction();
             SystemValue.set(myShepherd, type, false);
             myShepherd.commitDBTransaction();
-            myShepherd.closeDBTransaction();
         } catch (Exception ex) {
             ex.printStackTrace();
-            myShepherd.rollbackAndClose();
+        } finally {
+            if (myShepherd != null) myShepherd.rollbackAndClose();
         }
     }
 
@@ -1309,37 +1639,103 @@ public class OpenSearch {
             "] completed indexing " + indexName);
     }
 
-    public static String queryStoragePath(String id) {
-        return QUERY_STORAGE_DIR + "/OpenSearch-query-" + id + ".json";
-    }
-
+    /**
+     * Persist a stored query durably (OPENSEARCHQUERY table). Uses the CALLER's
+     * Shepherd/connection: commits the caller's open transaction (which must hold no other
+     * uncommitted writes -- SearchApi's is read-only) via commitDBTransactionWithStatus() so a
+     * commit failure is detectable, then re-begins a transaction for the remainder of the
+     * request. Returns the new id ONLY after a confirmed commit; null means durability was not
+     * confirmed. A confirmed commit followed by a failed re-begin still returns the id --
+     * callers needing further DB reads must check myShepherd.isDBTransactionActive().
+     */
     public static String queryStore(final JSONObject query, final String indexName,
-        final User user) {
-        if (query == null) return null;
+        final User user, final Shepherd myShepherd) {
+        if ((query == null) || (user == null) || (myShepherd == null)) return null;
         JSONObject stored = new JSONObject(query.toString());
         String id = Util.generateUUID();
+        long now = System.currentTimeMillis();
         stored.put("id", id);
         stored.put("indexName", indexName);
-        stored.put("created", System.currentTimeMillis());
+        stored.put("created", now);
         stored.put("creator", user.getUUID());
+        boolean committed = false;
         try {
-            Util.writeToFile(stored.toString(), queryStoragePath(id));
+            myShepherd.getPM().makePersistent(new OpenSearchQuery(id, stored, now));
+            committed = myShepherd.commitDBTransactionWithStatus();
         } catch (Exception ex) {
+            System.out.println("OpenSearch.queryStore() failed to store " + id + ": " + ex);
             ex.printStackTrace();
+        }
+        if (!committed) {
+            try {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.beginDBTransaction();
+            } catch (Exception ex) {
+                System.out.println("OpenSearch.queryStore() transaction recovery failed: " + ex);
+            }
             return null;
+        }
+        // the id is durable from here on: nothing below may throw past this method
+        try {
+            myShepherd.beginDBTransaction(); // recover a transaction for the rest of the request
+            queryPruneMaybe(myShepherd, now);
+        } catch (Exception ex) {
+            System.out.println("OpenSearch.queryStore() post-commit recovery failed (id " + id +
+                " IS stored): " + ex);
         }
         return id;
     }
 
-    public static JSONObject queryLoad(String id) {
-        if (id == null) return null;
+    /**
+     * Opportunistic TTL prune, run AFTER a stored query is durably committed, in its own
+     * best-effort commit cycle so a prune/database failure can never affect the stored id
+     * (only rolls back the prune itself). Non-positive searchQueryTtlDays disables pruning.
+     */
+    private static void queryPruneMaybe(final Shepherd myShepherd, final long now) {
+        if ((now - queryLastPruneMillis) <= QUERY_PRUNE_INTERVAL_MILLIS) return;
+        queryLastPruneMillis = now;
+        int ttlDays = QUERY_TTL_DAYS_DEFAULT;
         try {
-            String jsonData = Util.readFromFile(queryStoragePath(id));
-            return new JSONObject(jsonData);
+            ttlDays = (Integer)getConfigurationValue("searchQueryTtlDays",
+                QUERY_TTL_DAYS_DEFAULT);
+        } catch (Exception ex) {}
+        if (ttlDays <= 0) return;
+        try {
+            if (queryPrune(myShepherd, now - ttlDays * 86400000L) > 0) {
+                if (!myShepherd.commitDBTransactionWithStatus())
+                    myShepherd.rollbackDBTransaction();
+                myShepherd.beginDBTransaction();
+            }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            System.out.println("OpenSearch.queryPruneMaybe() failed: " + ex);
+            try {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.beginDBTransaction();
+            } catch (Exception ex2) {
+                System.out.println(
+                    "OpenSearch.queryPruneMaybe() transaction recovery failed: " + ex2);
+            }
         }
-        return null;
+    }
+
+    // deletes stored queries with created < cutoffMillis; runs in the caller's transaction,
+    // which the caller must commit -- propagates failures (callers own transaction recovery)
+    public static long queryPrune(final Shepherd myShepherd, final long cutoffMillis) {
+        javax.jdo.Query q = myShepherd.getPM().newQuery(OpenSearchQuery.class,
+            "created < " + cutoffMillis);
+        long ct = q.deletePersistentAll();
+
+        if (ct > 0)
+            System.out.println("OpenSearch.queryPrune() deleted " + ct +
+                " stored queries older than " + new java.util.Date(cutoffMillis));
+        return ct;
+    }
+
+    public static JSONObject queryLoad(String id, Shepherd myShepherd) {
+        OpenSearchQuery osq = OpenSearchQuery.load(myShepherd, id);
+
+        if (osq == null) return null;
+        return osq.getValue();
     }
 
     public static JSONObject queryScrubStored(final JSONObject query) {

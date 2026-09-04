@@ -17,6 +17,7 @@ shepherd_derby_database
 /outputPackage.txt
 src/main/webapp/encounters/*20*
 /log
+/logs/
 /changed
 /changedfiles.txt
 /buildExam.txt

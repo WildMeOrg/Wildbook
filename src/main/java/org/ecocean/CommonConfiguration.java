@@ -24,6 +24,9 @@ import javax.servlet.http.HttpServletRequest;
 public class CommonConfiguration {
     private static final String COMMON_CONFIGURATION_PROPERTIES = "commonConfiguration.properties";
     private static final String GOOGLE_CONFIGURATION_PROPERTIES = "googleKeys.properties";
+    // API-access (JWT) settings live in their own file so the signing key can be held privately
+    // in the data-dir override and kept out of git. See getApiAccessProperty().
+    private static final String API_ACCESS_KEYS_PROPERTIES = "apiAccessKeys.properties";
 
     // class setup
     // private static Properties props = new Properties();
@@ -33,6 +36,8 @@ public class CommonConfiguration {
     // private static String currentContext;
 
     private static Map<String, Properties> contextToPropsCache = new HashMap<String, Properties>();
+    // Only ever populated by initializeApiAccess() (a test seam). Production reads the file fresh.
+    private static Map<String, Properties> apiAccessPropsCache = new HashMap<String, Properties>();
 
     public static void initialize(String context, Properties overrideProps) {
         contextToPropsCache.put(context, overrideProps);
@@ -592,6 +597,29 @@ public class CommonConfiguration {
     public static String getGoogleAnalyticsId(String context) {
         return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES, "",
                 context).getProperty("ga_id", context);
+    }
+
+    /**
+     * Reads an API-access (JWT) setting from apiAccessKeys.properties -- a peer of
+     * commonConfiguration.properties -- so the signing key can be kept private in the data-dir
+     * override and out of git. NOT read from commonConfiguration.properties. Returns null when
+     * the key is unset (callers treat null as "not configured").
+     */
+    public static String getApiAccessProperty(String name, String context) {
+        Properties seeded = apiAccessPropsCache.get(context);
+        if (seeded != null) return seeded.getProperty(name);
+        return ShepherdProperties.getProperties(API_ACCESS_KEYS_PROPERTIES, "", context)
+                .getProperty(name);
+    }
+
+    /** Test seam: seed in-memory API-access props for a context (mirrors initialize(String, Properties)). */
+    public static void initializeApiAccess(String context, Properties overrideProps) {
+        apiAccessPropsCache.put(context, overrideProps);
+    }
+
+    /** Test cleanup: clear seeded API-access props to avoid cross-test contamination. */
+    public static void clearApiAccessCache() {
+        apiAccessPropsCache.clear();
     }
 
     public static String getDefaultGoogleMapsCenter(String context) {

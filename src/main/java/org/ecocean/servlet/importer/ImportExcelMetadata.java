@@ -81,6 +81,11 @@ public class ImportExcelMetadata extends HttpServlet {
         StringBuffer messages = new StringBuffer();
         boolean successfullyWroteFile = false;
         File finalFile = new File(tempSubdir, "temp.csv");
+        // GH-1514: collect individual ids touched by either import flow so we
+        // can queue a post-commit deep reindex and refresh individualNumberEncounters
+        // on sibling encounters.
+        java.util.Set<String> touchedIndividualIds =
+            new java.util.LinkedHashSet<String>();
 
         try {
             MultipartParser mp = new MultipartParser(request,
@@ -475,6 +480,10 @@ public class ImportExcelMetadata extends HttpServlet {
 
                                 myShepherd.commitDBTransaction();
                                 if (newShark) { myShepherd.storeNewMarkedIndividual(indie); }
+                                // GH-1514: remember the touched individual id.
+                                if (indie != null && indie.getIndividualID() != null) {
+                                    touchedIndividualIds.add(indie.getIndividualID());
+                                }
                             }
                         } else { myShepherd.rollbackDBTransaction(); }
                         // out.println("Imported row: "+line);
@@ -493,6 +502,9 @@ public class ImportExcelMetadata extends HttpServlet {
             if (!locked) {
                 myShepherd.commitDBTransaction();
                 myShepherd.closeDBTransaction();
+                // GH-1514: post-commit, queue deep reindex of touched individuals.
+                org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
+                    touchedIndividualIds);
                 out.println(ServletUtilities.getHeader(request));
                 out.println(
                     "<p><strong>Success!</strong> I have successfully uploaded and imported your SRGD CSV file.</p>");
@@ -629,6 +641,14 @@ public class ImportExcelMetadata extends HttpServlet {
                     myShepherd.beginDBTransaction();
                     if (ind != null) ind.addEncounter(enc);
                     myShepherd.commitDBTransaction();
+                    // GH-1514: deep reindex the touched individual so sibling
+                    // encounters refresh individualNumberEncounters. (processExcel
+                    // currently has no in-tree callers but is kept on the safe side.)
+                    if (ind != null && ind.getIndividualID() != null) {
+                        org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(
+                            myShepherd,
+                            java.util.Collections.singleton(ind.getIndividualID()));
+                    }
                     // New Close it.
                     if (i % printPeriod == 0) {
                         out.println("Parsed row (" + i + "), containing Enc " +

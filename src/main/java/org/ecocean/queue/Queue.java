@@ -21,6 +21,14 @@ public abstract class Queue {
     public abstract void consume(QueueMessageHandler msgHandler)
     throws java.io.IOException;
 
+    // Consume with a requested number of concurrent worker threads. Concrete default preserves the
+    // single-consumer behavior (ignores the count) so existing subclasses and any future ones keep
+    // working unchanged; FileQueue overrides this to honor the worker count.
+    public void consume(QueueMessageHandler msgHandler, int workers)
+    throws java.io.IOException {
+        consume(msgHandler);
+    }
+
     // this is "internal" and is mostly used for manually backgrounded needs (like FileQueue)
     // NOTE: when used, return of null means messageHandler will NOT be called!
     public abstract String getNext()

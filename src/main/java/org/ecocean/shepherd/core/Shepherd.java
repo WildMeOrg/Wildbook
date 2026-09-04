@@ -106,8 +106,15 @@ public class Shepherd {
 
     // handy with a newActiveShepherd
     public void rollbackAndClose() {
-        rollbackDBTransaction();
-        closeDBTransaction();
+        // closeDBTransaction() MUST run even if rollbackDBTransaction() throws. Otherwise a rollback
+        // that fails (e.g. on an already-broken connection) skips the close, leaking the
+        // PersistenceManager/DB connection and leaving a stale ShepherdState entry -- exactly the
+        // "rollback-failed" rows seen accumulating on dbconnections.jsp until the pool exhausts.
+        try {
+            rollbackDBTransaction();
+        } finally {
+            closeDBTransaction();
+        }
     }
 
     public String getContext() {
@@ -569,6 +576,88 @@ public class Shepherd {
             return null;
         }
         return annot;
+    }
+
+    // Batch-load annotations by id in as few queries as possible (chunked IN), instead of one
+    // getAnnotation()/getObjectById() per id. The match pipeline can produce hundreds of
+    // prospects/candidates; a round-trip each was O(N) and dominated match time (tens of seconds
+    // to minutes). Returned order is NOT the input order -- callers needing the kNN score order
+    // should re-map by id.
+    public List<Annotation> getAnnotations(Collection<String> uuids) {
+        List<Annotation> out = new ArrayList<Annotation>();
+        if ((uuids == null) || uuids.isEmpty()) return out;
+        LinkedHashSet<String> ids = new LinkedHashSet<String>();
+        for (String u : uuids) {
+            if ((u != null) && (u.trim().length() > 0)) ids.add(u.trim());
+        }
+        if (ids.isEmpty()) return out;
+        List<String> all = new ArrayList<String>(ids);
+        final int CHUNK = 1000;
+        for (int i = 0; i < all.size(); i += CHUNK) {
+            List<String> sub = all.subList(i, Math.min(i + CHUNK, all.size()));
+            Query q = pm.newQuery(Annotation.class, ":ids.contains(id)");
+            try {
+                @SuppressWarnings("unchecked")
+                Collection<Annotation> res = (Collection<Annotation>) q.execute(sub);
+                out.addAll(new ArrayList<Annotation>(res));
+            } catch (Exception ex) {
+                System.out.println("getAnnotations(batch) chunk failed: " + ex);
+                ex.printStackTrace();
+            } finally {
+                q.closeAll();
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Batch reverse-lookup: annotation id -&gt; its (single) parent Encounter. Replaces per-annotation
+     * Encounter.findByAnnotation calls in hot paths (e.g. MatchResult prospect grouping), which did
+     * one JDOQL join per prospect. Runs one query per chunk of ids, mapping back by walking each
+     * returned encounter's annotations.
+     *
+     * Annotation ids with no parent encounter are omitted from the map. An annotation shared by
+     * more than one encounter is anomalous (Encounter.findByAnnotation warns and returns an
+     * arbitrary one too); the first encounter seen wins and a WARNING is logged. Query failures are
+     * NOT swallowed -- they propagate, matching the per-prospect findEncounter behavior this
+     * replaces (a partial map would silently drop prospects).
+     */
+    public Map<String, Encounter> getEncountersByAnnotationIds(Collection<String> annotationIds) {
+        Map<String, Encounter> out = new HashMap<String, Encounter>();
+        if ((annotationIds == null) || annotationIds.isEmpty()) return out;
+        LinkedHashSet<String> wanted = new LinkedHashSet<String>();
+        for (String a : annotationIds) {
+            if ((a != null) && (a.trim().length() > 0)) wanted.add(a.trim());
+        }
+        if (wanted.isEmpty()) return out;
+        List<String> all = new ArrayList<String>(wanted);
+        final int CHUNK = 1000;
+        for (int i = 0; i < all.size(); i += CHUNK) {
+            List<String> sub = all.subList(i, Math.min(i + CHUNK, all.size()));
+            Query q = pm.newQuery(Encounter.class, "annotations.contains(ann) && :ids.contains(ann.id)");
+            q.declareVariables("org.ecocean.Annotation ann");
+            try {
+                @SuppressWarnings("unchecked")
+                Collection<Encounter> res = (Collection<Encounter>) q.execute(sub);
+                for (Encounter enc : res) {
+                    if ((enc == null) || (enc.getAnnotations() == null)) continue;
+                    for (Annotation ann : enc.getAnnotations()) {
+                        if ((ann == null) || (ann.getId() == null)) continue;
+                        if (!wanted.contains(ann.getId())) continue;
+                        Encounter prev = out.put(ann.getId(), enc);
+                        if ((prev != null) && !prev.equals(enc)) {
+                            System.out.println("WARNING: Shepherd.getEncountersByAnnotationIds() " +
+                                "found more than one Encounter containing Annotation " +
+                                ann.getId() + "; keeping the first seen");
+                            out.put(ann.getId(), prev);
+                        }
+                    }
+                }
+            } finally {
+                q.closeAll();
+            }
+        }
+        return out;
     }
 
     public MediaAsset getMediaAsset(String num) {
@@ -3394,22 +3483,26 @@ public class Shepherd {
      * Closes a PersistenceManager
      */
     public void closeDBTransaction() {
+        boolean closed = false;
         try {
             if ((pm != null) && (!pm.isClosed())) {
                 pm.close();
             }
-            // ShepherdState.setShepherdState(action+"_"+shepherdID, "close");
-            ShepherdState.removeShepherdState(action + "_" + shepherdID);
-
-            // logger.info("A PersistenceManager has been successfully closed.");
-        } catch (JDOUserException jdoe) {
+            closed = true;
+        // Must catch everything (e.g. JDODataStoreException on a broken connection), not just
+        // JDOUserException: many callers invoke this inline without their own try/finally, and a
+        // throw from here propagates into page rendering.
+        } catch (Exception e) {
             System.out.println("I hit an error trying to close a DBTransaction.");
-            jdoe.printStackTrace();
-
-            // logger.error("I failed to close a PersistenceManager."+"\n"+jdoe.getStackTrace());
-        } catch (NullPointerException npe) {
-            System.out.println("I hit a NullPointerException trying to close a DBTransaction.");
-            npe.printStackTrace();
+            e.printStackTrace();
+        } finally {
+            // Only clear the diagnostic state entry if the close actually succeeded.
+            // If it threw, leave evidence behind so dbconnections.jsp can surface the leak.
+            if (closed) {
+                ShepherdState.removeShepherdState(action + "_" + shepherdID);
+            } else {
+                ShepherdState.setShepherdState(action + "_" + shepherdID, "close-failed");
+            }
         }
     }
 
@@ -3417,21 +3510,23 @@ public class Shepherd {
      * Undoes any changes made to an open database.
      */
     public void rollbackDBTransaction() {
+        boolean rolledBack = false;
         try {
             if ((pm != null) && (pm.currentTransaction().isActive())) {
-                // System.out.println("     Now rollingback a transaction with pm"+(String)pm.getUserObject());
                 pm.currentTransaction().rollback();
-                // System.out.println("A transaction has been successfully committed.");
-            } else {
-                // System.out.println("You are trying to rollback an inactive transaction.");
             }
-            ShepherdState.setShepherdState(action + "_" + shepherdID, "rollback");
-        } catch (JDOUserException jdoe) {
-            jdoe.printStackTrace();
-        } catch (JDOFatalUserException fdoe) {
-            fdoe.printStackTrace();
-        } catch (NullPointerException npe) {
-            npe.printStackTrace();
+            rolledBack = true;
+        // Must catch everything, not just JDO(Fatal)UserException: rollback on a broken connection
+        // throws JDOFatalDataStoreException, and ~80 JSPs call rollbackDBTransaction() then
+        // closeDBTransaction() sequentially in a finally -- a throw from here skips that close and
+        // leaks the PersistenceManager (the stuck "rollback-failed" rows on dbconnections.jsp).
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Always publish a terminal rollback state so leaked "begin" entries do not accumulate,
+            // but distinguish success from failure so close-follow-up can see the evidence.
+            ShepherdState.setShepherdState(action + "_" + shepherdID,
+                rolledBack ? "rollback" : "rollback-failed");
         }
     }
 

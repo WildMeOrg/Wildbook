@@ -95,6 +95,16 @@ export const PlaceSection = observer(({ store }) => {
         mapCenterLon={mapCenterLon}
         mapZoom={mapZoom}
       />
+      <Form.Group controlId="verbatimLocality" className="mb-3">
+        <Form.Label>
+          <FormattedMessage id="LOCATION" />
+        </Form.Label>
+        <Form.Control
+          type="text"
+          value={store.placeSection.verbatimLocality || ""}
+          onChange={(e) => store.setVerbatimLocality(e.target.value)}
+        />
+      </Form.Group>
       <Form.Group>
         <Form.Label>
           <FormattedMessage id="FILTER_GPS_COORDINATES" />

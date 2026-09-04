@@ -699,15 +699,17 @@ public class Task implements java.io.Serializable {
     // Structural criteria mirroring ImportTask.statsAnnotations:446-461 — a
     // task is "renderable" as a match result if it is shaped like a task
     // that owns prospects: single-algo legacy WBIA task, task with child
-    // algorithm sub-tasks under a thin parent, or a 3+-children root.
+    // algorithm sub-tasks under a thin parent, or a 3+-children root — plus
+    // (issue #1744) a single-annotation identified branch under a
+    // multi-annotation parent; see isSingleAnnotationBranch.
     private static boolean isRenderableMatchTask(Task t) {
         Task parent = t.getParent();
         List<Task> children = t.getChildren();
         JSONObject params = t.getParameters();
 
-        if ((parent != null) && (parent.getChildren() != null) &&
-            (parent.getChildren().size() == 1) &&
-            (params != null) && params.has("ibeis.identification")) {
+        if ((parent != null) && (params != null) && params.has("ibeis.identification") &&
+            (((parent.getChildren() != null) && (parent.getChildren().size() == 1)) ||
+            isSingleAnnotationBranch(t, parent))) {
             return true;
         }
         if ((children != null) && !children.isEmpty() &&
@@ -719,6 +721,21 @@ public class Task implements java.io.Serializable {
             return true;
         }
         return false;
+    }
+
+    // Issue #1744: when one image holds several annotations, both pipelines put
+    // ALL of them on one umbrella task and then branch one identified child per
+    // annotation (v2: Embedding.findMatchProspects subtasks under the
+    // MlServiceProcessor.runMatchProspects match task; legacy:
+    // IAGateway._doIdentify children, IA.intakeAnnotations per-iaClass
+    // children). The child owns that annotation's MatchResult, so it — not the
+    // umbrella, whose matchResultsJson recursion would render every
+    // annotation's prospects on one page — is the task to surface for that
+    // annotation. Per-ALGORITHM siblings hold the same annotation set as their
+    // parent and therefore do not qualify, so multi-algorithm trees keep their
+    // existing selection.
+    private static boolean isSingleAnnotationBranch(Task t, Task parent) {
+        return (t.numberAnnotations() == 1) && (parent.numberAnnotations() > 1);
     }
 
     public static List<Task> getTasksFor(MediaAsset ma, Shepherd myShepherd) {
@@ -808,6 +825,14 @@ public class Task implements java.io.Serializable {
                 status = "completed";
             } else if (logs.toString().indexOf("score") > -1) {
                 status = "completed";
+            } else if (islObj.optJSONObject("status") != null &&
+                islObj.optJSONObject("status").optJSONObject("error") != null &&
+                islObj.optJSONObject("status").optJSONObject("error").optBoolean(
+                    "emptyTargetAnnotations", false)) {
+                // No target annotations to match against is a terminal state, not a failure.
+                // Treating it as completed lets import progress reach 100%.
+                System.out.println("[Task.getStatus] emptyTargetAnnotations detected for task " + getId() + ", marking completed");
+                status = "completed";
             } else if (islObj.toString().indexOf("HTTP error code") > -1) {
                 status = "error";
             } else if (!islObj.optString("queueStatus").equals("")) {
@@ -817,7 +842,7 @@ public class Task implements java.io.Serializable {
                 status = "queuing";
             }
             // if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
-            // if(status.equals("waiting to queue"))System.out.println("islObj: "+islObj.toString());
+            if(status.equals("waiting to queue"))System.out.println("[Task.getStatus DEBUG] waiting to queue, islObj: "+islObj.toString());
         }
         System.out.println("[DEBUG] getStatus() fell through to status='" + status + "' on Task " +
             this.getId());

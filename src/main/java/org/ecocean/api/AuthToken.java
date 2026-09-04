@@ -56,7 +56,7 @@ public class AuthToken extends ApiBase {
                 writeError(response, 401, "invalid credentials");
                 return;
             }
-            String tokenContext = org.ecocean.CommonConfiguration.getProperty("jwtContext", context);
+            String tokenContext = org.ecocean.CommonConfiguration.getApiAccessProperty("jwtContext", context);
             if (!Util.stringExists(tokenContext)) tokenContext = "context0";
             JwtService jwt = JwtService.fromConfig(tokenContext);
             if (!jwt.isEnabled()) {
@@ -97,7 +97,7 @@ public class AuthToken extends ApiBase {
     }
 
     private long ttlFromConfig(String context) {
-        String v = org.ecocean.CommonConfiguration.getProperty("jwtTtlSeconds", context);
+        String v = org.ecocean.CommonConfiguration.getApiAccessProperty("jwtTtlSeconds", context);
         if (Util.stringExists(v)) {
             try {
                 long secs = Long.parseLong(v.trim());

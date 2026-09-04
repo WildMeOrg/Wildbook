@@ -23,7 +23,8 @@ import org.ecocean.Util;
  * the external scoped-access kernel holds the public key.
  *
  * Keys are RSA, supplied as Base64 of the encoded key bytes (private = PKCS8,
- * public = X.509), via commonConfiguration.properties:
+ * public = X.509), via apiAccessKeys.properties (a peer of commonConfiguration.properties,
+ * kept private in the data-dir override and out of git):
  *   jwtPrivateKeyBase64=...   (signing; required to mint tokens)
  *   jwtPublicKeyBase64=...    (verify; optional Wildbook-side)
  *   jwtIssuer=wildbook
@@ -75,12 +76,12 @@ public class JwtService {
 
     public static JwtService fromConfig(String context) {
         return fromBase64Keys(
-            CommonConfiguration.getProperty("jwtPrivateKeyBase64", context),
-            CommonConfiguration.getProperty("jwtPublicKeyBase64", context),
-            orDefault(CommonConfiguration.getProperty("jwtIssuer", context), "wildbook"),
-            orDefault(CommonConfiguration.getProperty("jwtAudience", context),
+            CommonConfiguration.getApiAccessProperty("jwtPrivateKeyBase64", context),
+            CommonConfiguration.getApiAccessProperty("jwtPublicKeyBase64", context),
+            orDefault(CommonConfiguration.getApiAccessProperty("jwtIssuer", context), "wildbook"),
+            orDefault(CommonConfiguration.getApiAccessProperty("jwtAudience", context),
                 "wildbook-scoped-api"),
-            CommonConfiguration.getProperty("jwtKeyId", context)); // may be null
+            CommonConfiguration.getApiAccessProperty("jwtKeyId", context)); // may be null
     }
 
     private static String orDefault(String v, String d) {

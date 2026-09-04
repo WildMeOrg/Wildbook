@@ -124,6 +124,15 @@ class MediaResolveApiTest {
                             .put("hits", hits));
     }
 
+    /** Find the status reported for a given requested id, or null if the id is absent from results. */
+    private static String statusOf(JSONArray arr, String id) {
+        for (int i = 0; i < arr.length(); i++) {
+            JSONObject o = arr.getJSONObject(i);
+            if (id.equals(o.optString("id", null))) return o.optString("status", null);
+        }
+        return null;
+    }
+
     @Test void gatedVisibleIds_returnsOnlyAclPassingSubset() throws Exception {
         java.util.Set<String> requested = new java.util.LinkedHashSet<>(
             java.util.Arrays.asList("ann-0", "ann-1", "ann-hidden"));
@@ -198,9 +207,10 @@ class MediaResolveApiTest {
         assertEquals("up", e.getString("viewpoint"), "viewpoint passed through");
         assertEquals("enc-A", e.getString("encounterId"), "first-parent encounter id");
         assertEquals("ind-A", e.getString("individualId"), "individual id");
+        assertEquals("identified", e.getString("status"), "resolved + has individual -> identified");
     }
 
-    @Test void resolve_omits_unresolvable_and_is_not_an_existence_oracle() throws Exception {
+    @Test void resolve_garbageId_reportsUnavailable_notAnExistenceOracle() throws Exception {
         Annotation good = fullAnnotation("ann-good", "enc-1", "ind-1");
         HttpServletRequest request = tokenRequest();
         HttpServletResponse resp = mock(HttpServletResponse.class);
@@ -224,8 +234,10 @@ class MediaResolveApiTest {
         }
         verify(resp).setStatus(200);
         JSONArray arr = new JSONArray(out.toString());
-        assertEquals(1, arr.length(), "garbage/nonexistent id is silently absent (no existence oracle)");
-        assertEquals("ann-good", arr.getJSONObject(0).getString("id"), "only the resolvable id returned");
+        assertEquals(2, arr.length(), "every requested id is accounted for");
+        assertEquals("identified", statusOf(arr, "ann-good"), "resolvable id -> identified");
+        assertEquals("unavailable", statusOf(arr, "ann-garbage"),
+            "nonexistent id reports 'unavailable' (not a distinct not-found status) -> no existence oracle");
     }
 
     @Test void resolve_dedups_repeated_ids() throws Exception {
@@ -285,8 +297,11 @@ class MediaResolveApiTest {
         }
         verify(resp).setStatus(200);
         JSONArray arr = new JSONArray(out.toString());
-        assertEquals(1, arr.length(), "non-admin sees only gate-passed ids; hidden/garbage absent (no oracle)");
-        assertEquals("ann-vis", arr.getJSONObject(0).getString("id"), "only the visible id resolved");
+        assertEquals(3, arr.length(), "every requested id is accounted for");
+        assertEquals("identified", statusOf(arr, "ann-vis"), "the gate-visible id resolves");
+        assertEquals("unavailable", statusOf(arr, "ann-hidden"), "hidden id -> unavailable");
+        assertEquals("unavailable", statusOf(arr, "ann-garbage"), "garbage id -> unavailable");
+        // hidden and garbage are indistinguishable (both 'unavailable') -> no existence oracle
     }
 
     @Test void resolve_nonAdmin_moreThan10VisibleAllResolve() throws Exception {
@@ -453,8 +468,11 @@ class MediaResolveApiTest {
             new MediaResolveApi().doPostForTest(request, resp);
         }
         verify(resp).setStatus(200);
-        assertEquals(0, new JSONArray(out.toString()).length(),
-            "source webURL throwing -> entry omitted, batch still 200");
+        JSONArray arr = new JSONArray(out.toString());
+        assertEquals(1, arr.length(), "id accounted for, batch still 200");
+        assertEquals("no_image", statusOf(arr, "ann-x"),
+            "existing annotation whose asset URL is unservable -> no_image (not a transient error)");
+        assertFalse(arr.getJSONObject(0).has("imageUrl"), "no_image entry carries no image reference");
     }
 
     @Test void resolve_emptyEncounterId_serializedAsNull() throws Exception {
@@ -506,7 +524,8 @@ class MediaResolveApiTest {
             new MediaResolveApi().doPostForTest(request, resp);
         }
         verify(resp).setStatus(200);
-        assertEquals(0, new JSONArray(out.toString()).length(), "null bbox -> omit");
+        assertEquals("no_image", statusOf(new JSONArray(out.toString()), "ann-nb"),
+            "existing annotation with null bbox -> no_image");
     }
 
     @Test void resolve_originalSource_servedViaMasterChild() throws Exception {
@@ -654,6 +673,93 @@ class MediaResolveApiTest {
               .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-oob")));
             new MediaResolveApi().doPostForTest(request, resp);
         }
-        assertEquals(0, new JSONArray(out.toString()).length(), "fully out-of-bounds bbox -> omit");
+        assertEquals("no_image", statusOf(new JSONArray(out.toString()), "ann-oob"),
+            "existing annotation with fully out-of-bounds bbox -> no_image");
+    }
+
+    @Test void resolve_visibleButNoIndividual_reportsUnidentified() throws Exception {
+        // resolvable image, but the encounter has no marked individual -> 'unidentified', not an error
+        Annotation ann = fullAnnotation("ann-u", "enc-u", "ind-u");
+        Encounter noIndiv = mock(Encounter.class);
+        when(noIndiv.getId()).thenReturn("enc-u");
+        when(noIndiv.hasMarkedIndividual()).thenReturn(false);
+        when(ann.findEncounter(any(Shepherd.class))).thenReturn(noIndiv);
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin");
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-u")).thenReturn(ann);
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-u")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        JSONArray arr = new JSONArray(out.toString());
+        JSONObject e = arr.getJSONObject(0);
+        assertEquals("unidentified", e.getString("status"), "resolved but no named animal -> unidentified");
+        assertTrue(e.isNull("individualId"), "unidentified entry has null individualId");
+        assertTrue(e.getString("imageUrl").length() > 0, "unidentified still carries the image reference");
+    }
+
+    @Test void batchLevelFailure_before_loop_is_500() throws Exception {
+        // a failure in the pre-loop setup (here: admin check throws) is a batch-level error -> 500,
+        // distinct from a per-ID 'error' inside the loop
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("someone");
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenThrow(new RuntimeException("db down during setup"));
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds", new JSONArray().put("ann-1")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        verify(resp).setStatus(500);
+    }
+
+    @Test void resolve_transientFailure_reportsError_notAbsent() throws Exception {
+        // getAnnotation throwing for one id -> that id reports 'error' (retryable); batch stays 200
+        Annotation good = fullAnnotation("ann-ok", "enc-ok", "ind-ok");
+        HttpServletRequest request = tokenRequest();
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter out = new StringWriter();
+        when(resp.getWriter()).thenReturn(new PrintWriter(out));
+        try (MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class);
+             MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m, c) -> {
+                 doNothing().when(m).beginDBTransaction();
+                 doNothing().when(m).setAction(anyString());
+                 doNothing().when(m).rollbackAndClose();
+                 User u = mockUser("admin");
+                 when(m.getUser(any(HttpServletRequest.class))).thenReturn(u);
+                 when(u.isAdmin(m)).thenReturn(true);
+                 when(m.getAnnotation("ann-ok")).thenReturn(good);
+                 when(m.getAnnotation("ann-boom")).thenThrow(new RuntimeException("transient db blip"));
+             })) {
+            su.when(() -> ServletUtilities.jsonFromHttpServletRequest(any()))
+              .thenReturn(new JSONObject().put("annotationIds",
+                  new JSONArray().put("ann-ok").put("ann-boom")));
+            new MediaResolveApi().doPostForTest(request, resp);
+        }
+        verify(resp).setStatus(200);
+        JSONArray arr = new JSONArray(out.toString());
+        assertEquals(2, arr.length(), "both ids accounted for; one bad id does not 500 the batch");
+        assertEquals("identified", statusOf(arr, "ann-ok"), "the good id still resolves");
+        assertEquals("error", statusOf(arr, "ann-boom"),
+            "a transient failure reports 'error' (retryable), distinct from 'unavailable'");
     }
 }

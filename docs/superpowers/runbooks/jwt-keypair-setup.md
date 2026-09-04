@@ -20,14 +20,24 @@ openssl pkcs8 -topk8 -nocrypt -in jwt_private.pem -outform DER | base64 -w0
 openssl rsa -in jwt_private.pem -pubout -outform DER | base64 -w0
 ```
 
-Copy the output of steps 2 and 3 into `commonConfiguration.properties` (see below).
+Copy the output of steps 2 and 3 into `apiAccessKeys.properties` (see below).
 **Immediately restrict the PEM file permissions** (`chmod 600 jwt_private.pem`).
 
 ---
 
-## 2. `commonConfiguration.properties` Keys
+## 2. `apiAccessKeys.properties` Keys
 
-Add these to the Docker-mounted `commonConfiguration.properties` (never to the git-tracked one):
+JWT keys live in their own file, `apiAccessKeys.properties` — a peer of
+`commonConfiguration.properties` — so the signing key stays private and out of git.
+Place a copy with real values in the data-dir override location (NOT the in-git template):
+
+```
+webapps/<dataDir>/WEB-INF/classes/bundles/apiAccessKeys.properties
+```
+
+where `<dataDir>` defaults to `wildbook_data_dir` (overridable per context via
+`<context>DataDir`). Only the keys you set here are needed; the in-git template ships
+with every key unset (token service disabled). Add:
 
 ```properties
 # Required — Base64(PKCS8 DER) of the RSA-2048 private key (Wildbook signs tokens)
@@ -53,7 +63,8 @@ jwtTtlSeconds=1800
 # jwtContext=context0
 ```
 
-All keys are read via `CommonConfiguration.getProperty(key, context)`.
+All keys are read via `CommonConfiguration.getApiAccessProperty(key, context)`, which reads
+only `apiAccessKeys.properties` — never `commonConfiguration.properties`.
 
 ---
 
@@ -80,7 +91,7 @@ All keys are read via `CommonConfiguration.getProperty(key, context)`.
    the old (`v1`) and new (`v2`) public keys, selected by the `kid` JWT header claim.
    The kernel must keep the old public key for **at least one full TTL** after the new key
    is deployed so that in-flight tokens minted with the old key continue to verify.
-3. **Update Wildbook** `commonConfiguration.properties`: set `jwtPrivateKeyBase64` to the
+3. **Update Wildbook** `apiAccessKeys.properties`: set `jwtPrivateKeyBase64` to the
    new private key and set `jwtKeyId=v2`. Reload/restart Wildbook.
 4. After the old TTL window has elapsed (all tokens signed with `v1` have expired), remove
    the old public key from the kernel configuration.
@@ -90,7 +101,7 @@ All keys are read via `CommonConfiguration.getProperty(key, context)`.
 ## 5. Secret Hygiene
 
 - **NEVER commit** the private key (PEM or Base64) to git. It belongs only in the
-  Docker-mounted `commonConfiguration.properties`, which is excluded from version control.
+  data-dir override `apiAccessKeys.properties`, which is excluded from version control.
 - **chmod 600** any `.pem` or key file on disk immediately after creation.
 - **Never log** the `jwtPrivateKeyBase64` value, the raw PEM, or any minted token string.
   Wildbook's logging does not emit these, but verify any custom log lines before adding them.

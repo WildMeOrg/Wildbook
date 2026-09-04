@@ -107,7 +107,10 @@ public class IndividualRemoveEncounter extends HttpServlet {
                 }
                 if (!locked) {
                     myShepherd.commitDBTransaction();
-                    //if (enc2remove != null) enc2remove.opensearchIndexDeep();
+                    // post-commit: reindex encounter and (if it survived) the old
+                    // individual; enqueueAclReindex honors skipAutoIndexing guards
+                    if (enc2remove != null) enc2remove.enqueueAclReindex();
+                    if (!wasRemoved && removeFromMe != null) removeFromMe.enqueueAclReindex();
                     out.println(ServletUtilities.getHeader(request));
                     response.setStatus(HttpServletResponse.SC_OK);
                     out.println("<strong>Success:</strong> Encounter #" +

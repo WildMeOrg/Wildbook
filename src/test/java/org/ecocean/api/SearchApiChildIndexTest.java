@@ -63,6 +63,12 @@ class SearchApiChildIndexTest {
             doNothing().when(m).rollbackAndClose();
             when(m.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(user.isAdmin(m)).thenReturn(admin);
+            // let the REAL OpenSearch.queryStore run against this mock: makePersistent is a
+            // no-op on the mock PM, the commit reports success, and the re-begun transaction
+            // reads as active (queryPrune swallows the mock PM null-query internally)
+            when(m.getPM()).thenReturn(mock(javax.jdo.PersistenceManager.class));
+            when(m.commitDBTransactionWithStatus()).thenReturn(true);
+            when(m.isDBTransactionActive()).thenReturn(true);
         });
     }
 
@@ -273,7 +279,7 @@ class SearchApiChildIndexTest {
         User user = mockUser("u1", false);
         try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
             MockedStatic<OpenSearch> osStatic = mockStatic(OpenSearch.class)) {
-            osStatic.when(() -> OpenSearch.queryLoad(anyString())).thenReturn(null);
+            osStatic.when(() -> OpenSearch.queryLoad(anyString(), any())).thenReturn(null);
             osStatic.when(() -> OpenSearch.isValidIndexName(anyString())).thenReturn(true);
             new SearchApi().doPost(request, response);
         }
@@ -290,7 +296,7 @@ class SearchApiChildIndexTest {
         User user = mockUser("u1", false);
         try (MockedConstruction<Shepherd> sh = shepherdReturning(user, false);
             MockedStatic<OpenSearch> osStatic = mockStatic(OpenSearch.class)) {
-            osStatic.when(() -> OpenSearch.queryLoad(anyString())).thenReturn(
+            osStatic.when(() -> OpenSearch.queryLoad(anyString(), any())).thenReturn(
                 new JSONObject().put("creator", "someoneElse").put("indexName", "bogus")
                     .put("query", new JSONObject().put("match_all", new JSONObject())));
             osStatic.when(() -> OpenSearch.isValidIndexName(anyString())).thenReturn(false);

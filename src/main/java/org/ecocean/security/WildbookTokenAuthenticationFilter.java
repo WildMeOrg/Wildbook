@@ -135,7 +135,7 @@ public class WildbookTokenAuthenticationFilter extends OncePerRequestFilter {
     // ----- protected seams (overridden in unit tests) -----
 
     protected String expectedContext() {
-        String c = CommonConfiguration.getProperty("jwtContext", "context0");
+        String c = CommonConfiguration.getApiAccessProperty("jwtContext", "context0");
         return Util.stringExists(c) ? c : "context0";
     }
 
