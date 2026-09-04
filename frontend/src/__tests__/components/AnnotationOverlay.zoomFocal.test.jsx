@@ -102,9 +102,9 @@ describe("AnnotationOverlay zoom focal point", () => {
   });
 
   it("measures the cursor from the container's content box", () => {
-    // A pane that is not at the viewport origin and carries a border and padding:
-    // the focal point has to be taken from where the transformed wrapper actually
-    // starts, not from the pane's border box.
+    // A pane that is not at the viewport origin, carries a border and padding, and
+    // has been scrolled: the focal point has to be taken from where the transformed
+    // wrapper actually starts, not from the pane's border box.
     const rect = jest
       .spyOn(HTMLElement.prototype, "getBoundingClientRect")
       .mockReturnValue({
@@ -118,18 +118,18 @@ describe("AnnotationOverlay zoom focal point", () => {
         y: 18,
         toJSON: () => ({}),
       });
-    const border = [
-      Object.getOwnPropertyDescriptor(HTMLElement.prototype, "clientLeft"),
-      Object.getOwnPropertyDescriptor(HTMLElement.prototype, "clientTop"),
-    ];
+    const boxProps = { clientLeft: 5, clientTop: 5, scrollLeft: 7, scrollTop: 9 };
+    const restore = Object.entries(boxProps).map(([prop, value]) => {
+      const descriptor = Object.getOwnPropertyDescriptor(
+        HTMLElement.prototype,
+        prop,
+      );
 
-    Object.defineProperty(HTMLElement.prototype, "clientLeft", {
-      configurable: true,
-      get: () => 5,
-    });
-    Object.defineProperty(HTMLElement.prototype, "clientTop", {
-      configurable: true,
-      get: () => 5,
+      Object.defineProperty(HTMLElement.prototype, prop, {
+        configurable: true,
+        get: () => value,
+      });
+      return [prop, descriptor];
     });
 
     try {
@@ -137,22 +137,21 @@ describe("AnnotationOverlay zoom focal point", () => {
         containerStyle: { paddingLeft: 20, paddingTop: 12 },
       });
 
-      // Content box starts at 30 + 5 + 20 = 55 across, 18 + 5 + 12 = 35 down,
-      // so this cursor sits at (100, 80) in the wrapper's own frame -- the same
-      // focal point as the zero-origin case above, and the same resulting pan.
-      fireEvent.wheel(pane, { deltaY: -100, clientX: 155, clientY: 115 });
+      // The wrapper starts at 30 + 5 + 20 - 7 = 48 across and 18 + 5 + 12 - 9 = 26
+      // down, so this cursor sits at (100, 80) in the wrapper's own frame -- the
+      // same focal point as the zero-origin case above, and the same resulting pan.
+      fireEvent.wheel(pane, { deltaY: -100, clientX: 148, clientY: 106 });
 
       expect(transformed.style.transform).toBe(
         "translate(-25px, -20px) scale(1.25)",
       );
     } finally {
       rect.mockRestore();
-      if (border[0]) {
-        Object.defineProperty(HTMLElement.prototype, "clientLeft", border[0]);
-      } else delete HTMLElement.prototype.clientLeft;
-      if (border[1]) {
-        Object.defineProperty(HTMLElement.prototype, "clientTop", border[1]);
-      } else delete HTMLElement.prototype.clientTop;
+      restore.forEach(([prop, descriptor]) => {
+        if (descriptor) {
+          Object.defineProperty(HTMLElement.prototype, prop, descriptor);
+        } else delete HTMLElement.prototype[prop];
+      });
     }
   });
 

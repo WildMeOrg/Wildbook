@@ -254,10 +254,19 @@ const InteractiveAnnotationOverlay = forwardRef(
       // repositions the container out of the wrapper's offsetParent chain.
       const rect = container.getBoundingClientRect();
       const padding = window.getComputedStyle(container);
+      // Minus any scroll offset: the container is overflow:hidden by default, but
+      // it can still be scrolled programmatically (and containerStyle can make it
+      // scrollable), which moves the wrapper without moving the container's rect.
       const originX =
-        rect.left + container.clientLeft + (parseFloat(padding.paddingLeft) || 0);
+        rect.left +
+        container.clientLeft +
+        (parseFloat(padding.paddingLeft) || 0) -
+        container.scrollLeft;
       const originY =
-        rect.top + container.clientTop + (parseFloat(padding.paddingTop) || 0);
+        rect.top +
+        container.clientTop +
+        (parseFloat(padding.paddingTop) || 0) -
+        container.scrollTop;
 
       return { x: clientX - originX, y: clientY - originY };
     };
