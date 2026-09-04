@@ -46,12 +46,14 @@ const clusterVerticesInContainer = (box, style, cluster, border) => {
   });
 };
 
+// Only floating-point noise is allowed outside the container.
+const FLOAT_SLACK = 1e-6;
 const expectInside = (points, { width, height }) => {
   for (const p of points) {
-    expect(p.x).toBeGreaterThanOrEqual(-0.5);
-    expect(p.x).toBeLessThanOrEqual(width + 0.5);
-    expect(p.y).toBeGreaterThanOrEqual(-0.5);
-    expect(p.y).toBeLessThanOrEqual(height + 0.5);
+    expect(p.x).toBeGreaterThanOrEqual(-FLOAT_SLACK);
+    expect(p.x).toBeLessThanOrEqual(width + FLOAT_SLACK);
+    expect(p.y).toBeGreaterThanOrEqual(-FLOAT_SLACK);
+    expect(p.y).toBeLessThanOrEqual(height + FLOAT_SLACK);
   }
 };
 
@@ -280,6 +282,34 @@ describe("placeAnnotationIcons", () => {
         { container: { width: 30, height: 30 } },
       );
       expect(result.corner).toBe("top-right");
+    });
+  });
+
+  describe("edge precision", () => {
+    test("a cluster clipped by a fraction of a pixel does not count as visible", () => {
+      // The box's right edge lands at 502.4, so the cluster (inside the 2px
+      // border) ends at 500.4 -- 0.4px past the image.
+      const result = place({ x: 350.4, y: 50, width: 152, height: 80 });
+      expect(result.corner).toBe("top-left");
+    });
+
+    test("floating-point noise at an exact edge is tolerated", () => {
+      const result = place({ x: 352 + 1e-9, y: 50, width: 150, height: 80 });
+      expect(result.corner).toBe("top-right");
+    });
+
+    test("a clamped anchor is exact: the cluster ends flush with the image edge", () => {
+      const box = { x: -50.3, y: 10, width: 600.7, height: 100 };
+      const result = place(box);
+      expect(result.corner).toBe("clamped");
+      const vertices = clusterVerticesInContainer(
+        { ...box, rotation: 0 },
+        result.style,
+        editDelete,
+        2,
+      );
+      expectInside(vertices, container);
+      expect(Math.max(...vertices.map((v) => v.x))).toBeCloseTo(500, 9);
     });
   });
 });

@@ -25,13 +25,14 @@ export const ICON_CORNER_ORDER = [
   "bottom-left",
 ];
 
-// Fractional layout / anti-aliasing slack, applied only after the geometry is exact.
-const EDGE_TOLERANCE_PX = 0.5;
+// Guards floating-point noise only (a box that exactly spans the image can
+// compute its edge as 500.0000001). Anything genuinely clipped, even by a
+// fraction of a pixel, does not count as visible.
+const FLOAT_EPSILON = 1e-6;
 
 const isPositive = (value) => Number.isFinite(value) && value > 0;
 const toNumber = (value) => (Number.isFinite(value) ? value : 0);
 const clamp = (value, lo, hi) => Math.min(Math.max(value, lo), hi);
-const roundPx = (value) => Math.round(value * 100) / 100;
 
 // CSS `rotate(theta)` acting on a vector (screen coordinates, y down).
 const rotateVector = (dx, dy, theta) => {
@@ -75,7 +76,6 @@ export function placeAnnotationIcons({
   cluster,
   border = 2,
   inset,
-  tolerance = EDGE_TOLERANCE_PX,
 } = {}) {
   const insetX = toNumber(inset?.x);
   const insetY = toNumber(inset?.y);
@@ -120,10 +120,10 @@ export function placeAnnotationIcons({
     return { x: x + cx + r.x, y: y + cy + r.y };
   };
   const isInside = (p) =>
-    p.x >= -tolerance &&
-    p.x <= containerWidth + tolerance &&
-    p.y >= -tolerance &&
-    p.y <= containerHeight + tolerance;
+    p.x >= -FLOAT_EPSILON &&
+    p.x <= containerWidth + FLOAT_EPSILON &&
+    p.y >= -FLOAT_EPSILON &&
+    p.y <= containerHeight + FLOAT_EPSILON;
   const footprint = (anchor) =>
     [
       [anchor.x, anchor.y],
@@ -155,7 +155,7 @@ export function placeAnnotationIcons({
     x: containerWidth - Math.max(...xs),
     y: containerHeight - Math.max(...ys),
   };
-  if (lo.x > hi.x + tolerance || lo.y > hi.y + tolerance) {
+  if (lo.x > hi.x + FLOAT_EPSILON || lo.y > hi.y + FLOAT_EPSILON) {
     // The cluster itself is larger than the image; nothing can make it fit.
     return fallback;
   }
@@ -173,8 +173,8 @@ export function placeAnnotationIcons({
   return {
     corner: "clamped",
     style: {
-      top: roundPx(cy + local.y - b),
-      left: roundPx(cx + local.x - b),
+      top: cy + local.y - b,
+      left: cx + local.x - b,
     },
   };
 }

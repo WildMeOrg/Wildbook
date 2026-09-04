@@ -374,4 +374,17 @@ describe("ImageModal annotation icon placement (#1534)", () => {
     expect(cluster.style.right).toBe("0px");
     expect(cluster.style.left).toBe("");
   });
+
+  test("a box wider than the image gets edit/delete slid into the visible strip", () => {
+    // displayed x -50..450 in a 400px-wide box: no corner is visible, so the
+    // cluster is anchored flush with the image's right edge instead.
+    renderModal({
+      rects: rectAt({ x: -100, y: 20, width: 1000, height: 200 }),
+    });
+    const cluster = clusterOf(loadImage());
+
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.left).toBe("428px");
+    expect(cluster.style.right).toBe("");
+  });
 });

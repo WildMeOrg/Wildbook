@@ -594,4 +594,33 @@ describe("ImageCard annotation icon placement (#1534)", () => {
     expect(cluster.style.right).toBe("0px");
     expect(cluster.style.left).toBe("");
   });
+
+  test("a rotated box is judged after rotation: a quarter-turned box poking out the top keeps top-right", async () => {
+    const user = userEvent.setup();
+    // displayed x 100, y -10, w 200, h 60: unrotated this would need the
+    // bottom-right corner, but after a 90° turn the local top-right corner
+    // sits well inside the image, so the icons must not move.
+    renderWithAnnotation(
+      annotationAt([200, -20, 400, 120], { theta: Math.PI / 2 }),
+    );
+    const rect = await clickAnnotation(user);
+
+    const cluster = rect.querySelector(".d-flex.flex-column");
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.right).toBe("0px");
+    expect(cluster.style.left).toBe("");
+  });
+
+  test("a box wider than the image gets edit/delete slid into the visible strip", async () => {
+    const user = userEvent.setup();
+    // displayed x -50..550 in a 500px-wide box: no corner is visible, so the
+    // cluster is anchored flush with the image's right edge instead.
+    renderWithAnnotation(annotationAt([-100, 20, 1200, 200]));
+    const rect = await clickAnnotation(user);
+
+    const cluster = rect.querySelector(".d-flex.flex-column");
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.left).toBe("528px");
+    expect(cluster.style.right).toBe("");
+  });
 });
