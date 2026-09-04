@@ -145,7 +145,7 @@ export function computeFitToAnnotation({
  * Only the two zooms have to be positive. Pan and focal are routinely negative
  * -- an auto-fitted annotation pans the image up and to the left, and the
  * cursor can sit outside the image box -- so they are merely required to be
- * finite. Anything unusable leaves the pan alone.
+ * finite. Anything unusable, or any result that overflows, leaves the pan alone.
  */
 export function computeZoomAboutPoint({ pan, zoom, nextZoom, focal }) {
   const px = Number(pan?.x);
@@ -169,8 +169,15 @@ export function computeZoomAboutPoint({ pan, zoom, nextZoom, focal }) {
 
   const ratio = nz / z;
 
-  return {
+  if (!Number.isFinite(ratio)) return safePan;
+
+  const next = {
     x: fx - (fx - safePan.x) * ratio,
     y: fy - (fy - safePan.y) * ratio,
   };
+
+  // Extreme-magnitude inputs can overflow to Infinity even though every input
+  // was finite; a non-finite pan would put the image nowhere at all.
+  if (!Number.isFinite(next.x) || !Number.isFinite(next.y)) return safePan;
+  return next;
 }

@@ -228,6 +228,21 @@ describe("computeZoomAboutPoint", () => {
     ).toEqual(pan);
   });
 
+  it("keeps the pan when the arithmetic overflows", () => {
+    // Every input is finite, but the result is not: a non-finite pan would put
+    // the image nowhere at all, so the view has to stay where it was.
+    const pan = { x: -Number.MAX_VALUE, y: -Number.MAX_VALUE };
+
+    expect(
+      computeZoomAboutPoint({
+        pan,
+        zoom: Number.MIN_VALUE,
+        nextZoom: Number.MAX_VALUE,
+        focal: { x: Number.MAX_VALUE, y: Number.MAX_VALUE },
+      }),
+    ).toEqual(pan);
+  });
+
   it("falls back to the origin when the pan itself is unusable", () => {
     expect(
       computeZoomAboutPoint({

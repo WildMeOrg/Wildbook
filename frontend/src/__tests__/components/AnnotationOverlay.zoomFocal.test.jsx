@@ -101,6 +101,61 @@ describe("AnnotationOverlay zoom focal point", () => {
     );
   });
 
+  it("measures the cursor from the container's content box", () => {
+    // A pane that is not at the viewport origin and carries a border and padding:
+    // the focal point has to be taken from where the transformed wrapper actually
+    // starts, not from the pane's border box.
+    const rect = jest
+      .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+      .mockReturnValue({
+        left: 30,
+        top: 18,
+        right: 30 + PANE_WIDTH,
+        bottom: 18 + PANE_HEIGHT,
+        width: PANE_WIDTH,
+        height: PANE_HEIGHT,
+        x: 30,
+        y: 18,
+        toJSON: () => ({}),
+      });
+    const border = [
+      Object.getOwnPropertyDescriptor(HTMLElement.prototype, "clientLeft"),
+      Object.getOwnPropertyDescriptor(HTMLElement.prototype, "clientTop"),
+    ];
+
+    Object.defineProperty(HTMLElement.prototype, "clientLeft", {
+      configurable: true,
+      get: () => 5,
+    });
+    Object.defineProperty(HTMLElement.prototype, "clientTop", {
+      configurable: true,
+      get: () => 5,
+    });
+
+    try {
+      const { pane, transformed } = renderOverlay({
+        containerStyle: { paddingLeft: 20, paddingTop: 12 },
+      });
+
+      // Content box starts at 30 + 5 + 20 = 55 across, 18 + 5 + 12 = 35 down,
+      // so this cursor sits at (100, 80) in the wrapper's own frame -- the same
+      // focal point as the zero-origin case above, and the same resulting pan.
+      fireEvent.wheel(pane, { deltaY: -100, clientX: 155, clientY: 115 });
+
+      expect(transformed.style.transform).toBe(
+        "translate(-25px, -20px) scale(1.25)",
+      );
+    } finally {
+      rect.mockRestore();
+      if (border[0]) {
+        Object.defineProperty(HTMLElement.prototype, "clientLeft", border[0]);
+      } else delete HTMLElement.prototype.clientLeft;
+      if (border[1]) {
+        Object.defineProperty(HTMLElement.prototype, "clientTop", border[1]);
+      } else delete HTMLElement.prototype.clientTop;
+    }
+  });
+
   it("returns to the whole photo when zoomed back out", () => {
     const { ref, transformed } = renderOverlay();
 

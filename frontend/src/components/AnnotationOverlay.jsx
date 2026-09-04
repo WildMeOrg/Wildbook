@@ -52,7 +52,6 @@ const InteractiveAnnotationOverlay = forwardRef(
     ref,
   ) => {
     const outerContainerRef = useRef(null);
-    const transformRef = useRef(null);
     const imgRef = useRef(null);
 
     // Zoom and pan are one piece of state, not two. Every zoom step has to move
@@ -109,6 +108,10 @@ const InteractiveAnnotationOverlay = forwardRef(
         }
         return { zoom: nextZoom, pan: { x: 0, y: 0 } };
       });
+      // A wheel gesture on the outgoing image must not swallow the incoming
+      // one's reset/auto-fit animation.
+      if (wheelSettleRef.current) clearTimeout(wheelSettleRef.current);
+      setWheelZooming(false);
       // initialZoom is the default view, not a trigger: changing it alone should not
       // yank the image out from under the user.
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -243,22 +246,18 @@ const InteractiveAnnotationOverlay = forwardRef(
       if (!container) return null;
       if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return null;
 
-      // getBoundingClientRect gives the border box; clientLeft/clientTop step in
-      // past the border to the padding box, which is the origin offsetLeft and
-      // offsetTop are measured from.
+      // getBoundingClientRect gives the border box. Step in past the border
+      // (clientLeft/clientTop) and then the padding to reach the content box,
+      // where the wrapper -- a static, in-flow, marginless child -- has its
+      // layout origin. Taking the padding from the container itself, rather than
+      // the wrapper's offsetLeft, stays correct even if a caller's containerStyle
+      // repositions the container out of the wrapper's offsetParent chain.
       const rect = container.getBoundingClientRect();
-      let originX = rect.left + container.clientLeft;
-      let originY = rect.top + container.clientTop;
-
-      // The wrapper is a static child, so its offsetLeft/offsetTop are pure
-      // layout values -- CSS transforms do not affect them -- and they pick up
-      // any padding a caller added through containerStyle.
-      const wrapper = transformRef.current;
-
-      if (wrapper && wrapper.offsetParent === container) {
-        originX += wrapper.offsetLeft;
-        originY += wrapper.offsetTop;
-      }
+      const padding = window.getComputedStyle(container);
+      const originX =
+        rect.left + container.clientLeft + (parseFloat(padding.paddingLeft) || 0);
+      const originY =
+        rect.top + container.clientTop + (parseFloat(padding.paddingTop) || 0);
 
       return { x: clientX - originX, y: clientY - originY };
     };
@@ -278,8 +277,9 @@ const InteractiveAnnotationOverlay = forwardRef(
     };
 
     // One zoom step, anchored so `focal` stays under the same screen pixel.
-    // `focal` is resolved by the caller, before the updater runs, so the updater
-    // stays a pure function of the previous view.
+    // `focal` is measured before the updater runs, so the updater derives the
+    // whole next view from `prev` and a StrictMode double-invocation cannot
+    // apply the shift twice. (clampPan reads layout, but read-only.)
     const zoomAbout = (direction, focal) => {
       setView((prev) => {
         const nextZoom = clampZoom(
@@ -398,6 +398,11 @@ const InteractiveAnnotationOverlay = forwardRef(
       scaleX,
       scaleY,
       sourceSize.url,
+      // annotationDisplayRect draws the box in a different frame when the asset
+      // carries rotation, and minZoom is the fit's floor: if either arrives after
+      // the image, the framing has to be recomputed.
+      hasRotation,
+      minZoom,
     ]);
 
     useImperativeHandle(ref, () => ({
@@ -526,7 +531,6 @@ const InteractiveAnnotationOverlay = forwardRef(
         onMouseDown={onMouseDown}
       >
         <div
-          ref={transformRef}
           style={{
             position: "relative",
             width: "100%",
