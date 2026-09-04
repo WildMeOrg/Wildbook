@@ -140,6 +140,57 @@
 			"locationID": []
 		},
 		{
+			"name": "Ecuador",
+			"id": "Ecuador",
+			"locationID": [
+				{
+					"name": "Llanganates-Yasuní Connectivity Corridor",
+					"id": "Llanganates-Yasuní Connectivity Corridor",
+					"locationID": [
+						{
+							"name": "Río Puyo",
+							"id": "Río Puyo",
+							"locationID":[
+								{
+									"name": "La Catedral",
+									"id": "La Catedral",
+									"geospatialInfo":{
+										"lat": -1.426050,
+										"long": -78.036100
+									},
+									"locationID":[]
+								},
+								{
+									"name": "La Cueva del Tigre",
+									"id": "La Cueva del Tigre",
+									"geospatialInfo":{
+										"lat": -1.424950,
+										"long": -78.036400
+									},
+									"locationID":[]
+								},
+								{
+									"name": "El Dino",
+									"id": "El Dino",
+									"locationID":[
+										{
+											"name": "La Caverna Tobogán",
+											"id": "La Caverna Tobogán",
+											"geospatialInfo":{
+												"lat": -1.423740,
+												"long": 78.041075
+											},
+											"locationID":[]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "France",
 			"id": "France",
 			"locationID": [
