@@ -15,6 +15,14 @@ import MainButton from "../components/MainButton";
 import ThemeColorContext from "../ThemeColorProvider";
 import { useIntl } from "react-intl";
 import Tooltip from "../components/ToolTip";
+import { placeAnnotationIcons } from "../utils/annotationIconPlacement";
+
+// Annotation overlay geometry. The icon size feeds both the rendered icons
+// and the footprint used to keep the cluster inside the image, so the two
+// cannot drift apart.
+const ANNOTATION_BORDER_PX = 2;
+const EDIT_ICON_PX = 20;
+const EDIT_DELETE_CLUSTER = { width: EDIT_ICON_PX, height: EDIT_ICON_PX * 2 };
 
 export const ImageModal = observer(
   ({
@@ -41,10 +49,12 @@ export const ImageModal = observer(
     const thumbsRef = useRef(null);
     const imgRef = useRef(null);
     const imageContainerRef = useRef(null);
+    const boxRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
     const [imageReady, setImageReady] = useState(false);
     const [imageError, setImageError] = useState(false);
+    const [containerSize, setContainerSize] = useState(null);
 
     const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
     const a = assets[safeIndex] || {};
@@ -144,6 +154,15 @@ export const ImageModal = observer(
 
         setScaleX(naturalWidth / displayWidth);
         setScaleY(naturalHeight / displayHeight);
+        // Size of the element that clips the annotations, measured with the
+        // scale so both describe the same layout. Unknown -> icons keep
+        // their default corner.
+        const clipBox = boxRef.current;
+        setContainerSize(
+          clipBox && clipBox.clientWidth > 0 && clipBox.clientHeight > 0
+            ? { width: clipBox.clientWidth, height: clipBox.clientHeight }
+            : null,
+        );
         setImageReady(true);
       };
 
@@ -193,7 +212,6 @@ export const ImageModal = observer(
       };
     }, [rects, imageStore]);
 
-    const boxRef = React.useRef(null);
     const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
     const handleMove = (e) => {
       if (dragStart) return;
@@ -463,31 +481,15 @@ export const ImageModal = observer(
                             ? 2000
                             : baseZ;
 
-                        const containerWidth = boxRef.current?.clientWidth || 0;
-                        const containerHeight =
-                          boxRef.current?.clientHeight || 0;
-                        const iconSize = 20;
-                        const iconCount = 2;
-                        const totalIconHeight = iconSize * iconCount;
-
-                        const annotationRight = newRect.x + newRect.width;
-
-                        let iconTop = newRect.y;
-                        let iconLeft = annotationRight;
-
-                        if (iconLeft + iconSize > containerWidth) {
-                          iconLeft = newRect.x - iconSize;
-                        }
-                        if (iconLeft < 0) {
-                          iconLeft = 0;
-                        }
-
-                        if (iconTop + totalIconHeight > containerHeight) {
-                          iconTop = containerHeight - totalIconHeight;
-                        }
-                        if (iconTop < 0) {
-                          iconTop = 0;
-                        }
+                        // Keep the edit/delete cluster on a corner of the box
+                        // that is actually visible when the box runs off the
+                        // image (#1534).
+                        const iconPlacement = placeAnnotationIcons({
+                          box: newRect,
+                          container: containerSize,
+                          cluster: EDIT_DELETE_CLUSTER,
+                          border: ANNOTATION_BORDER_PX,
+                        });
 
                         return (
                           <div
@@ -511,7 +513,7 @@ export const ImageModal = observer(
                               top: newRect.y,
                               width: newRect.width,
                               height: newRect.height,
-                              border: "2px solid red",
+                              border: `${ANNOTATION_BORDER_PX}px solid red`,
                               transform: `rotate(${rect.rotation}rad)`,
                               cursor: "pointer",
                               zIndex: finalZ,
@@ -540,8 +542,7 @@ export const ImageModal = observer(
                               className="d-flex flex-column"
                               style={{
                                 position: "absolute",
-                                top: iconTop - newRect.y,
-                                left: iconLeft - newRect.x,
+                                ...iconPlacement.style,
                                 zIndex: 20,
                               }}
                               onClick={(e) => e.stopPropagation()}
@@ -549,8 +550,8 @@ export const ImageModal = observer(
                               <div
                                 className="d-flex align-items-center justify-content-center"
                                 style={{
-                                  width: "20px",
-                                  height: "20px",
+                                  width: `${EDIT_ICON_PX}px`,
+                                  height: `${EDIT_ICON_PX}px`,
                                   backgroundColor: "red",
                                   cursor: "pointer",
                                   color: "white",
@@ -617,8 +618,8 @@ export const ImageModal = observer(
                                 }}
                                 className="d-flex align-items-center justify-content-center"
                                 style={{
-                                  width: "20px",
-                                  height: "20px",
+                                  width: `${EDIT_ICON_PX}px`,
+                                  height: `${EDIT_ICON_PX}px`,
                                   backgroundColor: "red",
                                   cursor: "pointer",
                                   color: "white",
