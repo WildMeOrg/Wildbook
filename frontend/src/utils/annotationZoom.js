@@ -125,3 +125,52 @@ export function computeFitToAnnotation({
     },
   };
 }
+
+/**
+ * Pan that keeps `focal` under the same screen pixel while the zoom changes
+ * from `zoom` to `nextZoom`.
+ *
+ * The overlay draws `translate(pan) scale(zoom)` about a top-left origin, so a
+ * point at image coordinate `u` lands at `pan + u * zoom`. Holding `pan` still
+ * across a zoom change therefore anchors the image's top-left corner and slides
+ * everything else away from it. Solving for the pan that anchors `focal` instead:
+ *
+ *     u = (focal - pan) / zoom   ->   pan' = focal - (focal - pan) * nextZoom / zoom
+ *
+ * `focal` and `pan` are both unscaled pixels measured from the transformed
+ * wrapper's own layout origin. Pass the zoom that will actually be applied
+ * (after clamping) as `nextZoom`: feeding it the nominal step would shift the
+ * image whenever the zoom ceiling truncates it.
+ *
+ * Only the two zooms have to be positive. Pan and focal are routinely negative
+ * -- an auto-fitted annotation pans the image up and to the left, and the
+ * cursor can sit outside the image box -- so they are merely required to be
+ * finite. Anything unusable leaves the pan alone.
+ */
+export function computeZoomAboutPoint({ pan, zoom, nextZoom, focal }) {
+  const px = Number(pan?.x);
+  const py = Number(pan?.y);
+  const safePan = {
+    x: Number.isFinite(px) ? px : 0,
+    y: Number.isFinite(py) ? py : 0,
+  };
+
+  if (!pan || !focal) return safePan;
+
+  const z = Number(zoom);
+  const nz = Number(nextZoom);
+
+  if (!isPositiveNumber(z) || !isPositiveNumber(nz)) return safePan;
+
+  const fx = Number(focal.x);
+  const fy = Number(focal.y);
+
+  if (![px, py, fx, fy].every(Number.isFinite)) return safePan;
+
+  const ratio = nz / z;
+
+  return {
+    x: fx - (fx - safePan.x) * ratio,
+    y: fy - (fy - safePan.y) * ratio,
+  };
+}
