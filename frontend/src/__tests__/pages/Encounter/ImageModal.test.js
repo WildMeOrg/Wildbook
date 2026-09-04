@@ -287,3 +287,104 @@ describe("ImageModal", () => {
     expect(container.firstChild).toBeNull();
   });
 });
+
+describe("ImageModal annotation icon placement (#1534)", () => {
+  // jsdom has no layout: stub the measurements the component reads on image load.
+  const setDims = (el, width, height) => {
+    Object.defineProperty(el, "clientWidth", {
+      value: width,
+      configurable: true,
+    });
+    Object.defineProperty(el, "clientHeight", {
+      value: height,
+      configurable: true,
+    });
+  };
+
+  // 800x600 source shown in a 400x300 box -> every source px is half a display px.
+  const loadImage = ({ measureBox = true } = {}) => {
+    const img = screen.getByAltText("asset-ma-1");
+    const box = document.getElementById("image-modal-image-box");
+    setDims(img, 400, 300);
+    if (measureBox) setDims(box, 400, 300);
+    fireEvent.load(img);
+    const rect = document.getElementById("annotation-rect-0");
+    expect(rect).toBeTruthy();
+    return rect;
+  };
+
+  const clusterOf = (rect) => rect.querySelector(".d-flex.flex-column");
+  const rectAt = (overrides) => [{ ...rects[0], ...overrides }];
+
+  test("a box inside the image keeps edit/delete at the top-right corner", () => {
+    renderModal({ rects: rectAt({ x: 10, y: 20, width: 200, height: 100 }) });
+    const cluster = clusterOf(loadImage());
+
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.right).toBe("0px");
+    expect(cluster.style.left).toBe("");
+  });
+
+  test("a box running off the right edge moves edit/delete to the top-left corner", () => {
+    // displayed x 350..450 in a 400px-wide box
+    renderModal({ rects: rectAt({ x: 700, y: 20, width: 200, height: 100 }) });
+    const cluster = clusterOf(loadImage());
+
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.left).toBe("0px");
+    expect(cluster.style.right).toBe("");
+  });
+
+  test("a rotated box is judged after rotation: a quarter-turned box poking out the top keeps top-right", () => {
+    // displayed x 100, y -10, w 200, h 60; after a 90° turn its local top-right
+    // corner sits well inside the image, so the icons must not move.
+    renderModal({
+      rects: rectAt({
+        x: 200,
+        y: -20,
+        width: 400,
+        height: 120,
+        rotation: Math.PI / 2,
+      }),
+    });
+    const cluster = clusterOf(loadImage());
+
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.right).toBe("0px");
+    expect(cluster.style.left).toBe("");
+  });
+
+  test("zooming does not change where the icons are anchored", () => {
+    renderModal({ rects: rectAt({ x: 700, y: 20, width: 200, height: 100 }) });
+    loadImage();
+
+    fireEvent.click(screen.getByTitle("Zoom In"));
+
+    const cluster = clusterOf(document.getElementById("annotation-rect-0"));
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.left).toBe("0px");
+    expect(cluster.style.right).toBe("");
+  });
+
+  test("an overflowing box keeps the default corner until the image box is measured", () => {
+    renderModal({ rects: rectAt({ x: 700, y: 20, width: 200, height: 100 }) });
+    const cluster = clusterOf(loadImage({ measureBox: false }));
+
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.right).toBe("0px");
+    expect(cluster.style.left).toBe("");
+  });
+
+  test("a box wider than the image gets edit/delete slid into the visible strip", () => {
+    // displayed x -50..450 in a 400px-wide box: no corner is visible, so the
+    // cluster is anchored flush with the image's right edge instead.
+    renderModal({
+      rects: rectAt({ x: -100, y: 20, width: 1000, height: 200 }),
+    });
+    const cluster = clusterOf(loadImage());
+
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.left).toBe("428px");
+    expect(cluster.style.right).toBe("");
+  });
+});

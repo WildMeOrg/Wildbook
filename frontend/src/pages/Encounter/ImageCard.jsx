@@ -15,6 +15,17 @@ import axios from "axios";
 import { useIntl } from "react-intl";
 import SpotMappingIcon2 from "../../components/icons/SpotMappingIcon2";
 import { isAssetActivelyAwaitingDetection } from "./pollingHelpers";
+import { placeAnnotationIcons } from "../../utils/annotationIconPlacement";
+
+// Annotation overlay geometry. The icon sizes feed both the rendered icons
+// and the footprint used to keep the cluster inside the image, so the two
+// cannot drift apart.
+const ANNOTATION_BORDER_PX = 2;
+const EDIT_ICON_PX = 20;
+const LINK_ICON_PX = 18;
+const EDIT_DELETE_CLUSTER = { width: EDIT_ICON_PX, height: EDIT_ICON_PX * 2 };
+const LINK_CLUSTER = { width: LINK_ICON_PX, height: LINK_ICON_PX };
+const LINK_INSET = { x: -2, y: 0 };
 
 const ImageCard = observer(({ store = {} }) => {
   const imgRef = useRef(null);
@@ -31,6 +42,7 @@ const ImageCard = observer(({ store = {} }) => {
   const [editAnnotationParams, setEditAnnotationParams] = useState({});
   const [imageReady, setImageReady] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [containerSize, setContainerSize] = useState(null);
   const intl = useIntl();
   const mediaAssets = store.encounterData?.mediaAssets;
   const hasMediaAssets = Array.isArray(mediaAssets) && mediaAssets.length > 0;
@@ -169,6 +181,15 @@ const ImageCard = observer(({ store = {} }) => {
 
         setScaleX(naturalWidth / displayWidth);
         setScaleY(naturalHeight / displayHeight);
+        // Size of the element that clips the annotations, measured with the
+        // scale so both describe the same layout. Unknown -> icons keep
+        // their default corner.
+        const clipBox = boxRef.current;
+        setContainerSize(
+          clipBox && clipBox.clientWidth > 0 && clipBox.clientHeight > 0
+            ? { width: clipBox.clientWidth, height: clipBox.clientHeight }
+            : null,
+        );
         setImageReady(true);
       }
     };
@@ -360,6 +381,23 @@ const ImageCard = observer(({ store = {} }) => {
             const finalZ =
               rect.annotationId === clickedAnnotation?.id ? 2000 : baseZ;
 
+            const isThisEncounter =
+              newRect.encounterId === store.encounterData.id;
+            const showIcons =
+              store.access === "write" &&
+              newRect.annotationId === clickedAnnotation?.id;
+            // Keep the icon cluster on a corner of the box that is actually
+            // visible when the box runs off the image (#1534).
+            const iconPlacement = showIcons
+              ? placeAnnotationIcons({
+                  box: newRect,
+                  container: containerSize,
+                  cluster: isThisEncounter ? EDIT_DELETE_CLUSTER : LINK_CLUSTER,
+                  border: ANNOTATION_BORDER_PX,
+                  inset: isThisEncounter ? undefined : LINK_INSET,
+                })
+              : null;
+
             return (
               <div
                 id={`rect-${index}`}
@@ -377,10 +415,9 @@ const ImageCard = observer(({ store = {} }) => {
                   left: newRect.x,
                   width: newRect.width,
                   height: newRect.height,
-                  border:
-                    newRect.encounterId === store.encounterData.id
-                      ? "2px solid red"
-                      : "2px dotted red",
+                  border: isThisEncounter
+                    ? `${ANNOTATION_BORDER_PX}px solid red`
+                    : `${ANNOTATION_BORDER_PX}px dotted red`,
                   transform: `rotate(${(newRect.rotation * 180) / Math.PI}deg)`,
                   transformOrigin: "center",
                   cursor: "pointer",
@@ -399,15 +436,13 @@ const ImageCard = observer(({ store = {} }) => {
                   );
                 }}
               >
-                {store.access === "write" &&
-                  newRect.annotationId === clickedAnnotation?.id &&
-                  (newRect.encounterId === store.encounterData.id ? (
+                {showIcons &&
+                  (isThisEncounter ? (
                     <div
                       className="d-flex flex-column"
                       style={{
                         position: "absolute",
-                        top: 0,
-                        right: 0,
+                        ...iconPlacement.style,
                         zIndex: 20,
                       }}
                       onClick={(e) => e.stopPropagation()}
@@ -429,8 +464,8 @@ const ImageCard = observer(({ store = {} }) => {
                         }}
                         className="d-flex align-items-center justify-content-center"
                         style={{
-                          width: "20px",
-                          height: "20px",
+                          width: `${EDIT_ICON_PX}px`,
+                          height: `${EDIT_ICON_PX}px`,
                           backgroundColor: "red",
                           cursor: "pointer",
                           color: "white",
@@ -488,8 +523,8 @@ const ImageCard = observer(({ store = {} }) => {
                         }}
                         className="d-flex align-items-center justify-content-center"
                         style={{
-                          width: "20px",
-                          height: "20px",
+                          width: `${EDIT_ICON_PX}px`,
+                          height: `${EDIT_ICON_PX}px`,
                           backgroundColor: "red",
                           cursor: "pointer",
                           color: "white",
@@ -543,8 +578,7 @@ const ImageCard = observer(({ store = {} }) => {
                       className="d-flex"
                       style={{
                         position: "absolute",
-                        top: 0,
-                        right: -2,
+                        ...iconPlacement.style,
                         zIndex: 20,
                       }}
                       onClick={(e) => e.stopPropagation()}
@@ -552,8 +586,8 @@ const ImageCard = observer(({ store = {} }) => {
                       <div
                         className="d-flex align-items-center justify-content-center"
                         style={{
-                          width: "18px",
-                          height: "18px",
+                          width: `${LINK_ICON_PX}px`,
+                          height: `${LINK_ICON_PX}px`,
                           backgroundColor: "red",
                           cursor: "pointer",
                           color: "white",
