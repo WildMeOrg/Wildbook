@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import java.io.IOException;
+import javax.jdo.JDOHelper;
 import javax.jdo.listener.*;
 import org.datanucleus.enhancement.Persistable;
 import org.ecocean.Base;
@@ -68,8 +69,14 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             try {
                 // base.opensearchIndexDeep();
                 // new way - put indexing in managed queue
-                IndexingManager im = IndexingManagerFactory.getIndexingManager();
-                im.addIndexingQueueEntry(base, false);
+                //
+                // ...but not yet. postStore fires on JDO flush/store, not on commit, and the
+                // indexing job runs on its own connection: enqueuing here let it load the row
+                // before this transaction committed and index pre-change state (silently -- an
+                // existing row reloads fine, so nothing looked wrong). Park it against this
+                // PersistenceManager instead; the transaction's completion callback
+                // (IndexingTransactionSynchronization) queues it once the commit is done.
+                IndexingManager.addPendingEntry(JDOHelper.getPersistenceManager(obj), base, false);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
