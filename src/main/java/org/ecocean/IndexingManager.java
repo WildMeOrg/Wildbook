@@ -388,7 +388,7 @@ public class IndexingManager {
     // plain HashMap -- concurrent use of one PM from two threads is unsupported here as everywhere.
     // =====================================================================================
 
-    static final String PENDING_USER_OBJECT_KEY = "org.ecocean.IndexingManager.pending";
+    public static final String PENDING_USER_OBJECT_KEY = "org.ecocean.IndexingManager.pending";
 
     /** How the writing transaction ended, as reported by the JDO/JTA completion callback. */
     enum Outcome { COMMITTED, ROLLED_BACK, UNKNOWN }
@@ -525,6 +525,26 @@ public class IndexingManager {
             return pm.getPersistenceManagerFactory();
         } catch (Exception ex) {
             return null;
+        }
+    }
+
+    /**
+     * Make this PersistenceManager's transaction report its completion to the park. Called once
+     * per PM from Shepherd.beginDBTransaction(), before the first begin(); DataNucleus keeps the
+     * registration across the PM's successive transactions. Idempotent; wraps (and keeps calling)
+     * any Synchronization somebody else registered first, because JDO allows exactly one; never
+     * throws.
+     */
+    public static void registerSynchronization(PersistenceManager pm) {
+        if (pm == null) return;
+        try {
+            if (pm.isClosed()) return;
+            javax.jdo.Transaction tx = pm.currentTransaction();
+            javax.transaction.Synchronization existing = tx.getSynchronization();
+            if (existing instanceof IndexingTransactionSynchronization) return;
+            tx.setSynchronization(new IndexingTransactionSynchronization(pm, pmfOf(pm), existing));
+        } catch (Exception ex) {
+            System.out.println("IndexingManager.registerSynchronization() failed: " + ex);
         }
     }
 
