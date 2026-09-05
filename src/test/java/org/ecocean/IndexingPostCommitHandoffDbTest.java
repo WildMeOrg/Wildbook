@@ -16,6 +16,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -126,15 +131,21 @@ class IndexingPostCommitHandoffDbTest {
         }
     }
 
+    // The row as the DATABASE has it -- plain JDBC, deliberately not a Shepherd, so the assertion
+    // cannot be satisfied by anything DataNucleus holds in its level-1 or level-2 cache.
     private static String committedComments() {
-        Shepherd reader = new Shepherd("context0");
+        String sql = "SELECT \"OCCURRENCEREMARKS\" FROM \"ENCOUNTER\" WHERE \"CATALOGNUMBER\" = ?";
 
-        reader.setAction("IndexingPostCommitHandoffDbTest.reader");
-        reader.beginDBTransaction();
-        try {
-            return reader.getEncounter(encId).getComments();
-        } finally {
-            reader.rollbackAndClose();
+        try (Connection c = DriverManager.getConnection(postgres.getJdbcUrl(),
+            postgres.getUsername(), postgres.getPassword());
+            PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, encId);
+            try (ResultSet rs = ps.executeQuery()) {
+                assertTrue(rs.next(), "the seeded encounter row exists");
+                return rs.getString(1);
+            }
+        } catch (SQLException e) {
+            throw new AssertionError("could not read the encounter row over JDBC", e);
         }
     }
 
@@ -303,13 +314,17 @@ class IndexingPostCommitHandoffDbTest {
         assertEquals("v2-retry", committedComments());
     }
 
-    // Closing the PM while that vetoed transaction is still active: whatever DataNucleus does
-    // with the transaction (its CloseActiveTxAction is rollback or exception, by configuration),
-    // nothing was committed, so nothing may reach the queue and the row must be unchanged.
-    @Test void failedCommitThenClose_enqueuesNothing() {
+    // Closing the PM while that vetoed transaction is still active. DataNucleus core defaults
+    // closeActiveTxAction to "exception", but the JDO API adapter overrides it to "rollback", so
+    // under JDO the close ROLLS BACK: the transaction completes with STATUS_ROLLEDBACK while the
+    // PM's user-object map is still there, the park is terminalized and dropped through the normal
+    // callback, and only then is the PM torn down. Nothing was committed, so nothing may reach the
+    // queue and the row must be unchanged.
+    @Test void failedCommitThenClose_rollsBack_andEnqueuesNothing() {
         Shepherd sh = new Shepherd("context0");
         Recorder rec = new Recorder(sh);
         String before = committedComments();
+        IndexingManager.PendingBucket park;
 
         sh.setAction("IndexingPostCommitHandoffDbTest.failedCommitClose");
         try (MockedStatic<IndexingManagerFactory> f = mockStatic(IndexingManagerFactory.class);
@@ -323,20 +338,20 @@ class IndexingPostCommitHandoffDbTest {
 
             PersistenceManager pm = sh.getPM();
             Transaction tx = pm.currentTransaction();
+            park = (IndexingManager.PendingBucket)pm.getUserObject(
+                IndexingManager.PENDING_USER_OBJECT_KEY);
+            assertEquals(1, park.size(), "precondition: the request is parked");
             tx.setSynchronization(new VetoOnce(tx.getSynchronization()));
             assertThrows(Exception.class, tx::commit);
             assertTrue(tx.isActive());
 
-            try {
-                pm.close();
-            } catch (Exception closeRefused) {
-                // exception-flavored CloseActiveTxAction: the PM stays open with its transaction;
-                // Shepherd's close below then rolls back through the normal path
-                assertFalse(pm.isClosed());
-            }
+            pm.close(); // JDO default closeActiveTxAction=rollback: completes, does not throw
+            assertTrue(pm.isClosed());
+            assertFalse(tx.isActive());
         } finally {
-            sh.rollbackAndClose();
+            sh.rollbackAndClose(); // no-op on a closed PM
         }
+        assertTrue(park.isCompleted(), "the rollback callback terminalized the park");
         verifyNoInteractions(rec.im);
         assertEquals(before, committedComments());
     }
@@ -382,8 +397,12 @@ class IndexingPostCommitHandoffDbTest {
         try {
             Encounter e = warm.getEncounter(encId);
             dnId = ((Persistable)e).dnGetObjectId();
-            l2 = ((JDODataStoreCache)warm.getPM().getPersistenceManagerFactory().getDataStoreCache())
-                .getLevel2Cache();
+            JDODataStoreCache dsc =
+                (JDODataStoreCache)warm.getPM().getPersistenceManagerFactory().getDataStoreCache();
+            // the fixture's L2 is "soft" like production; pin this id so a GC between here and the
+            // assertion cannot turn a fixture problem into a false eviction result
+            dsc.pin(dnId);
+            l2 = dsc.getLevel2Cache();
             warm.commitDBTransaction();
         } finally {
             warm.closeDBTransaction();

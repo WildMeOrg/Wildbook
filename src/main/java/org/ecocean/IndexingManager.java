@@ -226,12 +226,19 @@ public class IndexingManager {
     /*
      * The production IndexingWork: a fresh Shepherd on its own connection.
      *
-     * The reader PersistenceManager bypasses the level-2 cache. DataNucleus publishes an object's
-     * new state into L2 during its preCommit -- BEFORE the datastore commit -- so with L2 reads on,
-     * this job could pick up another in-flight transaction's not-yet-committed (possibly about to
-     * be rolled back) copy instead of the committed row. Bypassing L2 for reads makes the job read
-     * the database, which is the only thing that is guaranteed committed by the time the job runs.
-     * L2 is still written to, so nothing else is affected.
+     * The reader PersistenceManager is set to bypass the level-2 cache for its object lookups.
+     * DataNucleus publishes an object's new state into L2 during its preCommit -- BEFORE the
+     * datastore commit -- so a reader that trusts L2 can pick up another in-flight transaction's
+     * not-yet-committed (possibly about to be rolled back) copy. That is a DataNucleus-wide
+     * property of the shared L2 cache and predates this class; it affects every reader in
+     * Wildbook, not just this one.
+     *
+     * The bypass here is PARTIAL and must not be mistaken for read isolation: in DataNucleus 5.2
+     * the per-PM retrieve mode governs single-object lookups (getObjectById), but lazy field loads
+     * and bulk loads still consult L2 under the PMF-wide settings, and the encounter serializer
+     * opens its own Shepherd (Encounter.opensearchDocumentSerializer(JsonGenerator)) that reads
+     * normally. Closing that gap needs a dedicated L2-less PMF for indexing reads or a fleet-wide
+     * cache policy decision, which is a separate change.
      */
     static final class ShepherdIndexingWork implements IndexingWork {
         static final String L2_RETRIEVE_MODE_PROPERTY = "datanucleus.cache.level2.retrieveMode";
@@ -306,12 +313,13 @@ public class IndexingManager {
                 finishIndexingJob(objectID);
             } catch (Exception e) {
                 // A genuine indexing failure (not the commit race), or a failure setting up the
-                // Shepherd. Make it visible rather than silently swallowing it, then drop it; the
-                // background reconciler (OpenSearch.opensearchSyncIndex) will recover it on its next
-                // pass if the row exists.
+                // Shepherd. Make it visible rather than silently swallowing it, then drop it. The
+                // background reconciler (OpenSearch.opensearchSyncIndex) re-indexes the row on a later
+                // pass only if its database version is strictly greater than the indexed one, so this
+                // is best-effort, not guaranteed recovery.
                 System.out.println("IndexingManager: WARNING - indexing failed for " + objectID +
                     " (attempt " + attempt + "/" + MAX_INDEXING_ATTEMPTS + "); dropping. " +
-                    "Background reconciler will recover it if it exists. " + e);
+                    "Background reconciler may recover it if its version advanced. " + e);
                 e.printStackTrace();
                 finishIndexingJob(objectID);
             } finally {
@@ -627,10 +635,17 @@ public class IndexingManager {
 
     /**
      * Step two of completion: hand each captured request to the queue. Each object is first evicted
-     * from the (PMF-wide, shared) level-2 cache by its DataNucleus identity, so no reader picks up
-     * a copy published before this commit; the indexing job itself additionally bypasses L2 (see
-     * ShepherdIndexingWork). Every step is isolated per entry: one failure never takes the rest of
-     * the snapshot down, and nothing here throws. Independent of the PM, which may be closed.
+     * from the (PMF-wide, shared) level-2 cache by its DataNucleus identity. That eviction is shared
+     * invalidation -- the next reader goes to the database -- not read isolation; see
+     * ShepherdIndexingWork for what the reader does and does not bypass. Every step is isolated per
+     * entry: one failure never takes the rest of the snapshot down, and nothing here throws.
+     * Independent of the PM, which may be closed.
+     *
+     * Delivery is best-effort. A handoff that fails here (no IndexingManager, or the queue throws)
+     * is logged and dropped; there is no durable retry. The background reconciler re-indexes a row
+     * only when its database version is strictly greater than the indexed one, so a dropped request
+     * for a change that did not advance the version leaves the document stale until something else
+     * touches it.
      */
     static void drainCaptured(List<PendingEntry> snapshot, PersistenceManagerFactory pmf) {
         if ((snapshot == null) || snapshot.isEmpty()) return;
@@ -652,8 +667,8 @@ public class IndexingManager {
         }
     }
 
-    /** capturePendingEntries() + drainCaptured(), for callers without a delegate to interleave. */
-    public static void completePendingEntries(PersistenceManager pm, Outcome how) {
+    /** capturePendingEntries() + drainCaptured() with nothing interleaved. Test convenience. */
+    static void completePendingEntries(PersistenceManager pm, Outcome how) {
         PersistenceManagerFactory pmf = pmfOf(pm);
 
         drainCaptured(capturePendingEntries(pm, how), pmf);

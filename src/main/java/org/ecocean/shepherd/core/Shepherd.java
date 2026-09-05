@@ -3388,6 +3388,11 @@ public class Shepherd {
         try {
             if (pm == null || pm.isClosed())
                 pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
+            if (pm == null) {
+                System.out.println(
+                    "Shepherd.beginDBTransaction(): could not obtain a PersistenceManager");
+                return; // nothing began; do not record a "begin" state for it
+            }
             listenerRegisteredOn = prepareAndBeginTransaction(pm, listenerRegisteredOn);
             ShepherdState.setShepherdState(action + "_" + shepherdID, "begin");
         } catch (JDOUserException jdoe) {
