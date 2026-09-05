@@ -11,18 +11,24 @@ import { MemoryRouter } from "react-router-dom";
 import { IntlProvider } from "react-intl";
 import axios from "axios";
 import MatchResults from "../../../pages/MatchResultsPage/MatchResults";
+import MatchResultsStore from "../../../pages/MatchResultsPage/stores/matchResultsStore";
 
 jest.mock("axios");
 
-jest.mock("../../../SiteSettingsContext", () => ({
-  useSiteSettings: () => ({
+jest.mock("../../../SiteSettingsContext", () => {
+  // One stable object: MatchResults' fetch effect lists projectsForUser as a
+  // dependency by reference, so a fresh object per render re-fires the
+  // effect (and re-fetches / clears the store) on every render and the page
+  // never settles.
+  const siteSettings = {
     projectsForUser: {
       "proj-1": { name: "Project Alpha", prefix: "PA" },
       "proj-2": { name: "Project Beta", prefix: "PB" },
     },
     identificationRemarks: ["Confirmed", "Uncertain"],
-  }),
-}));
+  };
+  return { useSiteSettings: () => siteSettings };
+});
 
 jest.mock("../../../components/FullScreenLoader", () => {
   const React = require("react");
@@ -159,8 +165,11 @@ jest.mock("../../../components/MultiSelectWithCheckbox", () => {
 const makeApiResponse = () => ({
   matchResultsRoot: {
     id: "task-1",
-    status: "complete",
-    statusOverall: "complete",
+    // "completed" is a terminal status; "complete" is not, and a non-terminal
+    // root makes the store poll with a silent refresh whose one-shot axios
+    // mock returns undefined and clears the results right after they render.
+    status: "completed",
+    statusOverall: "completed",
     dateCreated: "2024-06-01",
     method: { name: "hotspotter", description: "HotSpotter" },
     matchingSetFilter: {},
@@ -218,7 +227,9 @@ describe("MatchResults component", () => {
 
   test("shows 'no match results' message when no taskId in URL", async () => {
     renderComponent("/match-results");
-    expect(await screen.findByText(/NO_MATCH_RESULT/i)).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("match-results-empty"),
+    ).toBeInTheDocument();
   });
 
   test("renders match prospect table after successful fetch", async () => {
@@ -227,6 +238,36 @@ describe("MatchResults component", () => {
     expect(
       await screen.findByTestId("prospect-table-task-1"),
     ).toBeInTheDocument();
+  });
+
+  test("forwards the section's taskId when a prospect is toggled (issue #1744)", async () => {
+    const spy = jest.spyOn(MatchResultsStore.prototype, "setSelectedMatch");
+    try {
+      axios.get.mockResolvedValueOnce({ data: makeApiResponse() });
+      renderComponent();
+      // generous timeouts: this suite runs slowly on loaded machines
+      await screen.findByTestId(
+        "prospect-table-task-1",
+        {},
+        { timeout: 10000 },
+      );
+      const rows = await screen.findAllByTestId(
+        "prospect-row",
+        {},
+        { timeout: 10000 },
+      );
+      fireEvent.click(rows[0]);
+      expect(spy).toHaveBeenCalledWith(
+        true,
+        "key-0",
+        "enc-0",
+        "ind-0",
+        "Name0",
+        "task-1",
+      );
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   test("renders bottom bar when results are available", async () => {
@@ -382,12 +423,16 @@ describe("MatchResults component", () => {
       },
     });
     renderComponent();
-    expect(await screen.findByText(/NO_MATCH_RESULT/i)).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("match-results-empty"),
+    ).toBeInTheDocument();
   });
 
   test("does not crash when API call fails", async () => {
     axios.get.mockRejectedValueOnce(new Error("network error"));
     renderComponent();
-    expect(await screen.findByText(/NO_MATCH_RESULT/i)).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("match-results-empty"),
+    ).toBeInTheDocument();
   });
 });

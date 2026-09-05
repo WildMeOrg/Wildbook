@@ -807,6 +807,7 @@
   "CONFIRM_MATCH": "Confirmar coincidencia",
   "MERGE_INDIVIDUALS": "Fusionar individuos",
   "CANNOT_MERGE_MORE_THAN_TWO": "No se pueden fusionar más de dos individuos",
+  "CANNOT_MATCH_ACROSS_QUERY_ENCOUNTERS": "Los candidatos seleccionados pertenecen a distintos encuentros de consulta. Seleccione candidatos de los resultados de un solo encuentro a la vez.",
   "MERGE": "Fusionar",
   "MERGE_INDIVIDUAL": "Fusionar individuo",
   "AND": "y",
