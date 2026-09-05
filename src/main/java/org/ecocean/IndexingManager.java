@@ -4,13 +4,19 @@ package org.ecocean;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.jdo.PersistenceManager;
+import javax.jdo.PersistenceManagerFactory;
+import javax.transaction.Status;
+import org.datanucleus.enhancement.Persistable;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdProperties;
 
@@ -198,6 +204,74 @@ public class IndexingManager {
     }
 
     /*
+     * How one indexing attempt reaches the datastore and the index. Production opens a Shepherd
+     * (ShepherdIndexingWork); tests substitute a scripted implementation so a real IndexingJob can
+     * run on the test thread and prove it reports every outcome correctly.
+     */
+    interface IndexingWork {
+        /** Load the object by id; throws javax.jdo.JDOObjectNotFoundException if not visible. */
+        Base load(Class myClass, String objectID) throws Exception;
+
+        void index(Base base, boolean unindex) throws Exception;
+
+        /** Always called, exactly once, after load/index -- whatever happened. */
+        void close();
+    }
+
+    // Overridable seam (package-private) -- see IndexingJobWiringTest.
+    IndexingWork newIndexingWork(String objectID) {
+        return new ShepherdIndexingWork(objectID);
+    }
+
+    /*
+     * The production IndexingWork: a fresh Shepherd on its own connection.
+     *
+     * The reader PersistenceManager bypasses the level-2 cache. DataNucleus publishes an object's
+     * new state into L2 during its preCommit -- BEFORE the datastore commit -- so with L2 reads on,
+     * this job could pick up another in-flight transaction's not-yet-committed (possibly about to
+     * be rolled back) copy instead of the committed row. Bypassing L2 for reads makes the job read
+     * the database, which is the only thing that is guaranteed committed by the time the job runs.
+     * L2 is still written to, so nothing else is affected.
+     */
+    static final class ShepherdIndexingWork implements IndexingWork {
+        static final String L2_RETRIEVE_MODE_PROPERTY = "datanucleus.cache.level2.retrieveMode";
+        private final Shepherd shepherd;
+
+        ShepherdIndexingWork(String objectID) {
+            shepherd = new Shepherd("context0");
+            shepherd.setAction("IndexingManager_" + objectID);
+            shepherd.beginDBTransaction();
+            try {
+                PersistenceManager pm = shepherd.getPM();
+                if (pm != null) pm.setProperty(L2_RETRIEVE_MODE_PROPERTY, "bypass");
+            } catch (Exception ex) {
+                System.out.println("IndexingManager: could not set " + L2_RETRIEVE_MODE_PROPERTY +
+                    "=bypass on the reader PersistenceManager for " + objectID + ": " + ex);
+            }
+        }
+
+        Shepherd shepherd() {
+            return shepherd;
+        }
+
+        public Base load(Class myClass, String objectID) {
+            return (Base)shepherd.getPM().getObjectById(myClass, objectID);
+        }
+
+        public void index(Base base, boolean unindex) throws Exception {
+            if (unindex) {
+                base.opensearchUnindexDeep();
+            } else {
+                base.opensearchIndexDeep();
+            }
+        }
+
+        public void close() {
+            shepherd.rollbackAndClose();
+        }
+    }
+
+    /*
      * One indexing attempt for one object. A named class (not an anonymous Runnable) so the request
      * it carries is observable: tests capture what was handed to the scheduler and assert on it.
      */
@@ -215,25 +289,19 @@ public class IndexingManager {
         }
 
         public void run() {
-            Shepherd bgShepherd = null;
+            IndexingWork work = null;
             try {
-                bgShepherd = new Shepherd("context0");
-                bgShepherd.setAction("IndexingManager_" + objectID);
-                bgShepherd.beginDBTransaction();
+                work = newIndexingWork(objectID);
                 Base base = null;
                 try {
-                    base = (Base)bgShepherd.getPM().getObjectById(myClass, objectID);
+                    base = work.load(myClass, objectID);
                 } catch (javax.jdo.JDOObjectNotFoundException nf) {
                     // Object not visible to this connection. Almost always the postStore-before-commit
                     // race; handle (retry the index path) and stop here for this attempt.
                     handleObjectNotFound(objectID, myClass, unindex, attempt);
                     return;
                 }
-                if (unindex) {
-                    base.opensearchUnindexDeep();
-                } else {
-                    base.opensearchIndexDeep();
-                }
+                work.index(base, unindex);
                 // success - terminal (unless a newer request landed while we were running)
                 finishIndexingJob(objectID);
             } catch (Exception e) {
@@ -247,7 +315,7 @@ public class IndexingManager {
                 e.printStackTrace();
                 finishIndexingJob(objectID);
             } finally {
-                if (bgShepherd != null) bgShepherd.rollbackAndClose();
+                if (work != null) work.close();
             }
         }
     }
@@ -294,6 +362,292 @@ public class IndexingManager {
 
     public void shutdown() {
         if (executor != null) executor.shutdown();
+    }
+
+    // =====================================================================================
+    // Deferred (post-commit) indexing
+    //
+    // WildbookLifecycleListener.postStore() fires on JDO flush/store, NOT on commit. Enqueuing
+    // there means the background job -- which opens its own Shepherd and therefore its own JDBC
+    // connection -- can load the row BEFORE the writing transaction commits, and index pre-change
+    // state. Nothing detects that: for a row that already exists the reload SUCCEEDS (only a
+    // brand-new row raises JDOObjectNotFoundException, which is what the retry path handles), so
+    // the job reports success and the stale document sticks.
+    //
+    // So postStore no longer enqueues. It PARKS (id, class, unindex, DataNucleus identity) against
+    // the PersistenceManager doing the write -- in the PM's own JDO user-object map, which is
+    // identity-scoped by construction and is collected together with the PM. The park is released
+    // by the transaction's own completion callback (IndexingTransactionSynchronization, a
+    // javax.transaction.Synchronization registered once per PM): drained if the transaction
+    // committed, dropped if it rolled back. Nothing else may terminalize a park: not "commit threw"
+    // (DataNucleus leaves the transaction ACTIVE after a NucleusUserException, and the park must
+    // stay live with it), not close.
+    //
+    // Locking: bucket state is guarded by the bucket's own monitor and nothing else. We never hold
+    // a lock of ours while calling into a PersistenceManager, and the PM's user-object map is a
+    // plain HashMap -- concurrent use of one PM from two threads is unsupported here as everywhere.
+    // =====================================================================================
+
+    static final String PENDING_USER_OBJECT_KEY = "org.ecocean.IndexingManager.pending";
+
+    /** How the writing transaction ended, as reported by the JDO/JTA completion callback. */
+    enum Outcome { COMMITTED, ROLLED_BACK, UNKNOWN }
+
+    /*
+     * Explicit mapping of the javax.transaction.Status the Synchronization receives. DataNucleus
+     * 5.2 only ever reports COMMITTED or ROLLEDBACK from its resource-local transaction (heuristic
+     * outcomes are turned into a rollback attempt first). Anything else is evidence we do not
+     * understand, and must be treated as neither a proven commit nor a proven rollback.
+     */
+    static Outcome outcomeOf(int jtaStatus) {
+        switch (jtaStatus) {
+        case Status.STATUS_COMMITTED:
+            return Outcome.COMMITTED;
+        case Status.STATUS_ROLLEDBACK:
+            return Outcome.ROLLED_BACK;
+        default:
+            System.out.println("IndexingManager: WARNING - transaction completed with unexpected " +
+                "javax.transaction.Status " + jtaStatus + "; treating as UNKNOWN (index requests " +
+                "will run, unindex requests will not)");
+            return Outcome.UNKNOWN;
+        }
+    }
+
+    /** What PendingBucket.park() decided for one request. */
+    enum ParkResult { PARKED, ENQUEUE_NOW, DROP }
+
+    // One deferred index request. Only identity is kept -- never the Persistable, whose
+    // PersistenceManager may be closed by the time the entry is drained.
+    static final class PendingEntry {
+        final String objectID;
+        final Class myClass;
+        final boolean unindex;
+        // DataNucleus INTERNAL identity (Persistable.dnGetObjectId()), captured while the PM is
+        // open, for level-2 eviction at drain time. The level-2 cache is keyed by this, not by
+        // the javax.jdo.identity.* object JDOHelper.getObjectId() returns -- evicting with the
+        // latter silently misses. May be null (transient object, or capture failed).
+        final Object dnObjectId;
+
+        PendingEntry(String objectID, Class myClass, boolean unindex, Object dnObjectId) {
+            this.objectID = objectID;
+            this.myClass = myClass;
+            this.unindex = unindex;
+            this.dnObjectId = dnObjectId;
+        }
+
+        // identity of the REQUEST, so repeated parks of the same request collapse. dnObjectId is
+        // derived from objectID and is deliberately excluded.
+        @Override public boolean equals(Object other) {
+            if (this == other) return true;
+            if (!(other instanceof PendingEntry)) return false;
+            PendingEntry pe = (PendingEntry)other;
+            return this.unindex == pe.unindex && this.objectID.equals(pe.objectID) &&
+                   this.myClass.equals(pe.myClass);
+        }
+
+        @Override public int hashCode() {
+            return (objectID.hashCode() * 31 + myClass.hashCode()) * 31 + (unindex ? 1 : 0);
+        }
+    }
+
+    /*
+     * The per-PersistenceManager park: a set of requests plus, once the transaction has completed,
+     * its outcome. The first completion outcome sticks; later completion signals are ignored.
+     *
+     * A request that arrives AFTER completion (a parker that read this bucket just before the
+     * transaction ended) is never retained: if the transaction committed the change is durable and
+     * the request must run now; if it rolled back the request is dropped; if the outcome is unknown,
+     * an index request runs now (harmless -- the job re-reads the database) and an unindex is
+     * dropped (never run an ambiguous delete).
+     */
+    static final class PendingBucket {
+        final PersistenceManagerFactory pmf; // for level-2 eviction after the PM may be closed
+        private final Set<PendingEntry> entries = new LinkedHashSet<PendingEntry>(); // guarded by this
+        private Outcome outcome = null; // guarded by this; non-null once completed
+
+        PendingBucket(PersistenceManagerFactory pmf) {
+            this.pmf = pmf;
+        }
+
+        synchronized ParkResult park(PendingEntry pe) {
+            if (outcome == null) {
+                entries.add(pe);
+                return ParkResult.PARKED;
+            }
+            switch (outcome) {
+            case COMMITTED:
+                return ParkResult.ENQUEUE_NOW;
+            case ROLLED_BACK:
+                return ParkResult.DROP;
+            default:
+                return pe.unindex ? ParkResult.DROP : ParkResult.ENQUEUE_NOW;
+            }
+        }
+
+        /** Terminalize with this outcome; returns the requests that should now run (maybe none). */
+        synchronized List<PendingEntry> complete(Outcome how) {
+            if (outcome != null) return Collections.<PendingEntry>emptyList();
+            outcome = how;
+            List<PendingEntry> toRun = new ArrayList<PendingEntry>();
+            for (PendingEntry pe : entries) {
+                if ((how == Outcome.COMMITTED) || ((how == Outcome.UNKNOWN) && !pe.unindex))
+                    toRun.add(pe);
+            }
+            entries.clear();
+            return toRun;
+        }
+
+        synchronized boolean isCompleted() {
+            return outcome != null;
+        }
+
+        synchronized int size() {
+            return entries.size();
+        }
+    }
+
+    // Non-throwing read of the park on an OPEN pm (the transaction need not be active: completion
+    // callbacks run after it has ended). Returns null when there is nothing there.
+    private static PendingBucket bucketOf(PersistenceManager pm) {
+        if (pm == null) return null;
+        try {
+            if (pm.isClosed()) return null;
+            Object o = pm.getUserObject(PENDING_USER_OBJECT_KEY);
+            return (o instanceof PendingBucket) ? (PendingBucket)o : null;
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private static PersistenceManagerFactory pmfOf(PersistenceManager pm) {
+        if (pm == null) return null;
+        try {
+            return pm.getPersistenceManagerFactory();
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    /**
+     * Give this PersistenceManager a live park. Called from Shepherd.beginDBTransaction() for a
+     * freshly obtained PM; idempotent, never throws, and never replaces a LIVE park (a redundant
+     * begin on an already-active transaction must not drop what that transaction has parked).
+     * A completed park is replaced -- normally completion installs its own successor, so this is
+     * only a safety net.
+     */
+    public static void installPendingBucket(PersistenceManager pm) {
+        if (pm == null) return;
+        try {
+            if (pm.isClosed()) return;
+            PendingBucket existing = bucketOf(pm);
+            if ((existing != null) && !existing.isCompleted()) return;
+            pm.putUserObject(PENDING_USER_OBJECT_KEY, new PendingBucket(pmfOf(pm)));
+        } catch (Exception ex) {
+            System.out.println("IndexingManager.installPendingBucket() failed: " + ex);
+        }
+    }
+
+    /**
+     * Park an index/unindex request until the PersistenceManager's transaction completes.
+     *
+     * Deferral only applies while a transaction is ACTIVE on an open PM that has a park. Anything
+     * else -- no PM (transient object), closed PM, no transaction (caller already committed, e.g.
+     * IndividualRemoveEncounter), a PM Shepherd never prepared -- gets the old immediate enqueue:
+     * there is no completion coming that could release a parked request, so parking would lose it.
+     */
+    public static void addPendingEntry(PersistenceManager pm, Base base, boolean unindex) {
+        if (base == null) return;
+        String objectID = base.getId();
+        if (objectID == null) return;
+        Class myClass = base.getClass();
+        PendingBucket bucket = null;
+        try {
+            if ((pm != null) && !pm.isClosed() && pm.currentTransaction().isActive())
+                bucket = bucketOf(pm);
+        } catch (Exception ex) {
+            bucket = null;
+        }
+        if (bucket == null) {
+            enqueueNow(objectID, myClass, unindex);
+            return;
+        }
+        PendingEntry pe = new PendingEntry(objectID, myClass, unindex, dataNucleusIdentity(base));
+        if (bucket.park(pe) == ParkResult.ENQUEUE_NOW) enqueueNow(objectID, myClass, unindex);
+    }
+
+    // The DataNucleus internal identity -- the key the level-2 cache actually uses.
+    private static Object dataNucleusIdentity(Base base) {
+        if (!(base instanceof Persistable)) return null;
+        try {
+            return ((Persistable)base).dnGetObjectId();
+        } catch (Exception ex) {
+            return null; // non-fatal: we simply skip the level-2 eviction for this object
+        }
+    }
+
+    /**
+     * Step one of completion: terminalize the PM's park with this outcome, take the requests that
+     * should now run, and install a fresh live park so the PM's NEXT transaction has somewhere to
+     * park -- however it is begun (Shepherd, or a raw pm.currentTransaction().begin()). Does no
+     * external work and never throws, so it can run before any delegate Synchronization gets a
+     * chance to close the PM. Follow with drainCaptured().
+     */
+    static List<PendingEntry> capturePendingEntries(PersistenceManager pm, Outcome how) {
+        PendingBucket bucket = bucketOf(pm);
+
+        if (bucket == null) return Collections.<PendingEntry>emptyList();
+        List<PendingEntry> snapshot = bucket.complete(how);
+        try {
+            if (!pm.isClosed()) pm.putUserObject(PENDING_USER_OBJECT_KEY, new PendingBucket(bucket.pmf));
+        } catch (Exception ex) {
+            System.out.println("IndexingManager: could not install the successor park: " + ex);
+        }
+        return snapshot;
+    }
+
+    /**
+     * Step two of completion: hand each captured request to the queue. Each object is first evicted
+     * from the (PMF-wide, shared) level-2 cache by its DataNucleus identity, so no reader picks up
+     * a copy published before this commit; the indexing job itself additionally bypasses L2 (see
+     * ShepherdIndexingWork). Every step is isolated per entry: one failure never takes the rest of
+     * the snapshot down, and nothing here throws. Independent of the PM, which may be closed.
+     */
+    static void drainCaptured(List<PendingEntry> snapshot, PersistenceManagerFactory pmf) {
+        if ((snapshot == null) || snapshot.isEmpty()) return;
+        for (PendingEntry pe : snapshot) {
+            if ((pmf != null) && (pe.dnObjectId != null)) {
+                try {
+                    pmf.getDataStoreCache().evict(pe.dnObjectId);
+                } catch (Exception ex) {
+                    System.out.println("IndexingManager: level-2 evict failed for " + pe.objectID +
+                        ": " + ex);
+                }
+            }
+            try {
+                enqueueNow(pe.objectID, pe.myClass, pe.unindex);
+            } catch (Exception ex) {
+                System.out.println("IndexingManager: post-commit enqueue failed for " + pe.objectID +
+                    "; background reconciler is the backstop. " + ex);
+            }
+        }
+    }
+
+    /** capturePendingEntries() + drainCaptured(), for callers without a delegate to interleave. */
+    public static void completePendingEntries(PersistenceManager pm, Outcome how) {
+        PersistenceManagerFactory pmf = pmfOf(pm);
+
+        drainCaptured(capturePendingEntries(pm, how), pmf);
+    }
+
+    private static void enqueueNow(String objectID, Class myClass, boolean unindex) {
+        IndexingManager im = IndexingManagerFactory.getIndexingManager();
+
+        if (im == null) {
+            System.out.println("IndexingManager: no IndexingManager available; dropping request for " +
+                objectID + " (background reconciler is the backstop)");
+            return;
+        }
+        im.addIndexingQueueEntry(objectID, myClass, unindex);
     }
 
 }
