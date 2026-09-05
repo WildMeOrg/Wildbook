@@ -54,9 +54,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * was asked to do and WHEN. On main the mock sees a call at flush time -- before commit -- which
  * is the bug; here it must see exactly one call, after commit, for a row that is committed.
  *
- * Reads of committed content happen after commit returns, through a fresh Shepherd, rather than
- * inside the enqueue callback (which runs inside DataNucleus's commit), to keep the test free of
- * any dependency on connection-pool or lock behavior.
+ * Reads of committed content happen after commit returns, over plain JDBC, rather than inside the
+ * enqueue callback (which runs inside DataNucleus's commit): that keeps the test free of any
+ * dependency on connection-pool or lock behavior, and means no DataNucleus cache can satisfy the
+ * assertion.
  */
 @Testcontainers
 class IndexingPostCommitHandoffDbTest {
@@ -400,7 +401,10 @@ class IndexingPostCommitHandoffDbTest {
             JDODataStoreCache dsc =
                 (JDODataStoreCache)warm.getPM().getPersistenceManagerFactory().getDataStoreCache();
             // the fixture's L2 is "soft" like production; pin this id so a GC between here and the
-            // assertion cannot turn a fixture problem into a false eviction result
+            // assertion cannot turn a fixture problem into a false eviction result. Twice: in
+            // DataNucleus 5.2.7 AbstractReferencedLevel2Cache.pin() creates its pinnedIds set on the
+            // first call and skips adding the id, so only the second call actually records it.
+            dsc.pin(dnId);
             dsc.pin(dnId);
             l2 = dsc.getLevel2Cache();
             warm.commitDBTransaction();

@@ -315,8 +315,9 @@ public class IndexingManager {
                 // A genuine indexing failure (not the commit race), or a failure setting up the
                 // Shepherd. Make it visible rather than silently swallowing it, then drop it. The
                 // background reconciler (OpenSearch.opensearchSyncIndex) re-indexes the row on a later
-                // pass only if its database version is strictly greater than the indexed one, so this
-                // is best-effort, not guaranteed recovery.
+                // pass if its document is missing, or if the document exists with a version and the
+                // database version is strictly greater -- so this is best-effort, not guaranteed
+                // recovery.
                 System.out.println("IndexingManager: WARNING - indexing failed for " + objectID +
                     " (attempt " + attempt + "/" + MAX_INDEXING_ATTEMPTS + "); dropping. " +
                     "Background reconciler may recover it if its version advanced. " + e);
@@ -344,7 +345,8 @@ public class IndexingManager {
         } else {
             System.out.println("IndexingManager: object " + objectID + " still not found after " + attempt +
                 " attempt(s); giving up (object may have been rolled back / never committed, or is an " +
-                "unindex of an already-deleted row). Background reconciler will index it if it exists.");
+                "unindex of an already-deleted row). Background reconciler may pick it up if it exists " +
+                "and its document is missing or behind.");
             // Still a terminal outcome, so a remembered follow-up must not be swallowed: a request
             // that arrived while we were burning retries is precisely the one that CAN succeed now.
             finishIndexingJob(objectID);
@@ -635,17 +637,18 @@ public class IndexingManager {
 
     /**
      * Step two of completion: hand each captured request to the queue. Each object is first evicted
-     * from the (PMF-wide, shared) level-2 cache by its DataNucleus identity. That eviction is shared
-     * invalidation -- the next reader goes to the database -- not read isolation; see
-     * ShepherdIndexingWork for what the reader does and does not bypass. Every step is isolated per
-     * entry: one failure never takes the rest of the snapshot down, and nothing here throws.
-     * Independent of the PM, which may be closed.
+     * from the (PMF-wide, shared) level-2 cache by its DataNucleus identity. That eviction removes
+     * the current shared entry -- it is invalidation, not read isolation: a reader's level-1 cache
+     * or a concurrent repopulation can still serve a copy. See ShepherdIndexingWork for what the
+     * reader does and does not bypass. Every step is isolated per entry: one failure never takes
+     * the rest of the snapshot down, and nothing here throws. Independent of the PM, which may be
+     * closed.
      *
      * Delivery is best-effort. A handoff that fails here (no IndexingManager, or the queue throws)
      * is logged and dropped; there is no durable retry. The background reconciler re-indexes a row
-     * only when its database version is strictly greater than the indexed one, so a dropped request
-     * for a change that did not advance the version leaves the document stale until something else
-     * touches it.
+     * whose document is missing, or whose existing document carries a version and the database
+     * version is strictly greater -- so a dropped request for a change that did not advance the
+     * version leaves an existing document stale until something else touches it.
      */
     static void drainCaptured(List<PendingEntry> snapshot, PersistenceManagerFactory pmf) {
         if ((snapshot == null) || snapshot.isEmpty()) return;
