@@ -2,6 +2,7 @@ package org.ecocean.servlet;
 
 import org.ecocean.Encounter;
 import org.ecocean.LocationID;
+import org.ecocean.User;
 import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
@@ -64,11 +65,33 @@ public class EncounterSetLocationID extends HttpServlet {
            myShepherd.rollbackDBTransaction();
            }
          */
-        if (request.getParameter("code") != null) {
+        if ((request.getParameter("code") != null) && (request.getParameter("number") != null)) {
             String oldCode = "";
             myShepherd.beginDBTransaction();
             String encNum = request.getParameter("number").trim();
             Encounter changeMe = myShepherd.getEncounter(encNum);
+            // authorize against the encounter as persisted, before anything changes: the caller
+            // must already be allowed to edit it (owner, admin, edit collaboration, or a
+            // location-based role covering its CURRENT location)
+            if (changeMe == null) {
+                myShepherd.rollbackDBTransaction();
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                response.setContentType("application/json");
+                out.println("{\"success\":false,\"error\":\"encounter not found\"}");
+                out.close();
+                myShepherd.closeDBTransaction();
+                return;
+            }
+            User currentUser = myShepherd.getUser(request);
+            if (!changeMe.canUserEdit(currentUser, myShepherd)) {
+                myShepherd.rollbackDBTransaction();
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.setContentType("application/json");
+                out.println("{\"success\":false,\"error\":\"access denied\"}");
+                out.close();
+                myShepherd.closeDBTransaction();
+                return;
+            }
             changeMe.setOpensearchProcessPermissions(true);
             setDateLastModified(changeMe);
             try {
