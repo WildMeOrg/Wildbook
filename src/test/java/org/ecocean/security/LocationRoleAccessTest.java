@@ -19,7 +19,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
-import org.ecocean.LocationID;
 import org.ecocean.User;
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
@@ -35,44 +34,17 @@ import org.mockito.ArgumentCaptor;
 class LocationRoleAccessTest {
     private JSONObject previousDefaultTree;
 
-    // root (no id)
-    //   Pakistan
-    //     PAKISTAN - North
-    //     PAKISTAN - South
-    //   Indonesia
-    //     Flores Sea
-    //       Komodo
-    //   Dup  -> Twin        (Twin appears under two parents: ambiguous)
-    //   Other -> Twin
-    //   ""   -> Orphan      (blank-id intermediate node)
-    //   researcher -> Lab   (node named like a system role)
-    private static JSONObject fixtureTree() {
-        return new JSONObject("{\"description\":\"test\",\"locationID\":["
-            + "{\"name\":\"Pakistan\",\"id\":\"Pakistan\",\"locationID\":["
-            + "  {\"name\":\"PAKISTAN - North\",\"id\":\"PAKISTAN - North\",\"locationID\":[]},"
-            + "  {\"name\":\"PAKISTAN - South\",\"id\":\"PAKISTAN - South\",\"locationID\":[]}]},"
-            + "{\"name\":\"Indonesia\",\"id\":\"Indonesia\",\"locationID\":["
-            + "  {\"name\":\"Flores Sea\",\"id\":\"Flores Sea\",\"locationID\":["
-            + "    {\"name\":\"Komodo\",\"id\":\"Komodo\",\"locationID\":[]}]}]},"
-            + "{\"name\":\"Dup\",\"id\":\"Dup\",\"locationID\":[{\"name\":\"Twin\",\"id\":\"Twin\",\"locationID\":[]}]},"
-            + "{\"name\":\"Other\",\"id\":\"Other\",\"locationID\":[{\"name\":\"Twin\",\"id\":\"Twin\",\"locationID\":[]}]},"
-            + "{\"name\":\"blank\",\"id\":\"\",\"locationID\":[{\"name\":\"Orphan\",\"id\":\"Orphan\",\"locationID\":[]}]},"
-            + "{\"name\":\"researcher\",\"id\":\"researcher\",\"locationID\":[{\"name\":\"Lab\",\"id\":\"Lab\",\"locationID\":[]}]}"
-            + "]}");
-    }
-
     private static Set<String> set(String... names) {
         return new HashSet<String>(Arrays.asList(names));
     }
 
+    // fixture tree: see LocationRoleTestTree
     @BeforeEach void injectTree() {
-        previousDefaultTree = LocationID.getJSONMaps().get("default");
-        LocationID.getJSONMaps().put("default", fixtureTree());
+        previousDefaultTree = LocationRoleTestTree.inject();
     }
 
     @AfterEach void restoreTree() {
-        if (previousDefaultTree == null) LocationID.getJSONMaps().remove("default");
-        else LocationID.getJSONMaps().put("default", previousDefaultTree);
+        LocationRoleTestTree.restore(previousDefaultTree);
     }
 
     // ---- roleNamesFor: lineage against the default tree ----

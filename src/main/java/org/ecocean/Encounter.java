@@ -3332,6 +3332,16 @@ public class Encounter extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessEncounter(this, request);
     }
 
+    // same rule as canUserAccess(User, String) but the location-based role lookup reuses the
+    // caller's Shepherd instead of opening one (see Collaboration.canUserAccessEncounter)
+    public boolean canUserAccess(User user, Shepherd myShepherd) {
+        if ((user == null) || (myShepherd == null)) return false;
+        if (isUserOwner(user)) return true;
+        String username = user.getUsername();
+        if (username == null) return false;
+        return Collaboration.canUserAccessEncounter(this, username, myShepherd);
+    }
+
     public boolean canUserAccess(User user, String context) {
         if (user == null) return false;
         // see comment below on canUserEdit(); substituting isUserOwner() now
@@ -3347,8 +3357,7 @@ public class Encounter extends Base implements java.io.Serializable {
        cause unintended consequences. so, for now, canUserView() is pretty much exclusively for search
      */
     public boolean canUserView(User user, Shepherd myShepherd) {
-        return (user != null) && (user.isAdmin(myShepherd) || this.canUserAccess(user,
-                myShepherd.getContext()));
+        return (user != null) && (user.isAdmin(myShepherd) || this.canUserAccess(user, myShepherd));
     }
 
     // as part of 10.9, canUserEdit() was modified. it was not
@@ -3367,7 +3376,10 @@ public class Encounter extends Base implements java.io.Serializable {
         // legacy ServletUtilities.isUserAuthorizedForEncounter() behavior
         if (User.isUsernameAnonymous(this.getSubmitterID())) return true;
         if (Collaboration.canEditEncounter(this, user, myShepherd.getContext())) return true;
-        // TODO there seems to be some legacy stuff about roles based on location. is this real?
+        // location-based role: a Role named after this encounter's locationID, or an ancestor of
+        // it in the locationID tree, grants edit (parity with the classic-page check)
+        if (org.ecocean.security.LocationRoleAccess.userHasLocationRole(user.getUsername(),
+            this.getLocationID(), myShepherd)) return true;
         return false;
     }
 
