@@ -995,19 +995,72 @@ public class Shepherd {
         return roles;
     }
 
-    // skeletons: behavior driven by LocationRoleShepherdDbTest (location-based roles, #1549)
+    /**
+     * True when username holds at least one of rolenames in context (location-based roles, see
+     * LocationRoleAccess). Parameterized JDOQL, so names may contain quotes. A null or empty
+     * name set, username, or context never queries and is false. Matches on the stored context
+     * column, so a Role row with a NULL context does not satisfy any context (Shiro parity).
+     */
     public boolean doesUserHaveAnyRole(String username, java.util.Collection<String> rolenames,
         String context) {
-        throw new UnsupportedOperationException("not implemented yet");
+        if ((username == null) || (context == null) || (rolenames == null) ||
+            rolenames.isEmpty()) return false;
+        Query query = pm.newQuery(Role.class);
+        try {
+            query.setFilter(
+                "this.username == :u && this.context == :c && :names.contains(this.rolename)");
+            java.util.Map<String, Object> params = new java.util.HashMap<String, Object>();
+            params.put("u", username);
+            params.put("c", context);
+            params.put("names", new ArrayList<String>(new java.util.LinkedHashSet<String>(rolenames)));
+            Collection c = (Collection)query.executeWithMap(params);
+            return (c != null) && !c.isEmpty();
+        } finally {
+            query.closeAll();
+        }
     }
 
+    /** Distinct usernames holding at least one of rolenames in context. Empty for null/empty
+     *  inputs without querying. Results are copied before the query is closed. */
     public List<String> getUsernamesWithAnyRole(java.util.Collection<String> rolenames,
         String context) {
-        throw new UnsupportedOperationException("not implemented yet");
+        List<String> usernames = new ArrayList<String>();
+        if ((context == null) || (rolenames == null) || rolenames.isEmpty()) return usernames;
+        Query query = pm.newQuery(Role.class);
+        try {
+            query.setFilter("this.context == :c && :names.contains(this.rolename)");
+            query.setResult("distinct this.username");
+            java.util.Map<String, Object> params = new java.util.HashMap<String, Object>();
+            params.put("c", context);
+            params.put("names", new ArrayList<String>(new java.util.LinkedHashSet<String>(rolenames)));
+            Collection c = (Collection)query.executeWithMap(params);
+            if (c != null) {
+                for (Object o : c) {
+                    if (o != null) usernames.add(o.toString());
+                }
+            }
+        } finally {
+            query.closeAll();
+        }
+        return usernames;
     }
 
+    /** All Role rows stored with exactly this context. Unlike getAllRoles(), a datastore failure
+     *  propagates so callers can abort rather than treat the roles as absent. */
     public List<Role> getRolesInContext(String context) {
-        throw new UnsupportedOperationException("not implemented yet");
+        List<Role> roles = new ArrayList<Role>();
+        if (context == null) return roles;
+        Query query = pm.newQuery(Role.class);
+        try {
+            query.setFilter("this.context == :c");
+            java.util.Map<String, Object> params = new java.util.HashMap<String, Object>();
+            params.put("c", context);
+            Collection c = (Collection)query.executeWithMap(params);
+            if (c != null) roles.addAll(c);
+        } finally {
+            query.closeAll();
+        }
+        return roles;
     }
 
     public boolean doesUserHaveRole(String username, String rolename, String context) {
