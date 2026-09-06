@@ -138,6 +138,27 @@ class EncounterSetLocationIDTest {
         assertEquals("Komodo", enc.getLocationID());
     }
 
+    @Test @SuppressWarnings("unchecked")
+    void aThrowingAuthorizationCheckStillReleasesTheShepherd() throws Exception {
+        when(request.getParameter("code")).thenReturn("Komodo");
+        try (MockedStatic<Collaboration> mc = noCollaborations();
+            MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class,
+                (mock, ctx) -> {
+                    when(mock.getContext()).thenReturn("context0");
+                    when(mock.getEncounter("enc-1")).thenReturn(enc);
+                    when(mock.getUser(any(HttpServletRequest.class))).thenReturn(bob);
+                    when(mock.doesUserHaveAnyRole(anyString(), any(Collection.class), anyString()))
+                        .thenThrow(new javax.jdo.JDOException("datastore down"));
+                })) {
+            new EncounterSetLocationID().doPost(request, response);
+            Shepherd sh = shepherds.constructed().get(0);
+            verify(sh).closeDBTransaction();
+            verify(sh, never()).commitDBTransaction();
+            verify(response).setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+        assertEquals("Pakistan", enc.getLocationID());
+    }
+
     @Test void unknownEncounterIsNotFound() throws Exception {
         when(request.getParameter("number")).thenReturn("missing");
         when(request.getParameter("code")).thenReturn("Komodo");

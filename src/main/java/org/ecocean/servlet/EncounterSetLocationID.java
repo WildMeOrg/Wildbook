@@ -65,6 +65,9 @@ public class EncounterSetLocationID extends HttpServlet {
            myShepherd.rollbackDBTransaction();
            }
          */
+        // release the transaction and the writer on every path, including an exception thrown by
+        // the authorization check (body deliberately not re-indented to keep the diff reviewable)
+        try {
         if ((request.getParameter("code") != null) && (request.getParameter("number") != null)) {
             String oldCode = "";
             myShepherd.beginDBTransaction();
@@ -78,8 +81,6 @@ public class EncounterSetLocationID extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 response.setContentType("application/json");
                 out.println("{\"success\":false,\"error\":\"encounter not found\"}");
-                out.close();
-                myShepherd.closeDBTransaction();
                 return;
             }
             User currentUser = myShepherd.getUser(request);
@@ -88,8 +89,6 @@ public class EncounterSetLocationID extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 response.setContentType("application/json");
                 out.println("{\"success\":false,\"error\":\"access denied\"}");
-                out.close();
-                myShepherd.closeDBTransaction();
                 return;
             }
             changeMe.setOpensearchProcessPermissions(true);
@@ -151,7 +150,16 @@ public class EncounterSetLocationID extends HttpServlet {
             // out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
             // out.println(ServletUtilities.getFooter(context));
         }
-        out.close();
-        myShepherd.closeDBTransaction();
+        } catch (Exception ex) {
+            // e.g. the role lookup threw: never leak the transaction, never report success
+            ex.printStackTrace();
+            myShepherd.rollbackDBTransaction();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setContentType("application/json");
+            out.println("{\"success\":false,\"error\":\"internal error\"}");
+        } finally {
+            out.close();
+            myShepherd.closeDBTransaction();
+        }
     }
 }
