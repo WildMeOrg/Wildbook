@@ -995,6 +995,21 @@ public class Shepherd {
         return roles;
     }
 
+    // skeletons: behavior driven by LocationRoleShepherdDbTest (location-based roles, #1549)
+    public boolean doesUserHaveAnyRole(String username, java.util.Collection<String> rolenames,
+        String context) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    public List<String> getUsernamesWithAnyRole(java.util.Collection<String> rolenames,
+        String context) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    public List<Role> getRolesInContext(String context) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
     public boolean doesUserHaveRole(String username, String rolename, String context) {
         if (username == null) return false;
         if (rolename == null) return false;
