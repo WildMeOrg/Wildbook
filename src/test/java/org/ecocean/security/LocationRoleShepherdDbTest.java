@@ -142,11 +142,13 @@ class LocationRoleShepherdDbTest {
     @Test void getUsernamesWithAnyRole_distinctUsernamesInContextOnly() {
         Shepherd sh = open();
         try {
-            List<String> names = sh.getUsernamesWithAnyRole(
-                Arrays.asList("Indonesia", "Flores Sea", "Indonesia", "Komodo"), "context0");
+            // bob matches TWO stored rows (Indonesia and O'Brien Bay); the projection must
+            // still return him once
+            List<String> names = sh.getUsernamesWithAnyRole(Arrays.asList("Indonesia",
+                "O'Brien Bay", "Flores Sea", "Indonesia", "Komodo"), "context0");
             assertEquals(new HashSet<String>(Arrays.asList("bob", "amy")),
                 new HashSet<String>(names), "bob via Indonesia, amy via Flores Sea; nullctx and otherctx excluded");
-            assertEquals(2, names.size(), "distinct: duplicate names must not duplicate users");
+            assertEquals(2, names.size(), "distinct: a user holding two matching roles appears once");
         } finally {
             sh.rollbackAndClose();
         }

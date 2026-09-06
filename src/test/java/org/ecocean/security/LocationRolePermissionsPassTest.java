@@ -23,6 +23,8 @@ import java.util.Set;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 import org.ecocean.Encounter;
+import org.ecocean.IndexingManager;
+import org.ecocean.IndexingManagerFactory;
 import org.ecocean.OpenSearch;
 import org.ecocean.Role;
 import org.ecocean.User;
@@ -33,7 +35,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
-import org.mockito.ArgumentCaptor;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
@@ -49,6 +50,8 @@ class LocationRolePermissionsPassTest {
     private List<Role> roles;
     private List<Object[]> rows;
     private RuntimeException roleLoadFailure;
+    private IndexingManager indexingManager;
+    private Encounter staleEncounter; // returned by getEncounter(...) for the invalid-owner row
 
     @BeforeEach void setUp() {
         previousTree = LocationRoleTestTree.inject();
@@ -56,6 +59,8 @@ class LocationRolePermissionsPassTest {
         roles = new ArrayList<Role>();
         rows = new ArrayList<Object[]>();
         roleLoadFailure = null;
+        indexingManager = mock(IndexingManager.class);
+        staleEncounter = null;
     }
 
     @AfterEach void tearDown() {
@@ -98,30 +103,31 @@ class LocationRolePermissionsPassTest {
                     when(pm.newQuery(eq("javax.jdo.query.SQL"), anyString())).thenReturn(query);
                     when(mock.getPM()).thenReturn(pm);
                     when(mock.getEncounter(anyString())).thenReturn(null);
+                    if (staleEncounter != null)
+                        when(mock.getEncounter(staleEncounter.getCatalogNumber())).thenReturn(staleEncounter);
                 });
             MockedConstruction<OpenSearch> searches = mockConstruction(OpenSearch.class,
                 (mock, ctx) -> {
                     when(mock.getIndexedViewUsers(anyString(), anyString())).thenReturn(null);
-                })) {
+                    // the pass reuses ONE updateData object across rows, so snapshot each
+                    // document at call time instead of capturing the (mutated) reference
+                    org.mockito.Mockito.doAnswer(inv -> {
+                        JSONObject doc = inv.getArgument(2);
+                        JSONArray vu = doc.optJSONArray("viewUsers");
+                        Set<String> set = new HashSet<String>();
+                        if (vu != null) for (int j = 0; j < vu.length(); j++) set.add(vu.getString(j));
+                        written.put(inv.getArgument(1), set);
+                        return null;
+                    }).when(mock).indexUpdate(eq("encounter"), anyString(), any(JSONObject.class));
+                });
+            MockedStatic<IndexingManagerFactory> factory = mockStatic(IndexingManagerFactory.class)) {
+            factory.when(IndexingManagerFactory::getIndexingManager).thenReturn(indexingManager);
             mc.when(() -> Collaboration.securityEnabled(anyString())).thenReturn(true);
             mc.when(() -> Collaboration.collaborationsForUser(any(Shepherd.class), anyString()))
                 .thenReturn(new ArrayList<Collaboration>());
 
             boolean completed = Encounter.opensearchIndexPermissions();
             written.put("__completed", new HashSet<String>(Arrays.asList(String.valueOf(completed))));
-
-            for (OpenSearch os : searches.constructed()) {
-                ArgumentCaptor<String> ids = ArgumentCaptor.forClass(String.class);
-                ArgumentCaptor<JSONObject> docs = ArgumentCaptor.forClass(JSONObject.class);
-                verify(os, org.mockito.Mockito.atLeast(0)).indexUpdate(eq("encounter"),
-                    ids.capture(), docs.capture());
-                for (int i = 0; i < ids.getAllValues().size(); i++) {
-                    JSONArray vu = docs.getAllValues().get(i).optJSONArray("viewUsers");
-                    Set<String> set = new HashSet<String>();
-                    if (vu != null) for (int j = 0; j < vu.length(); j++) set.add(vu.getString(j));
-                    written.put(ids.getAllValues().get(i), set);
-                }
-            }
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -186,5 +192,36 @@ class LocationRolePermissionsPassTest {
             "the pass must report failure so permissionsNeeded stays set for a retry");
         assertFalse(written.containsKey("enc-1"),
             "no viewUsers write may happen when the roles could not be read");
+    }
+
+    @Test void differentEncountersGetTheirOwnViewerSets() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        user("amy", "uuid-A");
+        role("bob", "Indonesia");
+        role("amy", "Pakistan");
+        encounterRow("enc-komodo", "owner", "Komodo");
+        encounterRow("enc-pak", "owner", "PAKISTAN - North");
+        encounterRow("enc-none", "owner", "Atlantis");
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-B")), written.get("enc-komodo"));
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-A")), written.get("enc-pak"));
+        assertTrue(written.get("enc-none").isEmpty());
+    }
+
+    @Test void invalidOwnerRowIsHandedToTheFullReindexNotWrittenInline() {
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-ghost", "ghost-user", "Komodo"); // owner has no user row
+        staleEncounter = new Encounter();
+        staleEncounter.setCatalogNumber("enc-ghost");
+
+        Map<String, Set<String> > written = runPass();
+        assertFalse(written.containsKey("enc-ghost"),
+            "the pass does not write viewUsers inline for an unresolvable owner");
+        // the full reindex it enqueues serializes viewUsers via computeViewUsers, which grants
+        // location roles independently of the owner (see LocationRoleViewUsersTest)
+        verify(indexingManager).addIndexingQueueEntry(eq(staleEncounter), eq(false));
     }
 }
