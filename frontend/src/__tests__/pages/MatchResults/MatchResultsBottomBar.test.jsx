@@ -305,6 +305,91 @@ describe("MatchResultsBottomBar — no_further_action_needed state", () => {
   });
 });
 
+describe.each([
+  ["no_individuals", "match-bottombar"],
+  ["no_further_action_needed", "match-bottombar-no-action"],
+])("MatchResultsBottomBar — query links in %s", (matchingState, prefix) => {
+  test("keeps the encounter link alongside the identified animal link", () => {
+    renderBar({
+      matchingState,
+      encounterId: "enc /?&001",
+      individualId: "ind /?&001",
+      individualDisplayName: "Luna",
+    });
+    const encounterLink = screen.getByTestId(`${prefix}-encounter-link`);
+    const individualLink = screen.getByRole("link", { name: "Luna" });
+    expect(encounterLink).toHaveAttribute(
+      "href",
+      "/react/encounter?number=enc%20%2F%3F%26001",
+    );
+    expect(encounterLink).toHaveTextContent("ENCOUNTER enc /");
+    expect(individualLink).toHaveAttribute(
+      "href",
+      "/individuals.jsp?id=ind%20%2F%3F%26001",
+    );
+    for (const link of [encounterLink, individualLink]) {
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    }
+  });
+
+  test("shows only the encounter link when the query is unidentified", () => {
+    renderBar({ matchingState });
+    expect(screen.getByTestId(`${prefix}-encounter-link`)).toHaveAttribute(
+      "href",
+      "/react/encounter?number=enc-001",
+    );
+    expect(
+      screen.queryByTestId(`${prefix}-individual-link`),
+    ).not.toBeInTheDocument();
+  });
+
+  test("uses the individual ID when its display name is missing", () => {
+    renderBar({ matchingState, individualId: "ind-001" });
+    expect(screen.getByRole("link", { name: "ind-001" })).toHaveAttribute(
+      "href",
+      "/individuals.jsp?id=ind-001",
+    );
+    expect(screen.getByTestId(`${prefix}-encounter-link`)).toBeInTheDocument();
+  });
+
+  test("does not create an individual link from a display name without an ID", () => {
+    renderBar({ matchingState, individualDisplayName: "Luna" });
+    expect(screen.getByTestId(`${prefix}-encounter-link`)).toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`${prefix}-individual-link`),
+    ).not.toBeInTheDocument();
+  });
+});
+
+test("preserves the query encounter destination after it becomes identified", () => {
+  const { rerender } = renderBar();
+  expect(screen.getByTestId("match-bottombar-encounter-link")).toHaveAttribute(
+    "href",
+    "/react/encounter?number=enc-001",
+  );
+  rerender(
+    <IntlProvider locale="en" messages={{}}>
+      <MatchResultsBottomBar
+        store={makeStore({
+          matchingState: "no_further_action_needed",
+          individualId: "ind-001",
+          individualDisplayName: "Luna",
+        })}
+        themeColor={themeColor}
+        identificationRemarks={["AI", "Manual"]}
+      />
+    </IntlProvider>,
+  );
+  expect(
+    screen.getByTestId("match-bottombar-no-action-encounter-link"),
+  ).toHaveAttribute("href", "/react/encounter?number=enc-001");
+  expect(screen.getByRole("link", { name: "Luna" })).toHaveAttribute(
+    "href",
+    "/individuals.jsp?id=ind-001",
+  );
+});
+
 describe("MatchResultsBottomBar — Cancel button", () => {
   test("renders CANCEL button", () => {
     renderBar();
