@@ -22,9 +22,11 @@ jest.mock(
       lon: 7,
       setLat: jest.fn(),
       setLon: jest.fn(),
+      setVerbatimLocality: jest.fn(),
       placeSection: {
         required: true,
         locationId: "test-id",
+        verbatimLocality: "existing locality",
       },
     })),
   }),
@@ -110,5 +112,23 @@ describe("PlaceSection Component", () => {
     expect(screen.getByText(/INVALID_LONG/i)).toBeInTheDocument();
     fireEvent.change(lonInput, { target: { value: "90" } });
     await waitFor(() => expect(screen.queryByText(/INVALID_LONG/i)).toBeNull());
+  });
+
+  test("renders verbatim locality input field with store value", () => {
+    renderComponent(<PlaceSection store={mockStore} />);
+    const localityInput = screen.getByLabelText("LOCATION");
+    expect(localityInput).toBeInTheDocument();
+    expect(localityInput).toHaveValue("existing locality");
+  });
+
+  test("updates store on verbatim locality input change", () => {
+    renderComponent(<PlaceSection store={mockStore} />);
+    const localityInput = screen.getByLabelText("LOCATION");
+    fireEvent.change(localityInput, {
+      target: { value: "reef off the north point" },
+    });
+    expect(mockStore.setVerbatimLocality).toHaveBeenCalledWith(
+      "reef off the north point",
+    );
   });
 });

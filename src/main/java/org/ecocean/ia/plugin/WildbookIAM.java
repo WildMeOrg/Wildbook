@@ -409,6 +409,66 @@ public class WildbookIAM extends IAPlugin {
         return rtn;
     }
 
+    /**
+     * Register ONE annotation with WBIA under a forced annotation UUID equal to
+     * its {@code acmId}, and report whether WBIA acknowledged that exact UUID.
+     * This is the heal step of the annotation reconciliation sweep.
+     *
+     * <p>Differs from {@link #sendAnnotationsForceId} in the identifier it
+     * forces ({@code acmId}, not {@code id} — see
+     * {@link #buildForcedRequestMap(WbiaRegisterRequest, String)}) and from
+     * {@link #sendAnnotations} in not letting WBIA mint the UUID at all: the
+     * non-forced path routes its response through
+     * {@code AcmUtil.rectifyAnnotationIds}, which would rewrite {@code acmId}
+     * to WBIA's value on every sweep — churning
+     * {@code Annotation.version} (and so OpenSearch reindexing) and orphaning
+     * any {@code MatchResultProspect} keyed on the old value.</p>
+     *
+     * <p>Performs no already-present check: the sweep has just probed, and the
+     * full-list {@code iaAnnotationIds()} fetch it would need is ~1M UUIDs on a
+     * large install. Callers own eligibility screening; this method assumes the
+     * annotation has a media asset with an acmId, a well-formed own acmId, and
+     * passes {@code validForIdentification}.</p>
+     *
+     * @return true only if WBIA echoed the forced acmId back. A false return
+     *         means the registration must NOT be recorded as successful.
+     */
+    public boolean sendAnnotationForcedByAcmId(Annotation ann, Shepherd myShepherd)
+    throws MalformedURLException, IOException {
+        if ((ann == null) || !Util.stringExists(ann.getAcmId())) return false;
+        String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
+        if (u == null)
+            throw new MalformedURLException(
+                      "WildbookIAM configuration value IBEISIARestUrlAddAnnotations is not set");
+        MediaAsset ma = ann.getMediaAsset();
+        if ((ma == null) || !Util.stringExists(ma.getAcmId())) return false;
+        String forcedAcmId = ann.getAcmId();
+        WbiaRegisterRequest dto = new WbiaRegisterRequest(ann.getId(), forcedAcmId,
+            ma.getAcmId(), ann.getBbox(), ann.getTheta(), ann.getIAClass(),
+            ann.findIndividualId(myShepherd));
+        JSONObject rtn;
+        try {
+            rtn = RestClient.post(new URL(u),
+                IBEISIA.hashMapToJSONObject(buildForcedRequestMap(dto, forcedAcmId)));
+        } catch (Exception ex) {
+            throw new IOException("WBIA add-annotations POST failed for acmId=" + forcedAcmId +
+                    ": " + ex.getMessage(), ex);
+        }
+        // The POST landed at WBIA, so the cached annotation-id list is stale
+        // regardless of how we classify the response below. Invalidate before
+        // validating so a rejected-but-applied POST cannot leave a later caller
+        // looking at a stale "annotation absent" cache.
+        QueryCacheFactory.safeInvalidate(context, "iaAnnotationIds");
+        try {
+            validateForcedResponse(forcedAcmId, rtn);
+        } catch (IOException ex) {
+            IA.log("WARNING: WildbookIAM.sendAnnotationForcedByAcmId() unconfirmed for acmId=" +
+                forcedAcmId + " (ann=" + ann.getId() + "): " + ex.getMessage());
+            return false;
+        }
+        return true;
+    }
+
     // ------------------------------------------------------------------
     // ml-service migration v2: no-Shepherd WBIA registration helpers.
     //
@@ -695,6 +755,44 @@ public class WildbookIAM extends IAPlugin {
      */
     public static List<String> iaMissingImageIds(List<String> acmIds, String context)
     throws IOException {
+        return iaMissingIds(acmIds, context, "/api/image/rowid/uuid/");
+    }
+
+    /**
+     * Ask WBIA which of the given ANNOTATION acmIds it does NOT have, via
+     * GET /api/annot/rowid/uuid/ — the annotation sibling of the image probe
+     * above (wildbook-ia {@code manual_annot_funcs.get_annot_aids_from_uuid},
+     * whose {@code get_annot_missing_uuid} companion defines missing as exactly
+     * "rowid is None", the same semantics {@link #parseRowidProbeResponse}
+     * implements).
+     *
+     * <p>Note this probes the annotation's {@code acmId}, not its {@code id}:
+     * {@code IBEISIA.sendIdentify} builds its query/database annot uuid lists
+     * from {@code getAcmId()}, so the acmId is the only identifier whose
+     * presence at WBIA actually determines whether identification can run.</p>
+     *
+     * <p>(WBIA annotation reconciliation sweep spec §3.)</p>
+     */
+    public static List<String> iaMissingAnnotationIds(List<String> acmIds, String context)
+    throws IOException {
+        return iaMissingIds(acmIds, context, "/api/annot/rowid/uuid/");
+    }
+
+    /**
+     * Shared body for {@link #iaMissingImageIds} and
+     * {@link #iaMissingAnnotationIds}: both WBIA endpoints are
+     * {@code getter_1to1} rowid lookups keyed on UUID, returning a parallel
+     * list with a null entry per unknown UUID.
+     *
+     * <p>Null or malformed (non-UUID) acmIds are skipped rather than sent:
+     * callers treat those objects as heal candidates without probing, and a
+     * malformed value would make WBIA reject the whole chunk and could strand
+     * the rest of the page. Throws IOException if any chunk fails, so callers
+     * never mistake a failed probe for "all present".</p>
+     */
+    private static List<String> iaMissingIds(List<String> acmIds, String context,
+        String endpointPath)
+    throws IOException {
         List<String> missing = new ArrayList<String>();
 
         if (acmIds == null) return missing;
@@ -710,10 +808,10 @@ public class WildbookIAM extends IAPlugin {
             }
             JSONArray resp = null;
             try {
-                resp = apiGetJSONArray("/api/image/rowid/uuid/?uuid_list=[" + sb.toString() +
+                resp = apiGetJSONArray(endpointPath + "?uuid_list=[" + sb.toString() +
                     "]", context);
             } catch (Exception ex) {
-                throw new IOException("WBIA /api/image/rowid/uuid/ probe failed: " +
+                throw new IOException("WBIA " + endpointPath + " probe failed: " +
                         ex.getMessage(), ex);
             }
             // apiGetJSONArray returns null when status.success is false or
@@ -758,6 +856,21 @@ public class WildbookIAM extends IAPlugin {
      * a network round trip.
      */
     static HashMap<String, ArrayList> buildForcedRequestMap(WbiaRegisterRequest dto) {
+        return buildForcedRequestMap(dto, dto.annotationId);
+    }
+
+    /**
+     * As above, but forcing an explicit annotation UUID instead of the DTO's
+     * {@code annotationId}. The reconciliation sweep forces the annotation's
+     * {@code acmId}, because that — not {@code id} — is the identifier
+     * {@code IBEISIA.sendIdentify} asks WBIA about. For ml-service-created
+     * annotations the two are equal ({@code MlServiceProcessor} sets
+     * {@code acmId = getId()}), but for legacy annotations whose acmId WBIA
+     * minted they differ, and forcing the wrong one leaves identification
+     * broken. (WBIA annotation reconciliation sweep spec §4.)
+     */
+    static HashMap<String, ArrayList> buildForcedRequestMap(WbiaRegisterRequest dto,
+        String forcedAnnotUuid) {
         HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
         map.put("image_uuid_list", new ArrayList<JSONObject>());
         map.put("annot_uuid_list", new ArrayList<JSONObject>());
@@ -766,7 +879,7 @@ public class WildbookIAM extends IAPlugin {
         map.put("annot_name_list", new ArrayList<String>());
         map.put("annot_theta_list", new ArrayList<Double>());
         map.get("image_uuid_list").add(toFancyUUID(dto.mediaAssetAcmId));
-        map.get("annot_uuid_list").add(toFancyUUID(dto.annotationId));
+        map.get("annot_uuid_list").add(toFancyUUID(forcedAnnotUuid));
         map.get("annot_species_list").add(dto.iaClass);
         map.get("annot_bbox_list").add(dto.bbox);
         map.get("annot_name_list").add(

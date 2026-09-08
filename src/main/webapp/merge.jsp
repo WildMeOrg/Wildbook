@@ -21,6 +21,11 @@ String langCode=ServletUtilities.getLanguageCode(request);
 String indIdA = request.getParameter("individualA");
 String indIdB = request.getParameter("individualB");
 String[] encIds = request.getParameterValues("encounterId");
+// GH-1514: tracks whether the merge succeeded; only then queue deep reindex.
+boolean mergeSuccess = false;
+// GH-1514: individuals whose encounter lists change here (the retained individual
+// plus the previous individual of every reassigned encounter).
+java.util.Set<String> mergeTouchedIndividualIds = new java.util.LinkedHashSet<String>();
 props = ShepherdProperties.getProperties("merge.properties", langCode,context);
 myShepherd.setAction("merge.jsp");
 myShepherd.beginDBTransaction();
@@ -581,16 +586,28 @@ table.compareZone tr th {
             System.out.println("attempting to assign Enc " + encId + " to " + markA);
             Encounter enc = myShepherd.getEncounter(encId);
             if (enc == null) throw new RuntimeException("Bad Encounter id=" + encId);
+            // GH-1514: the encounter's previous individual loses a sibling here
+            if (enc.getIndividualID() != null) mergeTouchedIndividualIds.add(enc.getIndividualID());
             enc.setIndividual(markA);
         }
+        // GH-1514: flag success so we queue deep reindex only on the happy path.
+        mergeSuccess = true;
 
-    } 
+    }
 	catch (Exception e) {
     	System.out.println("Exception on merge.jsp! indIdA="+indIdA+" indIdB="+indIdB);
     	myShepherd.rollbackDBTransaction();
     } finally {
         myShepherd.commitDBTransaction();
     	myShepherd.closeDBTransaction();
+        // GH-1514: post-commit (success path only) queue a deep reindex of the
+        // retained individual and every individual that lost an encounter, so
+        // sibling encounters pick up refreshed individualNumberEncounters.
+        if (mergeSuccess) {
+            if (indIdA != null) mergeTouchedIndividualIds.add(indIdA);
+            org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
+                mergeTouchedIndividualIds);
+        }
     }
     %>
   </div>

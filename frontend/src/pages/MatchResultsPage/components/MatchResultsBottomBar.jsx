@@ -40,11 +40,16 @@ const MatchResultsBottomBar = observer(
     const [showMatchConfirmedModal, setShowMatchConfirmedModal] =
       useState(false);
     const [matchConfirmedData, setMatchConfirmedData] = useState(null);
+    const [createdEncounterId, setCreatedEncounterId] = useState(null);
 
     const handleCreateNewIndividual = async (selectedRemark) => {
       const result = await store.handleCreateNewIndividual(selectedRemark);
 
       if (result?.ok) {
+        // The store resets the selection on success, which can move
+        // store.encounterId back to the default section; show the
+        // encounter that was actually acted on (issue #1744).
+        setCreatedEncounterId(result.encounterId || store.encounterId);
         setShowCreateModal(false);
         setShowSuccessModal(true);
       }
@@ -341,6 +346,27 @@ const MatchResultsBottomBar = observer(
           };
         }
 
+        case "multiple_query_encounters":
+          return {
+            left: (
+              <div
+                className="alert alert-danger mb-0"
+                style={{
+                  whiteSpace: "nowrap",
+                  height: "40px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "0 12px",
+                }}
+                id="match-bottombar-multiple-query-encounters"
+                data-testid="match-bottombar-multiple-query-encounters"
+              >
+                <FormattedMessage id="CANNOT_MATCH_ACROSS_QUERY_ENCOUNTERS" />
+              </div>
+            ),
+            right: null,
+          };
+
         case "too_many_individuals":
           return {
             left: (
@@ -503,7 +529,7 @@ const MatchResultsBottomBar = observer(
             setShowSuccessModal(false);
             window.location.reload();
           }}
-          encounterId={store.encounterId}
+          encounterId={createdEncounterId ?? store.encounterId}
           individualName={store.newIndividualName}
           themeColor={themeColor}
         />

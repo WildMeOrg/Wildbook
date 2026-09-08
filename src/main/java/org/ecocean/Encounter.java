@@ -2911,6 +2911,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public List<Annotation> getAnnotations(MediaAsset ma) {
         List<Annotation> anns = new ArrayList<Annotation>();
 
+        if (getAnnotations() == null) return anns;
         for (Annotation ann : getAnnotations()) {
             if (ann.getMediaAsset() == ma) anns.add(ann);
         }
@@ -3717,35 +3718,48 @@ public class Encounter extends Base implements java.io.Serializable {
         return LocationID.getPrefixDigitPaddingForLocationID(this.getLocationID(), null);
     }
 
-    public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
-        String queryString =
-            "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id =='" +
-            annot.getId() + "'";
-        Encounter returnEnc = null;
-        Query query = myShepherd.getPM().newQuery(queryString);
-        List results = (List)query.execute();
+    // Resolves parent encounter catalogNumbers via the ENCOUNTER_ANNOTATIONS join table
+    // with native SQL rather than a JDOQL annotations.contains() query: the JDOQL
+    // candidate query makes DataNucleus 5.2.7 bulk-fetch every default-fetch-group
+    // collection on Encounter, and it can emit malformed SQL for those statements
+    // (e.g. the measurements fetch), which PostgreSQL rejects.
+    private static List<String> findCatalogNumbersByAnnotationId(String annId,
+        Shepherd myShepherd) {
+        List<String> catalogNumbers = new ArrayList<String>();
 
-        if ((results != null) && (results.size() >= 1)) {
-            if (results.size() > 1)
-                System.out.println("WARNING: Encounter.findByAnnotation() found " + results.size() +
-                    " Encounters that contain Annotation " + annot.getId());
-            returnEnc = (Encounter)results.get(0);
+        if (annId == null) return catalogNumbers;
+        Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
+            "SELECT DISTINCT \"CATALOGNUMBER_OID\" FROM \"ENCOUNTER_ANNOTATIONS\" WHERE \"ID_EID\" = ?");
+        try {
+            List results = (List)query.execute(annId);
+            if (results != null)
+                for (Object o : results) {
+                    if (o != null) catalogNumbers.add((String)o);
+                }
+        } finally {
+            query.closeAll();
         }
-        query.closeAll();
-        return returnEnc;
+        return catalogNumbers;
+    }
+
+    public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
+        if (annot == null) return null;
+        List<String> catalogNumbers = findCatalogNumbersByAnnotationId(annot.getId(), myShepherd);
+        if (catalogNumbers.isEmpty()) return null;
+        if (catalogNumbers.size() > 1)
+            System.out.println("WARNING: Encounter.findByAnnotation() found " +
+                catalogNumbers.size() + " Encounters that contain Annotation " + annot.getId());
+        return myShepherd.getEncounter(catalogNumbers.get(0));
     }
 
     /** All encounters whose annotations contain this annotation (usually 0 or 1; >1 is anomalous). */
     public static java.util.List<Encounter> findAllByAnnotation(Annotation annot, Shepherd myShepherd) {
-        javax.jdo.Query query = myShepherd.getPM().newQuery(
-            "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id == annId");
-        query.declareParameters("String annId");
         java.util.List<Encounter> out = new java.util.ArrayList<Encounter>();
-        try {
-            java.util.List results = (java.util.List)query.execute(annot.getId());
-            if (results != null) for (Object o : results) out.add((Encounter)o);
-        } finally {
-            query.closeAll();
+
+        if (annot == null) return out;
+        for (String catalogNumber : findCatalogNumbersByAnnotationId(annot.getId(), myShepherd)) {
+            Encounter enc = myShepherd.getEncounter(catalogNumber);
+            if (enc != null) out.add(enc);
         }
         return out;
     }
@@ -5177,6 +5191,7 @@ public class Encounter extends Base implements java.io.Serializable {
         Encounter enc = new Encounter(false);
         if (Util.isUUID(payload.optString("_id"))) enc.setId(payload.getString("_id"));
         enc.setLocationID(locationID);
+        enc.setVerbatimLocality(payload.optString("verbatimLocality", null));
         enc.setDecimalLatitude(decimalLatitude);
         enc.setDecimalLongitude(decimalLongitude);
         enc.setDateFromISO8601String(dateTime);
@@ -5219,6 +5234,10 @@ public class Encounter extends Base implements java.io.Serializable {
     // user should already have been validated -- via obj.canUserEdit() -- in api/BaseObject, so this
     // does not need to be tested here. however, more detailed checks may require user (e.g. can user
     // also alter another object, such as Occurrence)
+    // not persisted; carries individuals touched by processPatch() to afterPatch()
+    // within a single request so they get indexed post-commit
+    private transient Set<MarkedIndividual> patchIndividualsToIndex = null;
+
     public org.json.JSONObject processPatch(org.json.JSONArray patchArr, User user,
         Shepherd myShepherd)
     throws ApiException {
@@ -5254,9 +5273,24 @@ public class Encounter extends Base implements java.io.Serializable {
                 occ.setSkipAutoIndexing(false);
             }
         }
+        this.patchIndividualsToIndex = new HashSet<MarkedIndividual>();
         for (MarkedIndividual indiv : indivNeedPruning) {
             if (!indiv.pruneIfNeeded(myShepherd)) {
                 indiv.setSkipAutoIndexing(false);
+                // removeIndividual() suppressed auto-indexing on this (old)
+                // individual, so afterPatch() must index it explicitly
+                this.patchIndividualsToIndex.add(indiv);
+            }
+        }
+        // a patched-in individual may be brand new (created this transaction);
+        // index it post-commit so it is searchable without waiting for the
+        // background reconciler -- see issue 1318
+        for (int i = 0; i < patchArr.length(); i++) {
+            org.json.JSONObject p = patchArr.optJSONObject(i);
+            if ((p != null) && "individualId".equals(p.optString("path", null)) &&
+                (this.getIndividual() != null)) {
+                this.patchIndividualsToIndex.add(this.getIndividual());
+                break;
             }
         }
         // no exceptions means success
@@ -5265,6 +5299,9 @@ public class Encounter extends Base implements java.io.Serializable {
         this.setDWCDateLastModified();
         this._log(resArr);
         this.setSkipAutoIndexing(false);
+        // explicitly reindex since postStore fired while skipAutoIndexing was true;
+        // enqueueAclReindex honors the global skipAutoIndexing guard
+        this.enqueueAclReindex();
         return rtn;
     }
 
@@ -5549,6 +5586,19 @@ public class Encounter extends Base implements java.io.Serializable {
             }
         }
         if (newAssetsArr.length() > 0) res.put("newMediaAssets", newAssetsArr);
+        // individuals touched by this patch (newly created, or detached old ones
+        // whose auto-indexing was suppressed) are indexed here, post-commit, so
+        // their documents are searchable promptly (best-effort; the background
+        // reconciler remains the backstop) -- see issue 1318
+        if (this.patchIndividualsToIndex != null) {
+            for (MarkedIndividual indiv : this.patchIndividualsToIndex) {
+                // the names cache key (MultiValue id) is db-assigned; refresh again
+                // now that commit definitely happened, in case it was unset earlier
+                indiv.refreshNamesCache();
+                needsIndexing.add(indiv);
+            }
+            this.patchIndividualsToIndex = null;
+        }
         BulkImportUtil.bulkOpensearchIndex(needsIndexing);
         return res;
     }

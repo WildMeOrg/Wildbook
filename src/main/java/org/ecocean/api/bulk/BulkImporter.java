@@ -49,6 +49,20 @@ public class BulkImporter {
     private Map<String, Encounter> encounterCache = new HashMap<String, Encounter>();
     private Map<String, Occurrence> occurrenceCache = new HashMap<String, Occurrence>();
     private Map<String, MarkedIndividual> individualCache = new HashMap<String, MarkedIndividual>();
+
+    // GH-1514: individual ids that were either created OR had encounters added
+    // during this import. Caller should queue these for a deep reindex AFTER
+    // committing, so sibling encounters on pre-existing individuals pick up
+    // refreshed individualNumberEncounters.
+    public java.util.Set<String> getTouchedIndividualIds() {
+        java.util.Set<String> ids = new java.util.LinkedHashSet<String>();
+        for (MarkedIndividual indiv : individualCache.values()) {
+            if (indiv != null && indiv.getIndividualID() != null) {
+                ids.add(indiv.getIndividualID());
+            }
+        }
+        return ids;
+    }
     private Map<String, User> userCache = new HashMap<String, User>();
     private Map<String, Keyword> keywordCache = new HashMap<String, Keyword>();
     private Map<String, Project> projectCache = new HashMap<String, Project>();

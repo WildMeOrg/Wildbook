@@ -78,6 +78,41 @@ public class IndexingManager {
         scheduleIndexingJob(objectID, myClass, unindex, 1, 0L);
     }
 
+    // GH-1514: queue deep reindex for each MarkedIndividual identified by id,
+    // so sibling encounters pick up refreshed individualNumberEncounters (and
+    // the other individual-derived denormalized fields on the encounter index).
+    // Safe to call with an empty or null set. Callers should invoke this AFTER
+    // the caller's DB transaction has committed, since IndexingManager spins
+    // a background Shepherd that reads the individual by id.
+    //
+    // Opens its own short-lived read-only Shepherd for the id->object resolution
+    // rather than reusing the caller's. Callers in servlets typically close their
+    // Shepherd in a finally block before (or alongside) queueing; reusing it here
+    // would silently no-op because getMarkedIndividualQuiet uses the underlying
+    // closed PersistenceManager. The passed-in Shepherd is used only for its
+    // context string.
+    public static void queueIndividualsByIdForDeepReindex(Shepherd myShepherd,
+        java.util.Collection<String> individualIds) {
+        if ((individualIds == null) || individualIds.isEmpty()) return;
+        // honor the global ops kill-switch, same as enqueueAclReindex()
+        if (OpenSearch.skipAutoIndexing()) return;
+        IndexingManager im = IndexingManagerFactory.getIndexingManager();
+        if (im == null) return;
+        String context = (myShepherd != null) ? myShepherd.getContext() : "context0";
+        Shepherd shep = new Shepherd(context);
+        shep.setAction("IndexingManager.queueIndividualsByIdForDeepReindex");
+        try {
+            shep.beginDBTransaction();
+            for (String id : individualIds) {
+                if (id == null) continue;
+                MarkedIndividual indiv = shep.getMarkedIndividualQuiet(id);
+                if (indiv != null) im.addIndexingQueueEntry(indiv, false);
+            }
+        } finally {
+            shep.rollbackAndClose();
+        }
+    }
+
     // Schedules (or immediately submits, when delaySeconds==0) one indexing attempt. Guarantees that the
     // queue entry is either handed to a running/scheduled job or removed if scheduling is rejected
     // (e.g. executor shutdown), so an id can never be orphaned in the queue.
