@@ -1,7 +1,11 @@
 import MatchResultsStore from "../../../pages/MatchResultsPage/stores/matchResultsStore";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 jest.mock("axios");
+jest.mock("react-toastify", () => ({
+  toast: { success: jest.fn(), error: jest.fn() },
+}));
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -916,9 +920,95 @@ describe("MatchResultsStore — handleMatch", () => {
 
   test("resets selection on success", async () => {
     store.setSelectedMatch(true, "k1", "enc-no-ind", null, null);
-    axios.get.mockResolvedValueOnce({ data: {} });
+    // must be an explicit success:true -- a bare 200 is NOT a successful save, see below
+    axios.get.mockResolvedValueOnce({ data: { success: true } });
     await store.handleMatch();
     expect(store.selectedMatch).toEqual([]);
+  });
+
+  // iaResultsSetID.jsp answers authorization and validation refusals in the BODY, and
+  // historically did so with HTTP 200. Treating the 200 as success told the user their
+  // match was confirmed while the JSP had rolled back and written nothing -- which only
+  // non-admins ever hit, because admins bypass the encounter authorization check.
+  test("a 200 carrying success:false is a FAILURE, not a save", async () => {
+    store.setSelectedMatch(true, "k1", "enc-no-ind", null, null);
+    axios.get.mockResolvedValueOnce({
+      data: { success: false, error: "User unauthorized for encounter: enc-no-ind" },
+    });
+    const result = await store.handleMatch();
+    expect(result).toBeNull();
+    expect(store.matchRequestError).toBe("MATCH_FAILED");
+    // the user must be told, and told WHY -- a generic message would hide an auth refusal
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith(
+      "User unauthorized for encounter: enc-no-ind",
+    );
+  });
+
+  test("a 200 carrying success:false does not clear the user's selection", async () => {
+    store.setSelectedMatch(true, "k1", "enc-no-ind", null, null);
+    // deep snapshot, not just keys: a failure must not mutate the entries either
+    const before = JSON.parse(JSON.stringify(store.selectedMatch));
+
+    axios.get.mockResolvedValueOnce({ data: { success: false, error: "nope" } });
+    await store.handleMatch();
+    // nothing was saved, so the exact selection must survive for the user to retry
+    expect(JSON.parse(JSON.stringify(store.selectedMatch))).toEqual(before);
+  });
+
+  // the endpoint answers success:true for a request with nothing to assign; do not send it
+  test("does not call the server when every selection already has the ID", async () => {
+    // query already has ind-query; select another encounter with the SAME individual
+    store.setSelectedMatch(true, "k1", "enc-other", "ind-query", "Query");
+    const result = await store.handleMatch();
+    expect(result).toBeNull();
+    expect(axios.get).not.toHaveBeenCalled();
+    expect(store.matchRequestError).toBe("MATCH_NOTHING_TO_ASSIGN");
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  test("a response with no success field is treated as a failure", async () => {
+    store.setSelectedMatch(true, "k1", "enc-no-ind", null, null);
+    axios.get.mockResolvedValueOnce({ data: {} });
+    const result = await store.handleMatch();
+    expect(result).toBeNull();
+    expect(store.matchRequestError).toBe("MATCH_FAILED");
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  // the check must be strict: a truthy non-boolean is not a confirmed save
+  test("a truthy non-boolean success is treated as a failure", async () => {
+    store.setSelectedMatch(true, "k1", "enc-no-ind", null, null);
+    axios.get.mockResolvedValueOnce({ data: { success: "true" } });
+    const result = await store.handleMatch();
+    expect(result).toBeNull();
+    expect(store.matchRequestError).toBe("MATCH_FAILED");
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  // the JSP now returns 403 on an authorization refusal, so axios rejects
+  test("surfaces the server reason from a 403 rejection", async () => {
+    store.setSelectedMatch(true, "k1", "enc-no-ind", null, null);
+    axios.get.mockRejectedValueOnce({
+      response: {
+        status: 403,
+        data: { success: false, error: "User unauthorized for encounter: enc-no-ind" },
+      },
+    });
+    const result = await store.handleMatch();
+    expect(result).toBeNull();
+    expect(store.matchRequestError).toBe("MATCH_FAILED");
+    expect(toast.error).toHaveBeenCalledWith(
+      "User unauthorized for encounter: enc-no-ind",
+    );
+  });
+
+  test("still reports success when the server confirms it", async () => {
+    store.setSelectedMatch(true, "k1", "enc-no-ind", null, null);
+    axios.get.mockResolvedValueOnce({ data: { success: true } });
+    await store.handleMatch();
+    expect(toast.success).toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });
 

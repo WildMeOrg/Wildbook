@@ -1,6 +1,6 @@
 /* eslint-disable react/display-name */
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { IntlProvider } from "react-intl";
 import axios from "axios";
@@ -469,5 +469,158 @@ describe("ImageCard", () => {
       });
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
+  });
+});
+
+describe("ImageCard annotation icon placement (#1534)", () => {
+  // jsdom has no layout: stub the measurements the component reads on image load.
+  const setDims = (el, width, height) => {
+    Object.defineProperty(el, "clientWidth", {
+      value: width,
+      configurable: true,
+    });
+    Object.defineProperty(el, "clientHeight", {
+      value: height,
+      configurable: true,
+    });
+  };
+
+  const annotationAt = (boundingBox, extra = {}) => ({
+    id: "ann-1",
+    encounterId: "E-1",
+    boundingBox,
+    theta: 0,
+    viewpoint: "left",
+    iaClass: "whale",
+    ...extra,
+  });
+
+  // 1000x500 source shown in a 500x250 box -> every source px is half a display px.
+  const renderWithAnnotation = (annotation, { measureBox = true } = {}) => {
+    const asset = {
+      ...baseEncounterData.mediaAssets[0],
+      annotations: [annotation],
+    };
+    const encounterData = { ...baseEncounterData, mediaAssets: [asset] };
+    const store = makeStore({
+      encounterData,
+      encounterAnnotations: [annotation],
+    });
+    store.imageModal.encounterData = encounterData;
+    renderCard(store);
+
+    const img = screen.getByAltText("encounter image");
+    const clipBox = img.parentElement;
+    setDims(img, 500, 250);
+    if (measureBox) setDims(clipBox, 500, 250);
+    fireEvent.load(img);
+    return store;
+  };
+
+  const clickAnnotation = async (user) => {
+    const rect = await waitFor(() => {
+      const el = document.getElementById("rect-0");
+      expect(el).toBeTruthy();
+      return el;
+    });
+    await user.click(rect);
+    return rect;
+  };
+
+  beforeEach(() => {
+    window.open = jest.fn();
+    window.confirm = jest.fn(() => true);
+  });
+
+  test("a box inside the image keeps edit/delete at the top-right corner", async () => {
+    const user = userEvent.setup();
+    renderWithAnnotation(annotationAt([10, 20, 100, 40]));
+    const rect = await clickAnnotation(user);
+
+    const cluster = rect.querySelector(".d-flex.flex-column");
+    expect(cluster).toBeTruthy();
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.right).toBe("0px");
+    expect(cluster.style.left).toBe("");
+  });
+
+  test("a box running off the right edge moves edit/delete to the top-left corner", async () => {
+    const user = userEvent.setup();
+    // displayed x 400..550 in a 500px-wide box
+    renderWithAnnotation(annotationAt([800, 20, 300, 40]));
+    const rect = await clickAnnotation(user);
+
+    const cluster = rect.querySelector(".d-flex.flex-column");
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.left).toBe("0px");
+    expect(cluster.style.right).toBe("");
+  });
+
+  test("a box running off the top edge moves edit/delete to the bottom-right corner", async () => {
+    const user = userEvent.setup();
+    // displayed y -30..50
+    renderWithAnnotation(annotationAt([100, -60, 300, 160]));
+    const rect = await clickAnnotation(user);
+
+    const cluster = rect.querySelector(".d-flex.flex-column");
+    expect(cluster.style.bottom).toBe("0px");
+    expect(cluster.style.right).toBe("0px");
+    expect(cluster.style.top).toBe("");
+  });
+
+  test("the go-to-encounter link of a foreign annotation relocates and keeps its inset", async () => {
+    const user = userEvent.setup();
+    renderWithAnnotation(
+      annotationAt([800, 20, 300, 40], { encounterId: "E-2" }),
+    );
+    const rect = await clickAnnotation(user);
+
+    const link = rect.querySelector(".d-flex");
+    expect(link).toBeTruthy();
+    expect(link.style.top).toBe("0px");
+    expect(link.style.left).toBe("-2px");
+    expect(link.style.right).toBe("");
+  });
+
+  test("an overflowing box keeps the default corner until the image box is measured", async () => {
+    const user = userEvent.setup();
+    renderWithAnnotation(annotationAt([800, 20, 300, 40]), {
+      measureBox: false,
+    });
+    const rect = await clickAnnotation(user);
+
+    const cluster = rect.querySelector(".d-flex.flex-column");
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.right).toBe("0px");
+    expect(cluster.style.left).toBe("");
+  });
+
+  test("a rotated box is judged after rotation: a quarter-turned box poking out the top keeps top-right", async () => {
+    const user = userEvent.setup();
+    // displayed x 100, y -10, w 200, h 60: unrotated this would need the
+    // bottom-right corner, but after a 90° turn the local top-right corner
+    // sits well inside the image, so the icons must not move.
+    renderWithAnnotation(
+      annotationAt([200, -20, 400, 120], { theta: Math.PI / 2 }),
+    );
+    const rect = await clickAnnotation(user);
+
+    const cluster = rect.querySelector(".d-flex.flex-column");
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.right).toBe("0px");
+    expect(cluster.style.left).toBe("");
+  });
+
+  test("a box wider than the image gets edit/delete slid into the visible strip", async () => {
+    const user = userEvent.setup();
+    // displayed x -50..550 in a 500px-wide box: no corner is visible, so the
+    // cluster is anchored flush with the image's right edge instead.
+    renderWithAnnotation(annotationAt([-100, 20, 1200, 200]));
+    const rect = await clickAnnotation(user);
+
+    const cluster = rect.querySelector(".d-flex.flex-column");
+    expect(cluster.style.top).toBe("0px");
+    expect(cluster.style.left).toBe("528px");
+    expect(cluster.style.right).toBe("");
   });
 });
