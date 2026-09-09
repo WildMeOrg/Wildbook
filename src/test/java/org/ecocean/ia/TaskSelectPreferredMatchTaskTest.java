@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.ecocean.Annotation;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -130,5 +131,153 @@ class TaskSelectPreferredMatchTaskTest {
     @Test void emptyAndNullInputsReturnNull() {
         assertNull(Task.selectPreferredMatchTask(null, "IMP1"));
         assertNull(Task.selectPreferredMatchTask(Collections.<Task>emptyList(), "IMP1"));
+    }
+
+    // ---- issue #1744: per-annotation fan-out under a multi-annotation umbrella ----
+
+    private static Annotation annot(String id) {
+        Annotation a = new Annotation();
+        a.setId(id);
+        return a;
+    }
+
+    private static Task withAnnots(Task t, Annotation... anns) {
+        for (Annotation a : anns) t.addObject(a);
+        return t;
+    }
+
+    /**
+     * v2 ml-service shape (MlServiceProcessor.runMatchProspects +
+     * Embedding.findMatchProspects): detection root D -> umbrella M holding EVERY
+     * annotation on the image -> one subtask per annotation (inherits params, owns
+     * the MatchResult). For annA the newest candidate is SA, but SA's parent has two
+     * children, so the pre-fix clause rejected it and the umbrella M — which renders
+     * BOTH annotations' results — was selected. Issue #1744.
+     */
+    @Test void v2FanOutSelectsPerAnnotationSubtaskNotUmbrella() {
+        Annotation annA = annot("annA");
+        Annotation annB = annot("annB");
+        Task d = new Task();
+        Task m = withAnnots(task(null, true, true, d), annA, annB);
+        Task sa = withAnnots(new Task(m), annA); // new Task(parent) inherits params
+        Task sb = withAnnots(new Task(m), annB);
+        assertSame(sa, Task.selectPreferredMatchTask(Arrays.asList(sa, m), null));
+        assertSame(sb, Task.selectPreferredMatchTask(Arrays.asList(sb, m), null));
+    }
+
+    /** Same tree on the bulk-import (scoped) path: the import stamp is inherited down to the subtask. */
+    @Test void v2FanOutScopedSelectsStampedSubtask() {
+        Annotation annA = annot("annA");
+        Annotation annB = annot("annB");
+        Task d = task("IMP1", false, false, null);
+        Task m = withAnnots(new Task(d), annA, annB);
+        m.addParameter("ibeis.identification", new JSONObject());
+        Task sa = withAnnots(new Task(m), annA);
+        withAnnots(new Task(m), annB);
+        assertSame(sa, Task.selectPreferredMatchTask(Arrays.asList(sa, m), "IMP1"));
+    }
+
+    /** One annotation on the image: unchanged — the single subtask already won. */
+    @Test void singleAnnotationSubtaskStillSelected() {
+        Annotation annA = annot("annA");
+        Task d = new Task();
+        Task m = withAnnots(task(null, true, true, d), annA);
+        Task sa = withAnnots(new Task(m), annA);
+        assertSame(sa, Task.selectPreferredMatchTask(Arrays.asList(sa, m), null));
+    }
+
+    /**
+     * Per-ALGORITHM siblings (legacy IA.intakeAnnotations with >1 ident opt) hold the
+     * SAME annotation set as their parent, so they are not fan-out children: the
+     * umbrella still wins (unchanged behavior).
+     */
+    @Test void perAlgorithmSiblingsDoNotQualifyAsFanOut() {
+        Annotation annA = annot("annA");
+        Task root = new Task();
+        Task umbrella = withAnnots(task(null, false, false, root), annA);
+        Task algo1 = withAnnots(task(null, true, false, umbrella), annA);
+        Task algo2 = withAnnots(task(null, true, false, umbrella), annA);
+        assertSame(umbrella,
+            Task.selectPreferredMatchTask(Arrays.asList(algo2, algo1, umbrella), null));
+    }
+
+    /**
+     * Legacy WBIA fan-out (IAGateway._doIdentify): the umbrella's params are reset to
+     * null and each per-annotation child carries ibeis.identification.
+     */
+    @Test void legacyDoIdentifyFanOutSelectsChild() {
+        Annotation annA = annot("annA");
+        Annotation annB = annot("annB");
+        Task root = new Task();
+        Task umbrella = withAnnots(task(null, false, false, root), annA, annB);
+        Task childA = withAnnots(task(null, true, false, umbrella), annA);
+        withAnnots(task(null, true, false, umbrella), annB);
+        assertSame(childA, Task.selectPreferredMatchTask(Arrays.asList(childA, umbrella), null));
+    }
+
+    /** A single-annotation child WITHOUT ibeis.identification (e.g. an embedding-extraction task) is not a match task. */
+    @Test void fanOutChildWithoutIdentificationParamIsNotRenderable() {
+        Annotation annA = annot("annA");
+        Annotation annB = annot("annB");
+        Task root = new Task();
+        Task umbrella = withAnnots(task(null, true, false, root), annA, annB);
+        Task childA = withAnnots(task(null, false, false, umbrella), annA);
+        withAnnots(task(null, false, false, umbrella), annB);
+        assertSame(umbrella, Task.selectPreferredMatchTask(Arrays.asList(childA, umbrella), null));
+    }
+
+    /**
+     * Legacy umbrella as an in-memory ROOT: Task.addChild does not set the
+     * child's parent (DataNucleus completes the FK from the mapped-by children
+     * side on persist), so a freshly built _doIdentify umbrella is rootless.
+     * Pre-fix a two-child rootless umbrella was reached only via root fallback;
+     * post-fix the per-annotation child wins outright.
+     */
+    @Test void rootlessLegacyUmbrellaStillYieldsPerAnnotationChild() {
+        Annotation annA = annot("annA");
+        Annotation annB = annot("annB");
+        Task umbrella = withAnnots(new Task(), annA, annB); // parent == null
+        Task childA = withAnnots(task(null, true, false, umbrella), annA);
+        withAnnots(task(null, true, false, umbrella), annB);
+        assertSame(childA, Task.selectPreferredMatchTask(Arrays.asList(childA, umbrella), null));
+    }
+
+    /**
+     * IA.intakeAnnotations partitions by iaClass: one identified child per
+     * class under an umbrella holding every annotation. A single-annotation
+     * class branch is selected for its annotation.
+     */
+    @Test void iaClassPartitionChildIsSelected() {
+        Annotation body = annot("body");
+        Annotation fin = annot("fin");
+        Task root = new Task();
+        Task umbrella = withAnnots(task(null, false, false, root), body, fin);
+        Task bodyBranch = withAnnots(task(null, true, false, umbrella), body);
+        withAnnots(task(null, true, false, umbrella), fin);
+        assertSame(bodyBranch,
+            Task.selectPreferredMatchTask(Arrays.asList(bodyBranch, umbrella), null));
+    }
+
+    /**
+     * Documented trade-off: multi-ALGORITHM x multi-annotation. The umbrella
+     * fans out per algorithm (each child still holding every annotation) and
+     * each algorithm fans out per annotation. There is no per-annotation
+     * umbrella, so the newest per-annotation leaf (one algorithm) is selected
+     * rather than the image-wide umbrella that previously rendered everything.
+     */
+    @Test void nestedMultiAlgorithmFanOutSelectsNewestPerAnnotationLeaf() {
+        Annotation annA = annot("annA");
+        Annotation annB = annot("annB");
+        Task root = new Task();
+        Task umbrella = withAnnots(task(null, false, false, root), annA, annB);
+        Task algo1 = withAnnots(task(null, true, false, umbrella), annA, annB);
+        Task algo2 = withAnnots(task(null, true, false, umbrella), annA, annB);
+        Task algo1A = withAnnots(task(null, true, false, algo1), annA);
+        withAnnots(task(null, true, false, algo1), annB);
+        Task algo2A = withAnnots(task(null, true, false, algo2), annA);
+        withAnnots(task(null, true, false, algo2), annB);
+        // created-DESC: newest first
+        assertSame(algo2A, Task.selectPreferredMatchTask(
+            Arrays.asList(algo2A, algo1A, algo2, algo1, umbrella), null));
     }
 }
