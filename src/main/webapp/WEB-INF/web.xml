@@ -346,6 +346,9 @@
 				/MediaAssetsForUser = authc
 				/MediaAssetAttach = authc, roles[researcher]
 				/MediaAssetModify = authc, roles[researcher]
+				/EncounterSetBehavior = authc, roles[researcher]
+				/OccurrenceAddComment = authc, roles[researcher]
+				/EncounterAddComment = authc, roles[researcher]
 
 				# ===== Workspace Management =====
 				/WorkspaceServer = authc, roles[researcher]
