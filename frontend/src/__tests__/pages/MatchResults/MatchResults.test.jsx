@@ -361,6 +361,21 @@ describe("MatchResults component", () => {
     expect(input.value).toBe("12");
   });
 
+  test("numResults field can be cleared and re-entered", async () => {
+    axios.get.mockResolvedValue({ data: makeApiResponse() });
+    renderComponent();
+    await screen.findByTestId("prospect-table-task-1");
+    const input = screen.getByDisplayValue("12");
+    fireEvent.change(input, { target: { value: "" } });
+    expect(input.value).toBe("");
+    fireEvent.change(input, { target: { value: "3" } });
+    expect(input.value).toBe("3");
+    fireEvent.keyDown(input, { key: "Enter" });
+    await waitFor(() =>
+      expect(axios.get.mock.calls.at(-1)[0]).toContain("prospectsSize=3"),
+    );
+  });
+
   test("pressing Enter on numResults input triggers fetch", async () => {
     axios.get.mockResolvedValue({ data: makeApiResponse() });
     renderComponent();
