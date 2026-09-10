@@ -174,6 +174,7 @@ const styles = {
 
 const MatchProspectTable = ({
   sectionId,
+  taskId,
   numCandidates,
   date,
   selectedMatch,
@@ -463,7 +464,13 @@ const MatchProspectTable = ({
                     const canOpenIndividual = Boolean(candidateIndividualId);
 
                     const rowKey = `${candidate.annotation?.id ?? candidate.annotation?.encounter?.id ?? "no-annot"}-${candidate.displayIndex ?? "no-idx"}`;
-                    const isRowSelected = isSelected(rowKey);
+                    // Issue #1744: qualify the selection key by task so the
+                    // same prospect at the same rank in two sections (an
+                    // image-wide umbrella task with one child per
+                    // annotation) cannot collide and read as selected in
+                    // both.
+                    const selectionKey = `${taskId ?? sectionId}-${rowKey}`;
+                    const isRowSelected = isSelected(selectionKey);
                     const isRowPreviewed = rowKey === previewedRow?._rowKey;
                     const isRowHovered = rowKey === hoveredRow;
 
@@ -573,7 +580,7 @@ const MatchProspectTable = ({
                             onChange={(e) =>
                               onToggleSelected(
                                 e.target.checked,
-                                rowKey,
+                                selectionKey,
                                 candidateEncounterId,
                                 candidateIndividualId,
                                 candidateIndividualDisplayName,

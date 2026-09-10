@@ -114,8 +114,9 @@ const BulkImportTask = observer(() => {
     task?.encounters?.map((item) => {
       const taskArray =
         task?.iaSummary?.statsAnnotations?.encounterTaskInfo?.[item.id] || [];
-      const classArray =
-        Array.isArray(taskArray) && taskArray?.length > 0 ? taskArray[0] : [];
+      // Issue #1744: keep every per-annotation match task of this encounter
+      // (an encounter can hold several matched annotations, e.g. body + part).
+      const classArray = Array.isArray(taskArray) ? taskArray : [];
       return {
         encounterID: item.id,
         encounterDate: item.date,
@@ -211,17 +212,25 @@ const BulkImportTask = observer(() => {
       name: "Class",
       selector: (row) => row.class,
       cell: (row) => {
-        const arr = row.class;
-        if (Array.isArray(arr) && arr.length === 3) {
-          const link = `/react/match-results?taskId=${arr[0]}`;
-          return (
-            <a href={link} target="_blank" rel="noreferrer">
-              {arr[2]} {": "}
-              {arr[1]}
-            </a>
-          );
-        }
-        return "-";
+        const tuples = Array.isArray(row.class)
+          ? row.class.filter((arr) => Array.isArray(arr) && arr.length === 3)
+          : [];
+        if (tuples.length === 0) return "-";
+        return (
+          <div className="d-flex flex-column">
+            {tuples.map((arr) => (
+              <a
+                key={arr[0]}
+                href={`/react/match-results?taskId=${arr[0]}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {arr[2]} {": "}
+                {arr[1]}
+              </a>
+            ))}
+          </div>
+        );
       },
     },
   ];
