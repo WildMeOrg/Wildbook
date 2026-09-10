@@ -807,6 +807,7 @@
   "CONFIRM_MATCH": "Übereinstimmung bestätigen",
   "MERGE_INDIVIDUALS": "Individuen zusammenführen",
   "CANNOT_MERGE_MORE_THAN_TWO": "Es können nicht mehr als zwei Individuen zusammengeführt werden",
+  "CANNOT_MATCH_ACROSS_QUERY_ENCOUNTERS": "Die ausgewählten Kandidaten gehören zu verschiedenen Abfrage-Begegnungen. Wählen Sie Kandidaten jeweils nur aus den Ergebnissen einer Begegnung aus.",
   "MERGE": "Zusammenführen",
   "MERGE_INDIVIDUAL": "Individuum zusammenführen",
   "AND": "und",
