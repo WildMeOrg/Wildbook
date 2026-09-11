@@ -7,7 +7,7 @@ import {
   fireInput,
   clickButton,
 } from "../../../utils/utils";
-import { waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { useSiteSettings } from "../../../SiteSettingsContext";
 
 jest.mock("../../../models/auth/useLogin");
@@ -37,6 +37,8 @@ describe("LoginPage - Form Submission", () => {
     renderWithProviders(<LoginPage />);
     fireInput("Username", "testuser");
     fireInput("Password", "password123");
+    // Sign In stays disabled until the terms checkbox is ticked
+    fireEvent.click(screen.getByRole("checkbox"));
     clickButton("Sign In");
 
     await waitFor(() =>
