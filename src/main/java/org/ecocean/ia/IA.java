@@ -416,6 +416,19 @@ public class IA {
         List<List<Annotation> > annotsByIaClass = binAnnotsByIaClass(anns);
         for (List<Annotation> annsOneIAClass : annotsByIaClass) {
             List<JSONObject> opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
+            // No identification options means this iaClass cannot be identified. Empty is an
+            // explicit opt-out: IA.json declares the class with `"_id_conf": []`, which
+            // getIdentConfig returns as-is rather than falling back to `_default`. Null means
+            // neither the class nor the taxonomy's `_default` yielded any config at all.
+            //
+            // Bail here, BEFORE the matchingAlgorithms swap below. That swap replaces the opts
+            // list wholesale without consulting this iaClass, so it would otherwise manufacture
+            // an option for a class that declined one. Part classes are the common case: a
+            // `wild_dog+tail_*` annotation rides along with the body annotation detected beside
+            // it on the same image, and would get its own doomed identification task whenever
+            // the user picked an algorithm. A class that legitimately inherits a populated
+            // `_default._id_conf` has non-empty opts here and is unaffected.
+            if ((opts == null) || (opts.size() < 1)) continue; // no ID for this iaClass.
             // now we remove ones with default=false (they may get added in below via matchingAlgorithms param (via newOpts)
             if (opts != null) {
                 Iterator<JSONObject> itr = opts.iterator();
