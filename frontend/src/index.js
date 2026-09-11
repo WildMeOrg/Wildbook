@@ -3,6 +3,10 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import {
+  handleUpdateFound,
+  watchForControllerChange,
+} from "./utils/serviceWorkerUpdates";
 import reportWebVitals from "./reportWebVitals";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
@@ -12,29 +16,16 @@ root.render(
   </React.StrictMode>,
 );
 
-// Service worker registration with auto-update on new versions
-// When a new version is detected, it will automatically reload the page
-
-let reloaded = false;
-
+// See utils/serviceWorkerUpdates.js for why a new version is never taken live under a page
+// that is already open (issue #1759).
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (reloaded) return;
-    reloaded = true;
-    if (window.__WB_SW_RELOADED__) return;
-    window.__WB_SW_RELOADED__ = true;
-    window.location.reload();
-  });
+  watchForControllerChange(navigator.serviceWorker, () =>
+    window.location.reload(),
+  );
 }
 
 serviceWorkerRegistration.register({
-  onUpdate: (registration) => {
-    console.log("New Wildbook version available!");
-    // Skip waiting and take control immediately
-    if (registration.waiting) {
-      registration.waiting.postMessage({ type: "SKIP_WAITING" });
-    }
-  },
+  onUpdate: handleUpdateFound,
   onSuccess: () => {
     console.log("Wildbook is ready for offline use.");
   },
