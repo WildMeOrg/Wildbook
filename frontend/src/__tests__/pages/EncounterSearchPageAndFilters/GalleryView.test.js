@@ -68,6 +68,21 @@ function makeStore(overrides = {}) {
     pageSize: 2,
     previousPageItems: {},
 
+    start: 0,
+    assetOffset: 0,
+    galleryExhausted: false,
+    setStart: jest.fn(function (n) {
+      this.start = n;
+    }),
+    setAssetOffset: jest.fn(function (n) {
+      this.assetOffset = n;
+    }),
+    setGalleryExhausted: jest.fn(function (v) {
+      this.galleryExhausted = v;
+    }),
+    setGalleryLoading: jest.fn(),
+    setLoadingAll: jest.fn(),
+
     currentPageItems: [],
     setCurrentPageItems: jest.fn(function (items) {
       this.currentPageItems = items;
@@ -77,8 +92,19 @@ function makeStore(overrides = {}) {
       this.currentPage = n;
     }),
 
-    setPreviousPageItems: jest.fn(function (page, items) {
-      this.previousPageItems[page] = items;
+    setPreviousPageItems: jest.fn(function (
+      page,
+      items,
+      start,
+      assetOffset,
+      galleryExhausted,
+    ) {
+      this.previousPageItems[page] = {
+        items,
+        start,
+        assetOffset,
+        galleryExhausted,
+      };
     }),
 
     resetGallery: jest.fn(),
@@ -208,7 +234,7 @@ describe("GalleryView", () => {
         { __k: "a2", url: "#", annotations: [] },
       ],
     });
-    const pg = jest.fn();
+    const pg = jest.fn().mockResolvedValue(true);
 
     renderWithProviders(<GalleryView store={store} pg={pg} />);
     pg.mockClear();
@@ -220,11 +246,35 @@ describe("GalleryView", () => {
     expect(store.setPreviousPageItems).toHaveBeenCalledWith(
       0,
       store.currentPageItems.slice(),
+      store.start,
+      store.assetOffset,
+      store.galleryExhausted,
     );
 
     expect(pg).toHaveBeenCalledTimes(1);
 
     expect(store.setCurrentPage).toHaveBeenCalledWith(1);
+  });
+
+  test("clicking next does not advance the page when pg reports no more results", async () => {
+    const store = makeStore({
+      currentPage: 0,
+      pageSize: 2,
+      currentPageItems: [
+        { __k: "a1", url: "#", annotations: [] },
+        { __k: "a2", url: "#", annotations: [] },
+      ],
+    });
+    const pg = jest.fn().mockResolvedValue(false);
+
+    renderWithProviders(<GalleryView store={store} pg={pg} />);
+    pg.mockClear();
+    await act(async () => {
+      fireEvent.click(screen.getAllByTestId("main-btn")[1]);
+    });
+
+    expect(pg).toHaveBeenCalledTimes(1);
+    expect(store.setCurrentPage).not.toHaveBeenCalled();
   });
 
   test("clicking previous uses cached items when available", () => {
@@ -236,10 +286,15 @@ describe("GalleryView", () => {
         { __k: "b2", url: "#", annotations: [] },
       ],
       previousPageItems: {
-        0: [
-          { __k: "a1", url: "#", annotations: [] },
-          { __k: "a2", url: "#", annotations: [] },
-        ],
+        0: {
+          items: [
+            { __k: "a1", url: "#", annotations: [] },
+            { __k: "a2", url: "#", annotations: [] },
+          ],
+          start: 0,
+          assetOffset: 0,
+          galleryExhausted: false,
+        },
       },
     });
 
@@ -249,7 +304,7 @@ describe("GalleryView", () => {
     fireEvent.click(prev);
 
     expect(store.setCurrentPageItems).toHaveBeenCalledWith(
-      store.previousPageItems[0].slice(),
+      store.previousPageItems[0].items.slice(),
     );
     expect(store.setCurrentPage).toHaveBeenCalledWith(0);
   });

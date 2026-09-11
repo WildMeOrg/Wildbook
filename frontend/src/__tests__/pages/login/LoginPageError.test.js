@@ -31,15 +31,18 @@ describe("LoginPage Tests", () => {
   let mockAuthenticate;
   let mockSetError;
 
-  test("should show error message when submitting empty username and password", async () => {
+  test("cannot submit an empty username and password", async () => {
     renderWithProviders(<LoginPage />);
+
+    // the page used to call authenticate("", "") here; it now refuses the submit outright
+    fireEvent.click(screen.getByRole("checkbox"));
+    expect(screen.getByRole("button", { name: /sign in/i })).toBeDisabled();
 
     await act(async () => {
       screen.getByRole("button", { name: /sign in/i }).click();
     });
 
-    expect(mockSetError).toHaveBeenCalledWith(null);
-    expect(mockAuthenticate).toHaveBeenCalledWith("", "");
+    expect(mockAuthenticate).not.toHaveBeenCalled();
   });
 
   test("should show error when entering incorrect credentials", async () => {
@@ -54,6 +57,8 @@ describe("LoginPage Tests", () => {
     });
 
     await act(async () => {
+      // Sign In stays disabled until the terms checkbox is ticked
+      fireEvent.click(screen.getByRole("checkbox"));
       screen.getByRole("button", { name: /sign in/i }).click();
     });
 

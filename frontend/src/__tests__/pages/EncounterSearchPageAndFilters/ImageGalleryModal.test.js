@@ -6,6 +6,9 @@ jest.mock("react-intl", () => ({
   FormattedMessage: ({ defaultMessage, id }) => (
     <span>{defaultMessage ?? id}</span>
   ),
+  useIntl: () => ({
+    formatMessage: ({ defaultMessage, id }) => defaultMessage ?? id,
+  }),
 }));
 jest.mock("mobx-react-lite", () => ({ observer: (c) => c }));
 
