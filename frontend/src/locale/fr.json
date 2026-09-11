@@ -843,5 +843,6 @@
   "MATCH_RESULTS_ERROR_UNKNOWN": "Erreur inconnue",
   "MATCH_RESULTS_ERROR_TIMEOUT": "La tâche a dépassé le délai imparti",
   "NO_MATCH_CANDIDATES": "Aucun candidat ne correspond aux filtres appliqués. Veuillez les ajuster ou considérer qu’il s’agit d’un nouvel individu.",
-  "NO_MATCH_PROSPECTS": "Nous n’avons trouvé aucune correspondance avec vos filtres actuels. Veuillez les ajuster ou considérer qu’il s’agit d’un nouvel individu."
+  "NO_MATCH_PROSPECTS": "Nous n’avons trouvé aucune correspondance avec vos filtres actuels. Veuillez les ajuster ou considérer qu’il s’agit d’un nouvel individu.",
+  "APP_UPDATE_AVAILABLE": "Une nouvelle version de Wildbook est disponible. Fermez tous les onglets Wildbook lorsque cela vous convient pour commencer à l'utiliser."
 }
