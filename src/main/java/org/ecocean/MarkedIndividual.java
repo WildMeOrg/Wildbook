@@ -470,7 +470,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     public void enqueueAclReindex() {
         if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
         try {
-            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+            // Deferred while this object's transaction is open -- see Encounter.enqueueAclReindex().
+            IndexingManager.addPendingEntry(javax.jdo.JDOHelper.getPersistenceManager(this), this,
+                false);
         } catch (Exception ex) {
             System.out.println("MarkedIndividual.enqueueAclReindex failed for " + this.getId() + ": " + ex);
         }

@@ -1247,9 +1247,31 @@ public class Encounter extends Base implements java.io.Serializable {
     public void enqueueAclReindex() {
         if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
         try {
-            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+            // Deferred: while this object's PersistenceManager has an active transaction the
+            // request is PARKED and released when that transaction completes (committed -> queued,
+            // rolled back -> dropped). Enqueuing from inside the transaction is what let the
+            // indexing job load and index pre-commit state. A transient object, or a caller that
+            // has already committed, falls through to an immediate enqueue. A caller whose open
+            // transaction will be rolled back must use enqueueAclReindexNow().
+            IndexingManager.addPendingEntry(javax.jdo.JDOHelper.getPersistenceManager(this), this,
+                false);
         } catch (Exception ex) {
             System.out.println("Encounter.enqueueAclReindex failed for " + this.getId() + ": " + ex);
+        }
+    }
+
+    /** enqueueAclReindex() for a caller whose open transaction will be ROLLED BACK, not committed
+     *  -- parking there would drop the request, so this enqueues immediately. Only the background
+     *  permissions pass needs it: it reads inside a transaction it rolls back at the end, and the
+     *  objects it asks to reindex were committed by someone else long before. */
+    public void enqueueAclReindexNow() {
+        if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
+        try {
+            IndexingManager im = IndexingManagerFactory.getIndexingManager();
+            if (im != null) im.addIndexingQueueEntry(this.getId(), this.getClass(), false);
+        } catch (Exception ex) {
+            System.out.println("Encounter.enqueueAclReindexNow failed for " + this.getId() + ": " +
+                ex);
         }
     }
 
@@ -4411,7 +4433,9 @@ public class Encounter extends Base implements java.io.Serializable {
                 if (childReindexNeeded) {
                     try {
                         Encounter enc = myShepherd.getEncounter(id);
-                        if (enc != null) enc.enqueueAclReindex(); // refresh individual + annotations
+                        // Now-flavored: this pass's Shepherd holds a read transaction that is
+                        // rolled back at the end, so a deferred park would be discarded.
+                        if (enc != null) enc.enqueueAclReindexNow(); // refresh individual + annotations
                     } catch (Exception ex) {
                         // best-effort; reconciler / corrective reindex recovers a missed child refresh
                     }
