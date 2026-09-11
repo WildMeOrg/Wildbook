@@ -2613,10 +2613,16 @@ public class IBEISIA {
             res = assignFromIA(indivId, al, myShepherd);
         }
         rtn.put("success", true);
+        // GH-1514: id to queue for post-commit deep reindex below. When a new
+        // individual was created, indivId is a *name*, not the generated
+        // individualID, and would silently fail to resolve in
+        // queueIndividualsByIdForDeepReindex.
+        String reindexIndividualId = indivId;
         if (res.get("newMarkedIndividual") != null) {
             MarkedIndividual ind = (MarkedIndividual)res.get("newMarkedIndividual");
             myShepherd.getPM().makePersistent(ind);
             rtn.put("newMarkedIndividual", ind.getIndividualID());
+            reindexIndividualId = ind.getIndividualID();
         }
         if (res.get("encounters") != null) {
             JSONArray je = new JSONArray();
@@ -2639,7 +2645,7 @@ public class IBEISIA {
         // GH-1514: post-commit, queue deep reindex of the target individual so
         // sibling encounters pick up refreshed individualNumberEncounters etc.
         org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
-            java.util.Collections.singleton(indivId));
+            java.util.Collections.singleton(reindexIndividualId));
         return rtn;
     }
 

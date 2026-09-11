@@ -807,6 +807,7 @@
   "CONFIRM_MATCH": "Conferma corrispondenza",
   "MERGE_INDIVIDUALS": "Unisci individui",
   "CANNOT_MERGE_MORE_THAN_TWO": "Non è possibile unire più di due individui",
+  "CANNOT_MATCH_ACROSS_QUERY_ENCOUNTERS": "I candidati selezionati appartengono a incontri di query diversi. Seleziona i candidati dai risultati di un solo incontro alla volta.",
   "MERGE": "Unisci",
   "MERGE_INDIVIDUAL": "Unisci individuo",
   "AND": "e",

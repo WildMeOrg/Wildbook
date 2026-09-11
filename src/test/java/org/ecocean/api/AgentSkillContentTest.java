@@ -166,9 +166,33 @@ class AgentSkillContentTest {
             assertTrue(index.contains(n), "index toolbox must list " + n);
         assertTrue(index.contains("api-reference"), "index must reference api-reference");
         // (c) the map's analytical keys are exactly those four (api-reference is the only extra)
+        assertTrue(AgentSkill.SKILL_RESOURCES.containsKey("inat-to-wildbook-import"),
+            "the import-prep skill must be registered");
         java.util.Set<String> keys = new java.util.HashSet<>(AgentSkill.SKILL_RESOURCES.keySet());
         keys.remove("api-reference");
+        keys.remove("inat-to-wildbook-import");
         assertEquals(new java.util.HashSet<>(java.util.Arrays.asList(analytical)), keys,
             "the analytical skills in the map must be exactly the four listed in the index");
+    }
+
+    @Test void inat_to_wildbook_import_is_well_formed() {
+        String md = load("/agent-skills/inat-to-wildbook-import.md");
+        assertFalse(md.isEmpty(), "inat-to-wildbook-import must be non-empty");
+        assertTrue(md.contains("name: inat-to-wildbook-import"),
+            "frontmatter name must equal the file stem");
+        for (String s : REQUIRED_SECTIONS)
+            assertTrue(md.contains(s), "import skill must contain section " + s);
+        assertTrue(md.contains("github.com/WildMeOrg/inat-download-recent-species-sightings"),
+            "must point at the public repo");
+        assertTrue(md.contains("v1.0.0"), "must pin to the released tag");
+        assertTrue(md.contains("Encounter.otherCatalogNumbers"),
+            "must name the dedup back-reference column");
+        assertTrue(md.toLowerCase().contains("bulk import"),
+            "must hand off to the Wildbook Bulk Import UI");
+        assertNoLeak(md);
+        assertNoJargon(userFacingSections(md));
+        // it is an import-prep skill, so it must NOT be forced through the read-only template
+        assertTrue(load("/agent-skills/index.md").contains("inat-to-wildbook-import"),
+            "root index must list the import skill");
     }
 }
