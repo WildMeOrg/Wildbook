@@ -4328,8 +4328,7 @@ public class Encounter extends Base implements java.io.Serializable {
             for (Role role : myShepherd.getRolesInContext("context0")) {
                 if ((role == null) || (role.getRolename() == null) || (role.getUsername() == null))
                     continue;
-                if (org.ecocean.security.LocationRoleAccess.SYSTEM_ROLE_NAMES.contains(
-                    role.getRolename())) continue;
+                if (Role.SYSTEM_ROLE_NAMES.contains(role.getRolename())) continue;
                 String roleUid = usernameToId.get(role.getUsername());
                 if (roleUid == null) continue;
                 if (!roleNameToUserIds.containsKey(role.getRolename()))

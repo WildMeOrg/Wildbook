@@ -96,25 +96,7 @@ class LocationRoleAccessTest {
         assertTrue(LocationRoleAccess.roleNamesFor("orgAdmin").isEmpty());
     }
 
-    // ---- lineageFor: pure traversal edge cases ----
-
-    @Test void identifiedRootIsPartOfTheLineage() {
-        JSONObject tree = new JSONObject(
-            "{\"id\":\"World\",\"locationID\":[{\"id\":\"X\",\"locationID\":[]}]}");
-        assertEquals(Arrays.asList("World", "X"), LocationRoleAccess.lineageFor("X", tree));
-        assertEquals(Arrays.asList("World"), LocationRoleAccess.lineageFor("World", tree));
-    }
-
-    @Test void nullTreeYieldsExactOnly() {
-        assertEquals(Arrays.asList("X"), LocationRoleAccess.lineageFor("X", null));
-    }
-
-    @Test void malformedChildEntriesAreIgnored() {
-        JSONObject tree = new JSONObject(
-            "{\"locationID\":[\"not-an-object\", 7, {\"name\":\"no id here\",\"locationID\":["
-            + "{\"id\":\"Deep\",\"locationID\":\"not-an-array\"}]}]}");
-        assertEquals(Arrays.asList("Deep"), LocationRoleAccess.lineageFor("Deep", tree));
-    }
+    // pure traversal edge cases live with the traversal, in LocationIDLineageTest
 
     // ---- request path (Shiro) ----
 

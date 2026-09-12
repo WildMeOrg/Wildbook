@@ -1,19 +1,16 @@
 package org.ecocean.security;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.ecocean.LocationID;
+import org.ecocean.Role;
 import org.ecocean.User;
 import org.ecocean.shepherd.core.Shepherd;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -35,12 +32,12 @@ import org.json.JSONObject;
  *   (ambiguous), gets exact-name matching only;
  * - blank ids in the tree are skipped; a null or blank locationID grants nothing;
  * - system role names never count as location roles, even when a location id collides with one.
+ *
+ * The lineage walk itself is tree geometry with no role concept in it, so it lives on
+ * LocationID.lineageFor(); the system role names live on Role.SYSTEM_ROLE_NAMES, shared with
+ * StartupWildbook and UserConsolidate.
  */
 public final class LocationRoleAccess {
-    public static final Set<String> SYSTEM_ROLE_NAMES = Collections.unmodifiableSet(
-        new HashSet<String>(Arrays.asList("admin", "orgAdmin", "researcher", "rest",
-        "machinelearning")));
-
     private LocationRoleAccess() {}
 
     /** Role names that grant access to an encounter at locationID: itself plus its ancestors
@@ -57,49 +54,9 @@ public final class LocationRoleAccess {
     }
 
     static Set<String> roleNamesFor(String locationID, JSONObject tree) {
-        Set<String> names = new LinkedHashSet<String>(lineageFor(locationID, tree));
-        names.removeAll(SYSTEM_ROLE_NAMES);
+        Set<String> names = new LinkedHashSet<String>(LocationID.lineageFor(locationID, tree));
+        names.removeAll(Role.SYSTEM_ROLE_NAMES);
         return names;
-    }
-
-    /**
-     * Root-to-node lineage of ids for locationID in tree (the node itself is last). The root is
-     * part of the lineage when it carries an id. Returns just [locationID] when the tree is null,
-     * the id is absent, or the id appears more than once (ambiguous); empty for a blank id.
-     */
-    public static List<String> lineageFor(String locationID, JSONObject tree) {
-        if (isBlank(locationID)) return Collections.emptyList();
-        List<String> exactOnly = Collections.singletonList(locationID);
-        if (tree == null) return exactOnly;
-        List<List<String> > paths = new ArrayList<List<String> >();
-        try {
-            collectPaths(tree, locationID, new ArrayList<String>(), paths);
-        } catch (Exception ex) {
-            return exactOnly;
-        }
-        if (paths.size() != 1) return exactOnly;
-        return paths.get(0);
-    }
-
-    // depth-first walk recording every path that ends at a node whose id equals target
-    private static void collectPaths(Object node, String target, List<String> path,
-        List<List<String> > out) {
-        if (!(node instanceof JSONObject)) return; // malformed entry: ignore
-        JSONObject json = (JSONObject)node;
-        String id = json.optString("id", null);
-        boolean pushed = false;
-        if (!isBlank(id)) {
-            path.add(id);
-            pushed = true;
-            if (id.equals(target)) out.add(new ArrayList<String>(path));
-        }
-        JSONArray kids = json.optJSONArray("locationID");
-        if (kids != null) {
-            for (int i = 0; i < kids.length(); i++) {
-                collectPaths(kids.opt(i), target, path, out);
-            }
-        }
-        if (pushed) path.remove(path.size() - 1);
     }
 
     /** Shiro path: does the request's user hold any role that covers locationID? */
