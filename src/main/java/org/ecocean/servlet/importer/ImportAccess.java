@@ -20,11 +20,11 @@ import javax.servlet.ServletException;
 
 import org.json.JSONObject;
 
-import com.healthmarketscience.jackcess.Column;
-import com.healthmarketscience.jackcess.Database;
-import com.healthmarketscience.jackcess.DatabaseBuilder;
-import com.healthmarketscience.jackcess.Row;
-import com.healthmarketscience.jackcess.Table;
+import io.github.spannm.jackcess.Column;
+import io.github.spannm.jackcess.Database;
+import io.github.spannm.jackcess.DatabaseBuilder;
+import io.github.spannm.jackcess.Row;
+import io.github.spannm.jackcess.Table;
 
 import java.io.*;
 

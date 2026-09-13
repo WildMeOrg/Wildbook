@@ -125,9 +125,9 @@
     </dependency>
 
     <dependency>
-      <groupId>com.healthmarketscience.jackcess</groupId>
+      <groupId>io.github.spannm</groupId>
       <artifactId>jackcess</artifactId>
-      <version>3.5.0</version>
+      <version>5.1.7</version>
     </dependency>
 
     <dependency>
