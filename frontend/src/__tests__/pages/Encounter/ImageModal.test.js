@@ -208,6 +208,13 @@ describe("ImageModal", () => {
     const store = makeImageStore();
     renderModal({ imageStore: store });
 
+    // jsdom never fires an <img> load event and reports a zero layout, so ImageModal's load
+    // handler returns before setting imageReady -- which gates the annotation rects.
+    const img = document.getElementById("image-modal-main-image");
+    Object.defineProperty(img, "clientWidth", { value: 500, configurable: true });
+    Object.defineProperty(img, "clientHeight", { value: 250, configurable: true });
+    fireEvent.load(img);
+
     const rect = document.getElementById("annotation-rect-0");
     expect(rect).toBeTruthy();
 

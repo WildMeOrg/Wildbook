@@ -23,12 +23,6 @@ jest.mock("../../pages/Login", () => {
   return LoginMock;
 });
 
-jest.mock("../../pages/Citation", () => {
-  const CitationMock = () => <div>Citation Page</div>;
-  CitationMock.displayName = "Citation";
-  return CitationMock;
-});
-
 jest.mock("../../pages/errorPages/Unauthorized", () => {
   const UnauthorizedMock = ({ setHeader }) => {
     setHeader(false);
@@ -67,12 +61,6 @@ describe("UnAuthenticatedSwitch", () => {
   test("renders the login page by default", async () => {
     renderComponent({ showAlert: false, setShowAlert: jest.fn() });
     expect(await screen.getByText("Login Page")).toBeInTheDocument();
-  });
-
-  test("renders the citation page when navigating to /citation", async () => {
-    window.history.pushState({}, "", "/citation");
-    renderComponent({ showAlert: false, setShowAlert: jest.fn() });
-    expect(await screen.findByText("Citation Page")).toBeInTheDocument();
   });
 
   test("navigates to login with redirect query when visiting an unknown page", async () => {

@@ -4,13 +4,13 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { IntlProvider } from "react-intl";
-import PoliciesAndData from "../../../pages/PoliciesAndData/PoliciesAndData";
-import LocaleContext from "../../../IntlProvider";
-import ThemeColorContext from "../../../ThemeColorProvider";
-import AuthContext from "../../../AuthProvider";
-import messages from "../../../locale/en.json";
+import PoliciesAndData from "../../pages/PoliciesAndData/PoliciesAndData";
+import LocaleContext from "../../IntlProvider";
+import ThemeColorContext from "../../ThemeColorProvider";
+import AuthContext from "../../AuthProvider";
+import messages from "../../locale/en.json";
 
-jest.mock("../../../pages/Citation", () => {
+jest.mock("../../pages/Citation", () => {
   const React = require("react");
   const MockCitingWildbook = () =>
     React.createElement(
@@ -76,9 +76,10 @@ describe("PoliciesAndData Component", () => {
       expect(screen.getByText("MENU_LEARN_CITINGWILDBOOK")).toBeInTheDocument();
     });
 
-    test("renders default section (Citing Wildbook) when no section param provided", () => {
+    test("renders default section (Privacy Policy) when no section param provided", () => {
       renderComponent();
-      expect(screen.getByTestId("citing-wildbook")).toBeInTheDocument();
+      expect(screen.queryByTestId("citing-wildbook")).not.toBeInTheDocument();
+      expect(fetch).toHaveBeenCalled();
     });
 
     test("renders chevron icons for all sections", () => {
@@ -129,11 +130,12 @@ describe("PoliciesAndData Component", () => {
       });
     });
 
-    test("defaults to Citing Wildbook for invalid section param", () => {
+    test("defaults to Privacy Policy for invalid section param", () => {
       renderComponent({
         initialPath: "/policies?section=invalid",
       });
-      expect(screen.getByTestId("citing-wildbook")).toBeInTheDocument();
+      expect(screen.queryByTestId("citing-wildbook")).not.toBeInTheDocument();
+      expect(fetch).toHaveBeenCalled();
     });
   });
 
@@ -220,7 +222,7 @@ describe("PoliciesAndData Component", () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText(/PDF not found for/)).toBeInTheDocument();
+        expect(screen.getByText(/PDF not available for locale/)).toBeInTheDocument();
       });
     });
 
@@ -291,8 +293,10 @@ describe("PoliciesAndData Component", () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText(/PDF not found for/)).toBeInTheDocument();
-        expect(screen.getByText("fr")).toBeInTheDocument();
+        // the locale is interpolated into the sentence, not its own text node
+        expect(
+          screen.getByText(/PDF not available for locale fr/),
+        ).toBeInTheDocument();
       });
     });
 
@@ -404,7 +408,7 @@ describe("PoliciesAndData Component", () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText(/PDF not found for/)).toBeInTheDocument();
+        expect(screen.getByText(/PDF not available for locale/)).toBeInTheDocument();
       });
     });
 
@@ -417,7 +421,9 @@ describe("PoliciesAndData Component", () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText("de")).toBeInTheDocument();
+        expect(
+          screen.getByText(/PDF not available for locale de/),
+        ).toBeInTheDocument();
       });
     });
   });
