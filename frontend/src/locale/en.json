@@ -841,5 +841,6 @@
     "MATCH_RESULTS_ERROR_UNKNOWN": "Unknown error",
     "MATCH_RESULTS_ERROR_TIMEOUT": "Task has timed out",
     "NO_MATCH_CANDIDATES": "No candidates matched the applied filters. Please try adjusting them or consider this a new individual.",
-    "NO_MATCH_PROSPECTS": "We couldn't find any matches based on your current filters. Please try adjusting them or consider this a new individual."
+    "NO_MATCH_PROSPECTS": "We couldn't find any matches based on your current filters. Please try adjusting them or consider this a new individual.",
+    "APP_UPDATE_AVAILABLE": "A new version of Wildbook is available. Close all Wildbook tabs when convenient to start using it."
 }
