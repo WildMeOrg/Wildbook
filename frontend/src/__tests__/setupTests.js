@@ -1,5 +1,10 @@
 import "@testing-library/jest-dom";
 
+// jsdom does not ship TextEncoder/TextDecoder; polyfill from Node's util module.
+const { TextEncoder, TextDecoder } = require("util");
+if (typeof global.TextEncoder === "undefined") global.TextEncoder = TextEncoder;
+if (typeof global.TextDecoder === "undefined") global.TextDecoder = TextDecoder;
+
 jest.mock("react-intl", () => {
   const actual = jest.requireActual("react-intl");
   return {

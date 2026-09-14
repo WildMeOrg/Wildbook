@@ -4,6 +4,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Enumeration;
 import java.util.Vector;
 import javax.jdo.Query;
+import org.ecocean.CommonConfiguration;
 
 public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
     public Thread threadCreationObject;
@@ -65,14 +66,6 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
             rightScan = "true";
         }
         props2.setProperty("rightScan", rightScan);
-
-        // Modified Groth algorithm parameters
-        // pulled from the gridManager
-        props2.setProperty("epsilon", gm.getGrothEpsilon());
-        props2.setProperty("R", gm.getGrothR());
-        props2.setProperty("Sizelim", gm.getGrothSizelim());
-        props2.setProperty("maxTriangleRotation", gm.getGrothMaxTriangleRotation());
-        props2.setProperty("C", gm.getGrothC());
         props2.setProperty("secondRun", gm.getGrothSecondRun());
 
         Vector<String> newSWIs = new Vector<String>();
@@ -81,6 +74,20 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
         // myShepherd.beginDBTransaction();
         // EncounterLite baseEnc=new EncounterLite(myShepherd.getEncounter(encounterNumber));
         EncounterLite baseEnc = gm.getMatchGraphEncounterLiteEntry(encounterNumber);
+        if (baseEnc == null) {
+            System.out.println("ScanWorkItemCreationThread: encounterNumber " + encounterNumber +
+                " not found in match graph — cannot build work items, aborting.");
+            return;
+        }
+        // Resolve Groth params by query encounter's species (baseEnc is guaranteed non-null here)
+        String qGenus = baseEnc.getGenus();
+        String qEpithet = baseEnc.getSpecificEpithet();
+        org.ecocean.grid.GrothParams gp = CommonConfiguration.getGrothParams(qGenus, qEpithet, context);
+        props2.setProperty("epsilon", String.valueOf(gp.getEpsilon()));
+        props2.setProperty("R", String.valueOf(gp.getR()));
+        props2.setProperty("Sizelim", String.valueOf(gp.getSizelim()));
+        props2.setProperty("maxTriangleRotation", String.valueOf(gp.getMaxTriangleRotation()));
+        props2.setProperty("C", String.valueOf(gp.getC()));
         // myShepherd.rollbackDBTransaction();
         // now, add the workItems
         // myShepherd.beginDBTransaction();

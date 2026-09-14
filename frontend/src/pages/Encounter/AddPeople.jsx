@@ -8,45 +8,68 @@ import { FormattedMessage } from "react-intl";
 
 export const AddPeople = observer(({ store }) => {
   const theme = React.useContext(ThemeColorContext);
+
+  const isValidEmail = (email = "") => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  };
+
+  const emailIsValid = isValidEmail(store?.newPersonEmail);
+
   return (
     <div>
       <h6>
         <FormattedMessage id="ADD_NEW_PEOPLE" />
       </h6>
+
       <TextInput
-        value={store.newPersonEmail}
-        onChange={(value) => store.setNewPersonEmail(value)}
+        value={store?.newPersonEmail}
+        onChange={(value) => store?.setNewPersonEmail?.(value)}
         placeholder="Enter email"
         className="mb-3"
         label="Email"
       />
+
       <SelectInput
-        value={store.newPersonRole}
-        onChange={(value) => store.setNewPersonRole(value)}
+        value={store?.newPersonRole}
+        onChange={(value) => store?.setNewPersonRole?.(value)}
         options={["submitters", "photographers", "informOthers"]}
         placeholder="Select role"
         className="mb-3"
         label="Role"
       />
+
+      {store?.newPersonEmail && !emailIsValid && (
+        <div className="mb-3" style={{ color: "red", fontSize: "0.875rem" }}>
+          <FormattedMessage
+            id="INVALID_EMAIL_ADDRESS"
+            defaultMessage="Please enter a valid email address."
+          />
+        </div>
+      )}
+
       <div className="d-flex justify-content-between align-items-center w-100 flex-wrap mt-3">
         <MainButton
           onClick={() => {
-            store.addNewPerson();
-            store.refreshEncounterData();
+            if (!emailIsValid) return;
+            store?.addNewPerson?.();
+            store?.refreshEncounterData?.();
           }}
           noArrow={true}
           backgroundColor={theme.primaryColors.primary700}
           color="white"
-          disabled={!store.newPersonEmail || !store.newPersonRole}
+          disabled={
+            !store?.newPersonEmail || !store?.newPersonRole || !emailIsValid
+          }
         >
-          {<FormattedMessage id="SAVE" />}
+          <FormattedMessage id="SAVE" />
         </MainButton>
+
         <MainButton
           onClick={() => {
-            store.setNewPersonName("");
-            store.setNewPersonEmail("");
-            store.setNewPersonRole("");
-            store.modals.setOpenAddPeopleModal(false);
+            store?.setNewPersonName?.("");
+            store?.setNewPersonEmail?.("");
+            store?.setNewPersonRole?.("");
+            store?.modals?.setOpenAddPeopleModal?.(false);
           }}
           noArrow={true}
           variant="secondary"
@@ -54,7 +77,7 @@ export const AddPeople = observer(({ store }) => {
           color={theme.primaryColors.primary700}
           shadowColor={theme.primaryColors.primary700}
         >
-          {<FormattedMessage id="CANCEL" />}
+          <FormattedMessage id="CANCEL" />
         </MainButton>
       </div>
     </div>

@@ -13,8 +13,8 @@ import {
   sessionWarningTime,
   sessionCountdownTime,
 } from "./constants/sessionWarning";
-import useGetSiteSettings from "./models/useGetSiteSettings";
 import useDocumentTitle from "./hooks/useDocumentTitle";
+import { useSiteSettings } from "./SiteSettingsContext";
 
 export default function FrontDesk() {
   useDocumentTitle();
@@ -24,9 +24,10 @@ export default function FrontDesk() {
   const [mergeData, setMergeData] = useState([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { data } = useGetSiteSettings();
+  const { data, isLoading: siteSettingsLoading } = useSiteSettings();
   const showclassicsubmit = data?.showClassicSubmit;
   const showClassicEncounterSearch = data?.showClassicEncounters;
+  const showHowToPhotograph = data?.showHowToPhotograph;
   const checkLoginStatus = () => {
     axios
       .head("/api/v3/user")
@@ -103,6 +104,8 @@ export default function FrontDesk() {
         <AuthenticatedSwitch
           showclassicsubmit={showclassicsubmit}
           showClassicEncounterSearch={showClassicEncounterSearch}
+          showHowToPhotograph={showHowToPhotograph}
+          siteSettingsLoading={siteSettingsLoading}
         />
       </AuthContext.Provider>
     );
@@ -111,7 +114,11 @@ export default function FrontDesk() {
   return (
     <AuthContext.Provider value={{ isLoggedIn }}>
       <GoogleTagManager />
-      <UnauthenticatedSwitch showclassicsubmit={showclassicsubmit} />
+      <UnauthenticatedSwitch
+        showclassicsubmit={showclassicsubmit}
+        showHowToPhotograph={showHowToPhotograph}
+        siteSettingsLoading={siteSettingsLoading}
+      />
     </AuthContext.Provider>
   );
 }

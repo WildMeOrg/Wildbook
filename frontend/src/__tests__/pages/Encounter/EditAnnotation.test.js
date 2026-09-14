@@ -3,6 +3,7 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import axios from "axios";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
 jest.mock("mobx-react-lite", () => ({
   observer: (Comp) => Comp,
@@ -67,16 +68,9 @@ jest.mock("../../../components/AnnotationSuccessful", () => (props) => (
   <div data-testid="annotation-success">SUCCESS</div>
 ));
 
-jest.mock("../../../models/useGetSiteSettings", () => ({
+jest.mock("../../../SiteSettingsContext", () => ({
   __esModule: true,
-  default: () => ({
-    data: {
-      iaClassesForTaxonomy: {
-        "Panthera leo": ["head", "side"],
-      },
-      annotationViewpoint: ["front", "left"],
-    },
-  }),
+  useSiteSettings: jest.fn(),
 }));
 
 jest.mock("react-router-dom", () => ({
@@ -139,6 +133,16 @@ let selectClickCount = 0;
 describe("EditAnnotation", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useSiteSettings.mockReturnValue({
+      data: {
+        iaClassesForTaxonomy: {
+          "Panthera leo": ["head", "side"],
+        },
+        annotationViewpoint: ["front", "left"],
+      },
+      isLoading: false,
+      error: null,
+    });
     selectClickCount = 0;
     axios.get = jest.fn();
     global.fetch = jest.fn().mockResolvedValue({

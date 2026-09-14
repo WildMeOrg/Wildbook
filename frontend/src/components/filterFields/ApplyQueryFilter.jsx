@@ -8,6 +8,12 @@ import { useContext } from "react";
 export default function ApplyQueryFilter() {
   const theme = useContext(ThemeColorContext);
   const [queryId, setQueryId] = React.useState("");
+  const applyId = () => {
+    const trimmed = queryId.trim();
+    if (trimmed) {
+      window.location.href = `${process.env.PUBLIC_URL}/encounter-search?searchQueryId=${encodeURIComponent(trimmed)}`;
+    }
+  };
   return (
     <div>
       <h4>
@@ -30,8 +36,9 @@ export default function ApplyQueryFilter() {
             borderRadius: " 5px 0 0 5px",
           }}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && queryId) {
-              window.location.href = `/encounter-search?searchQueryId=${queryId}`;
+            if (e.key === "Enter") {
+              e.preventDefault();
+              applyId();
             }
           }}
           onChange={(e) => {
@@ -45,11 +52,7 @@ export default function ApplyQueryFilter() {
             borderRadius: "0 5px 5px 0",
             backgroundColor: theme.primaryColors.primary700,
           }}
-          onClick={() => {
-            if (queryId) {
-              window.location.href = `${process.env.PUBLIC_URL}/encounter-search?searchQueryId=${queryId}`;
-            }
-          }}
+          onClick={applyId}
         >
           <FormattedMessage id="APPLY" />
         </Button>

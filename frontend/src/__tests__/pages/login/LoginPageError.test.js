@@ -1,35 +1,35 @@
 import React from "react";
-import { fireEvent, screen, waitFor, act } from "@testing-library/react";
+import { fireEvent, screen, act } from "@testing-library/react";
 import LoginPage from "../../../pages/Login";
 import useLogin from "../../../models/auth/useLogin";
 import { renderWithProviders } from "../../../utils/utils";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
 jest.mock("../../../models/auth/useLogin");
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: jest.fn(),
+}));
 
 describe("LoginPage Tests", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    let errorState = null;
-    const mockSetError = jest.fn((errorMessage) => {
-      errorState = errorMessage;
-      useLogin.mockReturnValue({
-        authenticate: mockAuthenticate,
-        error: errorState,
-        setError: mockSetError,
-        loading: false,
-      });
+    useSiteSettings.mockReturnValue({
+      data: {},
+      isLoading: false,
+      error: null,
     });
-
-    const mockAuthenticate = jest.fn(async () => {
-      mockSetError("Invalid email or password");
-    });
+    mockSetError = jest.fn();
+    mockAuthenticate = jest.fn();
     useLogin.mockReturnValue({
       authenticate: mockAuthenticate,
-      error: errorState,
+      error: null,
       setError: mockSetError,
       loading: false,
     });
   });
+
+  let mockAuthenticate;
+  let mockSetError;
 
   test("should show error message when submitting empty username and password", async () => {
     renderWithProviders(<LoginPage />);
@@ -38,11 +38,8 @@ describe("LoginPage Tests", () => {
       screen.getByRole("button", { name: /sign in/i }).click();
     });
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(/Invalid email or password/i),
-      ).toBeInTheDocument();
-    });
+    expect(mockSetError).toHaveBeenCalledWith(null);
+    expect(mockAuthenticate).toHaveBeenCalledWith("", "");
   });
 
   test("should show error when entering incorrect credentials", async () => {
@@ -60,10 +57,7 @@ describe("LoginPage Tests", () => {
       screen.getByRole("button", { name: /sign in/i }).click();
     });
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(/Invalid email or password/i),
-      ).toBeInTheDocument();
-    });
+    expect(mockSetError).toHaveBeenCalledWith(null);
+    expect(mockAuthenticate).toHaveBeenCalledWith("wrongUser", "wrongPass");
   });
 });

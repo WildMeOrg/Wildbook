@@ -53,15 +53,24 @@ public class GetCurrentIAInfo extends HttpServlet {
         myShepherd.beginDBTransaction();
 
         JSONObject res = new JSONObject();
-        JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-        String action = j.optString("action", null);
-        String onlyIdentifiable = j.optString("onlyIdentifiable", null);
+        res.put("success", "false");
         try {
-            res.put("success", "false");
+            User currentUser = myShepherd.getUser(request);
+            if (currentUser == null) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+            JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
+            String action = j.optString("action", null);
+            String onlyIdentifiable = j.optString("onlyIdentifiable", null);
             if ("getIAInfoForEncounter".equals(action)) {
                 String encNum = j.optString("encounterId", null);
                 if (Util.stringExists(encNum) && myShepherd.isEncounter(encNum)) {
                     Encounter enc = myShepherd.getEncounter(encNum);
+                    if (!currentUser.isAdmin(myShepherd) && !enc.canUserAccess(request)) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        return;
+                    }
                     ArrayList<Annotation> anns = enc.getAnnotations();
                     if (anns != null && !anns.isEmpty()) {
                         JSONArray resArr = new JSONArray();
@@ -77,8 +86,6 @@ public class GetCurrentIAInfo extends HttpServlet {
                     response.setStatus(HttpServletResponse.SC_OK);
                 }
             }
-            out.println(res);
-            out.close();
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             addErrorMessage(res, "NullPointerException npe");
@@ -95,6 +102,7 @@ public class GetCurrentIAInfo extends HttpServlet {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
             out.println(res);
+            out.close();
         }
     }
 

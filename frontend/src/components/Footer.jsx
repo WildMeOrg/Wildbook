@@ -1,10 +1,10 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import FooterLink from "./footer/FooterLink";
 import ThemeColorContext from "../ThemeColorProvider";
 import FooterVisibilityContext from "../FooterVisibilityContext";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import { useSiteSettings } from "../SiteSettingsContext";
 import {
   footerLinks1,
   footerLinks2,
@@ -12,10 +12,10 @@ import {
 } from "../constants/footerMenu";
 
 const Footer = () => {
+  const [version, setVersion] = useState(null);
   const theme = useContext(ThemeColorContext);
   const { visible } = useContext(FooterVisibilityContext);
-  const [version, setVersion] = useState();
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   useEffect(() => {
     if (data) {
       setVersion(data.system?.wildbookVersion);

@@ -141,8 +141,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
             String variables_statement =
                 " VARIABLES org.ecocean.Encounter enc; org.ecocean.Project proj";
             jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
-        } else {
-        }
+        } else {}
         // end filter for projectName------------------
         // locationID filters-------------------------------------------------
         String[] locCodes = request.getParameterValues("locationCodeField");
@@ -473,8 +472,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
                         prettyPrint.append(operator);
                         prettyPrint.append(value);
                         prettyPrint.append("<br/>");
-                        if (bioAtLeastOneMeasurement) {
-                        }
+                        if (bioAtLeastOneMeasurement) {}
                         String measurementVar = "biomeasurement" + bioMeasurementsInQuery++;
                         bioMeasurementFilter.append(" && dce322.analyses.contains(" +
                             measurementVar + ")");
@@ -972,12 +970,12 @@ public class IndividualQueryProcessor extends QueryProcessor {
 
             // now we have to break apart genus species
             StringTokenizer tokenizer = new StringTokenizer(genusSpecies, " ");
-            if (tokenizer.countTokens() == 2) {
+            if (tokenizer.countTokens() > 1) {
                 genus = tokenizer.nextToken();
-                while(tokenizer.hasMoreTokens()) {
-                	specificEpithet+=tokenizer.nextToken()+" ";
+                while (tokenizer.hasMoreTokens()) {
+                    specificEpithet += tokenizer.nextToken() + " ";
                 }
-                specificEpithet=specificEpithet.trim();
+                specificEpithet = specificEpithet.trim();
 
                 filter = filterWithCondition(filter, " enc.genus == '" + genus + "' ");
                 filter = filterWithCondition(filter,
@@ -1214,7 +1212,6 @@ public class IndividualQueryProcessor extends QueryProcessor {
         StringBuffer prettyPrint = new StringBuffer();
         Map<String, Object> paramMap = new HashMap<String, Object>();
         String filter = queryStringBuilder(request, prettyPrint, paramMap);
-
         Query query = myShepherd.getPM().newQuery(filter);
 
         if ((order != null) && (!order.trim().equals(""))) {
@@ -1255,8 +1252,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
                 } else if (request.getParameter("sort").equals("dateTimeLatestSighting")) {
                     allSharks = myShepherd.getAllMarkedIndividuals(query,
                         "dateTimeLatestSighting descending", paramMap);
-                }
-                else if (request.getParameter("sort").equals("dateTimeLatestSighting")) {
+                } else if (request.getParameter("sort").equals("dateTimeLatestSighting")) {
                     allSharks = myShepherd.getAllMarkedIndividuals(query,
                         "dateTimeLatestSighting descending", paramMap);
                 } else {

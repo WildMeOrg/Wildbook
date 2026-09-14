@@ -255,9 +255,15 @@ public class Collaborate extends HttpServlet {
                     System.out.println("/Collaborate: new .getState() = " + collab.getState() +
                         " for collab " + collab);
                     rtn.put("success", true);
-                    OpenSearch.setPermissionsNeeded(myShepherd, true);
+                    // Do NOT set permissionsNeeded inside this transaction: the updateDBTransaction()
+                    // commit below flushes the modified Collaboration, whose
+                    // WildbookLifecycleListener.postStore opens a separate connection to UPDATE the
+                    // same row and commit -- which would block forever on this transaction's
+                    // uncommitted row lock (self-deadlock). Flag it AFTER the commit instead, via the
+                    // static overload (its own short transaction), so it is deadlock-free and
+                    // correctly ordered (a reindex cannot run against the pre-commit collaboration).
                     myShepherd.updateDBTransaction();
-                    // myShepherd.commitDBTransaction();
+                    OpenSearch.setPermissionsNeeded(true);
                 }
             }
             // NEW INVITE - default to sending a NEW invite if no other logic accepts the request

@@ -4,7 +4,7 @@ export default function LoadingScreen() {
   const [showSpinner, setShowSpinner] = useState(false);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setShowSpinner(true), 1000);
+    const timeout = setTimeout(() => setShowSpinner(true), 500);
     return () => clearTimeout(timeout);
   }, []);
 

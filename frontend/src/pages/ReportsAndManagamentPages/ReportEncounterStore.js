@@ -1,5 +1,9 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
+import {
+  formatReportDateTime,
+  parseReportDateTime,
+} from "./reportDateTime";
 
 export class ReportEncounterStore {
   _isLoggedin;
@@ -45,6 +49,7 @@ export class ReportEncounterStore {
       value: "",
       error: false,
       required: true,
+      verbatimLocality: "",
     };
     this._additionalCommentsSection = {
       value: "",
@@ -191,6 +196,7 @@ export class ReportEncounterStore {
 
   setDateTimeSectionValue(value) {
     this._dateTimeSection.value = value;
+    this._dateTimeSection.error = false;
   }
 
   setDateTimeSectionError(error) {
@@ -215,6 +221,10 @@ export class ReportEncounterStore {
 
   setLocationError(error) {
     this._placeSection.error = error;
+  }
+
+  setVerbatimLocality(value) {
+    this._placeSection.verbatimLocality = value;
   }
 
   setFollowUpSection(value) {
@@ -330,9 +340,16 @@ export class ReportEncounterStore {
       isValid = false;
     }
 
-    if (!this._dateTimeSection.value && this._dateTimeSection.required) {
-      this._dateTimeSection.error = true;
-      isValid = false;
+    if (this._dateTimeSection.required) {
+      const dateValue = parseReportDateTime(this._dateTimeSection.value);
+
+      const isFutureDate =
+        dateValue.isValid() && dateValue.isAfter(parseReportDateTime(new Date()));
+
+      if (!dateValue.isValid() || isFutureDate) {
+        this._dateTimeSection.error = true;
+        isValid = false;
+      }
     }
 
     if (!this._placeSection.locationId && this._placeSection.required) {
@@ -351,9 +368,10 @@ export class ReportEncounterStore {
         const payload = {
           submissionId: this._imageSectionSubmissionId,
           assetFilenames: this._imageSectionFileNames,
-          dateTime: this._dateTimeSection.value,
+          dateTime: formatReportDateTime(this._dateTimeSection.value),
           taxonomy: this._speciesSection.value,
           locationId: this._placeSection.locationId,
+          verbatimLocality: this._placeSection.verbatimLocality,
           comments: this._additionalCommentsSection.value,
           submitterName: this._followUpSection.submitter.name,
           submitterEmail: this._followUpSection.submitter.email,
@@ -388,6 +406,7 @@ export class ReportEncounterStore {
         if (response.status === 200) {
           this._speciesSection.value = "";
           this._placeSection.value = "";
+          this._placeSection.verbatimLocality = "";
           this._followUpSection.value = "";
           this._dateTimeSection.value = "";
           this._imageSectionFileNames = [];

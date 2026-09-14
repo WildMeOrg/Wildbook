@@ -3,6 +3,24 @@ import { screen, fireEvent } from "@testing-library/react";
 import DateFilter from "../../../components/filterFields/DateFilter";
 import { renderWithProviders } from "../../../utils/utils";
 
+jest.mock("antd", () => ({
+  DatePicker: ({ onChange, value, className = "" }) => (
+    <input
+      type="date"
+      className={`form-control ${className}`.trim()}
+      value={
+        value && typeof value.format === "function"
+          ? value.format("YYYY-MM-DD")
+          : value || ""
+      }
+      onChange={(e) => {
+        const val = e.target.value;
+        onChange(val ? { format: () => val } : null);
+      }}
+    />
+  ),
+}));
+
 const mockStore = {
   formFilters: [],
   addFilter: jest.fn(),
@@ -109,7 +127,7 @@ describe("DateFilter Component", () => {
     const dateInputs = document.querySelectorAll(
       'input[type="date"].form-control',
     );
-    const startDateInput = dateInputs[2];
+    const startDateInput = dateInputs[0];
     fireEvent.change(startDateInput, { target: { value: "123" } });
     fireEvent.change(startDateInput, { target: { value: "" } });
 

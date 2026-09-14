@@ -27,8 +27,8 @@ public class AcmUtil {
             } else if (mas.get(i).getAcmId() == null) {
                 mas.get(i).setAcmId(acmIds.get(i));
                 numChanged++;
-            } else if (!mas.get(i).getAcmId().equals(acmIds.get(i))) { // maybe we care a little more about changing the acmId ??
-                IA.log("WARNING: AcmUtil.rectifyMediaAssetIds() changing acmId from " +
+            } else if (!mas.get(i).getAcmId().equals(acmIds.get(i))) {
+                IA.log("ERROR: AcmUtil.rectifyMediaAssetIds() changing acmId from " +
                     mas.get(i).getAcmId() + " to " + acmIds.get(i) + " on " + mas.get(i));
                 mas.get(i).setAcmId(acmIds.get(i));
                 numChanged++;

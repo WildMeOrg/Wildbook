@@ -177,25 +177,21 @@ describe("MoreDetails", () => {
     expect(screen.queryByTestId("card-edit-TRACKING")).not.toBeInTheDocument();
   });
 
-  test("click biological samples tab sets location.href", () => {
+  test("click biological samples tab opens window", () => {
     const store = makeStore();
-    const oldHref = window.location.href;
-    delete window.location;
-    window.location = { href: "" };
+    window.open = jest.fn();
 
     render(<MoreDetails store={store} />);
 
     const bioTab = screen.getByText("BIOLOGICAL_SAMPLES");
     fireEvent.click(bioTab);
 
-    expect(store.setBiologicalSamplesSection).toHaveBeenCalledWith(true);
-    expect(store.setMeasurementsAndTrackingSection).toHaveBeenCalledWith(false);
+    expect(store.setMeasurementsAndTrackingSection).toHaveBeenCalledWith(true);
     expect(store.setProjectsSection).toHaveBeenCalledWith(false);
-    expect(window.location.href).toBe(
+    expect(window.open).toHaveBeenCalledWith(
       "/encounters/biologicalSamples.jsp?number=E-123",
+      "_blank",
     );
-
-    window.location = { href: oldHref };
   });
 
   test("measurements save is disabled when measurementValues empty or has errors", () => {

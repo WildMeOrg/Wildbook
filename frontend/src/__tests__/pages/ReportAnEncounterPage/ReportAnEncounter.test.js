@@ -2,7 +2,7 @@ import React from "react";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "../../../utils/utils";
 import ReportEncounter from "../../../pages/ReportsAndManagamentPages/ReportEncounter";
-import useGetSiteSettings from "../../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
 beforeEach(() => {
   jest.spyOn(Storage.prototype, "removeItem");
@@ -12,11 +12,9 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-jest.mock("../../../models/useGetSiteSettings", () => ({
+jest.mock("../../../SiteSettingsContext", () => ({
   __esModule: true,
-  default: jest.fn(() => ({
-    data: { procaptchaSiteKey: "mock-key", isHuman: true },
-  })),
+  useSiteSettings: jest.fn(),
 }));
 
 global.mockProCaptchaRender = jest.fn();
@@ -74,9 +72,11 @@ const renderComponent = () => renderWithProviders(<ReportEncounter />, false);
 describe("ReportEncounter Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    useGetSiteSettings.mockImplementation(() => ({
+    useSiteSettings.mockReturnValue({
       data: { procaptchaSiteKey: "mock-key", isHuman: true },
-    }));
+      isLoading: false,
+      error: null,
+    });
   });
 
   test("renders component correctly", () => {

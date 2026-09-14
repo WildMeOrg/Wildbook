@@ -24,28 +24,17 @@ import static org.mockito.Mockito.*;
 class EncounterCOCOExportFileTest {
 
     @Test
-    void testBuildsCOCOStructure() throws Exception {
-        // Create mock objects
+    void testManifestExcludesFailedImages() throws Exception {
+        // When an image URL is null (download fails), the manifest should NOT
+        // reference that image or its annotations — ensuring consistency.
         Shepherd shepherd = mock(Shepherd.class);
 
-        // Create a mock MediaAsset
         MediaAsset ma = mock(MediaAsset.class);
         when(ma.getUUID()).thenReturn("test-media-uuid");
         when(ma.getWidth()).thenReturn(800.0);
         when(ma.getHeight()).thenReturn(600.0);
-        when(ma.webURL()).thenReturn(null); // Skip actual image download in test
+        when(ma.webURL()).thenReturn(null); // image cannot be fetched
 
-        // Create a mock Feature with bbox
-        Feature feature = mock(Feature.class);
-        JSONObject params = new JSONObject();
-        params.put("x", 100);
-        params.put("y", 200);
-        params.put("width", 300);
-        params.put("height", 400);
-        params.put("theta", 0.5);
-        when(feature.getParameters()).thenReturn(params);
-
-        // Create a mock Annotation
         Annotation ann = mock(Annotation.class);
         when(ann.getId()).thenReturn("test-ann-uuid");
         when(ann.getIAClass()).thenReturn("whale_shark");
@@ -54,12 +43,10 @@ class EncounterCOCOExportFileTest {
         when(ann.getViewpoint()).thenReturn("left");
         when(ann.getTheta()).thenReturn(0.5);
 
-        // Create a mock MarkedIndividual
         MarkedIndividual ind = mock(MarkedIndividual.class);
         when(ind.getId()).thenReturn("test-individual-uuid");
         when(ind.getDisplayName()).thenReturn("Stumpy");
 
-        // Create a mock Encounter
         Encounter enc = mock(Encounter.class);
         ArrayList<Annotation> annotations = new ArrayList<>();
         annotations.add(ann);
@@ -69,19 +56,16 @@ class EncounterCOCOExportFileTest {
         List<Encounter> encounters = new ArrayList<>();
         encounters.add(enc);
 
-        // Run export
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         EncounterCOCOExportFile exportFile = new EncounterCOCOExportFile(encounters, shepherd);
         exportFile.writeTo(baos);
 
-        // Parse ZIP and extract annotations.json
         byte[] zipBytes = baos.toByteArray();
         assertTrue(zipBytes.length > 0, "Export should produce output");
 
         String jsonContent = extractJsonFromZip(zipBytes);
         assertNotNull(jsonContent, "Should contain annotations.json");
 
-        // Verify JSON structure
         JSONObject coco = new JSONObject(jsonContent);
         assertTrue(coco.has("info"));
         assertTrue(coco.has("licenses"));
@@ -89,21 +73,18 @@ class EncounterCOCOExportFileTest {
         assertTrue(coco.has("images"));
         assertTrue(coco.has("annotations"));
 
-        // Verify categories
+        // Image failed to export, so both images and annotations arrays should be empty
+        assertEquals(0, coco.getJSONArray("images").length(),
+            "Failed images should be excluded from manifest");
+        assertEquals(0, coco.getJSONArray("annotations").length(),
+            "Annotations for failed images should be excluded from manifest");
+
+        // Categories are built from encounter data, independent of image success
         JSONArray categories = coco.getJSONArray("categories");
         assertEquals(1, categories.length());
         assertEquals("whale_shark", categories.getJSONObject(0).getString("name"));
 
-        // Verify annotations
-        JSONArray anns = coco.getJSONArray("annotations");
-        assertEquals(1, anns.length());
-        JSONObject annJson = anns.getJSONObject(0);
-        assertEquals("left", annJson.getString("viewpoint"));
-        assertEquals(0.5, annJson.getDouble("theta"), 0.001);
-        assertEquals("test-individual-uuid", annJson.getString("individual_uuid"));
-        assertEquals("Stumpy", annJson.getString("name"));
-
-        // Verify individual_id_mapping in info
+        // Individual mapping is also independent of image success
         JSONObject info = coco.getJSONObject("info");
         assertTrue(info.has("individual_id_mapping"));
         JSONObject mapping = info.getJSONObject("individual_id_mapping");

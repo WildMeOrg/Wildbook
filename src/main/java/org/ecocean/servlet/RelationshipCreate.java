@@ -31,6 +31,7 @@ public class RelationshipCreate extends HttpServlet {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         boolean createThisRelationship = false;
+        boolean serverError = false;
 
         System.out.println("RelationshipCreate: " + request.getQueryString());
         if ((request.getParameter("markedIndividualName1") != null) &&
@@ -42,7 +43,7 @@ public class RelationshipCreate extends HttpServlet {
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("RelationshipCreate.class");
 
-            Relationship rel = new Relationship();
+            Relationship rel = null;
             SocialUnit comm = new SocialUnit();
 
             myShepherd.beginDBTransaction();
@@ -58,11 +59,22 @@ public class RelationshipCreate extends HttpServlet {
                         request.getParameter("markedIndividualName2"));
                     if ((request.getParameter("persistenceID") != null) &&
                         (!request.getParameter("persistenceID").equals(""))) {
-                        // Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class,
-                        // request.getParameter("persistenceID"));
-                        // rel=(Relationship)myShepherd.getPM().getObjectById(identity);
-                        rel = (Relationship)myShepherd.getPM().getObjectById(Relationship.class,
-                            request.getParameter("persistenceID"));
+                        rel = myShepherd.getRelationship(request.getParameter("persistenceID"));
+                        if (rel == null) {
+                            myShepherd.rollbackDBTransaction();
+                            if (Shepherd.parseRelationshipKey(request.getParameter(
+                                "persistenceID")) == null) {
+                                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                out.println(
+                                    "<strong>Failure:</strong> That is not a valid relationship id.");
+                            } else {
+                                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                                out.println(
+                                    "<strong>Failure:</strong> The relationship to edit was not found. It may have been deleted.");
+                            }
+                            out.close();
+                            return;
+                        }
                     } else {
                         rel = new Relationship(request.getParameter("type"), individual1,
                             individual2);
@@ -152,6 +164,7 @@ public class RelationshipCreate extends HttpServlet {
                 }
             } catch (Exception e) {
                 myShepherd.rollbackDBTransaction();
+                serverError = true;
                 e.printStackTrace();
             } finally {
                 myShepherd.closeDBTransaction();
@@ -159,7 +172,7 @@ public class RelationshipCreate extends HttpServlet {
             }
             // output success statement
             // out.println(ServletUtilities.getHeader(request));
-            if (createThisRelationship) {
+            if (createThisRelationship && !serverError) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.println("<strong>Success:</strong> A relationship of type " +
                     request.getParameter("type") + " was created between " +
@@ -168,7 +181,9 @@ public class RelationshipCreate extends HttpServlet {
             } else {
                 out.println(
                     "<strong>Failure:</strong>  I could not create the relationship. Have your administrator check the log files for you to understand the problem.");
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                // a datastore/transaction failure is a server error, not the caller's bad request
+                response.setStatus(serverError ? HttpServletResponse.SC_INTERNAL_SERVER_ERROR :
+                    HttpServletResponse.SC_BAD_REQUEST);
             }
             // out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) +
             // "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual

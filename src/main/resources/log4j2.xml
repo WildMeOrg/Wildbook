@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+
+    <Properties>
+        <!-- sys:user.dir included for non-Tomcat build environments -->
+        <Property name="LOG_DIR">
+            ${sys:catalina.base:-${sys:user.dir}}/logs
+        </Property>
+        <Property name="SERVICE_NAME">${env:SERVICE_NAME:-wildbook}</Property>
+        <Property name="ENVIRONMENT">${env:ENVIRONMENT:-production}</Property>
+        <Property name="DOMAIN_NAME">${env:DOMAIN_NAME:-unknown}</Property>
+        <Property name="HOSTNAME">${env:HOSTNAME:-localhost}</Property>
+        <Property name="LOG_LEVEL">${env:WILDBOOK_LOG_LEVEL:-INFO}</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- Console Appender - For Docker stdout -->
+        <Console name="ConsoleJson" target="SYSTEM_OUT">
+            <JsonTemplateLayout eventTemplateUri="classpath:EcsLayout.json">
+                <EventTemplateAdditionalField key="service" value="${SERVICE_NAME}"/>
+                <EventTemplateAdditionalField key="environment" value="${ENVIRONMENT}"/>
+                <EventTemplateAdditionalField key="host" value="${HOSTNAME}"/>
+                <EventTemplateAdditionalField key="domain" value="${DOMAIN_NAME}"/>
+            </JsonTemplateLayout>
+        </Console>
+
+        <!-- JSON File Appender - PRIMARY for Alloy/Loki -->
+        <RollingFile name="JsonFile"
+                     fileName="${LOG_DIR}/application.json"
+                     filePattern="${LOG_DIR}/application-%d{yyyy-MM-dd}-%i.json.gz"
+                     createOnDemand="false">
+
+            <JsonTemplateLayout eventTemplateUri="classpath:EcsLayout.json">
+                <!-- Add custom fields for Loki labels -->
+                <EventTemplateAdditionalField
+                        key="service"
+                        value="${SERVICE_NAME}"/>
+                <EventTemplateAdditionalField
+                        key="environment"
+                        value="${ENVIRONMENT}"/>
+                <EventTemplateAdditionalField
+                        key="host"
+                        value="${HOSTNAME}"/>
+                <EventTemplateAdditionalField
+                        key="domain"
+                        value="${DOMAIN_NAME}"/>
+            </JsonTemplateLayout>
+
+            <!-- Rollover Policies -->
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+
+            <!-- Keep last 30 days of logs -->
+            <DefaultRolloverStrategy max="30">
+                <Delete basePath="${LOG_DIR}" maxDepth="1">
+                    <IfFileName glob="application-*.json.gz"/>
+                    <IfLastModified age="30d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <!-- Error File - Separate file for errors only -->
+        <RollingFile name="ErrorFile"
+                     fileName="${LOG_DIR}/error.log"
+                     filePattern="${LOG_DIR}/error-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n%throwable</Pattern>
+            </PatternLayout>
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="50 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+
+        <!-- Async Wrapper for Performance -->
+        <Async name="AsyncJson" includeLocation="false">
+            <AppenderRef ref="ConsoleJson"/>
+            <AppenderRef ref="JsonFile"/>
+        </Async>
+
+        <Async name="AsyncError" includeLocation="true">
+            <AppenderRef ref="ErrorFile"/>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+        <!-- Application Loggers -->
+        <Logger name="org.ecocean" level="${LOG_LEVEL}" additivity="false">
+            <AppenderRef ref="AsyncJson"/>
+            <AppenderRef ref="AsyncError"/>
+        </Logger>
+
+        <!-- Third-party Library Loggers -->
+        <Logger name="org.apache.http" level="WARN"/>
+        <Logger name="org.opensearch" level="WARN"/>
+        <Logger name="org.datanucleus" level="WARN"/>
+        <Logger name="DataNucleus" level="WARN"/>
+        <Logger name="org.hibernate" level="WARN"/>
+        <Logger name="org.apache.catalina" level="WARN"/>
+        <Logger name="org.apache.coyote" level="WARN"/>
+        <Logger name="org.apache.tomcat" level="WARN"/>
+
+        <!-- Root Logger -->
+        <Root level="${LOG_LEVEL}">
+            <AppenderRef ref="AsyncJson"/>
+            <AppenderRef ref="AsyncError"/>
+        </Root>
+    </Loggers>
+</Configuration>

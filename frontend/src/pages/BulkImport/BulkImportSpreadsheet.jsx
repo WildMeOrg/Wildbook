@@ -115,15 +115,20 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           const mm = pad2(minute);
 
           let result = y;
-          if (month || day) {
+
+          if ((month != null && month !== "") || (day != null && day !== "")) {
             result += "-" + m;
-            if (day) {
+            if (day != null && day !== "") {
               result += "-" + d;
             }
           }
-          if (hour || minute) {
+
+          if (
+            (hour != null && hour !== "") ||
+            (minute != null && minute !== "")
+          ) {
             result += "T" + hh;
-            if (minute) {
+            if (minute != null && minute !== "") {
               result += ":" + mm;
             }
           }
@@ -195,18 +200,18 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             }
 
             const formattedEncounterDate = formatDate(
-              row["Encounter.year"] || "",
-              row["Encounter.month"] || "",
-              row["Encounter.day"] || "",
-              row["Encounter.hour"] || "",
-              row["Encounter.minutes"] || "",
+              row["Encounter.year"] ?? "",
+              row["Encounter.month"] ?? "",
+              row["Encounter.day"] ?? "",
+              row["Encounter.hour"] ?? "",
+              row["Encounter.minutes"] ?? "",
             );
             const formattedSightingDate = formatDate(
-              row["Sighting.year"] || "",
-              row["Sighting.month"] || "",
-              row["Sighting.day"] || "",
-              row["Sighting.hour"] || "",
-              row["Sighting.minutes"] || "",
+              row["Sighting.year"] ?? "",
+              row["Sighting.month"] ?? "",
+              row["Sighting.day"] ?? "",
+              row["Sighting.hour"] ?? "",
+              row["Sighting.minutes"] ?? "",
             );
 
             if (

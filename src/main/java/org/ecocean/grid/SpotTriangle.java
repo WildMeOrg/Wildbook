@@ -19,6 +19,7 @@ public class SpotTriangle implements java.io.Serializable {
     public double R, C, S2, tR2, tC2;
 
     public double r2, r3;
+    private double cachedRotation;
 
     public SpotTriangle(Spot i, Spot j, Spot k, double epsilon) {
         this.Dij = Point2D.distance(i.getCentroidX(), i.getCentroidY(), j.getCentroidX(),
@@ -119,6 +120,10 @@ public class SpotTriangle implements java.io.Serializable {
         } else {
             clockwise = true;
         }
+        // Pre-compute rotation angle (centroid-relative atan2 of vertex 1)
+        double cx = (v1.getCentroidX() + v2.getCentroidX() + v3.getCentroidX()) / 3;
+        double cy = (v1.getCentroidY() + v2.getCentroidY() + v3.getCentroidY()) / 3;
+        this.cachedRotation = Math.atan2(v1.getCentroidY() - cy, v1.getCentroidX() - cx);
     }
 
     public boolean containsSpot(Spot x) {
@@ -145,38 +150,7 @@ public class SpotTriangle implements java.io.Serializable {
     }
 
     public double getMyVertexOneRotationInRadians() {
-        double x1 = v1.getCentroidX();
-        double y1 = v1.getCentroidY();
-        double x2 = v2.getCentroidX();
-        double y2 = v2.getCentroidY();
-        double x3 = v3.getCentroidX();
-        double y3 = v3.getCentroidY();
-
-        // now calculate the centroid
-        double centroidX = (x1 + x2 + x3) / 3;
-        double centroidY = (y1 + y2 + y3) / 3;
-
-        // let's use vertex one to measure angle of rotation
-        // first we must normalize vertex one with repect to the center. in other words, rotation
-        // of the triangle is about the centroid at (0,0)
-
-        x1 = x1 - centroidX;
-        y1 = y1 - centroidY;
-        double theta;
-
-        // now the angle between v1 and the origin is
-        /*if((y1==0)&&(x1>0)) {return 0;}
-           else if((y1==0)&&(x1<0)) {return 3.14159;}
-           else if((y1>0)&&(x1==0)) {return (3.14159/2);}
-           else if((y1<0)&&(x1==0)) {return (3*3.14159/2);}
-           //Quadrant 1 calc.
-           else if((y1>0)&&(x1>0)) {theta=Math.asin(y1/x1);}
-           //Quadrant 2 calculation else if((y1>0)&&(x1<0)) {theta=3.14159-Math.asin(y1/x1);}
-           //Quadrant 3 calculation else if((y1<0)&&(x1<0)) {theta=3.14159+Math.asin(y1/x1);}
-           //Quadrant 4 calculation else {theta=(2*3.14159)-Math.asin(y1/x1);}*/
-
-        theta = Math.atan2(y1, x1);
-        return theta;
+        return cachedRotation;
     }
 
     public double getTriangleCentroidX() {

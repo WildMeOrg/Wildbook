@@ -1,13 +1,15 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import TextInput from "../../components/generalInputs/TextInput";
 import SelectInput from "../../components/generalInputs/SelectInput";
 import SearchAndSelectInput from "../../components/generalInputs/SearchAndSelectInput";
-import { Alert } from "react-bootstrap";
+import { Alert, Button } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import MainButton from "../../components/MainButton";
 
 export const IdentifySectionEdit = observer(({ store }) => {
+  const [suggestedId, setSuggestedId] = useState(null);
+
   useEffect(() => {
     const id = store.getFieldValue("identify", "individualId");
     const name = store.getFieldValue("identify", "individualDisplayName");
@@ -21,6 +23,37 @@ export const IdentifySectionEdit = observer(({ store }) => {
       ]);
     }
   }, [store]);
+
+  useEffect(() => {
+    const locationId = store?.encounterData?.locationId;
+    if (locationId) {
+      fetch(
+        `/api/v3/individuals/info/next_name?locationId=${encodeURIComponent(locationId)}`,
+      )
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then((data) => {
+          if (data.success && data.results && data.results.length > 0) {
+            const successfulResult = data.results.find((r) => r.success);
+            if (successfulResult && successfulResult.nextName) {
+              setSuggestedId(successfulResult.nextName);
+            } else {
+              setSuggestedId(null);
+            }
+          } else {
+            setSuggestedId(null);
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to fetch suggested ID:", error);
+          setSuggestedId(null);
+        });
+    } else {
+      setSuggestedId(null);
+    }
+  }, [store?.encounterData?.locationId]);
 
   return (
     <div>
@@ -67,6 +100,43 @@ export const IdentifySectionEdit = observer(({ store }) => {
         minChars={2}
       />
 
+      <div className="mb-2 mt-2">
+        {suggestedId ? (
+          <>
+            <span className="text-muted">
+              <FormattedMessage id="SUGGESTED_ID" />: {suggestedId}
+            </span>{" "}
+            <Button
+              variant="link"
+              size="sm"
+              style={{
+                color: store.themeColor?.primaryColors?.primary500,
+                textDecoration: "none",
+              }}
+              onClick={() => {
+                const newOption = {
+                  value: suggestedId,
+                  label: suggestedId,
+                };
+
+                store.setIndividualOptions([
+                  newOption,
+                  ...(store.individualOptions || []),
+                ]);
+
+                store.setHasSuggestedId(true);
+                store.setFieldValue("identify", "individualId", suggestedId);
+                store.setFieldValue("identify", "individualId_suggested", {
+                  type: "locationId",
+                  value: store.getFieldValue("location", "locationName"),
+                });
+              }}
+            >
+              <FormattedMessage id="USE_THIS" />
+            </Button>
+          </>
+        ) : null}
+      </div>
       <TextInput
         label="ALTERNATE_ID"
         value={store.getFieldValue("identify", "otherCatalogNumbers") ?? ""}

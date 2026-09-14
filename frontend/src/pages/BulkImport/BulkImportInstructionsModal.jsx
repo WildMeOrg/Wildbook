@@ -4,7 +4,7 @@ import { FormattedMessage } from "react-intl";
 import { observer } from "mobx-react-lite";
 import MainButton from "../../components/MainButton";
 import ThemeColorContext from "../../ThemeColorProvider";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import {
   defaultMaxMediaSize,
   defaultMaxMediaCount,
@@ -12,7 +12,7 @@ import {
 
 const BulkImportInstructionsModal = observer(({ store }) => {
   const theme = React.useContext(ThemeColorContext);
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   const maxSize = data?.maximumMediaSizeMegabytes || defaultMaxMediaSize;
   const maxImageCount =
     data?.maximumMediaCountEncounter || defaultMaxMediaCount;

@@ -38,6 +38,7 @@ jest.mock("react-bootstrap", () => {
         {children}
       </div>
     ) : null;
+
   Modal.Header = ({ children }) => (
     <div data-testid="modal-header">{children}</div>
   );
@@ -45,10 +46,13 @@ jest.mock("react-bootstrap", () => {
     <div data-testid="modal-title">{children}</div>
   );
   Modal.Body = ({ children }) => <div data-testid="modal-body">{children}</div>;
+
   return { Modal };
 });
 
 import ThemeColorContext from "../../../ThemeColorProvider";
+import ContactInfoModal from "../../../pages/Encounter/ContactInfoModal";
+
 const ThemeWrapper = ({ children }) => (
   <ThemeColorContext.Provider
     value={{ primaryColors: { primary700: "#123456" } }}
@@ -56,8 +60,6 @@ const ThemeWrapper = ({ children }) => (
     {children}
   </ThemeColorContext.Provider>
 );
-
-import ContactInfoModal from "../../../pages/Encounter/ContactInfoModal";
 
 const renderModal = (ui) =>
   render(
@@ -67,6 +69,7 @@ const renderModal = (ui) =>
   );
 
 const makeStore = (overrides = {}) => ({
+  access: "write",
   encounterData: {
     submitterInfo: {},
     submitters: [],
@@ -86,6 +89,7 @@ describe("ContactInfoModal", () => {
     renderModal(
       <ContactInfoModal isOpen={false} onClose={jest.fn()} store={store} />,
     );
+
     expect(screen.queryByTestId("modal")).toBeNull();
   });
 
@@ -104,15 +108,19 @@ describe("ContactInfoModal", () => {
     );
 
     expect(screen.getByText("CONTACT_INFORMATION")).toBeInTheDocument();
+
     expect(
       screen.getByTestId("contact-card-MANAGING_RESEARCHER"),
     ).toBeInTheDocument();
     expect(
       screen.getByTestId("card-count-MANAGING_RESEARCHER"),
     ).toHaveTextContent("1");
+
     expect(screen.getByTestId("contact-card-SUBMITTER")).toBeInTheDocument();
     expect(screen.getByTestId("card-count-SUBMITTER")).toHaveTextContent("1");
+
     expect(screen.queryByTestId("contact-card-PHOTOGRAPHER")).toBeNull();
+
     expect(
       screen.getByTestId("contact-card-INFORM_OTHERS"),
     ).toBeInTheDocument();
@@ -124,34 +132,57 @@ describe("ContactInfoModal", () => {
   test("clicking ADD_PEOPLE calls store.modals.setOpenAddPeopleModal(true)", async () => {
     const user = userEvent.setup();
     const store = makeStore();
+
     renderModal(
       <ContactInfoModal isOpen={true} onClose={jest.fn()} store={store} />,
     );
-    const addBtn = screen.getByText("ADD_PEOPLE").closest("button");
-    await user.click(addBtn);
+
+    await user.click(screen.getByTestId("main-button"));
     expect(store.modals.setOpenAddPeopleModal).toHaveBeenCalledWith(true);
   });
 
-  test("renders AddPeople when openAddPeopleModal=true", () => {
+  test("renders AddPeople when openAddPeopleModal=true and access=write", () => {
     const store = makeStore({
+      access: "write",
       modals: {
         setOpenAddPeopleModal: jest.fn(),
         openAddPeopleModal: true,
       },
     });
+
     renderModal(
       <ContactInfoModal isOpen={true} onClose={jest.fn()} store={store} />,
     );
+
     expect(screen.getByTestId("add-people")).toBeInTheDocument();
+  });
+
+  test("does not render AddPeople when access is not write", () => {
+    const store = makeStore({
+      access: "read",
+      modals: {
+        setOpenAddPeopleModal: jest.fn(),
+        openAddPeopleModal: true,
+      },
+    });
+
+    renderModal(
+      <ContactInfoModal isOpen={true} onClose={jest.fn()} store={store} />,
+    );
+
+    expect(screen.queryByTestId("add-people")).toBeNull();
+    expect(screen.queryByTestId("main-button")).toBeNull();
   });
 
   test("invokes onClose when modal close is triggered", async () => {
     const user = userEvent.setup();
     const onClose = jest.fn();
     const store = makeStore();
+
     renderModal(
       <ContactInfoModal isOpen={true} onClose={onClose} store={store} />,
     );
+
     await user.click(screen.getByTestId("modal-close"));
     expect(onClose).toHaveBeenCalledTimes(1);
   });

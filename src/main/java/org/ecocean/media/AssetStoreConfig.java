@@ -8,8 +8,8 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -20,7 +20,7 @@ import com.google.gson.reflect.TypeToken;
 public class AssetStoreConfig implements java.io.Serializable {
     private static final long serialVersionUID = 3467831207510138929L;
 // stream classdesc serialVersionUID = 3467831207510138929, local class serialVersionUID = 7067475630720091192
-    private static Logger log = LoggerFactory.getLogger(AssetStoreConfig.class);
+    private static final Logger log = LogManager.getLogger(AssetStoreConfig.class);
     private Map<String, String> config;
 
     /**

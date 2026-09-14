@@ -5,21 +5,21 @@ import { Container, Row, Col } from "react-bootstrap";
 export default function Citation() {
   return (
     <Container>
-      <Row className="my-5">
+      <Row>
         <Col>
-          <h1>
+          <h3>
             <FormattedMessage id="CITATION_TITLE" />
-          </h1>
+          </h3>
         </Col>
       </Row>
-      <Row className="mb-3">
+      <Row>
         <Col>
           <p>
             <FormattedMessage id="CITATION_INTRODUCTION" />
           </p>
         </Col>
       </Row>
-      <Row className="mb-3">
+      <Row>
         <Col>
           <p>
             <FormattedMessage id="CITATION_AGREEMENT" />

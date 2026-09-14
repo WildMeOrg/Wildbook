@@ -40,6 +40,10 @@ class ImageModalStore {
     return this.encounterStore.encounterAnnotations;
   }
 
+  get hasMatchableAnnotations() {
+    return this.encounterStore.hasMatchableAnnotations;
+  }
+
   get selectedAnnotationId() {
     return this.encounterStore.selectedAnnotationId;
   }

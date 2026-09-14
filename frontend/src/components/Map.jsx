@@ -3,7 +3,7 @@ import GoogleMapReact from "google-map-react";
 import BrutalismButton from "./BrutalismButton";
 import ThemeContext from "../ThemeColorProvider";
 import { FormattedMessage } from "react-intl";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import { useSiteSettings } from "../SiteSettingsContext";
 
 const MapComponent = ({ setBounds, setTempBounds = () => {} }) => {
   const theme = useContext(ThemeContext);
@@ -11,7 +11,7 @@ const MapComponent = ({ setBounds, setTempBounds = () => {} }) => {
   const drawingRef = useRef(false);
   const [isDrawing, setIsDrawing] = useState(false);
 
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   const key = data?.googleMapsKey;
   const center = {
     lat: data?.mapCenterLat || 0,

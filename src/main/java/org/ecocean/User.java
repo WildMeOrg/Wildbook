@@ -115,6 +115,13 @@ public class User implements Serializable {
         this.lastLogin = -1;
     }
 
+    /**
+     * @deprecated GH-1545: Callers have historically misused this constructor by passing
+     * an email address where a UUID is expected, producing accounts whose primary key
+     * is the email. Prefer {@code new User(email, Util.generateUUID())} or another
+     * constructor when you do not already have a real UUID.
+     */
+    @Deprecated
     public User(String uuid) {
         this.uuid = uuid;
         setReceiveEmails(false);
@@ -316,6 +323,23 @@ public class User implements Serializable {
 
     public void setSalt(String salt) { this.salt = salt; }
     public String getSalt() { return salt; }
+
+    /**
+     * Verify a clear-text password against this user's stored salted hash, using the same hashing
+     * as login (ServletUtilities.hashAndSaltPassword). Constant-time comparison. Returns false if
+     * this user has no stored password or the candidate is blank.
+     */
+    public boolean checkPassword(String clearText) {
+        if ((clearText == null) || clearText.isEmpty()) return false;
+        String stored = this.getPassword();
+        String salt = this.getSalt();
+        if ((stored == null) || stored.isEmpty() || (salt == null)) return false;
+        String hashed = org.ecocean.servlet.ServletUtilities.hashAndSaltPassword(clearText, salt);
+        if (hashed == null) return false;
+        return java.security.MessageDigest.isEqual(
+            hashed.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+            stored.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
 
     public void setUserProject(String newProj) {
         if (newProj != null) { userProject = newProj; } else { userProject = null; }

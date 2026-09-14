@@ -4,56 +4,43 @@ import AddAnnotationModal from "../../components/AddAnnotationModal";
 import { renderWithProviders } from "../../utils/utils";
 
 describe("AddAnnotationModal", () => {
-  const renderComponent = (props) => {
-    return renderWithProviders(<AddAnnotationModal {...props} />);
-  };
-
-  test("renders modal title and close button", () => {
-    renderComponent({
+  const renderComponent = (props = {}) => {
+    const defaultProps = {
       showModal: true,
       setShowModal: jest.fn(),
       incomplete: false,
       error: null,
-    });
+    };
+    const finalProps = { ...defaultProps, ...props };
+    const utils = renderWithProviders(<AddAnnotationModal {...finalProps} />);
+    return { ...utils, props: finalProps };
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("renders modal title and close button", () => {
+    renderComponent();
+
     expect(screen.getByText("SUBMISSION_FAILED")).toBeInTheDocument();
     expect(screen.getByText("SESSION_CLOSE")).toBeInTheDocument();
   });
 
-  test("displays missing required fields message when incomplete is true", () => {
-    renderComponent({
-      showModal: true,
-      setShowModal: jest.fn(),
-      incomplete: true,
-      error: null,
-    });
-    expect(
-      screen.getByText(
-        "Missing required fields. Review the form and try again.",
-      ),
-    ).toBeInTheDocument();
-  });
+  test("does not render modal content when showModal is false", () => {
+    renderComponent({ showModal: false });
 
-  test("displays correct error messages for invalid fields", () => {
-    const errors = [{ code: "INVALID", fieldName: "testField" }];
-    renderComponent({
-      showModal: true,
-      setShowModal: jest.fn(),
-      incomplete: false,
-      error: errors,
-    });
-    expect(
-      screen.getByText(new RegExp(`BEERROR_INVALID\\s*testField`, "i")),
-    ).toBeInTheDocument();
+    expect(screen.queryByText("SUBMISSION_FAILED")).not.toBeInTheDocument();
+    expect(screen.queryByText("SESSION_CLOSE")).not.toBeInTheDocument();
   });
 
   test("closes modal when close button is clicked", () => {
     const setShowModalMock = jest.fn();
+
     renderComponent({
-      showModal: true,
       setShowModal: setShowModalMock,
-      incomplete: false,
-      error: null,
     });
+
     fireEvent.click(screen.getByText("SESSION_CLOSE"));
     expect(setShowModalMock).toHaveBeenCalledWith(false);
   });

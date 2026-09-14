@@ -5,6 +5,10 @@ jest.mock("mobx-react-lite", () => ({
   observer: (Comp) => Comp,
 }));
 
+jest.mock("react-intl", () => ({
+  FormattedMessage: ({ id }) => <span>{id}</span>,
+}));
+
 jest.mock("../../../components/AttributesAndValueComponent", () => {
   const MockAttr = (props) => (
     <div data-testid={`attr-${props.attributeId}`}>
@@ -24,15 +28,8 @@ const makeStore = (values = {}) => ({
   getFieldValue: jest.fn((section, key) => values?.[section]?.[key]),
 });
 
-const FIELDS = [
-  ["IDENTIFIED_AS", "individualDisplayName"],
-  ["MATCHED_BY", "identificationRemarks"],
-  ["ALTERNATE_ID", "otherCatalogNumbers"],
-  ["SIGHTING_ID", "occurrenceId"],
-];
-
 describe("IdentifySectionReview", () => {
-  test("renders all attributes with correct ids and values", () => {
+  test("renders identify fields and SIGHTING_ID link", () => {
     const store = makeStore({
       identify: {
         individualDisplayName: "Flipper",
@@ -44,30 +41,46 @@ describe("IdentifySectionReview", () => {
 
     render(<IdentifySectionReview store={store} />);
 
-    FIELDS.forEach(([id]) => {
-      expect(screen.getByTestId(`attr-${id}`)).toBeInTheDocument();
-      expect(screen.getByTestId(`id-${id}`)).toHaveTextContent(id);
-    });
+    expect(screen.getByTestId("attr-IDENTIFIED_AS")).toBeInTheDocument();
+    expect(screen.getByTestId("attr-MATCHED_BY")).toBeInTheDocument();
+    expect(screen.getByTestId("attr-ALTERNATE_ID")).toBeInTheDocument();
 
     expect(screen.getByTestId("val-IDENTIFIED_AS")).toHaveTextContent(
       "Flipper",
     );
     expect(screen.getByTestId("val-MATCHED_BY")).toHaveTextContent("auto");
     expect(screen.getByTestId("val-ALTERNATE_ID")).toHaveTextContent("ALT-123");
-    expect(screen.getByTestId("val-SIGHTING_ID")).toHaveTextContent("occ-999");
 
-    FIELDS.forEach(([_, key]) => {
-      expect(store.getFieldValue).toHaveBeenCalledWith("identify", key);
-    });
+    expect(screen.getByText("SIGHTING_ID")).toBeInTheDocument();
+    const link = screen.getByRole("link", { name: "occ-999" });
+    expect(link).toHaveAttribute("href", "/occurrence.jsp?number=occ-999");
+    expect(link).toHaveAttribute("target", "_blank");
+
+    expect(store.getFieldValue).toHaveBeenCalledWith(
+      "identify",
+      "individualDisplayName",
+    );
+    expect(store.getFieldValue).toHaveBeenCalledWith(
+      "identify",
+      "identificationRemarks",
+    );
+    expect(store.getFieldValue).toHaveBeenCalledWith(
+      "identify",
+      "otherCatalogNumbers",
+    );
+    expect(store.getFieldValue).toHaveBeenCalledWith(
+      "identify",
+      "occurrenceId",
+    );
   });
 
-  test("renders empty string when store returns undefined", () => {
+  test("renders empty strings when store values are missing", () => {
     const store = makeStore({ identify: {} });
+
     render(<IdentifySectionReview store={store} />);
 
     expect(screen.getByTestId("val-IDENTIFIED_AS")).toHaveTextContent("");
     expect(screen.getByTestId("val-MATCHED_BY")).toHaveTextContent("");
     expect(screen.getByTestId("val-ALTERNATE_ID")).toHaveTextContent("");
-    expect(screen.getByTestId("val-SIGHTING_ID")).toHaveTextContent("");
   });
 });

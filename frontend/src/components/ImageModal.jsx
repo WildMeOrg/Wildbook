@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import useWheelZoom from "../hooks/useWheelZoom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { observer } from "mobx-react-lite";
@@ -14,17 +15,27 @@ import MainButton from "../components/MainButton";
 import ThemeColorContext from "../ThemeColorProvider";
 import { useIntl } from "react-intl";
 import Tooltip from "../components/ToolTip";
+import { placeAnnotationIcons } from "../utils/annotationIconPlacement";
+
+// Annotation overlay geometry. The icon size feeds both the rendered icons
+// and the footprint used to keep the cluster inside the image, so the two
+// cannot drift apart.
+const ANNOTATION_BORDER_PX = 2;
+const EDIT_ICON_PX = 20;
+const EDIT_DELETE_CLUSTER = { width: EDIT_ICON_PX, height: EDIT_ICON_PX * 2 };
 
 export const ImageModal = observer(
   ({
     onClose,
-    assets = [],
+    assets: assetsProp = [],
     index = 0,
     setIndex,
     rects = [],
     imageStore = {},
   }) => {
-    if (!assets || !assets.length) return null;
+    // Normalize once (handles null, not just undefined) so all hooks/render below
+    // are array-safe and the empty guard can sit after the hooks (Rules of Hooks).
+    const assets = Array.isArray(assetsProp) ? assetsProp : [];
     const intl = useIntl();
     const deleteAnnotationConfirmMsg = intl.formatMessage({
       id: "CONFIRM_DELETE_ANNOTATION",
@@ -37,8 +48,13 @@ export const ImageModal = observer(
     const themeColor = React.useContext(ThemeColorContext);
     const thumbsRef = useRef(null);
     const imgRef = useRef(null);
+    const imageContainerRef = useRef(null);
+    const boxRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
+    const [imageReady, setImageReady] = useState(false);
+    const [imageError, setImageError] = useState(false);
+    const [containerSize, setContainerSize] = useState(null);
 
     const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
     const a = assets[safeIndex] || {};
@@ -51,12 +67,24 @@ export const ImageModal = observer(
       setPan({ x: 0, y: 0 });
     }, [zoom, safeIndex]);
 
+    useEffect(() => {
+      setImageReady(false);
+      setImageError(false);
+    }, [safeIndex, assets]);
+
     const onMouseDown = (e) => {
       if (e.button !== 0) return;
       if (zoom <= 1) return;
       e.preventDefault();
       setDragStart({ x: e.clientX, y: e.clientY, startPan: pan });
     };
+
+    // Mouse-wheel zoom matches the zoom-in / reset buttons (step 0.25, range 1..3);
+    // pan re-centers via the [zoom, safeIndex] effect above.
+    const handleWheelZoom = (direction) => {
+      setZoom((z) => Math.min(3, Math.max(1, z + direction * 0.25)));
+    };
+    useWheelZoom(imageContainerRef, handleWheelZoom);
 
     useEffect(() => {
       if (!dragStart) return;
@@ -102,14 +130,62 @@ export const ImageModal = observer(
       if (!s || s.destroyed) return;
       const target = Math.max(0, Math.min(index - 1, assets.length - 1));
       s.slideTo(target, 250);
-      const naturalWidth = assets[index]?.width;
-      const naturalHeight = assets[index]?.height;
-      const displayWidth = imgRef.current.clientWidth;
-      const displayHeight = imgRef.current.clientHeight;
-
-      setScaleX(naturalWidth / displayWidth);
-      setScaleY(naturalHeight / displayHeight);
     }, [index, assets.length]);
+
+    useEffect(() => {
+      if (!imgRef.current) return;
+
+      const handleImageLoad = () => {
+        const naturalWidth =
+          assets[safeIndex]?.width || imgRef.current?.naturalWidth;
+        const naturalHeight =
+          assets[safeIndex]?.height || imgRef.current?.naturalHeight;
+        const displayWidth = imgRef.current?.clientWidth;
+        const displayHeight = imgRef.current?.clientHeight;
+
+        if (
+          !naturalWidth ||
+          !naturalHeight ||
+          !displayWidth ||
+          !displayHeight
+        ) {
+          return;
+        }
+
+        setScaleX(naturalWidth / displayWidth);
+        setScaleY(naturalHeight / displayHeight);
+        // Size of the element that clips the annotations, measured with the
+        // scale so both describe the same layout. Unknown -> icons keep
+        // their default corner.
+        const clipBox = boxRef.current;
+        setContainerSize(
+          clipBox && clipBox.clientWidth > 0 && clipBox.clientHeight > 0
+            ? { width: clipBox.clientWidth, height: clipBox.clientHeight }
+            : null,
+        );
+        setImageReady(true);
+      };
+
+      const handleError = () => {
+        setImageError(true);
+        setImageReady(true);
+      };
+
+      const imgElement = imgRef.current;
+      if (imgElement && imgElement.complete) {
+        handleImageLoad();
+      } else if (imgElement) {
+        imgElement.addEventListener("load", handleImageLoad);
+        imgElement.addEventListener("error", handleError);
+      }
+
+      return () => {
+        if (imgElement) {
+          imgElement.removeEventListener("load", handleImageLoad);
+          imgElement.removeEventListener("error", handleError);
+        }
+      };
+    }, [safeIndex, assets]);
 
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -136,7 +212,6 @@ export const ImageModal = observer(
       };
     }, [rects, imageStore]);
 
-    const boxRef = React.useRef(null);
     const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
     const handleMove = (e) => {
       if (dragStart) return;
@@ -149,6 +224,19 @@ export const ImageModal = observer(
     };
     const handleLeave = () => setTip({ show: false, x: 0, y: 0, text: "" });
     const [tip, setTip] = React.useState({ show: false, x: 0, y: 0, text: "" });
+
+    const maxArea = React.useMemo(() => {
+      return rects.reduce(
+        (max, r) => Math.max(max, (r.width || 0) * (r.height || 0)),
+        1,
+      );
+    }, [rects]);
+
+    const hasMatchableAnnotations = imageStore.hasMatchableAnnotations;
+
+    // Guard placed after all hooks so hook order stays stable across renders
+    // (Rules of Hooks). All hooks above are null-safe when assets is empty.
+    if (!assets || !assets.length) return null;
 
     return (
       <div
@@ -228,13 +316,13 @@ export const ImageModal = observer(
                       marginRight: "8px",
                     }}
                     onClick={() => {
-                      const cur = assets[index];
+                      const cur = assets[safeIndex];
                       if (!cur?.url) return;
                       const a = document.createElement("a");
                       a.href = cur.url;
                       a.download =
                         cur.filename ||
-                        `encounter-image-${cur.id || index}.jpg`;
+                        `encounter-image-${cur.id || safeIndex}.jpg`;
                       a.click();
                     }}
                     aria-label="Download"
@@ -298,6 +386,7 @@ export const ImageModal = observer(
                 </button>
                 <div
                   id="image-modal-image-container"
+                  ref={imageContainerRef}
                   className="position-relative d-flex justify-content-center align-items-center"
                   style={{
                     width: "100%",
@@ -342,17 +431,13 @@ export const ImageModal = observer(
                         objectFit: "contain",
                         margin: "auto",
                       }}
-                      onLoad={() => {
-                        const iw = imgRef.current?.clientWidth || 1;
-                        const ih = imgRef.current?.clientHeight || 1;
-                        setScaleX((assets[safeIndex]?.width || iw) / iw);
-                        setScaleY((assets[safeIndex]?.height || ih) / ih);
-                      }}
                     />
                     <Tooltip show={tip.show} x={tip.x} y={tip.y}>
                       {tip.text}
                     </Tooltip>
-                    {imageStore.showAnnotations &&
+                    {imageReady &&
+                      !imageError &&
+                      imageStore.showAnnotations &&
                       rects.length > 0 &&
                       rects.map((rect, index) => {
                         let newRect = { ...rect };
@@ -387,6 +472,25 @@ export const ImageModal = observer(
                             height: rect.height / scaleY,
                           };
                         }
+
+                        const area = (rect.width || 0) * (rect.height || 0);
+                        const score = 1 - area / maxArea;
+                        const baseZ = 10 + Math.round(score * 1000);
+                        const finalZ =
+                          rect.annotationId === imageStore.selectedAnnotationId
+                            ? 2000
+                            : baseZ;
+
+                        // Keep the edit/delete cluster on a corner of the box
+                        // that is actually visible when the box runs off the
+                        // image (#1534).
+                        const iconPlacement = placeAnnotationIcons({
+                          box: newRect,
+                          container: containerSize,
+                          cluster: EDIT_DELETE_CLUSTER,
+                          border: ANNOTATION_BORDER_PX,
+                        });
+
                         return (
                           <div
                             id={`annotation-rect-${index}`}
@@ -409,9 +513,10 @@ export const ImageModal = observer(
                               top: newRect.y,
                               width: newRect.width,
                               height: newRect.height,
-                              border: "2px solid red",
+                              border: `${ANNOTATION_BORDER_PX}px solid red`,
                               transform: `rotate(${rect.rotation}rad)`,
                               cursor: "pointer",
+                              zIndex: finalZ,
                               backgroundColor:
                                 rect.annotationId ===
                                 imageStore.selectedAnnotationId
@@ -437,8 +542,7 @@ export const ImageModal = observer(
                               className="d-flex flex-column"
                               style={{
                                 position: "absolute",
-                                top: 0,
-                                right: 0,
+                                ...iconPlacement.style,
                                 zIndex: 20,
                               }}
                               onClick={(e) => e.stopPropagation()}
@@ -446,8 +550,8 @@ export const ImageModal = observer(
                               <div
                                 className="d-flex align-items-center justify-content-center"
                                 style={{
-                                  width: "20px",
-                                  height: "20px",
+                                  width: `${EDIT_ICON_PX}px`,
+                                  height: `${EDIT_ICON_PX}px`,
                                   backgroundColor: "red",
                                   cursor: "pointer",
                                   color: "white",
@@ -514,8 +618,8 @@ export const ImageModal = observer(
                                 }}
                                 className="d-flex align-items-center justify-content-center"
                                 style={{
-                                  width: "20px",
-                                  height: "20px",
+                                  width: `${EDIT_ICON_PX}px`,
+                                  height: `${EDIT_ICON_PX}px`,
                                   backgroundColor: "red",
                                   cursor: "pointer",
                                   color: "white",
@@ -978,7 +1082,10 @@ export const ImageModal = observer(
                       const taskId = imageStore.encounterAnnotations.filter(
                         (a) => a.id === imageStore.selectedAnnotationId,
                       )?.[0]?.iaTaskId;
-                      window.open(`/iaResults.jsp?taskId=${taskId}`, "_blank");
+                      window.open(
+                        `/react/match-results?taskId=${taskId}`,
+                        "_blank",
+                      );
                     }}
                     style={{
                       margin: "5px 0",
@@ -1025,7 +1132,11 @@ export const ImageModal = observer(
                     backgroundColor={themeColor?.wildMeColors?.cyan700}
                     borderColor={themeColor?.wildMeColors?.cyan700}
                     target={true}
+                    disabled={!hasMatchableAnnotations}
                     onClick={() => {
+                      if (!hasMatchableAnnotations) {
+                        return;
+                      }
                       if (
                         !imageStore.encounterData?.mediaAssets?.[
                           imageStore.selectedImageIndex
@@ -1057,7 +1168,7 @@ export const ImageModal = observer(
                         return;
                       }
                       window.open(
-                        `/react/manual-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[index]?.id}`,
+                        `/react/manual-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[safeIndex]?.id}`,
                         "_blank",
                       );
                     }}

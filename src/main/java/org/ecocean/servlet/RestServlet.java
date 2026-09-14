@@ -92,6 +92,21 @@ public class RestServlet extends HttpServlet {
         super.init(config);
     }
 
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp)
+    throws ServletException, IOException {
+        String method = req.getMethod();
+        if (req.getUserPrincipal() == null) {
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+        if (!"GET".equalsIgnoreCase(method) && !"HEAD".equalsIgnoreCase(method)) {
+            resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
+        super.service(req, resp);
+    }
+
     /**
      * Convenience method to get the next token after a "/".
      * @param req The request
@@ -422,6 +437,7 @@ public class RestServlet extends HttpServlet {
     throws ServletException, IOException {
         resp.setHeader("Access-Control-Allow-Origin", "*");
         String servletID = Util.generateUUID();
+        try {
         getPMF(req, servletID);
         if (req.getContentLength() < 1) {
             resp.setContentLength(0);
@@ -525,12 +541,16 @@ public class RestServlet extends HttpServlet {
             pm.close();
         }
         resp.setStatus(201); // created
+        } finally {
+            ShepherdState.removeShepherdState("RestServlet.class" + "_" + servletID);
+        }
     }
 
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException {
         String servletID = Util.generateUUID();
 
+        try {
         getPMF(req, servletID);
         PersistenceManager pm = pmf.getPersistenceManager();
         try {
@@ -607,12 +627,16 @@ public class RestServlet extends HttpServlet {
         }
         resp.setContentLength(0);
         resp.setStatus(204); // created
+        } finally {
+            ShepherdState.removeShepherdState("RestServlet.class" + "_" + servletID);
+        }
     }
 
     protected void doHead(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException {
         String servletID = Util.generateUUID();
 
+        try {
         getPMF(req, servletID);
         String className = getNextTokenAfterSlash(req);
         ClassLoaderResolver clr = nucCtx.getClassLoaderResolver(RestServlet.class.getClassLoader());
@@ -676,6 +700,9 @@ public class RestServlet extends HttpServlet {
                 pm.currentTransaction().rollback();
             }
             pm.close();
+        }
+        } finally {
+            ShepherdState.removeShepherdState("RestServlet.class" + "_" + servletID);
         }
     }
 
