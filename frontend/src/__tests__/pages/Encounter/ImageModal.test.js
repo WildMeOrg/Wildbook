@@ -1,6 +1,7 @@
 /* eslint-disable react/display-name */
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import en from "../../../locale/en.json";
 
 jest.mock("mobx-react-lite", () => ({
   observer: (Comp) => Comp,
@@ -386,5 +387,21 @@ describe("ImageModal annotation icon placement (#1534)", () => {
     expect(cluster.style.top).toBe("0px");
     expect(cluster.style.left).toBe("428px");
     expect(cluster.style.right).toBe("");
+  });
+});
+
+describe("ImageModal tags panel i18n", () => {
+  // Regression: the "select existing labeled keyword" placeholder rendered
+  // SELECT_EXISTING_LABELLED_KEYWORD, which no locale file defines, so the
+  // option showed the raw id. react-intl is mocked above to render the id
+  // itself, so the id must both appear in the DOM and resolve in en.json.
+  test("labeled-keyword placeholder uses an id that resolves in en.json", () => {
+    renderModal({
+      imageStore: makeImageStore({ access: "write", addTagsFieldOpen: true }),
+    });
+
+    const id = "SELECT_EXISTING_LABELED_KEYWORD";
+    expect(screen.getByText(id)).toBeInTheDocument();
+    expect(en).toHaveProperty(id);
   });
 });

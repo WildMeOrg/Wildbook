@@ -7,7 +7,6 @@ package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.LinkedList;
 import java.util.Random;
 import javax.jdo.*;
 import javax.servlet.http.HttpServlet;
@@ -908,13 +907,8 @@ public class UserConsolidate extends HttpServlet {
         for (Role currentRole : bRoles) {
             bRoleNames.add(currentRole.getRolename());
         }
-        List<String> roleHierarchy = new LinkedList<String>(); // ArrayBlockingQueue because of enforce FIFO structure
-        roleHierarchy.add("admin"); // don't know how to make this anything but hard-coded, highest-in-hierarchy first
-        roleHierarchy.add("orgAdmin");
-        roleHierarchy.add("researcher");
-        roleHierarchy.add("rest");
-        roleHierarchy.add("machinelearning");
-        for (String currentRoleBeingChecked : roleHierarchy) {
+        // Role.SYSTEM_ROLES is ordered highest-in-hierarchy first
+        for (String currentRoleBeingChecked : Role.SYSTEM_ROLES) {
             if (aRoleNames.contains(currentRoleBeingChecked) &&
                 !bRoleNames.contains(currentRoleBeingChecked)) {
                 return true;
