@@ -929,7 +929,7 @@ export const ImageModal = observer(
                           value={imageStore.selectedLabeledKeyword || ""}
                         >
                           <option value="" disabled>
-                            <FormattedMessage id="SELECT_EXISTING_LABELLED_KEYWORD" />
+                            <FormattedMessage id="SELECT_EXISTING_LABELED_KEYWORD" />
                           </option>
                           {(imageStore.availabelLabeledKeywords || []).map(
                             (keyword) => (
