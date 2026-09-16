@@ -1903,6 +1903,11 @@
 					"id": "KAZA",
 					"locationID":[
 						{
+							"name": "Dimbangombe Conservancy",
+							"id": "Dimbangombe Conservancy",
+							"locationID":[]
+						},
+						{
 							"name": "Matetsi",
 							"id": "Matetsi",
 							"locationID":[]
