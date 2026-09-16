@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Properties;
@@ -222,6 +223,7 @@ public class LocationID {
     }
 
     public static boolean isValidLocationID(String locationID, String qualifier) {
+        if (Util.stringIsEmptyOrNull(locationID)) return false;
         JSONObject j = recurseToFindID(locationID, getLocationIDStructure(qualifier));
         return (j != null);
     }
@@ -229,8 +231,12 @@ public class LocationID {
     public static String getPrefixForLocationID(String locationID, String qualifier) { // now a wrapper method
         if (locationID == null) return ""; // "" here for improved cosmetics on front end?
         String locPrefix = "";
-        if (findPrefix(getLocationIDStructure(qualifier), locationID, null) != null) {
-            locPrefix = findPrefix(getLocationIDStructure(qualifier), locationID, null);
+        try {
+            if (findPrefix(getLocationIDStructure(qualifier), locationID, null) != null) {
+                locPrefix = findPrefix(getLocationIDStructure(qualifier), locationID, null);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
         return locPrefix;
     }
@@ -239,8 +245,12 @@ public class LocationID {
         if (locationID == null) return 3;
         int digitPadding = 3;
         if (findPrefixPadding(getLocationIDStructure(qualifier), locationID, null) != null) {
-            digitPadding = Integer.parseInt(findPrefixPadding(getLocationIDStructure(qualifier),
-                locationID, null));
+            try {
+                digitPadding = Integer.parseInt(findPrefixPadding(getLocationIDStructure(qualifier),
+                    locationID, null));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
         return digitPadding;
     }
@@ -306,6 +316,51 @@ public class LocationID {
                 }
             }
         } catch (JSONException e) {}
+    }
+
+    /**
+     * Root-to-node lineage of ids for locationID in tree (the node itself is last). The root is
+     * part of the lineage when it carries an id. Returns just [locationID] when the tree is null,
+     * the id is absent, or the id appears more than once (ambiguous); empty for a blank id.
+     *
+     * Unlike getIDForChildAndParents() this yields a single path: an id that appears under more
+     * than one parent falls back to exact match, where that method can flatten several matching
+     * branches into one list.
+     */
+    public static List<String> lineageFor(String locationID, JSONObject tree) {
+        if ((locationID == null) || locationID.trim().isEmpty()) return Collections.emptyList();
+        List<String> exactOnly = Collections.singletonList(locationID);
+        if (tree == null) return exactOnly;
+        List<List<String> > paths = new ArrayList<List<String> >();
+        try {
+            collectPaths(tree, locationID, new ArrayList<String>(), paths);
+        } catch (Exception ex) {
+            return exactOnly;
+        }
+        if (paths.size() != 1) return exactOnly;
+        return paths.get(0);
+    }
+
+    // depth-first walk recording every root-to-node path ending at a node whose id equals target;
+    // a node with a blank or missing id is still traversed but contributes nothing to the path
+    private static void collectPaths(Object node, String target, List<String> path,
+        List<List<String> > out) {
+        if (!(node instanceof JSONObject)) return; // malformed entry: ignore
+        JSONObject json = (JSONObject)node;
+        String id = json.optString("id", null);
+        boolean pushed = false;
+        if ((id != null) && !id.trim().isEmpty()) {
+            path.add(id);
+            pushed = true;
+            if (id.equals(target)) out.add(new ArrayList<String>(path));
+        }
+        JSONArray kids = json.optJSONArray("locationID");
+        if (kids != null) {
+            for (int i = 0; i < kids.length(); i++) {
+                collectPaths(kids.opt(i), target, path, out);
+            }
+        }
+        if (pushed) path.remove(path.size() - 1);
     }
 
     private static String getIDIfContainsChildID(JSONObject jsonobj, String childID,

@@ -171,6 +171,24 @@ public class Collaboration implements java.io.Serializable {
         return collaborationsForUser(myShepherd, username, null);
     }
 
+    // Like collaborationsForUser but WITHOUT injecting assumed orgAdmin
+    // collaborations. Used by Encounter.computeViewUsers, which handles
+    // orgAdmin visibility explicitly and in the correct direction.
+    @SuppressWarnings("unchecked")
+    public static List<Collaboration> persistedCollaborationsForUser(Shepherd myShepherd,
+        String username) {
+        String queryString =
+            "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username +
+            "') || (username2 == '" + username + "'))";
+        Query query = myShepherd.getPM().newQuery(queryString);
+        try {
+            Collection c = (Collection)(query.execute());
+            return new ArrayList<Collaboration>(c);
+        } finally {
+            query.closeAll();
+        }
+    }
+
     // copied with Shepherd instead of context in hopes this fixes the issue where we couldn't save an updated collab with another shepherd
     @SuppressWarnings("unchecked") public static List<Collaboration> collaborationsForUser(
         Shepherd myShepherd, String username, String state) {
@@ -281,20 +299,21 @@ public class Collaboration implements java.io.Serializable {
     }
 
     public static boolean canCollaborate(User u1, User u2, String context) {
+        if (u1 == null) return false; // seems right choice?
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
-        if (c == null) return false;
+        if ((c == null) || (c.getState() == null)) return false;
         if (c.getState().equals(STATE_APPROVED) || c.getState().equals(STATE_EDIT_PRIV))
             return true;
         return false;
     }
 
     public static boolean canCollaborate(String context, String u1, String u2) {
+        // note: User.isUsernameAnonymous(null) returns true, which seems... sketchy here?
         if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
-        // System.out.println("canCollaborate(String context, String u1, String u2)");
-        if (c == null) return false;
+        if ((c == null) || (c.getState() == null)) return false;
         if (c.getState().equals(STATE_APPROVED) || c.getState().equals(STATE_EDIT_PRIV))
             return true;
         return false;
@@ -312,18 +331,27 @@ public class Collaboration implements java.io.Serializable {
         return false;
     }
 
+    public static boolean canEditEncounter(Encounter enc, User user, String context) {
+        if ((enc == null) || (user == null)) return false;
+        return canEdit(context, user.getUsername(), enc.getSubmitterID());
+    }
+
+    // note: u1 should be the user asking to edit, u2 is the owner of object in question
+    // order is critical!
     public static boolean canEdit(String context, String u1, String u2) {
+        if ((u1 == null) || (u2 == null)) return false;
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
-        if (c == null) return false;
+        if ((c == null) || (c.getState() == null)) return false;
         if (c.getState().equals(STATE_EDIT_PRIV)) return true;
         return false;
     }
 
+    // see not on u1/u2 ordering above
     public static boolean canEdit(String context, User u1, User u2) {
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
-        if (c == null) return false;
+        if ((c == null) || (c.getState() == null)) return false;
         if (c.getState().equals(STATE_EDIT_PRIV)) return true;
         return false;
     }
@@ -409,14 +437,18 @@ public class Collaboration implements java.io.Serializable {
 
     public static boolean canUserViewOwnedObject(User viewer, User owner,
         HttpServletRequest request) {
+        return canUserViewOwnedObject(viewer, owner, ServletUtilities.getContext(request));
+    }
+
+    public static boolean canUserViewOwnedObject(User viewer, User owner, String context) {
         // if they own it
         if (viewer != null && owner != null && viewer.getUUID() != null &&
-            viewer.getUUID().equals(owner.getUUID())) return true;                                                                  // should really be user .equals() method
+            viewer.getUUID().equals(owner.getUUID())) return true; // should really be user .equals() method
         // if viewer and owner have sharing turned on
         if (((viewer != null && viewer.hasSharing() && (owner == null || owner.hasSharing()))))
             return true; // just based on sharing
         // if they have a collaboration
-        return canCollaborate(viewer, owner, ServletUtilities.getContext(request));
+        return canCollaborate(viewer, owner, context);
     }
 
     public static boolean canUserAccessOwnedObject(String ownerName, HttpServletRequest request) {
@@ -429,12 +461,25 @@ public class Collaboration implements java.io.Serializable {
             return canCollaborate(context, ownerName, "public");
         }
         String username = request.getUserPrincipal().getName();
-        // System.out.println("canUserAccessOwnedObject(String ownerName, HttpServletRequest request)");
         return canCollaborate(context, username, ownerName);
+    }
+
+    public static boolean canUserAccessOwnedObject(User user, String ownerName,
+        Shepherd myShepherd) {
+        String context = myShepherd.getContext();
+
+        if (!securityEnabled(context)) return true;
+        if ((user != null) && user.isAdmin(myShepherd)) return true;
+        if (User.isUsernameAnonymous(ownerName)) return true; // anon-owned is "fair game" to anyone
+        if (user == null) return canCollaborate(context, ownerName, "public");
+        // user will not be null:
+        return canCollaborate(context, user.getUsername(), ownerName);
     }
 
     public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
         if (enc != null && enc.getSubmitterID() == null) return true;
+        // location-based role (a Role named after the encounter's locationID or an ancestor)
+        if (LocationRoleAccess.requestHasLocationRole(request, enc.getLocationID())) return true;
         // System.out.println("canUserAccessEncounter(Encounter enc, HttpServletRequest request)");
         return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
     }
@@ -443,8 +488,51 @@ public class Collaboration implements java.io.Serializable {
         String owner = enc.getAssignedUsername();
 
         if (User.isUsernameAnonymous(owner)) return true; // anon-owned is "fair game" to anyone
+        if (userHasLocationRole(enc, context, username)) return true;
         // System.out.println("canUserAccessEncounter(Encounter enc, String context, String username)");
         return canCollaborate(context, username, owner);
+    }
+
+    // same rule as above, reusing the caller's Shepherd for the location-role lookup
+    public static boolean canUserAccessEncounter(Encounter enc, String username,
+        Shepherd myShepherd) {
+        if ((enc == null) || (username == null) || (myShepherd == null)) return false;
+        String owner = enc.getAssignedUsername();
+        if (User.isUsernameAnonymous(owner)) return true; // anon-owned is "fair game" to anyone
+        if (LocationRoleAccess.userHasLocationRole(username, enc.getLocationID(), myShepherd))
+            return true;
+        return canCollaborate(myShepherd.getContext(), username, owner);
+    }
+
+    // location-based role lookup on a short-lived Shepherd, closed before any collaboration
+    // lookup opens its own (see collaborationBetweenUsers)
+    private static boolean userHasLocationRole(Encounter enc, String context, String username) {
+        if ((enc == null) || (username == null)) return false;
+        if (LocationRoleAccess.roleNamesFor(enc.getLocationID()).isEmpty()) return false;
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("Collaboration.userHasLocationRole");
+        try {
+            myShepherd.beginDBTransaction();
+            return LocationRoleAccess.userHasLocationRole(username, enc.getLocationID(),
+                    myShepherd);
+        } catch (Exception ex) {
+            System.out.println("Collaboration.userHasLocationRole failed for " + username +
+                " on " + enc.getCatalogNumber() + ": " + ex);
+            return false;
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    public static boolean canUserViewOccurrence(Occurrence occ, User user, Shepherd myShepherd) {
+        if ((user == null) || (occ == null)) return false;
+        if (canUserViewOwnedObject(user, myShepherd.getUser(occ.getSubmitterID()),
+            myShepherd.getContext())) return true;
+        if (occ.getNumberEncounters() < 1) return true; // meh?
+        for (Encounter enc : occ.getEncounters()) {
+            if (enc.canUserView(user, myShepherd)) return true;
+        }
+        return false;
     }
 
     public static boolean canUserAccessOccurrence(Occurrence occ, HttpServletRequest request) {
@@ -453,6 +541,18 @@ public class Collaboration implements java.io.Serializable {
         if ((all == null) || (all.size() < 1)) return true;
         for (Encounter enc : all) {
             if (canUserAccessEncounter(enc, request)) return true; // one is good enough (either owner or in collab or no security etc)
+        }
+        return false;
+    }
+
+    public static boolean canUserAccessOccurrence(Occurrence occ, User user, Shepherd myShepherd) {
+        if ((user == null) || (occ == null)) return false;
+        if (canUserAccessOwnedObject(user, occ.getSubmitterID(), myShepherd)) return true;
+        ArrayList<Encounter> all = occ.getEncounters();
+        if ((all == null) || (all.size() < 1)) return true;
+        for (Encounter enc : all) {
+            if (canUserAccessEncounter(enc, myShepherd.getContext(), user.getUsername()))
+                return true; // one is good enough (either owner or in collab or no security etc)
         }
         return false;
     }
@@ -509,6 +609,18 @@ public class Collaboration implements java.io.Serializable {
             if (!canEditEncounter(enc, request)) return false; // one is good enough (either owner or in collab or no security etc)
         }
         return true;
+    }
+
+    // Check if User (via request) has edit access to at least one Encounter in this Individual
+    public static boolean canUserPartiallyEditMarkedIndividual(MarkedIndividual mi,
+        HttpServletRequest request) {
+        if (request.isUserInRole("admin")) return true;
+        Vector<Encounter> all = mi.getEncounters();
+        if ((all == null) || (all.size() < 1)) return false;
+        for (Encounter enc : all) {
+            if (canEditEncounter(enc, request)) return true; // one is good enough (either owner or in collab or no security etc)
+        }
+        return false;
     }
 
     public static boolean canUserAccessSocialUnit(SocialUnit su, HttpServletRequest request) {

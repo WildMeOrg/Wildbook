@@ -27,6 +27,7 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
+import org.ecocean.IndexingManager;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.IAJsonProperties;
@@ -50,8 +51,8 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.joda.time.LocalDateTime;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.ecocean.Annotation;
 import org.ecocean.mmutil.FileUtilities;
@@ -397,12 +398,13 @@ public class EncounterForm extends HttpServlet {
             try {
                 // now we have to break apart genus species
                 if (formValues.get("genusSpecies") != null) {
-                    StringTokenizer tokenizer = new StringTokenizer(formValues.get(
-                        "genusSpecies").toString(), " ");
-                    if (tokenizer.countTokens() >= 2) {
-                        genus = tokenizer.nextToken();
-                        specificEpithet = tokenizer.nextToken().replaceAll(",", "").replaceAll("_",
-                            " ");
+                    // everything after the genus stays in the specific epithet, so a
+                    // trinomial keeps its subspecies (e.g. "Delphinus capensis tropicalis")
+                    String[] gs = Util.parseGenusSpecies(formValues.get(
+                        "genusSpecies").toString());
+                    if (gs != null) {
+                        genus = gs[0];
+                        specificEpithet = gs[1];
                     }
                     // handle malformed Genus Species formats
                     else {
@@ -414,6 +416,11 @@ public class EncounterForm extends HttpServlet {
             } catch (Exception le) {
                 le.printStackTrace();
             }
+
+            // i truly do not understand the point of the thrown exceptions above, as they are just caught and the encounter is allowed to be created!
+            // seems very wrong to me. so i am NOT going to do that for this check and let it crash the ui unceremoniously.
+            if (Util.dateIsInFuture(year, month, day)) throw new IOException("date given is in the future");
+
             System.out.println("about to do enc()");
 
             Encounter enc = new Encounter(day, month, year, hour, minutes, guess,
@@ -615,6 +622,10 @@ public class EncounterForm extends HttpServlet {
                 System.out.println("        ENCOUNTERFORM:");
                 System.out.println("        ENCOUNTERFORM:");
             }
+            // GH-1514: track individual id so we can queue a post-commit deep
+            // reindex; new encounter on existing individual changes sibling
+            // individualNumberEncounters.
+            String manualIndID = null;
             if (formValues.get("manualID") != null &&
                 formValues.get("manualID").toString().length() > 0) {
                 String indID = formValues.get("manualID").toString();
@@ -632,6 +643,7 @@ public class EncounterForm extends HttpServlet {
                 }
                 if (ind != null) enc.setIndividual(ind);
                 enc.setFieldID(indID);
+                manualIndID = ind != null ? ind.getIndividualID() : indID;
             }
             if (formValues.get("occurrenceID") != null &&
                 formValues.get("occurrenceID").toString().length() > 0) {
@@ -872,6 +884,12 @@ public class EncounterForm extends HttpServlet {
             if (!spamBot) {
                 newnum = myShepherd.storeNewEncounter(enc, encID);
                 enc.refreshAssetFormats(myShepherd);
+                // GH-1514: post-commit deep reindex so individualNumberEncounters
+                // updates on sibling encounters of the manually-assigned individual.
+                if (!"fail".equals(newnum) && manualIndID != null) {
+                    IndexingManager.queueIndividualsByIdForDeepReindex(myShepherd,
+                        java.util.Collections.singleton(manualIndID));
+                }
 
                 // *after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
                 // note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
@@ -897,7 +915,7 @@ public class EncounterForm extends HttpServlet {
                         Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(),
                             parentTask);
                         myShepherd.storeNewTask(task);
-                        Logger log = LoggerFactory.getLogger(EncounterForm.class);
+                        Logger log = LogManager.getLogger(EncounterForm.class);
                         log.info("New encounter submission: <a href=\"" + request.getScheme() +
                             "://" + CommonConfiguration.getURLLocation(request) +
                             "/encounters/encounter.jsp?number=" + encID + "\">" + encID + "</a>");

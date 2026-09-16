@@ -1,6 +1,6 @@
 import { get, partition } from "lodash-es";
-import useFetch from "../../hooks/useFetch";
 import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
+import useFetch from "../../hooks/useFetch";
 
 function buildQuery(queries) {
   const mustNotQueries = queries.filter((q) => q.clause === "must_not");
@@ -33,7 +33,11 @@ function buildQuery(queries) {
   };
 }
 
-export default function useFilterEncounters({ queries, params = {} }) {
+export default function useFilterEncounters({
+  queries,
+  params = {},
+  enabled = true,
+}) {
   const boolQuery = buildQuery(queries);
   const compositeQuery = { query: { bool: boolQuery } };
   const { sortOrder, sort, size, from } = params;
@@ -59,17 +63,13 @@ export default function useFilterEncounters({ queries, params = {} }) {
       return {
         resultCount,
         results: get(result, ["data", "data", "hits"], []),
-        searchQueryId: get(
-          result,
-          ["data", "data", "searchQueryId"],
-          "defaultSearchQueryId",
-        ),
+        searchQueryId: get(result, ["data", "data", "searchQueryId"], ""),
         success: get(result, ["data", "data", "success"], false),
       };
     },
     queryOptions: {
       retry: 2,
-      enable: false,
+      enabled,
     },
   });
 }

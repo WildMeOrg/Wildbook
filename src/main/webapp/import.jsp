@@ -22,7 +22,7 @@ org.ecocean.ia.IA,
 org.ecocean.ia.WbiaQueueUtil,
 java.util.Collections,java.util.Comparator,
 org.json.JSONObject,
-java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+java.util.Properties" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!

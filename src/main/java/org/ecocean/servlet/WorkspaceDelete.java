@@ -11,12 +11,11 @@ import javax.servlet.ServletException;
 import java.io.*;
 
 import org.ecocean.shepherd.core.Shepherd;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class WorkspaceDelete extends HttpServlet {
-    /** SLF4J logger instance for writing log entries. */
-    public static Logger log = LoggerFactory.getLogger(WorkspaceDelete.class);
+    private static final Logger log = LogManager.getLogger(WorkspaceDelete.class);
 
     public void init(ServletConfig config)
     throws ServletException {
@@ -80,10 +79,6 @@ public class WorkspaceDelete extends HttpServlet {
         }
         if (!locked) {
             myShepherd.commitDBTransaction();
-
-            // log it
-            Logger log = LoggerFactory.getLogger(EncounterDelete.class);
-
             out.println("{status: deleted, originalWorkspaceQuery: " + originalWorkspaceQuery +
                 "}");
         }

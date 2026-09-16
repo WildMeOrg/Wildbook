@@ -1,11 +1,16 @@
 package org.ecocean.security;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.*;
 
 import static org.ecocean.Util.addToMultimap;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -257,5 +262,34 @@ abstract class HiddenDataReporter<T> {
     public void writeHiddenDataReport(WritableWorkbook excelOut)
     throws jxl.write.WriteException {
         writeHiddenDataReport(excelOut, 1);
+    }
+
+    public void writeHiddenDataReport(CSVPrinter hiddenDataSheet)
+    throws IOException {
+        String[] missingDataColHeaders = new String[] {
+            "username", "number of their " + className + "s hidden from your results",
+                "example " + className + " page (click through to initialize a collaboration)"
+        };
+
+        hiddenDataSheet.printRecord(missingDataColHeaders);
+
+        Map<String, Set<String> > hiddenEncsByOwner = getHiddenDataByOwner();
+        for (String owner : hiddenEncsByOwner.keySet()) {
+            String numEncs = String.valueOf(hiddenEncsByOwner.get(owner).size());
+            String sampleEncId = null;
+            if (hiddenEncsByOwner.get(owner).size() > 0)
+                sampleEncId = hiddenEncsByOwner.get(owner).iterator().next();
+            String sampleLink = getCollabUrl(sampleEncId);
+
+            hiddenDataSheet.printRecord(owner, numEncs, sampleLink);
+        }
+    }
+
+    public void writeHiddenDataReport(OutputStream hiddenDataBytes)
+    throws IOException {
+        try (OutputStreamWriter streamWriter = new OutputStreamWriter(hiddenDataBytes);
+        CSVPrinter sheet = new CSVPrinter(streamWriter, CSVFormat.EXCEL)) {
+            writeHiddenDataReport(sheet);
+        }
     }
 }

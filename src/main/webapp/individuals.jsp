@@ -500,7 +500,7 @@ $(document).ready(function() {
 
           // replace this with canUserViewIndividual?
           // boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
-          boolean isOwner = Collaboration.canUserFullyEditMarkedIndividual(sharky, request);
+          boolean isOwner = Collaboration.canUserPartiallyEditMarkedIndividual(sharky, request);
           //System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {
@@ -1211,7 +1211,7 @@ if (sharky.getNames() != null) {
         -1px 1px 0 #000,
         1px 1px 0 #000;
     ">
-    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?individualIDExact=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
+    <p class="viewAllImgs"><a style="color:white;" href="/react/encounter-search?individualIDExact=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
 
 
     <div class="slider col-sm-6 center-slider">

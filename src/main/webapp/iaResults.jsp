@@ -1833,7 +1833,11 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 		},
 		error: function(x,y,z) {
 			console.warn('%o %o %o', x, y, z);
-			jQuery(msgTarget).html('<b>Error updating encounter</b>');
+			// iaResultsSetID.jsp now answers 403 (not 200) when the user is not authorized
+			// for one of the encounters, so that lands here; keep showing the server's reason.
+			var detail = (x && x.responseJSON && x.responseJSON.error) ? x.responseJSON.error : null;
+			jQuery(msgTarget).html(detail ? ('Error updating encounter: <b>' + detail + '</b>')
+			                             : '<b>Error updating encounter</b>');
 		}
 	});
 	return true;
@@ -1900,20 +1904,20 @@ function negativeButtonClick(encId, oldDisplayName) {
 			dataType: 'json',
 			complete: function(d) {
 				console.log("RTN from negativeButtonClick : "+JSON.stringify(d));
-				updateNameCallback(d, oldDisplayName, encId);
+				updateNameCallback(d, oldDisplayName, encId, nextName);
 			}
 		})
 	}
 }
 
-function updateNameCallback(d, oldDisplayName, encId) {
+function updateNameCallback(d, oldDisplayName, encId, assignedName) {
 	console.log("Update name callback! got d="+d+" and stringify = "+JSON.stringify(d));
   let alertMsg = "Something went wrong with assigning the new name to the individual containing encounter " + encDisplayString(encId);
   if(d && d.responseJSON && d.responseJSON.success){
     if(oldDisplayName!=="undefined" && oldDisplayName){
-        alertMsg = "Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName;
+        alertMsg = "Success! Added name " + assignedName + " to "+oldDisplayName;
     } else{
-      alertMsg = "Success! Added name <%=nextNameKey%>: <%=nextName%> to the new individual.";
+      alertMsg = "Success! Added name " + assignedName + " to the new individual.";
     }
 
   }
@@ -2015,7 +2019,7 @@ function isProjectSelected() {
 
 $('#projectDropdown').on('change', function() {
 	let taskId = '<%=taskId%>';
-	let reloadURL = "../iaResults.jsp?taskId="+taskId;
+	let reloadURL = "../react/match-results?taskId="+taskId;
 	let selectedProject = $("#projectDropdown").val();
 	// replace reserved pound sign in incremental ID's
 	selectedProject = selectedProject.replaceAll("#", "%23");

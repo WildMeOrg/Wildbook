@@ -13,7 +13,7 @@
 				<field name="mi" element-type="org.ecocean.MarkedIndividual" persistence-modifier="persistent" />
 
 				<field name="role" persistence-modifier="persistent">
-					<column jdbc-type="String" length="128" />
+					<column jdbc-type="VARCHAR" length="128" />
 				</field>
 
 				<field name="startDate" persistence-modifier="persistent">
@@ -69,7 +69,7 @@
 				</field>
 				
 				<field name="bidirectional" persistence-modifier="persistent">
-						    				<column jdbc-type="bit(1)" allows-null="true" />
+						    				<column jdbc-type="BIT" allows-null="true" />
 			</field>
 				
 				<field name="relatedComments" persistence-modifier="persistent" default-fetch-group="false">

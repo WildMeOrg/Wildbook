@@ -550,7 +550,7 @@ function removeEncounterFromProjectAjax(el) {
 
 function goToIAResults(taskId) {
 	  let projectIdPrefix = '<%= project.getProjectIdPrefix()%>';
-	  window.open('/iaResults.jsp?taskId='+taskId+'&projectIdPrefix='+encodeURIComponent(projIdPrefix), "_blank");
+	  window.open('/react/match-results?taskId='+taskId+'&projectIdPrefix='+encodeURIComponent(projIdPrefix), "_blank");
 }
 
 function generateIALinkingMenu(json, encId) {

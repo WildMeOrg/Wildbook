@@ -285,8 +285,6 @@ public class IdentityServiceLog implements java.io.Serializable {
         return null;
     }
 
-// S3AssetStore s3as = ((S3AssetStore) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(S3AssetStore.class, 3), true)));
-
     public void save(Shepherd myShepherd) {
         myShepherd.getPM().makePersistent(this);
     }
@@ -296,6 +294,16 @@ public class IdentityServiceLog implements java.io.Serializable {
         myShepherd.getPM().makePersistent(l);
     }
  */
+    public JSONObject getJsonResult() {
+        JSONObject status = getStatusJson();
+
+        if (status == null) return null;
+        if (status.optJSONObject("_response") == null) return null;
+        if (status.getJSONObject("_response").optJSONObject("response") == null) return null;
+        return status.getJSONObject("_response").getJSONObject("response").optJSONObject(
+                   "json_result");
+    }
+
     public JSONObject toJSONObject() {
         return toJSONObject(false);
     }

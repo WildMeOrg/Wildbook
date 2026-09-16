@@ -59,6 +59,11 @@ public class EncounterSetGenusSpecies extends HttpServlet {
                     myShark.setGenus(genus);
                     specificEpithet = tokenizer.nextToken();
 
+                    //check for subspecies
+                    if(tokenizer.hasMoreTokens()) {
+                        specificEpithet += " " + tokenizer.nextToken();
+                    }
+
                     myShark.setSpecificEpithet(specificEpithet.replaceAll(",", "").replaceAll("_",
                         " "));
                     myShark.addComments("<p><em>" + request.getRemoteUser() + " on " +

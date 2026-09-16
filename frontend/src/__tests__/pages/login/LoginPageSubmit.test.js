@@ -8,13 +8,22 @@ import {
   clickButton,
 } from "../../../utils/utils";
 import { waitFor } from "@testing-library/react";
+import { useSiteSettings } from "../../../SiteSettingsContext";
 
 jest.mock("../../../models/auth/useLogin");
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: jest.fn(),
+}));
 
 describe("LoginPage - Form Submission", () => {
   let mockAuthenticate;
 
   beforeEach(() => {
+    useSiteSettings.mockReturnValue({
+      data: {},
+      isLoading: false,
+      error: null,
+    });
     mockAuthenticate = jest.fn();
     useLogin.mockReturnValue({
       authenticate: mockAuthenticate,

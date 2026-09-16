@@ -14,7 +14,20 @@ export default function FormGroupMultiSelect({
   field = "field",
   filterKey,
   store,
+  loading = false,
 }) {
+  const isDisabled = loading;
+
+  const displayOptions = loading
+    ? [
+        {
+          label: "Loading…",
+          value: "__loading__",
+          isDisabled: true,
+        },
+      ]
+    : options;
+
   return (
     <FormGroup className="mt-2">
       {noLabel ? null : (
@@ -22,6 +35,7 @@ export default function FormGroupMultiSelect({
           <FormattedMessage id={label} defaultMessage={label} />
         </FormLabel>
       )}
+
       {noDesc ? null : (
         <Description>
           <FormattedMessage id={`${label}_DESC`} />
@@ -29,14 +43,16 @@ export default function FormGroupMultiSelect({
       )}
 
       <MultiSelect
-        options={options}
+        options={displayOptions}
         isMulti={isMulti}
         term={term}
         field={field}
-      
         filterKey={filterKey}
         store={store}
-      ></MultiSelect>
+        disabled={isDisabled}
+        placeholder={loading ? "Loading…" : undefined}
+        noOptionsMessage={() => (loading ? "Loading…" : "No options")}
+      />
     </FormGroup>
   );
 }

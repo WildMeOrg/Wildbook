@@ -3,13 +3,13 @@ import { Form } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { observer } from "mobx-react-lite";
 import { Loader } from "@googlemaps/js-api-loader";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import "./reportEncounter.css";
 import { LocationID } from "./LocationID";
 import { Alert } from "react-bootstrap";
 
 export const PlaceSection = observer(({ store }) => {
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   const mapCenterLat = data?.mapCenterLat || 51;
   const mapCenterLon = data?.mapCenterLon || 7;
   const mapZoom = data?.mapZoom || 4;
@@ -95,6 +95,16 @@ export const PlaceSection = observer(({ store }) => {
         mapCenterLon={mapCenterLon}
         mapZoom={mapZoom}
       />
+      <Form.Group controlId="verbatimLocality" className="mb-3">
+        <Form.Label>
+          <FormattedMessage id="LOCATION" />
+        </Form.Label>
+        <Form.Control
+          type="text"
+          value={store.placeSection.verbatimLocality || ""}
+          onChange={(e) => store.setVerbatimLocality(e.target.value)}
+        />
+      </Form.Group>
       <Form.Group>
         <Form.Label>
           <FormattedMessage id="FILTER_GPS_COORDINATES" />

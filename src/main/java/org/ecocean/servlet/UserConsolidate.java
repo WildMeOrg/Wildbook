@@ -7,7 +7,6 @@ package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.LinkedList;
 import java.util.Random;
 import javax.jdo.*;
 import javax.servlet.http.HttpServlet;
@@ -85,6 +84,7 @@ public class UserConsolidate extends HttpServlet {
         myShepherd.getPM().deletePersistent(userToBeConsolidated);
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
+        org.ecocean.OpenSearch.setPermissionsNeeded(true);
         System.out.println("dedupe ......consolidation complete");
     }
 
@@ -137,6 +137,7 @@ public class UserConsolidate extends HttpServlet {
 
         myShepherd.getPM().deletePersistent(userToBeConsolidated);
         myShepherd.updateDBTransaction();
+        org.ecocean.OpenSearch.setPermissionsNeeded(true);
         System.out.println("dedupe ......consolidateUserForUserEdit complete");
     }
 
@@ -846,9 +847,11 @@ public class UserConsolidate extends HttpServlet {
             returnJson.put("conslidatedUsers", consolidatedIncompleteUsers);
         } else {
             System.out.println("dedupe ack there were no users in this list");
+            query.closeAll();
             returnJson.put("success", true);
             return returnJson;
         }
+        query.closeAll();
         returnJson.put("success", true);
         return returnJson;
     }
@@ -904,13 +907,8 @@ public class UserConsolidate extends HttpServlet {
         for (Role currentRole : bRoles) {
             bRoleNames.add(currentRole.getRolename());
         }
-        List<String> roleHierarchy = new LinkedList<String>(); // ArrayBlockingQueue because of enforce FIFO structure
-        roleHierarchy.add("admin"); // don't know how to make this anything but hard-coded, highest-in-hierarchy first
-        roleHierarchy.add("orgAdmin");
-        roleHierarchy.add("researcher");
-        roleHierarchy.add("rest");
-        roleHierarchy.add("machinelearning");
-        for (String currentRoleBeingChecked : roleHierarchy) {
+        // Role.SYSTEM_ROLES is ordered highest-in-hierarchy first
+        for (String currentRoleBeingChecked : Role.SYSTEM_ROLES) {
             if (aRoleNames.contains(currentRoleBeingChecked) &&
                 !bRoleNames.contains(currentRoleBeingChecked)) {
                 return true;
@@ -1032,10 +1030,13 @@ public class UserConsolidate extends HttpServlet {
         List<User> users = new ArrayList<User>();
         String filter = "SELECT FROM org.ecocean.User WHERE username == \"" + username + "\"";
         Query query = persistenceManager.newQuery(filter);
-        Collection c = (Collection)(query.execute());
-
-        if (c != null) {
-            users = new ArrayList<User>(c);
+        try {
+            Collection c = (Collection)(query.execute());
+            if (c != null) {
+                users = new ArrayList<User>(c);
+            }
+        } finally {
+            query.closeAll();
         }
         return users;
     }
@@ -1045,10 +1046,12 @@ public class UserConsolidate extends HttpServlet {
         List<User> users = new ArrayList<User>();
         String filter = "SELECT FROM org.ecocean.User WHERE fullName == \"" + fullname + "\"";
         Query query = persistenceManager.newQuery(filter);
-        Collection c = (Collection)(query.execute());
-
-        if (c != null) {
-            users = new ArrayList<User>(c);
+        try {
+            Collection c = (Collection)(query.execute());
+            if (c != null) {
+                users = new ArrayList<User>(c);
+            }
+        } finally {
             query.closeAll();
         }
         return users;
@@ -1060,10 +1063,12 @@ public class UserConsolidate extends HttpServlet {
         String filter = "SELECT FROM org.ecocean.User WHERE hashedEmailAddress == \"" +
             hashedEmail + "\"";
         Query query = persistenceManager.newQuery(filter);
-        Collection c = (Collection)(query.execute());
-
-        if (c != null) {
-            users = new ArrayList<User>(c);
+        try {
+            Collection c = (Collection)(query.execute());
+            if (c != null) {
+                users = new ArrayList<User>(c);
+            }
+        } finally {
             query.closeAll();
         }
         return users;
@@ -1072,23 +1077,26 @@ public class UserConsolidate extends HttpServlet {
     public static List<User> getUsersWithEmailAddress(PersistenceManager persistenceManager,
         String emailAddress) {
         System.out.println("dedupe getUsersWithEmailAddress entered");
-        if (emailAddress != null) {
-            List<User> users = new ArrayList<User>();
-            String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \"" + emailAddress +
-                "\"";
-            Query query = persistenceManager.newQuery(filter);
+        if (emailAddress == null) {
+            System.out.println("dedupe current email address was invalid. Skipping...");
+            return null;
+        }
+        List<User> users = new ArrayList<User>();
+        String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \"" + emailAddress +
+            "\"";
+        Query query = persistenceManager.newQuery(filter);
+        try {
             Collection c = (Collection)(query.execute());
             if (c != null) {
                 users = new ArrayList<User>(c);
             }
-            if (users.size() > 0) {
-                return users;
-            } else {
-                System.out.println("dedupe ack there were no users");
-                return null;
-            }
+        } finally {
+            query.closeAll();
+        }
+        if (users.size() > 0) {
+            return users;
         } else {
-            System.out.println("dedupe current email address was invalid. Skipping...");
+            System.out.println("dedupe ack there were no users");
             return null;
         }
     }
@@ -1096,24 +1104,27 @@ public class UserConsolidate extends HttpServlet {
     public static User getFirstUserWithEmailAddress(PersistenceManager persistenceManager,
         String emailAddress) {
         System.out.println("dedupe getFirstUserWithEmailAddress entered");
-        if (emailAddress != null) {
-            // emailAddress = emailAddress.toLowerCase().trim();
-            List<User> users = new ArrayList<User>();
-            String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \"" + emailAddress +
-                "\"";
-            Query query = persistenceManager.newQuery(filter);
+        if (emailAddress == null) {
+            System.out.println("dedupe current email address was invalid. Skipping...");
+            return null;
+        }
+        // emailAddress = emailAddress.toLowerCase().trim();
+        List<User> users = new ArrayList<User>();
+        String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \"" + emailAddress +
+            "\"";
+        Query query = persistenceManager.newQuery(filter);
+        try {
             Collection c = (Collection)(query.execute());
             if (c != null) {
                 users = new ArrayList<User>(c);
             }
-            if (users.size() > 0) {
-                return users.get(0);
-            } else {
-                System.out.println("dedupe ack there were no users");
-                return null;
-            }
+        } finally {
+            query.closeAll();
+        }
+        if (users.size() > 0) {
+            return users.get(0);
         } else {
-            System.out.println("dedupe current email address was invalid. Skipping...");
+            System.out.println("dedupe ack there were no users");
             return null;
         }
     }

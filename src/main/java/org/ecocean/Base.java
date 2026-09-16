@@ -1,11 +1,13 @@
 package org.ecocean;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
@@ -15,7 +17,9 @@ import java.util.Map;
 
 import javax.jdo.Query;
 import org.ecocean.api.ApiException;
+import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.shepherd.core.Shepherd;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -82,6 +86,15 @@ import org.json.JSONObject;
     // public abstract List<String> userIdsWithViewAccess(Shepherd myShepherd);
     // public abstract List<String> userIdsWithEditAccess(Shepherd myShepherd);
 
+    // these should/must be overridden. they are used for generic access control, like in api/ApiBase.java
+    public boolean canUserView(User user, Shepherd myShepherd) {
+        return false;
+    }
+
+    public boolean canUserEdit(User user, Shepherd myShepherd) {
+        return false;
+    }
+
     // this allows us to delay indexing during heavy activity which triggers auto-indexing
     // via lifecycle persisting triggers e.g. during bulk import
     public boolean skipAutoIndexing = false;
@@ -92,6 +105,17 @@ import org.json.JSONObject;
 
     public boolean getSkipAutoIndexing() {
         return skipAutoIndexing;
+    }
+
+    // this is not persisted, but is a place to keep score when from search query results
+    public double opensearchScore = 0.0d;
+
+    public void setOpensearchScore(double s) {
+        opensearchScore = s;
+    }
+
+    public double getOpensearchScore() {
+        return opensearchScore;
     }
 
     public abstract String opensearchIndexName();
@@ -114,6 +138,15 @@ import org.json.JSONObject;
         map.put("viewUsers", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         map.put("editUsers", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         return map;
+    }
+
+    // Whether this object should have a document in its OpenSearch index at all.
+    // Default true; overridden by classes (e.g. Annotation) that keep non-candidate
+    // records out of the index. Enforced centrally in OpenSearch.index(), so both
+    // opensearchIndex() and the reconciler's direct os.index() honor it; keep the
+    // class's getAllVersionsSql() filtered to the same set.
+    public boolean shouldIndexInOpenSearch() {
+        return true;
     }
 
     public void opensearchIndex()
@@ -254,11 +287,67 @@ import org.json.JSONObject;
         return rtn;
     }
 
+    // this is the results used for a single GET of object via api
+    // default behavior here is just to use opensearchDocument, but each class can override
+    // if desired
+    public JSONObject jsonForApiGet(Shepherd myShepherd, User user)
+    throws IOException {
+        JSONObject rtn = new JSONObject();
+
+        // default/base behavior uses canUserView(), which can disallow user=null etc
+        // override jsonForApiGet() if this is undesirable behavior (e.g. Encounter)
+        if (!canUserView(user, myShepherd)) {
+            rtn.put("success", false);
+            rtn.put("statusCode", 401);
+            rtn.put("error", "access denied");
+            return rtn;
+        }
+        rtn = opensearchDocumentAsJSONObject(myShepherd);
+        rtn.put("success", true);
+        rtn.put("statusCode", 200);
+        return rtn;
+    }
+
+    public JSONObject opensearchDocumentAsJSONObject(Shepherd myShepherd)
+    throws IOException {
+        StringWriter sw = new StringWriter();
+        JsonFactory jf = new JsonFactory();
+        JsonGenerator jgen = jf.createGenerator(sw);
+
+        jgen.writeStartObject();
+        opensearchDocumentSerializer(jgen, myShepherd);
+        jgen.close();
+        jgen.getCurrentValue();
+        String jsonStr = sw.getBuffer().toString();
+        sw.close();
+        return new JSONObject(jsonStr);
+    }
+
     // these two methods are kinda hacky needs for opensearchSyncIndex (e.g. the fact
     // they are not static)
     public abstract Base getById(Shepherd myShepherd, String id);
 
     public abstract String getAllVersionsSql();
+
+    // i guess that makes this extra hacky?
+    public static Base getByClassnameAndId(Shepherd myShepherd, String className, String id) {
+        if ((myShepherd == null) || (className == null) || (id == null)) return null;
+        Base tmp = null;
+        switch (className) {
+        case "encounters":
+            tmp = new Encounter();
+            break;
+        case "annotations":
+            tmp = new Annotation();
+            break;
+        case "individuals":
+            tmp = new MarkedIndividual();
+            break;
+        default:
+            return null;
+        }
+        return tmp.getById(myShepherd, id);
+    }
 
     // contains some reflection; not pretty, but gets the job done
     public static int[] opensearchSyncIndex(Shepherd myShepherd, Class cls, int stopAfter)
@@ -281,47 +370,61 @@ import org.json.JSONObject;
             return rtn;
         }
         OpenSearch.setActiveIndexingBackground();
-        OpenSearch os = new OpenSearch();
-        List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd,
-            baseObj.getAllVersionsSql()), os.getAllVersions(indexName));
-        if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
-        List<String> needIndexing = changes.get(0);
-        List<String> needRemoval = changes.get(1);
-        rtn[0] = needIndexing.size();
-        rtn[1] = needRemoval.size();
-        System.out.println("Base.opensearchSyncIndex(" + indexName + "): stopAfter=" + stopAfter +
-            ", needIndexing=" + rtn[0] + ", needRemoval=" + rtn[1]);
-        int ct = 0;
-        for (String id : needIndexing) {
-            Base obj = baseObj.getById(myShepherd, id);
-            try {
-                if (obj != null) os.index(indexName, obj);
-            } catch (Exception ex) {
-                System.out.println("Base.opensearchSyncIndex(" + indexName + "): index failed " +
-                    obj + " => " + ex.toString());
-                ex.printStackTrace();
+        // The background flag MUST be cleared however we leave this method. Previously an
+        // exception between here and the unset (the resolveVersions IOException below, a
+        // getAllVersions/scroll failure, or an os.delete throwing in the needRemoval loop)
+        // leaked the flag: it stayed set, so every later opensearchSyncIndex() call
+        // short-circuited at the indexingActive() check above and the reconciler was
+        // permanently wedged. try/finally guarantees the unset.
+        try {
+            OpenSearch os = new OpenSearch();
+            List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd,
+                baseObj.getAllVersionsSql()), os.getAllVersions(indexName));
+            if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
+            List<String> needIndexing = changes.get(0);
+            List<String> needRemoval = changes.get(1);
+            rtn[0] = needIndexing.size();
+            rtn[1] = needRemoval.size();
+            System.out.println("Base.opensearchSyncIndex(" + indexName + "): stopAfter=" + stopAfter +
+                ", needIndexing=" + rtn[0] + ", needRemoval=" + rtn[1]);
+            int ct = 0;
+            for (String id : needIndexing) {
+                Base obj = baseObj.getById(myShepherd, id);
+                try {
+                    if (obj != null) os.index(indexName, obj);
+                } catch (Exception ex) {
+                    // Log the id only -- never "" + obj, because obj.toString() can itself throw
+                    // (e.g. an orphaned Annotation whose MediaAsset row was deleted -> lazy-load
+                    // NucleusObjectNotFoundException). A throw here would escape this per-item catch
+                    // and abort the whole reconcile pass instead of skipping the one bad object.
+                    String failId = (obj == null) ? "?" : obj.getId();
+                    System.out.println("Base.opensearchSyncIndex(" + indexName + "): index failed id=" +
+                        failId + " => " + ex.toString());
+                    ex.printStackTrace();
+                }
+                if (ct % 500 == 0)
+                    System.out.println("Base.opensearchSyncIndex(" + indexName + ") needIndexing: " +
+                        ct + "/" + rtn[0]);
+                ct++;
+                if ((stopAfter > 0) && (ct > stopAfter)) {
+                    System.out.println("Base.opensearchSyncIndex(" + indexName +
+                        ") breaking due to stopAfter");
+                    break;
+                }
             }
-            if (ct % 500 == 0)
-                System.out.println("Base.opensearchSyncIndex(" + indexName + ") needIndexing: " +
-                    ct + "/" + rtn[0]);
-            ct++;
-            if ((stopAfter > 0) && (ct > stopAfter)) {
-                System.out.println("Base.opensearchSyncIndex(" + indexName +
-                    ") breaking due to stopAfter");
-                break;
+            System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needIndexing");
+            ct = 0;
+            for (String id : needRemoval) {
+                os.delete(indexName, id);
+                if (ct % 500 == 0)
+                    System.out.println("Base.opensearchSyncIndex(" + indexName + ") needRemoval: " +
+                        ct + "/" + rtn[1]);
+                ct++;
             }
+            System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needRemoval");
+        } finally {
+            OpenSearch.unsetActiveIndexingBackground();
         }
-        System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needIndexing");
-        ct = 0;
-        for (String id : needRemoval) {
-            os.delete(indexName, id);
-            if (ct % 500 == 0)
-                System.out.println("Base.opensearchSyncIndex(" + indexName + ") needRemoval: " +
-                    ct + "/" + rtn[1]);
-            ct++;
-        }
-        System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needRemoval");
-        OpenSearch.unsetActiveIndexingBackground();
         return rtn;
     }
 
@@ -330,9 +433,47 @@ import org.json.JSONObject;
         throw new ApiException("not yet supported");
     }
 
+    // should probably be overridden
+    // https://datatracker.ietf.org/doc/html/rfc6902
+    // op (add, remove, replace, move, copy, test), path, value
+    public JSONObject processPatch(JSONArray patchArr, User user, Shepherd myShepherd)
+    throws ApiException {
+        throw new ApiException("processPatch() not yet implemented", "FAIL");
+    }
+
+    // this will be run at the end of all patches, if successful
+    // even though passed a shepherd, the obj should be *committed* at this point,
+    // making it suitable for background tasks etc.
+    public JSONObject afterPatch(Shepherd myShepherd) {
+        // override this if needed
+        return null;
+    }
+
+    // like above, but db transaction has been closed so obj should
+    // be persisted in db and ready for background behavior, like IA processing
+    public JSONObject afterPatchTransaction(String context) {
+        // override this if needed
+        return null;
+    }
+
     // TODO should this be an abstract? will we need some base stuff?
     public static Object validateFieldValue(String fieldName, JSONObject data)
     throws ApiException {
+        return null;
+    }
+
+    /*
+        this basically applies the patch ops on a base object. in the case of add/replace/remove there
+        is a TON of overlap (basically calling setters) between this and both BulkImporter.processRow()
+        and Base.createFromApi() .... this is really ugly and unfortunate. in some wonderful future
+        this setter activity (basically mapping fieldname to setter) would be consolidated.
+        as in these other cases, the *values* we use here are assumed to have already been validated,
+        and thus we can just blindingly set them (including setting nulls for "remove"), including being
+        able to cast the value object to the necessary value-class.
+     */
+    public Object applyPatchOp(String fieldName, Object value, String op)
+    throws ApiException {
+        // override me
         return null;
     }
 
@@ -345,4 +486,14 @@ import org.json.JSONObject;
         return res;
     }
  */
+
+    // basically mean id-equivalent, override if undesirable
+    public boolean equals(final Object u2) {
+        if (u2 == null) return false;
+        if (!(u2 instanceof Base)) return false;
+        Base two = (Base)u2;
+        if ((this.getId() == null) || (two == null) || (two.getId() == null))
+            return false;
+        return this.getId().equals(two.getId());
+    }
 }

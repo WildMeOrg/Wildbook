@@ -13,19 +13,26 @@ import { observer, useLocalObservable } from "mobx-react-lite";
 import { ReportEncounterStore } from "./ReportEncounterStore";
 import { ReportEncounterSpeciesSection } from "./SpeciesSection";
 import { useNavigate } from "react-router-dom";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
+import {
+  formatReportDateTime,
+  parseReportDateTime,
+} from "./reportDateTime";
 import "./recaptcha.css";
 
 const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const Navigate = useNavigate();
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   const procaptchaSiteKey = data?.procaptchaSiteKey;
   const store = useLocalObservable(() => new ReportEncounterStore());
   const [missingField, setMissingField] = useState(false);
   const [loading, setLoading] = useState(false);
   const isHuman = data?.isHuman;
+  const [agree, setAgree] = useState(false);
+  const submitDisabled = loading || (!isLoggedIn && !agree);
+
   if (isHuman) {
     store.setIsHumanLocal(true);
   }
@@ -68,7 +75,9 @@ const ReportEncounter = observer(() => {
         store.setImageSectionFileNames(fileName, "add");
       });
     localStorage.getItem("datetime") &&
-      store.setDateTimeSectionValue(new Date(localStorage.getItem("datetime")));
+      store.setDateTimeSectionValue(
+        parseReportDateTime(localStorage.getItem("datetime")),
+      );
     localStorage.getItem("exifDateTime") &&
       store.setExifDateTime(localStorage.getItem("exifDateTime"));
     localStorage.getItem("locationID") &&
@@ -95,6 +104,9 @@ const ReportEncounter = observer(() => {
   }, []);
 
   const handleSubmit = async () => {
+    if (loading) return;
+    if (!isLoggedIn && !agree) return;
+
     setLoading(true);
     if (!store.validateFields()) {
       store.setShowSubmissionFailedAlert(true);
@@ -363,7 +375,7 @@ const ReportEncounter = observer(() => {
                   store.dateTimeSection.value &&
                     localStorage.setItem(
                       "datetime",
-                      store.dateTimeSection.value?.toISOString(),
+                      formatReportDateTime(store.dateTimeSection.value),
                     );
                   store.exifDateTime &&
                     localStorage.setItem("exifDateTime", store.exifDateTime);
@@ -415,7 +427,7 @@ const ReportEncounter = observer(() => {
               backgroundSize: "cover",
               backgroundPosition: "center",
               borderRadius: "25px",
-              height: "470px",
+              minHeight: "470px",
               maxWidth: "350px",
               color: "white",
             }}
@@ -445,6 +457,58 @@ const ReportEncounter = observer(() => {
               </div>
             ))}
 
+            {!isLoggedIn ? (
+              <Form.Group className="mt-3">
+                <Form.Check
+                  type="checkbox"
+                  id="agree-terms-report"
+                  checked={agree}
+                  onChange={(e) => setAgree(e.target.checked)}
+                  label={
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: 4,
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      <FormattedMessage
+                        id="LOGIN_AGREE_TO"
+                        defaultMessage="I agree to"
+                      />
+                      <a
+                        href={`${process.env.PUBLIC_URL}/policies-and-data?section=terms_of_use`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ whiteSpace: "nowrap" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <FormattedMessage
+                          id="MENU_LEARN_TERMSOFUSE"
+                          defaultMessage="Terms of Use"
+                        />
+                      </a>
+                      <FormattedMessage id="AND" defaultMessage="and" />
+                      <a
+                        href={`${process.env.PUBLIC_URL}/policies-and-data?section=privacy_policy`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ whiteSpace: "nowrap" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <FormattedMessage
+                          id="MENU_LEARN_PRIVACYPOLICY"
+                          defaultMessage="Privacy Policy"
+                        />
+                      </a>
+                    </span>
+                  }
+                />
+              </Form.Group>
+            ) : null}
+
             <MainButton
               backgroundColor={themeColor.wildMeColors.cyan600}
               color={themeColor.defaultColors.white}
@@ -455,6 +519,7 @@ const ReportEncounter = observer(() => {
                 margin: "20px 0 20px 0",
               }}
               onClick={handleSubmit}
+              disabled={submitDisabled}
             >
               <FormattedMessage id="SUBMIT_ENCOUNTER" />
               {loading && (

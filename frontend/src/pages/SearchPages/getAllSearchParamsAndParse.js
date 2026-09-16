@@ -1,14 +1,12 @@
-const helperFunction = (
-  searchParams,
-  store,
-  setFilterPanel,
-  setTempFormFilters = () => {},
-) => {
+const helperFunction = async (searchParams, store, setFilterPanel) => {
   const params = Object.fromEntries(searchParams.entries()) || {};
   if (Object.keys(params).length === 0) {
     return;
   }
-  Object.entries(params).forEach(([key, _]) => {
+
+  let didAddFilter = false;
+
+  for (const [key, _] of Object.entries(params)) {
     if (key === "username") {
       store.addFilter(
         "assignedUsername",
@@ -20,6 +18,7 @@ const helperFunction = (
         },
         "Assigned User",
       );
+      didAddFilter = true;
     }
     if (key === "state") {
       store.addFilter(
@@ -32,13 +31,31 @@ const helperFunction = (
         },
         "Encounter State",
       );
+      didAddFilter = true;
     }
     if (key === "searchQueryId") {
-      store.formFilters = JSON.parse(sessionStorage.getItem("formData")) || [];
+      store.getFiltersFromStorage();
     }
-    setTempFormFilters([...store.formFilters]);
-  });
-  setFilterPanel(false);
+    if (key === "individualIDExact") {
+      store.addFilter(
+        "individualId",
+        "filter",
+        {
+          terms: {
+            individualId: [params.individualIDExact],
+          },
+        },
+        "Individual ID",
+      );
+      didAddFilter = true;
+    }
+  }
+  if (didAddFilter) {
+    store.applyFilters();
+    setFilterPanel(false);
+  }
+
+  return;
 };
 
 export { helperFunction };

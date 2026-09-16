@@ -60,7 +60,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
                 List<String> encIds = new ArrayList<String>();
                 User user = myShepherd.getUser(request);
                 if (user == null) return failed;
-                JSONObject searchQuery = OpenSearch.queryLoad(searchQueryId);
+                JSONObject searchQuery = OpenSearch.queryLoad(searchQueryId, myShepherd);
                 if (searchQuery == null) return failed;
                 String indexName = searchQuery.optString("indexName", null);
                 if (indexName == null) return failed;
@@ -1340,9 +1340,12 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
                 // now we have to break apart genus species
                 StringTokenizer tokenizer = new StringTokenizer(genusSpecies, " ");
-                if (tokenizer.countTokens() == 2) {
+                if (tokenizer.countTokens() >1) {
                     genus = tokenizer.nextToken();
-                    specificEpithet = tokenizer.nextToken();
+                    while(tokenizer.hasMoreTokens()) {
+                    	specificEpithet+=tokenizer.nextToken()+" ";
+                    }
+                    specificEpithet=specificEpithet.trim();
                     if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                         filter += "genus == '" + genus + "' ";
                     } else { filter += " && genus == '" + genus + "' "; }
@@ -1576,7 +1579,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             if (user == null)
                 return new EncounterQueryResult(rEncounters, "must be logged in",
                         "OpenSearch id " + searchQueryId);
-            JSONObject searchQuery = OpenSearch.queryLoad(searchQueryId);
+            JSONObject searchQuery = OpenSearch.queryLoad(searchQueryId, myShepherd);
             if (searchQuery == null)
                 return new EncounterQueryResult(rEncounters, "searchQuery not found",
                         "OpenSearch id " + searchQueryId);

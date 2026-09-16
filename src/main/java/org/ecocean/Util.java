@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.ecocean.media.AssetStore;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdProperties;
 import org.ecocean.tag.MetalTag;
@@ -229,12 +230,13 @@ public class Util {
         return CommonConfiguration.getIndexedPropertyValues(SATELLITE_TAG_NAME, context);
     }
 
-    private static String findLabel(String key, String langCode, String context) {
+    public static String findLabel(String key, String langCode, String context) {
         // System.out.println("Trying to find key: "+key+" with langCode "+langCode);
 
         Properties myProps = ShepherdProperties.getProperties(
             "commonConfigurationLabels.properties", langCode, context);
 
+        if (myProps == null) return null;
         return myProps.getProperty(key + ".label");
     }
 
@@ -420,6 +422,34 @@ public class Util {
         return gs;
     }
 
+    // parses a user-submitted "genusSpecies" form value (e.g. "Delphinus capensis
+    // tropicalis") into { genus, specificEpithet }. everything after the genus is kept as
+    // the specific epithet, which is how Encounter/Taxonomy already store trinomials --
+    // see setTaxonomyFromString() and Taxonomy.getGenusSpecificEpithet(). also applies the
+    // normalization the submit/edit servlets have always done (drop commas from the
+    // epithet, underscores become spaces). returns null only when there is no epithet at
+    // all, so callers keep their own "malformed genusSpecies" handling.
+    // two things here are load-bearing, both matching what the servlets' old two-token
+    // StringTokenizer did:
+    //   - the parsed parts are NOT screened with stringExists(), which is false for the
+    //     literal values "unknown" and "none" -- those have always been passed through and
+    //     judged downstream.
+    //   - commas are dropped from the epithet only. a comma left on the genus is a config
+    //     typo that survives into the taxonomy, as it always has.
+    // the one intentional difference: whitespace is normalized before the split, so any
+    // run of it separates the parts and none of it ends up inside them. precisely, trim()
+    // strips leading/trailing characters <= U+0020 (stray control characters go with the
+    // whitespace) and interior \s runs collapse to one space. the old tokenizer split on
+    // the literal space alone, which both rejected e.g. a tab-separated value as malformed
+    // (silently costing the encounter its taxonomy) and embedded stray tabs, newlines and
+    // control characters in the stored genus or epithet.
+    public static String[] parseGenusSpecies(String value) {
+        if (value == null) return null;
+        String[] gs = stringToGenusSpecificEpithet(value.trim().replaceAll("\\s+", " "));
+        if ((gs == null) || (gs.length < 2)) return null;
+        return new String[] { gs[0], gs[1].replaceAll(",", "").replaceAll("_", " ") };
+    }
+
     // a generic version of our uuid-dir-structure-creating algorithm -- adjust as needed!?
     // TODO: check for incoming slashes and similar weirdness
     public static String hashDirectories(String in, String separator) {
@@ -485,6 +515,32 @@ public class Util {
         for (int i = 0; i < arr.length(); i++) {
             String val = arr.optString(i, null);
             if (val != null) rtn.add(val);
+        }
+        return rtn;
+    }
+
+    public static List<Integer> jsonArrayToIntegerList(JSONArray arr) {
+        if (arr == null) return null;
+        List<Integer> rtn = new ArrayList<Integer>();
+        for (int i = 0; i < arr.length(); i++) {
+            Integer jint = null;
+            try {
+                jint = arr.getInt(i);
+            } catch (org.json.JSONException je) {}
+            if (jint != null) rtn.add(jint);
+        }
+        return rtn;
+    }
+
+    public static List<Double> jsonArrayToDoubleList(JSONArray arr) {
+        if (arr == null) return null;
+        List<Double> rtn = new ArrayList<Double>();
+        for (int i = 0; i < arr.length(); i++) {
+            Double jdbl = null;
+            try {
+                jdbl = arr.getDouble(i);
+            } catch (org.json.JSONException je) {}
+            if (jdbl != null) rtn.add(jdbl);
         }
         return rtn;
     }
@@ -710,10 +766,34 @@ public class Util {
         return (currentToString);
     }
 
+    // how do we not have this?
+    public static String prettyPrintDateTime(long millis) {
+        return prettyPrintDateTime(new DateTime(millis));
+    }
+
+    public static String prettyPrintDateTime() {
+        return prettyPrintDateTime(System.currentTimeMillis());
+    }
+
     public static String prettyTimeStamp() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
         return sdf.format(new Date());
+    }
+
+    public static String millisToHumanApprox(Long millis) {
+        if (millis == null) return "unknown";
+        if (millis < 2000L) return "1 second";
+        if (millis < 60000L) return Math.round(millis / 1000L) + " seconds";
+        if (millis < 60L * 60L * 1000L) return Math.round(millis / (60L * 1000L)) + " minutes";
+        if (millis < 24L * 60L * 60L * 1000L) return Math.round(millis / (60L * 60L * 1000L)) + " hours";
+        return Math.round(millis / (24L * 60L * 60L * 1000L)) + " days";
+    }
+
+    public static String millisToISO8601String(Long millis) {
+        if (millis == null) return null;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        return sdf.format(new Date(millis));
     }
 
     public static boolean dateTimeIsOnlyDate(DateTime dt) {
@@ -1168,6 +1248,20 @@ public class Util {
         return new JSONObject(original, JSONObject.getNames(original));
     }
 
+    // changes original in-place by folding source into original
+    // overwrite means source will squash like-keyed values in original
+    public static void merge(JSONObject original, JSONObject source, boolean overwrite) {
+        if ((original == null) || (source == null)) return;
+        for (String key : source.keySet()) {
+            if (original.has(key) && !overwrite) continue;
+            original.put(key, source.get(key));
+        }
+    }
+
+    public static void merge(JSONObject original, JSONObject source) {
+        merge(original, source, true);
+    }
+
     /**
      * Generates and returns version long value using 'modified', returns 0 for now if the 'modified' property
      * does not have any value or can't be converted to Long.
@@ -1219,6 +1313,16 @@ public class Util {
         return iso8601;
     }
 
+    // mildly hacky, use with care
+    public static File getDataDir() {
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.beginDBTransaction();
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        File ddir = astore.getBasePath().toFile();
+        myShepherd.rollbackAndClose();
+        return ddir;
+    }
+
     // from issue #1227, there are a couple ways to derive a list of valid countries (e.g. for validating
     // bulk import data), including some based on CommonConfiguration. for now we are using a canned list
     // but might be adjusted later to allow customization
@@ -1232,4 +1336,23 @@ public class Util {
         Collections.sort(cnames);
         return cnames;
     }
+
+    // TODO could be read from config in future, if desired
+    public static List<String> getIdentificationRemarksValues() {
+        return Arrays.asList("Unmatched first encounter", "Visual inspection", "Pattern match");
+    }
+
+    // this is meant to be a temporary replacement for an old library which we are dropping.
+    // it is only used in a couple ancient jsps related to spotmapping
+    // for details: https://github.com/WildMeOrg/Wildbook/issues/1346#issuecomment-3712415060
+    // TODO this can be dropped when those jsps are no longer needed
+    public static java.awt.Dimension hackSanselanGetImageSize(File file, String filename)
+    throws IOException {
+        java.awt.Dimension dim = new java.awt.Dimension();
+        JSONObject attr = AssetStore.extractMetadataAttributes(file);
+        // optInt will truncate values that are floats
+        dim.setSize(attr.optInt("width"), attr.optInt("height"));
+        return dim;
+    }
+
 }

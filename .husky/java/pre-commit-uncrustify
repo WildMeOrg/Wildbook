@@ -39,7 +39,9 @@ fi
 # NOTE: just hard-coding this rather than using $CONFIG, cuz it was
 #   not working with relative path
 UNCRUST_CONFIG="$SCRIPTPATH/uncrustify-style.cfg"
-UNCRUSTIFY="$SCRIPTPATH/uncrustify"
+
+# If the user has uncrustify on the PATH use that, otherwise use the one in the repo
+UNCRUSTIFY=$(command -v uncrustify || echo "$SCRIPTPATH/uncrustify")
 
 # check whether the given file matches any of the set extensions
 matches_extension() {

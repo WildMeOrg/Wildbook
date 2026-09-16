@@ -1,5 +1,9 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
+import {
+  formatReportDateTime,
+  parseReportDateTime,
+} from "./reportDateTime";
 
 export class ReportEncounterStore {
   _isLoggedin;
@@ -45,6 +49,7 @@ export class ReportEncounterStore {
       value: "",
       error: false,
       required: true,
+      verbatimLocality: "",
     };
     this._additionalCommentsSection = {
       value: "",
@@ -53,13 +58,16 @@ export class ReportEncounterStore {
       submitter: {
         name: "",
         email: "",
+        emailError: false,
       },
       photographer: {
         name: "",
         email: "",
+        emailError: false,
       },
       additionalEmails: "",
       error: false,
+      additionalEmailsError: false,
     };
     this._success = false;
     this._finished = false;
@@ -188,6 +196,7 @@ export class ReportEncounterStore {
 
   setDateTimeSectionValue(value) {
     this._dateTimeSection.value = value;
+    this._dateTimeSection.error = false;
   }
 
   setDateTimeSectionError(error) {
@@ -214,8 +223,24 @@ export class ReportEncounterStore {
     this._placeSection.error = error;
   }
 
+  setVerbatimLocality(value) {
+    this._placeSection.verbatimLocality = value;
+  }
+
   setFollowUpSection(value) {
     this._followUpSection.value = value;
+  }
+
+  setSubmitterEmailError(error) {
+    this._followUpSection.submitter.emailError = error;
+  }
+
+  setPhotographerEmailError(error) {
+    this._followUpSection.photographer.emailError = error;
+  }
+
+  setAdditionalEmailsError(error) {
+    this._followUpSection.additionalEmailsError = error;
   }
 
   setCommentsSectionValue(value) {
@@ -264,26 +289,38 @@ export class ReportEncounterStore {
 
   validateEmails() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let isValid = true;
+
+    this.setSubmitterEmailError(false);
+    this.setPhotographerEmailError(false);
+    this.setAdditionalEmailsError(false);
 
     if (this._followUpSection.submitter.email) {
-      if (!emailPattern.test(this._followUpSection.submitter.email))
-        return false;
+      if (!emailPattern.test(this._followUpSection.submitter.email)) {
+        this.setSubmitterEmailError(true);
+        isValid = false;
+      }
     }
 
     if (this._followUpSection.photographer.email) {
-      if (!emailPattern.test(this._followUpSection.photographer.email))
-        return false;
+      if (!emailPattern.test(this._followUpSection.photographer.email)) {
+        this.setPhotographerEmailError(true);
+        isValid = false;
+      }
     }
 
     if (this._followUpSection.additionalEmails) {
-      return this._followUpSection.additionalEmails
+      const allEmailsValid = this._followUpSection.additionalEmails
         .split(",")
-        .every((email) => {
-          return emailPattern.test(email.trim());
-        });
+        .every((email) => emailPattern.test(email.trim()));
+
+      if (!allEmailsValid) {
+        this.setAdditionalEmailsError(true);
+        isValid = false;
+      }
     }
 
-    return true;
+    return isValid;
   }
 
   validateFields() {
@@ -303,9 +340,16 @@ export class ReportEncounterStore {
       isValid = false;
     }
 
-    if (!this._dateTimeSection.value && this._dateTimeSection.required) {
-      this._dateTimeSection.error = true;
-      isValid = false;
+    if (this._dateTimeSection.required) {
+      const dateValue = parseReportDateTime(this._dateTimeSection.value);
+
+      const isFutureDate =
+        dateValue.isValid() && dateValue.isAfter(parseReportDateTime(new Date()));
+
+      if (!dateValue.isValid() || isFutureDate) {
+        this._dateTimeSection.error = true;
+        isValid = false;
+      }
     }
 
     if (!this._placeSection.locationId && this._placeSection.required) {
@@ -324,9 +368,10 @@ export class ReportEncounterStore {
         const payload = {
           submissionId: this._imageSectionSubmissionId,
           assetFilenames: this._imageSectionFileNames,
-          dateTime: this._dateTimeSection.value,
+          dateTime: formatReportDateTime(this._dateTimeSection.value),
           taxonomy: this._speciesSection.value,
           locationId: this._placeSection.locationId,
+          verbatimLocality: this._placeSection.verbatimLocality,
           comments: this._additionalCommentsSection.value,
           submitterName: this._followUpSection.submitter.name,
           submitterEmail: this._followUpSection.submitter.email,
@@ -361,6 +406,7 @@ export class ReportEncounterStore {
         if (response.status === 200) {
           this._speciesSection.value = "";
           this._placeSection.value = "";
+          this._placeSection.verbatimLocality = "";
           this._followUpSection.value = "";
           this._dateTimeSection.value = "";
           this._imageSectionFileNames = [];

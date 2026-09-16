@@ -1,5 +1,8 @@
 package org.ecocean.tag;
 
+import java.util.List;
+import org.ecocean.CommonConfiguration;
+
 public class SatelliteTag extends AbstractTag {
     static final long serialVersionUID = 1623817087546820787L;
 
@@ -37,5 +40,9 @@ public class SatelliteTag extends AbstractTag {
 
     public void setArgosPttNumber(String argosPttNumber) {
         this.argosPttNumber = argosPttNumber;
+    }
+
+    public static List<String> getValidNames(String context) {
+        return CommonConfiguration.getIndexedPropertyValues("satelliteTagName", context);
     }
 }

@@ -4,8 +4,18 @@ import { renderWithProviders } from "../../../utils/utils";
 import LoginPage from "../../../pages/Login";
 import { screen, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { useSiteSettings } from "../../../SiteSettingsContext";
+
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: jest.fn(),
+}));
 
 test("allows user to type username and password", async () => {
+  useSiteSettings.mockReturnValue({
+    data: {},
+    isLoading: false,
+    error: null,
+  });
   renderWithProviders(<LoginPage />);
 
   const passwordInput = screen.getByPlaceholderText("Password");

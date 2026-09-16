@@ -11,7 +11,7 @@ const ErrorSummaryBar = observer(({ store }) => {
 
   Object.values(errors).forEach((rowErrors) => {
     Object.values(rowErrors).forEach((errMsg) => {
-      if (/required/i.test(JSON.stringify(errMsg))) {
+      if (/require/i.test(JSON.stringify(errMsg))) {
         missingField += 1;
       } else if (
         /invalid/i.test(JSON.stringify(errMsg)) ||

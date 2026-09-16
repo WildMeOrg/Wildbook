@@ -640,4 +640,68 @@ class BulkApiPostTest {
         }
     }
 
+    @Test void apiPostValidAdditionalFields()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        Occurrence occ = new Occurrence();
+        String requestBody = getValidPayloadArrays();
+
+        // addToRows() only affects row[0] so lets kill the rest
+        JSONObject tmpObj = new JSONObject(requestBody);
+        JSONArray tmpArr = new JSONArray();
+
+        tmpArr.put(tmpObj.getJSONArray("rows").getJSONArray(0));
+        tmpObj.put("rows", tmpArr);
+        requestBody = tmpObj.toString();
+
+        // now we alter our only row
+        requestBody = addToRows(requestBody, "Sighting.vegetation", "vegetation-test");
+        requestBody = addToRows(requestBody, "Sighting.terrain", "terrain-test");
+        requestBody = addToRows(requestBody, "Sighting.monitoringZone", "monitoringZone-test");
+        requestBody = addToRows(requestBody, "Sighting.groupSize", 1);
+        requestBody = addToRows(requestBody, "Sighting.numAdultMales", 2);
+        requestBody = addToRows(requestBody, "Sighting.numAdultFemales", 3);
+        requestBody = addToRows(requestBody, "Sighting.numSubMales", 4);
+        requestBody = addToRows(requestBody, "Sighting.numSubFemales", 5);
+        requestBody = addToRows(requestBody, "Sighting.numSubAdults", 6);
+        requestBody = addToRows(requestBody, "Sighting.wp", 7);
+
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+        })) {
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(emptyFiles);
+                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                        mockPMF);
+                    apiServlet.doPost(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                    assertEquals(jout.getJSONArray("encounters").length(), 1);
+                    assertEquals(jout.getJSONArray("sightings").length(), 1);
+                    assertEquals(occ.getVegetation(), "vegetation-test");
+                    assertEquals(occ.getTerrain(), "terrain-test");
+                    assertEquals(occ.getMonitoringZone(), "monitoringZone-test");
+                    assertTrue(occ.getGroupSize() == 1);
+                    assertTrue(occ.getNumAdultMales() == 2);
+                    assertTrue(occ.getNumAdultFemales() == 3);
+                    assertTrue(occ.getNumSubMales() == 4);
+                    assertTrue(occ.getNumSubFemales() == 5);
+                    assertTrue(occ.getNumSubAdults() == 6);
+                    assertTrue(occ.getWp() == 7);
+                }
+            }
+        }
+    }
 }

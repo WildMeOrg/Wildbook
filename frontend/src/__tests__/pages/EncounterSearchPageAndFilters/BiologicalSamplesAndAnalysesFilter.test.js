@@ -169,14 +169,21 @@ describe("BiologicalSamplesAndAnalysesFilter Component", () => {
   });
 
   it("removes genetic sex filter when cleared", async () => {
+    mockStore.formFilters = [
+      {
+        filterId: "geneticSex",
+        clause: "filter",
+        query: { terms: { geneticSex: ["Male"] } },
+        filterKey: "Genetic Sex",
+      },
+    ];
     renderComponent();
     const select = screen.getAllByRole("combobox")[1];
-    fireEvent.mouseDown(select);
-    fireEvent.click(screen.getByText("Male"));
     fireEvent.keyDown(select, { key: "Backspace", code: "Backspace" });
     await waitFor(() => {
       expect(mockStore.removeFilter).toHaveBeenCalledWith("geneticSex");
     });
+    mockStore.formFilters = [];
   });
 
   it("checks if all expected elements are rendered", () => {
@@ -195,13 +202,21 @@ describe("BiologicalSamplesAndAnalysesFilter Component", () => {
   });
 
   it("ensures genetic sex filter is correctly removed when deselected", async () => {
+    // Pre-populate the store so the component renders with "Male" already selected.
+    mockStore.formFilters = [
+      {
+        filterId: "geneticSex",
+        clause: "filter",
+        query: { terms: { geneticSex: ["Male"] } },
+        filterKey: "Genetic Sex",
+      },
+    ];
     renderComponent();
     const select = screen.getAllByRole("combobox")[1];
-    fireEvent.mouseDown(select);
-    fireEvent.click(screen.getByText("Male"));
     fireEvent.keyDown(select, { key: "Backspace", code: "Backspace" });
     await waitFor(() => {
       expect(mockStore.removeFilter).toHaveBeenCalledWith("geneticSex");
     });
+    mockStore.formFilters = [];
   });
 });

@@ -38,7 +38,7 @@ public class UserHome extends ApiBase {
                 response.getWriter().write("{\"success\": false}");
                 return;
             }
-            home.put("user", currentUser.infoJSONObject(myShepherd, true));
+            home.put("user", currentUser.infoJSONObject(myShepherd, true, false));
 
             // TODO: Replace with OpenSearch
 

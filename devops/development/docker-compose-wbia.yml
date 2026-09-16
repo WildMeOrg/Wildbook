@@ -31,7 +31,7 @@ services:
       WILDBOOK_DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
 
   wildbook:
-    image: tomcat:9.0.85-jre8-temurin-jammy
+    image: tomcat:9.0.113-jre17-temurin-jammy
     depends_on:
       db:
         condition: service_healthy
