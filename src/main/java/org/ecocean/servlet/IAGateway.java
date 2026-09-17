@@ -139,8 +139,12 @@ public class IAGateway extends HttpServlet {
     // Default OFF. Opt-in per install: enabling raises service concurrency, and the
     // readiness flag above cannot prove the consumer is alive.
     public static boolean fastlaneEnabled(String context) {
-        return "true".equalsIgnoreCase(
-            String.valueOf(CommonConfiguration.getProperty("iaFastlaneQueueEnabled", context)));
+        String v = CommonConfiguration.getProperty("iaFastlaneQueueEnabled", context);
+
+        // TRIM: java.util.Properties keeps trailing whitespace, so an unremarkable
+        // "iaFastlaneQueueEnabled = true " would otherwise leave the lane silently
+        // off and interactive matches still stuck behind detection.
+        return (v != null) && "true".equalsIgnoreCase(v.trim());
     }
 
     /**
@@ -158,8 +162,12 @@ public class IAGateway extends HttpServlet {
         try {
             j = new JSONObject(content);
         } catch (Exception ex) {
-            System.out.println(
-                "IAGateway.publishToLane() unparseable content; falling back to IA queue: " + ex);
+            // Refuse rather than publish. Every converted caller serializes a
+            // JSONObject, so this is off the normal path -- but publishing
+            // unparseable content and returning true would report a successful
+            // submission for work the consumer can only discard.
+            throw new IOException("IAGateway.publishToLane() refusing to publish unparseable content: " +
+                    ex, ex);
         }
         int lane = laneFor(j);
         if ((lane == LANE_FASTLANE) && (!fastlaneEnabled(context) || !fastlaneReady)) {

@@ -562,13 +562,22 @@ public class MetricsBot {
             System.out.println("Trying to get queue sizes!");
             org.ecocean.queue.Queue iaQueue = QueueUtil.getBest(context, "IA");
             org.ecocean.queue.Queue detectionQueue = QueueUtil.getBest(context, "detection");
+            long iaQueueSize = iaQueue.getQueueSize();
+            long detectionQueueSize = detectionQueue.getQueueSize();
             // Interactive lane. Per-lane depth is the signal that was missing when a bulk
             // detection backlog starved encounter-page matching and the only visible symptom
             // was "the match never came back".
-            org.ecocean.queue.Queue fastlaneQueue = QueueUtil.getBest(context, "iafastlane");
-            long iaQueueSize = iaQueue.getQueueSize();
-            long detectionQueueSize = detectionQueue.getQueueSize();
-            long fastlaneQueueSize = (fastlaneQueue == null) ? 0L : fastlaneQueue.getQueueSize();
+            //
+            // ISOLATED on purpose: this lane is optional, so a missing/uncreatable spool must
+            // not take the IA and detection gauges down with it -- that would blind exactly
+            // the monitoring this change exists to add.
+            long fastlaneQueueSize = 0L;
+            try {
+                org.ecocean.queue.Queue fastlaneQueue = QueueUtil.getBest(context, "iafastlane");
+                if (fastlaneQueue != null) fastlaneQueueSize = fastlaneQueue.getQueueSize();
+            } catch (Exception fex) {
+                System.out.println("MetricsBot: fastlane queue size unavailable: " + fex);
+            }
             // csvLines.add("wildbook_taxonomies_total"+","+taxa.size()+","+"gauge"+","+"Number of species");
             csvLines.add("wildbook_queue_detect, " + detectionQueueSize + "," + "gauge" + "," +
                 "Number detection jobs in Wildbook queue now");
