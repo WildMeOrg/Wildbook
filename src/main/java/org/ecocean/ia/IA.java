@@ -489,13 +489,12 @@ public class IA {
                         // if fastlane and a smaller, bespoke request, get this into the faster queue
                         qjob.put("fastlane", fastlane);
                         qjob.put("lane", "fast");
-                        tasks.get(i).setQueueResumeMessage(qjob.toString());
-                        sent = org.ecocean.servlet.IAGateway.addToDetectionQueue(context,
-                            qjob.toString());
-                    } else {
-                        tasks.get(i).setQueueResumeMessage(qjob.toString());
-                        sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
                     }
+                    // One classifier decides the lane (IAGateway.laneFor). This used to
+                    // publish fastlane work onto the SERIAL detection queue, where it sat
+                    // behind every queued ml-service detection.
+                    tasks.get(i).setQueueResumeMessage(qjob.toString());
+                    sent = org.ecocean.servlet.IAGateway.publishToLane(context, qjob.toString());
                 } catch (java.io.IOException iox) {
                     System.out.println("ERROR[" + i +
                         "]: IA.intakeAnnotations() addToQueue() threw " + iox.toString());

@@ -345,6 +345,15 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException ex) {
             System.out.println("+ ERROR: acmid queue startup exception: " + ex.toString());
         }
+        // Interactive ("fastlane") match lane. Deliberately OUTSIDE the all-queues-required
+        // check below: it is optional, and failing to start it must degrade to the previous
+        // behaviour (fastlane work published to the detection queue) rather than abort IA.
+        Queue fastlaneQ = null;
+        try {
+            fastlaneQ = QueueUtil.getBest(context, "iafastlane");
+        } catch (IOException ex) {
+            System.out.println("+ ERROR: iafastlane queue startup exception: " + ex.toString());
+        }
         if ((queue == null) || (queueCallback == null) || (detectionQ == null) || (acmidQ == null)) {
             System.out.println("+ WARNING: IA queue service(s) NOT started");
             return;
@@ -390,6 +399,40 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException iox) {
             System.out.println("+ StartupWildbook.startIAQueues() detectionQ.consume() FAILED on " +
                 detectionQ.toString() + ": " + iox.toString());
+        }
+        // Interactive match lane. CONCURRENT, unlike detection: its work is OpenSearch kNN
+        // rather than a blocking ml-service round trip. Consumers start regardless of
+        // iaFastlaneQueueEnabled so that an install which later disables the flag still
+        // drains whatever it already published. FileQueue.consume(handler,int) remains the
+        // authoritative gate -- it probes for atomic moves and clamps to 1 when unsupported.
+        if (fastlaneQ == null) {
+            System.out.println(
+                "+ WARNING: iafastlane queue unavailable; interactive matches stay on the detection queue");
+            org.ecocean.servlet.IAGateway.setFastlaneReady(false);
+        } else {
+            int fastWorkers = 2;
+            String fastCfg = CommonConfiguration.getProperty("iaFastlaneConsumerThreads", context);
+            if ((fastCfg != null) && (fastCfg.trim().length() > 0)) {
+                try { fastWorkers = Integer.parseInt(fastCfg.trim()); } catch (
+                    NumberFormatException nfe) {
+                    System.out.println("+ WARNING: iaFastlaneConsumerThreads not an int ('" +
+                        fastCfg + "'); using 2");
+                }
+            }
+            try {
+                fastlaneQ.consume(new IAMessageHandler(), fastWorkers);
+                // Consume-return flag only -- see IAGateway.setFastlaneReady. This does NOT
+                // prove the workers are alive, only that registration did not throw.
+                org.ecocean.servlet.IAGateway.setFastlaneReady(true);
+                System.out.println(
+                    "+ StartupWildbook.startIAQueues() fastlaneQ.consume() started on " +
+                    fastlaneQ.toString() + " (requested " + fastWorkers + " worker(s))");
+            } catch (IOException iox) {
+                org.ecocean.servlet.IAGateway.setFastlaneReady(false);
+                System.out.println(
+                    "+ StartupWildbook.startIAQueues() fastlaneQ.consume() FAILED on " +
+                    fastlaneQ.toString() + ": " + iox.toString());
+            }
         }
         //ACM ID queue handler
         AcmIdMessageHandler qh4 = new AcmIdMessageHandler();
