@@ -562,14 +562,22 @@ public class MetricsBot {
             System.out.println("Trying to get queue sizes!");
             org.ecocean.queue.Queue iaQueue = QueueUtil.getBest(context, "IA");
             org.ecocean.queue.Queue detectionQueue = QueueUtil.getBest(context, "detection");
+            // Interactive lane. Per-lane depth is the signal that was missing when a bulk
+            // detection backlog starved encounter-page matching and the only visible symptom
+            // was "the match never came back".
+            org.ecocean.queue.Queue fastlaneQueue = QueueUtil.getBest(context, "iafastlane");
             long iaQueueSize = iaQueue.getQueueSize();
             long detectionQueueSize = detectionQueue.getQueueSize();
+            long fastlaneQueueSize = (fastlaneQueue == null) ? 0L : fastlaneQueue.getQueueSize();
             // csvLines.add("wildbook_taxonomies_total"+","+taxa.size()+","+"gauge"+","+"Number of species");
             csvLines.add("wildbook_queue_detect, " + detectionQueueSize + "," + "gauge" + "," +
                 "Number detection jobs in Wildbook queue now");
             csvLines.add("wildbook_queue_ia, " + iaQueueSize + "," + "gauge" + "," +
                 "Number ID jobs in Wildbook queue now");
-            csvLines.add("wildbook_queue_total, " + (iaQueueSize + detectionQueueSize) + "," +
+            csvLines.add("wildbook_queue_fastlane, " + fastlaneQueueSize + "," + "gauge" + "," +
+                "Number interactive (fastlane) match jobs in Wildbook queue now");
+            csvLines.add("wildbook_queue_total, " +
+                (iaQueueSize + detectionQueueSize + fastlaneQueueSize) + "," +
                 "gauge" + "," + "Number total jobs in Wildbook queue");
         } catch (Exception e) { e.printStackTrace(); }
         // Species tasks

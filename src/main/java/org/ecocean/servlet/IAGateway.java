@@ -65,6 +65,125 @@ public class IAGateway extends HttpServlet {
         = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
     private static final java.util.concurrent.ConcurrentHashMap<String, Queue> IACALLBACK_QUEUE_CACHE
         = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
+    private static final java.util.concurrent.ConcurrentHashMap<String, Queue> FASTLANE_QUEUE_CACHE
+        = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
+
+    // ---- interactive ("fastlane") lane -------------------------------------
+    // An encounter-page "New Match" is published with fastlane=true, which until
+    // now meant addToDetectionQueue(). The detection queue is deliberately
+    // SERIAL (StartupWildbook: detectionQ.consume(qh3) -> QueueUtil.background()
+    // -> ONE worker, plus a 1s delay after each run) and its handler blocks for
+    // the whole synchronous ml-service round trip, so an interactive match sat
+    // behind every queued detection. Observed 2026-09-17: ~78 re-detections
+    // stalled two encounter matches ~20 minutes. The "fast lane" was only fast
+    // because it was normally empty.
+    //
+    // SCOPE: this isolates INTERACTIVE matches -- `v2` annotation intake and
+    // legacy `identify`. ml-service jobs keep running their inline matching tail
+    // (MlServiceProcessor.processDetection -> waitAndRunMatch) on the detection
+    // lane, unchanged; separating that is a larger change and is NOT done here.
+    public static final int LANE_DETECTION = 0;
+    public static final int LANE_FASTLANE = 1;
+    public static final int LANE_IA = 2;
+
+    // Consume-return flag ONLY: set true after the fastlane consumer's consume()
+    // returns without throwing, false in its catch. It prevents publishing before
+    // startup registration. It is NOT a liveness check -- duplicate registration
+    // also returns normally, workers can stop before consume() returns, and a
+    // consumer that dies later silently strands submissions. Queue depth cannot
+    // establish health; watch the wildbook_queue_fastlane gauge.
+    private static volatile boolean fastlaneReady = false;
+
+    public static void setFastlaneReady(boolean ready) {
+        fastlaneReady = ready;
+        System.out.println("IAGateway.setFastlaneReady(" + ready + ")");
+    }
+
+    public static boolean isFastlaneReady() {
+        return fastlaneReady;
+    }
+
+    /**
+     * Which lane a job belongs on. MIRRORS processQueueMessage's dispatch order
+     * (v2 -> MLService -> mlServiceV2 -> detect -> identify), because the lane must
+     * follow what the message will actually DO, not which fields it happens to carry.
+     *
+     * Inside `v2`, ANNOTATIONS DOMINATE: IA.handleRest runs media intake and
+     * annotation intake as two INDEPENDENT if-blocks (IA.java:553 and :570), and the
+     * annotation block calls Embedding.findMatchProspects SYNCHRONOUSLY. An
+     * annotation-bearing envelope must therefore never land on the serial detection
+     * worker. The media half merely ENQUEUES separate per-asset detection messages,
+     * and those classify to LANE_DETECTION on their own.
+     */
+    public static int laneFor(JSONObject j) {
+        if (j == null) return LANE_IA;
+        if (j.optBoolean("v2", false)) { // IA.handleRest
+            JSONArray ann = j.optJSONArray("annotationIds");
+            if ((ann != null) && (ann.length() > 0))
+                return j.optBoolean("fastlane", false) ? LANE_FASTLANE : LANE_IA;
+            JSONArray media = j.optJSONArray("mediaAssetIds");
+            // handleRest:553 gates media intake on a NON-EMPTY array.
+            if ((media != null) && (media.length() > 0)) return LANE_DETECTION;
+            return LANE_IA; // no intake at all
+        }
+        if (j.optBoolean("MLService", false)) return LANE_DETECTION;
+        if (j.optBoolean("mlServiceV2", false)) return LANE_DETECTION;
+        // The dispatcher guards both of these on a non-null taskId; mirror that.
+        if ((j.optJSONObject("detect") != null) && (j.optString("taskId", null) != null))
+            return LANE_DETECTION;
+        if ((j.optJSONObject("identify") != null) && (j.optString("taskId", null) != null))
+            return j.optBoolean("fastlane", false) ? LANE_FASTLANE : LANE_IA;
+        return LANE_IA;
+    }
+
+    // Default OFF. Opt-in per install: enabling raises service concurrency, and the
+    // readiness flag above cannot prove the consumer is alive.
+    public static boolean fastlaneEnabled(String context) {
+        return "true".equalsIgnoreCase(
+            String.valueOf(CommonConfiguration.getProperty("iaFastlaneQueueEnabled", context)));
+    }
+
+    /**
+     * Publish onto the lane laneFor() selects. Single entry point, so the initial
+     * publish and every retry can never disagree about where a job belongs.
+     *
+     * Falls back to the detection queue whenever the fastlane is disabled by config
+     * or its consumer has not registered -- publishing into a queue nothing consumes
+     * is the worst outcome available.
+     */
+    public static boolean publishToLane(String context, String content)
+    throws IOException {
+        JSONObject j = null;
+
+        try {
+            j = new JSONObject(content);
+        } catch (Exception ex) {
+            System.out.println(
+                "IAGateway.publishToLane() unparseable content; falling back to IA queue: " + ex);
+        }
+        int lane = laneFor(j);
+        if ((lane == LANE_FASTLANE) && (!fastlaneEnabled(context) || !fastlaneReady)) {
+            System.out.println("IAGateway.publishToLane() fastlane unavailable (enabled=" +
+                fastlaneEnabled(context) + ", ready=" + fastlaneReady +
+                "); using detection queue");
+            lane = LANE_DETECTION;
+        }
+        switch (lane) {
+        case LANE_FASTLANE:
+            return addToFastlaneQueue(context, content);
+        case LANE_DETECTION:
+            return addToDetectionQueue(context, content);
+        default:
+            return addToQueue(context, content);
+        }
+    }
+
+    public static boolean addToFastlaneQueue(String context, String content)
+    throws IOException {
+        System.out.println("IAGateway.addToFastlaneQueue() publishing: " + content);
+        getFastlaneQueue(context).publish(content);
+        return true;
+    }
 
     private static Queue cachedQueue(
         java.util.concurrent.ConcurrentHashMap<String, Queue> cache,
@@ -190,20 +309,11 @@ public class IAGateway extends HttpServlet {
                 myShepherd.updateDBTransaction(); // hack
                 // myShepherd.closeDBTransaction();
 
-                boolean ok = false;
-                if (j.optJSONArray("annotationIds") != null) {
-                    // if this is just a single Encounter call, put it in the fast/detection lane to unblock small batch users
-                    if (j.optBoolean("fastlane", false)) {
-                        task.setQueueResumeMessage(j.toString());
-                        ok = addToDetectionQueue(context, j.toString());
-                    } else {
-                        task.setQueueResumeMessage(j.toString());
-                        ok = addToQueue(context, j.toString());
-                    }
-                } else {
-                    task.setQueueResumeMessage(j.toString());
-                    ok = addToDetectionQueue(context, j.toString());
-                }
+                // One classifier for every lane decision (see laneFor): previously this
+                // branched on the mere PRESENCE of an annotationIds array -- including an
+                // empty one -- and sent fastlane work to the SERIAL detection queue.
+                task.setQueueResumeMessage(j.toString());
+                boolean ok = publishToLane(context, j.toString());
                 if (ok) {
                     System.out.println("INFO: taskId=" + taskId + " enqueued successfully");
                     res.remove("error");
@@ -441,6 +551,11 @@ public class IAGateway extends HttpServlet {
                 jobj.put("__queueActualRetries", jin.optInt("__queueActualRetries", 0));
                 jobj.put("__queueRetries", jin.optInt("__queueRetries", 0));
                 jobj.put("__queueStart", jin.optLong("__queueStart", System.currentTimeMillis()));
+                // Carry the lane with the retry. Without this the child job loses
+                // `fastlane` and an interactive match silently demotes to the bulk IA
+                // queue on its first retry. requeueJob's DELAYED publish path is kept
+                // as-is -- only the payload gains the flag.
+                if (fastlane) jobj.put("fastlane", true);
                 System.out.println("_doIdentify() requeueing from jin=" + jin);
                 System.out.println("_doIdentify() requeueing as jobj=" + jobj);
                 requeueJob(jobj, true);
@@ -666,6 +781,11 @@ public class IAGateway extends HttpServlet {
         return cachedQueue(IACALLBACK_QUEUE_CACHE, context, "IACallback");
     }
 
+    public static Queue getFastlaneQueue(String context)
+    throws IOException {
+        return cachedQueue(FASTLANE_QUEUE_CACHE, context, "iafastlane");
+    }
+
     public static void processQueueMessage(String message) {
 // System.out.println("DEBUG: IAGateway.processQueueMessage -> " + message);
         if (message == null) return;
@@ -878,19 +998,13 @@ public class IAGateway extends HttpServlet {
         REQUEUE_EXEC.schedule(new Runnable() {
             public void run() {
                 try {
-                    if (jobj.optJSONObject("detect") != null ||
-                        jobj.optBoolean("fastlane", false) ||
-                        jobj.optBoolean("MLService", false) ||
-                        jobj.optBoolean("mlServiceV2", false)) {
-                        // mlServiceV2 retries must land on the
-                        // detection queue, not the generic IA queue.
-                        // Without this, a retryable ml-service failure
-                        // would never be re-dispatched to
-                        // MlServiceProcessor.
-                        addToDetectionQueue(context, jobj.toString());
-                    } else {
-                        addToQueue(context, jobj.toString());
-                    }
+                    // Same classifier as the initial publish. The old condition sent
+                    // ANY fastlane payload back to the detection queue, so a single
+                    // retry silently undid the lane separation. laneFor still keeps
+                    // detect/MLService/mlServiceV2 on the detection queue, which
+                    // retryable ml-service failures depend on to reach
+                    // MlServiceProcessor.
+                    publishToLane(context, jobj.toString());
                 } catch (Throwable t) {
                     System.out.println(
                         ".....requeueJob() looping: failed to requeue addTo_Queue() taskId=" +
@@ -1005,7 +1119,12 @@ public class IAGateway extends HttpServlet {
         qjob.put("__baseUrl", baseUrl);
         qjob.put("__handleBulkImport", System.currentTimeMillis());
         task.setQueueResumeMessage(qjob.toString());
-        boolean ok = addToDetectionQueue(context, qjob.toString());
+        // Classified like everything else. The clone above preserves arbitrary request
+        // fields, so an import carrying annotationIds + fastlane would otherwise bypass
+        // the classifier and land on the serial detection queue. A normal import (media
+        // ids, no annotations) still classifies LANE_DETECTION; an EMPTY, annotation-free
+        // import now goes to the IA queue, where it performs no intake either way.
+        boolean ok = publishToLane(context, qjob.toString());
         if (ok) okCount++;
         res.put("queuedCount", okCount);
         res.remove("error");

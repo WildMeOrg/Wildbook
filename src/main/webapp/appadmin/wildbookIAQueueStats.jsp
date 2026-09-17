@@ -211,13 +211,15 @@ try{
 		<%
 		org.ecocean.queue.Queue iaQueue = QueueUtil.getBest(context, "IA");
 		org.ecocean.queue.Queue detectionQueue = QueueUtil.getBest(context, "detection");
+		org.ecocean.queue.Queue fastlaneQueue = QueueUtil.getBest(context, "iafastlane");
 		long iaQueueSize=iaQueue.getQueueSize();	
 		long detectionQueueSize=detectionQueue.getQueueSize();
+		long fastlaneQueueSize=(fastlaneQueue==null)?0L:fastlaneQueue.getQueueSize();
 		%>
 			<ul>
-				<li>There are currently <%=iaQueueSize %> slow lane ID jobs waiting to go to WBIA in the slow lane.</li>
-				<li>There are currently <%=detectionQueueSize %> detection and ID jobs waiting to go to WBIA in the fast lane.</li>
-				
+				<li>There are currently <%=iaQueueSize %> bulk ID jobs waiting in the IA (bulk) queue.</li>
+				<li>There are currently <%=detectionQueueSize %> detection jobs waiting in the detection queue. <i>This queue is SERIAL (one consumer) and each job blocks on a synchronous ml-service call.</i></li>
+				<li>There are currently <%=fastlaneQueueSize %> interactive match jobs waiting in the fastlane queue<%= org.ecocean.servlet.IAGateway.isFastlaneReady() ? "" : " (consumer NOT registered - interactive matches are falling back to the detection queue)" %>.</li>
 			</ul>
 		</li>
 	</ul>
