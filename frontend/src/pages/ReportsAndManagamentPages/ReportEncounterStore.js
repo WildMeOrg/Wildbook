@@ -263,6 +263,25 @@ export class ReportEncounterStore {
     this._followUpSection.photographer.email = email;
   }
 
+  prefillFollowUpContacts(user) {
+    if (!user) return;
+
+    const { displayName, email } = user;
+
+    if (displayName && !this._followUpSection.submitter.name) {
+      this.setSubmitterName(displayName);
+    }
+    if (email && !this._followUpSection.submitter.email) {
+      this.setSubmitterEmail(email);
+    }
+    if (displayName && !this._followUpSection.photographer.name) {
+      this.setPhotographerName(displayName);
+    }
+    if (email && !this._followUpSection.photographer.email) {
+      this.setPhotographerEmail(email);
+    }
+  }
+
   setAdditionalEmails(value) {
     this._followUpSection.additionalEmails = value;
   }

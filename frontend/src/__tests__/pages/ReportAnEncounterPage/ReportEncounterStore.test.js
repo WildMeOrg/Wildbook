@@ -144,6 +144,85 @@ describe("ReportEncounterStore", () => {
     expect(store.validateEmails()).toBe(true);
   });
 
+  describe("prefillFollowUpContacts", () => {
+    const user = {
+      displayName: "Alex Doe",
+      email: "alex@example.com",
+    };
+
+    test("populates all empty submitter and photographer fields", () => {
+      store.prefillFollowUpContacts(user);
+
+      expect(store.followUpSection.submitter).toEqual({
+        name: user.displayName,
+        email: user.email,
+        emailError: false,
+      });
+      expect(store.followUpSection.photographer).toEqual({
+        name: user.displayName,
+        email: user.email,
+        emailError: false,
+      });
+    });
+
+    test("preserves existing submitter values", () => {
+      store.setSubmitterName("Saved Submitter");
+      store.setSubmitterEmail("saved-submitter@example.com");
+
+      store.prefillFollowUpContacts(user);
+
+      expect(store.followUpSection.submitter.name).toBe("Saved Submitter");
+      expect(store.followUpSection.submitter.email).toBe(
+        "saved-submitter@example.com",
+      );
+      expect(store.followUpSection.photographer.name).toBe(user.displayName);
+      expect(store.followUpSection.photographer.email).toBe(user.email);
+    });
+
+    test("preserves existing photographer values", () => {
+      store.setPhotographerName("Saved Photographer");
+      store.setPhotographerEmail("saved-photographer@example.com");
+
+      store.prefillFollowUpContacts(user);
+
+      expect(store.followUpSection.photographer.name).toBe(
+        "Saved Photographer",
+      );
+      expect(store.followUpSection.photographer.email).toBe(
+        "saved-photographer@example.com",
+      );
+      expect(store.followUpSection.submitter.name).toBe(user.displayName);
+      expect(store.followUpSection.submitter.email).toBe(user.email);
+    });
+
+    test.each([
+      ["display name", { displayName: user.displayName }, user.displayName, ""],
+      ["email", { email: user.email }, "", user.email],
+    ])("only fills the available %s", (_, availableUser, name, email) => {
+      store.prefillFollowUpContacts(availableUser);
+
+      expect(store.followUpSection.submitter.name).toBe(name);
+      expect(store.followUpSection.submitter.email).toBe(email);
+      expect(store.followUpSection.photographer.name).toBe(name);
+      expect(store.followUpSection.photographer.email).toBe(email);
+    });
+
+    test("does nothing when the user is missing", () => {
+      store.prefillFollowUpContacts();
+
+      expect(store.followUpSection.submitter).toEqual({
+        name: "",
+        email: "",
+        emailError: false,
+      });
+      expect(store.followUpSection.photographer).toEqual({
+        name: "",
+        email: "",
+        emailError: false,
+      });
+    });
+  });
+
   test("should correctly update and remove additional emails", () => {
     store.setAdditionalEmails("test1@example.com,test2@example.com");
     expect(store.followUpSection.additionalEmails).toBe(
