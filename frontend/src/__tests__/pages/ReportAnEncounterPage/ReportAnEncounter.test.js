@@ -63,11 +63,16 @@ jest.mock(
       isHumanLocal: false,
       error: null,
       setImageRequired: jest.fn(),
+      prefillFollowUpContacts: jest.fn(),
     })),
   }),
 );
 
-const renderComponent = () => renderWithProviders(<ReportEncounter />, false);
+const renderComponent = ({ currentUser, isLoggedIn = false } = {}) =>
+  renderWithProviders(
+    <ReportEncounter currentUser={currentUser} />,
+    isLoggedIn,
+  );
 
 describe("ReportEncounter Component", () => {
   beforeEach(() => {
@@ -91,6 +96,58 @@ describe("ReportEncounter Component", () => {
     expect(screen.getByTestId("species-section")).toBeInTheDocument();
   });
 
+  test("forwards the signed-in user to the store prefill method", async () => {
+    const currentUser = {
+      displayName: "Alex Doe",
+      email: "alex@example.com",
+    };
+
+    renderComponent({ currentUser, isLoggedIn: true });
+    const store = ReportEncounterStore.mock.results[0].value;
+
+    await waitFor(() => {
+      expect(store.prefillFollowUpContacts).toHaveBeenCalledWith(currentUser);
+    });
+  });
+
+  test("prefills when the current user arrives after the first render", async () => {
+    const currentUser = {
+      displayName: "Alex Doe",
+      email: "alex@example.com",
+    };
+
+    const DeferredCurrentUserReport = () => {
+      const [loadedUser, setLoadedUser] = React.useState();
+
+      return (
+        <>
+          <button type="button" onClick={() => setLoadedUser(currentUser)}>
+            Load current user
+          </button>
+          <ReportEncounter currentUser={loadedUser} />
+        </>
+      );
+    };
+
+    renderWithProviders(<DeferredCurrentUserReport />, true);
+    const store = ReportEncounterStore.mock.results[0].value;
+
+    expect(store.prefillFollowUpContacts).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Load current user" }));
+
+    await waitFor(() => {
+      expect(store.prefillFollowUpContacts).toHaveBeenCalledWith(currentUser);
+    });
+  });
+
+  test("does not prefill an anonymous report", () => {
+    renderComponent();
+    const store = ReportEncounterStore.mock.results[0].value;
+
+    expect(store.prefillFollowUpContacts).not.toHaveBeenCalled();
+  });
+
   test("displays missing required fields message on validation fail", async () => {
     ReportEncounterStore.mockImplementation(() => ({
       validateFields: jest.fn(() => false),
@@ -105,7 +162,7 @@ describe("ReportEncounter Component", () => {
       setImageRequired: jest.fn(),
     }));
 
-    renderComponent();
+    renderComponent({ isLoggedIn: true });
 
     const submitButton = screen.getByRole("button", {
       name: /SUBMIT_ENCOUNTER/i,
@@ -132,7 +189,7 @@ describe("ReportEncounter Component", () => {
       setImageRequired: jest.fn(),
     }));
 
-    renderComponent();
+    renderComponent({ isLoggedIn: true });
 
     const submitButton = screen.getByRole("button", {
       name: /SUBMIT_ENCOUNTER/i,
@@ -158,7 +215,7 @@ describe("ReportEncounter Component", () => {
       setImageRequired: jest.fn(),
     }));
 
-    renderComponent();
+    renderComponent({ isLoggedIn: true });
 
     const submitButton = screen.getByRole("button", {
       name: /SUBMIT_ENCOUNTER/i,
