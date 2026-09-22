@@ -5,6 +5,10 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.file.LinkOption;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -77,83 +81,160 @@ public class UploadServlet extends HttpServlet {
         System.out.println("UploadServlet.java. About to Print Params");
         ServletUtilities.printParams(request);
         System.out.println("(Those were the params)");
-        if (!ServletFileUpload.isMultipartContent(request))
-            throw new IOException("doPost is not multipart");
+        if (!ServletFileUpload.isMultipartContent(request)) {
+            writeJsonError(response, 400, "upload request must be multipart/form-data");
+            return;
+        }
         ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
+        // an unbounded parser lets one request fill the disk; these cap a single chunk POST
+        long maxUploadBytes = CommonConfiguration.getUploadChunkMaxBytes(
+            ServletUtilities.getContext(request));
+        upload.setFileSizeMax(maxUploadBytes);
+        upload.setSizeMax(maxUploadBytes);
         List<FileItem> multiparts = null;
         try {
             multiparts = upload.parseRequest(request);
+        } catch (org.apache.commons.fileupload.FileUploadBase.SizeLimitExceededException |
+            org.apache.commons.fileupload.FileUploadBase.FileSizeLimitExceededException ex) {
+            System.out.println("UploadServlet refusing oversized upload: " + ex);
+            writeJsonError(response, 413, "upload exceeds the configured maximum of " +
+                maxUploadBytes + " bytes");
+            return;
         } catch (org.apache.commons.fileupload.FileUploadException ex) {
-            throw new IOException("error parsing request: " + ex.toString());
+            System.out.println("UploadServlet could not parse request: " + ex);
+            writeJsonError(response, 400, "could not parse upload request");
+            return;
         }
-        boolean anonUser = AccessControl.isAnonymous(request);
-        FileItem fileChunk = null;
-        String recaptchaValue = null;
-        for (FileItem item : multiparts) {
-            if (item.isFormField()) {
-                if (item.getFieldName().equals("recaptchaValue"))
-                    recaptchaValue = item.getString("UTF-8");
+        try {
+            boolean anonUser = AccessControl.isAnonymous(request);
+            FileItem fileChunk = null;
+            String recaptchaValue = null;
+            for (FileItem item : multiparts) {
+                if (item.isFormField()) {
+                    if (item.getFieldName().equals("recaptchaValue"))
+                        recaptchaValue = item.getString("UTF-8");
+                } else {
+                    fileChunk = item;
+                    break; // we only do first one.  ?
+                }
+            }
+            if (fileChunk == null)
+                throw new UploadRefusedException("doPost could not find file chunk",
+                        "no file chunk in request");
+            System.out.println("Do Post");
+
+            System.out.println(request.getRequestURL());
+
+            PrintWriter out = response.getWriter();
+            response.setContentType("application/json");
+            response.setHeader("Cache-control", "no-cache, no-store");
+            response.setHeader("Pragma", "no-cache");
+            response.setHeader("Expires", "-1");
+
+            response.setHeader("Access-Control-Allow-Origin", "*"); // allow us stuff from localhost
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+            response.setHeader("Access-Control-Allow-Methods", "POST");
+            response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+            response.setHeader("Access-Control-Max-Age", "86400");
+
+            int flowChunkNumber = getflowChunkNumber(multiparts);
+            FlowInfo info = getFlowInfo(multiparts, request);
+            System.out.println(info.flowFilePath);
+            System.out.println("flowChunkNumber " + flowChunkNumber);
+
+            if (!UploadPaths.chunkGeometryIsValid(flowChunkNumber, info.flowChunkSize,
+                info.flowTotalSize)) {
+                System.out.println("UploadServlet refusing chunk " + flowChunkNumber + " of size " +
+                    info.flowChunkSize + " against declared total " + info.flowTotalSize);
+                response.setStatus(400);
+                out.print("{\"success\": false, \"error\": \"invalid chunk geometry\"}");
+                out.close();
+                return;
+            }
+            long content_length = fileChunk.getSize();
+            if (!UploadPaths.chunkLengthIsValid(content_length, info.flowChunkSize, flowChunkNumber,
+                info.flowTotalSize)) {
+                System.out.println("UploadServlet refusing chunk " + flowChunkNumber + ": got " +
+                    content_length + " bytes against declared chunkSize=" + info.flowChunkSize);
+                response.setStatus(400);
+                out.print("{\"success\": false, \"error\": \"chunk length does not match declared geometry\"}");
+                out.close();
+                return;
+            }
+            // NOFOLLOW_LINKS: the containment check above proves the PATH is inside the upload root,
+            // but a symlink sitting at that path would still redirect the write. Refusing to follow
+            // one at open time is what actually closes that, and it is atomic.
+            try (FileChannel channel = FileChannel.open(Paths.get(info.flowFilePath),
+                    StandardOpenOption.CREATE, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS);
+                InputStream is = fileChunk.getInputStream()) {
+                // Seek to position (64-bit: an int multiply here wraps past 2GiB)
+                channel.position(UploadPaths.chunkOffset(flowChunkNumber, info.flowChunkSize));
+                long readed = 0;
+                byte[] bytes = new byte[1024 * 100];
+                while (readed < content_length) {
+                    int r = is.read(bytes);
+                    if (r < 0) {
+                        break;
+                    }
+                    // FileChannel.write is not obliged to consume the whole buffer
+                    java.nio.ByteBuffer buf = java.nio.ByteBuffer.wrap(bytes, 0, r);
+                    while (buf.hasRemaining()) {
+                        channel.write(buf);
+                    }
+                    readed += r;
+                }
+                if (readed != content_length)
+                    throw new UploadRefusedException("short chunk: wrote " + readed + " of " +
+                            content_length, "upload chunk was truncated");
+            }
+
+            // Mark as uploaded.
+            info.uploadedChunks.add(new FlowInfo.flowChunkNumber(flowChunkNumber));
+            String archivoFinal = info.checkIfUploadFinished();
+            if (archivoFinal != null) { // Check if all chunks uploaded, and change filename
+                FlowInfoStorage.getInstance().remove(info);
+                response.getWriter().print("{\"success\": true, \"uploadComplete\": true}");
             } else {
-                fileChunk = item;
-                break; // we only do first one.  ?
+                response.getWriter().print(
+                    "{\"success\": true, \"uploadComplete\": false, \"chunkNumber\": " +
+                    flowChunkNumber + "}");
+            }
+            // out.println(myObj.toString());
+
+            out.close();
+        } catch (UploadRefusedException ex) {
+            // detail stays in the log; the client gets the reason without server paths
+            System.out.println("UploadServlet refusing request: " + ex.getMessage());
+            writeJsonError(response, 400, ex.getClientMessage());
+        } finally {
+            // commons-fileupload spools parts over its threshold to disk; without this they are
+            // left behind on every request, including the ones we refuse
+            for (FileItem item : multiparts) {
+                try { item.delete(); } catch (Exception ignored) {}
             }
         }
-        if (fileChunk == null) throw new IOException("doPost could not find file chunk");
-        System.out.println("Do Post");
+    }
 
-        System.out.println(request.getRequestURL());
+    /** A refusal that should reach the client as a 400 rather than a container error page. */
+    public static class UploadRefusedException extends IOException {
+        private final String clientMessage;
 
-        PrintWriter out = response.getWriter();
+        public UploadRefusedException(String logMessage, String clientMessage) {
+            super(logMessage);
+            this.clientMessage = clientMessage;
+        }
+
+        /** Safe to return to the caller: never contains a server path. */
+        public String getClientMessage() { return clientMessage; }
+    }
+
+    private static void writeJsonError(HttpServletResponse response, int status, String message)
+    throws IOException {
+        response.setStatus(status);
         response.setContentType("application/json");
-        response.setHeader("Cache-control", "no-cache, no-store");
-        response.setHeader("Pragma", "no-cache");
-        response.setHeader("Expires", "-1");
-
-        response.setHeader("Access-Control-Allow-Origin", "*"); // allow us stuff from localhost
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Methods", "POST");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
-        response.setHeader("Access-Control-Max-Age", "86400");
-
-        int flowChunkNumber = getflowChunkNumber(multiparts);
-        FlowInfo info = getFlowInfo(multiparts, request);
-        System.out.println(info.flowFilePath);
-        System.out.println("flowChunkNumber " + flowChunkNumber);
-
-        RandomAccessFile raf = new RandomAccessFile(info.flowFilePath, "rw");
-
-        // Seek to position
-        raf.seek((flowChunkNumber - 1) * info.flowChunkSize);
-
-        // Save to file
-        InputStream is = fileChunk.getInputStream();
-        long readed = 0;
-        long content_length = fileChunk.getSize();
-        byte[] bytes = new byte[1024 * 100];
-        while (readed < content_length) {
-            int r = is.read(bytes);
-            if (r < 0) {
-                break;
-            }
-            raf.write(bytes, 0, r);
-            readed += r;
-        }
-        raf.close();
-
-        // Mark as uploaded.
-        info.uploadedChunks.add(new FlowInfo.flowChunkNumber(flowChunkNumber));
-        String archivoFinal = info.checkIfUploadFinished();
-        if (archivoFinal != null) { // Check if all chunks uploaded, and change filename
-            FlowInfoStorage.getInstance().remove(info);
-            response.getWriter().print("{\"success\": true, \"uploadComplete\": true}");
-        } else {
-            response.getWriter().print(
-                "{\"success\": true, \"uploadComplete\": false, \"chunkNumber\": " +
-                flowChunkNumber + "}");
-        }
-        // out.println(myObj.toString());
-
-        out.close();
+        response.getWriter().print("{\"success\": false, \"error\": " +
+            org.json.JSONObject.quote(message) + "}");
+        response.getWriter().close();
     }
 
 /* TODO: verifiy doGet works. skip testChunk with testChunks: false essentially, i doubt GET will be multipart -- so we need to also
@@ -168,47 +249,71 @@ public class UploadServlet extends HttpServlet {
             response.getWriter().close();
             return;
         }
-        if (!ServletFileUpload.isMultipartContent(request))
-            throw new IOException("doGet is not multipart");
+        if (!ServletFileUpload.isMultipartContent(request)) {
+            writeJsonError(response, 400, "upload request must be multipart/form-data");
+            return;
+        }
         ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
+        // an unbounded parser lets one request fill the disk; these cap a single chunk POST
+        long maxUploadBytes = CommonConfiguration.getUploadChunkMaxBytes(
+            ServletUtilities.getContext(request));
+        upload.setFileSizeMax(maxUploadBytes);
+        upload.setSizeMax(maxUploadBytes);
         // upload.setHeaderEncoding("UTF-8");
         List<FileItem> multiparts = null;
         try {
             multiparts = upload.parseRequest(request);
+        } catch (org.apache.commons.fileupload.FileUploadBase.SizeLimitExceededException |
+            org.apache.commons.fileupload.FileUploadBase.FileSizeLimitExceededException ex) {
+            System.out.println("UploadServlet refusing oversized request: " + ex);
+            writeJsonError(response, 413, "upload exceeds the configured maximum of " +
+                maxUploadBytes + " bytes");
+            return;
         } catch (org.apache.commons.fileupload.FileUploadException ex) {
-            throw new IOException("error parsing request: " + ex.toString());
+            System.out.println("UploadServlet could not parse request: " + ex);
+            writeJsonError(response, 400, "could not parse upload request");
+            return;
         }
-        int flowChunkNumber = getflowChunkNumber(multiparts);
-        System.out.println("GET fcn = " + flowChunkNumber);
-        System.out.println("Do Get begun on request (about to print params)");
-        ServletUtilities.printParams(request);
+        try {
+            int flowChunkNumber = getflowChunkNumber(multiparts);
+            System.out.println("GET fcn = " + flowChunkNumber);
+            System.out.println("Do Get begun on request (about to print params)");
+            ServletUtilities.printParams(request);
 
-        System.out.println(request.getRequestURL());
-        PrintWriter out = response.getWriter();
-        response.setContentType("application/json");
-        response.setHeader("Cache-control", "no-cache, no-store");
-        response.setHeader("Pragma", "no-cache");
-        response.setHeader("Expires", "-1");
+            System.out.println(request.getRequestURL());
+            PrintWriter out = response.getWriter();
+            response.setContentType("application/json");
+            response.setHeader("Cache-control", "no-cache, no-store");
+            response.setHeader("Pragma", "no-cache");
+            response.setHeader("Expires", "-1");
 
-        response.setHeader("Access-Control-Allow-Origin", "*"); // allow us stuff from localhost
-        response.setHeader("Access-Control-Allow-Methods", "GET");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
-        response.setHeader("Access-Control-Max-Age", "86400");
+            response.setHeader("Access-Control-Allow-Origin", "*"); // allow us stuff from localhost
+            response.setHeader("Access-Control-Allow-Methods", "GET");
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+            response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+            response.setHeader("Access-Control-Max-Age", "86400");
 
-        FlowInfo info = getFlowInfo(multiparts, request);
-        System.out.println(info.flowFilePath);
-        System.out.println("flowChunkNumber " + flowChunkNumber);
+            FlowInfo info = getFlowInfo(multiparts, request);
+            System.out.println(info.flowFilePath);
+            System.out.println("flowChunkNumber " + flowChunkNumber);
 
-        Object fcn = new FlowInfo.flowChunkNumber(flowChunkNumber);
-        if (info.uploadedChunks.contains(fcn)) {
-            System.out.println("Do Get arriba");
-            response.getWriter().print("Uploaded."); // This Chunk has been Uploaded.
-        } else {
-            System.out.println("Do Get something is wrong");
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            Object fcn = new FlowInfo.flowChunkNumber(flowChunkNumber);
+            if (info.uploadedChunks.contains(fcn)) {
+                System.out.println("Do Get arriba");
+                response.getWriter().print("Uploaded."); // This Chunk has been Uploaded.
+            } else {
+                System.out.println("Do Get something is wrong");
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
+            out.close();
+        } catch (UploadRefusedException ex) {
+            System.out.println("UploadServlet refusing request: " + ex.getMessage());
+            writeJsonError(response, 400, ex.getClientMessage());
+        } finally {
+            for (FileItem item : multiparts) {
+                try { item.delete(); } catch (Exception ignored) {}
+            }
         }
-        out.close();
     }
 
     private int getflowChunkNumber(List<FileItem> parts) {
@@ -220,11 +325,14 @@ public class UploadServlet extends HttpServlet {
         return -1;
     }
 
-    public static String getUploadDir(HttpServletRequest request) {
+    public static String getUploadDir(HttpServletRequest request)
+    throws IOException {
         return getUploadDir(request, null);
     }
 
-    public static String getUploadDir(HttpServletRequest request, Map<String, String> values) {
+    public static String getUploadDir(HttpServletRequest request,
+        Map<String, String> values)
+    throws IOException {
         ServletUtilities.printParams(request);
         String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute("subdir",
             request);
@@ -247,12 +355,20 @@ public class UploadServlet extends HttpServlet {
                 subDir = username + "/submission/" + submissionId;
             }
  */
-            subDir = "_anonymous/submission/" + submissionId;
+            subDir = UploadPaths.ANONYMOUS_SUBMISSION_PREFIX + submissionId;
         }
         System.out.println("UploadServlet got subdir " + subDir);
-        if (subDir == null) { subDir = ""; } else { subDir = "/" + subDir; }
-        String fullDir = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request)) +
-            subDir;
+        String safeSubDir = UploadPaths.uploadSubdir(subDir, submissionId);
+        if (safeSubDir == null)
+            throw new UploadRefusedException("unsafe subdir rejected: " + subDir,
+                    "invalid upload destination");
+        File uploadRoot = new File(
+            CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request)));
+        File resolved = UploadPaths.resolveDirWithin(uploadRoot, safeSubDir);
+        if (resolved == null)
+            throw new UploadRefusedException("upload dir escapes upload root: " + safeSubDir,
+                    "invalid upload destination");
+        String fullDir = resolved.getPath();
         System.out.println("UploadServlet got uploadDir fullDir = " + fullDir);
         if (!skipCreation) ensureDirectoryExists(fullDir);
         return fullDir;
@@ -301,7 +417,23 @@ public class UploadServlet extends HttpServlet {
 
         // Here we add a ".temp" to every upload file to indicate NON-FINISHED
         // System.out.println("aaaa ==> " + FlowFilename);
-        String FlowFilePath = new File(base_dir, FlowFilename).getAbsolutePath() + ".temp";
+        // validate the path that is actually opened: ".temp" is appended before the file is
+        // created, so checking the bare name and then suffixing it leaves the real target unchecked
+        String stagingName = UploadPaths.basename(FlowFilename);
+        File finalTarget = (stagingName == null) ? null
+            : UploadPaths.resolveWithin(new File(base_dir), stagingName);
+        File target = (stagingName == null) ? null
+            : UploadPaths.resolveWithin(new File(base_dir),
+            stagingName + UploadPaths.STAGING_SUFFIX);
+        if ((target == null) || (finalTarget == null))
+            throw new UploadRefusedException("unsafe flowFilename rejected: " + FlowFilename,
+                    "invalid filename");
+        // the staging path is canonical; if it no longer ends in the staging suffix then an
+        // existing symlink resolved it somewhere else, and finalization would move the wrong file
+        if (!target.getPath().endsWith(UploadPaths.STAGING_SUFFIX))
+            throw new UploadRefusedException("staging path resolved away from its suffix: " +
+                    target.getPath(), "invalid filename");
+        String FlowFilePath = target.getPath();
         // System.out.println("FlowFilePath ---> " + FlowFilePath);
         FlowInfoStorage storage = FlowInfoStorage.getInstance();
 
@@ -319,9 +451,20 @@ public class UploadServlet extends HttpServlet {
 
         FlowInfo info = storage.get(FlowChunkSize, FlowTotalSize, FlowIdentifier, FlowFilename,
             FlowRelativePath, FlowFilePath);
+        // a cached entry keeps whatever destination the FIRST chunk established; if this request
+        // resolved somewhere else, the two disagree and we must not write against the cached one
+        if (!FlowFilePath.equals(info.flowFilePath)) {
+            // deliberately NOT storage.remove(info): the cache is keyed on a client-chosen
+            // flowIdentifier, so discarding the entry here would let a conflicting request erase
+            // an unrelated upload's completed-chunk bookkeeping
+            throw new UploadRefusedException("cached destination mismatch for " + FlowIdentifier,
+                    "upload identifier already in use for a different destination");
+        }
+        info.finalFilePath = finalTarget.getPath();
         if (!info.valid()) {
             storage.remove(info);
-            throw new ServletException("Invalid request params.");
+            throw new UploadRefusedException("invalid flow params for " + FlowIdentifier,
+                    "invalid upload parameters");
         }
         return info;
     }

@@ -34,9 +34,15 @@ public class FlowInfo {
     public HashSet<flowChunkNumber> uploadedChunks = new HashSet<flowChunkNumber>();
 
     public String flowFilePath;
+    /**
+     * The validated final destination. Derived up front, NOT by trimming ".temp" off
+     * flowFilePath: once that path is canonicalised it may resolve to a name with no ".temp"
+     * suffix at all, and trimming five characters from it then lands outside the upload root.
+     */
+    public String finalFilePath;
 
     public boolean valid() {
-        if (flowChunkSize < 0 || flowTotalSize < 0 || HttpUtils.isEmpty(flowIdentifier) ||
+        if (flowChunkSize <= 0 || flowTotalSize < 0 || HttpUtils.isEmpty(flowIdentifier) ||
             HttpUtils.isEmpty(flowFilename) || HttpUtils.isEmpty(flowRelativePath)) {
             return false;
         } else {
@@ -51,20 +57,30 @@ public class FlowInfo {
    System.out.println(flowChunkSize + " / " + flowTotalSize);
    System.out.println("uploadedChunks: " + uploadedChunks);
  */
-        int count = (int)Math.ceil(((double)flowTotalSize) / ((double)flowChunkSize));
+        // long, and via UploadPaths so the servlet's geometry check and this agree. `count + 1`
+        // as an int overflowed to Integer.MIN_VALUE for a large count, skipping the loop entirely
+        // and declaring a one-chunk upload complete.
+        long count = UploadPaths.declaredChunkCount(flowChunkSize, flowTotalSize);
 
-        for (int i = 1; i < count + 1; i++) {
+        for (long i = 1; i <= count; i++) {
 // System.out.println(i + "?");
-            if (!uploadedChunks.contains(new flowChunkNumber(i))) {
+            if (!uploadedChunks.contains(new flowChunkNumber((int)i))) {
 // System.out.println("failed on i=" + i);
                 return null;
             }
         }
-        // Upload finished, change filename.
+        // Upload finished, move the staging file to its validated destination.
         File file = new File(flowFilePath);
-        String new_path = file.getAbsolutePath().substring(0,
-            file.getAbsolutePath().length() - ".temp".length());
-        file.renameTo(new File(new_path));
+        if (finalFilePath == null) {
+            System.out.println("WARNING: FlowInfo has no validated destination for " + flowFilePath);
+            return null;
+        }
+        String new_path = finalFilePath;
+        if (!file.renameTo(new File(new_path))) {
+            // an ignored rename left a .temp file behind while still reporting completion
+            System.out.println("WARNING: FlowInfo could not finalize " + flowFilePath);
+            return null;
+        }
         return new_path;
     }
 }
