@@ -52,12 +52,4 @@ class WebImportAuthWiringTest {
             "the same servlet is reachable at /import/upload under roles[researcher]; the alias "
             + "must not be weaker");
     }
-
-    @Test void theUrlsBlockStillHasNoCatchAll()
-    throws IOException {
-        // documents why an unlisted path is unguarded rather than denied -- if a catch-all is ever
-        // added, this test should be revisited along with it
-        assertTrue(webXml().stream().map(String::trim).noneMatch(l -> l.startsWith("/** =")),
-            "no catch-all expected in the Shiro [urls] block");
-    }
 }

@@ -138,58 +138,72 @@ public class UploadServlet extends HttpServlet {
             response.setHeader("Access-Control-Max-Age", "86400");
 
             int flowChunkNumber = getflowChunkNumber(multiparts);
-            FlowInfo info = getFlowInfo(multiparts, request);
-            System.out.println(info.flowFilePath);
+            FlowInfo described = getFlowInfo(multiparts, request);
+            System.out.println(described.flowFilePath);
             System.out.println("flowChunkNumber " + flowChunkNumber);
 
-            if (!UploadPaths.chunkGeometryIsValid(flowChunkNumber, info.flowChunkSize,
-                info.flowTotalSize)) {
-                System.out.println("UploadServlet refusing chunk " + flowChunkNumber + " of size " +
-                    info.flowChunkSize + " against declared total " + info.flowTotalSize);
-                response.setStatus(400);
-                out.print("{\"success\": false, \"error\": \"invalid chunk geometry\"}");
-                out.close();
-                return;
-            }
+            if (!UploadPaths.chunkGeometryIsValid(flowChunkNumber, described.flowChunkSize,
+                described.flowTotalSize))
+                throw new UploadRefusedException("refusing chunk " + flowChunkNumber +
+                        " of size " + described.flowChunkSize + " against declared total " +
+                        described.flowTotalSize, "invalid chunk geometry");
             long content_length = fileChunk.getSize();
-            if (!UploadPaths.chunkLengthIsValid(content_length, info.flowChunkSize, flowChunkNumber,
-                info.flowTotalSize)) {
-                System.out.println("UploadServlet refusing chunk " + flowChunkNumber + ": got " +
-                    content_length + " bytes against declared chunkSize=" + info.flowChunkSize);
-                response.setStatus(400);
-                out.print("{\"success\": false, \"error\": \"chunk length does not match declared geometry\"}");
+            if (!UploadPaths.chunkLengthIsValid(content_length, described.flowChunkSize,
+                flowChunkNumber, described.flowTotalSize))
+                throw new UploadRefusedException("refusing chunk " + flowChunkNumber + ": got " +
+                        content_length + " bytes against declared chunkSize=" +
+                        described.flowChunkSize,
+                        "chunk length does not match declared geometry");
+            // only now does this upload get bookkeeping; if another request already registered
+            // the same identifier AND destination, it must have declared the same geometry
+            FlowInfo info = FlowInfoStorage.getInstance().register(described);
+            if ((info != described) && !info.sameGeometry(described))
+                throw new UploadRefusedException("geometry changed mid-upload for " +
+                        described.flowIdentifier, "upload parameters changed mid-upload");
+            if ((info != described) && !info.sameDestination(described))
+                throw new UploadRefusedException("staging collision for " +
+                        described.flowIdentifier + ": " + info.finalFilePath + " vs " +
+                        described.finalFilePath, "upload destination conflict");
+
+            final FileItem chunkItem = fileChunk;
+            final FlowInfo tracked = info;
+            // held off from finalization: a duplicate chunk that lands after the upload has
+            // been finalized is acknowledged here, never allowed to recreate the .temp
+            boolean written = tracked.writeUnlessFinalized(() -> {
+                // NOFOLLOW_LINKS: the containment check above proves the PATH is inside the upload root,
+                // but a symlink sitting at that path would still redirect the write. Refusing to follow
+                // one at open time is what actually closes that, and it is atomic.
+                try (FileChannel channel = FileChannel.open(Paths.get(tracked.flowFilePath),
+                        StandardOpenOption.CREATE, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS);
+                    InputStream is = chunkItem.getInputStream()) {
+                    // Seek to position (64-bit: an int multiply here wraps past 2GiB)
+                    channel.position(UploadPaths.chunkOffset(flowChunkNumber, tracked.flowChunkSize));
+                    long readed = 0;
+                    byte[] bytes = new byte[1024 * 100];
+                    while (readed < content_length) {
+                        int r = is.read(bytes);
+                        if (r < 0) {
+                            break;
+                        }
+                        // FileChannel.write is not obliged to consume the whole buffer
+                        java.nio.ByteBuffer buf = java.nio.ByteBuffer.wrap(bytes, 0, r);
+                        while (buf.hasRemaining()) {
+                            channel.write(buf);
+                        }
+                        readed += r;
+                    }
+                    if (readed != content_length)
+                        throw new UploadRefusedException("short chunk: wrote " + readed + " of " +
+                                content_length, "upload chunk was truncated");
+                }
+                // mark only once the bytes are written and the channel is closed
+                tracked.uploadedChunks.add(new FlowInfo.flowChunkNumber(flowChunkNumber));
+            });
+            if (!written) {
+                out.print("{\"success\": true, \"uploadComplete\": true}");
                 out.close();
                 return;
             }
-            // NOFOLLOW_LINKS: the containment check above proves the PATH is inside the upload root,
-            // but a symlink sitting at that path would still redirect the write. Refusing to follow
-            // one at open time is what actually closes that, and it is atomic.
-            try (FileChannel channel = FileChannel.open(Paths.get(info.flowFilePath),
-                    StandardOpenOption.CREATE, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS);
-                InputStream is = fileChunk.getInputStream()) {
-                // Seek to position (64-bit: an int multiply here wraps past 2GiB)
-                channel.position(UploadPaths.chunkOffset(flowChunkNumber, info.flowChunkSize));
-                long readed = 0;
-                byte[] bytes = new byte[1024 * 100];
-                while (readed < content_length) {
-                    int r = is.read(bytes);
-                    if (r < 0) {
-                        break;
-                    }
-                    // FileChannel.write is not obliged to consume the whole buffer
-                    java.nio.ByteBuffer buf = java.nio.ByteBuffer.wrap(bytes, 0, r);
-                    while (buf.hasRemaining()) {
-                        channel.write(buf);
-                    }
-                    readed += r;
-                }
-                if (readed != content_length)
-                    throw new UploadRefusedException("short chunk: wrote " + readed + " of " +
-                            content_length, "upload chunk was truncated");
-            }
-
-            // Mark as uploaded.
-            info.uploadedChunks.add(new FlowInfo.flowChunkNumber(flowChunkNumber));
             String archivoFinal = info.checkIfUploadFinished();
             if (archivoFinal != null) { // Check if all chunks uploaded, and change filename
                 FlowInfoStorage.getInstance().remove(info);
@@ -293,12 +307,15 @@ public class UploadServlet extends HttpServlet {
             response.setHeader("Access-Control-Allow-Headers", "Content-Type");
             response.setHeader("Access-Control-Max-Age", "86400");
 
-            FlowInfo info = getFlowInfo(multiparts, request);
-            System.out.println(info.flowFilePath);
+            FlowInfo described = getFlowInfo(multiparts, request);
+            System.out.println(described.flowFilePath);
             System.out.println("flowChunkNumber " + flowChunkNumber);
 
+            // a status probe must never create bookkeeping of its own
+            FlowInfo info = FlowInfoStorage.getInstance().lookup(described.flowIdentifier,
+                described.flowFilePath);
             Object fcn = new FlowInfo.flowChunkNumber(flowChunkNumber);
-            if (info.uploadedChunks.contains(fcn)) {
+            if ((info != null) && info.uploadedChunks.contains(fcn)) {
                 System.out.println("Do Get arriba");
                 response.getWriter().print("Uploaded."); // This Chunk has been Uploaded.
             } else {
@@ -435,7 +452,6 @@ public class UploadServlet extends HttpServlet {
                     target.getPath(), "invalid filename");
         String FlowFilePath = target.getPath();
         // System.out.println("FlowFilePath ---> " + FlowFilePath);
-        FlowInfoStorage storage = FlowInfoStorage.getInstance();
 
 /*
         System.out.println("FlowChunkSize: " + FlowChunkSize);
@@ -449,23 +465,21 @@ public class UploadServlet extends HttpServlet {
         // hacky, but gets us userFilename
         request.getSession().setAttribute("userFilename:" + FlowFilename, FlowRelativePath);
 
-        FlowInfo info = storage.get(FlowChunkSize, FlowTotalSize, FlowIdentifier, FlowFilename,
-            FlowRelativePath, FlowFilePath);
-        // a cached entry keeps whatever destination the FIRST chunk established; if this request
-        // resolved somewhere else, the two disagree and we must not write against the cached one
-        if (!FlowFilePath.equals(info.flowFilePath)) {
-            // deliberately NOT storage.remove(info): the cache is keyed on a client-chosen
-            // flowIdentifier, so discarding the entry here would let a conflicting request erase
-            // an unrelated upload's completed-chunk bookkeeping
-            throw new UploadRefusedException("cached destination mismatch for " + FlowIdentifier,
-                    "upload identifier already in use for a different destination");
-        }
+        // A description of this request's upload, NOT yet registered: doPost registers it only
+        // after the chunk passes geometry and length validation, so a malformed request leaves no
+        // bookkeeping behind for a later legitimate upload to collide with. (A chunk whose stream
+        // turns out short is refused after registration; its entry is the legitimate upload's.)
+        FlowInfo info = new FlowInfo();
+        info.flowChunkSize = FlowChunkSize;
+        info.flowTotalSize = FlowTotalSize;
+        info.flowIdentifier = FlowIdentifier;
+        info.flowFilename = FlowFilename;
+        info.flowRelativePath = FlowRelativePath;
+        info.flowFilePath = FlowFilePath;
         info.finalFilePath = finalTarget.getPath();
-        if (!info.valid()) {
-            storage.remove(info);
+        if (!info.valid())
             throw new UploadRefusedException("invalid flow params for " + FlowIdentifier,
                     "invalid upload parameters");
-        }
         return info;
     }
 

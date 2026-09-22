@@ -8,9 +8,9 @@ import org.ecocean.Util;
  * Turns caller-supplied upload strings into filesystem paths, safely.
  *
  * The chunked-upload endpoint is reachable by any logged-in user and by any anonymous session
- * that has passed a captcha, and it opens its destination with RandomAccessFile(path, "rw") --
- * so an unconstrained path here is an arbitrary file write. Every value that reaches a File must
- * come through this class.
+ * that has passed a captcha, and it creates and writes files at the path it is given -- so an
+ * unconstrained path here is an arbitrary file write. Every value that reaches a File must come
+ * through this class.
  *
  * Methods return null to mean "refuse this request" rather than throwing, so callers answer with
  * a 400 instead of a container error page.
@@ -99,7 +99,7 @@ public final class UploadPaths {
      * subdir is unsafe and the request must be refused.
      *
      * A valid submissionId pins the destination. Otherwise the legacy /import flow's subdir is
-     * honoured, but only once Util.safePath has cleared it.
+     * honoured, but only if no component of it is "." or "..".
      */
     public static String uploadSubdir(String rawSubdir, String submissionId) {
         if (Util.isUUID(submissionId)) return ANONYMOUS_SUBMISSION_PREFIX + submissionId;
@@ -149,10 +149,11 @@ public final class UploadPaths {
     }
 
     /**
-     * The most chunks one upload may declare. FlowInfo.checkIfUploadFinished() counts with
-     * `for (int i = 1; i < count + 1; i++)`, so a count near Integer.MAX_VALUE overflows to
-     * Integer.MIN_VALUE, the loop never executes, and one chunk is treated as a complete upload.
-     * Bounding the count keeps that arithmetic in range (100k x 5MiB chunks is ~500GB).
+     * The most chunks one upload may declare (100k x 5MiB chunks is ~500GB). Before this bound
+     * existed, FlowInfo.checkIfUploadFinished() counted with an int `i < count + 1`, which a
+     * declared count near Integer.MAX_VALUE overflowed, so a single chunk was treated as a whole
+     * upload. That loop is long-based now; the bound also keeps the per-chunk completion scan and
+     * the declared geometry within reason.
      */
     public static final long MAX_CHUNKS = 100000L;
 
