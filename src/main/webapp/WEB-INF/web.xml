@@ -136,10 +136,6 @@
 
 				# ===== Import Operations =====
 				/import/** = authc, roles[researcher]
-				# WebImport is ALSO mapped at /WebImport, which /import/** does not cover. There is
-				# no catch-all below, and the servlet does no authorization of its own, so without
-				# this the alias is an unauthenticated route into an importer that writes Encounters.
-				/WebImport = authc, roles[researcher]
 				/ImportSRGD = authc, roles[admin]
 				/ImportAccess = authc, roles[admin]
 				/StandardImport = authc, roles[admin]
@@ -1529,18 +1525,6 @@
 	<servlet-mapping>
 		<servlet-name>FixStandardImport</servlet-name>
 		<url-pattern>/FixStandardImport</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>WebImport</servlet-name>
-		<servlet-class>org.ecocean.servlet.importer.WebImport</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>WebImport</servlet-name>
-		<url-pattern>/WebImport</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>WebImport</servlet-name>
-		<url-pattern>/import/upload</url-pattern>
 	</servlet-mapping>
 	<servlet>
 		<servlet-name>ResumableUpload</servlet-name>
