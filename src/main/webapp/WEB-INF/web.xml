@@ -136,6 +136,10 @@
 
 				# ===== Import Operations =====
 				/import/** = authc, roles[researcher]
+				# WebImport is ALSO mapped at /WebImport, which /import/** does not cover. There is
+				# no catch-all below, and the servlet does no authorization of its own, so without
+				# this the alias is an unauthenticated route into an importer that writes Encounters.
+				/WebImport = authc, roles[researcher]
 				/ImportSRGD = authc, roles[admin]
 				/ImportAccess = authc, roles[admin]
 				/StandardImport = authc, roles[admin]
