@@ -13,6 +13,7 @@ import PillWithButton from "./PillWithButton";
 import { FormattedMessage } from "react-intl";
 import MainButton from "../components/MainButton";
 import ThemeColorContext from "../ThemeColorProvider";
+import "../css/imageModal.css";
 import { useIntl } from "react-intl";
 import Tooltip from "../components/ToolTip";
 import { placeAnnotationIcons } from "../utils/annotationIconPlacement";
@@ -60,6 +61,7 @@ export const ImageModal = observer(
     const a = assets[safeIndex] || {};
 
     const [zoom, setZoom] = useState(1);
+    const [imageViewportHeight, setImageViewportHeight] = useState(null);
     const [pan, setPan] = useState({ x: 0, y: 0 });
     const [dragStart, setDragStart] = useState(null);
 
@@ -133,6 +135,20 @@ export const ImageModal = observer(
     }, [index, assets.length]);
 
     useEffect(() => {
+      const container = imageContainerRef.current;
+      if (!container) return;
+      const measure = () => setImageViewportHeight(container.clientHeight);
+      measure();
+      if (typeof ResizeObserver === "undefined") {
+        window.addEventListener("resize", measure);
+        return () => window.removeEventListener("resize", measure);
+      }
+      const observer = new ResizeObserver(measure);
+      observer.observe(container);
+      return () => observer.disconnect();
+    }, [assets.length]);
+
+    useEffect(() => {
       if (!imgRef.current) return;
 
       const handleImageLoad = () => {
@@ -179,7 +195,19 @@ export const ImageModal = observer(
         imgElement.addEventListener("error", handleError);
       }
 
+      // Keep annotation coordinates aligned after the responsive viewer resizes.
+      const observer =
+        typeof ResizeObserver !== "undefined"
+          ? new ResizeObserver(() => {
+              if (imgElement?.complete && imgElement.naturalWidth > 0) {
+                handleImageLoad();
+              }
+            })
+          : null;
+      if (imgElement) observer?.observe(imgElement);
+
       return () => {
+        observer?.disconnect();
         if (imgElement) {
           imgElement.removeEventListener("load", handleImageLoad);
           imgElement.removeEventListener("error", handleError);
@@ -275,7 +303,7 @@ export const ImageModal = observer(
                   {safeIndex + 1}/{assets.length}
                 </div>
                 <div
-                  className="m-2"
+                  className="image-modal-tools m-2"
                   style={{
                     marginLeft: "auto",
                   }}
@@ -343,7 +371,7 @@ export const ImageModal = observer(
                   </button>
                   <button
                     type="button"
-                    className="btn btn-sm rounded-circle"
+                    className="btn btn-sm rounded-circle image-modal-close"
                     onClick={onClose}
                     style={{
                       backgroundColor: "rgba(255, 255, 255, 0.5)",
@@ -425,7 +453,7 @@ export const ImageModal = observer(
                       style={{
                         display: "block",
                         maxWidth: "100%",
-                        maxHeight: "90vh",
+                        maxHeight: imageViewportHeight || "90vh",
                         width: "auto",
                         height: "auto",
                         objectFit: "contain",
@@ -711,8 +739,7 @@ export const ImageModal = observer(
 
             <aside
               id="image-modal-right"
-              className="bg-white text-black ps-3 pe-3 pt-2 d-flex flex-column h-100"
-              style={{ flex: "0 0 360px", minHeight: 0, overflowY: "auto" }}
+              className="bg-white text-black ps-3 pe-3 pt-2 d-flex flex-column"
             >
               <div className="d-flex align-items-center gap-2 mb-2">
                 {a.url ? (

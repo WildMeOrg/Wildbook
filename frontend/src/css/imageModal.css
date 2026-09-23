@@ -1,0 +1,51 @@
+#image-modal-right {
+  flex: 0 0 360px;
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+}
+
+@media (max-width: 767.98px) {
+  #image-modal .image-modal-tools {
+    padding-right: 41px;
+  }
+
+  /* Keep dismissal available while scrolling through metadata below the image. */
+  #image-modal .image-modal-close {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 200;
+    background-color: #303336 !important;
+  }
+
+  #image-modal #image-modal-body {
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  #image-modal #image-modal-left {
+    flex: 0 0 auto !important;
+    height: max(360px, 70vh);
+    height: max(360px, 70dvh);
+  }
+
+  #image-modal-right {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    overflow-y: visible;
+    overflow-wrap: anywhere;
+  }
+
+  #image-modal-right button {
+    max-width: 100%;
+    height: auto !important;
+    white-space: normal !important;
+  }
+
+  #image-modal-right button a {
+    min-width: 0;
+  }
+}

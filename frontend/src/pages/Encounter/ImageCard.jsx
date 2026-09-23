@@ -16,6 +16,7 @@ import { useIntl } from "react-intl";
 import SpotMappingIcon2 from "../../components/icons/SpotMappingIcon2";
 import { isAssetActivelyAwaitingDetection } from "./pollingHelpers";
 import { placeAnnotationIcons } from "../../utils/annotationIconPlacement";
+import "./styles.css";
 
 // Annotation overlay geometry. The icon sizes feed both the rendered icons
 // and the footprint used to keep the cluster inside the image, so the two
@@ -722,11 +723,10 @@ const ImageCard = observer(({ store = {} }) => {
       {store.access === "write" &&
         store.encounterData?.mediaAssets?.length > 0 && (
           <div
-            className="d-flex flex-row justify-content-between align-items-center w-100 align-items-center"
+            className="encounter-image-actions w-100"
             style={{
               backgroundColor: "#303336",
               color: "white",
-              height: "70px",
               padding: "10px",
             }}
           >
