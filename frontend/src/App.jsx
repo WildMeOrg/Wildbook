@@ -16,6 +16,7 @@ import Cookies from "js-cookie";
 import FilterContext from "./FilterContextProvider";
 import { SiteSettingsProvider } from "./SiteSettingsContext";
 import { ToastContainer } from "react-toastify";
+import ServiceWorkerUpdateNotice from "./components/ServiceWorkerUpdateNotice";
 import "react-toastify/dist/ReactToastify.css";
 
 function App() {
@@ -102,6 +103,8 @@ function App() {
                       draggable
                       pauseOnHover
                     />
+
+                    <ServiceWorkerUpdateNotice />
                   </FilterContext.Provider>
                 </FooterVisibilityContext.Provider>
               </SiteSettingsProvider>

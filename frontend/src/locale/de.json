@@ -843,5 +843,6 @@
   "MATCH_RESULTS_ERROR_UNKNOWN": "Unbekannter Fehler",
   "MATCH_RESULTS_ERROR_TIMEOUT": "Die Aufgabe hat das Zeitlimit überschritten",
   "NO_MATCH_CANDIDATES": "Keine Kandidaten entsprachen den angewendeten Filtern. Bitte passe sie an oder betrachte dies als neues Individuum.",
-  "NO_MATCH_PROSPECTS": "Wir konnten mit den aktuellen Filtern keine Übereinstimmungen finden. Bitte passe sie an oder betrachte dies als neues Individuum."
+  "NO_MATCH_PROSPECTS": "Wir konnten mit den aktuellen Filtern keine Übereinstimmungen finden. Bitte passe sie an oder betrachte dies als neues Individuum.",
+  "APP_UPDATE_AVAILABLE": "Eine neue Version von Wildbook ist verfügbar. Schließen Sie alle Wildbook-Tabs, wenn es Ihnen passt, um sie zu verwenden."
 }

@@ -843,5 +843,6 @@
   "MATCH_RESULTS_ERROR_UNKNOWN": "Error desconocido",
   "MATCH_RESULTS_ERROR_TIMEOUT": "La tarea ha superado el tiempo límite",
   "NO_MATCH_CANDIDATES": "Ningún candidato coincidió con los filtros aplicados. Intenta ajustarlos o considera que se trata de un individuo nuevo.",
-  "NO_MATCH_PROSPECTS": "No pudimos encontrar ninguna coincidencia con los filtros actuales. Intenta ajustarlos o considera que se trata de un individuo nuevo."
+  "NO_MATCH_PROSPECTS": "No pudimos encontrar ninguna coincidencia con los filtros actuales. Intenta ajustarlos o considera que se trata de un individuo nuevo.",
+  "APP_UPDATE_AVAILABLE": "Hay una nueva versión de Wildbook disponible. Cierre todas las pestañas de Wildbook cuando le resulte conveniente para empezar a usarla."
 }
