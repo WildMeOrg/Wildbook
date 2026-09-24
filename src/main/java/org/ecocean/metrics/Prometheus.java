@@ -10,14 +10,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.ecocean.MetricsBot;
+import org.ecocean.queue.QueueUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.common.TextFormat;
 import io.prometheus.client.Gauge;
@@ -49,12 +52,61 @@ public class Prometheus {
         String contentType = TextFormat.chooseContentType(request.getHeader("Accept"));
         response.setContentType(contentType);
         try {
-            TextFormat.writeFormat(contentType, writer,
-                CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(parse(request)));
+            Set<String> names = parse(request);
+            List<Collector.MetricFamilySamples> samples = Collections.list(
+                CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(names));
+            // queue health is computed at scrape time: the CSV-backed gauges above refresh only
+            // hourly, far too slowly to catch a dead consumer
+            try {
+                samples.addAll(Collections.list(
+                    queueHealthRegistry().filteredMetricFamilySamples(names)));
+            } catch (Exception ex) {
+                System.out.println("Prometheus: could not collect queue health: " + ex);
+            }
+            TextFormat.writeFormat(contentType, writer, Collections.enumeration(samples));
             writer.flush();
         } finally {
             writer.close();
         }
+    }
+
+    /**
+     * Live queue-consumer health, built fresh on every scrape (a private registry, so the hourly
+     * clear-and-reload of the default registry cannot drop it). Alert on consumers_dead > 0, on
+     * seconds_since_poll growing large, and on consumers_tracked == 0 (queues never started).
+     */
+    public static CollectorRegistry queueHealthRegistry() {
+        CollectorRegistry reg = new CollectorRegistry();
+        Gauge tracked = Gauge.build().name("wildbook_queue_consumers_tracked")
+            .help("Queue consumer workers started in this JVM (0 means the queues never started)")
+            .register(reg);
+        Gauge alive = Gauge.build().name("wildbook_queue_consumers_alive").labelNames("queue")
+            .help("Queue consumer workers currently scheduled").register(reg);
+        Gauge dead = Gauge.build().name("wildbook_queue_consumers_dead").labelNames("queue")
+            .help("Queue consumer workers that died and are waiting for a watchdog restart")
+            .register(reg);
+        Gauge stopped = Gauge.build().name("wildbook_queue_consumers_stopped").labelNames("queue")
+            .help("Queue consumer workers stopped on purpose by a STOP file or SHUTDOWN message")
+            .register(reg);
+        Gauge sincePoll = Gauge.build().name("wildbook_queue_seconds_since_poll")
+            .labelNames("queue")
+            .help("Seconds since the slowest running worker of this queue last polled")
+            .register(reg);
+        Gauge restarts = Gauge.build().name("wildbook_queue_consumer_restarts").labelNames("queue")
+            .help("Watchdog restarts of this queue's consumers since the JVM started")
+            .register(reg);
+        List<QueueUtil.ConsumerStatus> statuses = QueueUtil.consumerStatus();
+        tracked.set(statuses.size());
+        for (QueueUtil.ConsumerStatus s : statuses) {
+            String q = s.getQueueName();
+            alive.labels(q).inc(s.isAlive() ? 1 : 0);
+            dead.labels(q).inc((!s.isAlive() && !s.isStopped()) ? 1 : 0);
+            stopped.labels(q).inc(s.isStopped() ? 1 : 0);
+            restarts.labels(q).inc(s.getRestarts());
+            Gauge.Child since = sincePoll.labels(q);
+            if (!s.isStopped()) since.set(Math.max(since.get(), s.getSecondsSinceLastTick()));
+        }
+        return reg;
     }
 
     // Helper method for metrics() also borrowed from MetricsServlet.java

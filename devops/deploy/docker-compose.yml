@@ -56,8 +56,10 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "3"
+        # 3 x 10m kept only ~2 hours of stdout on a busy install, too short to diagnose an
+        # overnight failure on the box (Alloy also ships these logs to Loki)
+        max-size: "50m"
+        max-file: "5"
     labels:
       logging: "alloy"
       service: "wildbook"
@@ -98,7 +100,11 @@ services:
       ADMIN_PASSWORD: "${EDM_AUTHENTICATIONS_PASSWORD__DEFAULT}"
       # JAVA_OPTS from old-world wildbook, was 16G heap memory, current recommendation is 8
       # JUL bridge routes java.util.logging (DataNucleus, Tomcat internals) through Log4j2
-      JAVA_OPTS: "-Djava.awt.headless=true -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -Xms8g -Xmx8g"
+      # After an OutOfMemoryError the JVM is left half-alive: background threads (queue
+      # consumers, the OpenSearch client) die one by one while the web tier looks healthy.
+      # ExitOnOutOfMemoryError exits instead so `restart: always` brings up a clean JVM; the heap
+      # dump is written first (docker-entrypoint.sh sets a fresh HeapDumpPath per start).
+      JAVA_OPTS: "-Djava.awt.headless=true -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -Xms8g -Xmx8g -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError"
       SERVICE_NAME: "${SERVICE_NAME:-wildbook}"
       ENVIRONMENT: "${ENVIRONMENT:-production}"
       DOMAIN_NAME: "${DOMAIN_NAME:-unknown}"
