@@ -2520,9 +2520,9 @@ if (sharky.getNames() != null) {
       <br>
       <%-- Comments --%>
       <div class="col-sm-6">
-        <%
-        if(isOwner){
-          %>
+          <%-- The board follows view access, which the whole page body is already gated on: these
+               record merges and similar shared history, so anyone who can see the individual can
+               see what has been done to it. Adding a comment still takes edit rights, below. --%>
           <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %></strong>: </p>
           <div id='commentBoard' style="text-align:left;border:1px solid lightgray;width:100%;height:250px;overflow-y:scroll;overflow-x:scroll;border-radius:5px;">
             <p><%=sharky.getComments().replaceAll("\n", "<br>")%></p>
@@ -2543,7 +2543,6 @@ if (sharky.getNames() != null) {
               <%
             } //if isEditable
 
-          }
           %>
 
         </td>
