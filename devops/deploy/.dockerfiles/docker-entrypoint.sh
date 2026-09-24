@@ -21,23 +21,30 @@ HEAPDUMP_BASE=/usr/local/tomcat/logs/heapdumps
 if mkdir -p "$HEAPDUMP_BASE"; then
     # Prune first so a nearly full disk gets its space back before this run's directory is made.
     # Keep only the newest earlier dump and drop empty directories from runs that never ran out
-    # of memory. Only directories named like ours (YYYYMMDDTHHMMSSZ-xxxxxxxx) are touched.
-    kept=0
-    for d in $(ls -1 "$HEAPDUMP_BASE" | sort -r); do
-        case "$d" in
-            [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]T[0-9][0-9][0-9][0-9][0-9][0-9]Z-*) ;;
-            *) continue ;;
+    # of memory. Only directories named exactly like ours (YYYYMMDDTHHMMSSZ-xxxxxxxx, 8 hex) are
+    # touched; the timestamp prefix makes glob order chronological.
+    managed_dump_dir() {
+        case "${1##*/}" in
+            [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]T[0-9][0-9][0-9][0-9][0-9][0-9]Z-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f])
+                [ -d "$1" ] ;;
+            *) return 1 ;;
         esac
-        p="$HEAPDUMP_BASE/$d"
-        [ -d "$p" ] || continue
+    }
+    dumps=0
+    for p in "$HEAPDUMP_BASE"/*; do
+        managed_dump_dir "$p" || continue
         if [ -z "$(ls -A "$p")" ]; then
             rmdir "$p"
-        elif [ "$kept" -eq 0 ]; then
-            kept=1
         else
-            echo "Removing old heap dump $p"
-            rm -rf "$p"
+            dumps=$((dumps + 1))
         fi
+    done
+    for p in "$HEAPDUMP_BASE"/*; do
+        [ "$dumps" -gt 1 ] || break
+        managed_dump_dir "$p" || continue
+        echo "Removing old heap dump $p"
+        rm -rf "$p"
+        dumps=$((dumps - 1))
     done
     HEAPDUMP_DIR="$HEAPDUMP_BASE/$(date -u +%Y%m%dT%H%M%SZ)-$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')"
     # plain mkdir (no -p) fails if the name already exists, so the directory is ours alone

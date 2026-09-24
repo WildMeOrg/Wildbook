@@ -64,6 +64,9 @@ public class QueueUtil {
         volatile ScheduledFuture<?> future;
         volatile long lastTickMillis;
         volatile long lastRestartMillis;
+        // when the tick last let a VirtualMachineError escape (the task died then, not when the
+        // watchdog noticed)
+        volatile long lastFatalMillis = 0;
         volatile int restarts = 0;
         volatile int consecutiveDeaths = 0;
         volatile long nextRestartAllowedMillis = 0;
@@ -174,21 +177,22 @@ public class QueueUtil {
                 throw new IOException("QueueUtil is shutting down; not starting consumers for " +
                         queue);
             final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(n + 1);
-            List<ConsumerSlot> started = new ArrayList<ConsumerSlot>();
+            // track the executor and each worker BEFORE anything can fail, so cleanup always sees
+            // (and awaits) every worker that may have started
+            runningSES.add(schedExec);
             try {
                 for (int w = 0; w < n; w++) {
                     ConsumerSlot slot = new ConsumerSlot(queue, schedExec);
                     slot.future = schedule(slot);
-                    started.add(slot);
+                    slots.add(slot);
                 }
                 ensureWatchdog();
             } catch (Throwable t) {
-                // roll back a partial start: no worker may run untracked
+                // failed partial start: stop its workers (they stay tracked, as stopped, so cleanup
+                // still waits for them) and keep the directory reservation until cleanup
                 schedExec.shutdownNow();
                 throw new IOException("failed to start consumers for " + queue, t);
             }
-            slots.addAll(started);
-            runningSES.add(schedExec);
         }
         System.out.println("---- " + queue.toString() + " started " + n + " consumer worker(s) ----");
     }
@@ -244,12 +248,18 @@ public class QueueUtil {
                     try {
                         queue.messageHandler.handler(message);
                     } catch (Throwable t) {
-                        if (t instanceof VirtualMachineError) throw (VirtualMachineError)t;
+                        if (t instanceof VirtualMachineError) {
+                            slot.lastFatalMillis = clock.getAsLong();
+                            throw (VirtualMachineError)t;
+                        }
                         log.error(queue.toString() + " message handler threw; message dropped",
                             t);
                     }
                 } catch (Throwable t) {
-                    if (t instanceof VirtualMachineError) throw (VirtualMachineError)t;
+                    if (t instanceof VirtualMachineError) {
+                        slot.lastFatalMillis = clock.getAsLong();
+                        throw (VirtualMachineError)t;
+                    }
                     // best-effort logging: toString()/logging on arbitrary objects can themselves
                     // throw, and a throw from HERE silently cancels the periodic task
                     try {
@@ -264,14 +274,21 @@ public class QueueUtil {
     // must hold LIFECYCLE
     private static void ensureWatchdog() {
         if (watchdog != null) return;
-        watchdog = Executors.newSingleThreadScheduledExecutor(r -> {
+        ScheduledExecutorService wd = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, WATCHDOG_THREAD_NAME);
             t.setDaemon(true);
             return t;
         });
-        long interval = watchdogIntervalSeconds;
-        watchdog.scheduleWithFixedDelay(QueueUtil::watchdogTick, interval, interval,
-            TimeUnit.SECONDS);
+        try {
+            long interval = watchdogIntervalSeconds;
+            wd.scheduleWithFixedDelay(QueueUtil::watchdogTick, interval, interval,
+                TimeUnit.SECONDS);
+        } catch (Throwable t) {
+            wd.shutdownNow();
+            throw t;
+        }
+        // publish only once scheduled, so a failed start is retried by the next caller
+        watchdog = wd;
     }
 
     // The watchdog is scheduled the same way as the consumers, so it too must never throw —
@@ -321,7 +338,10 @@ public class QueueUtil {
         if (slot.deathRecordedFor != f) {
             slot.deathRecordedFor = f;
             Throwable cause = deathCause(f);
-            if (now - slot.lastRestartMillis >= HEALTHY_RESET_MILLIS) slot.consecutiveDeaths = 0;
+            // healthy runtime = restart until the fatal throw (not until the watchdog noticed)
+            long diedAt = (slot.lastFatalMillis >= slot.lastRestartMillis) ? slot.lastFatalMillis
+                : now;
+            if (diedAt - slot.lastRestartMillis >= HEALTHY_RESET_MILLIS) slot.consecutiveDeaths = 0;
             slot.consecutiveDeaths++;
             long backoff = restartBackoffMillis(slot.consecutiveDeaths);
             slot.nextRestartAllowedMillis = now + backoff;

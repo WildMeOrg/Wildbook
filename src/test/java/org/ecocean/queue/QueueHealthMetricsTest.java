@@ -48,7 +48,7 @@ public class QueueHealthMetricsTest {
             @Override public String getNext() {
                 if (polls.incrementAndGet() != 1) return null;
                 try { // hold the first poll until the test has checked the alive state
-                    release.await(15, java.util.concurrent.TimeUnit.SECONDS);
+                    release.await();
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                 }
@@ -62,12 +62,16 @@ public class QueueHealthMetricsTest {
         };
 
         QueueUtil.backgroundWithWorkers(q, 1);
-        CollectorRegistry reg = Prometheus.queueHealthRegistry();
-        assertEquals(1.0, sample(reg, "wildbook_queue_consumers_tracked", null), 0.0,
-            "one worker tracked");
-        assertEquals(1.0, sample(reg, "wildbook_queue_consumers_alive", name), 0.0,
-            "worker alive before it dies");
-        release.countDown();
+        CollectorRegistry reg;
+        try {
+            reg = Prometheus.queueHealthRegistry();
+            assertEquals(1.0, sample(reg, "wildbook_queue_consumers_tracked", null), 0.0,
+                "one worker tracked");
+            assertEquals(1.0, sample(reg, "wildbook_queue_consumers_alive", name), 0.0,
+                "worker alive before it dies");
+        } finally {
+            release.countDown();
+        }
 
         long end = System.currentTimeMillis() + 15000;
         double dead = 0;
