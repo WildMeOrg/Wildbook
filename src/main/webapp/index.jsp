@@ -225,8 +225,7 @@ h2.vidcap {
   	<p class="lead"><%=props.getProperty("howItWorks4Description") %></p>
 
 
-  	<h2 class="section-header"><%=props.getProperty("howItWorks3") %></h2>
-  	<p class="lead"><%=props.getProperty("howItWorks3Description") %></p>
+  	<h2 class="section-header"><a href="https://www.reef.org/grouperspotter">Learn More About Grouper Spotter</a></h2>
 
 </section>
 
