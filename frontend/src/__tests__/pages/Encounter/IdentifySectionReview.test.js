@@ -7,6 +7,9 @@ jest.mock("mobx-react-lite", () => ({
 
 jest.mock("react-intl", () => ({
   FormattedMessage: ({ id }) => <span>{id}</span>,
+  useIntl: () => ({
+    formatMessage: ({ defaultMessage, id }) => defaultMessage ?? id,
+  }),
 }));
 
 jest.mock("../../../components/AttributesAndValueComponent", () => {
@@ -33,6 +36,7 @@ describe("IdentifySectionReview", () => {
     const store = makeStore({
       identify: {
         individualDisplayName: "Flipper",
+        individualId: "indiv-7",
         identificationRemarks: "auto",
         otherCatalogNumbers: "ALT-123",
         occurrenceId: "occ-999",
@@ -41,12 +45,15 @@ describe("IdentifySectionReview", () => {
 
     render(<IdentifySectionReview store={store} />);
 
-    expect(screen.getByTestId("attr-IDENTIFIED_AS")).toBeInTheDocument();
+    expect(screen.getByText("IDENTIFIED_AS")).toBeInTheDocument();
     expect(screen.getByTestId("attr-MATCHED_BY")).toBeInTheDocument();
     expect(screen.getByTestId("attr-ALTERNATE_ID")).toBeInTheDocument();
 
-    expect(screen.getByTestId("val-IDENTIFIED_AS")).toHaveTextContent(
-      "Flipper",
+    // the identified-as value is rendered as a link to the individual
+    const individualLink = screen.getByRole("link", { name: "Flipper" });
+    expect(individualLink).toHaveAttribute(
+      "href",
+      "/individuals.jsp?id=indiv-7",
     );
     expect(screen.getByTestId("val-MATCHED_BY")).toHaveTextContent("auto");
     expect(screen.getByTestId("val-ALTERNATE_ID")).toHaveTextContent("ALT-123");
@@ -79,7 +86,9 @@ describe("IdentifySectionReview", () => {
 
     render(<IdentifySectionReview store={store} />);
 
-    expect(screen.getByTestId("val-IDENTIFIED_AS")).toHaveTextContent("");
+    // with no individual on the store the heading still renders but the link does not
+    expect(screen.getByText("IDENTIFIED_AS")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Flipper" })).toBeNull();
     expect(screen.getByTestId("val-MATCHED_BY")).toHaveTextContent("");
     expect(screen.getByTestId("val-ALTERNATE_ID")).toHaveTextContent("");
   });

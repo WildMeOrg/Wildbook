@@ -8,6 +8,9 @@ jest.mock("mobx-react-lite", () => ({
 
 jest.mock("react-intl", () => ({
   FormattedMessage: ({ id }) => <span>{id}</span>,
+  useIntl: () => ({
+    formatMessage: ({ defaultMessage, id }) => defaultMessage ?? id,
+  }),
 }));
 
 jest.mock("../../../pages/Encounter/TrackingReview", () => ({
@@ -91,6 +94,7 @@ const makeStore = (overrides = {}) => ({
   setMeasurementsAndTrackingSection: jest.fn(),
   setBiologicalSamplesSection: jest.fn(),
   setProjectsSection: jest.fn(),
+  setSpotMappingSection: jest.fn(),
 
   measurementValues: [1],
   errors: {
