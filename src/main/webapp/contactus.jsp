@@ -16,8 +16,10 @@
 <jsp:include page="header.jsp" flush="true"/>
 <div class="container maincontent">
         <h1 class="intro">Contact us</h1>
-        <p>The team welcomes your comments and questions.</p>
-	<p>Email us at <em>info at wildme dot org</em>, and one of us will respond as quickly as possible.</p>
+	<p>If you are a researcher, organization, or citizen scientist diver interested in learning more about Grouper Spotter or obtaining a user account, please contact:</p>
+	<p>Alli Candelmo<br />
+	Director of Conservation Science, REEF<br />
+	<a href="mailto:alli@REEF.org">alli@REEF.org</a></p>
 
 	<h2>Photos for Media Publications about Wildbook</h2>
 	<p>For any resources that can be used without express permission from the Wild Me team, see <a href="https://www.wildme.org/media-resources.html">Media Resources</a>.</p>
