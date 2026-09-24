@@ -117,6 +117,8 @@
   "TOTAL_ITEMS": "Total de Ítems",
   "PER_PAGE": "Por Página",
   "PAGE": "Página",
+  "RESULTS_WINDOW_CAPPED": "Solo se pueden explorar los primeros {limit} de {total} resultados. Acote su búsqueda para ver el resto.",
+  "SEARCH_RESULTS_ERROR": "La búsqueda falló. Inténtelo de nuevo o ajuste sus filtros.",
   "GO_TO": "Ir a",
   "GO": "Ir",
   "ENCOUNTER_SEARCH_RESULTS": "Resultados de Búsqueda de Encuentros",
