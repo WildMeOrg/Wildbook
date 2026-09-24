@@ -177,8 +177,8 @@ public class QueueUtil {
                 throw new IOException("QueueUtil is shutting down; not starting consumers for " +
                         queue);
             final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(n + 1);
-            // track the executor and each worker BEFORE anything can fail, so cleanup always sees
-            // (and awaits) every worker that may have started
+            // track the executor before scheduling (and each worker as soon as it is scheduled), so
+            // cleanup always sees and awaits every worker that may have started
             runningSES.add(schedExec);
             try {
                 for (int w = 0; w < n; w++) {
