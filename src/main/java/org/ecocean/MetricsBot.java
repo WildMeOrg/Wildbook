@@ -555,6 +555,20 @@ public class MetricsBot {
             "Number of ml-service v2 vector (MiewID) re-ID leaf tasks (one per matched annotation; a rare invalid-config match failure counts as one)",
             context));
 
+        // Modified Groth + I3S spot-pattern scans. These never touch org.ecocean.ia.Task:
+        // GrothScanRunnable writes one org.ecocean.grid.ScanRecord row per completed scan
+        // run, with a per-algorithm success flag for each (one run executes BOTH matchers).
+        // ScanTask rows cannot be counted instead — one reused row per encounter side.
+        // Counts start at 0 on deploy; historical scans left no per-run rows.
+        addLineIfNotNull(csvLines, buildGauge(
+            "SELECT count(this) FROM org.ecocean.grid.ScanRecord where grothSuccess == true",
+            "wildbook_tasks_modifiedGroth",
+            "Number of successful Modified Groth spot-pattern scan tasks", context));
+        addLineIfNotNull(csvLines, buildGauge(
+            "SELECT count(this) FROM org.ecocean.grid.ScanRecord where i3sSuccess == true",
+            "wildbook_tasks_i3s",
+            "Number of successful I3S spot-pattern scan tasks", context));
+
 
 
         // add queue information
@@ -587,8 +601,16 @@ public class MetricsBot {
             String idCompleteFilter =
                 "SELECT count(this) FROM org.ecocean.ia.Task where completionDateInMilliseconds > "
                 + (System.currentTimeMillis() - TwoFourHours);
+            // Successful Modified Groth / I3S spot scans contribute to the identification
+            // aggregate. A run that produced both algorithms' results counts ONCE here —
+            // it is one re-ID job; the per-algorithm gauges report them individually.
+            String spotScansCompleteFilter =
+                "SELECT count(this) FROM org.ecocean.grid.ScanRecord where endTime > "
+                + (System.currentTimeMillis() - TwoFourHours) +
+                " && (grothSuccess == true || i3sSuccess == true)";
             Query qD = null;
             Query qID = null;
+            Query qS = null;
             try {
                 Long detectValue = null;
                 Long idValue = null;
@@ -599,9 +621,21 @@ public class MetricsBot {
                 idValue = (Long)qID.execute();
                 if (idValue != null)
                     numIDCompletedLast24 = idValue.intValue() - detectValue.intValue();
+                // Own try/catch so a ScanRecord-side failure cannot suppress the two
+                // pre-existing completed metrics below.
+                try {
+                    qS = myShepherd.getPM().newQuery(spotScansCompleteFilter);
+                    Long spotScanValue = (Long)qS.execute();
+                    if (spotScanValue != null)
+                        numIDCompletedLast24 += spotScanValue.intValue();
+                } catch (Exception scanEx) {
+                    System.out.println(
+                        "MetricsBot: could not count ScanRecord spot scans for last24:");
+                    scanEx.printStackTrace();
+                }
                 csvLines.add("wildbook_identification_tasks_completed_last24, " +
                     numIDCompletedLast24 + "," + "gauge" + "," +
-                    "Number of child identification tasks completed last 24 hours");
+                    "Number of child identification tasks completed last 24 hours (includes successful Modified Groth / I3S spot-pattern scans)");
                 csvLines.add("wildbook_detection_tasks_completed_last24, " +
                     numDetectionCompletedLast24 + "," + "gauge" + "," +
                     "Number of detection tasks completed last 24 hours");
@@ -613,6 +647,7 @@ public class MetricsBot {
             } finally {
                 if (qD != null) qD.closeAll();
                 if (qID != null) qID.closeAll();
+                if (qS != null) qS.closeAll();
             }
             IAJsonProperties iaConfig = new IAJsonProperties();
             List<Taxonomy> taxes = iaConfig.getAllTaxonomies(myShepherd);
