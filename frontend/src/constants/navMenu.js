@@ -5,7 +5,6 @@ const authenticatedMenu = (
   username,
   showclassicsubmit,
   showClassicEncounterSearch,
-  showHowToPhotograph,
 ) => [
   {
     Submit: [
@@ -84,19 +83,15 @@ const authenticatedMenu = (
           },
         ],
       },
-      ...(showHowToPhotograph
-        ? [
-            {
-              name: (
-                <FormattedMessage
-                  id="MENU_LEARN_HOWTOPHOTOGRAPH"
-                  defaultMessage="How to Photograph"
-                />
-              ),
-              href: "/react/how-to-photograph",
-            },
-          ]
-        : []),
+      {
+        name: (
+          <FormattedMessage
+            id="MENU_LEARN_HOWTOPHOTOGRAPH"
+            defaultMessage="How to Photograph"
+          />
+        ),
+        href: "/photographing.jsp",
+      },
     ],
   },
 
@@ -306,7 +301,7 @@ const authenticatedMenu = (
   },
 ];
 
-const unAuthenticatedMenu = (showclassicsubmit, showHowToPhotograph) => [
+const unAuthenticatedMenu = (showclassicsubmit) => [
   {
     Submit: [
       {
@@ -375,19 +370,15 @@ const unAuthenticatedMenu = (showclassicsubmit, showHowToPhotograph) => [
           },
         ],
       },
-      ...(showHowToPhotograph
-        ? [
-            {
-              name: (
-                <FormattedMessage
-                  id="MENU_LEARN_HOWTOPHOTOGRAPH"
-                  defaultMessage="How to Photograph"
-                />
-              ),
-              href: "/react/how-to-photograph",
-            },
-          ]
-        : []),
+      {
+        name: (
+          <FormattedMessage
+            id="MENU_LEARN_HOWTOPHOTOGRAPH"
+            defaultMessage="How to Photograph"
+          />
+        ),
+        href: "/photographing.jsp",
+      },
     ],
   },
 

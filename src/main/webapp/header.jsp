@@ -611,9 +611,7 @@ if(request.getUserPrincipal()!=null){
                               <li><a href="<%=urlLoc %>/react/policies-and-data?section=citing_wildbook"><%=props.getProperty("citingWildbook")%></a></li>
                             </ul>
                           </li>
-                          <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showHowToPhotograph", context))) { %>
-                            <li><a href="<%=urlLoc %>/react/how-to-photograph"><%=props.getProperty("howToPhotograph")%></a></li>
-                          <% } %>
+                          <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
                           <%-- <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li> --%>
                                                   <%-- <li class="divider"></li> --%>
                         </ul>
