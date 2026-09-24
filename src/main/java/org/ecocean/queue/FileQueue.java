@@ -27,8 +27,9 @@ public class FileQueue extends Queue {
     // resetting requireAtomicClaim while earlier workers are still live. Two levels: `consuming`
     // stops a repeat call on the SAME instance; CONSUMING_DIRS stops a SECOND FileQueue instance
     // (getBest() makes a new one per call) from consuming the SAME directory concurrently. Released
-    // only in QueueUtil.cleanup(), after all consumer executors are confirmed terminated, so an
-    // in-place redeploy can consume again without ever overlapping a live consumer.
+    // only in QueueUtil.cleanup(), after all consumer executors are confirmed terminated, so a later
+    // start in the SAME classloader never overlaps a live consumer. (A Tomcat redeploy gets a fresh
+    // classloader and fresh statics: if cleanup reported surviving workers, restart the JVM.)
     private static final java.util.Set<String> CONSUMING_DIRS =
         java.util.concurrent.ConcurrentHashMap.newKeySet();
     private boolean consuming = false;
@@ -126,9 +127,12 @@ public class FileQueue extends Queue {
 
     public void consume(final QueueMessageHandler msgHandler)
     throws IOException {
-        if (!markConsuming()) return;
-        this.messageHandler = msgHandler;
-        QueueUtil.background(this);
+        // reserve + register as one step against QueueUtil.cleanup(), which releases the reservations
+        synchronized (QueueUtil.lifecycleLock()) {
+            if (!markConsuming()) return;
+            this.messageHandler = msgHandler;
+            QueueUtil.background(this);
+        }
     }
 
     // Authoritative concurrency gate: this is the ONLY place worker count is enforced, so no caller
@@ -137,18 +141,21 @@ public class FileQueue extends Queue {
     // when the effective count is >1 do we require atomic claims in getNext().
     public void consume(final QueueMessageHandler msgHandler, int workers)
     throws IOException {
-        if (!markConsuming()) return;
-        this.messageHandler = msgHandler;
-        boolean atomicOk = supportsAtomicMove(queueDir);
-        int eff = QueueUtil.effectiveWorkers(workers, atomicOk);
-        if (eff < workers) {
-            String why = atomicOk ? "exceeds max (8)"
-                : "queue filesystem does not support atomic moves";
-            System.out.println("WARNING: " + this.toString() + " requested " + workers +
-                " consumer(s) but " + why + "; running " + eff);
+        // reserve + register as one step against QueueUtil.cleanup(), which releases the reservations
+        synchronized (QueueUtil.lifecycleLock()) {
+            if (!markConsuming()) return;
+            this.messageHandler = msgHandler;
+            boolean atomicOk = supportsAtomicMove(queueDir);
+            int eff = QueueUtil.effectiveWorkers(workers, atomicOk);
+            if (eff < workers) {
+                String why = atomicOk ? "exceeds max (8)"
+                    : "queue filesystem does not support atomic moves";
+                System.out.println("WARNING: " + this.toString() + " requested " + workers +
+                    " consumer(s) but " + why + "; running " + eff);
+            }
+            this.requireAtomicClaim = (eff > 1);
+            QueueUtil.backgroundWithWorkers(this, eff);
         }
-        this.requireAtomicClaim = (eff > 1);
-        QueueUtil.backgroundWithWorkers(this, eff);
     }
 
     public File getQueueDir() {
@@ -307,8 +314,8 @@ public class FileQueue extends Queue {
     }
 
     // Called by QueueUtil.cleanup() ONLY after all consumer executors are shut down and awaited, so
-    // no worker is live. Lets an in-place redeploy (contextDestroyed -> contextInitialized in the
-    // same JVM) consume these directories again.
+    // no worker is live. Lets a later start in the same classloader consume these directories
+    // again (a Tomcat redeploy has its own classloader, so these guards do not span it).
     static void releaseAllConsumeGuards() {
         CONSUMING_DIRS.clear();
     }
