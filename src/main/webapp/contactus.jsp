@@ -28,10 +28,7 @@
 	<p>The following logos may be used in conjunction with our project.</p>
 
 	<h3>Wild Me</h3>
-	<p><img src="images/WildMe-Logo-100x100.png" width="500px" height="*" /></p>
-
-	<h3>Wildbook&reg;</h3>
-	<p><img src="images/WildBook_logo_300dpi-04.png" width="500px" height="*" /></p>
+	<p><img src="images/WildMe-by-CXL-Logo.png" width="500px" height="*" alt="Wild Me by Conservation X Labs" /></p>
 
 	<p>Any additional photo resources should be obtained with express permission from the Wild Me or CXL team.</p>
 
