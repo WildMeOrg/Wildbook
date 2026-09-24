@@ -72,6 +72,10 @@ public class WildbookTokenAuthenticationFilter extends OncePerRequestFilter {
         try {
             Jws<Claims> jws = jwt.verify(token);
             Claims claims = jws.getPayload();
+            if (claims.containsKey("submissionScope")) {
+                deny(response, 401, "submission token requires the submissions API");
+                return;
+            }
             tokenContext = claims.get("context", String.class);
             uuid = claims.getSubject();
         } catch (JwtException | IllegalArgumentException ex) {

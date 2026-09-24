@@ -1,0 +1,1588 @@
+openapi: 3.0.3
+info:
+  title: Wildbook Submissions API (draft, not deployed)
+  version: 1.0.0-draft
+  description: 'Sibling intake API. Private enrolled-partner pilot; import-only by
+    default. Existing bulk-import endpoints are unchanged. Bearer credentials must
+    contain an explicitly issued submissions capability; existing identity-only tokens
+    do not authorize intake. Session writes require CSRF protection when enabled.
+    All limits and retention are installation-configured. Responses carrying private
+    draft data use Cache-Control: no-store. Relevant configuration and permissions
+    are rechecked before execution.'
+servers:
+- url: /
+security:
+- submissionBearer: []
+paths:
+  /api/v3/submissions/capabilities:
+    get:
+      operationId: submissionCapabilities
+      description: Returns limits and implemented capabilities for this installation
+        and principal.
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Capabilities'
+        '400':
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not enrolled or not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Quota or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+        '503':
+          description: Feature temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal failure; retry only according to operation idempotency
+            rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method not allowed; Allow header lists supported methods
+  /api/v3/submissions:
+    post:
+      operationId: createSubmission
+      description: 'Creates a private draft. Replays return the original 201 body
+        and resource URL. Omitted processing is import-only. The replayed body/ETag
+        may be old: GET the resource before any mutation.'
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: Quoted current revision.
+            Location:
+              schema:
+                type: string
+              description: Resource or status URL.
+        '400':
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not enrolled or not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Quota or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+        '503':
+          description: Feature temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, key or content conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Input too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Input or validation unacceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal failure; retry only according to operation idempotency
+            rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method not allowed; Allow header lists supported methods
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Create'
+  /api/v3/submissions/{id}:
+    get:
+      operationId: getSubmission
+      description: Returns the current durable status; queued and in-flight jobs remain
+        inspectable when new admission is disabled. Owners receive 200 with cancelled
+        or expired state during tombstone retention; 404 after final purge.
+      parameters:
+      - $ref: '#/components/parameters/SubmissionId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: Quoted current revision.
+        '400':
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not enrolled or not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found or not visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Quota or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+        '503':
+          description: Feature temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal failure; retry only according to operation idempotency
+            rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method not allowed; Allow header lists supported methods
+    delete:
+      operationId: cancelSubmission
+      description: Cancels only draft or validated state. After owner checks, already-cancelled
+        state returns 204 regardless of the supplied If-Match (even if stale). The
+        If-Match header is always required, but its value is not compared on repeated
+        cancellation. All queued/importing/imported/failed/needs_reconciliation/expired
+        states return 409. This never deletes biological records.
+      parameters:
+      - $ref: '#/components/parameters/SubmissionId'
+      - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '204':
+          description: Success
+        '400':
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not enrolled or not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found or not visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Quota or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+        '503':
+          description: Feature temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, key or content conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '412':
+          description: Stale revision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '428':
+          description: Required revision precondition missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal failure; retry only according to operation idempotency
+            rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method not allowed; Allow header lists supported methods
+  /api/v3/submissions/{id}/rows:
+    put:
+      operationId: replaceSubmissionRows
+      description: Replaces all rows; unique clientRowId values required. Invalidates
+        prior validation.
+      parameters:
+      - $ref: '#/components/parameters/SubmissionId'
+      - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: Quoted current revision.
+        '400':
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not enrolled or not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found or not visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Quota or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+        '503':
+          description: Feature temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, key or content conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '412':
+          description: Stale revision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Input too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Input or validation unacceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '428':
+          description: Required revision precondition missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal failure; retry only according to operation idempotency
+            rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method not allowed; Allow header lists supported methods
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rows'
+    get:
+      operationId: getSubmissionRows
+      description: Returns rows as accepted; compare by JSON value equality after
+        a lost PUT response. GET the current ETag before another mutation. Rows remain
+        readable during cancelled/expired tombstone retention.
+      parameters:
+      - $ref: '#/components/parameters/SubmissionId'
+      responses:
+        '200':
+          description: Stored rows, or empty array before first PUT
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoredRows'
+        '400':
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not enrolled or not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found or not visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Quota or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+        '503':
+          description: Feature temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal failure; retry only according to operation idempotency
+            rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method not allowed; Allow header lists supported methods
+  /api/v3/submissions/{id}/files:
+    get:
+      operationId: getSubmissionFiles
+      description: Complete staged images only.
+      parameters:
+      - $ref: '#/components/parameters/SubmissionId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Manifest'
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: Quoted current revision.
+        '400':
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not enrolled or not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found or not visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Quota or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+        '503':
+          description: Feature temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '410':
+          description: Expired or cancelled draft during tombstone retention
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal failure; retry only according to operation idempotency
+            rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method not allowed; Allow header lists supported methods
+    post:
+      operationId: uploadSubmissionFile
+      description: 'One image per request. Server computes digest. Serialize uploads;
+        after a lost response GET manifest and reconcile name/digest and ETag. Same
+        name/content at current revision is a retry success; differing content is
+        409. Incomplete files are never visible. File.name equals the original multipart
+        filename used in Encounter.mediaAssetN. Reject unsafe names or names requiring
+        cleaning; never silently rename. Same-content retries do not advance revision.
+        Pilot: JPEG/PNG, matching extension, max 200 files and 200 MiB completed bytes
+        per draft; exceeding either returns 413. At most one additional bounded retry
+        candidate exists during upload. Staging must be configured. Serialize uploads;
+        processing contention returns 429.'
+      parameters:
+      - $ref: '#/components/parameters/SubmissionId'
+      - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Manifest'
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: Quoted current revision.
+        '400':
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not enrolled or not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found or not visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Quota or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+        '503':
+          description: Feature temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, key or content conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '412':
+          description: Stale revision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Input too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Input or validation unacceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '428':
+          description: Required revision precondition missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal failure; retry only according to operation idempotency
+            rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method not allowed; Allow header lists supported methods
+        '408':
+          description: Upload exceeded wall-clock limit
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+  /api/v3/submissions/{id}/validate:
+    post:
+      operationId: validateSubmission
+      description: Validate current revision without changing it. Validation failures,
+        including empty rows, return 200 with valid=false and source-row issues. No
+        domain objects are created.
+      parameters:
+      - $ref: '#/components/parameters/SubmissionId'
+      - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Validation'
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: Unchanged quoted input revision; use on commit.
+        '400':
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not enrolled or not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found or not visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Quota or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+        '503':
+          description: Feature temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, key or content conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '412':
+          description: Stale revision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Input too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '428':
+          description: Required revision precondition missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal failure; retry only according to operation idempotency
+            rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method not allowed; Allow header lists supported methods
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Validate'
+  /api/v3/submissions/{id}/commit:
+    post:
+      operationId: commitSubmission
+      description: Atomically freezes a validated draft and accepts at most one execution.
+        Same keyed request returns the original acceptance before checking stale If-Match.
+        A different key cannot queue a second execution. Invalid validation returns
+        422 VALIDATION_INVALID; stale validation/config returns 409 VALIDATION_STALE;
+        a different key after acceptance returns 409 ALREADY_COMMITTED. After admission
+        shutdown recover via GET status/results; mutation retries may return 503 instead
+        of replaying 202.
+      parameters:
+      - $ref: '#/components/parameters/SubmissionId'
+      - $ref: '#/components/parameters/IfMatch'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Accepted'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Resource or status URL.
+        '400':
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not enrolled or not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found or not visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Quota or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+        '503':
+          description: Feature temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: State, key or content conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '412':
+          description: Stale revision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Input too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Input or validation unacceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '428':
+          description: Required revision precondition missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal failure; retry only according to operation idempotency
+            rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method not allowed; Allow header lists supported methods
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Commit'
+  /api/v3/submissions/{id}/results:
+    get:
+      operationId: getSubmissionResults
+      description: Stable row-order pagination; records may share entities. Downstream
+        failure does not undo successful import. Before results exist returns empty
+        rows and current state.
+      parameters:
+      - $ref: '#/components/parameters/SubmissionId'
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          minLength: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 200
+          default: 100
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Results'
+        '400':
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not enrolled or not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found or not visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Quota or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+        '503':
+          description: Feature temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal failure; retry only according to operation idempotency
+            rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method not allowed; Allow header lists supported methods
+components:
+  securitySchemes:
+    submissionBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Signed submissions capability and currently enrolled account required
+        for mutations; owner access retained for status after unenrollment.
+  parameters:
+    SubmissionId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema:
+        type: string
+        pattern: ^"[0-9]{1,18}"$
+      description: Quoted current revision; 428 when absent, 412 when stale.
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 128
+      description: Scoped to context, authenticated principal and operation. Same
+        input replays the original response; changed input is 409.
+  schemas:
+    Error:
+      type: object
+      additionalProperties: true
+      required:
+      - code
+      - message
+      - requestId
+      properties:
+        code:
+          type: string
+          enum:
+          - BAD_REQUEST
+          - AUTHENTICATION_REQUIRED
+          - ACCESS_DENIED
+          - NOT_FOUND
+          - GONE
+          - PRECONDITION_REQUIRED
+          - REVISION_STALE
+          - IDEMPOTENCY_KEY_REUSED
+          - ALREADY_COMMITTED
+          - VALIDATION_STALE
+          - VALIDATION_INVALID
+          - INVALID_STATE
+          - LIMIT_EXCEEDED
+          - ADMISSION_DISABLED
+          - DUPLICATE_CLIENT_ROW_ID
+          - FILE_CONTENT_CONFLICT
+          - INTERNAL_ERROR
+          - CAPABILITY_UNAVAILABLE
+        message:
+          type: string
+          minLength: 1
+        requestId:
+          type: string
+          minLength: 1
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+      description: DUPLICATE_CLIENT_ROW_ID is 422; INVALID_STATE is 409; PRECONDITION_REQUIRED
+        is 428; REVISION_STALE is 412; IDEMPOTENCY_KEY_REUSED and ALREADY_COMMITTED
+        are 409; LIMIT_EXCEEDED is 413 for input size or 429 for quotas; ADMISSION_DISABLED
+        is 503.
+    Source:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        batchId:
+          type: string
+          minLength: 1
+          maxLength: 256
+    Processing:
+      type: object
+      additionalProperties: false
+      required:
+      - mode
+      properties:
+        mode:
+          type: string
+          enum:
+          - import-only
+          - detect
+          - detect-and-identify
+          default: import-only
+      description: Omit the entire processing object to select import-only. When provided,
+        mode is required.
+    Create:
+      type: object
+      additionalProperties: false
+      required:
+      - contractVersion
+      - source
+      properties:
+        contractVersion:
+          type: string
+          enum:
+          - '1'
+        source:
+          $ref: '#/components/schemas/Source'
+        processing:
+          $ref: '#/components/schemas/Processing'
+    Row:
+      type: object
+      additionalProperties: false
+      required:
+      - clientRowId
+      - fields
+      properties:
+        clientRowId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        fields:
+          type: object
+          minProperties: 1
+          additionalProperties:
+            oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+          description: Normalized bulk-import field names. Actual supported fields,
+            required values and types are supplied by capabilities. Nulls and unknown
+            fields are rejected in this contract.
+          maxProperties: 256
+    Rows:
+      type: object
+      additionalProperties: false
+      required:
+      - rows
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/Row'
+          minItems: 1
+          maxItems: 200
+    Submission:
+      type: object
+      additionalProperties: true
+      required:
+      - id
+      - contractVersion
+      - revision
+      - state
+      - source
+      - processing
+      - createdAt
+      - expiresAt
+      - rowCount
+      properties:
+        id:
+          type: string
+          format: uuid
+        contractVersion:
+          type: string
+          enum:
+          - '1'
+        revision:
+          type: integer
+          minimum: 0
+        state:
+          type: string
+          enum:
+          - draft
+          - validated
+          - queued
+          - importing
+          - imported
+          - failed
+          - needs_reconciliation
+          - cancelled
+          - expired
+        source:
+          $ref: '#/components/schemas/Source'
+        processing:
+          $ref: '#/components/schemas/Processing'
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        importTaskId:
+          type: string
+          format: uuid
+        validationId:
+          type: string
+          format: uuid
+        rowsDigest:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+          description: Server-generated informational SHA-256 digest. Clients reconcile
+            by GET rows and JSON value equality, not by reproducing this digest.
+        rowCount:
+          type: integer
+          minimum: 0
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        derivatives:
+          $ref: '#/components/schemas/Phase'
+    File:
+      type: object
+      additionalProperties: true
+      required:
+      - name
+      - sizeBytes
+      - sha256
+      - state
+      - mediaType
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Exact accepted multipart filename; also the row reference.
+        sizeBytes:
+          type: integer
+          minimum: 0
+        sha256:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        state:
+          type: string
+          enum:
+          - complete
+        mediaType:
+          type: string
+          minLength: 1
+    Manifest:
+      type: object
+      additionalProperties: true
+      required:
+      - submissionId
+      - revision
+      - files
+      properties:
+        submissionId:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+    Issue:
+      type: object
+      additionalProperties: true
+      required:
+      - code
+      - message
+      properties:
+        code:
+          type: string
+          minLength: 1
+        message:
+          type: string
+          minLength: 1
+        clientRowId:
+          type: string
+          minLength: 1
+        rowIndex:
+          type: integer
+          minimum: 0
+        field:
+          type: string
+          minLength: 1
+        limit:
+          type: number
+    Validate:
+      type: object
+      additionalProperties: false
+      properties: {}
+      description: Empty object; If-Match selects the input revision.
+    Validation:
+      type: object
+      additionalProperties: true
+      required:
+      - id
+      - submissionId
+      - revision
+      - valid
+      - configDigest
+      - manifestDigest
+      - errors
+      - warnings
+      - normalizedRows
+      - effectiveOwnerId
+      - processing
+      properties:
+        id:
+          type: string
+          format: uuid
+        submissionId:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        valid:
+          type: boolean
+        configDigest:
+          type: string
+          minLength: 1
+        manifestDigest:
+          type: string
+          minLength: 1
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        normalizedRows:
+          type: array
+          items:
+            $ref: '#/components/schemas/Row'
+        effectiveOwnerId:
+          type: string
+          format: uuid
+        processing:
+          $ref: '#/components/schemas/Processing'
+    Commit:
+      type: object
+      additionalProperties: false
+      required:
+      - validationId
+      properties:
+        validationId:
+          type: string
+          format: uuid
+    Accepted:
+      type: object
+      additionalProperties: true
+      required:
+      - submissionId
+      - operationId
+      - importTaskId
+      - acceptedRevision
+      - statusUrl
+      properties:
+        submissionId:
+          type: string
+          format: uuid
+        operationId:
+          type: string
+          format: uuid
+        importTaskId:
+          type: string
+          format: uuid
+        acceptedRevision:
+          type: integer
+          minimum: 0
+        statusUrl:
+          type: string
+          minLength: 1
+    Phase:
+      type: object
+      additionalProperties: true
+      required:
+      - state
+      properties:
+        state:
+          type: string
+          enum:
+          - pending
+          - running
+          - complete
+          - failed
+          - skipped
+          - unknown
+          description: Indexing unknown means submitted to the existing async indexing
+            queue; no completion acknowledgment is available. Derivatives unknown
+            requires operator reconciliation.
+        message:
+          type: string
+          minLength: 1
+    ResultRow:
+      type: object
+      additionalProperties: true
+      required:
+      - clientRowId
+      - encounterIds
+      - occurrenceIds
+      - individualIds
+      - mediaAssetIds
+      properties:
+        clientRowId:
+          type: string
+          minLength: 1
+        encounterIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        occurrenceIds:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        individualIds:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        mediaAssetIds:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+    Results:
+      type: object
+      additionalProperties: true
+      required:
+      - submissionId
+      - state
+      - indexing
+      - detection
+      - identification
+      - rows
+      - errors
+      properties:
+        submissionId:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - draft
+          - validated
+          - queued
+          - importing
+          - imported
+          - failed
+          - needs_reconciliation
+          - cancelled
+          - expired
+        indexing:
+          $ref: '#/components/schemas/Phase'
+        detection:
+          $ref: '#/components/schemas/Phase'
+        identification:
+          $ref: '#/components/schemas/Phase'
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResultRow'
+        nextCursor:
+          type: string
+          minLength: 1
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        links:
+          type: object
+          additionalProperties:
+            type: string
+          description: Authorized task and record URL links; clients must not construct
+            page paths from IDs.
+        derivatives:
+          $ref: '#/components/schemas/Phase'
+    Capabilities:
+      type: object
+      additionalProperties: true
+      required:
+      - contractVersion
+      - admissionEnabled
+      - commitEnabled
+      - processingModes
+      - authentication
+      - limits
+      - rowFields
+      properties:
+        contractVersion:
+          type: string
+          enum:
+          - '1'
+        admissionEnabled:
+          type: boolean
+        commitEnabled:
+          type: boolean
+        processingModes:
+          type: array
+          items:
+            type: string
+            enum:
+            - import-only
+            - detect
+            - detect-and-identify
+        authentication:
+          type: array
+          items:
+            type: string
+            enum:
+            - bearer
+        limits:
+          type: object
+          additionalProperties: false
+          required:
+          - maxRows
+          - maxFileBytes
+          - maxRequestBytes
+          - maxDraftBytes
+          - maxMediaPerEncounter
+          - maxActiveJobs
+          - draftTtlSeconds
+          - idempotencyRetentionSeconds
+          properties:
+            maxRows:
+              type: integer
+              minimum: 1
+            maxFileBytes:
+              type: integer
+              minimum: 1
+            maxRequestBytes:
+              type: integer
+              minimum: 1
+            maxDraftBytes:
+              type: integer
+              minimum: 1
+            maxMediaPerEncounter:
+              type: integer
+              minimum: 1
+            maxActiveJobs:
+              type: integer
+              minimum: 1
+            draftTtlSeconds:
+              type: integer
+              minimum: 1
+            idempotencyRetentionSeconds:
+              type: integer
+              minimum: 1
+              description: Minimum guaranteed retention. The pilot retains records
+                indefinitely; no automatic database purge.
+            maxFieldsPerRow:
+              type: integer
+              enum:
+              - 256
+            maxDraftsPerUser:
+              type: integer
+              enum:
+              - 20
+            maxNewDraftsPerDay:
+              type: integer
+              enum:
+              - 20
+              description: Per owner in a rolling 24-hour window; cancellation does
+                not refund this budget.
+        rowFields:
+          type: object
+          additionalProperties: true
+          properties:
+            supported:
+              type: array
+              items:
+                type: string
+            required:
+              type: array
+              items:
+                type: string
+            indexedMedia:
+              type: string
+        stagingAvailable:
+          type: boolean
+        maxFiles:
+          type: integer
+          enum:
+          - 200
+        maxImagePixels:
+          type: integer
+          enum:
+          - 24000000
+        uploadMediaTypes:
+          type: array
+          items:
+            type: string
+    StoredRows:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/Row'
+      required:
+      - rows
+      additionalProperties: true

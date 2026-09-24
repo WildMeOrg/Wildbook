@@ -1,0 +1,292 @@
+{
+  "create": {
+    "schema": "Create",
+    "value": {
+      "contractVersion": "1",
+      "source": {
+        "name": "pilot-client",
+        "batchId": "survey-001"
+      }
+    }
+  },
+  "rows": {
+    "schema": "Rows",
+    "value": {
+      "rows": [
+        {
+          "clientRowId": "observation-1",
+          "fields": {
+            "Encounter.year": 2026,
+            "Encounter.locationID": "configured-location",
+            "Encounter.genus": "Loxodonta",
+            "Encounter.specificEpithet": "africana",
+            "Encounter.mediaAsset0": "observation-1.jpg"
+          }
+        }
+      ]
+    }
+  },
+  "invalidLocation": {
+    "schema": "Issue",
+    "value": {
+      "code": "LOCATION_NOT_CONFIGURED",
+      "message": "Choose a configured location.",
+      "clientRowId": "observation-1",
+      "rowIndex": 0,
+      "field": "Encounter.locationID"
+    }
+  },
+  "draft": {
+    "schema": "Submission",
+    "value": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "contractVersion": "1",
+      "revision": 0,
+      "state": "draft",
+      "source": {
+        "name": "pilot-client"
+      },
+      "processing": {
+        "mode": "import-only"
+      },
+      "createdAt": "2026-09-23T20:00:00Z",
+      "expiresAt": "2026-09-30T20:00:00Z",
+      "rowCount": 0
+    }
+  },
+  "accepted": {
+    "schema": "Accepted",
+    "value": {
+      "submissionId": "00000000-0000-4000-8000-000000000001",
+      "operationId": "00000000-0000-4000-8000-000000000002",
+      "importTaskId": "00000000-0000-4000-8000-000000000003",
+      "acceptedRevision": 2,
+      "statusUrl": "/api/v3/submissions/00000000-0000-4000-8000-000000000001"
+    }
+  },
+  "validationFailed": {
+    "schema": "Validation",
+    "value": {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "submissionId": "00000000-0000-4000-8000-000000000001",
+      "revision": 2,
+      "valid": false,
+      "configDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "manifestDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "errors": [
+        {
+          "code": "LOCATION_NOT_CONFIGURED",
+          "message": "Choose a configured location.",
+          "clientRowId": "observation-1",
+          "rowIndex": 0,
+          "field": "Encounter.locationID"
+        }
+      ],
+      "warnings": [],
+      "normalizedRows": [],
+      "effectiveOwnerId": "00000000-0000-4000-8000-000000000005",
+      "processing": {
+        "mode": "import-only"
+      }
+    }
+  },
+  "importedResults": {
+    "schema": "Results",
+    "value": {
+      "submissionId": "00000000-0000-4000-8000-000000000001",
+      "state": "imported",
+      "indexing": {
+        "state": "pending"
+      },
+      "detection": {
+        "state": "skipped"
+      },
+      "identification": {
+        "state": "skipped"
+      },
+      "rows": [
+        {
+          "clientRowId": "observation-1",
+          "encounterIds": [
+            "00000000-0000-4000-8000-000000000006"
+          ],
+          "occurrenceIds": [],
+          "individualIds": [],
+          "mediaAssetIds": [
+            100
+          ]
+        }
+      ],
+      "errors": []
+    }
+  },
+  "manifest": {
+    "schema": "Manifest",
+    "value": {
+      "submissionId": "00000000-0000-4000-8000-000000000001",
+      "revision": 1,
+      "files": [
+        {
+          "name": "observation-1.jpg",
+          "sizeBytes": 1024,
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "state": "complete",
+          "mediaType": "image/jpeg"
+        }
+      ]
+    }
+  },
+  "validationPassed": {
+    "schema": "Validation",
+    "value": {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "submissionId": "00000000-0000-4000-8000-000000000001",
+      "revision": 2,
+      "valid": true,
+      "configDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "manifestDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "errors": [],
+      "warnings": [],
+      "normalizedRows": [
+        {
+          "clientRowId": "observation-1",
+          "fields": {
+            "Encounter.year": 2026,
+            "Encounter.locationID": "configured-location",
+            "Encounter.genus": "Loxodonta",
+            "Encounter.specificEpithet": "africana",
+            "Encounter.mediaAsset0": "observation-1.jpg"
+          }
+        }
+      ],
+      "effectiveOwnerId": "00000000-0000-4000-8000-000000000005",
+      "processing": {
+        "mode": "import-only"
+      }
+    }
+  },
+  "error409": {
+    "schema": "Error",
+    "value": {
+      "code": "IDEMPOTENCY_KEY_REUSED",
+      "message": "Example IDEMPOTENCY_KEY_REUSED",
+      "requestId": "req-1",
+      "issues": []
+    }
+  },
+  "error412": {
+    "schema": "Error",
+    "value": {
+      "code": "REVISION_STALE",
+      "message": "Example REVISION_STALE",
+      "requestId": "req-1",
+      "issues": []
+    }
+  },
+  "error428": {
+    "schema": "Error",
+    "value": {
+      "code": "PRECONDITION_REQUIRED",
+      "message": "Example PRECONDITION_REQUIRED",
+      "requestId": "req-1",
+      "issues": []
+    }
+  },
+  "error429": {
+    "schema": "Error",
+    "value": {
+      "code": "LIMIT_EXCEEDED",
+      "message": "Example LIMIT_EXCEEDED",
+      "requestId": "req-1",
+      "issues": []
+    }
+  },
+  "capabilities": {
+    "schema": "Capabilities",
+    "value": {
+      "contractVersion": "1",
+      "admissionEnabled": true,
+      "commitEnabled": false,
+      "processingModes": [
+        "import-only"
+      ],
+      "authentication": [
+        "bearer"
+      ],
+      "limits": {
+        "maxRows": 200,
+        "maxFileBytes": 200,
+        "maxRequestBytes": 200,
+        "maxDraftBytes": 200,
+        "maxMediaPerEncounter": 200,
+        "maxActiveJobs": 200,
+        "draftTtlSeconds": 200,
+        "idempotencyRetentionSeconds": 200
+      },
+      "rowFields": {}
+    }
+  },
+  "rejectNullField": {
+    "schema": "Rows",
+    "valid": false,
+    "value": {
+      "rows": [
+        {
+          "clientRowId": "a",
+          "fields": {
+            "Encounter.year": null
+          }
+        }
+      ]
+    }
+  },
+  "rejectUnknownCreateProperty": {
+    "schema": "Create",
+    "valid": false,
+    "value": {
+      "contractVersion": "1",
+      "source": {
+        "name": "test"
+      },
+      "ownerId": "override"
+    }
+  },
+  "rejectBadUuid": {
+    "schema": "Submission",
+    "valid": false,
+    "value": {
+      "id": "not-a-uuid",
+      "contractVersion": "1",
+      "revision": 0,
+      "state": "draft",
+      "source": {
+        "name": "pilot-client"
+      },
+      "processing": {
+        "mode": "import-only"
+      },
+      "createdAt": "2026-09-23T20:00:00Z",
+      "expiresAt": "2026-09-30T20:00:00Z",
+      "rowCount": 0
+    }
+  },
+  "rejectBadTimestamp": {
+    "schema": "Submission",
+    "valid": false,
+    "value": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "contractVersion": "1",
+      "revision": 0,
+      "state": "draft",
+      "source": {
+        "name": "pilot-client"
+      },
+      "processing": {
+        "mode": "import-only"
+      },
+      "createdAt": "not-a-date",
+      "expiresAt": "2026-09-30T20:00:00Z",
+      "rowCount": 0
+    }
+  }
+}

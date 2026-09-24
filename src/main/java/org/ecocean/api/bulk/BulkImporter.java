@@ -42,6 +42,15 @@ public class BulkImporter {
     private String importTaskId = null;
     private Shepherd myShepherd = null;
     private long startTime = -1l;
+    private boolean deferSideEffects = false;
+    private java.util.function.BiConsumer<Integer, Encounter> rowCollector;
+
+    /** Opt-in transaction boundary for submissions; existing callers retain legacy behavior. */
+    public BulkImporter deferSideEffects(java.util.function.BiConsumer<Integer, Encounter> collector) {
+        this.deferSideEffects = true;
+        this.rowCollector = collector;
+        return this;
+    }
 
     // caching loaded and (more imporantly?) newly created objects, so they can be
     // used across all rows. StandardImport seemed to do some caching *based on user*
@@ -98,12 +107,13 @@ public class BulkImporter {
                 }
                 // } else if (fieldObj instanceof BulkValidatorException) {
             }
-            System.out.println("createImport() row=" + rowNum);
+            trace("createImport() row=" + rowNum);
             try {
-                processRow(fields);
+                Encounter resolved = processRow(fields);
+                if (rowCollector != null) rowCollector.accept(rowNum, resolved);
             } catch (Exception ex) {
                 // TODO we could allow this some leeway with a tolerance setting
-                System.out.println("createImport() row=" + rowNum + " failed with " + ex);
+                trace("createImport() row=" + rowNum + " failed with " + ex);
                 ex.printStackTrace();
                 throw new ServletException("unexpected exception on processRow for row=" + rowNum +
                         ": " + ex);
@@ -113,7 +123,7 @@ public class BulkImporter {
             markProgress(rowNum, dataRows.size(), 0.2d, 0.5d);
         }
         logProgress("end processRows");
-        System.out.println(
+        trace(
             "------------ all rows processed; beginning persistence -------------\n");
         int persistenceTicksTotal = mediaAssetMap.values().size() + userCache.values().size() +
             encounterCache.values().size() + occurrenceCache.values().size() +
@@ -124,7 +134,7 @@ public class BulkImporter {
         for (MediaAsset ma : mediaAssetMap.values()) {
             ma.setSkipAutoIndexing(true);
             MediaAssetFactory.save(ma, myShepherd);
-            System.out.println("MMMM " + ma);
+            trace("MMMM " + ma);
             arr.put(ma.getIdInt());
             maIds.add(ma.getIdInt());
             // see note on MediaAsset.getSkipAutoIndexing()
@@ -142,8 +152,9 @@ public class BulkImporter {
         arr = new JSONArray();
         for (Encounter enc : encounterCache.values()) {
             // it is a certain kind of painful that if you do not pass id here it assigns a new random one
-            myShepherd.storeNewEncounter(enc, enc.getId());
-            System.out.println("EEEE " + enc);
+            if (deferSideEffects) { enc.setEncounterNumber(enc.getId()); myShepherd.getPM().makePersistent(enc); }
+            else myShepherd.storeNewEncounter(enc, enc.getId());
+            trace("EEEE " + enc);
             arr.put(enc.getId());
             needIndexing.add(enc);
             persistenceTicks++;
@@ -153,8 +164,9 @@ public class BulkImporter {
         rtn.put("encounters", arr);
         arr = new JSONArray();
         for (Occurrence occ : occurrenceCache.values()) {
-            myShepherd.storeNewOccurrence(occ);
-            System.out.println("OOOO " + occ);
+            if (deferSideEffects) myShepherd.getPM().makePersistent(occ);
+            else myShepherd.storeNewOccurrence(occ);
+            trace("OOOO " + occ);
             arr.put(occ.getId());
             needIndexing.add(occ);
             persistenceTicks++;
@@ -164,9 +176,10 @@ public class BulkImporter {
         rtn.put("sightings", arr);
         arr = new JSONArray();
         for (MarkedIndividual indiv : individualCache.values()) {
-            myShepherd.storeNewMarkedIndividual(indiv);
+            if (deferSideEffects) myShepherd.getPM().makePersistent(indiv);
+            else myShepherd.storeNewMarkedIndividual(indiv);
             indiv.refreshNamesCache();
-            System.out.println("IIII " + indiv);
+            trace("IIII " + indiv);
             arr.put(indiv.getId());
             needIndexing.add(indiv);
             persistenceTicks++;
@@ -175,17 +188,18 @@ public class BulkImporter {
         logProgress("end persist MarkedIndividual");
         rtn.put("individuals", arr);
         for (Project proj : projectCache.values()) {
-            myShepherd.storeNewProject(proj);
-            System.out.println("PPPP " + proj);
+            if (deferSideEffects) myShepherd.getPM().makePersistent(proj);
+            else myShepherd.storeNewProject(proj);
+            trace("PPPP " + proj);
             persistenceTicks++;
             markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
         logProgress("persist COMPLETE");
-        System.out.println(
+        trace(
             "------------ persistence complete; background indexing and MA children -------------\n");
         // clears shepherd/pmf cache, which we seem to do when we create encounters (?)
-        myShepherd.cacheEvictAll();
-        MediaAsset.updateStandardChildrenBackground(myShepherd.getContext(), maIds, new Runnable() {
+        if (!deferSideEffects) myShepherd.cacheEvictAll();
+        if (!deferSideEffects) MediaAsset.updateStandardChildrenBackground(myShepherd.getContext(), maIds, new Runnable() {
             public void run() {
                 BulkImportUtil.bulkOpensearchIndex(needIndexing);
             }
@@ -195,13 +209,13 @@ public class BulkImporter {
     }
 
     // this assumes all values have been validated, so just go for it! set data with values. good luck!
-    private void processRow(List<BulkValidator> fields) {
+    private Encounter processRow(List<BulkValidator> fields) {
         // some fields we do on a subsequent pass, as they require special care
         // handy for these subsequent passes
         Map<String, BulkValidator> fmap = new HashMap<String, BulkValidator>();
 
         for (BulkValidator field : fields) {
-            System.out.println("   >> " + field);
+            trace("   >> " + field);
             fmap.put(field.getFieldName(), field);
         }
         Set<String> allFieldNames = fmap.keySet();
@@ -368,7 +382,7 @@ public class BulkImporter {
             String munit = null;
             if (i < munits.size()) munit = munits.get(i);
             Measurement meas = new Measurement(enc.getId(), mvals.get(i), mdbl, munit, sampProt);
-            System.out.println("[INFO] field " + measFN.get(i) + " [i=" + i + "] created " + meas);
+            trace("[INFO] field " + measFN.get(i) + " [i=" + i + "] created " + meas);
             enc.setMeasurement(meas);
         }
         handleSocialUnit(indiv, fmap.get("SocialUnit.socialUnitName"), fmap.get("Membership.role"));
@@ -380,7 +394,7 @@ public class BulkImporter {
    setting the value on the Encouner only. so we follow this as represented in that class, fbow.
  */
         for (BulkValidator bv : fields) {
-            System.out.println("bv>>>> " + bv);
+            trace("bv>>>> " + bv);
             String fieldName = bv.getFieldName();
             switch (fieldName) {
             case "Encounter.latitude":
@@ -678,7 +692,7 @@ public class BulkImporter {
             case "Sighting.taxonomy0":
             case "Taxonomy.commonName":
             case "Taxonomy.scientificName":
-                System.out.println("[INFO] " + fieldName + " currently not implemented");
+                trace("[INFO] " + fieldName + " currently not implemented");
                 break;
  */
 
@@ -689,12 +703,12 @@ public class BulkImporter {
             //case "Sighting.numSubFemales":
  */
             default:
-                System.out.println("[INFO] processRow() ignored a field [" + fieldName +
+                trace("[INFO] processRow() ignored a field [" + fieldName +
                     "] that was flagged valid");
             }
         }
         // fields done
-        System.out.println("+ populated data on " + enc);
+        trace("+ populated data on " + enc);
         // now attach annotations
         String tx = enc.getTaxonomyString();
         List<Annotation> annots = new ArrayList<Annotation>();
@@ -715,7 +729,7 @@ public class BulkImporter {
                 // image, so we advance `offset` to consume its keyword/quality
                 // slot — otherwise a later valid image would inherit this
                 // corrupt image's positional metadata.
-                System.out.println("[WARN] processRow: skipping image with no MediaAsset (likely "
+                trace("[WARN] processRow: skipping image with no MediaAsset (likely "
                     + "corrupt/unreadable) for maKey=" + maKey + ", value=" + bv.getValueString());
                 offset++;
                 continue;
@@ -738,11 +752,12 @@ public class BulkImporter {
             offset++;
         }
         if (annots.size() > 0) enc.addAnnotations(annots);
-        System.out.println("+ populated " + annots.size() + " MediaAssets on " + enc);
+        trace("+ populated " + annots.size() + " MediaAssets on " + enc);
+        return enc;
     }
 
     public void markProgress(int ticks, int total, double base, double weight) {
-        if (this.importTaskId == null) return;
+        if (this.importTaskId == null || deferSideEffects) return;
         // we want our own shepherd here so we can persist this task independent of our main shepherd
         Shepherd taskShepherd = new Shepherd(this.myShepherd.getContext());
         taskShepherd.setAction("BulkImporter.markProgress");
@@ -845,11 +860,11 @@ public class BulkImporter {
                         ex.printStackTrace();
                     }
                     if ((all0 == null) || (all1 == null)) {
-                        System.out.println(
+                        trace(
                             "BulkImporter.handleSamples(): failed to get allele ints for " +
                             zeros[i] + "; " + ones[i]);
                     } else if (names[i].equals("")) {
-                        System.out.println("BulkImporter.handleSamples(): empty name for i=" + i +
+                        trace("BulkImporter.handleSamples(): empty name for i=" + i +
                             " in " + alleleNames);
                     } else {
                         Locus locus = new Locus(names[i], all0, all1);
@@ -857,7 +872,7 @@ public class BulkImporter {
                     }
                 }
             } else {
-                System.out.println("BulkImporter.handleSamples(): length mismatch for (" +
+                trace("BulkImporter.handleSamples(): length mismatch for (" +
                     alleleNames + "|" + alleleZeros + "|" + alleleOnes + ")");
             }
             if (loci.size() > 0) {
@@ -865,7 +880,7 @@ public class BulkImporter {
                     Util.generateUUID(), tsId, enc.getId(), loci);
                 myShepherd.getPM().makePersistent(markers);
                 sample.addGeneticAnalysis(markers);
-                System.out.println("BulkImporter.handleSamples(): adding " + markers + " to " +
+                trace("BulkImporter.handleSamples(): adding " + markers + " to " +
                     sample);
             }
         }
@@ -877,7 +892,7 @@ public class BulkImporter {
             SexAnalysis sexAn = new SexAnalysis(Util.generateUUID(), sas, enc.getId(), tsId);
             myShepherd.getPM().makePersistent(sexAn);
             sample.addGeneticAnalysis(sexAn);
-            System.out.println("BulkImporter.handleSamples(): adding " + sexAn + " to " + sample);
+            trace("BulkImporter.handleSamples(): adding " + sexAn + " to " + sample);
         }
         // haplotype
         String hap = null;
@@ -888,7 +903,7 @@ public class BulkImporter {
                 enc.getId(), tsId);
             myShepherd.getPM().makePersistent(mda);
             sample.addGeneticAnalysis(mda);
-            System.out.println("BulkImporter.handleSamples(): adding " + mda + " to " + sample);
+            trace("BulkImporter.handleSamples(): adding " + mda + " to " + sample);
         }
         // wrap it up, we are done!
         enc.addTissueSample(sample);
@@ -906,7 +921,7 @@ public class BulkImporter {
         MarkedIndividual indiv = myShepherd.getMarkedIndividual(id);
         if (!(fmap.containsKey("Encounter.genus") &&
             fmap.containsKey("Encounter.specificEpithet"))) {
-            System.out.println("[WARNING] BulkImporter.getOrCreateMarkedIndividual(" + id +
+            trace("[WARNING] BulkImporter.getOrCreateMarkedIndividual(" + id +
                 ") is missing genus and/or specificEpithet values");
             return null;
         }
@@ -925,7 +940,7 @@ public class BulkImporter {
             indiv.setSpecificEpithet(specificEpithet);
             indiv.setVersion();
             // TODO what else???
-            System.out.println(
+            trace(
                 "[INFO] BulkImporter.getOrCreateMarkedIndividual() creating new; could not find existing indiv based on id="
                 + id + " => " + indiv);
         }
@@ -979,7 +994,7 @@ public class BulkImporter {
             user = new User(email, Util.generateUUID());
             user.setFullName(fullname);
             user.setAffiliation(affiliation);
-            System.out.println("[INFO] BulkImporter.getOrCreateUser() creating new " + user);
+            trace("[INFO] BulkImporter.getOrCreateUser() creating new " + user);
         }
         userCache.put(email, user);
         return user;
@@ -999,7 +1014,7 @@ public class BulkImporter {
         if (proj == null) {
             proj = myShepherd.getProjectByProjectIdPrefixPrefix(projectPrefix);
             if (proj != null)
-                System.out.println(
+                trace(
                     "[INFO] BulkImporter.getOrCreateProject() fuzzy-matched projectPrefix '" +
                     projectPrefix + "' to " + proj);
         }
@@ -1044,6 +1059,8 @@ public class BulkImporter {
         occurrenceCache.put(occ.getId(), occ); // we use getId() in case of id==null
         return occ;
     }
+
+    private void trace(String text) { if (!deferSideEffects) System.out.println(text); }
 
     public static void logProgress(String id, String msg, Long startTime) {
         Util.mark("BulkImporter.logProgress[" + id + "]: " + msg, startTime);

@@ -8,6 +8,10 @@ description: Reference for the Wildbook token-scoped API and the analytical skil
 You are an AI agent operating Wildbook's **read-only** API on behalf of a human user. You see exactly
 what that user is permitted to see (everything is access-controlled to their account).
 
+For creating new sightings through the separate enrolled submissions pilot, fetch
+`/api/v3/agent-skill/submit-sightings`. It documents a different token scope and the
+draft/upload/validate/commit lifecycle; the read-only token described here cannot submit data.
+
 ## Security — read first
 - **Never ask for, accept, or store the user's Wildbook username or password.** You do not need them.
 - The user generates a short-lived **bearer token** in Wildbook's UI (Account menu → **API Access**)
