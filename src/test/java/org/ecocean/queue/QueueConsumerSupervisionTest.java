@@ -28,12 +28,25 @@ public class QueueConsumerSupervisionTest {
 
     @BeforeEach void isolateQueueBaseDir() {
         FileQueue.overrideQueueBaseDirForTesting(tempDir.toFile());
+        // checks are run by hand; keep the real watchdog from restarting a consumer mid-test
+        QueueUtil.watchdogIntervalSeconds = 3600;
     }
 
     @AfterEach void cleanupExecutorsAndState() {
         QueueUtil.cleanup();
         QueueUtil.clock = System::currentTimeMillis;
+        QueueUtil.watchdogIntervalSeconds = QueueUtil.WATCHDOG_INTERVAL_SECONDS;
         FileQueue.overrideQueueBaseDirForTesting(null);
+    }
+
+    private static boolean awaitStopped(String queueName, long timeoutMillis) throws Exception {
+        long end = System.currentTimeMillis() + timeoutMillis;
+        while (System.currentTimeMillis() < end) {
+            QueueUtil.ConsumerStatus s = statusOf(queueName);
+            if ((s != null) && s.isStopped()) return true;
+            Thread.sleep(100);
+        }
+        return false;
     }
 
     private abstract static class StubQueue extends Queue {
@@ -136,7 +149,7 @@ public class QueueConsumerSupervisionTest {
 
         QueueUtil.backgroundWithWorkers(q, 1);
         assertTrue(stopSeen.await(15, TimeUnit.SECONDS), "first poll should happen");
-        Thread.sleep(1500); // let the executor finish shutting down
+        assertTrue(awaitStopped(name, 15000), "the intentional stop shuts the executor down");
         assertEquals(0, QueueUtil.checkConsumersOnce(),
             "an intentional stop must never be undone by the watchdog");
         int settled = q.polls.get();

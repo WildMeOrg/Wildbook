@@ -72,8 +72,11 @@ public class Prometheus {
 
     /**
      * Live queue-consumer health, built fresh on every scrape (a private registry, so the hourly
-     * clear-and-reload of the default registry cannot drop it). Alert on consumers_dead > 0, on
-     * seconds_since_poll growing large, and on consumers_tracked == 0 (queues never started).
+     * clear-and-reload of the default registry cannot drop it). Suggested alerts:
+     * {@code wildbook_queue_consumers_alive{queue="detection"} < 1 or
+     * absent(wildbook_queue_consumers_alive{queue="detection"})} (dead, stopped, or never started),
+     * {@code wildbook_queue_consumer_consecutive_deaths > 1} (crash loop), and a large
+     * {@code wildbook_queue_seconds_since_poll} (a consumer stuck inside one message).
      */
     public static CollectorRegistry queueHealthRegistry() {
         CollectorRegistry reg = new CollectorRegistry();
@@ -86,7 +89,7 @@ public class Prometheus {
             .help("Queue consumer workers that died and are waiting for a watchdog restart")
             .register(reg);
         Gauge stopped = Gauge.build().name("wildbook_queue_consumers_stopped").labelNames("queue")
-            .help("Queue consumer workers stopped on purpose by a STOP file or SHUTDOWN message")
+            .help("Queue consumer workers stopped on purpose (STOP file or SHUTDOWN message) or shut down")
             .register(reg);
         Gauge sincePoll = Gauge.build().name("wildbook_queue_seconds_since_poll")
             .labelNames("queue")
@@ -94,6 +97,10 @@ public class Prometheus {
             .register(reg);
         Gauge restarts = Gauge.build().name("wildbook_queue_consumer_restarts").labelNames("queue")
             .help("Watchdog restarts of this queue's consumers since the JVM started")
+            .register(reg);
+        Gauge crashLoop = Gauge.build().name("wildbook_queue_consumer_consecutive_deaths")
+            .labelNames("queue")
+            .help("Most consecutive deaths of any worker of this queue since it last ran healthily")
             .register(reg);
         List<QueueUtil.ConsumerStatus> statuses = QueueUtil.consumerStatus();
         tracked.set(statuses.size());
@@ -103,6 +110,8 @@ public class Prometheus {
             dead.labels(q).inc((!s.isAlive() && !s.isStopped()) ? 1 : 0);
             stopped.labels(q).inc(s.isStopped() ? 1 : 0);
             restarts.labels(q).inc(s.getRestarts());
+            Gauge.Child loop = crashLoop.labels(q);
+            loop.set(Math.max(loop.get(), s.getConsecutiveDeaths()));
             Gauge.Child since = sincePoll.labels(q);
             if (!s.isStopped()) since.set(Math.max(since.get(), s.getSecondsSinceLastTick()));
         }

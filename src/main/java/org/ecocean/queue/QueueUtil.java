@@ -26,7 +26,10 @@ public class QueueUtil {
     // A consumer that keeps dying is restarted with exponential backoff: the first restart is
     // immediate, then 30s, 60s, 120s, ... capped at 30 minutes. FileQueue marks a message
     // .complete BEFORE handling it, so every restart that dies again costs one message; the
-    // backoff bounds that loss while a persistent fault (e.g. an exhausted heap) lasts.
+    // backoff bounds that loss (at the cap, about two messages per hour per worker) while a
+    // persistent fault lasts. There is deliberately NO give-up threshold: a supervisor that gives
+    // up recreates the silent dead queue this exists to prevent. A crash loop is surfaced instead,
+    // loudly, through error.log and the wildbook_queue_consumer_consecutive_deaths gauge.
     static final long RESTART_BACKOFF_BASE_MILLIS = 30000L;
     static final long RESTART_BACKOFF_MAX_MILLIS = 30L * 60L * 1000L;
     // a consumer that ran this long after its last restart is healthy again: backoff resets
@@ -35,14 +38,24 @@ public class QueueUtil {
     // Guards consumer registration, watchdog start/stop, restarts and cleanup, so a restart can
     // never race startup or undeploy. `slots` is copy-on-write so status reads need no lock.
     private static final Object LIFECYCLE = new Object();
+    // Serializes whole cleanups, so two overlapping ones cannot interleave; held across the awaits,
+    // which LIFECYCLE must not be (the watchdog takes LIFECYCLE and cleanup waits for it).
+    private static final Object CLEANUP = new Object();
     private static final List<ScheduledExecutorService> runningSES =
         new ArrayList<ScheduledExecutorService>();
     private static final List<ConsumerSlot> slots = new CopyOnWriteArrayList<ConsumerSlot>();
     private static ScheduledExecutorService watchdog = null;
     private static volatile boolean stopping = false;
 
-    // test seam for the restart backoff
+    // test seams: the backoff clock, and the watchdog interval (tests run checks by hand)
     static volatile LongSupplier clock = System::currentTimeMillis;
+    static volatile long watchdogIntervalSeconds = WATCHDOG_INTERVAL_SECONDS;
+
+    // FileQueue.consume() holds this across reserving its directory AND registering the consumers,
+    // so cleanup cannot release the reservation in between
+    static Object lifecycleLock() {
+        return LIFECYCLE;
+    }
 
     // One consumer worker: its executor, its current periodic task, and supervision state.
     static final class ConsumerSlot {
@@ -74,15 +87,17 @@ public class QueueUtil {
         private final boolean stopped;
         private final long secondsSinceLastTick;
         private final int restarts;
+        private final int consecutiveDeaths;
         private final String lastDeathCause;
 
         ConsumerStatus(String queueName, boolean alive, boolean stopped, long secondsSinceLastTick,
-            int restarts, String lastDeathCause) {
+            int restarts, int consecutiveDeaths, String lastDeathCause) {
             this.queueName = queueName;
             this.alive = alive;
             this.stopped = stopped;
             this.secondsSinceLastTick = secondsSinceLastTick;
             this.restarts = restarts;
+            this.consecutiveDeaths = consecutiveDeaths;
             this.lastDeathCause = lastDeathCause;
         }
 
@@ -106,6 +121,11 @@ public class QueueUtil {
 
         public int getRestarts() {
             return restarts;
+        }
+
+        /** deaths since the consumer last ran healthily; above 1 means it is crash-looping */
+        public int getConsecutiveDeaths() {
+            return consecutiveDeaths;
         }
 
         public String getLastDeathCause() {
@@ -154,13 +174,21 @@ public class QueueUtil {
                 throw new IOException("QueueUtil is shutting down; not starting consumers for " +
                         queue);
             final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(n + 1);
-            for (int w = 0; w < n; w++) {
-                ConsumerSlot slot = new ConsumerSlot(queue, schedExec);
-                slot.future = schedule(slot);
-                slots.add(slot);
+            List<ConsumerSlot> started = new ArrayList<ConsumerSlot>();
+            try {
+                for (int w = 0; w < n; w++) {
+                    ConsumerSlot slot = new ConsumerSlot(queue, schedExec);
+                    slot.future = schedule(slot);
+                    started.add(slot);
+                }
+                ensureWatchdog();
+            } catch (Throwable t) {
+                // roll back a partial start: no worker may run untracked
+                schedExec.shutdownNow();
+                throw new IOException("failed to start consumers for " + queue, t);
             }
+            slots.addAll(started);
             runningSES.add(schedExec);
-            ensureWatchdog();
         }
         System.out.println("---- " + queue.toString() + " started " + n + " consumer worker(s) ----");
     }
@@ -241,8 +269,9 @@ public class QueueUtil {
             t.setDaemon(true);
             return t;
         });
-        watchdog.scheduleWithFixedDelay(QueueUtil::watchdogTick, WATCHDOG_INTERVAL_SECONDS,
-            WATCHDOG_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        long interval = watchdogIntervalSeconds;
+        watchdog.scheduleWithFixedDelay(QueueUtil::watchdogTick, interval, interval,
+            TimeUnit.SECONDS);
     }
 
     // The watchdog is scheduled the same way as the consumers, so it too must never throw —
@@ -349,14 +378,24 @@ public class QueueUtil {
             boolean stopped = s.exec.isShutdown();
             ScheduledFuture<?> f = s.future;
             boolean alive = !stopped && (f != null) && !f.isDone();
+            // a consumer running healthily since its last restart is no longer crash-looping
+            int deaths = (alive && (now - s.lastRestartMillis >= HEALTHY_RESET_MILLIS)) ? 0
+                : s.consecutiveDeaths;
             out.add(new ConsumerStatus(s.queue.queueName, alive, stopped,
-                Math.max(0, (now - s.lastTickMillis) / 1000), s.restarts, s.lastDeathCause));
+                Math.max(0, (now - s.lastTickMillis) / 1000), s.restarts, deaths,
+                s.lastDeathCause));
         }
         return out;
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
     public static void cleanup() {
+        synchronized (CLEANUP) {
+            cleanupSerialized();
+        }
+    }
+
+    private static void cleanupSerialized() {
         ScheduledExecutorService wd;
         List<ScheduledExecutorService> toStop;
         synchronized (LIFECYCLE) {

@@ -17,10 +17,12 @@ public class QueueHealthMetricsTest {
 
     @BeforeEach void isolateQueueBaseDir() {
         FileQueue.overrideQueueBaseDirForTesting(tempDir.toFile());
+        QueueUtil.watchdogIntervalSeconds = 3600; // the test runs the check by hand
     }
 
     @AfterEach void cleanupExecutorsAndState() {
         QueueUtil.cleanup();
+        QueueUtil.watchdogIntervalSeconds = QueueUtil.WATCHDOG_INTERVAL_SECONDS;
         FileQueue.overrideQueueBaseDirForTesting(null);
     }
 
@@ -33,6 +35,8 @@ public class QueueHealthMetricsTest {
         final String name = "stub-metrics-" + System.nanoTime();
         final java.util.concurrent.atomic.AtomicInteger polls =
             new java.util.concurrent.atomic.AtomicInteger(0);
+        final java.util.concurrent.CountDownLatch release =
+            new java.util.concurrent.CountDownLatch(1);
         Queue q = new Queue(name) {
             { this.type = "Stub"; }
             @Override public void publish(String msg) {}
@@ -42,7 +46,13 @@ public class QueueHealthMetricsTest {
                 return 0;
             }
             @Override public String getNext() {
-                return (polls.incrementAndGet() == 1) ? "{\"m\":\"poison\"}" : null;
+                if (polls.incrementAndGet() != 1) return null;
+                try { // hold the first poll until the test has checked the alive state
+                    release.await(15, java.util.concurrent.TimeUnit.SECONDS);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
+                return "{\"m\":\"poison\"}";
             }
         };
         q.messageHandler = new QueueMessageHandler() {
@@ -57,6 +67,7 @@ public class QueueHealthMetricsTest {
             "one worker tracked");
         assertEquals(1.0, sample(reg, "wildbook_queue_consumers_alive", name), 0.0,
             "worker alive before it dies");
+        release.countDown();
 
         long end = System.currentTimeMillis() + 15000;
         double dead = 0;
