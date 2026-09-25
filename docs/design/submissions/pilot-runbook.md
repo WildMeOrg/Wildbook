@@ -99,6 +99,11 @@ python3 scripts/submissions/client.py \
   --rows rows.json --media-dir ./photos --state ./submission-state.json
 ```
 
+New submissions default to detection and identification after import. To opt out,
+pass `--processing-mode import-only` when first creating the client state. Processing
+mode is fixed for that submission; retries use the saved create request. Existing
+submissions, including older omitted-mode creates, retain their saved import-only mode.
+
 This creates/uploads/validates without committing. Inspect the reported validation
 errors, correct rows.json and rerun with the same state file to update the same
 draft. The client checks that the server still holds its previously saved rows
@@ -149,11 +154,50 @@ advance the revision. Commit requires a current validation ID, revision and save
 Idempotency-Key. Same-key/same-input retries recover the accepted operation;
 different keys cannot launch a second execution for the same submission.
 
+## Default detection and identification rollout
+
+Before deploying this follow-up, add the nullable `AI_STATE` (varchar 32) and
+`AI_STARTED_AT` (bigint) columns to the existing SUBMISSION table using the updated
+JDO metadata and the installation's schema rollout process. No backfill is needed:
+old submissions retain import-only and null AI columns are interpreted as skipped.
+Do not change saved create bodies or reprocess existing imports automatically.
+Restart the enabled submissions worker after deploying the updated code.
+
+The worker prepares the normal IA parent/child tasks and persists the detection
+queue message after records and derivatives commit. The message requests
+`skipIdent=false`, so the existing pipeline performs detection and then individual
+matching with its normal matching defaults. Legacy bulk import is unchanged.
+The existing detection consumer and IA services must be running and configured.
+Before enabling the default workflow, verify the configured IA callback base URL
+and file detection queue on the deployment. The consumer must use the same service
+UID as the worker because checked queue files have owner-only permissions.
+No custom matching-set filter is supplied; existing pipeline matching defaults apply.
+The dedicated checked file-queue publisher requires atomic rename support; it does
+not change the legacy publisher. A publication error is held for inspection.
+
+Both API phase objects describe the same workflow handoff: `pending`, `dispatching`,
+`dispatched`, `failed`, or `unknown`; explicit import-only reports `skipped`.
+If record import fails or requires reconciliation, both phases report `not_started`
+with an import-specific error code.
+`dispatched` is not detection/identification completion. Use the linked import task
+for pipeline progress and match candidates. Import results retain the original
+source-row mapping; downstream detection can create additional encounters and
+annotations, and matching does not automatically assign individual identities.
+
+A pending handoff blocked by unknown derivatives becomes failed. An interrupted
+handoff is held as unknown after one hour, and is never automatically republished.
+Stop workers and inspect the saved IA task, its queue resume message, queue contents
+and pipeline logs before an operator repairs state or dispatches work. Do not
+manually resend IA work while the submission worker owns a pending/dispatching
+handoff. Existing manual admin resend paths remain manual and are not coordinated
+by the submissions lock. The adapter refuses to replace an existing IA root task.
+
 ## Status, recovery and retention
 
 Poll the submission and its paginated results. Imported means domain records,
-source-row mappings and the post-import intent committed together. Detection and
-identification are skipped in this pilot. Derivative state is reported separately.
+source-row mappings and the post-import intent committed together. Detection and identification are now requested by default for new submissions;
+explicit `processing.mode=import-only` skips both. This is matching for review,
+not automatic assignment of an individual identity. Derivative state is reported separately.
 Indexing `unknown` means submitted to the existing asynchronous indexing queue;
 this implementation does not assert search completion. Failed index dispatch
 is held as failed for operator inspection; derivative unknown leaves indexing

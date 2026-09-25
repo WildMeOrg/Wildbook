@@ -277,8 +277,9 @@ components:
           type: string
           enum:
           - import-only
-          default: import-only
-      description: Omit the entire processing object to select import-only. When provided,
+          - detect-and-identify
+          default: detect-and-identify
+      description: Omit the entire processing object to select detect-and-identify. Explicit import-only skips detection and identification. When provided,
         mode is required.
     SubmissionApiValidation:
       type: object
@@ -398,6 +399,9 @@ components:
           enum:
           - pending
           - running
+          - not_started
+          - dispatching
+          - dispatched
           - complete
           - failed
           - skipped
@@ -528,6 +532,7 @@ components:
             type: string
             enum:
             - import-only
+            - detect-and-identify
         authentication:
           type: array
           items:
@@ -2066,7 +2071,7 @@ paths:
     post:
       operationId: createSubmission
       description: 'Creates a private draft. Replays return the original 201 body and
-        resource URL. Omitted processing is import-only. The replayed body/ETag may
+        resource URL. Omitted processing is detect-and-identify. The replayed body/ETag may
         be old: GET the resource before any mutation.'
       parameters:
       - $ref: '#/components/parameters/SubmissionApiIdempotencyKey'

@@ -30,6 +30,7 @@ public class SubmissionStore {
             lock(sh, "owner:" + context + ":" + ownerId);
             Submission existing = find(sh, "createKeyHash == :key", keyHash);
             if (existing != null) {
+                if (!input.has("processing")) hash = SubmissionJson.hash(SubmissionJson.canonical(SubmissionJson.create(input, existing.getProcessingMode())));
                 if (!existing.getCreateHash().equals(hash)) throw new SubmissionException(409, "IDEMPOTENCY_KEY_REUSED", "Key was used with different input");
                 return existing.json(true);
             }

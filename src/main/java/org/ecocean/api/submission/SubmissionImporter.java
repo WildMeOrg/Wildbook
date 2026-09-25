@@ -60,7 +60,7 @@ public class SubmissionImporter {
                 .put("occurrenceIds", new JSONArray().put(enc.getOccurrenceID())).put("individualIds", individuals)
                 .put("mediaAssetIds", mediaIds));
         }
-        task.setEncounters(importer.getEncounters()); task.setProcessingProgress(1.0D); task.setStatus("complete");
+        task.setEncounters(importer.getEncounters()); task.setProcessingProgress(1.0D); task.setStatus(draft.requestsIdentification() ? "pending-detection" : "complete");
         sh.getPM().makePersistent(task);
         return new JSONObject().put("rows", mapping).put("records", imported);
     }

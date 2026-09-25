@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Wildbook Submissions API (draft, not deployed)
   version: 1.0.0-draft
-  description: 'Sibling intake API. Private enrolled-partner pilot; import-only by
+  description: 'Sibling intake API. Private enrolled-partner pilot; detection and identification by
     default. Existing bulk-import endpoints are unchanged. Bearer credentials must
     contain an explicitly issued submissions capability; existing identity-only tokens
     do not authorize intake. Session writes require CSRF protection when enabled.
@@ -75,7 +75,7 @@ paths:
     post:
       operationId: createSubmission
       description: 'Creates a private draft. Replays return the original 201 body
-        and resource URL. Omitted processing is import-only. The replayed body/ETag
+        and resource URL. Omitted processing is detect-and-identify. The replayed body/ETag
         may be old: GET the resource before any mutation.'
       parameters:
       - $ref: '#/components/parameters/IdempotencyKey'
@@ -1076,10 +1076,9 @@ components:
           type: string
           enum:
           - import-only
-          - detect
           - detect-and-identify
-          default: import-only
-      description: Omit the entire processing object to select import-only. When provided,
+          default: detect-and-identify
+      description: Omit the entire processing object to select detect-and-identify. Explicit import-only skips detection and identification. When provided,
         mode is required.
     Create:
       type: object
@@ -1366,6 +1365,9 @@ components:
           enum:
           - pending
           - running
+          - not_started
+          - dispatching
+          - dispatched
           - complete
           - failed
           - skipped
@@ -1487,7 +1489,6 @@ components:
             type: string
             enum:
             - import-only
-            - detect
             - detect-and-identify
         authentication:
           type: array

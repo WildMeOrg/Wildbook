@@ -101,7 +101,7 @@ public class Submissions extends ApiBase {
             .put("admissionEnabled", SubmissionPolicy.enabled("context0"))
             .put("stagingAvailable", staging)
             .put("commitEnabled", SubmissionPolicy.commitEnabled("context0")).put("authentication", new org.json.JSONArray().put("bearer"))
-            .put("processingModes", new org.json.JSONArray().put("import-only"))
+            .put("processingModes", new org.json.JSONArray().put("detect-and-identify").put("import-only"))
             .put("operations", new org.json.JSONArray().put("create").put("get").put("replace-rows").put("get-rows").put("cancel").put("upload").put("get-files").put("validate").put("commit").put("results"))
             .put("limits", new JSONObject().put("maxRows", SubmissionPolicy.MAX_ROWS)
                 .put("maxFieldsPerRow", 256)

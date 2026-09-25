@@ -23,6 +23,8 @@ public class Submission {
     private String derivatives = "pending";
     private String phase = "pending";
     private String errorCode;
+    private String aiState;
+    private Long aiStartedAt;
     private long workStartedAt;
     private long derivativesStartedAt;
     private long completedAt;
@@ -37,6 +39,29 @@ public class Submission {
         this.id = id; this.context = context; this.ownerId = ownerId;
         this.createKeyHash = createKeyHash; this.createHash = createHash;
         this.createJson = createJson; this.createdAt = createdAt; this.expiresAt = expiresAt;
+    }
+    public String getProcessingMode() { JSONObject processing = new JSONObject(createJson).optJSONObject("processing"); return processing == null ? "import-only" : processing.optString("mode", "import-only"); }
+    public boolean requestsIdentification() { return "detect-and-identify".equals(getProcessingMode()); }
+    public String getAiState() {
+        if (!requestsIdentification()) return "skipped";
+        if (aiState != null) return aiState;
+        if ("failed".equals(state)) return "failed";
+        if ("needs_reconciliation".equals(state)) return "unknown";
+        return "pending";
+    }
+    public long getAiStartedAt() { return aiStartedAt == null ? 0 : aiStartedAt; }
+    public void aiState(String value) { aiState = value; }
+    public void claimAi(long now) { aiState = "dispatching"; aiStartedAt = now; }
+    public JSONObject aiPhase() {
+        if (requestsIdentification() && ("failed".equals(state) || "needs_reconciliation".equals(state)))
+            return new JSONObject().put("state", "not_started")
+                .put("code", "failed".equals(state) ? "IMPORT_FAILED" : "IMPORT_OUTCOME_UNCERTAIN")
+                .put("message", "Detection and identification were not started because record import failed or requires reconciliation. Inspect the import outcome first.");
+        if ("unknown".equals(getAiState()) || "failed".equals(getAiState()))
+            return new JSONObject().put("state", getAiState()).put("code", "unknown".equals(getAiState()) ? "AI_HANDOFF_UNKNOWN" : "AI_HANDOFF_FAILED").put("message", "AI handoff requires operator inspection; never automatically resubmitted. Imported records remain available.");
+        return new JSONObject().put("state", getAiState()).put("message", requestsIdentification()
+            ? "Detection and identification workflow handoff; dispatched does not mean completed. See import task for progress and match candidates."
+            : "Explicit import-only mode");
     }
     public String getId() { return id; }
     public String getContext() { return context; }
@@ -63,7 +88,7 @@ public class Submission {
     public void claim() { claim(System.currentTimeMillis()); }
     public void claim(long now) { state = "importing"; workStartedAt = now; }
     public void imported(String result) { imported(result, System.currentTimeMillis()); }
-    public void imported(String result, long now) { resultJson = result; state = "imported"; phase = "pending"; completedAt = now; }
+    public void imported(String result, long now) { resultJson = result; aiState = requestsIdentification() ? "pending" : "skipped"; state = "imported"; phase = "pending"; completedAt = now; }
     public long getCompletedAt() { return completedAt; }
     public void releaseFiles() { filesJson = "[]"; }
     public void fail(String code, boolean uncertain) { errorCode = code; state = uncertain ? "needs_reconciliation" : "failed"; if (!uncertain) completedAt = System.currentTimeMillis(); }
@@ -78,7 +103,7 @@ public class Submission {
             .put("revision", originalCreate ? 0 : revision)
             .put("state", originalCreate ? "draft" : effectiveState())
             .put("source", original.getJSONObject("source"))
-            .put("processing", original.getJSONObject("processing"))
+            .put("processing", new JSONObject().put("mode", getProcessingMode()))
             .put("createdAt", Instant.ofEpochMilli(createdAt).toString())
             .put("expiresAt", Instant.ofEpochMilli(expiresAt).toString())
             .put("rowCount", originalCreate ? 0 : new JSONArray(rowsJson).length());
@@ -86,8 +111,8 @@ public class Submission {
         if (!originalCreate && jobId != null) result.put("operationId", jobId).put("importTaskId", jobId)
             .put("indexing", new JSONObject().put("state", phase))
             .put("derivatives", new JSONObject().put("state", derivatives))
-            .put("detection", new JSONObject().put("state", "skipped"))
-            .put("identification", new JSONObject().put("state", "skipped"));
+            .put("detection", aiPhase())
+            .put("identification", aiPhase());
         if (!originalCreate && errorCode != null) result.put("errors", new JSONArray().put(new JSONObject().put("code", errorCode).put("message", "Submission requires operator inspection")));
         return result;
     }

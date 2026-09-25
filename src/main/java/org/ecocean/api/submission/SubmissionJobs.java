@@ -56,7 +56,7 @@ public class SubmissionJobs extends SubmissionStore {
             JSONObject accepted = new JSONObject().put("submissionId", id).put("operationId", job).put("importTaskId", job)
                 .put("revision", revision).put("acceptedRevision", revision).put("state", "queued").put("statusUrl", "/api/v3/submissions/" + id);
             ImportTask task = new ImportTask(owner, job); task.setStatus("queued"); task.setProcessingProgress(0.0D);
-            task.setPassedParameters(new JSONObject().put("submissionId", id).put("processing", "import-only"));
+            task.setPassedParameters(new JSONObject().put("submissionId", id).put("processing", draft.getProcessingMode()).put("skipDetection", !draft.requestsIdentification()).put("skipIdentification", !draft.requestsIdentification()));
             sh.getPM().makePersistent(task);
             draft.queue(job, keyHash, hash, accepted.toString()); commit(sh); return accepted;
         } finally { sh.rollbackAndClose(); }
@@ -125,7 +125,7 @@ public class SubmissionJobs extends SubmissionStore {
             JSONObject result = new JSONObject().put("submissionId", id).put("state", draft.effectiveState()).put("rows", rows)
                 .put("indexing", new JSONObject().put("state", draft.getPhase()).put("message", "unknown means dispatched; completion is not acknowledged"))
                 .put("derivatives", new JSONObject().put("state", draft.getDerivatives()))
-                .put("detection", new JSONObject().put("state", "skipped")).put("identification", new JSONObject().put("state", "skipped"))
+                .put("detection", draft.aiPhase()).put("identification", draft.aiPhase())
                 .put("errors", draft.getErrorCode() == null ? new JSONArray() : new JSONArray().put(new JSONObject().put("code", draft.getErrorCode()).put("message", "Operator inspection required")));
             if ((long)offset + limit < all.length()) result.put("nextCursor", String.valueOf(offset + limit));
             if (draft.getJobId() != null) result.put("links", new JSONObject().put("importTask", "/react/bulk-import-task?id=" + draft.getJobId()));

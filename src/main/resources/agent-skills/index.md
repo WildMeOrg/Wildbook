@@ -37,8 +37,10 @@ your operator. The ordinary API Access token does not grant submission access.
 | submit-sightings | send photographs and sighting data through the submissions API, fix validation errors, and retrieve imported record IDs | `/api/v3/agent-skill/submit-sightings` |
 
 This tool stages and validates your data first. Commit only within the person's authorized scope;
-if they asked for a preview or preparation only, show the preview without committing. The skill
-documents exact input fields, examples and recovery after interrupted requests.
+if they asked for a preview or preparation only, show the preview without committing.
+New submissions request detection and individual matching by default; explicit
+`import-only` skips both. The skill documents exact input fields, examples, processing
+choices and recovery after interrupted requests.
 
 ## How this works
 

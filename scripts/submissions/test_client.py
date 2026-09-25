@@ -174,5 +174,46 @@ class MainFlowTests(unittest.TestCase):
                 os.close(fd)
 
 
+
+
+class ProcessingModeTests(unittest.TestCase):
+    def test_default_and_opt_out_are_saved_in_create_request_and_replayed(self):
+        import json
+        from types import SimpleNamespace
+        for mode in (None, "import-only"):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                rows = root / "rows.json"
+                rows.write_text(json.dumps({"rows": [{"clientRowId": "one", "fields": {"Encounter.year": 2020}}]}))
+                args = SimpleNamespace(state=root / "state.json", rows=rows, media_dir=root,
+                    source="test", cancel=False, reset_commit=False, commit=False, processing_mode=mode)
+                class Server:
+                    base = "http://localhost"
+                    stored = []
+                    creates = []
+                    def request(self, method, path, data=None, headers=None):
+                        if path.endswith("/capabilities"):
+                            return {"admissionEnabled": True, "stagingAvailable": True, "limits": {"maxFileBytes": 1000}}
+                        if method == "POST" and path == "/api/v3/submissions":
+                            saved = json.loads(args.state.read_text())
+                            assert saved["createRequest"] == data
+                            self.creates.append(data)
+                            return {"id": "draft"}
+                        if path.endswith("/rows"):
+                            if method == "PUT": self.stored = data["rows"]
+                            return {"rows": self.stored, "revision": 1}
+                        if path.endswith("/validate"):
+                            return {"valid": True, "errors": []}
+                        return {"revision": 1}
+                server = Server()
+                self.assertEqual(0, client.run(args, server))
+                self.assertEqual(mode or "detect-and-identify", server.creates[0]["processing"]["mode"])
+                self.assertEqual(0, client.run(args, server))
+                self.assertEqual(1, len(server.creates))
+                args.processing_mode = "detect-and-identify" if mode else "import-only"
+                with self.assertRaisesRegex(ValueError, "fixed"):
+                    client.run(args, server)
+
+
 if __name__ == "__main__":
     unittest.main()

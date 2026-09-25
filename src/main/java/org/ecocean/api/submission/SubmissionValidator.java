@@ -76,7 +76,7 @@ public class SubmissionValidator {
             .put("configDigest", SubmissionJson.hash(SubmissionJson.canonical(config)))
             .put("manifestDigest", SubmissionJson.hash(SubmissionJson.canonical(files)))
             .put("errors", errors).put("warnings", new JSONArray()).put("normalizedRows", normalized)
-            .put("effectiveOwnerId", draft.getOwnerId()).put("processing", new JSONObject().put("mode", "import-only"));
+            .put("effectiveOwnerId", draft.getOwnerId()).put("processing", new JSONObject().put("mode", draft.getProcessingMode()));
     }
     private static void issue(JSONArray issues, String source, int row, String field, String code, String message) {
         JSONObject issue = new JSONObject().put("code", code).put("message", message);

@@ -1,6 +1,6 @@
 ---
 name: submit-sightings
-description: Submit new photographed sightings through Wildbook's enrolled submissions API, with exact row formats, field validation examples, and safe retry and result handling.
+description: Submit new photographed sightings through Wildbook's enrolled submissions API, with exact row formats, field validation examples, default detection and individual matching, and safe retry and result handling.
 ---
 
 # Submit photographed sightings to Wildbook
@@ -17,8 +17,10 @@ workflow. A bulk-import spreadsheet is not directly accepted by this endpoint.
 Create a private draft, upload photographs, provide sighting rows, check the
 validation report, then commit the approved data once and collect the resulting
 record IDs. Drafting and validation do not create sighting records. Commit does.
-The current pilot creates new encounters, one per row, owned by the submitting
-account. It does not update existing records or run animal detection or identification.
+Import creates new encounters, one per row, owned by the submitting
+account. Detection may later add annotations and additional encounters. New submissions default to animal detection followed by individual identification
+matching after import. Matching returns candidates for review; it does not automatically
+assign an individual identity. Existing records are not updated.
 
 ## What you'll need
 
@@ -54,7 +56,18 @@ Fetch `GET /api/v3/submissions/capabilities`. Read `contractVersion`,
 `admissionEnabled`, `stagingAvailable`, `commitEnabled`, `processingModes`,
 `rowFields`, `limits`, `maxFiles`, `maxImagePixels`, and `uploadMediaTypes`.
 Do not proceed to writes when admission or staging is unavailable. Commit can be
-disabled while drafting remains available. This pilot supports only `import-only`.
+disabled while drafting remains available. Supported modes are `detect-and-identify` (the default for new submissions) and
+`import-only` (explicitly skips detection and identification). Read capabilities
+before requesting a mode; an older deployment may support only import-only. Do not
+silently downgrade when the person expects detection and matching.
+`processingModes` is an array of strings, for example
+`["detect-and-identify","import-only"]`, with no per-item default marker. Send
+`detect-and-identify` explicitly unless the person requested import-only. If the
+intended mode or the `processingModes` field is absent, stop and ask the operator to address the deployment;
+unsupported modes return HTTP 422 `CAPABILITY_UNAVAILABLE`. `contractVersion: "1"`
+alone does not distinguish the old import-only default from the new default.
+Capabilities advertise supported modes, not current image-analysis (IA) service
+health: a later handoff failure can leave records imported without matching.
 `admissionEnabled` is an installation flag, not proof this account is enrolled;
 account eligibility is checked during token issuance and writes. Verify successful
 API responses have an `application/json` content type and the expected structure:
@@ -96,13 +109,22 @@ Create body (the names are illustrative):
 {
   "contractVersion": "1",
   "source": {"name": "field-survey-integration", "batchId": "survey-2025-03-18-A"},
-  "processing": {"mode": "import-only"}
+  "processing": {"mode": "detect-and-identify"}
 }
 ```
 
 `source.name` is required, 1–128 characters; `source.batchId` is optional, 1–256.
-`processing` may be omitted and defaults to import-only. These metadata values do
-not deduplicate records across different submissions.
+`processing` may be omitted and defaults to detect-and-identify on this version.
+To skip detection and matching, explicitly send `"processing":{"mode":"import-only"}`.
+The mode is fixed at creation, and this API has no "start AI later" or AI retry
+operation for an existing submission. Retry with the saved original create body and
+key; do not change mode or make another batch to force matching.
+
+Upgrade note: existing submissions retain their saved mode, including older
+omitted-mode submissions normalized to import-only. Retrying an existing create
+without a mode uses its saved mode; it does not upgrade that submission. New
+omitted-mode requests now request AI processing. Source metadata does not deduplicate
+records across different submissions.
 
 Rows body, for `PUT /api/v3/submissions/{id}/rows`:
 
@@ -300,8 +322,8 @@ produce a limit error. These are not successful validation reports.
 Correct the full rows body, PUT it to the same draft, and validate again. A changed
 file must use a new filename (or use a new draft after cancelling the editable one);
 the API does not overwrite or individually delete completed uploads. Keep within
-the total draft byte budget. Review normalized data and effective ownership before
-commit. A valid report applies to that input revision. Commit checks the recorded
+the total draft byte budget. Review normalized data, effective ownership, and the validation report
+`processing.mode` before commit; the mode must match the intended request. A valid report applies to that input revision. Commit checks the recorded
 location/media-policy digest; execution revalidates all rows and current eligibility.
 Taxonomy/life-stage/living-status changes can therefore cause execution to fail
 after queue acceptance, rather than yielding a commit-time conflict.
@@ -356,9 +378,43 @@ objects. `indexing.state: "unknown"` means indexing was dispatched but completio
 is not acknowledged; it is not proof that search is current. `indexing.state: "failed"`
 requires operator inspection. Derivatives may be `pending`, `running`, `complete`,
 or `unknown`; an unknown derivative outcome also requires operator inspection.
-Detection and identification
-are `skipped` for import-only. Do not rerun an imported submission to fix search,
-thumbnails, or identification; refer those phases to the operator.
+Detection and identification are `skipped` for explicit import-only. For the default
+`detect-and-identify`, these two phase objects describe the same workflow handoff:
+
+| AI phase state | Meaning and action |
+|---|---|
+| `not_started` | Record import failed or requires reconciliation; inspect the import before considering AI work. |
+| `pending` | Waiting for record import and completed derivatives before preparing the IA tasks. |
+| `dispatching` | IA tasks and the queue message are saved; the worker owns the handoff. Do not resend. |
+| `dispatched` | The detection message was handed to the existing pipeline with identification requested afterward. This does not mean either phase completed. Give the linked import task to the person for progress and match-candidate review in Wildbook. The scoped submissions token does not grant access to that browser page. |
+| `failed` | The workflow could not be started. Check its phase code/message and the import task; involve the operator. |
+| `unknown` | The AI handoff outcome needs reconciliation. Check the phase code/message; do not create a replacement batch or manually resend. |
+
+Read `detection.state`, `detection.code`, `detection.message` and the corresponding
+`identification` fields on GET `/api/v3/submissions/{id}` or GET `/results`.
+A failed or uncertain record import reports `IMPORT_FAILED` or
+`IMPORT_OUTCOME_UNCERTAIN`: detection/identification were not started, and import
+reconciliation comes first. For an already imported submission, `AI_HANDOFF_FAILED`
+or `AI_HANDOFF_UNKNOWN` concerns the later handoff; the imported records remain
+and the submission stays `imported`. These AI outcomes do not count toward the
+one queued/importing/uncertain record-import job limit per owner.
+After `imported`, fetch results and report. Optionally poll within a bounded budget
+for AI phases to leave `pending`/`dispatching`; if the budget ends, report the current
+phase and give the task link to the person. Do not wait an hour for reconciliation.
+`dispatched`, `failed`, `unknown`, `not_started` and `skipped` require no further
+handoff polling. They do not imply that the downstream matching workflow completed.
+A pending handoff blocked by unknown derivatives is marked failed by the worker.
+The worker never automatically republishes an uncertain AI handoff. An interrupted
+handoff is held as unknown after one hour. Missing IA configuration or unavailable
+queue storage requires operator repair; there is no automatic fallback to import-only.
+
+Detection may add annotations and additional encounters. The submissions results
+preserve the original import mapping; give the person the import-task link to
+review detected animals and matching candidates in Wildbook.
+Individual IDs in those import results are not a live feed of later matches, and
+identification does not automatically choose or assign an individual identity.
+Do not rerun an imported submission to fix search, thumbnails, detection, or identification;
+refer those phases to the operator.
 
 ### 6. Retry safely and retain job state
 
@@ -401,11 +457,16 @@ committed record IDs remain the result of the operation.
 
 ## How to report results
 
-For a preview, say how many rows passed, list problems by source row and field,
-and clearly state that no sighting records have been imported. For accepted work,
+For a preview, state the selected processing mode, how many rows passed, and
+problems by source row and field. Clearly state that no sighting records have
+been imported and no detection or matching has been started. For accepted work,
 report the saved submission/operation IDs and current state. For imported work,
 provide a table mapping each source row to its encounter/media IDs, link the task,
-and distinguish record creation from unfinished search or thumbnail processing.
+and distinguish record creation from unfinished search, thumbnail, detection, or
+identification processing. Report the mode used; for import-only, say detection
+and matching were not requested. Never report `dispatched` as completed detection
+or identification. Give the browser task link to the person rather than attempting
+to open it with the submissions token.
 If outcome is uncertain, say so and retain the evidence needed by the operator.
 
 ## Cautions

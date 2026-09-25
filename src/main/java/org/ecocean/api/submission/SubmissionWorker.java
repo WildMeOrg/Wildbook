@@ -26,6 +26,9 @@ public final class SubmissionWorker implements AutoCloseable {
             SubmissionJobs jobs = new SubmissionJobs("context0");
             SubmissionFiles storage = new SubmissionFiles("context0", servlet);
             jobs.reconcileStaleClaims("context0");
+            SubmissionProcessing processing = new SubmissionProcessing("context0");
+            try { processing.reconcile("context0"); }
+            catch (Exception ex) { servlet.log("Submission AI reconciliation deferred; intake continues", ex); }
             if (System.currentTimeMillis() - lastCleanup > 60 * 60 * 1000) {
                 lastCleanup = System.currentTimeMillis();
                 try { jobs.cleanup("context0", storage); }
@@ -41,6 +44,13 @@ public final class SubmissionWorker implements AutoCloseable {
                 try { jobs.postprocess("context0", pending); }
                 catch (Exception ex) { holdIndexFailure(jobs, pending); servlet.log("Submission postprocessing requires inspection: " + pending, ex); }
             }
+            try {
+                for (String pending : processing.pending("context0")) {
+                    if (Thread.currentThread().isInterrupted()) return;
+                    try { processing.dispatch("context0", pending); }
+                    catch (Exception ex) { servlet.log("Submission AI handoff requires inspection: " + pending, ex); }
+                }
+            } catch (Exception ex) { servlet.log("Submission AI discovery deferred", ex); }
             if (!replayFinished) {
                 List<String> replay = jobs.replayBatch("context0", startup, replayAfter);
                 for (String pending : replay) {

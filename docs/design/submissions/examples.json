@@ -208,6 +208,7 @@
       "admissionEnabled": true,
       "commitEnabled": false,
       "processingModes": [
+        "detect-and-identify",
         "import-only"
       ],
       "authentication": [
@@ -287,6 +288,34 @@
       "createdAt": "not-a-date",
       "expiresAt": "2026-09-30T20:00:00Z",
       "rowCount": 0
+    }
+  },
+  "createDefaultIdentification": {
+    "schema": "Create",
+    "value": {
+      "contractVersion": "1",
+      "source": {
+        "name": "field-survey"
+      }
+    }
+  },
+  "createExplicitIdentification": {
+    "schema": "Create",
+    "value": {
+      "contractVersion": "1",
+      "source": {
+        "name": "field-survey"
+      },
+      "processing": {
+        "mode": "detect-and-identify"
+      }
+    }
+  },
+  "aiDispatched": {
+    "schema": "Phase",
+    "value": {
+      "state": "dispatched",
+      "message": "Workflow handed off; see import task for progress and match candidates."
     }
   }
 }

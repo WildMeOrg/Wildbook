@@ -184,7 +184,8 @@ class AgentSkillContentTest {
         assertNoLeak(md);
         java.util.regex.Matcher examples = java.util.regex.Pattern.compile("```json\\s*\\n(.*?)\\n```", java.util.regex.Pattern.DOTALL).matcher(md);
         assertTrue(examples.find());
-        org.ecocean.api.submission.SubmissionJson.create(new org.json.JSONObject(examples.group(1)));
+        org.json.JSONObject create = org.ecocean.api.submission.SubmissionJson.create(new org.json.JSONObject(examples.group(1)));
+        assertEquals("detect-and-identify", create.getJSONObject("processing").getString("mode"));
         assertTrue(examples.find());
         org.json.JSONArray rows = org.ecocean.api.submission.SubmissionJson.rows(new org.json.JSONObject(examples.group(1)));
         for (int i = 0; i < rows.length(); i++)

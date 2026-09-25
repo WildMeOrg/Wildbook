@@ -171,13 +171,19 @@ def run(args, client):
         state = {"createKey": str(uuid.uuid4()), "rowsDigest": rows_digest, "baseUrl": client.base, "source": args.source}
     if state.get("cancelled"):
         raise ValueError("Submission was cancelled; use a new state file for a new batch")
+    if "createRequest" not in state:
+        state["createRequest"] = {"contractVersion": "1", "source": {"name": args.source}}
+        # Pre-mode client state represented import-only, even if its first request never arrived.
+        state["createRequest"]["processing"] = {"mode": "import-only" if args.state.exists() else (args.processing_mode or "detect-and-identify")}
+    if args.processing_mode and state["createRequest"].get("processing", {}).get("mode") != args.processing_mode:
+        raise ValueError("Processing mode is fixed for saved state; do not change it on resume")
     save(args.state, state)
     if "id" not in state:
         caps = retry_safe(lambda: client.request("GET", root + "/capabilities"))
         if not caps["admissionEnabled"] or not caps.get("stagingAvailable", False):
             raise ValueError("New intake is unavailable; retain the state and try later")
         created = retry_safe(lambda: client.request("POST", root,
-            {"contractVersion": "1", "source": {"name": args.source}}, {"Idempotency-Key": state["createKey"]}))
+            state["createRequest"], {"Idempotency-Key": state["createKey"]}))
         state["id"] = created["id"]
         save(args.state, state)
     route = root + "/" + state["id"]
@@ -272,6 +278,7 @@ def main():
     parser.add_argument("--media-dir", type=Path)
     parser.add_argument("--state", type=Path, required=True)
     parser.add_argument("--source", default="submissions-reference-client")
+    parser.add_argument("--processing-mode", choices=["detect-and-identify", "import-only"], help="New submissions default to detect-and-identify; mode is fixed after creation")
     parser.add_argument("--commit", action="store_true")
     parser.add_argument("--cancel", action="store_true", help="Cancel an editable saved draft")
     parser.add_argument("--reset-commit", action="store_true", help="Clear unaccepted commit intent after checking server state")

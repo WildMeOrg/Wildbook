@@ -81,7 +81,8 @@ public class SubmissionJson {
             throw new SubmissionException(400, "BAD_REQUEST", "Invalid " + key);
         return (String)raw;
     }
-    public static JSONObject create(JSONObject value) {
+    public static JSONObject create(JSONObject value) { return create(value, "detect-and-identify"); }
+    public static JSONObject create(JSONObject value, String defaultMode) {
         keys(value, "contractVersion", "source", "processing");
         if (!"1".equals(value.opt("contractVersion"))) throw new SubmissionException(400, "BAD_REQUEST", "Unsupported contract version");
         JSONObject source = value.optJSONObject("source");
@@ -89,10 +90,11 @@ public class SubmissionJson {
         keys(source, "name", "batchId");
         requiredString(source, "name", 128);
         if (source.has("batchId")) requiredString(source, "batchId", 256);
-        JSONObject processing = value.has("processing") ? value.optJSONObject("processing") : new JSONObject().put("mode", "import-only");
+        JSONObject processing = value.has("processing") ? value.optJSONObject("processing") : new JSONObject().put("mode", defaultMode);
         if (processing == null) throw new SubmissionException(400, "BAD_REQUEST", "Invalid processing");
         keys(processing, "mode");
-        if (!"import-only".equals(processing.opt("mode"))) throw new SubmissionException(422, "CAPABILITY_UNAVAILABLE", "Only import-only is currently supported");
+        if (!"import-only".equals(processing.opt("mode")) && !"detect-and-identify".equals(processing.opt("mode")))
+            throw new SubmissionException(422, "CAPABILITY_UNAVAILABLE", "Use detect-and-identify or import-only");
         return new JSONObject().put("contractVersion", "1").put("source", new JSONObject(source.toString()))
             .put("processing", processing);
     }

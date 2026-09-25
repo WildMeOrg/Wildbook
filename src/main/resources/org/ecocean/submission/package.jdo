@@ -20,6 +20,8 @@
       <field name="resultJson"><column jdbc-type="LONGVARCHAR"/></field>
       <field name="derivatives"><column length="32"/></field>
       <field name="phase"><column length="32"/></field>
+      <field name="aiState"><column name="AI_STATE" length="32"/></field>
+      <field name="aiStartedAt"><column name="AI_STARTED_AT" allows-null="true"/></field>
       <field name="errorCode"><column length="64"/></field>
       <field name="workStartedAt"/>
       <field name="derivativesStartedAt"/>

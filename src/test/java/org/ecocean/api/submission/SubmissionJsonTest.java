@@ -9,10 +9,17 @@ class SubmissionJsonTest {
     @Test void defaultAndExplicitProcessingHaveSameCanonicalHash() {
         JSONObject request = new JSONObject("{\"contractVersion\":\"1\",\"source\":{\"name\":\"test\"}}");
         String defaulted = SubmissionJson.canonical(SubmissionJson.create(request));
-        request.put("processing", new JSONObject().put("mode", "import-only"));
+        request.put("processing", new JSONObject().put("mode", "detect-and-identify"));
         assertEquals(defaulted, SubmissionJson.canonical(SubmissionJson.create(request)));
         request.put("ownerId", "arbitrary");
         assertThrows(SubmissionException.class, () -> SubmissionJson.create(request));
+    }
+    @Test void explicitImportOnlyIsAnOptOutAndUnknownModeIsRejected() {
+        JSONObject input = new JSONObject("{\"contractVersion\":\"1\",\"source\":{\"name\":\"test\"}}");
+        input.put("processing", new JSONObject().put("mode", "import-only"));
+        assertEquals("import-only", SubmissionJson.create(input).getJSONObject("processing").getString("mode"));
+        input.getJSONObject("processing").put("mode", "detect");
+        assertEquals(422, assertThrows(SubmissionException.class, () -> SubmissionJson.create(input)).status);
     }
     @Test void duplicateRowIdsAndNullValuesAreRejected() {
         JSONObject row = new JSONObject().put("clientRowId", "one").put("fields", new JSONObject().put("Encounter.year", 2026));

@@ -74,7 +74,9 @@ for name, example in json.loads((CONTRACT / "examples.json").read_text()).items(
     print("Checked example:", name)
 
 create = expanded["components"]["schemas"]["Create"]
-assert create["properties"]["processing"]["properties"]["mode"]["default"] == "import-only"
+assert create["properties"]["processing"]["properties"]["mode"]["default"] == "detect-and-identify"
+published_modes = yaml.safe_load((ROOT / "src/main/resources/openapi.yaml").read_text())["components"]["schemas"]["SubmissionApiProcessing"]["properties"]["mode"]
+assert published_modes == spec["components"]["schemas"]["Processing"]["properties"]["mode"]
 commit = expanded["paths"]["/api/v3/submissions/{id}/commit"]["post"]
 assert "202" in commit["responses"]
 assert any(p["name"] == "Idempotency-Key" and p["required"] for p in commit["parameters"])

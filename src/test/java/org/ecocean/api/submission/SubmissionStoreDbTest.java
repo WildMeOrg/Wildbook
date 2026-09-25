@@ -291,6 +291,100 @@ class SubmissionStoreDbTest {
         assertTrue(all.containsAll(history));
     }
 
+    @Test void oldImplicitCreateReplayKeepsSavedImportOnlyMode() {
+        String owner = UUID.randomUUID().toString(); JSONObject explicit = create().put("processing", new JSONObject().put("mode", "import-only"));
+        JSONObject old = store.create("context0", owner, "old-default", explicit);
+        JSONObject replay = store.create("context0", owner, "old-default", create());
+        assertEquals(old.getString("id"), replay.getString("id"));
+        assertEquals("import-only", replay.getJSONObject("processing").getString("mode"));
+        assertEquals("detect-and-identify", store.create("context0", owner, "new-default", create()).getJSONObject("processing").getString("mode"));
+        assertEquals(409, assertThrows(SubmissionException.class, () -> store.create("context0", owner, "old-default",
+            create().put("processing", new JSONObject().put("mode", "detect-and-identify")))).status);
+    }
+    private String importedForAi() {
+        String owner = UUID.randomUUID().toString(); JSONObject ready = readyJob(owner);
+        enqueue(new SubmissionJobs(() -> new Shepherd("context0", properties)), owner, ready, "ai-commit");
+        String id = ready.getString("id");
+        mutate(id, draft -> { draft.imported(new JSONObject().put("rows", new JSONArray())
+            .put("records", new JSONObject().put("mediaAssets", new JSONArray().put(42))).toString()); draft.derivatives("complete"); });
+        return id;
+    }
+    private String aiState(String id) {
+        return store.get("context0", "admin", id, true, false).getJSONObject("detection").getString("state");
+    }
+    @Test void concurrentAiDispatchPublishesOnceAndNeverReplaysAfterRestart() throws Exception {
+        String id = importedForAi(); java.util.concurrent.atomic.AtomicInteger publishes = new java.util.concurrent.atomic.AtomicInteger();
+        SubmissionProcessing processing = new SubmissionProcessing(() -> new Shepherd("context0", properties));
+        SubmissionProcessing.Preparation prepare = (draft, sh) -> new JSONObject().put("taskId", "durable-test-task");
+        SubmissionProcessing.Publisher publish = (ctx, msg) -> { assertEquals("dispatching", aiState(id)); publishes.incrementAndGet(); };
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            Future<?> first = pool.submit(() -> { try { processing.dispatch("context0", id, prepare, publish); } catch (Exception ex) { throw new RuntimeException(ex); } });
+            Future<?> second = pool.submit(() -> { try { processing.dispatch("context0", id, prepare, publish); } catch (Exception ex) { throw new RuntimeException(ex); } });
+            first.get(20, TimeUnit.SECONDS); second.get(20, TimeUnit.SECONDS);
+        } finally { pool.shutdownNow(); }
+        assertEquals(1, publishes.get()); assertEquals("dispatched", aiState(id));
+        TestPMFUtil.closePMF("context0");
+        processing.dispatch("context0", id, prepare, publish);
+        assertEquals(1, publishes.get()); assertFalse(processing.pending("context0").contains(id));
+    }
+    @Test void realAiTasksAndResumeMessageAreCommittedBeforePublishing() throws Exception {
+        String id = importedForAi(); SubmissionProcessing processing = new SubmissionProcessing(() -> new Shepherd("context0", properties));
+        try (org.mockito.MockedStatic<org.ecocean.ia.IA> ia = org.mockito.Mockito.mockStatic(org.ecocean.ia.IA.class)) {
+            ia.when(() -> org.ecocean.ia.IA.getBaseURL("context0")).thenReturn("https://example.test");
+            processing.dispatch("context0", id, processing::prepare, (ctx, msg) -> {
+                Shepherd sh = new Shepherd("context0", properties);
+                try {
+                    sh.beginDBTransaction(); JSONObject message = new JSONObject(msg);
+                    org.ecocean.ia.Task task = org.ecocean.ia.Task.load(message.getString("taskId"), sh);
+                    assertNotNull(task); assertEquals(msg, task.getQueueResumeMessage());
+                    assertFalse(task.getParameters().getBoolean("skipIdent"));
+                    org.ecocean.servlet.importer.ImportTask imported = sh.getImportTask(message.getJSONObject("taskParameters").getString("importTaskId"));
+                    assertNotNull(imported.getIATask());
+                    assertFalse(imported.getPassedParameters().getBoolean("skipDetection"));
+                    assertFalse(imported.getPassedParameters().getBoolean("skipIdentification"));
+                    assertEquals("detect-and-identify", imported.getPassedParameters().getString("processing"));
+                } finally { sh.rollbackAndClose(); }
+            });
+        }
+        assertEquals("dispatched", aiState(id));
+    }
+    @Test void aiFailureAndStaleDispatchAreHeldWithoutRepublishing() throws Exception {
+        SubmissionProcessing processing = new SubmissionProcessing(() -> new Shepherd("context0", properties));
+        String uncertain = importedForAi(); java.util.concurrent.atomic.AtomicInteger publishes = new java.util.concurrent.atomic.AtomicInteger();
+        SubmissionProcessing.Preparation prepare = (draft, sh) -> new JSONObject();
+        assertThrows(java.io.IOException.class, () -> processing.dispatch("context0", uncertain, prepare, (ctx, msg) -> { publishes.incrementAndGet(); throw new java.io.IOException("uncertain publish"); }));
+        assertEquals("unknown", aiState(uncertain));
+        processing.dispatch("context0", uncertain, prepare, (ctx, msg) -> publishes.incrementAndGet()); assertEquals(1, publishes.get());
+        String failed = importedForAi();
+        assertThrows(IllegalStateException.class, () -> processing.dispatch("context0", failed, (draft, sh) -> { throw new IllegalStateException("missing callback configuration"); }, (ctx, msg) -> fail("must not publish")));
+        assertEquals("failed", aiState(failed));
+        String stale = importedForAi(); mutate(stale, d -> d.claimAi(System.currentTimeMillis() - 2 * 60 * 60 * 1000));
+        String derivatives = importedForAi(); mutate(derivatives, d -> d.derivatives("unknown"));
+        processing.reconcile("context0"); assertEquals("unknown", aiState(stale)); assertEquals("failed", aiState(derivatives));
+        processing.dispatch("context0", stale, prepare, (ctx, msg) -> fail("must not replay stale claim"));
+    }
+    @Test void oldImportOnlyAndFreshAiClaimsAreNotDispatchedOrReconciled() throws Exception {
+        SubmissionProcessing processing = new SubmissionProcessing(() -> new Shepherd("context0", properties));
+        String owner = UUID.randomUUID().toString();
+        String old = store.create("context0", owner, "old-import", create().put("processing", new JSONObject().put("mode", "import-only"))).getString("id");
+        mutate(old, d -> { d.imported(new JSONObject().put("rows", new JSONArray()).toString()); d.derivatives("complete"); d.aiState(null); });
+        assertEquals("import-only", store.get("context0", owner, old, false, false).getJSONObject("processing").getString("mode"));
+        processing.dispatch("context0", old, (draft, sh) -> { fail("must not prepare import-only"); return null; }, (ctx, msg) -> fail("must not publish import-only"));
+        assertFalse(processing.pending("context0").contains(old));
+        String fresh = importedForAi(); mutate(fresh, d -> d.claimAi(System.currentTimeMillis()));
+        processing.reconcile("context0"); assertEquals("dispatching", aiState(fresh));
+        mutate(fresh, d -> d.aiState("unknown"));
+    }
+    @Test void aiPreparationCommitFailureNeverPublishes() {
+        String id = importedForAi();
+        SubmissionProcessing processing = new SubmissionProcessing(() -> new Shepherd("context0", properties) {
+            @Override public boolean commitDBTransactionWithStatus() { return false; }
+        });
+        assertThrows(SubmissionException.class, () -> processing.dispatch("context0", id, (draft, sh) -> new JSONObject(), (ctx, msg) -> fail("must not publish before commit")));
+        assertEquals("pending", aiState(id));
+    }
+
     @Test void invalidValidationCannotCommitAndStaleReportStillConflicts() {
         String owner = UUID.randomUUID().toString(); JSONObject ready = readyJob(owner);
         mutate(ready.getString("id"), draft -> draft.setValidation(new JSONObject().put("id", ready.getString("validationId"))

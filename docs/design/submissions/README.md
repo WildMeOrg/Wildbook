@@ -1,3 +1,11 @@
+> Processing-default update: new submissions now default to `detect-and-identify`.
+> Explicit `import-only` and all existing saved submissions remain unchanged.
+> See the pilot runbook for the additive schema rollout and AI handoff recovery.
+> Follow-up validation: 1,123 Java tests, zero failures/errors (seven skipped), eight client tests,
+> 21 contract examples; final 20-test resource/phase run and WAR packaging passed.
+> Claude approved the backend and final agent skill; see reviews/default-processing-disposition.md.
+> Earlier stage reports below describe the original import-only implementation.
+
 # Submissions contract workbench
 
 This folder contains the local implementation contract, review evidence and pilot
