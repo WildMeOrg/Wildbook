@@ -90,6 +90,77 @@
       }
     }
   },
+  "validationFailedReasons": {
+    "schema": "Validation",
+    "value": {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "submissionId": "00000000-0000-4000-8000-000000000001",
+      "revision": 2,
+      "valid": false,
+      "configDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "manifestDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "errors": [
+        {
+          "code": "INVALID_VALUE",
+          "reason": "FUTURE_DATE",
+          "message": "2099 is later than today's date in every time zone",
+          "clientRowId": "observation-1",
+          "rowIndex": 0,
+          "field": "Encounter.year"
+        },
+        {
+          "code": "INVALID_VALUE",
+          "reason": "NOT_CONFIGURED",
+          "message": "'F' is not a configured sex value; use one of: unknown, male, female",
+          "clientRowId": "observation-1",
+          "rowIndex": 0,
+          "field": "Encounter.sex"
+        }
+      ],
+      "warnings": [],
+      "normalizedRows": [],
+      "effectiveOwnerId": "00000000-0000-4000-8000-000000000005",
+      "processing": {
+        "mode": "import-only"
+      }
+    }
+  },
+  "rejectEmptyReason": {
+    "schema": "Validation",
+    "value": {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "submissionId": "00000000-0000-4000-8000-000000000001",
+      "revision": 2,
+      "valid": false,
+      "configDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "manifestDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "errors": [
+        {
+          "code": "INVALID_VALUE",
+          "reason": "",
+          "message": "2099 is later than today's date in every time zone",
+          "clientRowId": "observation-1",
+          "rowIndex": 0,
+          "field": "Encounter.year"
+        },
+        {
+          "code": "INVALID_VALUE",
+          "reason": "NOT_CONFIGURED",
+          "message": "'F' is not a configured sex value; use one of: unknown, male, female",
+          "clientRowId": "observation-1",
+          "rowIndex": 0,
+          "field": "Encounter.sex"
+        }
+      ],
+      "warnings": [],
+      "normalizedRows": [],
+      "effectiveOwnerId": "00000000-0000-4000-8000-000000000005",
+      "processing": {
+        "mode": "import-only"
+      }
+    },
+    "valid": false
+  },
   "importedResults": {
     "schema": "Results",
     "value": {

@@ -290,7 +290,8 @@ An illustrative excerpt of a failed report is:
       "rowIndex": 0,
       "field": "Encounter.month",
       "code": "INVALID_VALUE",
-      "message": "Value failed bulk-import validation"
+      "reason": "OUT_OF_RANGE",
+      "message": "Encounter.month must be 1 through 12"
     }
   ]
 }
@@ -301,20 +302,40 @@ The actual report also has IDs, digests, normalized rows and processing metadata
 file-level errors omit row and field. One bad value may produce several issues;
 do not depend on issue order or expect exactly one error per field.
 
+Read `code` first, then the optional `reason` on `INVALID_VALUE` issues. It says
+why the value was rejected:
+
+| `reason` | Meaning |
+|---|---|
+| `REQUIRED` | A required field is missing. |
+| `REQUIRES_FIELD` | This field is needed because another was supplied: a month for a day, or the other coordinate. |
+| `UNPARSEABLE` | Not a number of the expected kind, for example text or a fraction in a whole-number field. |
+| `OUT_OF_RANGE` | A number outside the allowed range, or a day that does not exist in that month. |
+| `FUTURE_DATE` | The date is later than today everywhere on Earth. The issue names the part (year, month or day) that is too late. |
+| `NOT_CONFIGURED` | Not one of this installation's configured values. The message names the value and, for short lists, the allowed values. |
+| `INVALID` | Another rejection; read the message. |
+
+New reasons may be added later; treat an unrecognized or absent `reason` like
+`INVALID`. The issue shows where a problem was detected, not proof of which source
+value is wrong: check the original observation before changing anything, and never
+change a correct value just to pass validation.
+
 Concrete failure examples and corrections (assume other fields are valid):
 
 | Input problem | Expected validation issue | Correction |
 |---|---|---|
 | locationID is `"Reef near town"`, but that is not a configured ID; or locationID is missing | `INVALID_LOCATION` on `Encounter.locationID` | Obtain the actual corresponding ID; do not substitute an unrelated location. |
-| genus/epithet pair is not in configured taxonomies, or either required field is absent | `INVALID_VALUE` on the affected taxonomy field(s) | Use the correct configured scientific components or ask the operator to address missing configuration. |
-| `Encounter.month: 13` | `INVALID_VALUE` on `Encounter.month` | Correct from source evidence; omit only if genuinely unknown. |
-| year 2025, month 2, day 29 | `INVALID_VALUE` on `Encounter.day` | 2025 is not a leap year; correct the date from the original observation. |
-| day 18 with no month | `INVALID_VALUE` on `Encounter.month` | Supply the known month, or preserve only the date precision actually known. |
-| year 999, a nonnumeric year, missing year, or a future observation date | `INVALID_VALUE` on `Encounter.year` | Provide a real past/current observation year/date. |
-| hour 24 or minutes 60 | `INVALID_VALUE` on that field | Use 24-hour components in range; do not guess missing time. |
-| latitude 91, or latitude supplied without longitude | `INVALID_VALUE` on latitude or the missing longitude | Provide both valid decimal-degree coordinates, or omit both if unknown. |
-| sex `"F"`, `"Female"`, or `"M"` | `INVALID_VALUE` on `Encounter.sex` | Use exact `female`, `male`, or `unknown` when supported by source evidence. |
-| lifeStage `"juvenile"` when absent from configured lifeStage values; likewise an unconfigured livingStatus | `INVALID_VALUE` on the corresponding field | Map only to a semantically correct configured value; otherwise ask or omit an unknown optional value. |
+| genus/epithet pair is not in configured taxonomies | `INVALID_VALUE` (`NOT_CONFIGURED`) on both taxonomy fields | Use the correct configured scientific components or ask the operator to address missing configuration. |
+| genus or specificEpithet absent | `INVALID_VALUE` (`REQUIRED`) on the missing field | Supply the configured scientific component from the source record. |
+| `Encounter.month: 13` | `INVALID_VALUE` (`OUT_OF_RANGE`) on `Encounter.month` | Correct from source evidence; omit only if genuinely unknown. |
+| year 2025, month 2, day 29 | `INVALID_VALUE` (`OUT_OF_RANGE`) on `Encounter.day` | 2025 is not a leap year; correct the date from the original observation. |
+| day 18 with no month | `INVALID_VALUE` (`REQUIRES_FIELD`) on `Encounter.month` | Supply the known month, or preserve only the date precision actually known. |
+| year 999; a nonnumeric year; missing year | `INVALID_VALUE` (`OUT_OF_RANGE`, `UNPARSEABLE` or `REQUIRED`) on `Encounter.year` | Provide the real observation year. |
+| a future observation date | `INVALID_VALUE` (`FUTURE_DATE`) on the year, month or day that is too late | Check that part of the date against the original observation. |
+| hour 24 or minutes 60 | `INVALID_VALUE` (`OUT_OF_RANGE`) on that field | Use 24-hour components in range; do not guess missing time. |
+| latitude 91, or latitude supplied without longitude | `INVALID_VALUE` (`OUT_OF_RANGE`) on latitude, or (`REQUIRES_FIELD`) on the missing longitude | Provide both valid decimal-degree coordinates, or omit both if unknown. |
+| sex `"F"`, `"Female"`, or `"M"` | `INVALID_VALUE` (`NOT_CONFIGURED`) on `Encounter.sex` | Use exact `female`, `male`, or `unknown` when supported by source evidence. |
+| lifeStage `"juvenile"` when absent from configured lifeStage values; likewise an unconfigured livingStatus | `INVALID_VALUE` (`NOT_CONFIGURED`) on the corresponding field | Map only to a semantically correct configured value; otherwise ask or omit an unknown optional value. |
 | mediaAsset0 `"Photo.JPG"` when the completed upload is `"photo.jpg"` | `MISSING_MEDIA` (and possibly `REQUIRED_VALUE`) | Match the exact manifest filename and ensure its upload completed. |
 | no image reference | `REQUIRED_VALUE` on `Encounter.mediaAsset0` | Upload and reference at least one authorized photo. |
 | same image in two slots or rows | `DUPLICATE_MEDIA` | Put each uploaded image in exactly one slot in one row. |

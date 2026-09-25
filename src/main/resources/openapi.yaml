@@ -504,6 +504,21 @@ components:
         field:
           type: string
           minLength: 1
+        reason:
+          type: string
+          minLength: 1
+          description: >-
+            Present on INVALID_VALUE issues: why the value was rejected. One of REQUIRED,
+            REQUIRES_FIELD, UNPARSEABLE, OUT_OF_RANGE, FUTURE_DATE, NOT_CONFIGURED, INVALID.
+            New reasons may be added; treat an unknown reason as INVALID.
+          x-known-values:
+          - REQUIRED
+          - REQUIRES_FIELD
+          - UNPARSEABLE
+          - OUT_OF_RANGE
+          - FUTURE_DATE
+          - NOT_CONFIGURED
+          - INVALID
         limit:
           type: number
     SubmissionApiCapabilities:

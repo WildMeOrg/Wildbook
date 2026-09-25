@@ -9,6 +9,9 @@ import org.json.*;
 
 /** Strict new-encounter boundary around the existing bulk field validators. */
 public class SubmissionValidator {
+    private final java.time.Clock clock;
+    public SubmissionValidator() { this(java.time.Clock.systemUTC()); }
+    SubmissionValidator(java.time.Clock clock) { this.clock = clock; } // tests fix "today"
     public static final Set<String> FIELDS = Set.of("Encounter.genus", "Encounter.specificEpithet",
         "Encounter.year", "Encounter.month", "Encounter.day", "Encounter.hour", "Encounter.minutes",
         "Encounter.locationID", "Encounter.decimalLatitude", "Encounter.decimalLongitude",
@@ -59,15 +62,20 @@ public class SubmissionValidator {
             // No explicit encounter IDs are accepted: the importer creates one encounter per row.
             if (media.isEmpty()) issue(errors, source, i, "Encounter.mediaAsset0", "REQUIRED_VALUE", "At least one image required");
             if (media.size() > config.getInt("maxMediaPerEncounter")) issue(errors, source, i, null, "LIMIT_EXCEEDED", "Too many images for one encounter");
-            if (!(fields.opt("Encounter.locationID") instanceof String) || !configuredLocation(config.getJSONObject("locations"), fields.optString("Encounter.locationID", null)))
-                issue(errors, source, i, "Encounter.locationID", "INVALID_LOCATION", "A configured location ID is required");
+            boolean locationRejected = !(fields.opt("Encounter.locationID") instanceof String) || !configuredLocation(config.getJSONObject("locations"), fields.optString("Encounter.locationID", null));
+            if (locationRejected) issue(errors, source, i, "Encounter.locationID", "INVALID_LOCATION", "A configured location ID is required");
+            // captured before legacy validation so every date it judges future is also after this date
+            java.time.LocalDate today = clock.instant().atOffset(Util.LATEST_CIVIL_OFFSET).toLocalDate();
             Map<String, Object> checked = BulkImportUtil.validateRow(copied, sh);
             for (Map.Entry<String, Object> entry : checked.entrySet()) {
                 if (entry.getValue() instanceof BulkValidator) {
                     Object value = ((BulkValidator)entry.getValue()).getValue();
                     if (value != null) values.put(entry.getKey(), value);
-                    else issue(errors, source, i, entry.getKey(), "INVALID_VALUE", "Provided value cannot be empty or unparseable");
-                } else issue(errors, source, i, entry.getKey(), "INVALID_VALUE", "Value failed bulk-import validation");
+                    else issue(errors, source, i, entry.getKey(), "INVALID_VALUE", "INVALID", "Provided value cannot be empty");
+                } else if (!(locationRejected && "Encounter.locationID".equals(entry.getKey()))) { // already INVALID_LOCATION
+                    SubmissionValueIssues.Issue explained = SubmissionValueIssues.explain(entry.getKey(), (Exception)entry.getValue(), copied, checked, sh, today);
+                    issue(errors, source, i, explained.field, "INVALID_VALUE", explained.reason, explained.message);
+                }
             }
             normalized.put(new JSONObject().put("clientRowId", source).put("fields", values));
         }
@@ -79,7 +87,11 @@ public class SubmissionValidator {
             .put("effectiveOwnerId", draft.getOwnerId()).put("processing", new JSONObject().put("mode", draft.getProcessingMode()));
     }
     private static void issue(JSONArray issues, String source, int row, String field, String code, String message) {
+        issue(issues, source, row, field, code, null, message);
+    }
+    private static void issue(JSONArray issues, String source, int row, String field, String code, String reason, String message) {
         JSONObject issue = new JSONObject().put("code", code).put("message", message);
+        if (reason != null) issue.put("reason", reason);
         if (source != null) issue.put("clientRowId", source).put("rowIndex", row);
         if (field != null) issue.put("field", field);
         issues.put(issue);

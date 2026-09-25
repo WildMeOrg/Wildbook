@@ -88,6 +88,12 @@ for path, method in [("/api/v3/submissions/{id}", "get"),
                      ("/api/v3/submissions/{id}/files", "post"),
                      ("/api/v3/submissions/{id}/validate", "post")]:
     assert "ETag" in expanded["paths"][path][method]["responses"]["200"]["headers"]
+import re
+java_reasons = re.search(r"REASONS = List\.of\(([^)]*)\)", (ROOT / "src/main/java/org/ecocean/api/submission/SubmissionValueIssues.java").read_text()).group(1)
+java_reasons = re.findall(r'"([A-Z_]+)"', java_reasons)
+published_issue = yaml.safe_load((ROOT / "src/main/resources/openapi.yaml").read_text())["components"]["schemas"]["SubmissionApiIssue"]["properties"]["reason"]
+assert published_issue == spec["components"]["schemas"]["Issue"]["properties"]["reason"], "issue reason schemas differ"
+assert published_issue["x-known-values"] == java_reasons, (published_issue["x-known-values"], java_reasons)
 print(f"Checked {len(operations)} operations and all local references.")
 
 
