@@ -154,3 +154,12 @@ QA/browser verification on the final branch remains a release gate.
 Claude also approved the final PR handoff with no blockers; see
 [PR handoff review](reviews/pr-handoff-review.md). The suggested link and
 verification-provenance wording clarifications were incorporated.
+
+### Role enrollment and human token issuance
+
+The pilot's explicit enrollment is now managed through the `api-submission` role
+in the administrator user editor (context0). The previous UUID configuration is
+ignored; operators must grant the role to existing pilot users during rollout.
+Global admission/commit/worker switches remain unchanged. API Access offers an
+explicit Data import token purpose, while Read data remains the default. See the
+pilot runbook for migration, revocation, and token scope details.

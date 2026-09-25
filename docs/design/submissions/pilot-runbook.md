@@ -1,7 +1,7 @@
 # Submissions pilot: operator and integration handoff
 
-Implementation is local and disabled by default. No QA or production deployment,
-partner enrollment, or live import has been performed. Verification is recorded in README.md; outstanding deployment checks below are release gates.
+Submissions are disabled by default. Verification is recorded in README.md;
+verify the deployment checks below before enabling a new installation.
 
 ## Installation controls
 
@@ -13,11 +13,22 @@ submissions.enabled=false
 submissions.commitEnabled=false
 submissions.workerEnabled=false
 submissions.stagingDirectory=/srv/wildbook-private/submissions
-submissions.allowedUserIds=<first-partner-user-UUID>,<second-partner-user-UUID>
 ```
 
 Use existing trusted integration users, with real usernames, and the installation's
 existing RSA JWT configuration. Start with one or two partners. Context0 only.
+A site administrator enrolls each account by selecting **api-submission** in the
+user editor's context0 roles and saving. Even administrators require this explicit
+grant. It is available without adding a `roleN` property or restarting the server.
+
+**Upgrade from UUID enrollment:** assign the role to each current pilot account.
+`submissions.allowedUserIds` is now ignored; it does not preserve or restore access.
+No accounts are enrolled automatically, including the bootstrap administrator.
+Role checks read persisted grants on every write and before worker execution;
+removing the role blocks subsequent writes even with a still-valid token.
+An in-flight import is not cancelled by revocation, and imported records are not
+removed. Automatic user merging does not transfer this capability; explicitly
+enroll the retained account if needed.
 Setting `enabled` permits new mutations; `commitEnabled` independently permits
 queue acceptance. `workerEnabled` starts the lifecycle-managed worker at application
 startup and controls processing at runtime. Restart after enabling workers for the
@@ -83,7 +94,14 @@ base toolbox and new skill in QA deployment checks.
 
 ## Authentication and reference client
 
-Mint a bearer token using fresh HTTP Basic credentials at
+Human users can open **API Access**, choose **Data import** under **Token purpose**,
+then **Generate API token** and confirm their password. **Read data** remains the
+default and produces a general read token, which cannot import. The Data import
+option does not grant the role: an unenrolled user receives a 403 explaining the
+requirement. Single sign-on accounts without a usable local password retain the
+existing token issuance limitation.
+
+Programmatic clients mint a bearer token using fresh HTTP Basic credentials at
 `POST /api/v3/auth/token?scope=submissions:write`. Do not put credentials in a URL.
 The response contains `token`, `tokenType`, `expiresInSeconds`, and `scope`.
 Renewal requires fresh credentials. A read token uses `scope=submissions:read`.

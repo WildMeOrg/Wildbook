@@ -31,7 +31,8 @@ String localEmail="";
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("users.jsp");
 
-List<String> roles=CommonConfiguration.getIndexedPropertyValues("role",context);
+List<String> roles=new ArrayList<String>(CommonConfiguration.getIndexedPropertyValues("role",context));
+if (!roles.contains(Role.API_SUBMISSION)) roles.add(Role.API_SUBMISSION);
 List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);
 int numRoles=roles.size();
 int numRoleDefinitions=roleDefinitions.size();
@@ -692,7 +693,9 @@ try {
 								}
 
 								//now one last check: only let someone who has a role assign the role
-								if(request.isUserInRole("admin") || request.isUserInRole(roles.get(q))){
+								if((d == 0 || !Role.API_SUBMISSION.equals(roles.get(q))) &&
+                                    Role.canEditRole(roles.get(q), request.isUserInRole("admin")) &&
+                                    (request.isUserInRole("admin") || request.isUserInRole(roles.get(q)))){
 									%><option value="<%=roles.get(q)%>" <%=selected%>><%=roles.get(q)%></option><%
 								}
 							}%>

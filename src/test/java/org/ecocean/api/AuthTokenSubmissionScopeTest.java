@@ -23,15 +23,18 @@ class AuthTokenSubmissionScopeTest {
         when(request.getParameter("scope")).thenReturn(scope);
         HttpServletResponse response = mock(HttpServletResponse.class);
         StringWriter output = new StringWriter(); when(response.getWriter()).thenReturn(new PrintWriter(output));
-        User user = mock(User.class); when(user.checkPassword("password")).thenReturn(true); when(user.getId()).thenReturn("pilot-id");
+        User user = mock(User.class); when(user.checkPassword("password")).thenReturn(true); when(user.getId()).thenReturn("pilot-id"); when(user.getUsername()).thenReturn("pilot");
+        javax.jdo.Query query = mock(javax.jdo.Query.class);
+        when(query.execute("pilot", org.ecocean.Role.API_SUBMISSION, "context0")).thenReturn(enrolled ? 1L : 0L);
+        javax.jdo.PersistenceManager pm = mock(javax.jdo.PersistenceManager.class);
+        when(pm.newQuery(eq(org.ecocean.Role.class), anyString())).thenReturn(query);
         JwtService jwt = mock(JwtService.class); when(jwt.isEnabled()).thenReturn(true);
         when(jwt.signSubmission(anyString(), anyString(), anyLong(), anyString())).thenReturn("submission-token");
-        try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m,c) -> when(m.getUser("pilot")).thenReturn(user));
+        try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m,c) -> { when(m.getUser("pilot")).thenReturn(user); when(m.getUserByUUID("pilot-id")).thenReturn(user); when(m.getPM()).thenReturn(pm); when(m.getContext()).thenReturn("context0"); });
              MockedStatic<CommonConfiguration> config = mockStatic(CommonConfiguration.class);
              MockedStatic<JwtService> js = mockStatic(JwtService.class)) {
             config.when(() -> CommonConfiguration.getApiAccessProperty("submissions.enabled", "context0")).thenReturn(Boolean.toString(enabled));
-            config.when(() -> CommonConfiguration.getApiAccessProperty("submissions.allowedUserIds", "context0"))
-                .thenReturn(enrolled ? "other, pilot-id" : "other");
+
             js.when(() -> JwtService.fromConfig("context0")).thenReturn(jwt);
             new AuthToken().doPost(request, response);
             verify(response).setStatus(expected);

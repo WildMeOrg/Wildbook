@@ -1,6 +1,8 @@
 # Stage 2: private draft API
 
 Historical stage-two increment (see pilot-runbook.md for current configuration).
+The UUID enrollment described below has been replaced by the explicit
+`api-submission` role assigned by a site administrator; the old setting is ignored.
 This increment implements drafts only: create, inspect, replace/read rows and
 cancel. Upload, validation and commit remain unavailable until their review gates
 pass. Existing bulk import and browser uploads retain their routes and policies.

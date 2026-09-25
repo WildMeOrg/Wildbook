@@ -7,13 +7,15 @@ exactly what to do; you review and make the final decisions in Wildbook.
 ## What you'll need
 
 Most tools here need a short-lived access token from Wildbook. In Wildbook, open your account menu
-and choose **API Access** to create one, then paste **only that token** to your assistant — never
+and choose **API Access → Read data** to create one, then paste **only that token** to your assistant — never
 your username or password. The token has an expiration date that may vary by Wildbook; create a
 fresh one when it stops working. Full technical detail is in the **api-reference** page (fetch
 `/api/v3/agent-skill/api-reference`). The import-prep tools below are the exception — they need no
 token, because they only prepare files you upload yourself. Direct API submission is a separate,
-limited pilot: its tool needs an enrolled account and a **submissions:write** token supplied by
-your operator. The ordinary API Access token does not grant submission access.
+limited pilot: a site administrator must assign your account the **api-submission** role.
+Then choose **API Access → Data import** and confirm your password to create a
+**submissions:write** token. The **Read data** token does not grant submission access,
+and the **Data import** token does not work with the general read API.
 
 ## Check and tidy your catalog (read-only — the tools only suggest; you make the changes in Wildbook)
 

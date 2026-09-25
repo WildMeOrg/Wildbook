@@ -26,9 +26,14 @@ assign an individual identity. Existing records are not updated.
 
 - The installation's exact base URL, including any application prefix. For example,
   `https://example.org/wildbook` means the API is below `/wildbook/api/v3`.
-- An account enrolled by the installation operator and a short-lived
-  `submissions:write` bearer token. A normal API Access/search token will not work.
-  The operator obtains the scoped token using a trusted client with fresh HTTP Basic
+- An account explicitly granted the **api-submission** role by a site administrator
+  in this installation's context0 user editor, and a short-lived `submissions:write`
+  bearer token. The account owner can open **API Access**, select **Data import**
+  under **Token purpose**, click **Generate API token**, and confirm their password.
+  The default **Read data** token does not work with submissions. A Data import
+  token does not work with the general read API; request a separate Read data token
+  if your workflow also searches existing sightings.
+  A trusted client can alternatively obtain the scoped token using fresh HTTP Basic
   credentials **for the enrolled account that should own the imported records**, at
   `POST /api/v3/auth/token?scope=submissions:write`. Use a non-admin integration
   account for the pilot; do not mint with an operator's own account merely because
@@ -38,6 +43,9 @@ assign an individual identity. Existing records are not updated.
   only the token through the runtime's secret mechanism; do not request their password.
   The response's `expiresInSeconds` is authoritative. `submissions:read` permits
   status/results reads, including after write enrollment is removed.
+  Removing the role blocks new writes with existing tokens and prevents unstarted
+  imports from executing. It does not cancel an import already executing or remove
+  imported records. Status access remains subject to ownership and token validity.
 - Local JPEG or PNG files you are authorized to import, sighting dates and species,
   and the correct configured Wildbook location IDs. Do not invent missing facts.
 - Durable local job state: original create body/key, submission ID, latest revision,
@@ -425,8 +433,8 @@ refer those phases to the operator.
 | Lost row-replacement response | GET `/rows` and compare the complete intended rows. Equivalent JSON numbers such as 2025 and 2025.0 may serialize differently; compare values while keeping booleans distinct. Do not overwrite unexplained edits. |
 | Lost validation response | If the draft is still editable and no commit intent is pending, repeat validation with the current ETag. Validation does not increment revision, but each run creates a new report ID; only the latest report can be committed. |
 | Lost commit response | GET the submission first. If an operation ID exists, poll that accepted operation. Otherwise retry only the saved commit body/key/revision; do not generate a new key or silently revalidate a frozen intent. |
-| HTTP 401 | Token may be expired/invalid or have the wrong audience. An ordinary API Access/search token also gets 401, including on the first request. Obtain a token explicitly minted with `scope=submissions:write` for the intended owner (or `submissions:read` for reads); do not keep regenerating ordinary search tokens. Resume with saved job state. |
-| HTTP 403 | A valid submissions read token was used for a write, or enrollment/access is unavailable. Contact the operator; cookies do not substitute for scoped tokens. |
+| HTTP 401 | Token may be expired/invalid or have the wrong audience. An API Access **Read data** token also gets 401, including on the first request. Choose **API Access → Data import**, or obtain a token explicitly minted with `scope=submissions:write` for the intended owner (or `submissions:read` for reads); do not keep regenerating ordinary search tokens. Resume with saved job state. |
+| HTTP 403 | A valid submissions read token was used for a write, or enrollment/access is unavailable. `ACCESS_DENIED` with `Account requires the api-submission role` means a site administrator must grant that role to the intended owner. Contact the operator; cookies do not substitute for scoped tokens. |
 | HTTP 404 | Verify base URL, deployment and saved ID, and check content type. For a non-admin account, a different owner's submission is hidden as not found; do not probe other IDs. |
 | HTTP 400 `BAD_REQUEST` | Check JSON/envelope and filename rules. If-Match must be a quoted numeric revision, not unquoted `3` or weak `W/"3"`. Correct the request rather than blindly retrying. |
 | HTTP 428 | Supply the current quoted If-Match ETag. |

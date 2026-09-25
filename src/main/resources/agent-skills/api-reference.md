@@ -14,7 +14,7 @@ draft/upload/validate/commit lifecycle; the read-only token described here canno
 
 ## Security — read first
 - **Never ask for, accept, or store the user's Wildbook username or password.** You do not need them.
-- The user generates a short-lived **bearer token** in Wildbook's UI (Account menu → **API Access**)
+- The user generates a short-lived **bearer token** in Wildbook's UI (Account menu → **API Access** → **Read data**)
   and pastes **only the token** to you.
 - Treat the token as a secret: never log or persist it, never send it anywhere except Wildbook over
   HTTPS. It expires after a fixed lifetime that is **configured per Wildbook instance** (commonly

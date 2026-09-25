@@ -44,6 +44,39 @@ class SubmissionStoreDbTest {
     private JSONObject rows(int year) { return new JSONObject().put("rows", new JSONArray().put(new JSONObject()
         .put("clientRowId", "row-1").put("fields", new JSONObject().put("Encounter.year", year)))); }
 
+    private boolean persistedEnrollment(String id) {
+        Shepherd sh = new Shepherd("context0", properties);
+        try {
+            sh.beginDBTransaction();
+            return SubmissionPolicy.enrolled(sh, id);
+        } finally { sh.rollbackAndClose(); }
+    }
+
+    @Test void enrollmentTracksPersistedRoleGrantAndRevocation() {
+        String id = UUID.randomUUID().toString();
+        String username = "pilot'" + id;
+        Shepherd sh = new Shepherd("context0", properties);
+        try {
+            sh.beginDBTransaction();
+            org.ecocean.User user = new org.ecocean.User(username, id);
+            user.setUsername(username);
+            sh.getPM().makePersistent(user);
+            org.ecocean.Role role = new org.ecocean.Role(username, org.ecocean.Role.API_SUBMISSION);
+            role.setContext("context1");
+            sh.getPM().makePersistent(role);
+            assertTrue(sh.commitDBTransactionWithStatus());
+            assertFalse(persistedEnrollment(id));
+            sh.beginDBTransaction();
+            role.setContext("context0");
+            assertTrue(sh.commitDBTransactionWithStatus());
+            assertTrue(persistedEnrollment(id));
+            sh.beginDBTransaction();
+            sh.getPM().deletePersistent(role);
+            assertTrue(sh.commitDBTransactionWithStatus());
+            assertFalse(persistedEnrollment(id));
+        } finally { sh.rollbackAndClose(); }
+    }
+
     @Test void durableRowsOwnershipAndOriginalReplay() {
         String owner = UUID.randomUUID().toString();
         JSONObject first = store.create("context0", owner, "key", create()); String id = first.getString("id");

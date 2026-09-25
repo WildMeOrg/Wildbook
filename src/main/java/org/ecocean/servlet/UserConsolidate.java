@@ -341,6 +341,11 @@ public class UserConsolidate extends HttpServlet {
             if (consolidatedUserRoles != null && consolidatedUserRoles.size() > 0) {
                 for (int i = 0; i < consolidatedUserRoles.size(); i++) {
                     Role currentRole = consolidatedUserRoles.get(i);
+                    // Enrollment belongs to the retained account, not an automatically merged identity.
+                    if (Role.API_SUBMISSION.equals(currentRole.getRolename())) {
+                        myShepherd.getPM().deletePersistent(currentRole);
+                        continue;
+                    }
                     if (!retainedUserRoles.contains(currentRole)) {
                         // it's a new role for the retained user; add it. Note: this because the role usernames are different, this will in effect
                         // capture all retainedUserRoles. But since username is converted downstream, this is not actually a bug. Might could be

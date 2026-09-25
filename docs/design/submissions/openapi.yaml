@@ -980,7 +980,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Signed submissions capability and currently enrolled account required
+      description: Signed submissions capability and current api-submission role in context0 required
         for mutations; owner access retained for status after unenrollment.
   parameters:
     SubmissionId:
