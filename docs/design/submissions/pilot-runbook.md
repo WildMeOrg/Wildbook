@@ -25,6 +25,22 @@ first time. Admission can be disabled while accepted jobs drain. Removing a part
 blocks new writes and causes unstarted imports for that owner to fail eligibility.
 Owners can continue status/results reads with a submissions:read token.
 
+The deployment Compose file bind-mounts host path
+`$WILDBOOK_BASE_DIR/wildbook_submissions_staging` at container path
+`/srv/wildbook-private/submissions`. This uses the disk holding `WILDBOOK_BASE_DIR`;
+mount separate storage at the host staging path if needed. Multiple application
+hosts must mount shared storage there. Before deploying, create the host directory
+and set its owner to the container service UID/GID with permissions 0700. For the
+standard deployment, inspect the service identity with `docker compose exec wildbook id`
+from the deployment directory; use that numeric UID/GID for host directory ownership.
+Do not rely on Compose to create the directory: the short bind syntax otherwise
+creates a missing path with default ownership and permissions, not the required 0700. Set
+`submissions.stagingDirectory=/srv/wildbook-private/submissions` in the private
+`apiAccessKeys.properties` override. Recreate the Wildbook container to apply a new
+mount; restarting an existing container does not add mounts. The mount alone does
+not enable submissions, commit admission, or the worker. Monitor capacity: completed
+imports retain staging for seven days before the hourly sweeper can remove it.
+
 Create the staging directory outside the webapps tree, legacy upload directory,
 import directory, and every local asset-store root. Give only the service account access (0700 where supported).
 Use a filesystem shared by all application instances, with capacity monitoring.
