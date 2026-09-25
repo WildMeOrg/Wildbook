@@ -173,7 +173,7 @@ Supported fields for this pilot are exactly:
 |---|---|---|
 | `Encounter.genus` | string | Required. Scientific genus; combined with specific epithet must match a configured taxonomy. |
 | `Encounter.specificEpithet` | string | Required. Configured scientific-name suffix after the genus, including a subspecies word if present; not the full name or common name. |
-| `Encounter.year` | integer | Required, at least 1000; the represented date must not be in the future. |
+| `Encounter.year` | integer | Required, at least 1000; the represented date must not be in the future. "Today" is judged by the most advanced civil time zone (UTC+14), so the observer's local current date is accepted. |
 | `Encounter.month` | integer | Optional, 1–12. Required when day is supplied. |
 | `Encounter.day` | integer | Optional; must exist in the supplied year/month, including leap-year rules. |
 | `Encounter.hour` | integer | Optional, 0–23. Supply only a known observation time; no timezone field is supported here. |
