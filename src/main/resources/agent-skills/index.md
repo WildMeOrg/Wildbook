@@ -7,11 +7,15 @@ exactly what to do; you review and make the final decisions in Wildbook.
 ## What you'll need
 
 Most tools here need a short-lived access token from Wildbook. In Wildbook, open your account menu
-and choose **API Access** to create one, then paste **only that token** to your assistant — never
+and choose **API Access → Read data** to create one, then paste **only that token** to your assistant — never
 your username or password. The token has an expiration date that may vary by Wildbook; create a
 fresh one when it stops working. Full technical detail is in the **api-reference** page (fetch
 `/api/v3/agent-skill/api-reference`). The import-prep tools below are the exception — they need no
-token, because they only prepare files you upload yourself.
+token, because they only prepare files you upload yourself. Direct API submission is a separate,
+limited pilot: a site administrator must assign your account the **api-submission** role.
+Then choose **API Access → Data import** and confirm your password to create a
+**submissions:write** token. The **Read data** token does not grant submission access,
+and the **Data import** token does not work with the general read API.
 
 ## Check and tidy your catalog (read-only — the tools only suggest; you make the changes in Wildbook)
 
@@ -27,6 +31,18 @@ token, because they only prepare files you upload yourself.
 | Tool | Use this when you want to… | Fetch |
 |---|---|---|
 | inat-to-wildbook-import | pull recent iNaturalist sightings of your species and prepare them for bulk import | `/api/v3/agent-skill/inat-to-wildbook-import` |
+
+## Submit sightings directly (enrolled pilot — creates records when committed)
+
+| Tool | Use this when you want to… | Fetch |
+|---|---|---|
+| submit-sightings | send photographs and sighting data through the submissions API, fix validation errors, and retrieve imported record IDs | `/api/v3/agent-skill/submit-sightings` |
+
+This tool stages and validates your data first. Commit only within the person's authorized scope;
+if they asked for a preview or preparation only, show the preview without committing.
+New submissions request detection and individual matching by default; explicit
+`import-only` skips both. The skill documents exact input fields, examples, processing
+choices and recovery after interrupted requests.
 
 ## How this works
 

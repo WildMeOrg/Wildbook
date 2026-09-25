@@ -2,7 +2,6 @@ package org.ecocean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -12,6 +11,8 @@ import java.util.Properties;
 import java.util.UUID;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Date;
 
 import org.ecocean.media.AssetStore;
@@ -804,12 +805,21 @@ public class Util {
         }
     }
 
+    // UTC+14 (Line Islands) is the earliest civil calendar date on Earth. Comparing against it,
+    // rather than the server's own zone, avoids rejecting a submitter's legitimate "today" when
+    // they are already a calendar day ahead of the server (e.g. Australia vs a UTC/Pacific host).
+    public static final ZoneOffset LATEST_CIVIL_OFFSET = ZoneOffset.ofHours(14);
+
     public static boolean dateIsInFuture(Integer year, Integer month, Integer day) {
+        return dateIsInFuture(year, month, day, LocalDate.now(LATEST_CIVIL_OFFSET));
+    }
+
+    // (partial) date is future only if it is later than the given "today" at its own precision
+    public static boolean dateIsInFuture(Integer year, Integer month, Integer day, LocalDate today) {
         if (year == null) return false;
-        Calendar cal = Calendar.getInstance();
-        int nowY = cal.get(Calendar.YEAR);
-        int nowM = cal.get(Calendar.MONTH) + 1; // frikken zero-based months!
-        int nowD = cal.get(Calendar.DAY_OF_MONTH);
+        int nowY = today.getYear();
+        int nowM = today.getMonthValue();
+        int nowD = today.getDayOfMonth();
         if (year > nowY) return true;
         if (month == null) return false; // only have year
         if ((year == nowY) && (month > nowM)) return true;
