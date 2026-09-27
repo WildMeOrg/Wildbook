@@ -74,6 +74,11 @@ const renderComponent = ({ currentUser, isLoggedIn = false } = {}) =>
     isLoggedIn,
   );
 
+const signedInUser = {
+  displayName: "Alex Doe",
+  email: "alex@example.com",
+};
+
 describe("ReportEncounter Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -160,9 +165,10 @@ describe("ReportEncounter Component", () => {
       isHumanLocal: true,
       error: null,
       setImageRequired: jest.fn(),
+      prefillFollowUpContacts: jest.fn(),
     }));
 
-    renderComponent({ isLoggedIn: true });
+    renderComponent({ currentUser: signedInUser, isLoggedIn: true });
 
     const submitButton = screen.getByRole("button", {
       name: /SUBMIT_ENCOUNTER/i,
@@ -187,9 +193,10 @@ describe("ReportEncounter Component", () => {
       isHumanLocal: true,
       error: null,
       setImageRequired: jest.fn(),
+      prefillFollowUpContacts: jest.fn(),
     }));
 
-    renderComponent({ isLoggedIn: true });
+    renderComponent({ currentUser: signedInUser, isLoggedIn: true });
 
     const submitButton = screen.getByRole("button", {
       name: /SUBMIT_ENCOUNTER/i,
@@ -213,9 +220,10 @@ describe("ReportEncounter Component", () => {
       isHumanLocal: true,
       error: null,
       setImageRequired: jest.fn(),
+      prefillFollowUpContacts: jest.fn(),
     }));
 
-    renderComponent({ isLoggedIn: true });
+    renderComponent({ currentUser: signedInUser, isLoggedIn: true });
 
     const submitButton = screen.getByRole("button", {
       name: /SUBMIT_ENCOUNTER/i,
@@ -225,6 +233,42 @@ describe("ReportEncounter Component", () => {
     await waitFor(() => {
       expect(screen.getByText("SUBMISSION_FAILED")).toBeInTheDocument();
     });
+  });
+
+  test("anonymous visitors can submit after accepting the agreement", async () => {
+    const mockSubmitReport = jest.fn().mockResolvedValue({ id: 123 });
+    ReportEncounterStore.mockImplementation(() => ({
+      submitReport: mockSubmitReport,
+      finished: false,
+      success: false,
+      setIsHumanLocal: jest.fn(),
+      setShowSubmissionFailedAlert: jest.fn(),
+      validateFields: jest.fn(() => true),
+      showSubmissionFailedAlert: false,
+      isHumanLocal: true,
+      error: null,
+      setImageRequired: jest.fn(),
+      prefillFollowUpContacts: jest.fn(),
+    }));
+
+    renderComponent();
+    const store = ReportEncounterStore.mock.results[0].value;
+    const submitButton = screen.getByRole("button", {
+      name: /SUBMIT_ENCOUNTER/i,
+    });
+
+    expect(submitButton).toBeDisabled();
+    expect(store.prefillFollowUpContacts).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("checkbox"));
+
+    expect(submitButton).toBeEnabled();
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockSubmitReport).toHaveBeenCalledTimes(1);
+    });
+    expect(store.prefillFollowUpContacts).not.toHaveBeenCalled();
   });
 
   test("does not render captcha when user is logged in", () => {
