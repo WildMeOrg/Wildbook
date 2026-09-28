@@ -843,5 +843,11 @@
   "MATCH_RESULTS_ERROR_UNKNOWN": "Errore sconosciuto",
   "MATCH_RESULTS_ERROR_TIMEOUT": "L'operazione ha superato il tempo limite",
   "NO_MATCH_CANDIDATES": "Nessun candidato corrisponde ai filtri applicati. Prova a modificarli oppure considera che si tratti di un nuovo individuo.",
-  "NO_MATCH_PROSPECTS": "Non siamo riusciti a trovare alcuna corrispondenza con i filtri attuali. Prova a modificarli oppure considera che si tratti di un nuovo individuo."
+  "NO_MATCH_PROSPECTS": "Non siamo riusciti a trovare alcuna corrispondenza con i filtri attuali. Prova a modificarli oppure considera che si tratti di un nuovo individuo.",
+  "API_TOKEN_PURPOSE": "Scopo del token",
+  "API_TOKEN_READ": "Leggere i dati",
+  "API_TOKEN_IMPORT": "Importare dati",
+  "API_TOKEN_READ_HELP": "Legge i dati a cui puoi accedere. Non consente importazioni.",
+  "API_TOKEN_IMPORT_HELP": "Crea invii e importa dati. Richiede il ruolo api-submission, assegnato da un amministratore del sito. Questo token non funziona con l’API generale di lettura.",
+  "API_IMPORT_ROLE_REQUIRED": "L’importazione richiede il ruolo api-submission. Chiedi a un amministratore del sito di assegnarlo al tuo account."
 }

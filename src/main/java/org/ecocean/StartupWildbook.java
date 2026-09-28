@@ -156,6 +156,8 @@ public class StartupWildbook implements ServletContextListener {
     }
 
     // these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
+    private org.ecocean.api.submission.SubmissionWorker submissionWorker;
+
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
         String context = "context0";
@@ -222,6 +224,8 @@ public class StartupWildbook implements ServletContextListener {
         } catch (Exception f) {
             f.printStackTrace();
         } finally { myShepherd.rollbackAndClose(); }
+        if (org.ecocean.api.submission.SubmissionPolicy.workerEnabled(context))
+            submissionWorker = new org.ecocean.api.submission.SubmissionWorker(sContext);
     }
 
     private void startIAQueues(String context) {
@@ -901,6 +905,7 @@ public class StartupWildbook implements ServletContextListener {
         // nulling the executor handle and waits up to 15s for in-flight
         // ticks; any tick still running after that gets shutdownNow().
         // The poll loop's interrupt/null checks make subsequent work bail.
+        if (submissionWorker != null) submissionWorker.close();
         shutdownWbiaRegisterExecutor();
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();

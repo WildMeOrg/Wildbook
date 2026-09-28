@@ -843,5 +843,11 @@
   "MATCH_RESULTS_ERROR_UNKNOWN": "Erreur inconnue",
   "MATCH_RESULTS_ERROR_TIMEOUT": "La tâche a dépassé le délai imparti",
   "NO_MATCH_CANDIDATES": "Aucun candidat ne correspond aux filtres appliqués. Veuillez les ajuster ou considérer qu’il s’agit d’un nouvel individu.",
-  "NO_MATCH_PROSPECTS": "Nous n’avons trouvé aucune correspondance avec vos filtres actuels. Veuillez les ajuster ou considérer qu’il s’agit d’un nouvel individu."
+  "NO_MATCH_PROSPECTS": "Nous n’avons trouvé aucune correspondance avec vos filtres actuels. Veuillez les ajuster ou considérer qu’il s’agit d’un nouvel individu.",
+  "API_TOKEN_PURPOSE": "Usage du jeton",
+  "API_TOKEN_READ": "Lire les données",
+  "API_TOKEN_IMPORT": "Importer des données",
+  "API_TOKEN_READ_HELP": "Lit les données auxquelles vous avez accès. Ne permet pas les importations.",
+  "API_TOKEN_IMPORT_HELP": "Crée des soumissions et importe des données. Nécessite le rôle api-submission, attribué par un administrateur du site. Ce jeton ne fonctionne pas avec l’API générale de lecture.",
+  "API_IMPORT_ROLE_REQUIRED": "L’importation nécessite le rôle api-submission. Demandez à un administrateur du site de l’attribuer à votre compte."
 }
