@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import React, { useState } from "react";
 import { Button, Modal, Form, Alert } from "react-bootstrap";
 import useGetMe from "../../models/auth/users/useGetMe";
@@ -6,6 +7,9 @@ import useMintToken from "../../models/auth/useMintToken";
 const SKILL_URL = "/api/v3/agent-skill";
 
 export default function ApiAccessPage() {
+  const intl = useIntl();
+  const t = (id) => intl.formatMessage({ id });
+  const [purpose, setPurpose] = useState("read");
   const me = useGetMe();
   const username = me?.data?.username || "";
   const { mint, loading } = useMintToken();
@@ -26,7 +30,9 @@ export default function ApiAccessPage() {
     e.preventDefault();
     setError(null);
     try {
-      const res = await mint(username, password);
+      const res = purpose === "import"
+        ? await mint(username, password, "submissions:write")
+        : await mint(username, password);
       setToken(res.token);
       setExpiresIn(res.expiresInSeconds);
       setPassword("");
@@ -36,6 +42,8 @@ export default function ApiAccessPage() {
         setError(
           "Incorrect password. If your account uses single sign-on, API tokens aren't available yet.",
         );
+      else if (err.status === 403 && purpose === "import")
+        setError(t("API_IMPORT_ROLE_REQUIRED"));
       else if (err.status === 503)
         setError("Token issuance isn't enabled on this server.");
       else setError("Couldn't generate a token. Please try again.");
@@ -67,6 +75,20 @@ export default function ApiAccessPage() {
           Copy link
         </Button>
       </p>
+
+      <Form.Group className="mb-3" controlId="api-token-purpose">
+        <Form.Label>{t("API_TOKEN_PURPOSE")}</Form.Label>
+        <Form.Select value={purpose} disabled={showModal || loading} onChange={(e) => {
+          setPurpose(e.target.value);
+          setToken(null);
+          setExpiresIn(null);
+          setError(null);
+        }}>
+          <option value="read">{t("API_TOKEN_READ")}</option>
+          <option value="import">{t("API_TOKEN_IMPORT")}</option>
+        </Form.Select>
+        <Form.Text>{t(purpose === "import" ? "API_TOKEN_IMPORT_HELP" : "API_TOKEN_READ_HELP")}</Form.Text>
+      </Form.Group>
 
       <Button onClick={openModal} disabled={!username}>Generate API token</Button>
 

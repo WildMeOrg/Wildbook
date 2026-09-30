@@ -29,6 +29,31 @@ public class UserCreate extends HttpServlet {
         doPost(request, response);
     }
 
+    static void clearUnownedRoles(Shepherd sh, String username) {
+        javax.jdo.Query<?> query = sh.getPM().newQuery(Role.class,
+            "username == :username");
+        try {
+            sh.getPM().deletePersistentAll((java.util.Collection<?>)query.execute(username));
+        } finally { query.closeAll(); }
+    }
+
+    static boolean usernameAvailable(Shepherd sh, String username, String userId) {
+        if (username == null || username.isBlank()) return true;
+        javax.jdo.Query<?> query = sh.getPM().newQuery(User.class, "username == :username && uuid != :id");
+        try {
+            query.setResult("count(this)");
+            return ((Number)query.execute(username, userId)).longValue() == 0;
+        } finally { query.closeAll(); }
+    }
+
+    static void preserveSubmissionRole(List<Role> rolesToReplace, String username, boolean siteAdmin) {
+        rolesToReplace.removeIf(role -> {
+            if (Role.canEditRole(role.getRolename(), siteAdmin)) return false;
+            role.setUsername(username);
+            return true;
+        });
+    }
+
     private void addErrorMessage(JSONObject res, String error) {
         res.put("error", error);
     }
@@ -95,6 +120,20 @@ public class UserCreate extends HttpServlet {
                         originalUsername = newUser.getUsername();
                     } else {
                         newUser = new User(uuid);
+                    }
+                    if (username != null) username = username.trim();
+                    if (!usernameAvailable(myShepherd, username, uuid)) {
+                        response.sendError(HttpServletResponse.SC_CONFLICT);
+                        myShepherd.rollbackDBTransaction();
+                        return;
+                    }
+                    if (!request.isUserInRole("admin") && originalUsername != null && newUser.isAdmin(myShepherd)) {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                        myShepherd.rollbackDBTransaction();
+                        return;
+                    }
+                    if (username != null && !username.equals(originalUsername)) {
+                        clearUnownedRoles(myShepherd, username);
                     }
                     if (myShepherd.getUserByUUID(uuid) == null) {
                         // new User
@@ -190,7 +229,10 @@ public class UserCreate extends HttpServlet {
                     List<Role> preexistingRoles = new ArrayList<Role>();
                     if (!createThisUser) {
                         // get existing roles for this existing user
-                        preexistingRoles = myShepherd.getAllRolesForUser(username);
+                        preexistingRoles = originalUsername == null ? new ArrayList<Role>()
+                            : myShepherd.getAllRolesForUser(originalUsername);
+                        // Keep administrator-managed enrollment on unrelated non-admin edits.
+                        preserveSubmissionRole(preexistingRoles, newUser.getUsername(), request.isUserInRole("admin"));
                         if (!preexistingRoles.isEmpty()) permissionsChanged = true;
                         myShepherd.getPM().deletePersistentAll(preexistingRoles);
                     }
@@ -206,7 +248,7 @@ public class UserCreate extends HttpServlet {
                             // System.out.println("numRoles in context"+d+" is: "+numRoles);
                             for (int i = 0; i < numRoles; i++) {
                                 String thisRole = roles[i].trim();
-                                if (!thisRole.trim().equals("")) {
+                                if (!thisRole.trim().equals("") && Role.canEditRole(thisRole, request.isUserInRole("admin"))) {
                                     Role role = new Role();
                                     if (myShepherd.getRole(thisRole, username,
                                         ("context" + d)) == null) {

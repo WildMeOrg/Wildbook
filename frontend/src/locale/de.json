@@ -843,5 +843,11 @@
   "MATCH_RESULTS_ERROR_UNKNOWN": "Unbekannter Fehler",
   "MATCH_RESULTS_ERROR_TIMEOUT": "Die Aufgabe hat das Zeitlimit überschritten",
   "NO_MATCH_CANDIDATES": "Keine Kandidaten entsprachen den angewendeten Filtern. Bitte passe sie an oder betrachte dies als neues Individuum.",
-  "NO_MATCH_PROSPECTS": "Wir konnten mit den aktuellen Filtern keine Übereinstimmungen finden. Bitte passe sie an oder betrachte dies als neues Individuum."
+  "NO_MATCH_PROSPECTS": "Wir konnten mit den aktuellen Filtern keine Übereinstimmungen finden. Bitte passe sie an oder betrachte dies als neues Individuum.",
+  "API_TOKEN_PURPOSE": "Token-Zweck",
+  "API_TOKEN_READ": "Daten lesen",
+  "API_TOKEN_IMPORT": "Datenimport",
+  "API_TOKEN_READ_HELP": "Liest Daten, auf die Sie zugreifen dürfen. Erlaubt keine Importe.",
+  "API_TOKEN_IMPORT_HELP": "Erstellt Einreichungen und importiert Daten. Erfordert die Rolle api-submission, die ein Website-Administrator zuweist. Dieses Token gilt nicht für die allgemeine Lese-API.",
+  "API_IMPORT_ROLE_REQUIRED": "Der Datenimport erfordert die Rolle api-submission. Bitten Sie einen Website-Administrator, sie Ihrem Konto zuzuweisen."
 }
