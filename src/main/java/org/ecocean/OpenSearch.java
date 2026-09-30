@@ -16,6 +16,7 @@ import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.security.LocationRoleAccess;
 import org.ecocean.SystemValue;
 
 import org.ecocean.shepherd.core.Shepherd;
@@ -1431,7 +1432,7 @@ public class OpenSearch {
         for (String f : ACL_FIELDS) doc.remove(f);
     }
 
-    // 4-arg overload preserved for the existing caller (non-token path) until SearchApi passes tokenAuth.
+    // Convenience overload for session callers; token-aware callers must pass tokenAuth explicitly.
     public static JSONObject sanitizeDoc(final JSONObject sourceDoc, String indexName,
         Shepherd myShepherd, User user)
     throws IOException {
@@ -1465,6 +1466,17 @@ public class OpenSearch {
         JSONObject clean = new JSONObject();
         if ("encounter".equals(indexName)) {
             boolean hasAccess = Encounter.opensearchAccess(sourceDoc, user, myShepherd);
+            if (!hasAccess && !tokenAuth && (myShepherd != null)) {
+                // Browser galleries must honor location roles even while indexed viewUsers
+                // is catching up. Use the current encounter location and the request's
+                // Shepherd; token searches remain scoped by their indexed ACL filter.
+                String encounterId = sourceDoc.optString("id", null);
+                if (Util.stringExists(encounterId)) {
+                    Encounter encounter = myShepherd.getEncounter(encounterId);
+                    hasAccess = (encounter != null) && LocationRoleAccess.userHasLocationRole(
+                        user.getUsername(), encounter.getLocationID(), myShepherd);
+                }
+            }
             if (hasAccess) {
                 clean = new JSONObject(sourceDoc.toString());
                 scrubAclFields(clean);
