@@ -2911,6 +2911,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public List<Annotation> getAnnotations(MediaAsset ma) {
         List<Annotation> anns = new ArrayList<Annotation>();
 
+        if (getAnnotations() == null) return anns;
         for (Annotation ann : getAnnotations()) {
             if (ann.getMediaAsset() == ma) anns.add(ann);
         }
@@ -3331,6 +3332,16 @@ public class Encounter extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessEncounter(this, request);
     }
 
+    // same rule as canUserAccess(User, String) but the location-based role lookup reuses the
+    // caller's Shepherd instead of opening one (see Collaboration.canUserAccessEncounter)
+    public boolean canUserAccess(User user, Shepherd myShepherd) {
+        if ((user == null) || (myShepherd == null)) return false;
+        if (isUserOwner(user)) return true;
+        String username = user.getUsername();
+        if (username == null) return false;
+        return Collaboration.canUserAccessEncounter(this, username, myShepherd);
+    }
+
     public boolean canUserAccess(User user, String context) {
         if (user == null) return false;
         // see comment below on canUserEdit(); substituting isUserOwner() now
@@ -3346,8 +3357,7 @@ public class Encounter extends Base implements java.io.Serializable {
        cause unintended consequences. so, for now, canUserView() is pretty much exclusively for search
      */
     public boolean canUserView(User user, Shepherd myShepherd) {
-        return (user != null) && (user.isAdmin(myShepherd) || this.canUserAccess(user,
-                myShepherd.getContext()));
+        return (user != null) && (user.isAdmin(myShepherd) || this.canUserAccess(user, myShepherd));
     }
 
     // as part of 10.9, canUserEdit() was modified. it was not
@@ -3366,7 +3376,10 @@ public class Encounter extends Base implements java.io.Serializable {
         // legacy ServletUtilities.isUserAuthorizedForEncounter() behavior
         if (User.isUsernameAnonymous(this.getSubmitterID())) return true;
         if (Collaboration.canEditEncounter(this, user, myShepherd.getContext())) return true;
-        // TODO there seems to be some legacy stuff about roles based on location. is this real?
+        // location-based role: a Role named after this encounter's locationID, or an ancestor of
+        // it in the locationID tree, grants edit (parity with the classic-page check)
+        if (org.ecocean.security.LocationRoleAccess.userHasLocationRole(user.getUsername(),
+            this.getLocationID(), myShepherd)) return true;
         return false;
     }
 
@@ -3395,15 +3408,28 @@ public class Encounter extends Base implements java.io.Serializable {
      *   yield [] (admin-only via opensearchAccess' isAdmin branch).
      * - Otherwise: the other party of every PERSISTED approved/edit
      *   collaboration with the submitter, plus orgAdmins of the submitter's
-     *   organization(s) (one-way).
+     *   organization(s) (one-way), plus holders of a location-based role
+     *   (a Role named after this encounter's locationID or an ancestor of it,
+     *   see LocationRoleAccess). The location grant does not depend on the
+     *   owner resolving; the collaboration/orgAdmin grants still fail closed.
+     * - The owner is never listed (granted via submitterUserId).
      */
     public List<String> computeViewUsers(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
         if (this.isPubliclyReadable()) return ids;
+        java.util.Set<String> seen = new java.util.HashSet<String>();
+        // 0. location-based roles, independent of who owns the encounter
+        for (String id : org.ecocean.security.LocationRoleAccess.userIdsWithLocationRole(
+            this.getLocationID(), myShepherd)) {
+            if (seen.add(id)) ids.add(id);
+        }
         String submitter = this.getSubmitterID();
         User submitterUser = (submitter == null) ? null : myShepherd.getUser(submitter);
-        if (submitterUser == null) return ids; // fail closed: admin-only
-        java.util.Set<String> seen = new java.util.HashSet<String>();
+        if (submitterUser == null) return ids; // owner-dependent grants fail closed
+        if (submitterUser.getId() != null) {
+            ids.remove(submitterUser.getId()); // the owner may hold the role; never list them
+            seen.add(submitterUser.getId());
+        }
         // 1. persisted approved/edit collaborators (mutual view), correct direction
         for (Collaboration col : Collaboration.persistedCollaborationsForUser(myShepherd, submitter)) {
             if (!col.isApproved() && !col.isEditApproved()) continue;
@@ -3717,35 +3743,48 @@ public class Encounter extends Base implements java.io.Serializable {
         return LocationID.getPrefixDigitPaddingForLocationID(this.getLocationID(), null);
     }
 
-    public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
-        String queryString =
-            "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id =='" +
-            annot.getId() + "'";
-        Encounter returnEnc = null;
-        Query query = myShepherd.getPM().newQuery(queryString);
-        List results = (List)query.execute();
+    // Resolves parent encounter catalogNumbers via the ENCOUNTER_ANNOTATIONS join table
+    // with native SQL rather than a JDOQL annotations.contains() query: the JDOQL
+    // candidate query makes DataNucleus 5.2.7 bulk-fetch every default-fetch-group
+    // collection on Encounter, and it can emit malformed SQL for those statements
+    // (e.g. the measurements fetch), which PostgreSQL rejects.
+    private static List<String> findCatalogNumbersByAnnotationId(String annId,
+        Shepherd myShepherd) {
+        List<String> catalogNumbers = new ArrayList<String>();
 
-        if ((results != null) && (results.size() >= 1)) {
-            if (results.size() > 1)
-                System.out.println("WARNING: Encounter.findByAnnotation() found " + results.size() +
-                    " Encounters that contain Annotation " + annot.getId());
-            returnEnc = (Encounter)results.get(0);
+        if (annId == null) return catalogNumbers;
+        Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
+            "SELECT DISTINCT \"CATALOGNUMBER_OID\" FROM \"ENCOUNTER_ANNOTATIONS\" WHERE \"ID_EID\" = ?");
+        try {
+            List results = (List)query.execute(annId);
+            if (results != null)
+                for (Object o : results) {
+                    if (o != null) catalogNumbers.add((String)o);
+                }
+        } finally {
+            query.closeAll();
         }
-        query.closeAll();
-        return returnEnc;
+        return catalogNumbers;
+    }
+
+    public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
+        if (annot == null) return null;
+        List<String> catalogNumbers = findCatalogNumbersByAnnotationId(annot.getId(), myShepherd);
+        if (catalogNumbers.isEmpty()) return null;
+        if (catalogNumbers.size() > 1)
+            System.out.println("WARNING: Encounter.findByAnnotation() found " +
+                catalogNumbers.size() + " Encounters that contain Annotation " + annot.getId());
+        return myShepherd.getEncounter(catalogNumbers.get(0));
     }
 
     /** All encounters whose annotations contain this annotation (usually 0 or 1; >1 is anomalous). */
     public static java.util.List<Encounter> findAllByAnnotation(Annotation annot, Shepherd myShepherd) {
-        javax.jdo.Query query = myShepherd.getPM().newQuery(
-            "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id == annId");
-        query.declareParameters("String annId");
         java.util.List<Encounter> out = new java.util.ArrayList<Encounter>();
-        try {
-            java.util.List results = (java.util.List)query.execute(annot.getId());
-            if (results != null) for (Object o : results) out.add((Encounter)o);
-        } finally {
-            query.closeAll();
+
+        if (annot == null) return out;
+        for (String catalogNumber : findCatalogNumbersByAnnotationId(annot.getId(), myShepherd)) {
+            Encounter enc = myShepherd.getEncounter(catalogNumber);
+            if (enc != null) out.add(enc);
         }
         return out;
     }
@@ -4264,6 +4303,9 @@ public class Encounter extends Base implements java.io.Serializable {
         OpenSearch os = new OpenSearch();
         Map<String, Set<String> > collab = new HashMap<String, Set<String> >();
         Map<String, String> usernameToId = new HashMap<String, String>();
+        // location-based roles: role name -> user ids holding it (see LocationRoleAccess)
+        Map<String, Set<String> > roleNameToUserIds = new HashMap<String, Set<String> >();
+        Map<String, Set<String> > lineageCache = new HashMap<String, Set<String> >();
         Shepherd myShepherd = new Shepherd("context0");
         myShepherd.setAction("Encounter.opensearchIndexPermissions");
         myShepherd.beginDBTransaction();
@@ -4281,22 +4323,35 @@ public class Encounter extends Base implements java.io.Serializable {
                     collab.get(user.getId()).add(col.getOtherUsername(user.getUsername()));
                 }
             }
+            // getRolesInContext propagates a datastore failure, so a bad read aborts the pass
+            // (permissionsNeeded stays set) instead of silently revoking every location grant
+            for (Role role : myShepherd.getRolesInContext("context0")) {
+                if ((role == null) || (role.getRolename() == null) || (role.getUsername() == null))
+                    continue;
+                if (Role.SYSTEM_ROLE_NAMES.contains(role.getRolename())) continue;
+                String roleUid = usernameToId.get(role.getUsername());
+                if (roleUid == null) continue;
+                if (!roleNameToUserIds.containsKey(role.getRolename()))
+                    roleNameToUserIds.put(role.getRolename(), new HashSet<String>());
+                roleNameToUserIds.get(role.getRolename()).add(roleUid);
+            }
         } catch (Exception ex) {
-            System.out.println("opensearchIndexPermissions(): ABORT — user/collab precompute failed; will retry next tick");
+            System.out.println("opensearchIndexPermissions(): ABORT — user/collab/role precompute failed; will retry next tick");
             ex.printStackTrace();
             myShepherd.rollbackAndClose();
             return false;
         }
         Util.mark("perm: user build done", startT);
         System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
-            " total users; " + collab.size() + " have active collab");
+            " total users; " + collab.size() + " have active collab; " + roleNameToUserIds.size() +
+            " location role names");
         // now iterated over (non-public) encounters
         int encCount = 0;
         int viewUsersWriteFailures = 0;
         org.json.JSONObject updateData = new org.json.JSONObject();
         // we do not need full Encounter objects here to update index docs, so lets do this via sql/fields - much faster
         String sql =
-            "SELECT \"CATALOGNUMBER\", \"SUBMITTERID\" FROM \"ENCOUNTER\" WHERE \"SUBMITTERID\" IS NOT NULL AND \"SUBMITTERID\" != '' AND \"SUBMITTERID\" != 'N/A' AND \"SUBMITTERID\" != 'public'";
+            "SELECT \"CATALOGNUMBER\", \"SUBMITTERID\", \"LOCATIONID\" FROM \"ENCOUNTER\" WHERE \"SUBMITTERID\" IS NOT NULL AND \"SUBMITTERID\" != '' AND \"SUBMITTERID\" != 'N/A' AND \"SUBMITTERID\" != 'public'";
         Query q = null;
         try {
             q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
@@ -4307,7 +4362,9 @@ public class Encounter extends Base implements java.io.Serializable {
                 Object[] row = (Object[])it.next();
                 String id = (String)row[0];
                 String submitterId = (String)row[1];
+                String locationID = (row.length > 2) ? (String)row[2] : null;
                 org.json.JSONArray viewUsers = new org.json.JSONArray();
+                Set<String> viewUserIds = new java.util.LinkedHashSet<String>();
                 String uid = usernameToId.get(submitterId);
                 if (uid == null) {
                     System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
@@ -4360,9 +4417,15 @@ public class Encounter extends Base implements java.io.Serializable {
                     if (localCollabs.contains(submitterId) && !localUid.equals(uid)) {
                         // if the submitterId is in the list, put the uid of the user in viewUsers for OpenSearch
                         // (skip self-collab: localUid == uid means the collaborator IS the owner)
-                        viewUsers.put(localUid);
+                        viewUserIds.add(localUid);
                     }
                 }
+                // location-based roles: everyone holding a Role named after this encounter's
+                // locationID or an ancestor of it (same rule as computeViewUsers)
+                viewUserIds.addAll(org.ecocean.security.LocationRoleAccess.viewUserIdsForLocation(
+                    locationID, roleNameToUserIds, lineageCache));
+                viewUserIds.remove(uid); // the owner is granted via submitterUserId, never listed
+                for (String viewUid : viewUserIds) viewUsers.put(viewUid);
                 updateData.put("viewUsers", viewUsers); // always write, incl [] so revocation propagates
                 // Child-reindex change-detection: compare freshly computed viewUsers (as a set) to
                 // what is CURRENTLY indexed. Enqueue the deep child reindex ONLY when the currently

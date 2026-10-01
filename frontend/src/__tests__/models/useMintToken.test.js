@@ -12,7 +12,7 @@ describe("mintToken", () => {
     });
     const res = await mintToken("alice", "s3cr3t");
     const [url, opts] = fetchMock.mock.calls[0];
-    expect(url).toContain("/api/v3/auth/token");
+    expect(url).toBe("/api/v3/auth/token");
     expect(opts.method).toBe("POST");
     expect(opts.credentials).toBe("omit");                       // no session cookie
     expect(opts.headers.Authorization).toBe("Basic " + btoa("alice:s3cr3t"));
@@ -32,5 +32,11 @@ describe("mintToken", () => {
     const b64 = auth.replace(/^Basic /, "");
     const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
     expect(new TextDecoder().decode(bytes)).toBe("José:pâss"); // round-trips as UTF-8
+  });
+  it("requests submission scope only when explicitly supplied", async () => {
+    fetchMock.mockResolvedValue({ status: 200, json: async () => ({ token: "import-token" }) });
+    await mintToken("alice", "secret", "submissions:write");
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/v3/auth/token?scope=submissions%3Awrite");
+    expect(fetchMock.mock.calls[0][1].credentials).toBe("omit");
   });
 });

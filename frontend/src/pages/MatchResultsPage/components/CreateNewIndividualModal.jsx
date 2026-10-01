@@ -17,17 +17,22 @@ const CreateNewIndividualModal = ({
 }) => {
   const intl = useIntl();
   const [selectedRemark, setSelectedRemark] = React.useState("");
-  const [suggestedId, setSuggestedId] = React.useState(null);
+  const [suggestion, setSuggestion] = React.useState(null);
   const [loadingSuggestedId, setLoadingSuggestedId] = React.useState(false);
 
+  const suggestedId = suggestion?.nextName;
+
   React.useEffect(() => {
-    if (!show || !locationId) return undefined;
+    setSuggestion(null);
+    setLoadingSuggestedId(false);
+    if (!show) return undefined;
 
     const controller = new AbortController();
     setLoadingSuggestedId(true);
 
+    const url = "/api/v3/individuals/info/next_name";
     fetch(
-      `/api/v3/individuals/info/next_name?locationId=${encodeURIComponent(locationId)}`,
+      locationId ? `${url}?locationId=${encodeURIComponent(locationId)}` : url,
       { signal: controller.signal },
     )
       .then(async (res) => {
@@ -35,21 +40,23 @@ const CreateNewIndividualModal = ({
         return res.json();
       })
       .then((data) => {
-        if (data.success === true && data.results && data.results.length > 0) {
-          const successfulResult = data.results.find((r) => r.success === true);
-          if (successfulResult && successfulResult.nextName) {
-            setSuggestedId(successfulResult.nextName);
-          } else {
-            setSuggestedId(null);
-          }
-        } else {
-          setSuggestedId(null);
-        }
+        if (controller.signal.aborted) return;
+        const result =
+          data.success === true && Array.isArray(data.results)
+            ? data.results.find(
+                (r) =>
+                  r.success === true &&
+                  typeof r.nextName === "string" &&
+                  r.nextName.trim() &&
+                  ["locationId", "user"].includes(r.type),
+              )
+            : null;
+        setSuggestion(result || null);
       })
       .catch((err) => {
-        if (err.name === "AbortError") return;
+        if (controller.signal.aborted || err.name === "AbortError") return;
 
-        setSuggestedId(null);
+        setSuggestion(null);
         toast.error(
           intl.formatMessage({
             id: "LOAD_SUGGESTED_ID_FAILED",
@@ -71,7 +78,7 @@ const CreateNewIndividualModal = ({
   React.useEffect(() => {
     if (!show) {
       setSelectedRemark("");
-      setSuggestedId(null);
+      setSuggestion(null);
     }
   }, [show]);
 
@@ -80,7 +87,7 @@ const CreateNewIndividualModal = ({
   };
 
   const handleUseSuggestedId = () => {
-    onNameChange(suggestedId.toString(), true);
+    onNameChange(suggestedId, suggestion.type === "locationId");
     toast.success(
       intl.formatMessage({
         id: "SUGGESTED_ID_APPLIED",
@@ -202,7 +209,7 @@ const CreateNewIndividualModal = ({
             />
           </Form.Group>
 
-          {locationId && (
+          {(loadingSuggestedId || suggestedId) && (
             <div
               className="mb-3"
               id="create-new-individual-suggested-id"

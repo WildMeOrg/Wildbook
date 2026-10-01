@@ -1827,7 +1827,11 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 		},
 		error: function(x,y,z) {
 			console.warn('%o %o %o', x, y, z);
-			jQuery(msgTarget).html('<b>Error updating encounter</b>');
+			// iaResultsSetID.jsp now answers 403 (not 200) when the user is not authorized
+			// for one of the encounters, so that lands here; keep showing the server's reason.
+			var detail = (x && x.responseJSON && x.responseJSON.error) ? x.responseJSON.error : null;
+			jQuery(msgTarget).html(detail ? ('Error updating encounter: <b>' + detail + '</b>')
+			                             : '<b>Error updating encounter</b>');
 		}
 	});
 	return true;
