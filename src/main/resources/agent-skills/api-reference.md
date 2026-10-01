@@ -148,7 +148,8 @@ for an encounter's complete photo list.
 ## OpenSearch schema (token-exposed fields)
 Key indices and fields:
 - **encounter** — `id`, `taxonomy`, `locationId`/`locationName`, `date`/`dateMillis`, `individualId`,
-  `sex`, `lifeStage`, `livingStatus`, `country`, `behavior`, ...
+  `sex`, `lifeStage`, `livingStatus`, `country`, `behavior`, `version` (when the record last
+  changed — see *Knowing when a record changed* below), ...
 - **individual** — `id`, `displayName`, `names`/`nameMap`, `sex`, `taxonomy`, `timeOfBirth`/`timeOfDeath`.
 - **annotation** — `id`, `encounterId`, `viewpoint`, `iaClass`, `matchAgainst`, `mediaAssetId`, and
   `embeddings` (a **nested** field holding `method`, `methodVersion`, and the MiewID `vector`;
@@ -160,17 +161,63 @@ Key indices and fields:
 
 Access-control fields exist server-side but are **never** returned.
 
+### Knowing when a record changed
+
+Every stamped `encounter` document carries `version`: the encounter's **last recorded edit stamp**
+(the record's `modified` time) as milliseconds since the Unix epoch, for example `1790863407000`.
+The stamp is refreshed when the record's date, location, sex, life stage, identity assignment
+(`individualId`) and so on are saved through the current edit paths. The API returns the stamp in
+no other form, so convert `version` yourself for display, as you would any epoch-millis value
+derived from the server's clock, and compare it as a number.
+
+`version` is a **best-effort polling aid, not a guaranteed change feed**: independent pages, tied
+versions, delayed indexing and one-second stamps can all cause a missed update, so use overlap and
+periodic full reconciliation. A sync built on it looks like this:
+
+1. Take a full baseline first (see *Paging and limits* for the ceiling and how to split a large
+   catalogue).
+2. On each poll, sweep a `range` on `version` from `highWaterMark - overlapMillis` — choose the
+   overlap to cover your install's indexing delays; no finite overlap guarantees completeness —
+   oldest first with `?sort=version&sortOrder=asc`, paging with `?from=`/`?size=` until `from`
+   reaches `X-Wildbook-Total-Hits`:
+
+   ```json
+   { "query": { "range": { "version": { "gt": 1790863407000 } } } }
+   ```
+
+3. Upsert each hit by `id`, even when its `version` is unchanged. Only once the sweep is complete,
+   move the mark to the largest `version` you saw; keep the old mark if the sweep returned nothing.
+4. Re-baseline periodically (nightly or weekly, as your use demands).
+
+If a sweep would exceed the result-window ceiling, add an upper bound (`lte`) and advance in
+slices; if a single `version` holds more records than the window (several imported records can
+share one stamp), partition that slice by another field such as `locationId`.
+
+Things to know:
+
+- **`indexTimestamp` is not an edit time.** It records when the search index last wrote the
+  document, and it moves for reasons that are not edits (a refresh of access lists, a reindex).
+  Ignore it.
+- The stamp is refreshed by the encounter PATCH API (which the Wildbook web UI uses), by match
+  confirmation, and by creation through bulk import — but not by every path: some legacy servlets
+  and internal operations (an individual merge re-pointing encounters, for one) save without
+  re-stamping, and photo or annotation changes do not consistently refresh it. That is another
+  reason to re-baseline.
+- A record with no stamp has `version: 0`; treat zero as "unknown", not "old".
+- `individual` and `annotation` documents carry a `version` of their own — a millisecond-based
+  change marker (for annotations it is nudged forward if the clock has not moved).
+
 ## Paging and limits
 
 Search results come back a page at a time. Pass `?from=` and `?size=` on the request and walk the
 set across calls: `from=0&size=200`, then `from=200&size=200`, and so on. The total number of
 matches is in the `X-Wildbook-Total-Hits` response header — read it first.
 
-There is a hard ceiling: `from + size` must stay at or below **10,000** (OpenSearch's
-`max_result_window`). The API does not offer `scroll` or `search_after`, so a result set larger than
-10,000 cannot be fully walked — narrow your search (species, site, date range) instead. Pages are
-fetched independently, so a result set that changes while you page can shift slightly at page
-boundaries.
+There is a hard ceiling: `from + size` must stay at or below the index's `max_result_window`,
+reported in the `X-Wildbook-Max-Result-Window` response header (**10,000** by default). The API
+does not offer `scroll` or `search_after`, so a result set larger than that cannot be fully walked —
+narrow your search (species, site, date range) instead. Pages are fetched independently, so a
+result set that changes while you page can shift slightly at page boundaries.
 
 To turn annotation IDs into a catalog-animal label and a croppable image, call
 `POST /api/v3/media/resolve` with up to **100** annotation IDs per call; it returns `individualId`,
