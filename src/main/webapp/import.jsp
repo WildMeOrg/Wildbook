@@ -104,7 +104,8 @@ public static void intakeTask(Shepherd myShepherd, Task task) {
                 qjob.put("fastlane", fastlane);
                 qjob.put("lane", "fast");
                 task.setQueueResumeMessage(qjob.toString());
-                sent = org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
+                //lane chosen by IAGateway.laneFor(); this used to publish onto the SERIAL detection queue
+                sent = org.ecocean.servlet.IAGateway.publishToLane(context, qjob.toString());
               }
               else {
             	task.setQueueResumeMessage(qjob.toString());
