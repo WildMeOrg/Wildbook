@@ -1,0 +1,12 @@
+.report-confirm {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.report-confirm-actions button {
+  white-space: normal !important;
+}
+
+.report-confirm-actions button a {
+  min-width: 0;
+}

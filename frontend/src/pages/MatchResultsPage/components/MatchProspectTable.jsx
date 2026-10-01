@@ -12,6 +12,7 @@ import ExitFullScreenIcon from "../icons/ExitFullScreenIcon";
 import EncounterIcon from "../../../components/icons/EncounterIcon";
 import EmptyMatchPlaceholder from "./EmptyMatchPlaceholder";
 import { client } from "../../../api/client";
+import "../styles.css";
 
 const styles = {
   matchRow: (selected, themeColor) => ({
@@ -79,22 +80,6 @@ const styles = {
     fontSize: "1rem",
     zIndex: 10,
   }),
-  toolsBarLeft: {
-    position: "absolute",
-    top: "0",
-    left: "-40px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-  },
-  toolsBarRight: {
-    position: "absolute",
-    top: "0",
-    right: "-40px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-  },
   iconButton: {
     width: "32px",
     height: "32px",
@@ -732,7 +717,7 @@ const MatchProspectTable = ({
           </div>
 
           <div
-            style={styles.toolsBarLeft}
+            className="match-image-tools match-image-tools-left"
             data-testid={`match-prospect-left-toolbar-${sectionId}`}
           >
             <div
@@ -815,7 +800,7 @@ const MatchProspectTable = ({
           </div>
 
           <div
-            style={styles.toolsBarRight}
+            className="match-image-tools match-image-tools-right"
             data-testid={`match-prospect-right-toolbar-${sectionId}`}
           >
             <div

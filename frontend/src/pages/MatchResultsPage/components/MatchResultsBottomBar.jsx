@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import { Spinner } from "react-bootstrap";
@@ -6,6 +6,7 @@ import MainButton from "../../../components/MainButton";
 import CreateNewIndividualModal from "./CreateNewIndividualModal";
 import NewIndividualCreatedModal from "./NewIndividualCreatedModal";
 import MatchConfirmedModal from "./MatchConfirmedModal";
+import "../styles.css";
 
 const styles = {
   bottomBar: (themeColor) => ({
@@ -15,11 +16,9 @@ const styles = {
     top: "50px",
     background: themeColor.primaryColors.primary50,
     borderTop: "1px solid #dee2e6",
-    padding: "10px 24px",
     display: "flex",
     gap: "24px",
     zIndex: 20,
-    height: "60px",
   }),
   bottomText: {
     fontSize: "1.2rem",
@@ -34,6 +33,23 @@ const styles = {
 
 const MatchResultsBottomBar = observer(
   ({ store, themeColor, identificationRemarks }) => {
+    const barRef = useRef(null);
+    const [barHeight, setBarHeight] = useState(60);
+
+    // Selection, translations and viewport changes can all change the bar height.
+    useLayoutEffect(() => {
+      const bar = barRef.current;
+      const measure = () => setBarHeight(bar.getBoundingClientRect().height);
+      measure();
+      if (typeof ResizeObserver === "undefined") {
+        window.addEventListener("resize", measure);
+        return () => window.removeEventListener("resize", measure);
+      }
+      const observer = new ResizeObserver(measure);
+      observer.observe(bar);
+      return () => observer.disconnect();
+    }, []);
+
     const matchingState = store.matchingState;
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -435,13 +451,14 @@ const MatchResultsBottomBar = observer(
     return (
       <>
         <div
+          ref={barRef}
+          className="match-action-bar"
           style={styles.bottomBar(themeColor)}
           id="match-results-bottom-bar"
           data-testid="match-results-bottom-bar"
         >
           <div
-            className="d-flex align-items-center w-100"
-            style={{ marginLeft: 20, marginRight: 20 }}
+            className="match-action-bar-inner d-flex align-items-center w-100"
             id="match-results-bottom-bar-inner"
             data-testid="match-results-bottom-bar-inner"
           >
@@ -459,7 +476,7 @@ const MatchResultsBottomBar = observer(
             </div>
 
             <div
-              className="ms-auto d-flex align-items-center flex-nowrap"
+              className="match-action-bar-buttons ms-auto d-flex align-items-center"
               style={{ gap: 12 }}
               id="match-results-bottom-bar-right"
               data-testid="match-results-bottom-bar-right"
@@ -481,6 +498,12 @@ const MatchResultsBottomBar = observer(
             </div>
           </div>
         </div>
+
+        <div
+          aria-hidden="true"
+          style={{ height: barHeight + 10 }}
+          data-testid="match-results-bottom-bar-spacer"
+        />
 
         <CreateNewIndividualModal
           show={showCreateModal}

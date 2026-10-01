@@ -4,6 +4,7 @@ import ThemeColorContext from "../../ThemeColorProvider";
 import { Col, Row, Alert } from "react-bootstrap";
 import MainButton from "../../components/MainButton";
 import { useLocation } from "react-router-dom";
+import "./reportConfirm.css";
 
 export const ReportConfirm = () => {
   const location = useLocation();
@@ -11,7 +12,7 @@ export const ReportConfirm = () => {
   const themeColor = useContext(ThemeColorContext);
 
   return (
-    <div style={{ marginLeft: "-100px", width: "720px" }}>
+    <div className="report-confirm w-100 px-3" style={{ maxWidth: "720px" }}>
       <h2 className="mt-3">
         <FormattedMessage id="SUBMISSION_SUCCESSFUL" />
       </h2>
@@ -82,8 +83,8 @@ export const ReportConfirm = () => {
         <FormattedMessage id="CONTACT_MESSAGE" />
         <a href="https://community.wildme.org">community.wildme.org</a>
       </p>
-      <Row className="mb-5" style={{ width: "60%" }}>
-        <Col className="ps-0">
+      <Row className="mb-5 report-confirm-actions">
+        <Col xs={12} sm={6}>
           <MainButton
             borderColor={themeColor.wildMeColors.cyan600}
             backgroundColor={themeColor.wildMeColors.white}
@@ -107,7 +108,7 @@ export const ReportConfirm = () => {
             <FormattedMessage id="VIEW_ENCOUNTER" />
           </MainButton>
         </Col>
-        <Col className="ps-0">
+        <Col xs={12} sm={6}>
           <MainButton
             borderColor={themeColor.wildMeColors.cyan600}
             backgroundColor={themeColor.defaultColors.white}
