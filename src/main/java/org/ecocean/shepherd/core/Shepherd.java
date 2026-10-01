@@ -821,6 +821,39 @@ public class Shepherd {
         return filteredSpaces;
     }
 
+    // Relationship uses JDO datastore identity (a bigint surrogate key); the social UI submits
+    // the full identity string, e.g. "1011[OID]org.ecocean.social.Relationship". Accepts that
+    // form or a bare numeric key; returns null for anything else, so callers can answer 400 for
+    // malformed input before ever touching the datastore.
+    public static Long parseRelationshipKey(String persistenceID) {
+        if (persistenceID == null) return null;
+        String key = persistenceID.trim();
+        String oidSuffix = "[OID]" + Relationship.class.getName();
+        if (key.endsWith(oidSuffix)) key = key.substring(0, key.length() - oidSuffix.length());
+        if (!key.matches("\\d+")) return null;
+        try {
+            return Long.valueOf(key);
+        } catch (NumberFormatException e) { // all digits but beyond Long range
+            return null;
+        }
+    }
+
+    // Null means malformed id or no such row; datastore/transaction failures still throw so
+    // callers don't report an outage as a stale record.
+    public Relationship getRelationship(String persistenceID) {
+        Long key = parseRelationshipKey(persistenceID);
+
+        if (key == null) return null;
+        try {
+            return (Relationship)pm.getObjectById(pm.newObjectIdInstance(Relationship.class, key),
+                true);
+        } catch (JDOObjectNotFoundException e) {
+            System.out.println("Shepherd.getRelationship(" + persistenceID + ") found nothing: " +
+                e);
+            return null;
+        }
+    }
+
     public Relationship getRelationship(String type, String indie1, String indie2) {
         Relationship tempRel = null;
         String filter = "this.type == \"" + type + "\" && ((this.markedIndividualName1 == \"" +
@@ -992,6 +1025,74 @@ public class Shepherd {
         ArrayList<Role> roles = new ArrayList<Role>(c);
 
         acceptedEncounters.closeAll();
+        return roles;
+    }
+
+    /**
+     * True when username holds at least one of rolenames in context (location-based roles, see
+     * LocationRoleAccess). Parameterized JDOQL, so names may contain quotes. A null or empty
+     * name set, username, or context never queries and is false. Matches on the stored context
+     * column, so a Role row with a NULL context does not satisfy any context (Shiro parity).
+     */
+    public boolean doesUserHaveAnyRole(String username, java.util.Collection<String> rolenames,
+        String context) {
+        if ((username == null) || (context == null) || (rolenames == null) ||
+            rolenames.isEmpty()) return false;
+        Query query = pm.newQuery(Role.class);
+        try {
+            query.setFilter(
+                "this.username == :u && this.context == :c && :names.contains(this.rolename)");
+            java.util.Map<String, Object> params = new java.util.HashMap<String, Object>();
+            params.put("u", username);
+            params.put("c", context);
+            params.put("names", new ArrayList<String>(new java.util.LinkedHashSet<String>(rolenames)));
+            Collection c = (Collection)query.executeWithMap(params);
+            return (c != null) && !c.isEmpty();
+        } finally {
+            query.closeAll();
+        }
+    }
+
+    /** Distinct usernames holding at least one of rolenames in context. Empty for null/empty
+     *  inputs without querying. Results are copied before the query is closed. */
+    public List<String> getUsernamesWithAnyRole(java.util.Collection<String> rolenames,
+        String context) {
+        List<String> usernames = new ArrayList<String>();
+        if ((context == null) || (rolenames == null) || rolenames.isEmpty()) return usernames;
+        Query query = pm.newQuery(Role.class);
+        try {
+            query.setFilter("this.context == :c && :names.contains(this.rolename)");
+            query.setResult("distinct this.username");
+            java.util.Map<String, Object> params = new java.util.HashMap<String, Object>();
+            params.put("c", context);
+            params.put("names", new ArrayList<String>(new java.util.LinkedHashSet<String>(rolenames)));
+            Collection c = (Collection)query.executeWithMap(params);
+            if (c != null) {
+                for (Object o : c) {
+                    if (o != null) usernames.add(o.toString());
+                }
+            }
+        } finally {
+            query.closeAll();
+        }
+        return usernames;
+    }
+
+    /** All Role rows stored with exactly this context. Unlike getAllRoles(), a datastore failure
+     *  propagates so callers can abort rather than treat the roles as absent. */
+    public List<Role> getRolesInContext(String context) {
+        List<Role> roles = new ArrayList<Role>();
+        if (context == null) return roles;
+        Query query = pm.newQuery(Role.class);
+        try {
+            query.setFilter("this.context == :c");
+            java.util.Map<String, Object> params = new java.util.HashMap<String, Object>();
+            params.put("c", context);
+            Collection c = (Collection)query.executeWithMap(params);
+            if (c != null) roles.addAll(c);
+        } finally {
+            query.closeAll();
+        }
         return roles;
     }
 

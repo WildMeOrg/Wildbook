@@ -14,6 +14,17 @@ import static org.junit.jupiter.api.Assertions.*;
  * non-atomic rename claim, not ATOMIC_MOVE). No containers required.
  */
 public class FileQueueSerialClaimTest {
+    @Test void checkedPublicationCanBeConsumedAndReportsFilesystemFailure(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        FileQueue.init("context0"); FileQueue queue = new FileQueue("test-checked-" + System.nanoTime());
+        java.lang.reflect.Field dir = FileQueue.class.getDeclaredField("queueDir"); dir.setAccessible(true); dir.set(queue, root.toFile());
+        java.nio.file.Files.writeString(root.resolve("addToQueue-incomplete.tmp"), "partial");
+        assertNull(queue.getNext(), "consumer must ignore unfinished publication");
+        queue.publishChecked("{\"unicode\":\"zèbre\"}");
+        assertEquals("{\"unicode\":\"zèbre\"}", queue.getNext());
+        java.nio.file.Path notDirectory = java.nio.file.Files.createFile(root.resolve("not-directory"));
+        dir.set(queue, notDirectory.toFile());
+        assertThrows(java.io.IOException.class, () -> queue.publishChecked("message"));
+    }
     @Test void serialConsumerClaimsEveryMessage() throws Exception {
         FileQueue.init("context0");
         // Unique queue name -> isolated subdir under the (possibly shared) base dir.

@@ -120,21 +120,12 @@ public class StartupWildbook implements ServletContextListener {
                 myShepherd.beginDBTransaction();
                 System.out.println("Creating tomcat roles...");
 
-                Role newRole1 = new Role("tomcat", "admin");
-                newRole1.setContext("context0");
-                myShepherd.getPM().makePersistent(newRole1);
-                Role newRole1a = new Role("tomcat", "orgAdmin");
-                newRole1a.setContext("context0");
-                myShepherd.getPM().makePersistent(newRole1a);
-                Role newRole2 = new Role("tomcat", "researcher");
-                newRole2.setContext("context0");
-                myShepherd.getPM().makePersistent(newRole2);
-                Role newRole3 = new Role("tomcat", "machinelearning");
-                newRole3.setContext("context0");
-                myShepherd.getPM().makePersistent(newRole3);
-                Role newRole5 = new Role("tomcat", "rest");
-                newRole5.setContext("context0");
-                myShepherd.getPM().makePersistent(newRole5);
+                // seeded in hierarchy order; the order these rows are written is not significant
+                for (String rolename : Role.SYSTEM_ROLES) {
+                    Role newRole = new Role("tomcat", rolename);
+                    newRole.setContext("context0");
+                    myShepherd.getPM().makePersistent(newRole);
+                }
                 myShepherd.commitDBTransaction();
                 System.out.println("Creating tomcat user account...");
             }
@@ -165,6 +156,8 @@ public class StartupWildbook implements ServletContextListener {
     }
 
     // these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
+    private org.ecocean.api.submission.SubmissionWorker submissionWorker;
+
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
         String context = "context0";
@@ -231,6 +224,8 @@ public class StartupWildbook implements ServletContextListener {
         } catch (Exception f) {
             f.printStackTrace();
         } finally { myShepherd.rollbackAndClose(); }
+        if (org.ecocean.api.submission.SubmissionPolicy.workerEnabled(context))
+            submissionWorker = new org.ecocean.api.submission.SubmissionWorker(sContext);
     }
 
     private void startIAQueues(String context) {
@@ -910,6 +905,7 @@ public class StartupWildbook implements ServletContextListener {
         // nulling the executor handle and waits up to 15s for in-flight
         // ticks; any tick still running after that gets shutdownNow().
         // The poll loop's interrupt/null checks make subsequent work bail.
+        if (submissionWorker != null) submissionWorker.close();
         shutdownWbiaRegisterExecutor();
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();

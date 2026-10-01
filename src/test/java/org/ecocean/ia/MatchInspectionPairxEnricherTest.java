@@ -33,6 +33,90 @@ class MatchInspectionPairxEnricherTest {
 
     // --- buildPayload ---------------------------------------------------
 
+    @Test void buildPayload_usesSuppliedModelId() {
+        // Registries differ per installation: kaiju loads miewid-msv4_v3,
+        // not the historic miewid-msv4.1. Sending an id the target has not
+        // loaded produced an HTTP 500 that Wildbook retried indefinitely.
+        JSONObject p = MatchInspectionPairxEnricher.buildPayload(sampleDto(), "miewid-msv4_v3", "backbone.blocks.3");
+        assertEquals("miewid-msv4_v3", p.getString("model_id"));
+    }
+
+    @Test void buildPayload_defaultOverloadUsesDefaultModelId() {
+        JSONObject p = MatchInspectionPairxEnricher.buildPayload(sampleDto());
+        assertEquals(MatchResult.DEFAULT_PAIRX_MODEL_ID, p.getString("model_id"));
+    }
+
+    @Test void buildPayload_modelIdDoesNotDisturbOtherKeys() {
+        JSONObject p = MatchInspectionPairxEnricher.buildPayload(sampleDto(), "anything", "backbone.blocks.9");
+        assertEquals("pairx", p.getString("algorithm"));
+        assertEquals("backbone.blocks.9", p.getString("layer_key"));
+        assertEquals(5, p.getInt("k_colors"));
+    }
+
+    @Test void buildPayload_usesSuppliedLayerKey() {
+        // layer_key is model-architecture specific: a configured model is
+        // not guaranteed to expose backbone.blocks.3.
+        JSONObject p = MatchInspectionPairxEnricher.buildPayload(
+            sampleDto(), "m", "backbone.blocks.1");
+        assertEquals("backbone.blocks.1", p.getString("layer_key"));
+    }
+
+    @Test void buildPayload_nullOrBlankArgsNormaliseToDefaults() {
+        // The payload must never carry a null model_id.
+        JSONObject p = MatchInspectionPairxEnricher.buildPayload(sampleDto(), null, null);
+        assertEquals(MatchResult.DEFAULT_PAIRX_MODEL_ID, p.getString("model_id"));
+        assertEquals(MatchResult.DEFAULT_PAIRX_LAYER_KEY, p.getString("layer_key"));
+        JSONObject q = MatchInspectionPairxEnricher.buildPayload(sampleDto(), "  ", "");
+        assertEquals(MatchResult.DEFAULT_PAIRX_MODEL_ID, q.getString("model_id"));
+        assertEquals(MatchResult.DEFAULT_PAIRX_LAYER_KEY, q.getString("layer_key"));
+    }
+
+    @Test void pairxModelIdFromConfig_precedence() {
+        JSONObject both = new JSONObject()
+            .put("pairx_model_id", "explicit").put("extract_model_id", "extract");
+        assertEquals("explicit", MatchResult._pairxModelIdFromConfig(both));
+        JSONObject extractOnly = new JSONObject().put("extract_model_id", "miewid-msv4_v3");
+        assertEquals("miewid-msv4_v3", MatchResult._pairxModelIdFromConfig(extractOnly));
+        assertEquals(MatchResult.DEFAULT_PAIRX_MODEL_ID,
+            MatchResult._pairxModelIdFromConfig(new JSONObject()));
+        assertEquals(MatchResult.DEFAULT_PAIRX_MODEL_ID,
+            MatchResult._pairxModelIdFromConfig(null));
+    }
+
+    @Test void pairxModelIdFromConfig_blankValuesFallThrough() {
+        // optString returns the blank, not the default: a blank
+        // pairx_model_id must fall through to extract_model_id, and a
+        // blank extract_model_id to the default -- never reach the wire.
+        JSONObject blankExplicit = new JSONObject()
+            .put("pairx_model_id", "   ").put("extract_model_id", "miewid-msv4_v3");
+        assertEquals("miewid-msv4_v3", MatchResult._pairxModelIdFromConfig(blankExplicit));
+        JSONObject bothBlank = new JSONObject()
+            .put("pairx_model_id", "").put("extract_model_id", "  ");
+        assertEquals(MatchResult.DEFAULT_PAIRX_MODEL_ID,
+            MatchResult._pairxModelIdFromConfig(bothBlank));
+    }
+
+    @Test void pairxLayerKeyFromConfig_blankFallsBackToDefault() {
+        assertEquals(MatchResult.DEFAULT_PAIRX_LAYER_KEY,
+            MatchResult._pairxLayerKeyFromConfig(new JSONObject().put("pairx_layer_key", "  ")));
+    }
+
+    @Test void pairxLayerKeyFromConfig_precedence() {
+        assertEquals("backbone.blocks.1", MatchResult._pairxLayerKeyFromConfig(
+            new JSONObject().put("pairx_layer_key", "backbone.blocks.1")));
+        assertEquals(MatchResult.DEFAULT_PAIRX_LAYER_KEY,
+            MatchResult._pairxLayerKeyFromConfig(new JSONObject()));
+        assertEquals(MatchResult.DEFAULT_PAIRX_LAYER_KEY,
+            MatchResult._pairxLayerKeyFromConfig(null));
+    }
+
+    @Test void pairxUrlFromConfig_nullConfigYieldsNullSoPairxIsSkipped() throws Exception {
+        // A config read that failed must skip PairX entirely rather than
+        // POST a default model id the deployment may not have loaded.
+        assertNull(MatchResult._pairxUrlFromConfig(null));
+        assertNull(MatchResult._pairxUrlFromConfig(new JSONObject()));
+    }
+
     @Test void buildPayload_setsAllFixedKeys() {
         JSONObject p = MatchInspectionPairxEnricher.buildPayload(sampleDto());
         assertEquals("pairx", p.getString("algorithm"));
