@@ -863,9 +863,9 @@ public class IAGateway extends HttpServlet {
         // previous code's "logged before sleeping" timing for any
         // operators tailing for this string.
         System.out.println("requeueJob(): backgrounding taskId=" + taskId);
-        scheduleRequeuePublish(jobj, context, taskId, initialDelayMillis);
-
-        return true;
+        // false when the executor rejected the schedule (webapp undeploy): the retry is
+        // permanently lost and the caller must not believe it was requeued
+        return scheduleRequeuePublish(jobj, context, taskId, initialDelayMillis);
     }
 
     // Schedules a single attempt to publish jobj onto the appropriate
@@ -873,7 +873,22 @@ public class IAGateway extends HttpServlet {
     // with a 30s backoff — preserving the original code's "retry
     // forever on addToQueue/addToDetectionQueue failure" semantics
     // without an unbounded busy loop on a dedicated thread.
-    private static void scheduleRequeuePublish(final JSONObject jobj, final String context,
+    private static boolean scheduleRequeuePublish(final JSONObject jobj, final String context,
+        final String taskId, long delayMillis) {
+        try {
+            scheduleRequeuePublishUnguarded(jobj, context, taskId, delayMillis);
+            return true;
+        } catch (java.util.concurrent.RejectedExecutionException rex) {
+            // REQUEUE_EXEC was shut down (webapp undeploy/reload). The job was never written to
+            // the persistent spool, so this retry is genuinely lost — say so loudly rather than
+            // letting the exception propagate into whatever thread asked for the requeue.
+            System.out.println("ERROR: scheduleRequeuePublish() rejected (executor shut down?); " +
+                "requeue LOST for taskId=" + taskId + ": " + rex.toString());
+            return false;
+        }
+    }
+
+    private static void scheduleRequeuePublishUnguarded(final JSONObject jobj, final String context,
         final String taskId, long delayMillis) {
         REQUEUE_EXEC.schedule(new Runnable() {
             public void run() {
