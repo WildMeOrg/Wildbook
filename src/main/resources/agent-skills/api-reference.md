@@ -148,8 +148,8 @@ for an encounter's complete photo list.
 ## OpenSearch schema (token-exposed fields)
 Key indices and fields:
 - **encounter** — `id`, `taxonomy`, `locationId`/`locationName`, `date`/`dateMillis`, `individualId`,
-  `sex`, `lifeStage`, `livingStatus`, `country`, `behavior`, `version` (when the record last
-  changed — see *Knowing when a record changed* below), ...
+  `sex`, `lifeStage`, `livingStatus`, `country`, `behavior`, `version` (last recorded edit
+  stamp — see *Knowing when a record changed* below), ...
 - **individual** — `id`, `displayName`, `names`/`nameMap`, `sex`, `taxonomy`, `timeOfBirth`/`timeOfDeath`.
 - **annotation** — `id`, `encounterId`, `viewpoint`, `iaClass`, `matchAgainst`, `mediaAssetId`, and
   `embeddings` (a **nested** field holding `method`, `methodVersion`, and the MiewID `vector`;
@@ -165,10 +165,8 @@ Access-control fields exist server-side but are **never** returned.
 
 Every stamped `encounter` document carries `version`: the encounter's **last recorded edit stamp**
 (the record's `modified` time) as milliseconds since the Unix epoch, for example `1790863407000`.
-The stamp is refreshed when the record's date, location, sex, life stage, identity assignment
-(`individualId`) and so on are saved through the current edit paths. The API returns the stamp in
-no other form, so convert `version` yourself for display, as you would any epoch-millis value
-derived from the server's clock, and compare it as a number.
+The API returns the stamp in no other form, so convert `version` yourself for display, as you would
+any epoch-millis value derived from the server's clock, and compare it as a number.
 
 `version` is a **best-effort polling aid, not a guaranteed change feed**: independent pages, tied
 versions, delayed indexing and one-second stamps can all cause a missed update, so use overlap and
@@ -178,15 +176,16 @@ periodic full reconciliation. A sync built on it looks like this:
    catalogue).
 2. On each poll, sweep a `range` on `version` from `highWaterMark - overlapMillis` — choose the
    overlap to cover your install's indexing delays; no finite overlap guarantees completeness —
-   oldest first with `?sort=version&sortOrder=asc`, paging with `?from=`/`?size=` until `from`
-   reaches `X-Wildbook-Total-Hits`:
+   oldest first with `?sort=version&sortOrder=asc`, paging with `?from=`/`?size=` until `from` is at
+   or past `X-Wildbook-Total-Hits`:
 
    ```json
    { "query": { "range": { "version": { "gt": 1790863407000 } } } }
    ```
 
 3. Upsert each hit by `id`, even when its `version` is unchanged. Only once the sweep is complete,
-   move the mark to the largest `version` you saw; keep the old mark if the sweep returned nothing.
+   move the mark to the larger of the old mark and the largest `version` you saw (an overlap-only
+   sweep must never move it backwards).
 4. Re-baseline periodically (nightly or weekly, as your use demands).
 
 If a sweep would exceed the result-window ceiling, add an upper bound (`lte`) and advance in
@@ -203,7 +202,7 @@ Things to know:
   and internal operations (an individual merge re-pointing encounters, for one) save without
   re-stamping, and photo or annotation changes do not consistently refresh it. That is another
   reason to re-baseline.
-- A record with no stamp has `version: 0`; treat zero as "unknown", not "old".
+- A record with no usable stamp has `version: 0`; treat zero as "unknown", not "old".
 - `individual` and `annotation` documents carry a `version` of their own — a millisecond-based
   change marker (for annotations it is nudged forward if the clock has not moved).
 
