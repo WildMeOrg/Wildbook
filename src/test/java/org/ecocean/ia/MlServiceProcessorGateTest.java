@@ -30,8 +30,9 @@ class MlServiceProcessorGateTest {
     /** Records the payload(s) published by the processor under test. */
     private static final class RecordingPublisher implements DeferredMatchPublisher {
         final List<JSONObject> published = new ArrayList<JSONObject>();
-        @Override public void publish(JSONObject payload) {
+        @Override public boolean publish(JSONObject payload) {
             published.add(payload);
+            return true;
         }
     }
 
@@ -88,6 +89,37 @@ class MlServiceProcessorGateTest {
         assertEquals(MlServiceJobOutcome.Kind.OK, out.getKind());
         assertEquals(1, publisher.published.size(),
             "expected exactly one re-published payload");
+    }
+
+    @Test void failedDeferredPublishFallsBackToRunningTheMatch() {
+        // If the deferred payload was NOT queued (publisher returns false: requeue executor
+        // gone / publish failed), the DEFER arm must not report OK for a match that will never
+        // run. There is no passive backstop (the parent task is already completed, so the
+        // inactivity watchdog ignores it) — the processor must run the match immediately
+        // against the visible corpus, same tradeoff as the GIVE_UP arm.
+        long firstDeferred = System.currentTimeMillis();
+        DeferredMatchPublisher failingPublisher = new DeferredMatchPublisher() {
+            @Override public boolean publish(JSONObject payload) {
+                return false;
+            }
+        };
+        final List<String> matchedTaskIds = new ArrayList<String>();
+        MlServiceProcessor p = new MlServiceProcessor("context0", new MlServiceClient(),
+            new StubGate(MatchVisibilityGate.GateOutcome.defer(
+                2, firstDeferred, "sibling MA non-terminal")), failingPublisher) {
+            @Override boolean readSkipIdent(String taskId) { return false; }
+            @Override public MlServiceJobOutcome runMatchProspects(List<String> annotationIds,
+                String taskId, JSONObject matchConfig) {
+                matchedTaskIds.add(taskId);
+                return MlServiceJobOutcome.ok(new ArrayList<String>(annotationIds));
+            }
+        };
+        MlServiceJobOutcome out = p.runDeferredMatch(deferredJobPayload(2, firstDeferred));
+        assertEquals(1, matchedTaskIds.size(),
+            "a lost deferred re-fire must fall back to running the match now");
+        assertEquals("task-1", matchedTaskIds.get(0), "fallback match targets the same task");
+        assertEquals(MlServiceJobOutcome.Kind.OK, out.getKind(),
+            "outcome comes from the fallback match, not a fake OK for a dropped job");
     }
 
     @Test void publishedPayloadCarriesBothRoutingFlags() {
