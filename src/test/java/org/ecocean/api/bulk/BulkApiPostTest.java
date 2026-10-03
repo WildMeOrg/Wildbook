@@ -461,6 +461,75 @@ class BulkApiPostTest {
         }
     }
 
+    @Test void defaultUnknownFieldPolicyRemainsWarningOnly()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn("test-user");
+        JSONObject payload = new JSONObject(getValidPayloadNonArrays());
+        payload.put("validateOnly", true);
+        payload.getJSONArray("rows").getJSONObject(0).put("Unknown.field", "value");
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload.toString())));
+        try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                 when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+                 when(mock.getUser(any(String.class))).thenReturn(user);
+                 when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+             });
+             MockedStatic<UploadedFiles> files = mockStatic(UploadedFiles.class)) {
+            files.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class), anyString()))
+                .thenReturn(emptyFiles);
+            apiServlet.doPost(mockRequest, mockResponse);
+            JSONObject result = new JSONObject(responseOut.toString());
+            verify(mockResponse).setStatus(200);
+            assertTrue(result.getBoolean("success"));
+            assertEquals(0, result.getInt("numberFieldsError"));
+            assertEquals(1, result.getInt("numberFieldsWarning"));
+            assertEquals("Unknown.field", result.getJSONArray("warnings").getJSONObject(0)
+                .getString("fieldName"));
+            assertEquals(org.ecocean.api.bulk.BulkValidatorException.TYPE_UNKNOWN_FIELDNAME,
+                result.getJSONArray("warnings").getJSONObject(0).getString("type"));
+        }
+    }
+
+    @Test void explicitEncounterIdGroupsRowsAndRetainsYearOnlyPrecision()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        Occurrence occurrence = mock(Occurrence.class);
+        JSONObject payload = new JSONObject(getValidPayloadNonArrays());
+        JSONObject row = payload.getJSONArray("rows").getJSONObject(0);
+        row.put("Encounter.id", "00000000-0000-4000-8000-000000000099");
+        payload.put("rows", new JSONArray().put(row).put(new JSONObject(row.toString())));
+        payload.put("skipDetection", true);
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload.toString())));
+        try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                 when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+                 when(mock.getUser(any(String.class))).thenReturn(user);
+                 when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+                 when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occurrence);
+                 when(mock.getOrCreateOccurrence(null)).thenReturn(occurrence);
+             });
+             MockedStatic<UploadedFiles> files = mockStatic(UploadedFiles.class);
+             MockedStatic<org.ecocean.media.MediaAsset> media = mockStatic(org.ecocean.media.MediaAsset.class)) {
+            files.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class), anyString()))
+                .thenReturn(emptyFiles);
+            apiServlet.doPost(mockRequest, mockResponse);
+            JSONObject result = new JSONObject(responseOut.toString());
+            verify(mockResponse).setStatus(200);
+            assertTrue(result.getBoolean("success"));
+            assertEquals(1, result.getJSONArray("encounters").length());
+            java.util.List<org.mockito.invocation.Invocation> stores = sh.constructed().stream()
+                .flatMap(s -> org.mockito.Mockito.mockingDetails(s).getInvocations().stream())
+                .filter(i -> i.getMethod().getName().equals("storeNewEncounter"))
+                .collect(java.util.stream.Collectors.toList());
+            assertEquals(1, stores.size());
+            org.ecocean.Encounter encounter = (org.ecocean.Encounter)stores.get(0).getArguments()[0];
+            assertEquals(2000, encounter.getYear());
+            assertTrue(encounter.getMonth() < 1);
+            assertTrue(encounter.getDay() < 1);
+        }
+    }
+
     @Test void apiPostValidNonArrays()
     throws ServletException, IOException {
         User user = mock(User.class);
