@@ -107,6 +107,9 @@ describe("ReportEncounter Component", () => {
 
     renderComponent();
 
+    // anonymous submitters must accept the terms before Submit is enabled
+    fireEvent.click(screen.getByRole("checkbox"));
+
     const submitButton = screen.getByRole("button", {
       name: /SUBMIT_ENCOUNTER/i,
     });
@@ -134,6 +137,9 @@ describe("ReportEncounter Component", () => {
 
     renderComponent();
 
+    // anonymous submitters must accept the terms before Submit is enabled
+    fireEvent.click(screen.getByRole("checkbox"));
+
     const submitButton = screen.getByRole("button", {
       name: /SUBMIT_ENCOUNTER/i,
     });
@@ -159,6 +165,9 @@ describe("ReportEncounter Component", () => {
     }));
 
     renderComponent();
+
+    // anonymous submitters must accept the terms before Submit is enabled
+    fireEvent.click(screen.getByRole("checkbox"));
 
     const submitButton = screen.getByRole("button", {
       name: /SUBMIT_ENCOUNTER/i,

@@ -72,6 +72,17 @@ const ThemeWrapper = ({ children }) => (
   </ThemeColorContext.Provider>
 );
 
+// jsdom never fires an <img> load event, and reports a zero layout, so ImageCard's load
+// handler returns before it can set imageReady -- which gates both click-to-open and the
+// annotation rects. Give the element a size, then fire the load.
+const simulateImageLoad = () => {
+  const img = screen.getByAltText("encounter image");
+  Object.defineProperty(img, "clientWidth", { value: 500, configurable: true });
+  Object.defineProperty(img, "clientHeight", { value: 250, configurable: true });
+  fireEvent.load(img);
+  return img;
+};
+
 const baseEncounterData = {
   id: "E-1",
   mediaAssets: [
@@ -181,6 +192,8 @@ describe("ImageCard", () => {
     const user = userEvent.setup();
     const store = makeStore();
     renderCard(store);
+
+    simulateImageLoad();
 
     const imageBox = screen.getByAltText("encounter image").parentElement;
     await user.click(imageBox);
@@ -367,6 +380,8 @@ describe("ImageCard", () => {
 
     renderCard(store);
 
+    simulateImageLoad();
+
     const rectDiv = document.querySelector('[id^="rect-"]');
     expect(rectDiv).toBeTruthy();
 
@@ -430,44 +445,59 @@ describe("ImageCard", () => {
 
     test("no images: banner is not shown", () => {
       renderWithAssets([]);
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      expect(screen.queryByText("DETECTION_IN_PROGRESS")).not.toBeInTheDocument();
     });
 
-    test("image with null detectionStatus: banner is shown (needs polling)", () => {
+    // A null/undefined detectionStatus is TERMINAL on its own (isTerminalDetectionStatus
+    // treats a missing status as done). It only means "still detecting" for a bulk-import
+    // asset, which the API reports as null status plus a trivial placeholder annotation.
+    test("image with null detectionStatus: banner is not shown", () => {
       renderWithAssets([makeAsset(null)]);
-      expect(screen.getByRole("status")).toBeInTheDocument();
+      expect(screen.queryByText("DETECTION_IN_PROGRESS")).not.toBeInTheDocument();
     });
 
-    test("image with undefined detectionStatus: banner is shown (needs polling)", () => {
+    test("image with undefined detectionStatus: banner is not shown", () => {
       renderWithAssets([makeAsset(undefined)]);
-      expect(screen.getByRole("status")).toBeInTheDocument();
+      expect(
+        screen.queryByText("DETECTION_IN_PROGRESS"),
+      ).not.toBeInTheDocument();
+    });
+
+    test("bulk-import asset awaiting detection: banner is shown", () => {
+      renderWithAssets(
+        [{ ...makeAsset(null), annotations: [{ id: "a1", isTrivial: true }] }],
+        { encounterData: { id: "E-1", importTaskId: "imp-1", mediaAssets: [
+          { ...makeAsset(null), annotations: [{ id: "a1", isTrivial: true }] },
+        ] } },
+      );
+      expect(screen.getByText("DETECTION_IN_PROGRESS")).toBeInTheDocument();
     });
 
     test("non-terminal detectionStatus 'running': banner is shown", () => {
       renderWithAssets([makeAsset("running")]);
-      expect(screen.getByRole("status")).toBeInTheDocument();
+      expect(screen.getByText("DETECTION_IN_PROGRESS")).toBeInTheDocument();
     });
 
     test("detectionStatus 'complete': banner is not shown", () => {
       renderWithAssets([makeAsset("complete")]);
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      expect(screen.queryByText("DETECTION_IN_PROGRESS")).not.toBeInTheDocument();
     });
 
     test("detectionStatus 'error': banner is not shown", () => {
       renderWithAssets([makeAsset("error")]);
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      expect(screen.queryByText("DETECTION_IN_PROGRESS")).not.toBeInTheDocument();
     });
 
     test("detectionStatus 'pending': banner is not shown", () => {
       renderWithAssets([makeAsset("pending")]);
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      expect(screen.queryByText("DETECTION_IN_PROGRESS")).not.toBeInTheDocument();
     });
 
     test("banner reflects selectedImageIndex: index 0 complete hides banner even when index 1 is running", () => {
       renderWithAssets([makeAsset("complete"), makeAsset("running")], {
         selectedImageIndex: 0,
       });
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      expect(screen.queryByText("DETECTION_IN_PROGRESS")).not.toBeInTheDocument();
     });
   });
 });

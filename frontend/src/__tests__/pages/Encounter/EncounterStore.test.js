@@ -190,7 +190,7 @@ describe("EncounterStore", () => {
       expect(axios.post).toHaveBeenCalledWith(
         "/api/v3/search/individual?size=20&from=0",
         expect.objectContaining({
-          sort: [{ names: { order: "desc", unmapped_type: "keyword" } }],
+          sort: [{ names: { order: "desc", mode: "min", unmapped_type: "keyword" } }],
         }),
       );
     });
@@ -745,9 +745,9 @@ describe("EncounterStore", () => {
           mediaAssets: [
             {
               annotations: [
-                { id: "ann-1", encounterId: "enc-123" },
-                { id: "ann-2", encounterId: "enc-456" },
-                { id: "ann-3", encounterId: "enc-123" },
+                { id: "ann-1", encounterId: "enc-123", boundingBox: [0, 0, 10, 10] },
+                { id: "ann-2", encounterId: "enc-456", boundingBox: [0, 0, 10, 10] },
+                { id: "ann-3", encounterId: "enc-123", boundingBox: [0, 0, 10, 10] },
               ],
             },
           ],
@@ -759,6 +759,25 @@ describe("EncounterStore", () => {
           "ann-1",
           "ann-3",
         ]);
+      });
+
+      it("excludes trivial and zero-area annotations", () => {
+        store.setEncounterData({
+          id: "enc-123",
+          mediaAssets: [
+            {
+              annotations: [
+                { id: "keep", encounterId: "enc-123", boundingBox: [0, 0, 10, 10] },
+                { id: "trivial", encounterId: "enc-123", isTrivial: true, boundingBox: [0, 0, 10, 10] },
+                { id: "no-bbox", encounterId: "enc-123" },
+                { id: "zero-area", encounterId: "enc-123", boundingBox: [0, 0, 0, 0] },
+              ],
+            },
+          ],
+        });
+        store.setSelectedImageIndex(0);
+
+        expect(store.encounterAnnotations.map((a) => a.id)).toEqual(["keep"]);
       });
 
       it("hasMatchableAnnotations is true for a matchAgainst+acmId unity annotation (isTrivial, full-image bbox)", () => {
@@ -829,6 +848,7 @@ describe("EncounterStore", () => {
                 {
                   id: "ann-1",
                   encounterId: "enc-123",
+                  boundingBox: [0, 0, 10, 10],
                   iaTaskId: "task-123",
                   iaTaskParameters: { skipIdent: false },
                   identificationStatus: "complete",
