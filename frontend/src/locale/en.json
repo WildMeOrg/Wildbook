@@ -141,6 +141,8 @@
     "TOTAL_ITEMS": "Total Items",
     "PER_PAGE": "Per Page",
     "PAGE": "Page",
+    "RESULTS_WINDOW_CAPPED": "Only the first {limit} of {total} results can be browsed. Narrow your search to see the rest.",
+    "SEARCH_RESULTS_ERROR": "Search failed. Please try again or adjust your filters.",
     "GO_TO": "Go to",
     "GO": "Go",
     "ENCOUNTER_SEARCH_RESULTS": "Encounter Search Results",

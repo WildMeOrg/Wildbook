@@ -13,6 +13,7 @@ import GalleryView from "../pages/SearchPages/searchResultTabs/GalleryView";
 import Select from "react-select";
 import MainButton from "./MainButton";
 import { useSiteSettings } from "../SiteSettingsContext";
+import { browsableItemCount, pageCount } from "../utils/resultWindow";
 
 const customStyles = {
   rows: {
@@ -33,6 +34,8 @@ const MyDataTable = observer(
     title = "",
     columnNames = [],
     totalItems = 0,
+    maxResultWindow = undefined,
+    error = null,
     tableData = [],
     searchText = "",
     page,
@@ -48,6 +51,10 @@ const MyDataTable = observer(
     setExportModalOpen = () => {},
   }) => {
     const [data, setData] = useState([]);
+    // OpenSearch cannot serve hits past index.max_result_window - offer only pages
+    // that are actually fetchable, even when the total hit count is larger
+    const browsableItems = browsableItemCount(totalItems, maxResultWindow, perPage);
+    const browsablePageCount = pageCount(totalItems, maxResultWindow, perPage);
     const [filterText, setFilterText] = useState("");
     const [goToPage, setGoToPage] = useState("");
     const perPageOptions = [10, 20, 30, 40, 50];
@@ -189,6 +196,14 @@ const MyDataTable = observer(
       [columnNames],
     );
 
+    // if the browsable page count shrinks below the current page (window/per-page
+    // changed), snap back to the last reachable page
+    useEffect(() => {
+      if (browsablePageCount > 0 && page >= browsablePageCount) {
+        onPageChange(browsablePageCount - 1);
+      }
+    }, [browsablePageCount, page, onPageChange]);
+
     const params = new URLSearchParams(window.location.search);
     const individualIDExact = params.get("individualIDExact");
     const calendar = params.get("calendar");
@@ -247,7 +262,7 @@ const MyDataTable = observer(
       if (
         !isNaN(pageNumber) &&
         pageNumber >= 0 &&
-        pageNumber < Math.ceil(totalItems / perPage)
+        pageNumber < browsablePageCount
       ) {
         onPageChange(pageNumber);
       }
@@ -257,6 +272,7 @@ const MyDataTable = observer(
       const newPerPage = Number(event.target.value);
       if (!isNaN(newPerPage) && newPerPage > 0) {
         onPerPageChange(newPerPage);
+        onPageChange(0);
       }
     };
 
@@ -620,10 +636,19 @@ const MyDataTable = observer(
               className="d-flex justify-content-center align-items-center"
               style={{ color: "white" }}
             >
-              <FormattedMessage
-                id="NO_RESULTS_FOUND"
-                defaultMessage={"No results found"}
-              />
+              {error ? (
+                <FormattedMessage
+                  id="SEARCH_RESULTS_ERROR"
+                  defaultMessage={
+                    "Search failed. Please try again or adjust your filters."
+                  }
+                />
+              ) : (
+                <FormattedMessage
+                  id="NO_RESULTS_FOUND"
+                  defaultMessage={"No results found"}
+                />
+              )}
             </div>
           ) : (
             <Row className="mt-3 d-flex justify-content-center align-items-center">
@@ -659,13 +684,14 @@ const MyDataTable = observer(
                     ))}
                   </Form.Control>
                 </InputGroup>
+                {browsablePageCount > 0 && (
                 <ReactPaginate
                   previousLabel={"<"}
                   nextLabel={">"}
                   breakLabel={"..."}
                   breakClassName={"page-item"}
                   breakLinkClassName={"page-link"}
-                  pageCount={Math.ceil(totalItems / perPage)}
+                  pageCount={browsablePageCount}
                   marginPagesDisplayed={2}
                   pageRangeDisplayed={2}
                   onPageChange={handlePageChange}
@@ -677,8 +703,9 @@ const MyDataTable = observer(
                   nextClassName={"page-item"}
                   nextLinkClassName={"page-link"}
                   activeClassName={"active-page"}
-                  forcePage={page}
+                  forcePage={Math.min(page, browsablePageCount - 1)}
                 />
+                )}
                 <InputGroup
                   className="ms-3"
                   style={{ width: "180px", whiteSpace: "nowrap" }}
@@ -696,6 +723,21 @@ const MyDataTable = observer(
                   </Button>
                 </InputGroup>
               </Col>
+              {totalItems > browsableItems && (
+                <Col
+                  xs={12}
+                  className="mt-2 d-flex justify-content-center"
+                  style={{ color: "white" }}
+                >
+                  <FormattedMessage
+                    id="RESULTS_WINDOW_CAPPED"
+                    defaultMessage={
+                      "Only the first {limit} of {total} results can be browsed. Narrow your search to see the rest."
+                    }
+                    values={{ limit: browsableItems, total: totalItems }}
+                  />
+                </Col>
+              )}
             </Row>
           )}
         </div>
