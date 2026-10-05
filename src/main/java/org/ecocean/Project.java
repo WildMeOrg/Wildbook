@@ -1,7 +1,9 @@
 package org.ecocean;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -15,7 +17,11 @@ public class Project implements java.io.Serializable {
 
     private String id;
 
-    private List<Encounter> encounters = null;
+    // Unordered Set (not List): an ordered List makes JDO add an IDX ordering column to
+    // PROJECT_ENCOUNTERS, whose index is computed from a (possibly stale, eagerly-cached)
+    // collection snapshot and collides under concurrent adds. Project membership has no
+    // meaningful order, so a Set keyed on (project, encounter) avoids that entirely.
+    private Set<Encounter> encounters = null;
 
     private String researchProjectName;
     private String projectIdPrefix;
@@ -47,7 +53,7 @@ public class Project implements java.io.Serializable {
 
     public Project(final String projectIdPrefix, final String researchProjectName,
         final List<Encounter> encs) {
-        this.encounters = new ArrayList<>();
+        this.encounters = new LinkedHashSet<>();
         this.id = Util.generateUUID();
         this.projectIdPrefix = projectIdPrefix;
         this.researchProjectName = researchProjectName;
@@ -221,20 +227,39 @@ public class Project implements java.io.Serializable {
         return projectIdPrefix;
     }
 
+    // returns a detached copy as a List to preserve the historical API (callers assign to
+    // List and some index it); membership mutation goes through add/removeEncounter, so a
+    // copy is safe. Callers that only need a membership test should use containsEncounter().
     public List<Encounter> getEncounters() {
-        return encounters;
+        return encounters == null ? null : new ArrayList<>(encounters);
+    }
+
+    // membership test without allocating a copy of the whole collection. Encounter inherits
+    // an id-based equals() from Base, consistent with its id-based hashCode(), so Set
+    // contains() is correct and O(1).
+    public boolean containsEncounter(final Encounter enc) {
+        if (enc == null || encounters == null || enc.getCatalogNumber() == null) return false;
+        return encounters.contains(enc);
     }
 
     public void addEncounter(final Encounter enc) {
+        if (enc == null) return;
+        // Encounter.hashCode() is catalogNumber-based; a null catalogNumber yields a random
+        // hashCode, which would defeat Set dedup. Reject null-id encounters. For non-null
+        // ids, Base.equals()/Encounter.hashCode() are both id-based, so Set.add() dedups.
+        if (enc.getCatalogNumber() == null) {
+            System.out.println(
+                "[WARN] Project.addEncounter(): refusing encounter with null id, project id=" +
+                id);
+            return;
+        }
         setTimeLastModified();
         if (encounters == null) {
-            encounters = new ArrayList<Encounter>();
+            encounters = new LinkedHashSet<Encounter>();
         }
-        if (enc != null && encounters != null && !encounters.contains(enc)) {
-            encounters.add(enc);
-        } else {
+        if (!encounters.add(enc)) {
             System.out.println("[INFO]: Project.addEncounter(): The selected Project id=" + id +
-                " already contains encounter id=" + enc.getID() + ", skipping.");
+                " already contains encounter id=" + enc.getCatalogNumber() + ", skipping.");
         }
     }
 
@@ -245,13 +270,14 @@ public class Project implements java.io.Serializable {
     }
 
     public void removeEncounter(final Encounter enc) {
+        if (enc == null || encounters == null) return;
         setTimeLastModified();
         encounters.remove(enc);
     }
 
     public void clearAllEncounters() {
         setTimeLastModified();
-        this.encounters = new ArrayList<>();
+        this.encounters = new LinkedHashSet<>();
     }
 
     public int numEncounters() {
