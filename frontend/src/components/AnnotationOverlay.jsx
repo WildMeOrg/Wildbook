@@ -12,11 +12,16 @@ import {
   annotationDisplayRect,
   computeFitToAnnotation,
   computeMaxZoom,
+  computeZoomAboutPoint,
 } from "../utils/annotationZoom";
 
 const VISIBLE_MARGIN_PX = 40;
 // Breathing room left around an auto-fitted annotation, as a fraction of the box.
 const ANNOTATION_FIT_MARGIN = 0.1;
+// How long after the last wheel notch the transform transition stays off. Long
+// enough to bridge the gap between notches of one scroll gesture, short enough
+// that the animation is back before the next deliberate interaction.
+const WHEEL_SETTLE_MS = 200;
 
 const InteractiveAnnotationOverlay = forwardRef(
   (
@@ -49,11 +54,23 @@ const InteractiveAnnotationOverlay = forwardRef(
     const outerContainerRef = useRef(null);
     const imgRef = useRef(null);
 
-    const [zoom, setZoom] = useState(
-      Number.isFinite(initialZoom) ? initialZoom : 1,
-    );
-    const [pan, setPan] = useState({ x: 0, y: 0 });
+    // Zoom and pan are one piece of state, not two. Every zoom step has to move
+    // the pan to keep the focal point still, and a single functional update is
+    // the only way to derive both from the same previous view -- two chained
+    // setState calls would compute the new pan from a zoom that may already
+    // have moved on, and a setPan nested inside a setZoom updater is an impure
+    // updater that StrictMode double-invokes.
+    const [view, setView] = useState(() => ({
+      zoom: Number.isFinite(initialZoom) ? initialZoom : 1,
+      pan: { x: 0, y: 0 },
+    }));
+    const { zoom, pan } = view;
     const [dragging, setDragging] = useState(false);
+    // While a wheel gesture is in flight the transform transition is off: the
+    // focal math is computed from committed React state, so animating toward it
+    // would leave the point under the cursor lagging behind the cursor itself.
+    const [wheelZooming, setWheelZooming] = useState(false);
+    const wheelSettleRef = useRef(null);
     const dragStartRef = useRef({ x: 0, y: 0 });
     const panStartRef = useRef({ x: 0, y: 0 });
     const [scaleX, setScaleX] = useState(1);
@@ -83,8 +100,18 @@ const InteractiveAnnotationOverlay = forwardRef(
     // run as a layout effect so a cached replacement cannot paint at the old transform
     // first. The auto-fit effect reframes once the new image has loaded.
     useLayoutEffect(() => {
-      setZoom(Number.isFinite(initialZoom) ? initialZoom : 1);
-      setPan((prev) => (prev.x === 0 && prev.y === 0 ? prev : { x: 0, y: 0 }));
+      setView((prev) => {
+        const nextZoom = Number.isFinite(initialZoom) ? initialZoom : 1;
+
+        if (prev.zoom === nextZoom && prev.pan.x === 0 && prev.pan.y === 0) {
+          return prev;
+        }
+        return { zoom: nextZoom, pan: { x: 0, y: 0 } };
+      });
+      // A wheel gesture on the outgoing image must not swallow the incoming
+      // one's reset/auto-fit animation.
+      if (wheelSettleRef.current) clearTimeout(wheelSettleRef.current);
+      setWheelZooming(false);
       // initialZoom is the default view, not a trigger: changing it alone should not
       // yank the image out from under the user.
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -184,7 +211,7 @@ const InteractiveAnnotationOverlay = forwardRef(
 
     const clampZoom = (z) => Math.max(minZoom, Math.min(maxZoomRef.current, z));
 
-    const clampPan = (nextPan, nextZoom = zoom) => {
+    const clampPan = (nextPan, nextZoom) => {
       const container = outerContainerRef.current;
       const img = imgRef.current;
 
@@ -207,6 +234,88 @@ const InteractiveAnnotationOverlay = forwardRef(
         x: Math.max(minX, Math.min(maxX, nextPan.x)),
         y: Math.max(minY, Math.min(maxY, nextPan.y)),
       };
+    };
+
+    // Where a screen point sits in the transformed wrapper's own unscaled
+    // coordinate frame -- the frame `pan` is expressed in. Measured from the
+    // container, whose box is never transformed; the wrapper's own bounding rect
+    // reports an interpolated position mid-transition rather than committed pan.
+    const focalFromClient = (clientX, clientY) => {
+      const container = outerContainerRef.current;
+
+      if (!container) return null;
+      if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return null;
+
+      // getBoundingClientRect gives the border box. Step in past the border
+      // (clientLeft/clientTop) and then the padding to reach the content box,
+      // where the wrapper -- a static, in-flow, marginless child -- has its
+      // layout origin. Taking the padding from the container itself, rather than
+      // the wrapper's offsetLeft, stays correct even if a caller's containerStyle
+      // repositions the container out of the wrapper's offsetParent chain.
+      const rect = container.getBoundingClientRect();
+      const padding = window.getComputedStyle(container);
+      // Minus any scroll offset: the container is overflow:hidden by default, but
+      // it can still be scrolled programmatically (and containerStyle can make it
+      // scrollable), which moves the wrapper without moving the container's rect.
+      const originX =
+        rect.left +
+        container.clientLeft +
+        (parseFloat(padding.paddingLeft) || 0) -
+        container.scrollLeft;
+      const originY =
+        rect.top +
+        container.clientTop +
+        (parseFloat(padding.paddingTop) || 0) -
+        container.scrollTop;
+
+      return { x: clientX - originX, y: clientY - originY };
+    };
+
+    // Middle of the visible pane: the anchor for the toolbar zoom buttons, which
+    // have no cursor to zoom toward. Matches the legacy OpenSeadragon viewer.
+    const paneCenterFocal = () => {
+      const container = outerContainerRef.current;
+
+      if (!container) return null;
+      const rect = container.getBoundingClientRect();
+
+      return focalFromClient(
+        rect.left + container.clientLeft + container.clientWidth / 2,
+        rect.top + container.clientTop + container.clientHeight / 2,
+      );
+    };
+
+    // One zoom step, anchored so `focal` stays under the same screen pixel.
+    // `focal` is measured before the updater runs, so the updater derives the
+    // whole next view from `prev` and a StrictMode double-invocation cannot
+    // apply the shift twice. (clampPan reads layout, but read-only.)
+    const zoomAbout = (direction, focal) => {
+      setView((prev) => {
+        const nextZoom = clampZoom(
+          direction > 0 ? prev.zoom * zoomFactor : prev.zoom / zoomFactor,
+        );
+
+        // Already at the ceiling or the floor: leave the view exactly as it is
+        // rather than nudging the pan for a zoom that did not happen.
+        if (nextZoom === prev.zoom) return prev;
+
+        // Zooming all the way out means "show me the whole photo", so drop the
+        // pan rather than leaving the image parked off to one side.
+        if (nextZoom <= minZoom) return { zoom: nextZoom, pan: { x: 0, y: 0 } };
+
+        const anchored = focal
+          ? computeZoomAboutPoint({
+              pan: prev.pan,
+              zoom: prev.zoom,
+              nextZoom,
+              focal,
+            })
+          : prev.pan;
+
+        // Clamping wins over anchoring: near the edges the focal point does move,
+        // but the image cannot be zoomed out of the pane.
+        return { zoom: nextZoom, pan: clampPan(anchored, nextZoom) };
+      });
     };
 
     const stateRef = useRef({ zoom, pan, showAnn, imageLoaded });
@@ -244,16 +353,29 @@ const InteractiveAnnotationOverlay = forwardRef(
       });
 
       if (!fit) return false;
-      setZoom(fit.zoom);
-      setPan(clampPan(fit.pan, fit.zoom));
+      setView({ zoom: fit.zoom, pan: clampPan(fit.pan, fit.zoom) });
       return true;
     };
 
-    // Same reason as maxZoomRef: the imperative handle needs the current closure,
-    // and it must be in place before a parent effect can call reset().
+    // The whole photo at the default zoom, panned back to the top-left.
+    const fitImageView = () => {
+      const nextZoom = clampZoom(initialZoom || 1);
+
+      setView({ zoom: nextZoom, pan: clampPan({ x: 0, y: 0 }, nextZoom) });
+    };
+
+    // Same reason as maxZoomRef: the imperative handle is built once with empty
+    // deps, so everything it calls has to be reached through a ref that holds
+    // the current render's closure (current props, current clamps).
     const fitRef = useRef(() => false);
+    const fitImageRef = useRef(() => {});
+    const zoomAboutRef = useRef(() => {});
+    const showAnnPropRef = useRef(showAnnotationsProp);
     useLayoutEffect(() => {
       fitRef.current = fitAnnotationView;
+      fitImageRef.current = fitImageView;
+      zoomAboutRef.current = zoomAbout;
+      showAnnPropRef.current = showAnnotationsProp;
     });
 
     const fitSignature = useMemo(() => {
@@ -285,46 +407,31 @@ const InteractiveAnnotationOverlay = forwardRef(
       scaleX,
       scaleY,
       sourceSize.url,
+      // annotationDisplayRect draws the box in a different frame when the asset
+      // carries rotation, and minZoom is the fit's floor: if either arrives after
+      // the image, the framing has to be recomputed.
+      hasRotation,
+      minZoom,
     ]);
 
     useImperativeHandle(ref, () => ({
-      zoomIn: () => {
-        setZoom((z) => {
-          const nextZoom = clampZoom(z * zoomFactor);
-          setPan((prev) => clampPan(prev, nextZoom));
-          return nextZoom;
-        });
-      },
-      zoomOut: () => {
-        setZoom((z) => {
-          const nextZoom = clampZoom(z / zoomFactor);
-          // Zooming all the way out means "show me the whole photo", so drop the
-          // pan rather than leaving the image parked off to one side.
-          setPan((prev) =>
-            nextZoom <= minZoom ? { x: 0, y: 0 } : clampPan(prev, nextZoom),
-          );
-          return nextZoom;
-        });
-      },
+      // The buttons have no cursor to zoom toward, so they anchor the middle of
+      // the pane -- whatever the user centred stays centred.
+      zoomIn: () => zoomAboutRef.current(1, paneCenterFocal()),
+      zoomOut: () => zoomAboutRef.current(-1, paneCenterFocal()),
       // The default view: the annotation when auto-fit is on, else whole image.
       reset: () => {
         if (fitRef.current()) return;
-        const nextZoom = clampZoom(initialZoom || 1);
-        setZoom(nextZoom);
-        setPan(clampPan({ x: 0, y: 0 }, nextZoom));
+        fitImageRef.current();
       },
-      fitImage: () => {
-        const nextZoom = clampZoom(initialZoom || 1);
-        setZoom(nextZoom);
-        setPan(clampPan({ x: 0, y: 0 }, nextZoom));
-      },
+      fitImage: () => fitImageRef.current(),
       fitAnnotation: () => fitRef.current(),
       toggleAnnotations: () => {
-        if (typeof showAnnotationsProp === "boolean") return;
+        if (typeof showAnnPropRef.current === "boolean") return;
         setInternalShowAnn((v) => !v);
       },
       setAnnotationsVisible: (v) => {
-        if (typeof showAnnotationsProp === "boolean") return;
+        if (typeof showAnnPropRef.current === "boolean") return;
         setInternalShowAnn(!!v);
       },
       getState: () => stateRef.current,
@@ -350,7 +457,7 @@ const InteractiveAnnotationOverlay = forwardRef(
           y: panStartRef.current.y + dy,
         };
 
-        setPan(clampPan(nextPan));
+        setView((prev) => ({ ...prev, pan: clampPan(nextPan, prev.zoom) }));
       };
 
       const onUp = () => setDragging(false);
@@ -362,14 +469,14 @@ const InteractiveAnnotationOverlay = forwardRef(
         window.removeEventListener("mousemove", onMove);
         window.removeEventListener("mouseup", onUp);
       };
-    }, [dragging, zoom]);
+    }, [dragging]);
 
     useEffect(() => {
       const img = imgRef.current;
       if (!img) return;
 
       const handleLoad = () => {
-        setPan((prev) => clampPan(prev, zoom));
+        setView((prev) => ({ ...prev, pan: clampPan(prev.pan, prev.zoom) }));
       };
 
       if (img.complete && img.naturalWidth > 0) {
@@ -378,32 +485,45 @@ const InteractiveAnnotationOverlay = forwardRef(
         img.addEventListener("load", handleLoad);
         return () => img.removeEventListener("load", handleLoad);
       }
-    }, [imageUrl, zoom]);
+    }, [imageUrl]);
 
     useEffect(() => {
       const handleResize = () => {
-        setPan((prev) => clampPan(prev, zoom));
+        setView((prev) => ({ ...prev, pan: clampPan(prev.pan, prev.zoom) }));
       };
 
       window.addEventListener("resize", handleResize);
       return () => {
         window.removeEventListener("resize", handleResize);
       };
-    }, [zoom]);
+    }, []);
 
-    // Mouse-wheel zoom mirrors the zoomIn/zoomOut imperative-handle behavior.
-    const handleWheelZoom = (direction) => {
-      setZoom((z) => {
-        const nextZoom = clampZoom(
-          direction > 0 ? z * zoomFactor : z / zoomFactor,
-        );
-        setPan((prev) =>
-          nextZoom <= minZoom ? { x: 0, y: 0 } : clampPan(prev, nextZoom),
-        );
-        return nextZoom;
-      });
+    useEffect(
+      () => () => {
+        if (wheelSettleRef.current) clearTimeout(wheelSettleRef.current);
+      },
+      [],
+    );
+
+    // Mouse-wheel zoom, anchored on the cursor.
+    const handleWheelZoom = (direction, event) => {
+      setWheelZooming(true);
+      if (wheelSettleRef.current) clearTimeout(wheelSettleRef.current);
+      wheelSettleRef.current = setTimeout(
+        () => setWheelZooming(false),
+        WHEEL_SETTLE_MS,
+      );
+
+      zoomAbout(direction, focalFromClient(event?.clientX, event?.clientY));
     };
-    useWheelZoom(outerContainerRef, handleWheelZoom, imageLoaded);
+    // Only once the measurements belong to the image currently on screen: on an
+    // image change imageLoaded stays true until the load effect runs, and a wheel
+    // event landing in that window would zoom against the outgoing image.
+    useWheelZoom(
+      outerContainerRef,
+      handleWheelZoom,
+      imageLoaded && sourceSize.url === imageUrl,
+    );
 
     const panZoomTransform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
 
@@ -425,7 +545,8 @@ const InteractiveAnnotationOverlay = forwardRef(
             width: "100%",
             transform: panZoomTransform,
             transformOrigin: "top left",
-            transition: dragging ? "none" : "transform 0.15s ease",
+            transition:
+              dragging || wheelZooming ? "none" : "transform 0.15s ease",
           }}
         >
           <img

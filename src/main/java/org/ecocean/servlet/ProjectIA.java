@@ -56,54 +56,22 @@ public class ProjectIA extends HttpServlet {
         myShepherd.beginDBTransaction();
 
         JSONObject res = new JSONObject();
-        JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
+        res.put("success", false);
         String projectIdPrefix = null;
         String queryEncounterId = null;
 
         try {
-            res.put("success", "false");
-
+            // parsed inside the try: the Shepherd is already open, so a malformed body must not
+            // throw past the finally that releases the PersistenceManager
+            JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
             projectIdPrefix = j.optString("projectIdPrefix", null);
             queryEncounterId = j.optString("queryEncounterId", null);
-            if (Util.stringExists(queryEncounterId) && Util.stringExists(projectIdPrefix)) {
-                Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
-                Encounter queryEnc = myShepherd.getEncounter(queryEncounterId);
-                if (project != null && queryEnc != null) {
-                    List<Encounter> targetEncs = project.getEncounters();
-                    List<Annotation> targetAnns = new ArrayList<>();
-                    JSONArray initiatedJobs = new JSONArray();
-                    for (Annotation queryAnn : queryEnc.getAnnotations()) {
-                        if (IBEISIA.validForIdentification(queryAnn)) {
-                            if (targetAnns.isEmpty()) {
-                                targetAnns = getAnnotationList(targetEncs);
-                            }
-                            List<Annotation> anns = new ArrayList<>();
-                            anns.add(0, queryAnn);
-                            Task parentTask = new Task();
-                            JSONObject tp = new JSONObject();
-                            JSONObject mf = new JSONObject();
-                            mf.put("projectId", project.getId());
-                            tp.put("matchingSetFilter", mf);
-                            parentTask.setParameters(tp);
-                            myShepherd.storeNewTask(parentTask);
-
-                            Task childTask = IA.intakeAnnotations(myShepherd, anns, parentTask,
-                                true);
-                            JSONObject jobJSON = new JSONObject();
-                            jobJSON.put("topTaskId", parentTask.getId());
-                            jobJSON.put("childTaskId", childTask.getId());
-                            jobJSON.put("queryAnnId", queryAnn.getId());
-                            initiatedJobs.put(jobJSON);
-                        }
-                    }
-                    res.put("success", "true");
-                    res.put("initiatedJobs", initiatedJobs);
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    // JSONObject rtnIA = IBEISIA.sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, context);
-                }
+            res = initiateProjectMatch(myShepherd, projectIdPrefix, queryEncounterId);
+            // a well-formed outcome stays 200 even when nothing matched: project.jsp drives its
+            // UI off `success`, and its ajax error handler leaves the "starting" spinner up
+            if (res.optBoolean("success", false)) {
+                response.setStatus(HttpServletResponse.SC_OK);
             }
-            out.println(res);
-            out.close();
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             addErrorMessage(res, "NullPointerException npe");
@@ -117,13 +85,78 @@ public class ProjectIA extends HttpServlet {
             addErrorMessage(res, "Exception e");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } finally {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
+            // initiateProjectMatch() owns the commit, so this only unwinds a run that failed
+            // before it (rollback of an inactive transaction is a no-op).
+            myShepherd.rollbackAndClose();
             out.println(res);
+            out.close();
         }
     }
 
-    private ArrayList<Annotation> getAnnotationList(List<Encounter> encs) {
+    static JSONObject initiateProjectMatch(Shepherd myShepherd, String projectIdPrefix,
+        String queryEncounterId) {
+        JSONObject res = new JSONObject();
+
+        res.put("success", false);
+        if (!Util.stringExists(queryEncounterId) || !Util.stringExists(projectIdPrefix)) return res;
+        Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
+        Encounter queryEnc = myShepherd.getEncounter(queryEncounterId);
+        if ((project == null) || (queryEnc == null)) return res;
+        List<Encounter> targetEncs = project.getEncounters();
+        List<Annotation> targetAnns = new ArrayList<>();
+        JSONArray initiatedJobs = new JSONArray();
+        JSONArray failedAnnotations = new JSONArray();
+        for (Annotation queryAnn : queryEnc.getAnnotations()) {
+            if (!IBEISIA.validForIdentification(queryAnn)) continue;
+            if (targetAnns.isEmpty()) {
+                targetAnns = getAnnotationList(targetEncs);
+            }
+            try {
+                List<Annotation> anns = new ArrayList<>();
+                anns.add(0, queryAnn);
+                Task parentTask = new Task();
+                JSONObject tp = new JSONObject();
+                JSONObject mf = new JSONObject();
+                mf.put("projectId", project.getId());
+                tp.put("matchingSetFilter", mf);
+                parentTask.setParameters(tp);
+                myShepherd.storeNewTask(parentTask);
+
+                Task childTask = IA.intakeAnnotations(myShepherd, anns, parentTask, true);
+                // IA.intakeAnnotations() runs a vector (MiewID) match INLINE on this Shepherd:
+                // the per-annotation subtasks, the MatchResult and the terminal task status are
+                // only makePersistent()ed, and it is the caller that has to commit them. Without
+                // this commit the servlet's rollback discarded all of it and left a childless
+                // task with a null status, which Task.getStatus() reports forever as the
+                // non-terminal "waiting to queue" -- the match-results page then polls and spins
+                // indefinitely (issue #1761). commitDBTransaction() would not do: it swallows
+                // failures, so an unpersisted match could still be reported as started.
+                // Committing per annotation keeps one annotation's failure from discarding the
+                // matches that already ran for its siblings.
+                if (!myShepherd.commitDBTransactionWithStatus()) {
+                    failedAnnotations.put(queryAnn.getId());
+                    continue;
+                }
+                JSONObject jobJSON = new JSONObject();
+                jobJSON.put("topTaskId", parentTask.getId());
+                jobJSON.put("childTaskId", childTask.getId());
+                jobJSON.put("queryAnnId", queryAnn.getId());
+                initiatedJobs.put(jobJSON);
+            } catch (Exception ex) {
+                // a failure here can leave the transaction aborted, which would poison every
+                // later annotation; unwind it so the remaining ones start clean
+                ex.printStackTrace();
+                myShepherd.rollbackDBTransaction();
+                failedAnnotations.put(queryAnn.getId());
+            }
+        }
+        res.put("success", failedAnnotations.length() == 0);
+        res.put("initiatedJobs", initiatedJobs);
+        if (failedAnnotations.length() > 0) res.put("failedAnnotations", failedAnnotations);
+        return res;
+    }
+
+    private static ArrayList<Annotation> getAnnotationList(List<Encounter> encs) {
         ArrayList<Annotation> anns = new ArrayList<>();
         Set<Annotation> annHash = new HashSet<>();
 
