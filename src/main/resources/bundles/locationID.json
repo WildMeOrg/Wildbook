@@ -537,7 +537,8 @@
               {"name": "Bahía Magdalena", "id": "Bahía Magdalena", "geospatialInfo": {"lat": 24.805062, "long": -112.147811}, "prefix": "BMA", "prefixDigitPadding": 4, "locationID":[]},
               {"name": "Bahía Santa María", "id": "Bahía Santa María", "geospatialInfo": {"lat": 24.727210, "long": -112.210763}, "locationID":[]},
               {"name": "Canal López Mateos", "id": "Canal López Mateos", "geospatialInfo": {"lat": 24.805062, "long": -112.147811}, "prefix": "LPZ", "prefixDigitPadding": 4, "locationID":[]},
-              {"name": "Laguna Ojo de Liebre", "id": "Laguna Ojo de Liebre", "locationID": []}
+              {"name": "Laguna Ojo de Liebre", "id": "Laguna Ojo de Liebre", "locationID": []},
+              {"name": "Los Cabos", "id": "Los Cabos", "locationID":[]}
             ]},
             {"name":"Guamilule", "id":"Guamilule", "locationID":[]},
             {"name":"Ixtapa", "id":"Ixtapa", "locationID":[]},
