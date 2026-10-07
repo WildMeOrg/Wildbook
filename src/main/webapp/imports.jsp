@@ -10,12 +10,15 @@ java.util.List,
 java.util.Map" %>
 
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties,java.util.Properties" %>
 
 <%-- Batch count methods are in ImportTask.java --%>
 
 <%
 
 String context = ServletUtilities.getContext(request);
+Properties importsProps = ShepherdProperties.getProperties("imports.properties",
+    ServletUtilities.getLanguageCode(request), context);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("imports.jsp");
 myShepherd.beginDBTransaction();
@@ -138,7 +141,9 @@ try{
 	        jobj.put("taskID", taskID);
 	        jobj.put("indivCount", indivCount);
 	        jobj.put("status", status);
-                String name = task.getSourceName();
+                JSONObject passed = task.getPassedParameters();
+                String name = (passed != null && !passed.isNull("submissionId") && Util.stringExists(passed.optString("submissionId", null)))
+                    ? "API" : task.getSourceName();
                 jobj.put("filename", (name == null) ? "-" : name);
 	        jsonobj.put(jobj);
 
@@ -170,7 +175,7 @@ try{
 			           		//},
 			           		{
 				           		key: 'filename',
-				           		label: 'Filename',
+				           		label: <%= JSONObject.quote(importsProps.getProperty("source", "Source")) %>,
 				           		value: _colFilename,
 				           		sortValue: function(o) { return o.filename; },
 			           		},

@@ -110,6 +110,25 @@ public class FileQueue extends Queue {
         System.out.println("INFO: FileQueue.publish() added " + queueDir + " -> " + qid);
     }
 
+    /** Checked, atomic publication for callers that persist a separate handoff intent. */
+    public void publishChecked(String msg) throws IOException {
+        if (queueDir == null) throw new IOException("Queue directory unavailable");
+        java.nio.file.Path temporary = Files.createTempFile(queueDir.toPath(), "addToQueue-", ".tmp");
+        try {
+            byte[] bytes = msg.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            try (java.nio.channels.FileChannel channel = java.nio.channels.FileChannel.open(temporary,
+                    java.nio.file.StandardOpenOption.WRITE)) {
+                java.nio.ByteBuffer buffer = java.nio.ByteBuffer.wrap(bytes);
+                while (buffer.hasRemaining()) channel.write(buffer);
+                channel.force(true);
+            }
+            Files.move(temporary, queueDir.toPath().resolve(Util.generateUUID()), java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+            try (java.nio.channels.FileChannel directory = java.nio.channels.FileChannel.open(queueDir.toPath(), java.nio.file.StandardOpenOption.READ)) {
+                directory.force(true);
+            }
+        } finally { Files.deleteIfExists(temporary); }
+    }
+
     public void consume(final QueueMessageHandler msgHandler)
     throws IOException {
         if (!markConsuming()) return;
