@@ -97,6 +97,8 @@ class EncounterApiTest {
                 JSONObject json = encSpy.jsonForApiGet(myShepherd, null);
                 assertEquals(json.length(), 35);
                 assertEquals(json.getString("id"), encId);
+                // the index-internal viewer list is never part of the API document
+                assertEquals(false, json.has("viewUsers"));
             }
         }
     }
