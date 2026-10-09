@@ -1,6 +1,6 @@
 # Issue #1787 — Run every default algorithm on ml-service bulk imports, and link Match Results to the encounter-wide task
 
-Date: 2026-10-09 (rev 6, after Codex rounds 1–5)
+Date: 2026-10-09 (rev 7, after Codex rounds 1–6)
 Issue: https://github.com/WildMeOrg/Wildbook/issues/1787
 Forum: https://community.wildme.org/t/match-results-not-showing-all-results/5770
 Branch: `fix/bulk-import-multi-algorithm-1787` (off `origin/main` 764268c5aa)
@@ -393,14 +393,19 @@ if run != null:                                   return run      # new tree, sc
 if any task in tasks carries a run id:                            # new tree whose newest umbrella spans encounters (§3)
     return today's selection restricted to the tasks of that newest umbrella's run
                                                                   # newest renderable leaf of that run; no hoist
-old tree (no run ids anywhere):
-    winner = today's selection, EXCLUDING from the candidates any task that holds
-             objectMediaAssets or carries "ibeis.detection" / "embeddingExtraction"
-             (orchestration nodes, incl. a pre-fix umbrella that a later handleRest
-             request reused as its root and loaded with media assets; Codex r5 #1)
-    if winner == null: winner = newest candidate carrying "ibeis.identification"   # an option or leaf
-    if winner == null: winner = today's root fallback (unchanged)
-    then the structural climb from winner:
+old tree (no run ids anywhere), three phases in this order (Codex r6 #1):
+    1. today's RENDERABLE phase only (renderable candidates, import partition:
+       this import's stamp, else unstamped, never foreign), EXCLUDING any
+       candidate that holds objectMediaAssets or carries "ibeis.detection" /
+       "embeddingExtraction" (orchestration nodes, incl. a pre-fix umbrella that
+       a later handleRest request reused as its root and loaded with media assets)
+    2. if none: seed = newest candidate carrying "ibeis.identification" (an option
+       or leaf) under the SAME import partition (this import's stamp, else
+       unstamped, never foreign; Codex r6 #3)
+    3. if none: today's root fallback, unchanged, returned AS IS with no climb
+       (pre-existing behaviour for issue #1624 legacy imports; a root is never
+       hoisted and never substituted)
+    phases 1 and 2 then climb structurally from the winner:
     best = winner; winnerStamp = stamp(winner)
     up = winner.parent; hops = 0; visited = {winner.id}
     while up != null and up.id != null and hops++ < 20 and visited.add(up.id):
@@ -447,7 +452,8 @@ Old-tree shapes:
 | API extraction: `E(annotation, no params, no parent) → M_old, M_new` | `M_new` (parameterless root) |
 | legacy callback extraction: `D → E(annots, embeddingExtraction) → M_old, M_new` | `M_new` (`embeddingExtraction` stop; Codex r3 #3) |
 | `_doIdentify` fan-out: `U(stamped) → T_hs(params null) → H_A, H_B(stamped)` | `U` (bridge) |
-| pre-fix reused root: `R(media) → U1(A, media assets) → H1, H2, U2(A) → H3, H4` | `U1` excluded (media assets); no renderable candidate left; seed = newest `ibeis.identification` task `H4`; climb to `U2`, stop at `U1` | 
+| pre-fix reused root: `R(media) → U1(A, media assets) → H1, H2, U2(A) → H3, H4` | phase 1: `U1` excluded (media assets), nothing else renderable; phase 2: seed `H4`; climb to `U2`, stop at `U1`. Root fallback never runs because phase 2 found a seed |
+| only foreign-stamped identification tasks under this import's scope | phases 1 and 2 find nothing (partition); phase 3 root fallback as today | 
 | image with two encounters: `D → M(annA, annB) → SA, SB` | `SA` (#1744) |
 | ancestor stamped with another import | last permitted node |
 
@@ -462,20 +468,25 @@ order:
    per annotation, not per page).
 2. If `run == null` (old tree): today's rule, unchanged — the newest direct
    task's `getStatus`, counted once. No new rule applies.
-3. Otherwise leaves = the annotation's direct tasks that carry the run id
-   and have no children, **including the umbrella itself when it is
-   childless** (single-option runs use the umbrella as the option task;
-   a vector umbrella before its leaves exist; a vector option after a
-   rollback) (Codex r3 #4). Orchestration parents are never counted.
-4. Per-annotation status: any leaf non-terminal → that status (`sent`
-   side); else any leaf `error` → `error`; else `completed`. A childless
-   umbrella without `ibeis.identification` is a `noWork` umbrella; the
-   core marks it `error` (§4.2.3 step 4), so it reads as a failed leaf.
-   When no childless task of the run holds the annotation, the option
-   tasks of the run that hold it stand in as its leaves (an option whose
-   dispatch failed before creating a leaf reads as `error`; Codex r5 #3);
-   when no option task holds it either (a class with no option) →
-   `completed` plus an informational `numLatestTask_skipped` counter.
+3. Options of the run for this annotation = the umbrella's direct
+   children that hold the annotation (identity is structural, so an
+   option whose parameters `_doIdentify` cleared still counts); if the
+   umbrella has no children, the umbrella itself (single-option runs use
+   it as the option; a `noWork` umbrella is marked `error` by the core,
+   §4.2.3 step 4). One **representative per option**: the option's newest
+   childless descendant-or-self that holds the annotation (its vector leaf
+   or its HotSpotter fan-out child); when the option has children but none
+   of them holds this annotation yet (a vector dispatch that threw before
+   creating this annotation's leaf; `_doIdentify` mid fan-out), the option
+   itself is the representative (Codex r6 #2).
+4. Per-annotation status over the representatives: any non-terminal →
+   that status (`sent` side); else any `error` → `error`; else
+   `completed`. No option holds the annotation (a class with no option) →
+   `completed` plus an informational `numLatestTask_skipped` counter. A
+   failed vector option therefore reads `error` for every annotation it
+   holds even when the HotSpotter sibling completed, and a HotSpotter
+   option mid fan-out reads pending for the annotations it has not yet
+   fanned out.
 5. Maximum age: a non-terminal leaf whose `timeInactive()` exceeds
    `Task.TIMEOUT_INACTIVE_MILLIS` (seven days since `Task.modified`, which
    moves on `setStatus`/`setModified`, not on WBIA log activity) is
@@ -613,6 +624,11 @@ on the test classpath; `OccurrenceOpenSearchTest` and `SettingTest` already
 use `mockConstruction(Shepherd.class)`).
 
 Additional cases: the pre-fix reused-root tree (§4.3 table) lands on `U2`;
+a scoped selection whose only identification tasks carry a foreign stamp
+falls through to today's root fallback, never to the foreign task; partial
+vector dispatch (V_A created, V_B not) with H_B completed → B reads `error`;
+`_doIdentify` mid fan-out (H_A created, H_B not) with V_B completed → B
+reads pending;
 a second PersistenceManager polling `statsAnnotations` between the send
 failure commit and the requeue decision sees "sent"; a vector dispatch that
 throws after one leaf is attached, followed by a successful group commit →
@@ -668,6 +684,10 @@ still moves.
   are option tasks and grandchildren vector leaves, both counted.
 - Intake's internal commit now aborts on failure for every caller
   (null umbrella) instead of proceeding blind; strictly safer.
+- No crash-recovery pass: process death between the pre-dispatch persist
+  and the dispatch, or a failed recovery commit, can leave an option task
+  pending with no job until the seven-day maximum age reports it. Same
+  exposure as every queue-driven task today; a reconciler is out of scope.
 
 ## 7. Blast radius
 
@@ -689,6 +709,14 @@ Local branch `fix/match-results-multialgo-parent-task` (unpushed,
 2026-07-29).
 
 ## 9. Codex dispositions
+
+Round 6:
+
+| r6 | finding | rev 7 |
+|---|---|---|
+| 1 | root fallback ran before the identification seed | §4.3 three ordered phases; root fallback last and never climbed |
+| 2 | aggregate hid a failed option behind a sibling's leaf | §4.4 one representative per option |
+| 3 | seed bypassed the import partition | §4.3 phase 2 applies the partition |
 
 Round 5:
 
