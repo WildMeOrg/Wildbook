@@ -76,12 +76,26 @@ public class OpenSearch {
         "backgroundDelayMinutes", 20);
     public static int BACKGROUND_SLICE_SIZE = (Integer)getConfigurationValue("backgroundSliceSize",
         2500);
+    // The permissions audit (org.ecocean.security.PermissionsAudit) is scheduled, not signalled:
+    // it runs this many minutes after the previous audit completed, sooner (bounded) after an
+    // incomplete one, and only in the JVM configured as the runner. Nothing is acknowledged.
     public static int BACKGROUND_PERMISSIONS_MINUTES = (Integer)getConfigurationValue(
         "backgroundPermissionsMinutes", 10);
-    public static int BACKGROUND_PERMISSIONS_MAX_FORCE_MINUTES = (Integer)getConfigurationValue(
-        "backgroundPermissionsMaxForceMinutes", 45);
+    public static int BACKGROUND_PERMISSIONS_RETRY_MINUTES = (Integer)getConfigurationValue(
+        "backgroundPermissionsRetryMinutes", 2);
+    public static int BACKGROUND_PERMISSIONS_MAX_RETRY_STREAK = 5;
+    public static int BACKGROUND_PERMISSIONS_INITIAL_DELAY_MINUTES = 8;
+    public static boolean BACKGROUND_PERMISSIONS_RUNNER = (Boolean)getConfigurationValue(
+        "backgroundPermissionsRunner", Boolean.TRUE);
+    public static int BACKGROUND_PERMISSIONS_PAGE_SIZE = (Integer)getConfigurationValue(
+        "backgroundPermissionsPageSize", 1000);
+    public static int BACKGROUND_PERMISSIONS_MAX_REPAIRS = (Integer)getConfigurationValue(
+        "backgroundPermissionsMaxRepairsPerPass", 20000);
+    public static int BACKGROUND_PERMISSIONS_MAX_REBUILDS = (Integer)getConfigurationValue(
+        "backgroundPermissionsMaxRebuildsPerPass", 500);
+    public static String BACKGROUND_PERMISSIONS_SCROLL_KEEP_ALIVE = (String)getConfigurationValue(
+        "backgroundPermissionsScrollKeepAlive", "5m");
     public static String PERMISSIONS_LAST_RUN_KEY = "OpenSearch_permissions_last_run_timestamp";
-    public static String PERMISSIONS_NEEDED_KEY = "OpenSearch_permissions_needed";
     // kNN match warmup: after startup, load the faiss/kNN native graph for the match index into
     // off-heap memory (and warm the filter/segment paths) so the FIRST user match doesn't pay the
     // cold-load, which can exceed the socket timeout and surface to the user as an empty result.
@@ -218,30 +232,45 @@ public class OpenSearch {
 // http://localhost:9200/encounter/_search?pretty=true&q=*:*
 // http://localhost:9200/_cat/indices?v
 
-    public static void backgroundStartup(String context) {
-        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(8);
-        final ScheduledFuture schedFutureIndexing = schedExec.scheduleWithFixedDelay(
-            new Runnable() {
+    // Every OpenSearch background task runs on this executor, kept here so that undeploy can
+    // stop it (contextDestroyed -> shutdownBackground()); a redeploy gets a fresh one.
+    private static ScheduledExecutorService backgroundExecutor;
+    private static final java.util.concurrent.atomic.AtomicInteger PERMISSIONS_INCOMPLETE_STREAK =
+        new java.util.concurrent.atomic.AtomicInteger(0);
+    // Every executor is a generation. The audit chain, its incomplete streak and the warmup
+    // chain belong to one generation: a task that outlives its executor (shutdown while it ran)
+    // finds the generation changed and leaves the replacement's state alone.
+    private static long backgroundGeneration = 0;
+    private static long permissionsChainGeneration = -1; // generation that carries the audit chain
+    private static final java.util.concurrent.atomic.AtomicBoolean permissionsChainStarted =
+        new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    public static synchronized ScheduledExecutorService backgroundExecutor() {
+        return backgroundExecutor;
+    }
+
+    public static synchronized long backgroundGeneration() {
+        return backgroundGeneration;
+    }
+
+    private static synchronized ScheduledExecutorService ensureBackgroundExecutor() {
+        if ((backgroundExecutor == null) || backgroundExecutor.isShutdown()) {
+            backgroundExecutor = Executors.newScheduledThreadPool(8);
+            backgroundGeneration++;
+        }
+        return backgroundExecutor;
+    }
+
+    public static synchronized void backgroundStartup(final String context) {
+        final ScheduledExecutorService schedExec = ensureBackgroundExecutor();
+        schedExec.scheduleWithFixedDelay(new Runnable() {
                 public void run() {
                     updateEncounterIndexes(context);
                 }
             }, 2, // initial delay
             BACKGROUND_DELAY_MINUTES, // period delay *after* execution finishes
             TimeUnit.MINUTES); // unit of delays above
-        final ScheduledFuture schedFuturePermissions = schedExec.scheduleWithFixedDelay(
-            new Runnable() {
-                public void run() {
-                    updatePermissionsIndex(context);
-                }
-            }, 8, // initial delay
-            BACKGROUND_PERMISSIONS_MINUTES, TimeUnit.MINUTES); // unit of delays above
-
-        try {
-            schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
-        } catch (java.lang.InterruptedException ex) {
-            System.out.println("WARNING: OpenSearch.backgroundStartup(" + context +
-                ") interrupted: " + ex.toString());
-        }
+        startPermissionsAuditScheduler(context);
         System.out.println("OpenSearch.backgroundStartup(" + context + ") backgrounded");
 
         // Warm the match kNN graph so the first user match after this restart isn't cold. Self-
@@ -342,20 +371,177 @@ public class OpenSearch {
         }
     }
 
-    private static void updatePermissionsIndex(String context) {
+    /**
+     * Schedule the self-rescheduling permissions audit. False (and nothing scheduled) when this
+     * JVM is not the designated runner: a deployment with more than one Tomcat against one
+     * database sets backgroundPermissionsRunner=false on all but one.
+     */
+    public static boolean startPermissionsAuditScheduler(final String context) {
+        return startPermissionsAuditScheduler(context, BACKGROUND_PERMISSIONS_INITIAL_DELAY_MINUTES);
+    }
+
+    /** Atomic with shutdownBackground(): the executor, the chain guard and the first scheduling
+     *  are decided under one lock, so a shutdown cannot slip between them. */
+    public static synchronized boolean startPermissionsAuditScheduler(final String context,
+        long initialDelayMinutes) {
+        if (!BACKGROUND_PERMISSIONS_RUNNER) {
+            System.out.println("OpenSearch: backgroundPermissionsRunner=false; the permissions audit " +
+                "does not run in this JVM");
+            return false;
+        }
+        ScheduledExecutorService exec = ensureBackgroundExecutor();
+        long generation = backgroundGeneration;
+        if (permissionsChainStarted.get() && (permissionsChainGeneration == generation)) {
+            System.out.println("OpenSearch: the permissions audit is already scheduled");
+            return false;
+        }
+        if (!schedulePermissionsAudit(context, exec, generation, initialDelayMinutes)) {
+            permissionsChainStarted.set(false);
+            System.out.println("OpenSearch: WARNING could not schedule the permissions audit");
+            return false;
+        }
+        permissionsChainStarted.set(true);
+        permissionsChainGeneration = generation;
+        return true;
+    }
+
+    /** One audit tick on the current executor generation. */
+    public static int permissionsAuditTick(String context) {
+        return permissionsAuditTick(context, backgroundGeneration());
+    }
+
+    /** One audit tick: run, treat an exception as an incomplete audit, keep the incomplete streak
+     *  (unless this tick belongs to a retired executor generation), and return the delay (minutes)
+     *  before the next tick. */
+    public static int permissionsAuditTick(String context, long generation) {
+        boolean completed = false;
+        try {
+            completed = runPermissionsAudit(context);
+        } catch (Throwable t) {
+            System.out.println("OpenSearch: permissions audit threw: " + t);
+            t.printStackTrace();
+        }
+        synchronized (OpenSearch.class) {
+            if (generation != backgroundGeneration) {
+                System.out.println("OpenSearch: a permissions audit from a retired executor finished; " +
+                    "its outcome does not count");
+                return BACKGROUND_PERMISSIONS_MINUTES;
+            }
+            int streak = completed ? 0 : PERMISSIONS_INCOMPLETE_STREAK.incrementAndGet();
+            if (completed) PERMISSIONS_INCOMPLETE_STREAK.set(0);
+            int next = nextPermissionsDelayMinutes(completed, streak);
+            if (!completed && (streak == BACKGROUND_PERMISSIONS_MAX_RETRY_STREAK)) {
+                System.out.println("OpenSearch: WARNING the permissions audit has been incomplete " +
+                    streak + " times in a row; back to the normal delay of " + next + " minutes");
+            }
+            return next;
+        }
+    }
+
+    public static int permissionsIncompleteStreak() {
+        return PERMISSIONS_INCOMPLETE_STREAK.get();
+    }
+
+    // One-shot scheduling that re-arms itself from a finally block with a delay chosen by the
+    // outcome (scheduleWithFixedDelay cannot vary its delay per run). Never throws out of the
+    // task. False when the executor refused the task (shut down).
+    private static boolean schedulePermissionsAudit(final String context,
+        final ScheduledExecutorService exec, final long generation, long delayMinutes) {
+        try {
+            exec.schedule(new Runnable() {
+                public void run() {
+                    long next = BACKGROUND_PERMISSIONS_MINUTES;
+                    try {
+                        next = permissionsAuditTick(context, generation);
+                    } finally {
+                        rearmPermissionsAudit(context, exec, generation, next);
+                    }
+                }
+            }, delayMinutes, TimeUnit.MINUTES);
+            return true;
+        } catch (java.util.concurrent.RejectedExecutionException rex) {
+            System.out.println("OpenSearch: permissions audit not scheduled (executor shut down)");
+            return false;
+        }
+    }
+
+    /** The re-arm step of the audit chain: schedules the next tick, unless this executor
+     *  generation has been retired. */
+    public static synchronized void rearmPermissionsAudit(String context,
+        ScheduledExecutorService exec, long generation, long delayMinutes) {
+        if ((generation != backgroundGeneration) || exec.isShutdown()) {
+            System.out.println("OpenSearch: permissions audit chain of a retired executor ends here");
+            return;
+        }
+        if (!schedulePermissionsAudit(context, exec, generation, delayMinutes))
+            permissionsChainStarted.set(false);
+    }
+
+    /** The delay before the next audit: the normal one after a completion, the shorter retry
+     *  after an incomplete run, but at most BACKGROUND_PERMISSIONS_MAX_RETRY_STREAK retries in a
+     *  row so a permanently failing document cannot turn the audit into a tight loop. */
+    public static int nextPermissionsDelayMinutes(boolean completed, int consecutiveIncomplete) {
+        if (completed) return BACKGROUND_PERMISSIONS_MINUTES;
+        if (consecutiveIncomplete >= BACKGROUND_PERMISSIONS_MAX_RETRY_STREAK)
+            return BACKGROUND_PERMISSIONS_MINUTES;
+        return BACKGROUND_PERMISSIONS_RETRY_MINUTES;
+    }
+
+    public static org.ecocean.security.PermissionsAudit.Config permissionsAuditConfig() {
+        return new org.ecocean.security.PermissionsAudit.Config(BACKGROUND_PERMISSIONS_PAGE_SIZE,
+            BACKGROUND_PERMISSIONS_MAX_REPAIRS, BACKGROUND_PERMISSIONS_MAX_REBUILDS,
+            BACKGROUND_PERMISSIONS_SCROLL_KEEP_ALIVE);
+    }
+
+    /** One audit now. The last-run timestamp is stamped whatever the outcome; it is for the log
+     *  only. Returns whether the audit completed (which only selects the next delay). */
+    public static boolean runPermissionsAudit(String context) {
+        System.out.println("OpenSearch background permissions audit running...");
+        org.ecocean.security.PermissionsAudit.Result result =
+            org.ecocean.security.PermissionsAudit.run(context, permissionsAuditConfig());
         Shepherd myShepherd = null;
         try {
             myShepherd = new Shepherd(context);
-            myShepherd.setAction("OpenSearch.backgroundPermissions");
+            myShepherd.setAction("OpenSearch.permissionsAuditStamp");
             myShepherd.beginDBTransaction();
-            System.out.println("OpenSearch background permissions running...");
-            Encounter.opensearchIndexPermissionsBackground(myShepherd);
-            System.out.println("OpenSearch background permissions finished.");
-            myShepherd.commitDBTransaction(); // need commit since we might have changed SystemValues
+            setPermissionsTimestamp(myShepherd);
+            myShepherd.commitDBTransaction();
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
             if (myShepherd != null) myShepherd.rollbackAndClose();
+        }
+        System.out.println("OpenSearch background permissions audit finished: completed=" +
+            result.completed);
+        return result.completed;
+    }
+
+    /** Stop every OpenSearch background task (undeploy). An active audit is interrupted and stops
+     *  before its next page, repair or rebuild; nothing is rescheduled afterwards, and a task that
+     *  outlives this call belongs to a retired generation and cannot touch the replacement's
+     *  state. The wait for termination happens outside the lock so a finishing task that needs
+     *  the lock cannot deadlock with it. */
+    public static void shutdownBackground() {
+        ScheduledExecutorService exec;
+        synchronized (OpenSearch.class) {
+            backgroundGeneration++; // whatever is still running belongs to the past
+            permissionsChainStarted.set(false); // a fresh executor gets a fresh chain
+            permissionsChainGeneration = -1;
+            PERMISSIONS_INCOMPLETE_STREAK.set(0);
+            warmupChainStarted.set(false);
+            exec = backgroundExecutor;
+            backgroundExecutor = null;
+            if (exec != null) {
+                System.out.println("STOPPING: OpenSearch background tasks");
+                exec.shutdownNow();
+            }
+        }
+        if (exec == null) return;
+        try {
+            if (!exec.awaitTermination(15L, TimeUnit.SECONDS))
+                System.out.println("OpenSearch background tasks still running after 15s");
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -1021,29 +1207,149 @@ public class OpenSearch {
         getRestResponse(updateRequest);
     }
 
-    // Reads the CURRENT indexed viewUsers array for a single doc. Returns the array
-    // (possibly empty) on success, or null if the doc/field cannot be read (missing doc,
-    // index not present, parse failure). null means "unknown": the caller decides the
-    // policy (opensearchIndexPermissions treats unknown as no-change to avoid storming
-    // child reindexes on a degraded read; the reconciler recovers a missed refresh).
-    public org.json.JSONArray getIndexedViewUsers(String index, String id) {
-        if ((index == null) || (id == null)) return null;
-        try {
-            if (!existsIndex(index)) return null;
-            // _source filtered to just viewUsers keeps the response tiny.
-            Request getRequest = new Request("GET", index + "/_doc/" + id + "?_source=viewUsers");
-            String body = getRestResponse(getRequest);
-            if (body == null) return null;
-            org.json.JSONObject parsed = new org.json.JSONObject(body);
-            if (!parsed.optBoolean("found", false)) return null;
-            org.json.JSONObject source = parsed.optJSONObject("_source");
-            if (source == null) return new org.json.JSONArray(); // doc exists, no viewUsers yet -> empty
-            org.json.JSONArray arr = source.optJSONArray("viewUsers");
-            return (arr == null) ? new org.json.JSONArray() : arr;
-        } catch (Exception ex) {
-            // 404 (doc not found) surfaces as ResponseException here; treat as unknown.
-            return null;
+    // ---- helpers for the permissions audit (skeleton; see PermissionsAudit) ----
+
+    /** Result of a conditional write: applied with the document's new concurrency metadata, or a
+     *  version conflict (HTTP 409: the document changed since it was read). */
+    public static final class ConditionalWrite {
+        public final boolean applied;
+        public final long seqNo;
+        public final long primaryTerm;
+
+        private ConditionalWrite(boolean applied, long seqNo, long primaryTerm) {
+            this.applied = applied;
+            this.seqNo = seqNo;
+            this.primaryTerm = primaryTerm;
         }
+
+        public static ConditionalWrite applied(long seqNo, long primaryTerm) {
+            return new ConditionalWrite(true, seqNo, primaryTerm);
+        }
+
+        public static ConditionalWrite conflict() {
+            return new ConditionalWrite(false, -1, -1);
+        }
+    }
+
+    /** Receives one page of doc-values hits; throw to abort the scroll. */
+    public interface DocValuesPageConsumer {
+        void accept(JSONArray hits) throws IOException;
+    }
+
+    /**
+     * Forward-only scroll of a whole index reading ONLY doc values (no _source: source filtering
+     * would still parse every annotation's embeddings) plus each hit's _seq_no/_primary_term.
+     * Every page is validated (PermissionsAudit.validatePage) and the scroll context is cleared on
+     * every exit. Partial results are refused by the request itself.
+     */
+    public void scrollDocValues(String indexName, java.util.List<String> fields, int pageSize,
+        String keepAlive, DocValuesPageConsumer consumer)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        if ((fields == null) || fields.isEmpty() || (consumer == null))
+            throw new IOException("scrollDocValues: fields and consumer are required");
+        JSONObject body = new JSONObject();
+        body.put("query", new JSONObject().put("match_all", new JSONObject()));
+        body.put("_source", false);
+        body.put("docvalue_fields", new JSONArray(fields));
+        body.put("seq_no_primary_term", true);
+        body.put("sort", new JSONArray().put("_doc"));
+        body.put("size", pageSize);
+        // (track_total_hits cannot be disabled in a scroll context: OpenSearch rejects the request)
+        Request first = new Request("POST", "/" + indexName + "/_search");
+        first.addParameter("scroll", keepAlive);
+        first.addParameter("allow_partial_search_results", "false");
+        first.setJsonEntity(body.toString());
+        String scrollId = null;
+        try {
+            if (Thread.currentThread().isInterrupted())
+                throw new java.io.InterruptedIOException("interrupted before the scroll");
+            JSONObject page = new JSONObject(getRestResponse(first));
+            while (true) {
+                // remember the latest id BEFORE judging the page, so a rejected page's context is
+                // still the one cleared below
+                Object returnedId = page.opt("_scroll_id");
+                if ((returnedId instanceof String) && !((String)returnedId).isEmpty())
+                    scrollId = (String)returnedId;
+                String problem = org.ecocean.security.PermissionsAudit.validatePage(page);
+                if (problem != null) throw new IOException("scroll page rejected: " + problem);
+                JSONArray hits = page.getJSONObject("hits").getJSONArray("hits");
+                if (hits.length() == 0) break;
+                consumer.accept(hits);
+                if (Thread.currentThread().isInterrupted())
+                    throw new java.io.InterruptedIOException("interrupted before the next page");
+                Request next = new Request("POST", "/_search/scroll");
+                next.setJsonEntity(new JSONObject().put("scroll", keepAlive).put("scroll_id",
+                    scrollId).toString());
+                page = new JSONObject(getRestResponse(next));
+            }
+        } finally {
+            if (scrollId != null) {
+                try {
+                    Request clear = new Request("DELETE", "/_search/scroll");
+                    clear.setJsonEntity(new JSONObject().put("scroll_id",
+                        new JSONArray().put(scrollId)).toString());
+                    getRestResponse(clear);
+                } catch (Exception ex) {
+                    System.out.println("scrollDocValues(" + indexName + "): clearing the scroll failed: " + ex);
+                    // an interrupted clear (a socket timeout is not one) must keep the interruption
+                    if ((ex instanceof java.io.InterruptedIOException) &&
+                        !(ex instanceof java.net.SocketTimeoutException)) Thread.currentThread().interrupt();
+                }
+            }
+        }
+    }
+
+    /** Partial update applied only if the document still has the given _seq_no/_primary_term. */
+    public ConditionalWrite updateIfUnchanged(String indexName, String id, JSONObject doc,
+        long seqNo, long primaryTerm)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        if ((id == null) || (doc == null)) throw new IOException("missing id or doc");
+        Request req = new Request("POST", "/" + indexName + "/_update/" + id);
+        req.addParameter("if_seq_no", String.valueOf(seqNo));
+        req.addParameter("if_primary_term", String.valueOf(primaryTerm));
+        req.setJsonEntity(new JSONObject().put("doc", doc).toString());
+        return conditionalWrite(req);
+    }
+
+    /** Whole-document replace applied only if the document still has the given _seq_no/_primary_term. */
+    public ConditionalWrite putIfUnchanged(String indexName, String id, String documentJson,
+        long seqNo, long primaryTerm)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        if ((id == null) || (documentJson == null)) throw new IOException("missing id or document");
+        Request req = new Request("PUT", "/" + indexName + "/_doc/" + id);
+        req.addParameter("if_seq_no", String.valueOf(seqNo));
+        req.addParameter("if_primary_term", String.valueOf(primaryTerm));
+        req.setJsonEntity(documentJson);
+        return conditionalWrite(req);
+    }
+
+    private ConditionalWrite conditionalWrite(Request req)
+    throws IOException {
+        try {
+            JSONObject res = new JSONObject(getRestResponse(req));
+            return ConditionalWrite.applied(res.getLong("_seq_no"), res.getLong("_primary_term"));
+        } catch (ResponseException ex) {
+            if (ex.getResponse().getStatusLine().getStatusCode() == 409) return ConditionalWrite.conflict();
+            throw ex;
+        }
+    }
+
+    /** Field name -> its concrete mapping (type, doc_values, ...) as deployed on the cluster. */
+    public java.util.Map<String, JSONObject> fieldMappings(String indexName)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        JSONObject res = new JSONObject(getRestResponse(new Request("GET", "/" + indexName + "/_mapping")));
+        java.util.Map<String, JSONObject> out = new HashMap<String, JSONObject>();
+        for (String key : res.keySet()) { // the concrete index name (an alias resolves to it)
+            JSONObject mappings = res.getJSONObject(key).optJSONObject("mappings");
+            JSONObject properties = (mappings == null) ? null : mappings.optJSONObject("properties");
+            if (properties == null) continue;
+            for (String field : properties.keySet()) out.put(field, properties.getJSONObject(field));
+        }
+        return out;
     }
 
     // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
@@ -1159,32 +1465,6 @@ public class OpenSearch {
 
     public static Long getPermissionsTimestamp(Shepherd myShepherd) {
         return SystemValue.getLong(myShepherd, PERMISSIONS_LAST_RUN_KEY);
-    }
-
-    public static void setPermissionsNeeded(Shepherd myShepherd, boolean value) {
-        SystemValue.set(myShepherd, PERMISSIONS_NEEDED_KEY, value);
-    }
-
-    public static void setPermissionsNeeded(boolean value) {
-        Shepherd myShepherd = null;
-        try {
-            myShepherd = new Shepherd("context0");
-            myShepherd.setAction("OpenSearch.setPermissionsNeeded");
-            myShepherd.beginDBTransaction();
-            setPermissionsNeeded(myShepherd, value);
-            myShepherd.commitDBTransaction();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            if (myShepherd != null) myShepherd.rollbackAndClose();
-        }
-    }
-
-    public static boolean getPermissionsNeeded(Shepherd myShepherd) {
-        Boolean value = SystemValue.getBoolean(myShepherd, PERMISSIONS_NEEDED_KEY);
-
-        if (value == null) return false;
-        return value;
     }
 
     public static JSONObject querySanitize(JSONObject query, User user, Shepherd myShepherd)
@@ -1774,6 +2054,9 @@ public class OpenSearch {
             } catch (NumberFormatException nfe) {
                 return defaultValue;
             }
+        }
+        if (defaultValue instanceof Boolean) {
+            return Boolean.valueOf(propValue.trim());
         }
         // guess we are just a string
         return propValue;

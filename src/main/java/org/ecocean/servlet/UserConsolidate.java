@@ -84,7 +84,6 @@ public class UserConsolidate extends HttpServlet {
         myShepherd.getPM().deletePersistent(userToBeConsolidated);
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
-        org.ecocean.OpenSearch.setPermissionsNeeded(true);
         System.out.println("dedupe ......consolidation complete");
     }
 
@@ -137,7 +136,6 @@ public class UserConsolidate extends HttpServlet {
 
         myShepherd.getPM().deletePersistent(userToBeConsolidated);
         myShepherd.updateDBTransaction();
-        org.ecocean.OpenSearch.setPermissionsNeeded(true);
         System.out.println("dedupe ......consolidateUserForUserEdit complete");
     }
 
