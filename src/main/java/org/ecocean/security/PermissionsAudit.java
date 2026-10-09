@@ -469,6 +469,8 @@ public final class PermissionsAudit {
             if (!r.interrupted && !interrupted(r, "before the rebuilds")) {
                 runner.rebuildAll(); // verifies against the snapshot: release only afterwards
                 sampleHeap(r, "rebuilds done");
+            } else {
+                runner.deferAllPending(); // closed documents that wait for the next audit
             }
             snapshot.release();
             interrupted(r, "at completion"); // raised during the last page or the rebuilds
@@ -747,6 +749,9 @@ public final class PermissionsAudit {
                     result.reasons.add(index + ": not audited: " + bad);
                     return false;
                 }
+            } catch (java.net.SocketTimeoutException timeout) {
+                result.reasons.add(index + ": mapping check timed out: " + timeout);
+                return false;
             } catch (InterruptedIOException iex) {
                 result.interrupted = true;
                 result.reasons.add(index + ": interrupted during the mapping check");
@@ -914,6 +919,11 @@ public final class PermissionsAudit {
                 sh.rollbackAndClose();
                 for (int i = next; i < ordered.size(); i++) result.index((String)ordered.get(i)[0]).deferred++;
             }
+        }
+
+        /** Every queued candidate waits for the next audit (the run was interrupted). */
+        void deferAllPending() {
+            for (Object[] p : pending) result.index((String)p[0]).deferred++;
         }
 
         /** Thrown by a rebuild when the skipAutoIndexing window opened before its replace. */

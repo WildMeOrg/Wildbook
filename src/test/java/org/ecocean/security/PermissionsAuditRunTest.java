@@ -81,6 +81,9 @@ class PermissionsAuditRunTest {
     private Map<String, Map<String, JSONObject> > mappings; // index -> field -> mapping
     private Set<String> scrollFails; // indices whose scroll throws
     private Set<String> scrollInterruptOn; // indices whose scroll reports an interruption (flag clear)
+    private Set<String> mappingTimeoutOn; // indices whose mapping check times out
+    private Set<String> mappingInterruptOn; // indices whose mapping check reports an interruption
+    private Map<String, Integer> pageFailsAfter; // index -> the scroll throws after this many pages
     private boolean rebuildShepherdFails; // the repair Shepherd cannot begin a transaction
     private Set<String> conflictOn; // ids whose conditional write returns a conflict
     private Set<String> conflictOnPut; // ids whose conditional REPLACE (rebuild) returns a conflict
@@ -115,6 +118,9 @@ class PermissionsAuditRunTest {
         }
         scrollFails = new HashSet<String>();
         scrollInterruptOn = new HashSet<String>();
+        mappingTimeoutOn = new HashSet<String>();
+        mappingInterruptOn = new HashSet<String>();
+        pageFailsAfter = new HashMap<String, Integer>();
         rebuildShepherdFails = false;
         conflictOn = new HashSet<String>();
         conflictOnPut = new HashSet<String>();
@@ -326,14 +332,26 @@ class PermissionsAuditRunTest {
                 when(mock.getPM()).thenReturn(pm);
             });
             MockedConstruction<OpenSearch> searches = mockConstruction(OpenSearch.class, (mock, ctx) -> {
-                when(mock.fieldMappings(anyString())).thenAnswer(inv -> mappings.get((String)inv.getArgument(0)));
+                when(mock.fieldMappings(anyString())).thenAnswer(inv -> {
+                    String index = inv.getArgument(0);
+                    if (mappingTimeoutOn.contains(index)) throw new java.net.SocketTimeoutException("read timed out");
+                    if (mappingInterruptOn.contains(index)) throw new InterruptedIOException("interrupted: " + index);
+                    return mappings.get(index);
+                });
                 doAnswer(inv -> {
                     String index = inv.getArgument(0);
                     if (scrollFails.contains(index)) throw new IOException("scroll failed: " + index);
                     if (scrollInterruptOn.contains(index)) throw new InterruptedIOException("interrupted: " + index);
                     if ((gate != null) && "encounter".equals(index)) gate.await(10, TimeUnit.SECONDS);
                     OpenSearch.DocValuesPageConsumer consumer = inv.getArgument(4);
-                    for (JSONArray p : pages.get(index)) consumer.accept(p);
+                    int delivered = 0;
+                    for (JSONArray p : pages.get(index)) {
+                        Integer failAfter = pageFailsAfter.get(index);
+                        if ((failAfter != null) && (delivered >= failAfter))
+                            throw new IOException("scroll failed after " + delivered + " pages: " + index);
+                        consumer.accept(p);
+                        delivered++;
+                    }
                     return null;
                 }).when(mock).scrollDocValues(anyString(), any(), anyInt(), anyString(), any());
                 doAnswer(inv -> conditionalWrite("update", inv.getArgument(0), inv.getArgument(1),
@@ -1134,6 +1152,64 @@ class PermissionsAuditRunTest {
         assertEquals(0, puts());
         assertEquals(2, r.index("annotation").deferred, "both wait for the next audit");
         assertFalse(r.completed);
+    }
+
+    @Test void mappingCheckTimeoutIsAnOrdinaryFailureNotAnInterruption() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        individual("i1", "e1");
+        mappingTimeoutOn.add("encounter");
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")));
+        page("individual", childHit("i1", false, arr("uuid-O"), arr("uuid-B"), "encounterIds", arr("e1")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"));
+
+        Result r = run();
+        assertFalse(r.interrupted, "a timeout is not an interruption");
+        assertEquals(1, r.index("annotation").scanned, "later indices are still audited");
+        assertEquals(1, r.index("individual").scanned);
+        assertEquals(1, puts(), "queued rebuilds still run");
+        assertEquals(1, r.index("individual").repaired);
+        assertFalse(r.completed);
+    }
+
+    @Test void mappingCheckInterruptionStopsTheAudit() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        mappingInterruptOn.add("encounter");
+        page("annotation", childHit("a1", false, arr("uuid-O"), arr(), "encounterId", arr("e1")));
+
+        Result r = run();
+        assertTrue(r.interrupted);
+        assertEquals(0, r.index("annotation").scanned);
+        assertTrue(writes.isEmpty());
+        assertFalse(r.completed);
+    }
+
+    @Test void interruptionBeforeTheRebuildsCountsTheQueuedCandidatesAsDeferred() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        individual("i1", "e1");
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld"))); // queued
+        scrollInterruptOn.add("individual"); // then the run is interrupted
+
+        Result r = run();
+        assertTrue(r.interrupted);
+        assertEquals(0, puts());
+        assertEquals(1, r.index("annotation").deferred, "the queued candidate waits for the next audit");
+    }
+
+    @Test void pageFailureAfterCandidatesWereQueuedStillRebuildsThem() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")));
+        page("annotation", childHit("a9", false, arr(), arr(), "encounterId", arr("e1"))); // never delivered
+        pageFailsAfter.put("annotation", 1);
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"));
+
+        Result r = run();
+        assertEquals(1, puts(), "a1 was queued before the index's scroll failed");
+        assertFalse(r.completed);
+        assertTrue(r.reasons.toString().contains("annotation"), r.reasons.toString());
     }
 
     @Test void interruptedThreadWithNothingToReadStillLeavesTheAuditIncomplete() throws Exception {

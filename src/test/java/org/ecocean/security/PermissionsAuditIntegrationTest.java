@@ -666,6 +666,49 @@ import org.testcontainers.utility.DockerImageName;
         assertTrue(cleared(seen, "m1"), "a malformed page still clears its context: " + seen);
     }
 
+    private static String emptyPage(String scrollId) {
+        return new JSONObject().put("timed_out", false).put("_scroll_id", scrollId)
+                   .put("_shards", new JSONObject().put("failed", 0))
+                   .put("hits", new JSONObject().put("hits", new JSONArray())).toString();
+    }
+
+    @Test void interruptedScrollCleanupKeepsTheInterruptionButATimeoutDoesNot() throws Exception {
+        for (final boolean timeout : new boolean[] { false, true }) {
+            OpenSearch os = spy(os());
+            doAnswer(inv -> {
+                Request req = inv.getArgument(0);
+                if ("DELETE".equals(req.getMethod())) {
+                    if (timeout) throw new java.net.SocketTimeoutException("read timed out");
+                    throw new IOException("interrupted", new InterruptedException()) {
+                        // a real interruption of the clear request
+                    };
+                }
+                if (req.getEndpoint().contains("/_search/scroll")) return emptyPage("c1");
+                return firstPage("c1");
+            }).when(os).getRestResponse(any(Request.class));
+            try {
+                os.scrollDocValues("annotation", Arrays.asList("viewUsers"), 2, "1m", hits -> {});
+                assertFalse(Thread.currentThread().isInterrupted(), "neither case interrupts by itself");
+            } finally {
+                Thread.interrupted();
+            }
+        }
+        // the interrupted clear proper: an InterruptedIOException that is not a timeout
+        OpenSearch os = spy(os());
+        doAnswer(inv -> {
+            Request req = inv.getArgument(0);
+            if ("DELETE".equals(req.getMethod())) throw new java.io.InterruptedIOException("interrupted");
+            if (req.getEndpoint().contains("/_search/scroll")) return emptyPage("c2");
+            return firstPage("c2");
+        }).when(os).getRestResponse(any(Request.class));
+        try {
+            os.scrollDocValues("annotation", Arrays.asList("viewUsers"), 2, "1m", hits -> {});
+            assertTrue(Thread.currentThread().isInterrupted(), "the interruption of the clear is kept");
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
     @Test void repairCapOnARealIndexLeavesTheRestForTheNextAudit() throws Exception {
         reindexAll();
         drift("annotation", "a1", new JSONObject().put("viewUsers", new JSONArray()));

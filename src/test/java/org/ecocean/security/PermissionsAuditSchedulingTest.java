@@ -193,6 +193,46 @@ class PermissionsAuditSchedulingTest {
         assertEquals(2, exec.getQueue().size(), "a retired generation does not re-arm");
     }
 
+    /** The task the executor would run, run here on the mocking thread. */
+    private static Runnable scheduledTask(ScheduledThreadPoolExecutor exec, long minDelayMinutes) {
+        for (Runnable r : exec.getQueue()) {
+            if (((java.util.concurrent.Delayed)r).getDelay(TimeUnit.MINUTES) >= minDelayMinutes) return r;
+        }
+        return null;
+    }
+
+    @Test void theScheduledTaskTicksChoosesItsDelayAndReArmsItself() {
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        ScheduledThreadPoolExecutor exec = (ScheduledThreadPoolExecutor)OpenSearch.backgroundExecutor();
+        Runnable first = scheduledTask(exec, 0);
+        assertNotNull(first);
+        try (MockedStatic<PermissionsAudit> audit = mockStatic(PermissionsAudit.class);
+            MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                when(mock.getPM()).thenReturn(mock(PersistenceManager.class));
+            })) {
+            // an incomplete audit: the task must re-arm itself with the retry delay
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result(false));
+            first.run();
+            assertEquals(1, OpenSearch.permissionsIncompleteStreak());
+            Runnable retry = null;
+            for (Runnable r : exec.getQueue()) {
+                long d = ((java.util.concurrent.Delayed)r).getDelay(TimeUnit.SECONDS);
+                if ((r != first) && (d > 60) && (d <= OpenSearch.BACKGROUND_PERMISSIONS_RETRY_MINUTES * 60L)) retry = r;
+            }
+            assertNotNull(retry, "re-armed with the retry delay: " + exec.getQueue());
+            // a completed audit: the streak resets and the normal delay is chosen
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result(true));
+            retry.run();
+            assertEquals(0, OpenSearch.permissionsIncompleteStreak());
+            boolean normal = false;
+            for (Runnable r : exec.getQueue()) {
+                long d = ((java.util.concurrent.Delayed)r).getDelay(TimeUnit.SECONDS);
+                if ((r != first) && (r != retry) && (d > OpenSearch.BACKGROUND_PERMISSIONS_RETRY_MINUTES * 60L)) normal = true;
+            }
+            assertTrue(normal, "re-armed with the normal delay: " + exec.getQueue());
+        }
+    }
+
     @Test void configComesFromTheBackgroundProperties() {
         PermissionsAudit.Config c = OpenSearch.permissionsAuditConfig();
         assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_PAGE_SIZE, c.pageSize);
