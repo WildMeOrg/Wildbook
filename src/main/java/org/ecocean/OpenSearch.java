@@ -1021,6 +1021,59 @@ public class OpenSearch {
         getRestResponse(updateRequest);
     }
 
+    // ---- helpers for the permissions audit (skeleton; see PermissionsAudit) ----
+
+    /** Result of a conditional write: applied with the document's new concurrency metadata, or a
+     *  version conflict (HTTP 409: the document changed since it was read). */
+    public static final class ConditionalWrite {
+        public final boolean applied;
+        public final long seqNo;
+        public final long primaryTerm;
+
+        private ConditionalWrite(boolean applied, long seqNo, long primaryTerm) {
+            this.applied = applied;
+            this.seqNo = seqNo;
+            this.primaryTerm = primaryTerm;
+        }
+
+        public static ConditionalWrite applied(long seqNo, long primaryTerm) {
+            return new ConditionalWrite(true, seqNo, primaryTerm);
+        }
+
+        public static ConditionalWrite conflict() {
+            return new ConditionalWrite(false, -1, -1);
+        }
+    }
+
+    /** Receives one page of doc-values hits; throw to abort the scroll. */
+    public interface DocValuesPageConsumer {
+        void accept(JSONArray hits) throws IOException;
+    }
+
+    public void scrollDocValues(String indexName, java.util.List<String> fields, int pageSize,
+        String keepAlive, DocValuesPageConsumer consumer)
+    throws IOException {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    public ConditionalWrite updateIfUnchanged(String indexName, String id, JSONObject doc,
+        long seqNo, long primaryTerm)
+    throws IOException {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    public ConditionalWrite putIfUnchanged(String indexName, String id, String documentJson,
+        long seqNo, long primaryTerm)
+    throws IOException {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    /** Field name -> its concrete mapping (type, doc_values, ...) as deployed. */
+    public java.util.Map<String, JSONObject> fieldMappings(String indexName)
+    throws IOException {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
     // Reads the CURRENT indexed viewUsers array for a single doc. Returns the array
     // (possibly empty) on success, or null if the doc/field cannot be read (missing doc,
     // index not present, parse failure). null means "unknown": the caller decides the

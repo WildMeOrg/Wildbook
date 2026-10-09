@@ -1,14 +1,31 @@
 package org.ecocean.security;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
+import javax.jdo.Transaction;
+import org.ecocean.Annotation;
+import org.ecocean.Base;
+import org.ecocean.OpenSearch;
+import org.ecocean.Organization;
+import org.ecocean.Role;
 import org.ecocean.User;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -302,5 +319,570 @@ public final class PermissionsAudit {
         if ((hits == null) || (hits.optJSONArray("hits") == null)) return "no hits envelope";
         if (!page.has("_scroll_id") || page.isNull("_scroll_id")) return "no _scroll_id";
         return null;
+    }
+
+    // ---- running the audit (skeleton: specified by PermissionsAuditRunTest) ----
+
+    /** Tunables of one audit run. */
+    public static final class Config {
+        public final int pageSize;
+        public final int repairCap;
+        public final int rebuildCap;
+        public final String keepAlive;
+
+        public Config(int pageSize, int repairCap, int rebuildCap, String keepAlive) {
+            this.pageSize = pageSize;
+            this.repairCap = repairCap;
+            this.rebuildCap = rebuildCap;
+            this.keepAlive = keepAlive;
+        }
+    }
+
+    /** Per-index counters of one audit run. */
+    public static final class IndexCounters {
+        public int scanned;
+        public int unknown;
+        public int repaired;
+        public int conflicts;
+        public int structural;
+        public int deferred;
+        public int failed;
+
+        @Override public String toString() {
+            return "scanned=" + scanned + " unknown=" + unknown + " repaired=" + repaired +
+                       " conflicts=" + conflicts + " structural=" + structural + " deferred=" +
+                       deferred + " failed=" + failed;
+        }
+    }
+
+    /** Outcome of one audit run. Completion only selects the next delay; nothing is acknowledged. */
+    public static final class Result {
+        public boolean completed;
+        public boolean capHit;
+        public long millis;
+        public final List<String> reasons = new ArrayList<String>();
+        public final Map<String, IndexCounters> indices = new HashMap<String, IndexCounters>();
+
+        public IndexCounters index(String indexName) {
+            IndexCounters c = indices.get(indexName);
+            if (c == null) {
+                c = new IndexCounters();
+                indices.put(indexName, c);
+            }
+            return c;
+        }
+
+        @Override public String toString() {
+            return "Result[completed=" + completed + " capHit=" + capHit + " indices=" + indices +
+                       " reasons=" + reasons + " millis=" + millis + "]";
+        }
+    }
+
+    // ---- running the audit ----
+
+    private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
+    // ids whose rebuild failed in the previous run; ordered last so they cannot starve the rest
+    private static final Set<String> LAST_FAILED_REBUILDS = Collections.synchronizedSet(
+        new HashSet<String>());
+    private static final String ISOLATION = "repeatable-read";
+    private static final String[] INDICES = { "encounter", "annotation", "individual" };
+
+    /** Thrown inside the scroll consumer when the repair cap is reached: stop reading, not an abort. */
+    private static final class CapReached extends IOException {
+        CapReached() {
+            super("repair cap reached");
+        }
+    }
+
+    /**
+     * One audit: one repeatable-read snapshot of the database, then for each index a doc-values
+     * scroll, a comparison of every document against its expected tuple, conditional repairs, and
+     * for a child document whose linkage disagrees with the database a deny write followed by a
+     * verified rebuild. Nothing is acknowledged: completion only selects the next delay.
+     */
+    public static Result run(String context, Config config) {
+        Result r = new Result();
+        long startT = System.currentTimeMillis();
+
+        if (!RUNNING.compareAndSet(false, true)) {
+            r.reasons.add("already running in this JVM");
+            r.millis = System.currentTimeMillis() - startT;
+            return r;
+        }
+        try {
+            if (!Collaboration.securityEnabled(context)) {
+                // everything is publicly readable: there is nothing to verify (unchanged policy)
+                r.completed = true;
+                return r;
+            }
+            Snapshot snapshot = loadSnapshot(context, r);
+            if (snapshot == null) return r;
+            logHeap("snapshot loaded");
+            Runner runner = new Runner(context, config, snapshot, r);
+            boolean allAudited = true;
+            for (String index : INDICES) {
+                allAudited &= runner.auditIndex(index);
+                logHeap(index + " audited");
+            }
+            r.completed = allAudited && !r.capHit && countersClean(r);
+            return r;
+        } catch (Exception ex) {
+            r.reasons.add("audit failed: " + ex);
+            ex.printStackTrace();
+            return r;
+        } finally {
+            RUNNING.set(false);
+            r.millis = System.currentTimeMillis() - startT;
+            System.out.println("PermissionsAudit: " + r);
+        }
+    }
+
+    private static boolean countersClean(Result r) {
+        for (IndexCounters c : r.indices.values()) {
+            if ((c.failed > 0) || (c.conflicts > 0) || (c.structural > 0) || (c.deferred > 0))
+                return false;
+        }
+        return true;
+    }
+
+    private static void logHeap(String when) {
+        Runtime rt = Runtime.getRuntime();
+        System.out.println("PermissionsAudit: " + when + "; heap used=" +
+            ((rt.totalMemory() - rt.freeMemory()) / (1024 * 1024)) + "MB");
+    }
+
+    // ---- snapshot ----
+
+    /**
+     * Shepherd creates its PersistenceManager when a transaction begins, so: begin, roll that
+     * empty transaction back, set the isolation level, begin again, then require that it took.
+     * Any failure propagates: the audit does not run on a snapshot it cannot vouch for.
+     */
+    static void beginRepeatableRead(Shepherd sh)
+    throws IOException {
+        sh.beginDBTransaction();
+        PersistenceManager pm = sh.getPM();
+        if (pm == null) throw new IOException("no PersistenceManager");
+        Transaction tx = pm.currentTransaction();
+        if (tx.isActive()) tx.rollback();
+        tx.setIsolationLevel(ISOLATION);
+        tx.begin();
+        if (!tx.isActive() || !ISOLATION.equals(tx.getIsolationLevel())) {
+            throw new IOException("snapshot isolation not established: active=" + tx.isActive() +
+                      " level=" + tx.getIsolationLevel());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Object[]> sqlRows(Shepherd sh, String sql) {
+        Query q = sh.getPM().newQuery("javax.jdo.query.SQL", sql);
+        try {
+            return new ArrayList<Object[]>((List<Object[]>)q.execute());
+        } finally {
+            q.closeAll();
+        }
+    }
+
+    private static void addTo(Map<String, Set<String> > map, String key, String value) {
+        if ((key == null) || (value == null)) return;
+        Set<String> s = map.get(key);
+        if (s == null) {
+            s = new HashSet<String>();
+            map.put(key, s);
+        }
+        s.add(value);
+    }
+
+    /** Everything the audit reads from the database, in one repeatable-read transaction. Null (with
+     *  a reason) when any read fails: the audit then does nothing this run. */
+    static Snapshot loadSnapshot(String context, Result r) {
+        Shepherd sh = new Shepherd(context);
+        sh.setAction("PermissionsAudit.snapshot");
+        try {
+            beginRepeatableRead(sh);
+            // 1. users: stored username -> id (Shepherd.getUser trims the lookup key, see userIdForUsername)
+            Map<String, String> usernameToId = new HashMap<String, String>();
+            List<User> users = sh.getUsersWithUsername();
+            if (users == null) throw new IOException("could not read users");
+            for (User u : users) {
+                if ((u != null) && (u.getUsername() != null) && (u.getId() != null))
+                    usernameToId.put(u.getUsername(), u.getId());
+            }
+            // 2. approved/edit collaborations: raw username -> counterpart ids (computeViewUsers
+            //    selects the rows naming the stored submitter string on either side, raw)
+            Map<String, Set<String> > collabGrants = new HashMap<String, Set<String> >();
+            List<Collaboration> collabs = (List<Collaboration>)sh.getAllCollaborations();
+            if (collabs == null) throw new IOException("could not read collaborations");
+            for (Collaboration col : collabs) {
+                if ((col == null) || (!col.isApproved() && !col.isEditApproved())) continue;
+                String u1 = col.getUsername1();
+                String u2 = col.getUsername2();
+                if ((u1 == null) || (u2 == null) || u1.equals(u2)) continue;
+                addTo(collabGrants, u1, userIdForUsername(usernameToId, u2));
+                addTo(collabGrants, u2, userIdForUsername(usernameToId, u1));
+            }
+            // 3. orgAdmins of each member's organizations: member id -> admin ids (one-way)
+            Set<String> orgAdminNames = new HashSet<String>();
+            List<String> adminList = sh.getUsernamesWithAnyRole(
+                Collections.singletonList(Organization.ROLE_MANAGER), context);
+            if (adminList != null) orgAdminNames.addAll(adminList);
+            Map<String, Set<String> > orgGrants = new HashMap<String, Set<String> >();
+            List<Organization> orgs = sh.getAllOrganizationsStrict(); // a failed read propagates
+            if (orgs == null) throw new IOException("could not read organizations");
+            for (Organization org : orgs) {
+                List<User> members = (org == null) ? null : org.getMembers();
+                if (members == null) continue;
+                List<String> adminIds = new ArrayList<String>();
+                for (User m : members) {
+                    if ((m == null) || (m.getUsername() == null) || (m.getId() == null)) continue;
+                    if (orgAdminNames.contains(m.getUsername())) adminIds.add(m.getId());
+                }
+                if (adminIds.isEmpty()) continue;
+                for (User m : members) {
+                    if ((m == null) || (m.getId() == null)) continue;
+                    for (String adminId : adminIds) {
+                        if (!adminId.equals(m.getId())) addTo(orgGrants, m.getId(), adminId);
+                    }
+                }
+            }
+            // 4. location roles: role name -> holder ids (system role names never count)
+            Map<String, Set<String> > roleNameToUserIds = new HashMap<String, Set<String> >();
+            List<Role> roles = sh.getRolesInContext(context);
+            if (roles == null) throw new IOException("could not read roles");
+            for (Role role : roles) {
+                if ((role == null) || (role.getRolename() == null) || (role.getUsername() == null))
+                    continue;
+                if (Role.SYSTEM_ROLE_NAMES.contains(role.getRolename())) continue;
+                addTo(roleNameToUserIds, role.getRolename(),
+                    userIdForUsername(usernameToId, role.getUsername()));
+            }
+            // 5. inventories and relationships
+            Map<String, String[]> encounters = new HashMap<String, String[]>();
+            for (Object[] row : sqlRows(sh,
+                "SELECT \"CATALOGNUMBER\", \"SUBMITTERID\", \"LOCATIONID\" FROM \"ENCOUNTER\"")) {
+                if ((row == null) || (row[0] == null)) continue;
+                encounters.put((String)row[0], new String[] { (String)row[1],
+                    (row.length > 2) ? (String)row[2] : null });
+            }
+            // eligible annotations: the reconciler's own desired-state SQL, so eligibility can
+            // never diverge from Annotation.shouldIndexInOpenSearch()
+            Set<String> eligible = new HashSet<String>();
+            for (Object[] row : sqlRows(sh, new Annotation().getAllVersionsSql())) {
+                if ((row != null) && (row[0] != null)) eligible.add((String)row[0]);
+            }
+            Map<String, Set<String> > links = new HashMap<String, Set<String> >();
+            for (Object[] row : sqlRows(sh,
+                "SELECT \"ID_EID\", \"CATALOGNUMBER_OID\" FROM \"ENCOUNTER_ANNOTATIONS\"")) {
+                if (row == null) continue;
+                addTo(links, (String)row[0], (String)row[1]);
+            }
+            Set<String> individuals = new HashSet<String>();
+            for (Object[] row : sqlRows(sh, "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\"")) {
+                if ((row != null) && (row[0] != null)) individuals.add((String)row[0]);
+            }
+            Map<String, Set<String> > members = new HashMap<String, Set<String> >();
+            for (Object[] row : sqlRows(sh,
+                "SELECT \"INDIVIDUALID_OID\", \"CATALOGNUMBER_EID\" FROM \"MARKEDINDIVIDUAL_ENCOUNTERS\"")) {
+                if (row == null) continue;
+                addTo(members, (String)row[0], (String)row[1]);
+            }
+            Snapshot snapshot = new Snapshot(encounters, usernameToId, collabGrants, orgGrants,
+                roleNameToUserIds, eligible, links, individuals, members);
+            System.out.println("PermissionsAudit: snapshot of " + encounters.size() +
+                " encounters, " + eligible.size() + " eligible annotations, " + individuals.size() +
+                " individuals; " + usernameToId.size() + " users, " + collabGrants.size() +
+                " usernames with collaboration grants, " + orgGrants.size() +
+                " users with orgAdmin grants, " + roleNameToUserIds.size() + " location role names");
+            return snapshot;
+        } catch (Exception ex) {
+            r.reasons.add("snapshot failed: " + ex);
+            ex.printStackTrace();
+            return null;
+        } finally {
+            sh.rollbackAndClose();
+        }
+    }
+
+    // ---- per-index audit ----
+
+    /** Field mappings the audit needs, with doc values; anything else disables the index's audit. */
+    static String checkMapping(Map<String, JSONObject> mappings, List<String> fields) {
+        if (mappings == null) return "no mapping";
+        for (String field : fields) {
+            JSONObject fm = mappings.get(field);
+            if (fm == null) return "field " + field + " is not mapped";
+            String type = fm.optString("type", "");
+            if (!"keyword".equals(type) && !"boolean".equals(type))
+                return "field " + field + " has type " + type + " (doc values need keyword/boolean)";
+            if (fm.has("doc_values") && !fm.optBoolean("doc_values", true))
+                return "field " + field + " has doc_values=false";
+        }
+        return null;
+    }
+
+    /** The partial document that installs a tuple on an index document. */
+    static JSONObject tupleDocument(String index, AclTuple tuple) {
+        JSONObject doc = new JSONObject();
+        doc.put("publiclyReadable", tuple.publiclyReadable);
+        if ("encounter".equals(index)) {
+            // the serializer omits the owner for an unresolvable one; a partial update that merely
+            // omitted it would leave a stale id in place, so clear it explicitly
+            doc.put("submitterUserId", tuple.owners.isEmpty() ? JSONObject.NULL :
+                tuple.owners.iterator().next());
+        } else {
+            doc.put("submitterUserIds", new JSONArray(tuple.owners));
+        }
+        doc.put("viewUsers", new JSONArray(tuple.viewers));
+        return doc;
+    }
+
+    private static final class Runner {
+        final String context;
+        final Config config;
+        final Snapshot snapshot;
+        final Result result;
+        final OpenSearch os;
+        int writes = 0; // toward the repair cap
+
+        Runner(String context, Config config, Snapshot snapshot, Result result) {
+            this.context = context;
+            this.config = config;
+            this.snapshot = snapshot;
+            this.result = result;
+            this.os = new OpenSearch();
+        }
+
+        /** True when the index was fully read (repairs may still have failed, which the counters show). */
+        boolean auditIndex(final String index) {
+            final IndexCounters c = result.index(index);
+            final String ownerField = "encounter".equals(index) ? "submitterUserId" : "submitterUserIds";
+            final List<String> fields = new ArrayList<String>(Arrays.asList("publiclyReadable",
+                ownerField, "viewUsers"));
+            if ("annotation".equals(index)) fields.add("encounterId");
+            if ("individual".equals(index)) fields.add("encounterIds");
+            try {
+                String bad = checkMapping(os.fieldMappings(index), fields);
+                if (bad != null) {
+                    result.reasons.add(index + ": not audited: " + bad);
+                    return false;
+                }
+            } catch (Exception ex) {
+                result.reasons.add(index + ": mapping check failed: " + ex);
+                return false;
+            }
+            final List<String> rebuilds = new ArrayList<String>();
+            final Map<String, long[]> rebuildVersions = new HashMap<String, long[]>();
+            boolean read = true;
+            try {
+                os.scrollDocValues(index, fields, config.pageSize, config.keepAlive,
+                    new OpenSearch.DocValuesPageConsumer() {
+                    public void accept(JSONArray hits) throws IOException {
+                        if (Thread.currentThread().isInterrupted())
+                            throw new InterruptedIOException("interrupted before the next page");
+                        for (int i = 0; i < hits.length(); i++) {
+                            IndexedDoc doc = parseHit(hits.optJSONObject(i), ownerField);
+                            if (doc.error != null) throw new IOException(doc.error);
+                            processHit(index, doc, c, rebuilds, rebuildVersions);
+                        }
+                    }
+                });
+            } catch (CapReached cap) {
+                result.capHit = true; // stop reading; the next audit continues
+            } catch (Exception ex) {
+                result.reasons.add(index + ": " + ex);
+                read = false;
+            }
+            if (read) rebuild(index, rebuilds, rebuildVersions, c);
+            System.out.println("PermissionsAudit: " + index + ": " + c);
+            return read;
+        }
+
+        private void processHit(String index, IndexedDoc doc, IndexCounters c, List<String> rebuilds,
+            Map<String, long[]> rebuildVersions)
+        throws IOException {
+            c.scanned++;
+            AclTuple expected;
+            boolean structural = false;
+            if ("encounter".equals(index)) {
+                expected = snapshot.expectedEncounter(doc.id);
+            } else if ("annotation".equals(index)) {
+                expected = snapshot.expectedAnnotation(doc.id);
+                Set<String> parents = snapshot.parentsOf(doc.id);
+                if ((expected != null) && (parents.size() == 1)) {
+                    String parent = parents.iterator().next();
+                    structural = (doc.encounterId.size() != 1) || !parent.equals(doc.encounterId.get(0));
+                }
+            } else {
+                expected = snapshot.expectedIndividual(doc.id);
+                if (expected != null) structural = !doc.encounterIds.equals(snapshot.membersOf(doc.id));
+            }
+            if (expected == null) {
+                c.unknown++; // not in the database (or not eligible): the content reconciler's job
+                return;
+            }
+            if (structural) {
+                // the document's linkage disagrees with the database: its metadata may belong to
+                // another parent, so close it first, then rebuild it from the serializer
+                c.structural++;
+                long seqNo = doc.seqNo;
+                long primaryTerm = doc.primaryTerm;
+                if (!matches(doc, AclTuple.DENY)) {
+                    OpenSearch.ConditionalWrite w = write(index, doc.id, tupleDocument(index,
+                        AclTuple.DENY), seqNo, primaryTerm, c, false);
+                    if (w == null) return; // conflict, failure: no rebuild this run
+                    seqNo = w.seqNo;
+                    primaryTerm = w.primaryTerm;
+                }
+                rebuilds.add(doc.id);
+                rebuildVersions.put(doc.id, new long[] { seqNo, primaryTerm });
+                return;
+            }
+            if (!matches(doc, expected)) {
+                write(index, doc.id, tupleDocument(index, expected), doc.seqNo, doc.primaryTerm, c,
+                    true);
+            }
+        }
+
+        /** A conditional partial update under the repair cap. Null when nothing was applied. */
+        private OpenSearch.ConditionalWrite write(String index, String id, JSONObject doc, long seqNo,
+            long primaryTerm, IndexCounters c, boolean countAsRepair)
+        throws CapReached {
+            if (writes >= config.repairCap) throw new CapReached();
+            writes++;
+            try {
+                OpenSearch.ConditionalWrite w = os.updateIfUnchanged(index, id, doc, seqNo, primaryTerm);
+                if (!w.applied) {
+                    c.conflicts++;
+                    return null;
+                }
+                if (countAsRepair) c.repaired++;
+                return w;
+            } catch (Exception ex) {
+                c.failed++;
+                System.out.println("PermissionsAudit: " + index + "/" + id + " write failed: " + ex);
+                return null;
+            }
+        }
+
+        /** Rebuild the collected child documents from their serializers, after the scroll is over. */
+        private void rebuild(String index, List<String> ids, Map<String, long[]> versions,
+            IndexCounters c) {
+            if (ids.isEmpty()) return;
+            if (OpenSearch.skipAutoIndexing()) { // checked immediately before dispatch
+                c.deferred += ids.size();
+                return;
+            }
+            List<String> ordered = new ArrayList<String>();
+            List<String> failedBefore = new ArrayList<String>();
+            for (String id : ids) {
+                if (LAST_FAILED_REBUILDS.contains(id)) failedBefore.add(id);
+                else ordered.add(id);
+            }
+            ordered.addAll(failedBefore);
+            Shepherd sh = new Shepherd(context);
+            sh.setAction("PermissionsAudit.rebuild");
+            try {
+                sh.beginDBTransaction();
+                int done = 0;
+                Iterator<String> it = ordered.iterator();
+                while (it.hasNext()) {
+                    String id = it.next();
+                    if (Thread.currentThread().isInterrupted() || (done >= config.rebuildCap)) {
+                        if (done >= config.rebuildCap) result.capHit = true;
+                        c.deferred += 1 + remaining(it);
+                        return;
+                    }
+                    done++;
+                    long[] v = versions.get(id);
+                    try {
+                        rebuildOne(index, id, v[0], v[1], sh, c);
+                    } catch (Exception ex) {
+                        c.failed++;
+                        LAST_FAILED_REBUILDS.add(id);
+                        System.out.println("PermissionsAudit: " + index + "/" + id + " rebuild failed: " + ex);
+                    }
+                }
+            } catch (Exception ex) {
+                result.reasons.add(index + ": rebuilds aborted: " + ex);
+                c.failed++;
+            } finally {
+                sh.rollbackAndClose();
+            }
+        }
+
+        private static int remaining(Iterator<String> it) {
+            int n = 0;
+            while (it.hasNext()) {
+                it.next();
+                n++;
+            }
+            return n;
+        }
+
+        private void rebuildOne(String index, String id, long seqNo, long primaryTerm, Shepherd sh,
+            IndexCounters c)
+        throws IOException {
+            Base obj = "annotation".equals(index) ? sh.getAnnotation(id) : sh.getMarkedIndividual(id);
+            if (obj == null) {
+                System.out.println("PermissionsAudit: " + index + "/" + id +
+                    " no longer in the database; left denied for the reconciler");
+                return;
+            }
+            if (!obj.shouldIndexInOpenSearch()) return; // the reconciler removes it
+            // the THROWING serializer overload on our own Shepherd: a failure propagates instead
+            // of leaving a partial document (Base.opensearchDocumentSerializer(JsonGenerator))
+            StringWriter sw = new StringWriter();
+            JsonGenerator jgen = new JsonFactory().createGenerator(sw);
+            jgen.writeStartObject();
+            obj.opensearchDocumentSerializer(jgen, sh);
+            jgen.writeEndObject();
+            jgen.close();
+            String json = sw.toString();
+            String problem = verifyRebuilt(index, id, new JSONObject(json));
+            if (problem != null) {
+                c.failed++;
+                LAST_FAILED_REBUILDS.add(id);
+                System.out.println("PermissionsAudit: " + index + "/" + id +
+                    " rebuilt document disagrees with the snapshot (" + problem + "); left denied");
+                return;
+            }
+            OpenSearch.ConditionalWrite w = os.putIfUnchanged(index, id, json, seqNo, primaryTerm);
+            if (!w.applied) {
+                c.conflicts++;
+                return;
+            }
+            LAST_FAILED_REBUILDS.remove(id);
+        }
+
+        /** The rebuilt document must agree with the snapshot on linkage and ACL, or it is not sent. */
+        private String verifyRebuilt(String index, String id, JSONObject built) {
+            AclTuple expected;
+            if ("annotation".equals(index)) {
+                expected = snapshot.expectedAnnotation(id);
+                Set<String> parents = snapshot.parentsOf(id);
+                String parent = (parents.size() == 1) ? parents.iterator().next() : null;
+                String linked = built.optString("encounterId", null);
+                if ((parent == null) ? (linked != null) : !parent.equals(linked))
+                    return "encounterId " + linked + " vs parent " + parent;
+            } else {
+                expected = snapshot.expectedIndividual(id);
+                Set<String> linked = new HashSet<String>();
+                JSONArray arr = built.optJSONArray("encounterIds");
+                if (arr != null) for (int i = 0; i < arr.length(); i++) linked.add(arr.optString(i));
+                if (!linked.equals(snapshot.membersOf(id)))
+                    return "encounterIds " + linked + " vs members " + snapshot.membersOf(id);
+            }
+            if (expected == null) return "no expectation";
+            if (!built.has("publiclyReadable")) return "no publiclyReadable";
+            Set<String> owners = new HashSet<String>();
+            Set<String> viewers = new HashSet<String>();
+            JSONArray o = built.optJSONArray("submitterUserIds");
+            if (o != null) for (int i = 0; i < o.length(); i++) owners.add(o.optString(i));
+            JSONArray v = built.optJSONArray("viewUsers");
+            if (v != null) for (int i = 0; i < v.length(); i++) viewers.add(v.optString(i));
+            AclTuple builtTuple = new AclTuple(built.optBoolean("publiclyReadable"), owners, viewers);
+            if (!builtTuple.equals(expected)) return "acl " + builtTuple + " vs " + expected;
+            return null;
+        }
     }
 }
