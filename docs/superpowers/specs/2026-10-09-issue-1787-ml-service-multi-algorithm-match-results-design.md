@@ -485,8 +485,7 @@ order:
    under it, so for an annotation it has not yet fanned out the umbrella
    itself is the representative and reads pending. A `noWork` umbrella
    carries no marker and no options; the core marks it `error` (§4.2.3
-   step 4) and rule 4's "no option" branch does not apply to it because
-   it is itself counted (see below). One **representative per option**: the option's newest
+   step 4) and rule 4 counts the umbrella's own status for it. One **representative per option**: the option's newest
    childless descendant-or-self that holds the annotation (its vector leaf
    or its HotSpotter fan-out child); when the option has children but none
    of them holds this annotation yet (a vector dispatch that threw before
@@ -711,17 +710,24 @@ still moves.
 
 ## 7. Blast radius
 
-`ia/MlServiceProcessor.java` (runMatchProspects, two helpers),
-`ia/IA.java` (entry point, core restructure, dispatcher seam, markers,
-outcome, helper), `Embedding.java` (helper), `ia/Task.java` (`selectRun`,
-selector), `servlet/IAGateway.java` (keep two params on the cleared parent;
-retry-pending reset), `identity/IBEISIA.java` (forced branch in
-`sendAnnotationsAsNeeded` and `iaCheckMissing`), `ia/plugin/WildbookIAM.java`
-(`registerImageForced`; poller forces `acmId`), `IAJsonProperties.java`
+`ia/MlServiceProcessor.java` (runMatchProspects with per-group recovery;
+`matchIntakeParams`, `groupByEncounter`), `ia/IA.java` (`intakeAnnotationsUnder`,
+core restructure into build/persist/dispatch, `Dispatcher` seam, run id and
+option markers, `IntakeOutcome`, `noWork` marking, `handleRest` fresh-root
+guard, `intakeProducedNoWork`), `Embedding.java` (`isVectorConfig`; leaf
+parameters drop the option marker), `ia/Task.java` (`selectRun`, selector
+with encounter set, old-tree phases), `servlet/IAGateway.java`
+(`_doIdentify` keeps three params on the cleared parent; failed send stores
+`requeued`, exhausted requeue stores `error`), `identity/IBEISIA.java`
+(role-aware `sendAnnotationsAsNeeded(qanns, tanns, shep)` with the forced
+branch; `iaCheckMissing` forced repair and retry decision),
+`ia/plugin/WildbookIAM.java` (`registerImageForced`, `wbiaEligibilityReason`,
+`WbiaRegisterRequest.forcedId` used by `registerOneByDto`),
+`StartupWildbook.java` (DTO loader fills `forcedId`), `IAJsonProperties.java`
 (test override), `Annotation.java` / `Encounter.java` (opt-in),
 `servlet/importer/ImportTask.java` (opt-in, status aggregate, label merge,
-SQL helper), `MetricsBot.java` (gauge text), tests. No schema change, no
-migration, no frontend change.
+`encounterIdsToAnnotationIds`), `MetricsBot.java` (gauge text), tests. No
+schema change, no migration, no frontend change.
 
 ## 8. Supersedes
 
@@ -729,6 +735,10 @@ Local branch `fix/match-results-multialgo-parent-task` (unpushed,
 2026-07-29).
 
 ## 9. Codex dispositions
+
+Full findings for every round are in
+`docs/superpowers/specs/2026-10-09-issue-1787-codex-review-log.md`.
+Round 8 converged with no findings.
 
 Round 7:
 
