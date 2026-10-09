@@ -465,7 +465,9 @@ public class OpenSearch {
         }
     }
 
-    private static synchronized void rearmPermissionsAudit(String context,
+    /** The re-arm step of the audit chain: schedules the next tick, unless this executor
+     *  generation has been retired. */
+    public static synchronized void rearmPermissionsAudit(String context,
         ScheduledExecutorService exec, long generation, long delayMinutes) {
         if ((generation != backgroundGeneration) || exec.isShutdown()) {
             System.out.println("OpenSearch: permissions audit chain of a retired executor ends here");
@@ -1290,6 +1292,9 @@ public class OpenSearch {
                     getRestResponse(clear);
                 } catch (Exception ex) {
                     System.out.println("scrollDocValues(" + indexName + "): clearing the scroll failed: " + ex);
+                    // an interrupted clear (a socket timeout is not one) must keep the interruption
+                    if ((ex instanceof java.io.InterruptedIOException) &&
+                        !(ex instanceof java.net.SocketTimeoutException)) Thread.currentThread().interrupt();
                 }
             }
         }

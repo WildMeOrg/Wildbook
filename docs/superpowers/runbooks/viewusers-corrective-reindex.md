@@ -14,7 +14,8 @@ re-reads from a fresh snapshot.
   A catalog with a lot of drift takes a few audits at the retry delay.
 - Each audit logs one line per index (`PermissionsAudit: <index>: scanned=... repaired=...
   conflicts=... structural=... deferred=... failed=...`) and a summary with the
-  elapsed time and peak heap. On a converged system every counter except `scanned`
+  elapsed time and the sampled peak heap (heap use at phase boundaries). On a converged
+  system every counter except `scanned`
   is 0. A steady non-zero `repaired` on a quiet system means a serializer and the
   audit disagree about a document: treat it as a bug, not as drift.
 

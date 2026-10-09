@@ -174,6 +174,25 @@ class PermissionsAuditSchedulingTest {
         assertTrue(OpenSearch.backgroundExecutor() == null);
     }
 
+    @Test void reArmSchedulesTheNextTickOnlyForTheCurrentGeneration() {
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        ScheduledThreadPoolExecutor exec = (ScheduledThreadPoolExecutor)OpenSearch.backgroundExecutor();
+        assertEquals(1, exec.getQueue().size());
+        long generation = OpenSearch.backgroundGeneration();
+
+        OpenSearch.rearmPermissionsAudit("context0", exec, generation, 7); // what a finished tick does
+        assertEquals(2, exec.getQueue().size(), "the chain continues with the tick's delay");
+        long maxDelayMinutes = 0;
+        for (Runnable r : exec.getQueue()) {
+            long d = ((java.util.concurrent.Delayed)r).getDelay(TimeUnit.MINUTES);
+            if (d > maxDelayMinutes) maxDelayMinutes = d;
+        }
+        assertTrue(maxDelayMinutes >= 6, "re-armed with the delay the tick chose");
+
+        OpenSearch.rearmPermissionsAudit("context0", exec, generation - 1, 7); // a retired tick
+        assertEquals(2, exec.getQueue().size(), "a retired generation does not re-arm");
+    }
+
     @Test void configComesFromTheBackgroundProperties() {
         PermissionsAudit.Config c = OpenSearch.permissionsAuditConfig();
         assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_PAGE_SIZE, c.pageSize);

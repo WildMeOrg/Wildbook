@@ -457,16 +457,25 @@ public final class PermissionsAudit {
             Runner runner = new Runner(context, config, snapshot, r, os);
             boolean allAudited = true;
             for (String index : INDICES) {
-                if (interrupted(r, "before auditing " + index)) break;
+                if (r.interrupted || interrupted(r, "before auditing " + index)) {
+                    allAudited = false;
+                    break;
+                }
                 allAudited &= runner.auditIndex(index);
                 sampleHeap(r, index + " audited");
             }
-            if (allAudited && !r.interrupted && !interrupted(r, "before the rebuilds")) {
+            // the queued rebuilds depend only on this snapshot and on documents that are already
+            // closed, so an index that could not be audited does not hold them back
+            if (!r.interrupted && !interrupted(r, "before the rebuilds")) {
                 runner.rebuildAll(); // verifies against the snapshot: release only afterwards
                 sampleHeap(r, "rebuilds done");
             }
             snapshot.release();
             interrupted(r, "at completion"); // raised during the last page or the rebuilds
+            for (String index : INDICES) {
+                if (r.indices.containsKey(index))
+                    System.out.println("PermissionsAudit: " + index + ": " + r.index(index));
+            }
             r.completed = allAudited && !r.capHit && !r.interrupted && countersClean(r);
             return r;
         } catch (Exception ex) {
@@ -738,6 +747,10 @@ public final class PermissionsAudit {
                     result.reasons.add(index + ": not audited: " + bad);
                     return false;
                 }
+            } catch (InterruptedIOException iex) {
+                result.interrupted = true;
+                result.reasons.add(index + ": interrupted during the mapping check");
+                return false;
             } catch (Exception ex) {
                 result.reasons.add(index + ": mapping check failed: " + ex);
                 return false;
@@ -758,6 +771,9 @@ public final class PermissionsAudit {
                 });
             } catch (CapReached cap) {
                 result.capHit = true; // stop reading; the next audit continues
+            } catch (java.net.SocketTimeoutException timeout) {
+                result.reasons.add(index + ": " + timeout);
+                read = false;
             } catch (InterruptedIOException iex) {
                 result.interrupted = true;
                 result.reasons.add(index + ": " + iex.getMessage());
@@ -766,7 +782,6 @@ public final class PermissionsAudit {
                 result.reasons.add(index + ": " + ex);
                 read = false;
             }
-            System.out.println("PermissionsAudit: " + index + ": " + c);
             return read;
         }
 
@@ -847,10 +862,6 @@ public final class PermissionsAudit {
          */
         void rebuildAll() {
             if (pending.isEmpty()) return;
-            if (OpenSearch.skipAutoIndexing()) { // checked immediately before dispatch
-                for (Object[] p : pending) result.index((String)p[0]).deferred++;
-                return;
-            }
             List<Object[]> ordered = new ArrayList<Object[]>();
             List<Object[]> failedBefore = new ArrayList<Object[]>();
             for (Object[] p : pending) {
@@ -858,35 +869,38 @@ public final class PermissionsAudit {
                 else ordered.add(p);
             }
             ordered.addAll(failedBefore);
+            int next = 0; // the first candidate not attempted (or not completed); the rest are deferred
             Shepherd sh = new Shepherd(context);
             sh.setAction("PermissionsAudit.rebuild");
             try {
                 sh.beginDBTransaction();
-                Iterator<Object[]> it = ordered.iterator();
-                while (it.hasNext()) {
-                    Object[] p = it.next();
+                while (next < ordered.size()) {
+                    Object[] p = ordered.get(next);
                     String index = (String)p[0];
                     String id = (String)p[1];
                     IndexCounters c = result.index(index);
                     if (Thread.currentThread().isInterrupted()) {
                         result.interrupted = true;
                         result.reasons.add("interrupted before rebuilding " + index + "/" + id);
-                        deferRest(p, it);
-                        return;
+                        break;
                     }
+                    if (OpenSearch.skipAutoIndexing()) break; // re-read before every candidate
                     if (rebuilds >= config.rebuildCap) {
                         result.capHit = true;
-                        deferRest(p, it);
-                        return;
+                        break;
                     }
+                    next++;
                     rebuilds++;
                     try {
                         rebuildOne(index, id, (Long)p[2], (Long)p[3], sh, c);
+                    } catch (SkipWindowOpen window) {
+                        next--; // this one was not sent either
+                        break;
                     } catch (InterruptedIOException iex) {
                         result.interrupted = true;
                         result.reasons.add(index + ": " + iex.getMessage());
-                        deferRest(p, it);
-                        return;
+                        next--;
+                        break;
                     } catch (Exception ex) {
                         c.failed++;
                         LAST_FAILED_REBUILDS.add(id);
@@ -898,13 +912,15 @@ public final class PermissionsAudit {
                 result.index((String)pending.get(0)[0]).failed++;
             } finally {
                 sh.rollbackAndClose();
+                for (int i = next; i < ordered.size(); i++) result.index((String)ordered.get(i)[0]).deferred++;
             }
         }
 
-        /** The current candidate and every later one wait for the next audit. */
-        private void deferRest(Object[] current, Iterator<Object[]> it) {
-            result.index((String)current[0]).deferred++;
-            while (it.hasNext()) result.index((String)it.next()[0]).deferred++;
+        /** Thrown by a rebuild when the skipAutoIndexing window opened before its replace. */
+        private static final class SkipWindowOpen extends IOException {
+            SkipWindowOpen() {
+                super("skipAutoIndexing window opened");
+            }
         }
 
         private void rebuildOne(String index, String id, long seqNo, long primaryTerm, Shepherd sh,
@@ -936,6 +952,7 @@ public final class PermissionsAudit {
             }
             if (Thread.currentThread().isInterrupted())
                 throw new InterruptedIOException("interrupted after serializing " + id);
+            if (OpenSearch.skipAutoIndexing()) throw new SkipWindowOpen(); // re-read before the replace
             OpenSearch.ConditionalWrite w = os.putIfUnchanged(index, id, json, seqNo, primaryTerm);
             if (!w.applied) {
                 c.conflicts++;

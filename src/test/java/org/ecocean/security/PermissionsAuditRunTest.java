@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -79,6 +80,8 @@ class PermissionsAuditRunTest {
     private Map<String, List<JSONArray> > pages; // index -> scroll pages (arrays of hits)
     private Map<String, Map<String, JSONObject> > mappings; // index -> field -> mapping
     private Set<String> scrollFails; // indices whose scroll throws
+    private Set<String> scrollInterruptOn; // indices whose scroll reports an interruption (flag clear)
+    private boolean rebuildShepherdFails; // the repair Shepherd cannot begin a transaction
     private Set<String> conflictOn; // ids whose conditional write returns a conflict
     private Set<String> conflictOnPut; // ids whose conditional REPLACE (rebuild) returns a conflict
     private Map<String, Runnable> onWrite; // id -> something that happens right after its write lands
@@ -111,6 +114,8 @@ class PermissionsAuditRunTest {
             mappings.put(index, goodMapping(index));
         }
         scrollFails = new HashSet<String>();
+        scrollInterruptOn = new HashSet<String>();
+        rebuildShepherdFails = false;
         conflictOn = new HashSet<String>();
         conflictOnPut = new HashSet<String>();
         onWrite = new HashMap<String, Runnable>();
@@ -228,6 +233,21 @@ class PermissionsAuditRunTest {
         return ann;
     }
 
+    /** As rebuildableAnnotation, with something that happens while the serializer runs. */
+    private Annotation rebuildableAnnotation(String id, final JSONObject document, final Runnable whileSerializing)
+    throws IOException {
+        Annotation ann = spy(new Annotation());
+        doReturn(id).when(ann).getId();
+        doReturn(true).when(ann).shouldIndexInOpenSearch();
+        doAnswer(inv -> {
+            whileSerializing.run();
+            writeFields((JsonGenerator)inv.getArgument(0), document);
+            return null;
+        }).when(ann).opensearchDocumentSerializer(any(JsonGenerator.class), any(Shepherd.class));
+        annotations.put(id, ann);
+        return ann;
+    }
+
     private MarkedIndividual rebuildableIndividual(String id, final JSONObject document) throws IOException {
         MarkedIndividual indiv = spy(new MarkedIndividual());
         doReturn(id).when(indiv).getId();
@@ -282,6 +302,16 @@ class PermissionsAuditRunTest {
                 when(mock.getRolesInContext("context0")).thenReturn(roles);
                 when(mock.getAnnotation(anyString())).thenAnswer(inv -> annotations.get((String)inv.getArgument(0)));
                 when(mock.getMarkedIndividual(anyString())).thenAnswer(inv -> individuals.get((String)inv.getArgument(0)));
+                final String[] action = { "" };
+                doAnswer(inv -> {
+                    action[0] = inv.getArgument(0);
+                    return null;
+                }).when(mock).setAction(anyString());
+                doAnswer(inv -> {
+                    if (rebuildShepherdFails && "PermissionsAudit.rebuild".equals(action[0]))
+                        throw new RuntimeException("database down");
+                    return null;
+                }).when(mock).beginDBTransaction();
                 PersistenceManager pm = mock(PersistenceManager.class);
                 Transaction tx = mock(Transaction.class);
                 when(tx.isActive()).thenReturn(true);
@@ -300,6 +330,7 @@ class PermissionsAuditRunTest {
                 doAnswer(inv -> {
                     String index = inv.getArgument(0);
                     if (scrollFails.contains(index)) throw new IOException("scroll failed: " + index);
+                    if (scrollInterruptOn.contains(index)) throw new InterruptedIOException("interrupted: " + index);
                     if ((gate != null) && "encounter".equals(index)) gate.await(10, TimeUnit.SECONDS);
                     OpenSearch.DocValuesPageConsumer consumer = inv.getArgument(4);
                     for (JSONArray p : pages.get(index)) consumer.accept(p);
@@ -1022,6 +1053,87 @@ class PermissionsAuditRunTest {
         Result r = run();
         assertEquals(0, puts(), "the switch is read immediately before dispatch");
         assertEquals(1, r.index("annotation").deferred);
+    }
+
+    @Test void unrelatedIndexFailureDoesNotBlockQueuedRebuilds() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        mappings.get("encounter").put("viewUsers", new JSONObject().put("type", "text")); // encounter skipped
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"));
+
+        Result r = run();
+        assertEquals(1, puts(), "the closed annotation is rebuilt although another index was not audited");
+        assertFalse(r.completed);
+    }
+
+    @Test void laterIndexFailureAfterCandidatesWereQueuedStillRebuildsThem() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"));
+        scrollFails.add("individual");
+
+        Result r = run();
+        assertEquals(1, puts());
+        assertFalse(r.completed);
+    }
+
+    @Test void skipWindowOpeningBetweenCandidatesDefersTheRest() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        annotation("a2", "e1");
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")),
+            childHit("a2", false, arr(), arr(), "encounterId", arr("eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"));
+        rebuildableAnnotation("a2", correctChild("a2", "encounterId", "e1"));
+        onWrite.put("a1", () -> skipAutoIndexing = true); // the window opens after a1's rebuild lands
+
+        Result r = run();
+        assertEquals(1, puts());
+        assertEquals(1, r.index("annotation").deferred, "a2 waits for the window to close");
+    }
+
+    @Test void skipWindowOpeningDuringSerializationDefersThatCandidate() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"), () -> skipAutoIndexing = true);
+
+        Result r = run();
+        assertEquals(0, puts(), "the switch is read again immediately before the replace");
+        assertEquals(1, r.index("annotation").deferred);
+        assertFalse(r.completed);
+    }
+
+    @Test void interruptionReportedByTheScrollStopsLaterIndexesEvenWithTheFlagClear() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        page("encounter", encounterHit("e1", false, "uuid-O", "uuid-B", "uuid-A"));
+        page("annotation", childHit("a1", false, arr("uuid-O"), arr(), "encounterId", arr("e1"))); // would be repaired
+        scrollInterruptOn.add("encounter");
+
+        Result r = run();
+        assertTrue(r.interrupted);
+        assertEquals(0, r.index("annotation").scanned, "no later index is audited after an interruption");
+        assertTrue(writes.isEmpty());
+        assertFalse(r.completed);
+    }
+
+    @Test void rebuildAbortCountsTheUnattemptedCandidatesAsDeferred() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        annotation("a2", "e1");
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")),
+            childHit("a2", false, arr(), arr(), "encounterId", arr("eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"));
+        rebuildableAnnotation("a2", correctChild("a2", "encounterId", "e1"));
+        rebuildShepherdFails = true;
+
+        Result r = run();
+        assertEquals(0, puts());
+        assertEquals(2, r.index("annotation").deferred, "both wait for the next audit");
+        assertFalse(r.completed);
     }
 
     @Test void interruptedThreadWithNothingToReadStillLeavesTheAuditIncomplete() throws Exception {

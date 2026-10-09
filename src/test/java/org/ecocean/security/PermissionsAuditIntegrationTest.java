@@ -619,6 +619,53 @@ import org.testcontainers.utility.DockerImageName;
         assertTrue(partialRefused, "partial results are refused on the request");
     }
 
+    private static String firstPage(String scrollId) {
+        JSONObject hit = new JSONObject().put("_id", "a1").put("_seq_no", 1).put("_primary_term", 1)
+            .put("fields", new JSONObject().put("viewUsers", new JSONArray()));
+        return new JSONObject().put("timed_out", false).put("_scroll_id", scrollId)
+                   .put("_shards", new JSONObject().put("failed", 0))
+                   .put("hits", new JSONObject().put("hits", new JSONArray().put(hit))).toString();
+    }
+
+    private static boolean cleared(List<Request> seen, String scrollId) throws Exception {
+        for (Request r : seen) {
+            if ("DELETE".equals(r.getMethod()) && EntityUtils.toString(r.getEntity()).contains(scrollId)) return true;
+        }
+        return false;
+    }
+
+    @Test void scrollContextIsClearedWhenTheContinuationRequestFails() throws Exception {
+        final List<Request> seen = new ArrayList<Request>();
+        OpenSearch os = spy(os());
+        doAnswer(inv -> {
+            Request req = inv.getArgument(0);
+            seen.add(req);
+            if ("DELETE".equals(req.getMethod())) return "{\"succeeded\":true}";
+            if (req.getEndpoint().contains("/_search/scroll")) throw new IOException("connection reset");
+            return firstPage("h1");
+        }).when(os).getRestResponse(any(Request.class));
+
+        assertThrows(IOException.class, () -> os.scrollDocValues("annotation", Arrays.asList("viewUsers"),
+            2, "1m", hits -> {}));
+        assertTrue(cleared(seen, "h1"), "an HTTP failure on a continuation still clears the context: " + seen);
+    }
+
+    @Test void scrollContextIsClearedWhenAPageIsMalformed() throws Exception {
+        final List<Request> seen = new ArrayList<Request>();
+        OpenSearch os = spy(os());
+        doAnswer(inv -> {
+            Request req = inv.getArgument(0);
+            seen.add(req);
+            if ("DELETE".equals(req.getMethod())) return "{\"succeeded\":true}";
+            return new JSONObject().put("timed_out", false).put("_scroll_id", "m1")
+                       .put("_shards", new JSONObject().put("failed", 0)).toString(); // no hits envelope
+        }).when(os).getRestResponse(any(Request.class));
+
+        assertThrows(IOException.class, () -> os.scrollDocValues("annotation", Arrays.asList("viewUsers"),
+            2, "1m", hits -> {}));
+        assertTrue(cleared(seen, "m1"), "a malformed page still clears its context: " + seen);
+    }
+
     @Test void repairCapOnARealIndexLeavesTheRestForTheNextAudit() throws Exception {
         reindexAll();
         drift("annotation", "a1", new JSONObject().put("viewUsers", new JSONArray()));
