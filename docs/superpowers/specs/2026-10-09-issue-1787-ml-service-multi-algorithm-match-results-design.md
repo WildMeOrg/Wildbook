@@ -1,6 +1,6 @@
 # Issue #1787 — Run every default algorithm on ml-service bulk imports, and link Match Results to the encounter-wide task
 
-Date: 2026-10-09 (rev 5, after Codex rounds 1–4)
+Date: 2026-10-09 (rev 6, after Codex rounds 1–5)
 Issue: https://github.com/WildMeOrg/Wildbook/issues/1787
 Forum: https://community.wildme.org/t/match-results-not-showing-all-results/5770
 Branch: `fix/bulk-import-multi-algorithm-1787` (off `origin/main` 764268c5aa)
@@ -292,7 +292,11 @@ phases over the same tree it builds today:
    queue. Publication failure (`addToQueue` returns false or throws) marks
    that option task error `QUEUE_FAILED` (terminal); today intake only logs
    it. A vector dispatch that throws marks that option task error
-   `DISPATCH_FAILED` and the core continues with the next option. The core
+   `DISPATCH_FAILED`, and also marks error every child of that option task
+   that is not already terminal (`findMatchProspects` attaches
+   `new Task(task)` per annotation before matching, so a throw mid-way can
+   leave attached, unfinished leaves that the group commit would persist
+   by reachability; Codex r5 #3), then continues with the next option. The core
    never throws after the persist step: it always returns the outcome, with
    every option's publication result filled in before dispatch starts and
    updated as each dispatch finishes.
@@ -389,7 +393,14 @@ if run != null:                                   return run      # new tree, sc
 if any task in tasks carries a run id:                            # new tree whose newest umbrella spans encounters (§3)
     return today's selection restricted to the tasks of that newest umbrella's run
                                                                   # newest renderable leaf of that run; no hoist
-old tree (no run ids anywhere): winner = today's selection; then the structural climb:
+old tree (no run ids anywhere):
+    winner = today's selection, EXCLUDING from the candidates any task that holds
+             objectMediaAssets or carries "ibeis.detection" / "embeddingExtraction"
+             (orchestration nodes, incl. a pre-fix umbrella that a later handleRest
+             request reused as its root and loaded with media assets; Codex r5 #1)
+    if winner == null: winner = newest candidate carrying "ibeis.identification"   # an option or leaf
+    if winner == null: winner = today's root fallback (unchanged)
+    then the structural climb from winner:
     best = winner; winnerStamp = stamp(winner)
     up = winner.parent; hops = 0; visited = {winner.id}
     while up != null and up.id != null and hops++ < 20 and visited.add(up.id):
@@ -436,6 +447,7 @@ Old-tree shapes:
 | API extraction: `E(annotation, no params, no parent) → M_old, M_new` | `M_new` (parameterless root) |
 | legacy callback extraction: `D → E(annots, embeddingExtraction) → M_old, M_new` | `M_new` (`embeddingExtraction` stop; Codex r3 #3) |
 | `_doIdentify` fan-out: `U(stamped) → T_hs(params null) → H_A, H_B(stamped)` | `U` (bridge) |
+| pre-fix reused root: `R(media) → U1(A, media assets) → H1, H2, U2(A) → H3, H4` | `U1` excluded (media assets); no renderable candidate left; seed = newest `ibeis.identification` task `H4`; climb to `U2`, stop at `U1` | 
 | image with two encounters: `D → M(annA, annB) → SA, SB` | `SA` (#1744) |
 | ancestor stamped with another import | last permitted node |
 
@@ -458,8 +470,11 @@ order:
 4. Per-annotation status: any leaf non-terminal → that status (`sent`
    side); else any leaf `error` → `error`; else `completed`. A childless
    umbrella without `ibeis.identification` is a `noWork` umbrella; the
-   core marks it `error` (§4.2.3 step 4), so it reads as a failed leaf. No
-   leaves and the umbrella has children (a class with no option) →
+   core marks it `error` (§4.2.3 step 4), so it reads as a failed leaf.
+   When no childless task of the run holds the annotation, the option
+   tasks of the run that hold it stand in as its leaves (an option whose
+   dispatch failed before creating a leaf reads as `error`; Codex r5 #3);
+   when no option task holds it either (a class with no option) →
    `completed` plus an informational `numLatestTask_skipped` counter.
 5. Maximum age: a non-terminal leaf whose `timeInactive()` exceeds
    `Task.TIMEOUT_INACTIVE_MILLIS` (seven days since `Task.modified`, which
@@ -469,19 +484,27 @@ order:
    not liveness detection; a job that completes later flips the task to
    completed and the next poll shows it. Reported only.
 
-**Queued retries are pending.** In `IAGateway._doIdentify`'s catch around
-`_sendIdentificationTask`: when `requeueJob(...)` returns true the subtask's
-stored status is set to the explicit non-terminal value `requeued` (not
-null: a null status makes `Task.getStatus` derive the state from WBIA logs,
-and a failed send leaves an `HTTP error code` log that reads as `error`;
-Codex r4 #3) with a `SEND_FAILED; retry queued` details entry. `getStatus`
+**Queued retries are pending.** `_sendIdentificationTask` today stores
+`error` + `SEND_FAILED`, commits, and throws; `_doIdentify` then decides the
+requeue. That order lets a poll between the two commits observe a terminal
+error with a retry still to be scheduled (Codex r5 #2). The order is
+reversed: on a failed send `_sendIdentificationTask` stores the explicit
+non-terminal status `requeued` with a `SEND_FAILED; retry pending` details
+entry and commits (not null: a null status makes `Task.getStatus` derive
+the state from WBIA logs, and a failed send leaves an `HTTP error code` log
+that reads as `error`), then throws. In `_doIdentify`'s catch, when
+`requeueJob(...)` returns true nothing more is stored; when it returns false
+(retry budget or two-day window exhausted) the status becomes `error` with
+`SEND_FAILED` and is committed, which is the only terminal commit on this
+path. A crash between the inner commit and the requeue decision leaves a
+`requeued` task with no job; the seven-day maximum age (rule 5) reports it
+as failed. `getStatus`
 returns a non-null stored status as is, `statusInEndState` treats only
 `completed`, `error` and `dropped-stale` as terminal, and the identify
 callback overwrites the status with `completed` unconditionally, so the
-task reads pending until the retry succeeds or is exhausted. When
-`requeueJob` returns false (retry budget or two-day window exhausted) the
-`SEND_FAILED` error stays and is terminal. Goal 6 therefore holds across
-retries.
+task reads pending from the first failure until the retry succeeds or is
+exhausted. Goal 6 therefore holds across retries with no observable
+terminal window.
 
 `numLatestTasks` stays exactly one per non-trivial annotation;
 `iaSummaryJson`'s formula (`completed + error >= total` → complete) is
@@ -581,8 +604,24 @@ on every stored entity.
   annotation → legacy path untouched; `iaCheckMissing` forced repair
   success → `tryAgain` true, legacy branch unchanged.
 
+Identify-handler isolation: `_doIdentify` is exercised for real with
+`mockStatic(IBEISIA.class, CALLS_REAL_METHODS)` stubbing only
+`waitForIAPriming` and `beginIdentifyAnnotations`, `mockStatic(IAGateway.class,
+CALLS_REAL_METHODS)` stubbing only `requeueJob`, and
+`mockStatic(IAQueryCache.class)` for cache lookups (mockito-inline 4.11 is
+on the test classpath; `OccurrenceOpenSearchTest` and `SettingTest` already
+use `mockConstruction(Shepherd.class)`).
+
+Additional cases: the pre-fix reused-root tree (§4.3 table) lands on `U2`;
+a second PersistenceManager polling `statsAnnotations` between the send
+failure commit and the requeue decision sees "sent"; a vector dispatch that
+throws after one leaf is attached, followed by a successful group commit →
+the attached leaf and the option read `error`, the annotation whose leaf
+was never created reads `error` through the option fallback; FALSE-only
+registration against initially empty WBIA id lists.
+
 Injection and hygiene: the processor's own Shepherds are intercepted with
-`mockConstruction(Shepherd.class)` (the pattern in `MatchResultTest`);
+`mockConstruction(Shepherd.class)` (as in `OccurrenceOpenSearchTest`);
 commit failures are produced by closing the container's connection or by a
 `Shepherd` subclass whose `commitDBTransactionWithStatus` returns false;
 `IAJsonProperties.overrideForTests(null)` and `TestPMFUtil.closePMF` run in
@@ -650,6 +689,15 @@ Local branch `fix/match-results-multialgo-parent-task` (unpushed,
 2026-07-29).
 
 ## 9. Codex dispositions
+
+Round 5:
+
+| r5 | finding | rev 6 |
+|---|---|---|
+| 1 | pre-fix reused umbrella returned as the old-tree winner | §4.3 orchestration nodes excluded from candidates; seed from the newest `ibeis.identification` task |
+| 2 | terminal error observable before the requeue decision | §4.4 non-terminal `requeued` stored before the failure-path commit; terminal only on refusal |
+| 3 | unfinished vector leaves persisted pending | §4.2.3 terminalize unfinished children; §4.4 option-task fallback for annotations without a leaf |
+| 4 | identify isolation, fixtures | §5.2 static-mock seams and the four added cases |
 
 Round 4:
 
