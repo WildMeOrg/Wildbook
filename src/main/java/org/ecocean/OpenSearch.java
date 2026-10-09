@@ -237,7 +237,11 @@ public class OpenSearch {
     private static ScheduledExecutorService backgroundExecutor;
     private static final java.util.concurrent.atomic.AtomicInteger PERMISSIONS_INCOMPLETE_STREAK =
         new java.util.concurrent.atomic.AtomicInteger(0);
-    // one audit chain per executor: a second start on the same executor is refused
+    // Every executor is a generation. The audit chain, its incomplete streak and the warmup
+    // chain belong to one generation: a task that outlives its executor (shutdown while it ran)
+    // finds the generation changed and leaves the replacement's state alone.
+    private static long backgroundGeneration = 0;
+    private static long permissionsChainGeneration = -1; // generation that carries the audit chain
     private static final java.util.concurrent.atomic.AtomicBoolean permissionsChainStarted =
         new java.util.concurrent.atomic.AtomicBoolean(false);
 
@@ -245,14 +249,19 @@ public class OpenSearch {
         return backgroundExecutor;
     }
 
+    public static synchronized long backgroundGeneration() {
+        return backgroundGeneration;
+    }
+
     private static synchronized ScheduledExecutorService ensureBackgroundExecutor() {
         if ((backgroundExecutor == null) || backgroundExecutor.isShutdown()) {
             backgroundExecutor = Executors.newScheduledThreadPool(8);
+            backgroundGeneration++;
         }
         return backgroundExecutor;
     }
 
-    public static void backgroundStartup(final String context) {
+    public static synchronized void backgroundStartup(final String context) {
         final ScheduledExecutorService schedExec = ensureBackgroundExecutor();
         schedExec.scheduleWithFixedDelay(new Runnable() {
                 public void run() {
@@ -262,13 +271,6 @@ public class OpenSearch {
             BACKGROUND_DELAY_MINUTES, // period delay *after* execution finishes
             TimeUnit.MINUTES); // unit of delays above
         startPermissionsAuditScheduler(context);
-
-        try {
-            schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
-        } catch (java.lang.InterruptedException ex) {
-            System.out.println("WARNING: OpenSearch.backgroundStartup(" + context +
-                ") interrupted: " + ex.toString());
-        }
         System.out.println("OpenSearch.backgroundStartup(" + context + ") backgrounded");
 
         // Warm the match kNN graph so the first user match after this restart isn't cold. Self-
@@ -375,23 +377,43 @@ public class OpenSearch {
      * database sets backgroundPermissionsRunner=false on all but one.
      */
     public static boolean startPermissionsAuditScheduler(final String context) {
+        return startPermissionsAuditScheduler(context, BACKGROUND_PERMISSIONS_INITIAL_DELAY_MINUTES);
+    }
+
+    /** Atomic with shutdownBackground(): the executor, the chain guard and the first scheduling
+     *  are decided under one lock, so a shutdown cannot slip between them. */
+    public static synchronized boolean startPermissionsAuditScheduler(final String context,
+        long initialDelayMinutes) {
         if (!BACKGROUND_PERMISSIONS_RUNNER) {
             System.out.println("OpenSearch: backgroundPermissionsRunner=false; the permissions audit " +
                 "does not run in this JVM");
             return false;
         }
         ScheduledExecutorService exec = ensureBackgroundExecutor();
-        if (!permissionsChainStarted.compareAndSet(false, true)) {
+        long generation = backgroundGeneration;
+        if (permissionsChainStarted.get() && (permissionsChainGeneration == generation)) {
             System.out.println("OpenSearch: the permissions audit is already scheduled");
             return false;
         }
-        schedulePermissionsAudit(context, exec, BACKGROUND_PERMISSIONS_INITIAL_DELAY_MINUTES);
+        if (!schedulePermissionsAudit(context, exec, generation, initialDelayMinutes)) {
+            permissionsChainStarted.set(false);
+            System.out.println("OpenSearch: WARNING could not schedule the permissions audit");
+            return false;
+        }
+        permissionsChainStarted.set(true);
+        permissionsChainGeneration = generation;
         return true;
     }
 
-    /** One audit tick: run, treat an exception as an incomplete audit, keep the incomplete streak,
-     *  and return the delay (minutes) before the next tick. */
+    /** One audit tick on the current executor generation. */
     public static int permissionsAuditTick(String context) {
+        return permissionsAuditTick(context, backgroundGeneration());
+    }
+
+    /** One audit tick: run, treat an exception as an incomplete audit, keep the incomplete streak
+     *  (unless this tick belongs to a retired executor generation), and return the delay (minutes)
+     *  before the next tick. */
+    public static int permissionsAuditTick(String context, long generation) {
         boolean completed = false;
         try {
             completed = runPermissionsAudit(context);
@@ -399,14 +421,21 @@ public class OpenSearch {
             System.out.println("OpenSearch: permissions audit threw: " + t);
             t.printStackTrace();
         }
-        int streak = completed ? 0 : PERMISSIONS_INCOMPLETE_STREAK.incrementAndGet();
-        if (completed) PERMISSIONS_INCOMPLETE_STREAK.set(0);
-        int next = nextPermissionsDelayMinutes(completed, streak);
-        if (!completed && (streak == BACKGROUND_PERMISSIONS_MAX_RETRY_STREAK)) {
-            System.out.println("OpenSearch: WARNING the permissions audit has been incomplete " +
-                streak + " times in a row; back to the normal delay of " + next + " minutes");
+        synchronized (OpenSearch.class) {
+            if (generation != backgroundGeneration) {
+                System.out.println("OpenSearch: a permissions audit from a retired executor finished; " +
+                    "its outcome does not count");
+                return BACKGROUND_PERMISSIONS_MINUTES;
+            }
+            int streak = completed ? 0 : PERMISSIONS_INCOMPLETE_STREAK.incrementAndGet();
+            if (completed) PERMISSIONS_INCOMPLETE_STREAK.set(0);
+            int next = nextPermissionsDelayMinutes(completed, streak);
+            if (!completed && (streak == BACKGROUND_PERMISSIONS_MAX_RETRY_STREAK)) {
+                System.out.println("OpenSearch: WARNING the permissions audit has been incomplete " +
+                    streak + " times in a row; back to the normal delay of " + next + " minutes");
+            }
+            return next;
         }
-        return next;
     }
 
     public static int permissionsIncompleteStreak() {
@@ -414,23 +443,36 @@ public class OpenSearch {
     }
 
     // One-shot scheduling that re-arms itself from a finally block with a delay chosen by the
-    // outcome (scheduleWithFixedDelay cannot vary its delay per run). Never throws out of the task.
-    private static void schedulePermissionsAudit(final String context,
-        final ScheduledExecutorService exec, long delayMinutes) {
+    // outcome (scheduleWithFixedDelay cannot vary its delay per run). Never throws out of the
+    // task. False when the executor refused the task (shut down).
+    private static boolean schedulePermissionsAudit(final String context,
+        final ScheduledExecutorService exec, final long generation, long delayMinutes) {
         try {
             exec.schedule(new Runnable() {
                 public void run() {
                     long next = BACKGROUND_PERMISSIONS_MINUTES;
                     try {
-                        next = permissionsAuditTick(context);
+                        next = permissionsAuditTick(context, generation);
                     } finally {
-                        if (!exec.isShutdown()) schedulePermissionsAudit(context, exec, next);
+                        rearmPermissionsAudit(context, exec, generation, next);
                     }
                 }
             }, delayMinutes, TimeUnit.MINUTES);
+            return true;
         } catch (java.util.concurrent.RejectedExecutionException rex) {
-            System.out.println("OpenSearch: permissions audit not rescheduled (executor shut down)");
+            System.out.println("OpenSearch: permissions audit not scheduled (executor shut down)");
+            return false;
         }
+    }
+
+    private static synchronized void rearmPermissionsAudit(String context,
+        ScheduledExecutorService exec, long generation, long delayMinutes) {
+        if ((generation != backgroundGeneration) || exec.isShutdown()) {
+            System.out.println("OpenSearch: permissions audit chain of a retired executor ends here");
+            return;
+        }
+        if (!schedulePermissionsAudit(context, exec, generation, delayMinutes))
+            permissionsChainStarted.set(false);
     }
 
     /** The delay before the next audit: the normal one after a completion, the shorter retry
@@ -473,16 +515,26 @@ public class OpenSearch {
     }
 
     /** Stop every OpenSearch background task (undeploy). An active audit is interrupted and stops
-     *  before its next scroll page or rebuild; nothing is rescheduled afterwards. */
-    public static synchronized void shutdownBackground() {
-        permissionsChainStarted.set(false); // a fresh executor gets a fresh chain
-        PERMISSIONS_INCOMPLETE_STREAK.set(0);
-        warmupChainStarted.set(false);
-        ScheduledExecutorService exec = backgroundExecutor;
+     *  before its next page, repair or rebuild; nothing is rescheduled afterwards, and a task that
+     *  outlives this call belongs to a retired generation and cannot touch the replacement's
+     *  state. The wait for termination happens outside the lock so a finishing task that needs
+     *  the lock cannot deadlock with it. */
+    public static void shutdownBackground() {
+        ScheduledExecutorService exec;
+        synchronized (OpenSearch.class) {
+            backgroundGeneration++; // whatever is still running belongs to the past
+            permissionsChainStarted.set(false); // a fresh executor gets a fresh chain
+            permissionsChainGeneration = -1;
+            PERMISSIONS_INCOMPLETE_STREAK.set(0);
+            warmupChainStarted.set(false);
+            exec = backgroundExecutor;
+            backgroundExecutor = null;
+            if (exec != null) {
+                System.out.println("STOPPING: OpenSearch background tasks");
+                exec.shutdownNow();
+            }
+        }
         if (exec == null) return;
-        backgroundExecutor = null;
-        System.out.println("STOPPING: OpenSearch background tasks");
-        exec.shutdownNow();
         try {
             if (!exec.awaitTermination(15L, TimeUnit.SECONDS))
                 System.out.println("OpenSearch background tasks still running after 15s");

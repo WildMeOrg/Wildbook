@@ -12,8 +12,11 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.jdo.PersistenceManager;
 import org.ecocean.OpenSearch;
 import org.ecocean.SystemValue;
@@ -128,6 +131,47 @@ class PermissionsAuditSchedulingTest {
         OpenSearch.shutdownBackground();
         assertEquals(0, OpenSearch.permissionsIncompleteStreak(), "a redeploy starts from a clean streak");
         assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"), "and may schedule a chain again");
+    }
+
+    @Test void deadExecutorWithAStaleChainGuardIsRecoveredByTheNextStart() {
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        OpenSearch.backgroundExecutor().shutdownNow(); // died without shutdownBackground()
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"),
+            "a fresh executor gets a fresh chain although the old guard was left set");
+        assertEquals(1, ((ScheduledThreadPoolExecutor)OpenSearch.backgroundExecutor()).getQueue().size());
+    }
+
+    @Test void retiringTickDoesNotTouchTheReplacementStreak() {
+        long old = OpenSearch.backgroundGeneration();
+        OpenSearch.shutdownBackground(); // a new generation from here on
+        try (MockedStatic<PermissionsAudit> audit = mockStatic(PermissionsAudit.class);
+            MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                when(mock.getPM()).thenReturn(mock(PersistenceManager.class));
+            })) {
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result(false));
+            OpenSearch.permissionsAuditTick("context0", old);
+            assertEquals(0, OpenSearch.permissionsIncompleteStreak(), "a tick from a retired executor is ignored");
+            OpenSearch.permissionsAuditTick("context0", OpenSearch.backgroundGeneration());
+            assertEquals(1, OpenSearch.permissionsIncompleteStreak());
+        }
+    }
+
+    @Test void shutdownInterruptsAnActiveBackgroundTask() throws Exception {
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        final CountDownLatch running = new CountDownLatch(1);
+        final AtomicBoolean interrupted = new AtomicBoolean(false);
+        OpenSearch.backgroundExecutor().submit(() -> {
+            running.countDown();
+            try {
+                Thread.sleep(60000);
+            } catch (InterruptedException ie) {
+                interrupted.set(true);
+            }
+        });
+        assertTrue(running.await(5, TimeUnit.SECONDS));
+        OpenSearch.shutdownBackground();
+        assertTrue(interrupted.get(), "undeploy interrupts what is running");
+        assertTrue(OpenSearch.backgroundExecutor() == null);
     }
 
     @Test void configComesFromTheBackgroundProperties() {

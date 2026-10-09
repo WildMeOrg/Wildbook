@@ -81,6 +81,7 @@ class PermissionsAuditRunTest {
     private Set<String> scrollFails; // indices whose scroll throws
     private Set<String> conflictOn; // ids whose conditional write returns a conflict
     private Set<String> conflictOnPut; // ids whose conditional REPLACE (rebuild) returns a conflict
+    private Map<String, Runnable> onWrite; // id -> something that happens right after its write lands
     private Set<String> failOn; // ids whose conditional write throws
     private boolean skipAutoIndexing;
     // observations
@@ -112,6 +113,7 @@ class PermissionsAuditRunTest {
         scrollFails = new HashSet<String>();
         conflictOn = new HashSet<String>();
         conflictOnPut = new HashSet<String>();
+        onWrite = new HashMap<String, Runnable>();
         failOn = new HashSet<String>();
         skipAutoIndexing = false;
         writes = new ArrayList<JSONObject>();
@@ -324,6 +326,8 @@ class PermissionsAuditRunTest {
         if (body instanceof JSONObject) w.put("doc", new JSONObject(body.toString()));
         else w.put("json", new JSONObject((String)body));
         writes.add(w);
+        Runnable after = onWrite.get(id);
+        if (after != null) after.run();
         if (conflictOn.contains(id)) return OpenSearch.ConditionalWrite.conflict();
         if ("put".equals(kind) && conflictOnPut.contains(id)) return OpenSearch.ConditionalWrite.conflict();
         return OpenSearch.ConditionalWrite.applied(seqNo + 1, primaryTerm);
@@ -953,6 +957,70 @@ class PermissionsAuditRunTest {
         Result r = run(new Config(1000, 20000, 1, "5m"));
         assertEquals(1, puts());
         for (JSONObject w : writes) if ("put".equals(w.getString("kind"))) assertEquals("a2", w.getString("id"));
+        assertEquals(1, r.index("annotation").deferred);
+    }
+
+    @Test void freshRebuildsOfEitherChildIndexComeBeforePreviouslyFailedOnes() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        individual("i1", "e1");
+        // run 1: a1's serializer disagrees with the snapshot -> remembered as failed
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e2"));
+        assertEquals(1, run().index("annotation").failed);
+        // run 2: a1 (failed before, annotation index, scanned first) and i1 (fresh, individual
+        // index, scanned last) both need a rebuild; one rebuild allowed -> the fresh one goes first
+        writes.clear();
+        pages.get("annotation").clear();
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")));
+        page("individual", childHit("i1", false, arr(), arr(), "encounterIds", arr("e1", "eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"));
+        rebuildableIndividual("i1", correctChild("i1", "encounterIds", arr("e1")));
+
+        Result r = run(new Config(1000, 20000, 1, "5m"));
+        assertEquals(1, puts());
+        for (JSONObject w : writes) if ("put".equals(w.getString("kind"))) assertEquals("i1", w.getString("id"));
+        assertEquals(1, r.index("annotation").deferred, "the previously failed annotation waits");
+        assertEquals(0, r.index("individual").deferred);
+    }
+
+    @Test void interruptionDuringAPageStopsFurtherRepairsInThatPage() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        encounter("e2", "owner", "Komodo");
+        page("encounter", encounterHit("e1", false, "uuid-O"), encounterHit("e2", false, "uuid-O"));
+        onWrite.put("e1", () -> Thread.currentThread().interrupt());
+        try {
+            Result r = run();
+            assertEquals(1, writes.size(), "no repair after the interruption, even within the same page");
+            assertTrue(r.interrupted);
+            assertFalse(r.completed);
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    @Test void interruptionRaisedByTheLastWriteStillMakesTheAuditIncomplete() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        page("encounter", encounterHit("e1", false, "uuid-O")); // the only hit of the only page
+        onWrite.put("e1", () -> Thread.currentThread().interrupt());
+        try {
+            Result r = run();
+            assertFalse(r.completed, "nothing was left to read, but the run was interrupted");
+            assertTrue(r.interrupted);
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    @Test void skipWindowOpeningAfterTheDenyWriteDefersTheRebuild() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        page("annotation", childHit("a1", false, arr("uuid-O"), arr("uuid-B", "uuid-A"), "encounterId", arr("eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"));
+        onWrite.put("a1", () -> skipAutoIndexing = true); // the window opens between the deny and the rebuild
+
+        Result r = run();
+        assertEquals(0, puts(), "the switch is read immediately before dispatch");
         assertEquals(1, r.index("annotation").deferred);
     }
 

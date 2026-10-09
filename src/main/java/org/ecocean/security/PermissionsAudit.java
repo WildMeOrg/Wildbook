@@ -96,8 +96,8 @@ public final class PermissionsAudit {
      * transaction and immutable afterwards. Expected tuples are computed on demand, never stored.
      */
     public static final class Snapshot {
-        // Phase data is released once the phase that needs it is over (releaseAfter), so the
-        // three inventories never have to coexist with later phases' work.
+        // Everything is released once the audit (scrolls and the rebuilds that verify against
+        // this snapshot) is over, so a long-lived Result does not pin the inventories.
         Map<String, String[]> encounters; // id -> { submitter, locationID }
         Map<String, String> usernameToId; // stored username -> user id
         Map<String, Set<String> > collabGrants; // raw submitter string -> counterpart ids
@@ -137,22 +137,18 @@ public final class PermissionsAudit {
             return individuals.size();
         }
 
-        /** Drop what no later phase needs: after the annotation phase its inventory and links;
-         *  after the individual phase everything. */
-        void releaseAfter(String index) {
-            if ("annotation".equals(index)) {
-                eligibleAnnotations = Collections.<String>emptySet();
-                annotationLinks = Collections.<String, Set<String> >emptyMap();
-            } else if ("individual".equals(index)) {
-                individuals = Collections.<String>emptySet();
-                individualMembers = Collections.<String, Set<String> >emptyMap();
-                encounters = Collections.<String, String[]>emptyMap();
-                collabGrants = Collections.<String, Set<String> >emptyMap();
-                orgGrants = Collections.<String, Set<String> >emptyMap();
-                roleNameToUserIds = Collections.<String, Set<String> >emptyMap();
-                usernameToId = Collections.<String, String>emptyMap();
-                lineageCache.clear();
-            }
+        /** Drop every inventory and grant map (the audit is over). */
+        void release() {
+            eligibleAnnotations = Collections.<String>emptySet();
+            annotationLinks = Collections.<String, Set<String> >emptyMap();
+            individuals = Collections.<String>emptySet();
+            individualMembers = Collections.<String, Set<String> >emptyMap();
+            encounters = Collections.<String, String[]>emptyMap();
+            collabGrants = Collections.<String, Set<String> >emptyMap();
+            orgGrants = Collections.<String, Set<String> >emptyMap();
+            roleNameToUserIds = Collections.<String, Set<String> >emptyMap();
+            usernameToId = Collections.<String, String>emptyMap();
+            lineageCache.clear();
         }
 
         /**
@@ -391,7 +387,7 @@ public final class PermissionsAudit {
         public boolean completed;
         public boolean capHit;
         public boolean interrupted;
-        public long peakHeapMB;
+        public long sampledPeakHeapMB; // the largest of the heap samples taken at phase boundaries
         public long millis;
         public final List<String> reasons = new ArrayList<String>();
         public final Map<String, IndexCounters> indices = new HashMap<String, IndexCounters>();
@@ -408,7 +404,7 @@ public final class PermissionsAudit {
         @Override public String toString() {
             return "Result[completed=" + completed + " capHit=" + capHit + " interrupted=" +
                        interrupted + " indices=" + indices + " reasons=" + reasons + " millis=" +
-                       millis + " peakHeapMB=" + peakHeapMB + "]";
+                       millis + " sampledPeakHeapMB=" + sampledPeakHeapMB + "]";
         }
     }
 
@@ -435,6 +431,11 @@ public final class PermissionsAudit {
      * verified rebuild. Nothing is acknowledged: completion only selects the next delay.
      */
     public static Result run(String context, Config config) {
+        return run(context, config, null);
+    }
+
+    /** As run(context, config), on the given OpenSearch client (null = a new one). */
+    public static Result run(String context, Config config, OpenSearch os) {
         Result r = new Result();
         long startT = System.currentTimeMillis();
 
@@ -453,15 +454,19 @@ public final class PermissionsAudit {
             Snapshot snapshot = loadSnapshot(context, r);
             if (snapshot == null) return r;
             sampleHeap(r, "snapshot loaded");
-            Runner runner = new Runner(context, config, snapshot, r);
+            Runner runner = new Runner(context, config, snapshot, r, os);
             boolean allAudited = true;
             for (String index : INDICES) {
                 if (interrupted(r, "before auditing " + index)) break;
                 allAudited &= runner.auditIndex(index);
                 sampleHeap(r, index + " audited");
-                snapshot.releaseAfter(index); // the next phases do not need this one's structures
             }
-            snapshot.releaseAfter("individual");
+            if (allAudited && !r.interrupted && !interrupted(r, "before the rebuilds")) {
+                runner.rebuildAll(); // verifies against the snapshot: release only afterwards
+                sampleHeap(r, "rebuilds done");
+            }
+            snapshot.release();
+            interrupted(r, "at completion"); // raised during the last page or the rebuilds
             r.completed = allAudited && !r.capHit && !r.interrupted && countersClean(r);
             return r;
         } catch (Exception ex) {
@@ -494,8 +499,9 @@ public final class PermissionsAudit {
     private static void sampleHeap(Result r, String when) {
         Runtime rt = Runtime.getRuntime();
         long usedMB = (rt.totalMemory() - rt.freeMemory()) / (1024 * 1024);
-        if (usedMB > r.peakHeapMB) r.peakHeapMB = usedMB;
-        System.out.println("PermissionsAudit: " + when + "; heap used=" + usedMB + "MB");
+        if (usedMB > r.sampledPeakHeapMB) r.sampledPeakHeapMB = usedMB;
+        System.out.println("PermissionsAudit: " + when + "; heap used=" + usedMB +
+            "MB (sampled at phase boundaries)");
     }
 
     // ---- snapshot ----
@@ -706,13 +712,16 @@ public final class PermissionsAudit {
         final OpenSearch os;
         int writes = 0; // toward the repair cap
         int rebuilds = 0; // toward the rebuild cap, shared by both child indices
+        // child documents whose linkage disagreed with the database and that are now closed:
+        // { index, id, seqNo, primaryTerm }, rebuilt after ALL scrolls under the one budget
+        final List<Object[]> pending = new ArrayList<Object[]>();
 
-        Runner(String context, Config config, Snapshot snapshot, Result result) {
+        Runner(String context, Config config, Snapshot snapshot, Result result, OpenSearch os) {
             this.context = context;
             this.config = config;
             this.snapshot = snapshot;
             this.result = result;
-            this.os = new OpenSearch();
+            this.os = (os != null) ? os : new OpenSearch();
         }
 
         /** True when the index was fully read (repairs may still have failed, which the counters show). */
@@ -733,8 +742,6 @@ public final class PermissionsAudit {
                 result.reasons.add(index + ": mapping check failed: " + ex);
                 return false;
             }
-            final List<String> rebuilds = new ArrayList<String>();
-            final Map<String, long[]> rebuildVersions = new HashMap<String, long[]>();
             boolean read = true;
             try {
                 os.scrollDocValues(index, fields, config.pageSize, config.keepAlive,
@@ -745,7 +752,7 @@ public final class PermissionsAudit {
                                 throw new InterruptedIOException("interrupted while auditing " + index);
                             IndexedDoc doc = parseHit(hits.optJSONObject(i), ownerField);
                             if (doc.error != null) throw new IOException(doc.error);
-                            processHit(index, doc, c, rebuilds, rebuildVersions);
+                            processHit(index, doc, c);
                         }
                     }
                 });
@@ -759,13 +766,11 @@ public final class PermissionsAudit {
                 result.reasons.add(index + ": " + ex);
                 read = false;
             }
-            if (read && !result.interrupted) rebuild(index, rebuilds, rebuildVersions, c);
             System.out.println("PermissionsAudit: " + index + ": " + c);
             return read;
         }
 
-        private void processHit(String index, IndexedDoc doc, IndexCounters c, List<String> rebuilds,
-            Map<String, long[]> rebuildVersions)
+        private void processHit(String index, IndexedDoc doc, IndexCounters c)
         throws IOException {
             c.scanned++;
             AclTuple expected;
@@ -800,8 +805,7 @@ public final class PermissionsAudit {
                     seqNo = w.seqNo;
                     primaryTerm = w.primaryTerm;
                 }
-                rebuilds.add(doc.id);
-                rebuildVersions.put(doc.id, new long[] { seqNo, primaryTerm });
+                pending.add(new Object[] { index, doc.id, seqNo, primaryTerm });
                 return;
             }
             if (!matches(doc, expected)) {
@@ -813,7 +817,9 @@ public final class PermissionsAudit {
         /** A conditional partial update under the repair cap. Null when nothing was applied. */
         private OpenSearch.ConditionalWrite write(String index, String id, JSONObject doc, long seqNo,
             long primaryTerm, IndexCounters c, boolean countAsRepair)
-        throws CapReached {
+        throws IOException {
+            if (Thread.currentThread().isInterrupted())
+                throw new InterruptedIOException("interrupted before repairing " + index + "/" + id);
             if (writes >= config.repairCap) throw new CapReached();
             writes++;
             try {
@@ -824,6 +830,8 @@ public final class PermissionsAudit {
                 }
                 if (countAsRepair) c.repaired++;
                 return w;
+            } catch (InterruptedIOException iex) {
+                throw iex;
             } catch (Exception ex) {
                 c.failed++;
                 System.out.println("PermissionsAudit: " + index + "/" + id + " write failed: " + ex);
@@ -831,47 +839,53 @@ public final class PermissionsAudit {
             }
         }
 
-        /** Rebuild the collected child documents from their serializers, after the scroll is over. */
-        private void rebuild(String index, List<String> ids, Map<String, long[]> versions,
-            IndexCounters c) {
-            if (ids.isEmpty()) return;
+        /**
+         * Rebuild every child document collected during the scrolls, after all scrolls are over:
+         * the fresh candidates of BOTH child indices first (in scan order), then the ones whose
+         * rebuild failed last time, under the one rebuild budget, so a permanently failing
+         * annotation can never starve a healthy individual (or the other way round).
+         */
+        void rebuildAll() {
+            if (pending.isEmpty()) return;
             if (OpenSearch.skipAutoIndexing()) { // checked immediately before dispatch
-                c.deferred += ids.size();
+                for (Object[] p : pending) result.index((String)p[0]).deferred++;
                 return;
             }
-            List<String> ordered = new ArrayList<String>();
-            List<String> failedBefore = new ArrayList<String>();
-            for (String id : ids) {
-                if (LAST_FAILED_REBUILDS.contains(id)) failedBefore.add(id);
-                else ordered.add(id);
+            List<Object[]> ordered = new ArrayList<Object[]>();
+            List<Object[]> failedBefore = new ArrayList<Object[]>();
+            for (Object[] p : pending) {
+                if (LAST_FAILED_REBUILDS.contains((String)p[1])) failedBefore.add(p);
+                else ordered.add(p);
             }
             ordered.addAll(failedBefore);
             Shepherd sh = new Shepherd(context);
             sh.setAction("PermissionsAudit.rebuild");
             try {
                 sh.beginDBTransaction();
-                Iterator<String> it = ordered.iterator();
+                Iterator<Object[]> it = ordered.iterator();
                 while (it.hasNext()) {
-                    String id = it.next();
+                    Object[] p = it.next();
+                    String index = (String)p[0];
+                    String id = (String)p[1];
+                    IndexCounters c = result.index(index);
                     if (Thread.currentThread().isInterrupted()) {
                         result.interrupted = true;
-                        result.reasons.add(index + ": interrupted before a rebuild");
-                        c.deferred += 1 + remaining(it);
+                        result.reasons.add("interrupted before rebuilding " + index + "/" + id);
+                        deferRest(p, it);
                         return;
                     }
                     if (rebuilds >= config.rebuildCap) {
                         result.capHit = true;
-                        c.deferred += 1 + remaining(it);
+                        deferRest(p, it);
                         return;
                     }
                     rebuilds++;
-                    long[] v = versions.get(id);
                     try {
-                        rebuildOne(index, id, v[0], v[1], sh, c);
+                        rebuildOne(index, id, (Long)p[2], (Long)p[3], sh, c);
                     } catch (InterruptedIOException iex) {
                         result.interrupted = true;
                         result.reasons.add(index + ": " + iex.getMessage());
-                        c.deferred += 1 + remaining(it);
+                        deferRest(p, it);
                         return;
                     } catch (Exception ex) {
                         c.failed++;
@@ -880,20 +894,17 @@ public final class PermissionsAudit {
                     }
                 }
             } catch (Exception ex) {
-                result.reasons.add(index + ": rebuilds aborted: " + ex);
-                c.failed++;
+                result.reasons.add("rebuilds aborted: " + ex);
+                result.index((String)pending.get(0)[0]).failed++;
             } finally {
                 sh.rollbackAndClose();
             }
         }
 
-        private static int remaining(Iterator<String> it) {
-            int n = 0;
-            while (it.hasNext()) {
-                it.next();
-                n++;
-            }
-            return n;
+        /** The current candidate and every later one wait for the next audit. */
+        private void deferRest(Object[] current, Iterator<Object[]> it) {
+            result.index((String)current[0]).deferred++;
+            while (it.hasNext()) result.index((String)it.next()[0]).deferred++;
         }
 
         private void rebuildOne(String index, String id, long seqNo, long primaryTerm, Shepherd sh,

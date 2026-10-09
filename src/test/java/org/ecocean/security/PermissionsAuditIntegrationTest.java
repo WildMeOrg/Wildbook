@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 
@@ -554,5 +556,107 @@ import org.testcontainers.utility.DockerImageName;
                 EntityUtils.toString(r.getEntity()).contains("abc")) cleared = true;
         }
         assertTrue(cleared, "the rejected page's scroll id must still be cleared: " + seen);
+    }
+
+    // ================= round-18 =================
+
+    @Test void writeBetweenTheAuditsReadAndItsRepairIsAConflictRepairedByTheNextAudit() throws Exception {
+        reindexAll();
+        drift("annotation", "a1", new JSONObject().put("viewUsers", new JSONArray()));
+        OpenSearch os = spy(os());
+        // a concurrent writer touches a1 after the audit read it and before it repairs it
+        doAnswer(inv -> {
+            drift("annotation", "a1", new JSONObject().put("viewUsers", new JSONArray().put("someone")));
+            return inv.callRealMethod();
+        }).when(os).updateIfUnchanged(eq("annotation"), eq("a1"), any(JSONObject.class), anyLong(), anyLong());
+
+        Result r = PermissionsAudit.run("context0", CONFIG, os);
+        assertEquals(1, r.index("annotation").conflicts, r.toString());
+        assertEquals(0, r.index("annotation").failed);
+        assertFalse(r.completed, "a conflict leaves the audit incomplete");
+        refresh();
+        assertFalse(visible("annotation", uuid.get("bob")).contains("a1"), "the stale write stood");
+
+        Result next = audit();
+        refresh();
+        assertEquals(1, next.index("annotation").repaired, "the next audit repairs it");
+        assertTrue(visible("annotation", uuid.get("bob")).contains("a1"));
+    }
+
+    @Test void scrollClearsTheLatestIdWhenALaterPageIsRejected() throws Exception {
+        final List<Request> seen = new ArrayList<Request>();
+        OpenSearch os = spy(os());
+        doAnswer(inv -> {
+            Request req = inv.getArgument(0);
+            seen.add(req);
+            if ("DELETE".equals(req.getMethod())) return "{\"succeeded\":true}";
+            if (req.getEndpoint().contains("/_search/scroll")) { // the continuation: rejected
+                return new JSONObject().put("timed_out", true).put("_scroll_id", "p2")
+                           .put("_shards", new JSONObject().put("failed", 0))
+                           .put("hits", new JSONObject().put("hits", new JSONArray())).toString();
+            }
+            JSONObject hit = new JSONObject().put("_id", "a1").put("_seq_no", 1).put("_primary_term", 1)
+                .put("fields", new JSONObject().put("viewUsers", new JSONArray()));
+            return new JSONObject().put("timed_out", false).put("_scroll_id", "p1")
+                       .put("_shards", new JSONObject().put("failed", 0))
+                       .put("hits", new JSONObject().put("hits", new JSONArray().put(hit))).toString();
+        }).when(os).getRestResponse(any(Request.class));
+
+        final int[] pagesSeen = { 0 };
+        assertThrows(IOException.class, () -> os.scrollDocValues("annotation", Arrays.asList("viewUsers"),
+            2, "1m", hits -> pagesSeen[0]++));
+        assertEquals(1, pagesSeen[0], "the good first page was delivered");
+        boolean clearedLatest = false;
+        for (Request r : seen) {
+            if ("DELETE".equals(r.getMethod()) && EntityUtils.toString(r.getEntity()).contains("p2")) clearedLatest = true;
+        }
+        assertTrue(clearedLatest, "the LATEST id (the rejected page's) is cleared: " + seen);
+        boolean partialRefused = false;
+        for (Request r : seen) {
+            if ("POST".equals(r.getMethod()) && r.getEndpoint().endsWith("/_search") &&
+                "false".equals(r.getParameters().get("allow_partial_search_results"))) partialRefused = true;
+        }
+        assertTrue(partialRefused, "partial results are refused on the request");
+    }
+
+    @Test void repairCapOnARealIndexLeavesTheRestForTheNextAudit() throws Exception {
+        reindexAll();
+        drift("annotation", "a1", new JSONObject().put("viewUsers", new JSONArray()));
+        drift("annotation", "a3", new JSONObject().put("viewUsers", new JSONArray().put("someone")));
+
+        Result capped = PermissionsAudit.run("context0", new Config(2, 1, 500, "1m"));
+        refresh();
+        assertEquals(1, capped.index("annotation").repaired);
+        assertTrue(capped.capHit);
+        assertFalse(capped.completed);
+
+        Result rest = audit();
+        refresh();
+        assertEquals(1, rest.index("annotation").repaired);
+        assertTrue(rest.completed, rest.toString());
+        assertTrue(visible("annotation", uuid.get("bob")).contains("a1"));
+        assertFalse(visible("annotation", "someone").contains("a3"));
+    }
+
+    @Test void realSkipWindowDefersTheRebuildAndTheNextAuditRebuilds() throws Exception {
+        java.io.File skip = new java.io.File("/tmp/skipAutoIndexing");
+        boolean preexisting = skip.exists();
+        reindexAll();
+        drift("annotation", "a1", new JSONObject().put("encounterId", "e3")
+            .put("submitterUserIds", new JSONArray().put(uuid.get("bob"))).put("viewUsers", new JSONArray()));
+        try {
+            assertTrue(preexisting || skip.createNewFile());
+            Result first = audit();
+            refresh();
+            assertEquals(1, first.index("annotation").structural);
+            assertEquals(1, first.index("annotation").deferred);
+            assertFalse(visible("annotation", uuid.get("bob")).contains("a1"), "closed, not rebuilt");
+        } finally {
+            if (!preexisting) skip.delete();
+        }
+        Result second = audit();
+        refresh();
+        assertEquals("e1", source("annotation", "a1").getString("encounterId"));
+        assertTrue(visible("annotation", uuid.get("bob")).contains("a1"));
     }
 }
