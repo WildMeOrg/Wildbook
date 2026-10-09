@@ -1,6 +1,6 @@
 # Issue #1787 — Run every default algorithm on ml-service bulk imports, and link Match Results to the encounter-wide task
 
-Date: 2026-10-09 (rev 4, after Codex rounds 1–3)
+Date: 2026-10-09 (rev 5, after Codex rounds 1–4)
 Issue: https://github.com/WildMeOrg/Wildbook/issues/1787
 Forum: https://community.wildme.org/t/match-results-not-showing-all-results/5770
 Branch: `fix/bulk-import-multi-algorithm-1787` (off `origin/main` 764268c5aa)
@@ -82,9 +82,11 @@ first, then B, then C.
 6. The import's identification status reads complete only when every
    algorithm dispatched for every annotation has reached a terminal state.
    A failed dispatch is terminal and visible; a queued retry is pending.
-7. Annotations created by ml-service are registered with WBIA under their
-   `acmId` (forced id) by every path that registers them, never through the
-   on-demand path that lets WBIA mint a new uuid and rewrites `acmId`.
+7. Annotations whose WBIA registration is pending (`wbiaRegistered ==
+   FALSE`, set only by ml-service persistence) are registered under their
+   `acmId` (forced id) by every path that registers them, including the
+   missing-annotation repair during identify, never through the on-demand
+   path that lets WBIA mint a new uuid and rewrites `acmId`.
 
 ## 3. Non-goals (decided)
 
@@ -108,6 +110,11 @@ first, then B, then C.
   linking to one algorithm's leaf. New trees get one umbrella per
   encounter (§4.1).
 - Encounter-filtered rendering of a shared umbrella.
+- Annotations already registered (`wbiaRegistered == TRUE`) that WBIA
+  later lacks (a wiped or restored WBIA). Repairing those is the job of the
+  existing annotation reconciliation sweep (`AcmIdBot`, PR #1710), which
+  forces `acmId`; the identify-time repair keeps today's behaviour for
+  them. The legacy `null` flag keeps today's behaviour everywhere.
 - Locale keys for `SEND_FAILED` / `PARTIAL` / `INVALID_MATCH_CONFIG`.
 - The WBIA-detection pipeline (unsupported; untouched).
 
@@ -136,6 +143,19 @@ from the detection task; both boundaries scrub the three keys
 (`matchIntakeParams`, §4.1), so a detection task that descends from a
 reused umbrella does not carry a run id, and even if it did it holds media
 assets, never annotations, so it is never a candidate.
+
+**Nothing is attached beneath an umbrella.** Every builder attaches new
+work under an orchestration task, never under an umbrella:
+`runMatchProspects` under the detection/extraction task,
+`IBEISIA.processCallback` and `ParallelIdentify` under a fresh sub-parent,
+`_doIdentify` under its own option task (inside the run). The one path that
+could reuse an arbitrary task as a parent is `IA.handleRest`, whose root id
+can be supplied by an API client (the React New Match page never does). It
+now checks the loaded root: if it holds annotations or carries a run id,
+`handleRest` creates a fresh root task (copying the request's parameters)
+and logs the substitution, so a later run can never hang beneath an earlier
+umbrella and `matchResultsJson` of an umbrella renders exactly its own run
+(Codex r4 #1).
 
 **Run selection** (shared by the results link and the import status):
 `Task.selectRun(List<Task> direct, String importTaskId, Set<String> encounterAnnotationIds)`
@@ -182,18 +202,25 @@ before it: the `skipIdent` short-circuit and the `MatchVisibilityGate` in
       group**, so a later group's failure can never roll back an earlier
       group's vector leaves. On `false`: record the failure and stop.
       On `true`: `beginDBTransaction()` and continue.
-   The recovery record holds, per processed group: the umbrella id, the
-   vector option task ids, the queued option task ids, and whether the
-   group's commit succeeded.
+   The recovery record holds, per processed group: the umbrella id and,
+   per option task, its id and whether its queue job was successfully
+   published (`IntakeOutcome.options`, §4.2.4). The core fills the record
+   before it dispatches and returns it even when a dispatch throws
+   (§4.2.3), so the caller always knows which option tasks are durable and
+   which have no job.
 5. Recovery (after a recorded failure, or in the `catch` of any
    exception): roll back and close `shep` first. With a fresh Shepherd:
    for every group whose commit did not succeed but whose umbrella was
-   persisted by §4.2.3, mark the umbrella and its vector option tasks error
-   `MATCH_PERSIST` (they are childless after the rollback, so §4.4 sees
-   them as failed leaves); leave queued HotSpotter option tasks alone
-   (their jobs are durable and complete them); mark `D` error
-   `MATCH_PERSIST` (or `MATCH` for an exception, with the message). Return
-   `persistError`. Groups whose commit succeeded are untouched.
+   persisted by §4.2.3, mark the umbrella and **every option task whose
+   job was not successfully published** (all vector options; HotSpotter
+   options whose publication failed, whose `QUEUE_FAILED` mark the rollback
+   discarded) error `MATCH_PERSIST`; leave option tasks whose job was
+   published alone (the job is durable and completes them); mark `D`
+   error `MATCH_PERSIST` (or `MATCH` for an exception, with the message).
+   The recovery commit is checked; on failure the ids are logged at ERROR
+   level — nothing further can be done from this thread. Return
+   `persistError`. Groups whose commit succeeded are untouched (Codex r4
+   #2).
 6. If every group reported `noWork`, mark `D` error `INVALID_MATCH_CONFIG`
    and return the same `validationError` as today.
 
@@ -264,23 +291,39 @@ phases over the same tree it builds today:
    inline (`findMatchProspects`); HotSpotter options are published to the
    queue. Publication failure (`addToQueue` returns false or throws) marks
    that option task error `QUEUE_FAILED` (terminal); today intake only logs
-   it.
+   it. A vector dispatch that throws marks that option task error
+   `DISPATCH_FAILED` and the core continues with the next option. The core
+   never throws after the persist step: it always returns the outcome, with
+   every option's publication result filled in before dispatch starts and
+   updated as each dispatch finishes.
+4. A childless umbrella without `ibeis.identification` (`noWork`: no class
+   had an option) is marked error `INVALID_MATCH_CONFIG` by the core for
+   every caller, persisted by the caller's commit, so it is terminal rather
+   than pending until the age policy (Codex r4 #8).
 
-**4.2.4 Outcome.** `IA.IntakeOutcome { Task umbrella; List<Task> vectorOptionTasks;
-List<Task> queuedOptionTasks; List<String> skippedIaClasses; boolean noWork;
-boolean persistFailed; }`. `noWork` = `IA.intakeProducedNoWork(umbrella)`:
-no children and no `ibeis.identification`.
+**4.2.4 Outcome.** `IA.IntakeOutcome { Task umbrella; List<OptionResult> options;
+List<String> skippedIaClasses; boolean noWork; boolean persistFailed; }`
+with `OptionResult { Task task; boolean vector; boolean published; String
+failureCode; }`. `noWork` = `IA.intakeProducedNoWork(umbrella)`: no
+children and no `ibeis.identification`.
 
-**4.2.5 Stable WBIA registration at identify time.** `IBEISIA.sendAnnotationsAsNeeded`
-(called by `beginIdentifyAnnotations` for query **and** target annotations,
-inside the queue consumer's Shepherd, which performs no annotation writes
-before that call) gains a forced branch that runs **before** the existing
-non-forced flow and its empty-list guards. For each annotation with
-`Boolean.FALSE.equals(getWbiaRegistered())`:
+**4.2.5 Stable WBIA registration at identify time.** `beginIdentifyAnnotations`
+calls a new role-aware
+`IBEISIA.sendAnnotationsAsNeeded(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, Shepherd)`
+that returns the pruned target list it actually registered; the identify
+request is built from that list. The existing single-list method stays for
+its other callers. Inside the queue consumer's Shepherd (which performs no
+annotation writes before that call) the forced branch runs **before** the
+existing non-forced flow and its empty-list guards. For each annotation
+with `Boolean.FALSE.equals(getWbiaRegistered())`:
 
-- validity: if `!IBEISIA.validForIdentification(ann)` the annotation is
-  skipped here; if it is a target it is removed from the target list for
-  this job; if it is a query the job fails (below).
+- eligibility: `WildbookIAM.wbiaEligibilityReason(Annotation)` — the
+  poller's chain extracted into one public static helper used by both
+  (media asset present; usable image URI; `validForIdentification`;
+  `MediaAsset.isValidImageForIA` not false; `validMediaAsset`; well-formed
+  uuid for the annotation's `acmId` and the asset's `acmId` after the
+  minting step below). An ineligible target is removed from the target
+  list for this job; an ineligible query fails the job (below).
 - image: if the media asset has no `acmId`, set `ma.setAcmId(ma.getUUID())`
   (the `AcmIdBot` convention). Register the image through a new public
   `WildbookIAM.registerImageForced(MediaAsset ma)`, which builds the
@@ -305,16 +348,24 @@ non-forced flow and its empty-list guards. For each annotation with
 `iaCheckMissing` (WBIA reports `missing_annot_uuid_list` during identify)
 uses the same forced branch for annotations flagged `FALSE` and the legacy
 non-forced `__sendAnnotations` for the rest, so the missing-annotation
-repair cannot bypass the stable-id contract either.
+repair cannot bypass the stable-id contract either. Its retry decision is
+made checkable: today the result variable is never assigned, so a
+successful repair never asks for another identify attempt; the forced
+branch sets `tryAgain` from the actual registration outcomes, and the
+legacy branch is left exactly as it is (§3).
 
 Annotations with `null` (legacy, backfilled) or `TRUE` take today's path
 unchanged. The background poller (`StartupWildbook` WBIA registration poll)
-is aligned to force the same identifier: `buildForcedRequestMap(dto)` passes
-`dto.annotationAcmId` when present (else `dto.annotationId`); for a pristine
-ml-service annotation the two are equal, and for a `FALSE` annotation whose
-`acmId` was already rewritten by the pre-fix non-forced path the poller now
-finds it present under that `acmId` and marks it `TRUE` instead of
-registering a second uuid (Codex r3 #8). With both paths forcing the same
+is aligned to force the same identifier end to end: `WbiaRegisterRequest`
+gains `forcedId` = `annotationAcmId` when present, else `annotationId`;
+`registerOneByDto` uses `forcedId` alone for the presence check
+(`known.contains(forcedId)`), for the request (`buildForcedRequestMap(dto, dto.forcedId)`)
+and for response validation (`validateForcedResponse(dto.forcedId, rtn)`),
+and classifies success only on that identifier (Codex r4 #4). For a
+pristine ml-service annotation `forcedId == id`; for a `FALSE` annotation
+whose `acmId` was already rewritten by the pre-fix non-forced path the
+poller finds it present under that `acmId` and marks it `TRUE` instead of
+registering a second uuid. With both paths forcing the same
 uuid, concurrent registration is idempotent at WBIA (a repeated forced add
 of a present uuid is acknowledged as present) and the flag write is
 idempotent (Annotation has no JDO optimistic version strategy). Staging
@@ -405,9 +456,11 @@ order:
    a vector umbrella before its leaves exist; a vector option after a
    rollback) (Codex r3 #4). Orchestration parents are never counted.
 4. Per-annotation status: any leaf non-terminal → that status (`sent`
-   side); else any leaf `error` → `error`; else `completed`. No leaves and
-   the umbrella has children (a class with no option) → `completed` plus
-   an informational `numLatestTask_skipped` counter.
+   side); else any leaf `error` → `error`; else `completed`. A childless
+   umbrella without `ibeis.identification` is a `noWork` umbrella; the
+   core marks it `error` (§4.2.3 step 4), so it reads as a failed leaf. No
+   leaves and the umbrella has children (a class with no option) →
+   `completed` plus an informational `numLatestTask_skipped` counter.
 5. Maximum age: a non-terminal leaf whose `timeInactive()` exceeds
    `Task.TIMEOUT_INACTIVE_MILLIS` (seven days since `Task.modified`, which
    moves on `setStatus`/`setModified`, not on WBIA log activity) is
@@ -418,11 +471,17 @@ order:
 
 **Queued retries are pending.** In `IAGateway._doIdentify`'s catch around
 `_sendIdentificationTask`: when `requeueJob(...)` returns true the subtask's
-status is reset to null and a `SEND_FAILED; retry queued` log entry is
-added, so `Task.getStatus` derives a non-terminal state from the
-`initIdentify` log until the retry runs; when `requeueJob` returns false
-(retry budget or two-day window exhausted) the `SEND_FAILED` error stays
-and is terminal. Goal 6 therefore holds across retries (Codex r3 #9).
+stored status is set to the explicit non-terminal value `requeued` (not
+null: a null status makes `Task.getStatus` derive the state from WBIA logs,
+and a failed send leaves an `HTTP error code` log that reads as `error`;
+Codex r4 #3) with a `SEND_FAILED; retry queued` details entry. `getStatus`
+returns a non-null stored status as is, `statusInEndState` treats only
+`completed`, `error` and `dropped-stale` as terminal, and the identify
+callback overwrites the status with `completed` unconditionally, so the
+task reads pending until the retry succeeds or is exhausted. When
+`requeueJob` returns false (retry budget or two-day window exhausted) the
+`SEND_FAILED` error stays and is terminal. Goal 6 therefore holds across
+retries.
 
 `numLatestTasks` stays exactly one per non-trivial annotation;
 `iaSummaryJson`'s formula (`completed + error >= total` → complete) is
@@ -501,8 +560,33 @@ on every stored entity.
   leaves durable, second group's umbrella and vector option marked
   `MATCH_PERSIST`, `D` marked, import reaches complete-with-errors.
 - Retry pending: `_doIdentify` with a throwing send and a requeue that
-  returns true → subtask non-terminal; with a requeue that returns false →
+  returns true → stored status `requeued`, non-terminal even with an
+  `HTTP error code` log present; with a requeue that returns false →
   `SEND_FAILED` terminal.
+- Recovery after a dispatch exception: the vector dispatcher throws for
+  one option → outcome returned with that option `DISPATCH_FAILED`, the
+  other options dispatched; then a forced group-commit failure → every
+  unpublished option of that group marked `MATCH_PERSIST`, a published
+  HotSpotter option untouched.
+- Reused root: `handleRest` with a root id that is an umbrella → a fresh
+  root is created; the umbrella's `matchResultsJson` lists only its run.
+- Registration (Mockito `mockStatic(RestClient.class)` for the WBIA
+  calls; `mockConstruction(Shepherd.class)` where the code opens its own
+  Shepherd): FALSE query registered under `acmId` and flag `TRUE`; FALSE
+  target ineligible → dropped from the sent list; FALSE query failing →
+  identify returns `success=false`; FALSE annotation already present under
+  `acmId` → flag `TRUE` without a POST; asset without `acmId` → minted
+  from the UUID and the image forced under it; poller DTO with differing
+  ids → presence, request and validation all use `forcedId`; null-flag
+  annotation → legacy path untouched; `iaCheckMissing` forced repair
+  success → `tryAgain` true, legacy branch unchanged.
+
+Injection and hygiene: the processor's own Shepherds are intercepted with
+`mockConstruction(Shepherd.class)` (the pattern in `MatchResultTest`);
+commit failures are produced by closing the container's connection or by a
+`Shepherd` subclass whose `commitDBTransactionWithStatus` returns false;
+`IAJsonProperties.overrideForTests(null)` and `TestPMFUtil.closePMF` run in
+`@AfterAll` so no state leaks between classes.
 
 ### 5.3 Controlled integration before any production deploy
 
@@ -565,7 +649,22 @@ migration, no frontend change.
 Local branch `fix/match-results-multialgo-parent-task` (unpushed,
 2026-07-29).
 
-## 9. Codex round-3 dispositions
+## 9. Codex dispositions
+
+Round 4:
+
+| r4 | finding | rev 5 |
+|---|---|---|
+| 1 | reused umbrella renders other runs | §4.0 nothing is attached beneath an umbrella; `handleRest` substitutes a fresh root |
+| 2 | recovery misses undispatched / rolled-back-mark options | §4.1 step 5 marks every unpublished option; §4.2.3 outcome filled before dispatch, returned on exceptions |
+| 3 | null reset reads as error from logs | §4.4 explicit `requeued` stored status |
+| 4 | poller presence/validation on different ids | §4.2.5 `forcedId` used end to end |
+| 5 | TRUE annotations later missing | §2 goal 7 scoped to pending annotations; §3 sweep owns the rest |
+| 6 | registration contract incomplete | §4.2.5 role-aware API, eligibility helper, `iaCheckMissing` retry decision |
+| 7 | tests | §5.2 injection strategies and cases |
+| 8 | childless orchestration umbrella | §4.2.3 step 4 marks `noWork` for every caller |
+
+Round 3:
 
 | r3 | finding | rev 4 |
 |---|---|---|
