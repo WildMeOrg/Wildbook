@@ -298,6 +298,33 @@ class PermissionsAuditTupleTest {
         assertNotNull(PermissionsAudit.validatePage(null), "no page");
     }
 
+    @Test void malformedFieldShapesAreErrorsNotAbsence() {
+        JSONObject scalarViewers = new JSONObject().put("viewUsers", "uuid-B");
+        assertNotNull(PermissionsAudit.parseHit(hit("x", 1L, 1L, scalarViewers), "submitterUserId").error, "scalar viewers");
+        JSONObject scalarOwners = new JSONObject().put("submitterUserIds", 5);
+        assertNotNull(PermissionsAudit.parseHit(hit("x", 1L, 1L, scalarOwners), "submitterUserIds").error, "numeric owners");
+        JSONObject h = hit("x", 1L, 1L, null).put("fields", "not-an-object");
+        assertNotNull(PermissionsAudit.parseHit(h, "submitterUserId").error, "fields that are not an object");
+    }
+
+    @Test void pageWithAnUnusableScrollIdIsRejected() {
+        JSONObject empty = page(false, 0, true, false).put("_scroll_id", "");
+        assertNotNull(PermissionsAudit.validatePage(empty), "empty scroll id");
+        JSONObject numeric = page(false, 0, true, false).put("_scroll_id", 42);
+        assertNotNull(PermissionsAudit.validatePage(numeric), "non-string scroll id");
+    }
+
+    @Test void mappingWithANullValueIsRejected() {
+        Map<String, JSONObject> m = new HashMap<String, JSONObject>();
+        m.put("publiclyReadable", new JSONObject().put("type", "boolean"));
+        m.put("viewUsers", new JSONObject().put("type", "keyword"));
+        m.put("submitterUserId", new JSONObject().put("type", "keyword").put("null_value", "uuid-X"));
+        assertNotNull(PermissionsAudit.checkMapping(m, Arrays.asList("publiclyReadable", "submitterUserId", "viewUsers")),
+            "a JSON null written to this field would index the null_value");
+        m.put("submitterUserId", new JSONObject().put("type", "keyword"));
+        assertNull(PermissionsAudit.checkMapping(m, Arrays.asList("publiclyReadable", "submitterUserId", "viewUsers")));
+    }
+
     @Test void denyTupleAndEqualityAreSetBased() {
         assertTrue(AclTuple.DENY.isDeny());
         assertFalse(new AclTuple(true, set(), set()).isDeny());

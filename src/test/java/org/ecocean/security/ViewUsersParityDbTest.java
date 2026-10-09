@@ -397,6 +397,82 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         }
     }
 
+    @Test void membershipChangeMovesTheExpectationWithTheSerializers() throws Exception {
+        String fromId = individualIds.get("iPrivate");
+        String toId = individualIds.get("iNone");
+        moveEncounter("e2", fromId, toId);
+        try {
+            Snapshot s = snapshot();
+            Shepherd sh = open();
+            try {
+                assertChildParity(s, sh);
+                assertTrue(s.expectedIndividual(fromId).publiclyReadable, "now encounterless: public");
+                assertEquals(ids("memberA"), new TreeSet<String>(s.expectedIndividual(toId).owners));
+                assertEquals(ids("orgadmin", "lake", "pad"), new TreeSet<String>(s.expectedIndividual(toId).viewers));
+            } finally {
+                sh.rollbackAndClose();
+            }
+        } finally {
+            moveEncounter("e2", toId, fromId); // restore the fixture for the other tests
+        }
+    }
+
+    private static void moveEncounter(String encId, String fromIndividual, String toIndividual) {
+        Shepherd sh = open();
+        try (MockedStatic<OpenSearch> os = mockStatic(OpenSearch.class)) {
+            Encounter enc = sh.getEncounter(encId);
+            MarkedIndividual from = sh.getMarkedIndividual(fromIndividual);
+            MarkedIndividual to = sh.getMarkedIndividual(toIndividual);
+            enc.setSkipAutoIndexing(true); // no indexing queue from the membership hooks
+            from.setSkipAutoIndexing(true);
+            to.setSkipAutoIndexing(true);
+            from.removeEncounter(enc);
+            to.addEncounter(enc);
+            sh.commitDBTransaction();
+        } finally {
+            sh.rollbackAndClose();
+        }
+    }
+
+    private static int roleCount(Shepherd sh) {
+        Query q = sh.getPM().newQuery(Role.class);
+        try {
+            return ((Collection)q.execute()).size();
+        } finally {
+            q.closeAll();
+        }
+    }
+
+    /** Two connections: a row committed after the snapshot began is invisible to the snapshot. */
+    @Test void snapshotDoesNotSeeRowsCommittedAfterItBegan() throws Exception {
+        Shepherd a = new Shepherd("context0");
+        a.setAction("ViewUsersParityDbTest.coherence");
+        int before;
+        try {
+            PermissionsAudit.beginRepeatableRead(a);
+            before = roleCount(a);
+            Shepherd b = open();
+            try (MockedStatic<OpenSearch> os = mockStatic(OpenSearch.class)) {
+                Role r = new Role("coherence", "Pakistan");
+                r.setContext("context0");
+                b.getPM().makePersistent(r);
+                b.commitDBTransaction();
+            } finally {
+                b.rollbackAndClose();
+            }
+            assertEquals(before, roleCount(a), "the snapshot does not see the later commit");
+        } finally {
+            a.rollbackAndClose();
+        }
+        Shepherd c = open();
+        try {
+            assertEquals(before + 1, roleCount(c), "a fresh transaction does");
+        } finally {
+            c.rollbackAndClose();
+        }
+        revoke("coherence", "Pakistan");
+    }
+
     /** The audit must see a failed organization read as a failure (no snapshot, nothing audited),
      *  never as "no organizations": the lenient read hides it as an empty catalog. */
     @Test void strictOrganizationReadPropagatesADatastoreFailure() {

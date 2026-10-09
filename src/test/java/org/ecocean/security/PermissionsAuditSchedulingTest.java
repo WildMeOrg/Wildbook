@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import javax.jdo.PersistenceManager;
 import org.ecocean.OpenSearch;
 import org.ecocean.SystemValue;
@@ -72,6 +73,61 @@ class PermissionsAuditSchedulingTest {
                 verify(shepherds.constructed().get(0).getPM()).makePersistent(any(SystemValue.class));
             }
         }
+    }
+
+    private static Result result(boolean completed) {
+        Result r = new Result();
+        r.completed = completed;
+        return r;
+    }
+
+    @Test void auditThatThrowsCountsAsIncomplete() {
+        try (MockedStatic<PermissionsAudit> audit = mockStatic(PermissionsAudit.class);
+            MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                when(mock.getPM()).thenReturn(mock(PersistenceManager.class));
+            })) {
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenThrow(new RuntimeException("boom"));
+            int delay = OpenSearch.permissionsAuditTick("context0");
+            assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_RETRY_MINUTES, delay, "an exception is an incomplete audit");
+            assertEquals(1, OpenSearch.permissionsIncompleteStreak());
+        }
+    }
+
+    @Test void tickTracksTheStreakAndACompletionResetsIt() {
+        try (MockedStatic<PermissionsAudit> audit = mockStatic(PermissionsAudit.class);
+            MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                when(mock.getPM()).thenReturn(mock(PersistenceManager.class));
+            })) {
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result(false));
+            assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_RETRY_MINUTES, OpenSearch.permissionsAuditTick("context0"));
+            assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_RETRY_MINUTES, OpenSearch.permissionsAuditTick("context0"));
+            assertEquals(2, OpenSearch.permissionsIncompleteStreak());
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result(true));
+            assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_MINUTES, OpenSearch.permissionsAuditTick("context0"));
+            assertEquals(0, OpenSearch.permissionsIncompleteStreak());
+        }
+    }
+
+    @Test void startingTheSchedulerTwiceSchedulesOneChain() {
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        assertFalse(OpenSearch.startPermissionsAuditScheduler("context0"), "already scheduled on this executor");
+        ScheduledThreadPoolExecutor exec = (ScheduledThreadPoolExecutor)OpenSearch.backgroundExecutor();
+        assertEquals(1, exec.getQueue().size(), "one pending audit, not two chains");
+    }
+
+    @Test void shutdownResetsTheStreakAndAllowsAFreshChain() {
+        try (MockedStatic<PermissionsAudit> audit = mockStatic(PermissionsAudit.class);
+            MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                when(mock.getPM()).thenReturn(mock(PersistenceManager.class));
+            })) {
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result(false));
+            OpenSearch.permissionsAuditTick("context0");
+            assertEquals(1, OpenSearch.permissionsIncompleteStreak());
+        }
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        OpenSearch.shutdownBackground();
+        assertEquals(0, OpenSearch.permissionsIncompleteStreak(), "a redeploy starts from a clean streak");
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"), "and may schedule a chain again");
     }
 
     @Test void configComesFromTheBackgroundProperties() {

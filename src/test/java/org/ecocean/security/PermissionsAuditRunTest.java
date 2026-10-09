@@ -11,6 +11,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
@@ -79,6 +80,7 @@ class PermissionsAuditRunTest {
     private Map<String, Map<String, JSONObject> > mappings; // index -> field -> mapping
     private Set<String> scrollFails; // indices whose scroll throws
     private Set<String> conflictOn; // ids whose conditional write returns a conflict
+    private Set<String> conflictOnPut; // ids whose conditional REPLACE (rebuild) returns a conflict
     private Set<String> failOn; // ids whose conditional write throws
     private boolean skipAutoIndexing;
     // observations
@@ -109,6 +111,7 @@ class PermissionsAuditRunTest {
         }
         scrollFails = new HashSet<String>();
         conflictOn = new HashSet<String>();
+        conflictOnPut = new HashSet<String>();
         failOn = new HashSet<String>();
         skipAutoIndexing = false;
         writes = new ArrayList<JSONObject>();
@@ -322,6 +325,7 @@ class PermissionsAuditRunTest {
         else w.put("json", new JSONObject((String)body));
         writes.add(w);
         if (conflictOn.contains(id)) return OpenSearch.ConditionalWrite.conflict();
+        if ("put".equals(kind) && conflictOnPut.contains(id)) return OpenSearch.ConditionalWrite.conflict();
         return OpenSearch.ConditionalWrite.applied(seqNo + 1, primaryTerm);
     }
 
@@ -824,5 +828,143 @@ class PermissionsAuditRunTest {
         Result r = run();
         assertTrue(writesTo("individual", "i1").isEmpty(), "already denied; nothing to send");
         assertFalse(r.completed);
+    }
+
+    // ================= round-17 findings =================
+
+    private int puts() {
+        int n = 0;
+        for (JSONObject w : writes) if ("put".equals(w.getString("kind"))) n++;
+        return n;
+    }
+
+    private static JSONObject correctChild(String id, String linkField, Object link) {
+        return childDoc(id, false, arr("uuid-O"), arr("uuid-B", "uuid-A"), linkField, link);
+    }
+
+    @Test void rebuildCapIsSharedAcrossTheChildIndexes() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        individual("i1", "e1");
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")));
+        page("individual", childHit("i1", false, arr(), arr(), "encounterIds", arr("e1", "eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"));
+        rebuildableIndividual("i1", correctChild("i1", "encounterIds", arr("e1")));
+
+        Result r = run(new Config(1000, 20000, 1, "5m"));
+        assertEquals(1, puts(), "one rebuild budget for the whole audit, not one per index");
+        assertTrue(r.capHit);
+    }
+
+    @Test void mappingWithANullValueDisablesThatIndexAudit() throws Exception {
+        encounter("e1", "ghost", "Komodo");
+        page("encounter", encounterHit("e1", false, "uuid-OLD", "uuid-B"));
+        mappings.get("encounter").put("submitterUserId",
+            new JSONObject().put("type", "keyword").put("null_value", "uuid-X"));
+
+        Result r = run();
+        assertTrue(writes.isEmpty(), "writing a JSON null would index the mapping's null_value");
+        assertFalse(r.completed);
+    }
+
+    @Test void scalarAclFieldInAHitAbortsThatIndex() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        JSONObject h = encounterHit("e1", false, "uuid-O", "uuid-B", "uuid-A");
+        h.getJSONObject("fields").put("viewUsers", "uuid-B"); // a scalar where an array is expected
+
+        page("encounter", h);
+        Result r = run();
+        assertTrue(writes.isEmpty(), "malformed is not absent");
+        assertFalse(r.completed);
+    }
+
+    @Test void rebuiltDocumentWithMalformedAclFieldsIsNotSent() throws Exception {
+        encounter("e1", "ghost", "Komodo"); // expected owners {}, viewers {uuid-B}
+        annotation("a1", "e1");
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")));
+        // a scalar owner would read as "no owners" to a lenient check and pass the empty expectation
+        rebuildableAnnotation("a1", new JSONObject().put("id", "a1").put("publiclyReadable", false)
+            .put("submitterUserIds", "unexpected-user").put("viewUsers", arr("uuid-B")).put("encounterId", "e1"));
+
+        Result r = run();
+        assertEquals(0, puts());
+        assertEquals(1, r.index("annotation").failed);
+    }
+
+    @Test void failedDenyWriteSuppressesTheRebuild() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        page("annotation", childHit("a1", false, arr("uuid-O"), arr("uuid-B", "uuid-A"), "encounterId", arr("eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"));
+        failOn.add("a1");
+
+        Result r = run();
+        assertEquals(0, puts(), "no rebuild after a deny that did not land");
+        assertEquals(1, r.index("annotation").failed);
+        assertFalse(r.completed);
+    }
+
+    @Test void throwingSerializerKeepsTheDocumentDenied() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")));
+        Annotation ann = spy(new Annotation());
+        doReturn("a1").when(ann).getId();
+        doReturn(true).when(ann).shouldIndexInOpenSearch();
+        doThrow(new IOException("serializer failed")).when(ann)
+            .opensearchDocumentSerializer(any(JsonGenerator.class), any(Shepherd.class));
+        annotations.put("a1", ann);
+
+        Result r = run();
+        assertEquals(0, puts());
+        assertEquals(1, r.index("annotation").failed);
+        assertFalse(r.completed);
+    }
+
+    @Test void conflictOnTheRebuildIsCountedNotFailed() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"));
+        conflictOnPut.add("a1");
+
+        Result r = run();
+        assertEquals(1, r.index("annotation").conflicts);
+        assertEquals(0, r.index("annotation").failed);
+        assertFalse(r.completed);
+    }
+
+    @Test void previousRebuildFailureGoesLastUnderASmallCap() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        annotation("a2", "e1");
+        // run 1: a1's serializer disagrees with the snapshot -> remembered as failed
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e2"));
+        assertEquals(1, run().index("annotation").failed);
+        // run 2: both need a rebuild, a1 now serializes correctly, one rebuild allowed
+        writes.clear();
+        pages.get("annotation").clear();
+        page("annotation", childHit("a1", false, arr(), arr(), "encounterId", arr("eOld")),
+            childHit("a2", false, arr(), arr(), "encounterId", arr("eOld")));
+        rebuildableAnnotation("a1", correctChild("a1", "encounterId", "e1"));
+        rebuildableAnnotation("a2", correctChild("a2", "encounterId", "e1"));
+
+        Result r = run(new Config(1000, 20000, 1, "5m"));
+        assertEquals(1, puts());
+        for (JSONObject w : writes) if ("put".equals(w.getString("kind"))) assertEquals("a2", w.getString("id"));
+        assertEquals(1, r.index("annotation").deferred);
+    }
+
+    @Test void interruptedThreadWithNothingToReadStillLeavesTheAuditIncomplete() throws Exception {
+        encounter("e1", "owner", "Komodo"); // every index is empty: no consumer call ever happens
+        try {
+            Thread.currentThread().interrupt();
+            Result r = run();
+            assertFalse(r.completed, "an interrupted run is never a completed audit");
+            assertTrue(r.reasons.toString().toLowerCase().contains("interrupt"), r.reasons.toString());
+        } finally {
+            Thread.interrupted();
+        }
     }
 }

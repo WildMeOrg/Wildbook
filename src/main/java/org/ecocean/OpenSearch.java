@@ -237,6 +237,9 @@ public class OpenSearch {
     private static ScheduledExecutorService backgroundExecutor;
     private static final java.util.concurrent.atomic.AtomicInteger PERMISSIONS_INCOMPLETE_STREAK =
         new java.util.concurrent.atomic.AtomicInteger(0);
+    // one audit chain per executor: a second start on the same executor is refused
+    private static final java.util.concurrent.atomic.AtomicBoolean permissionsChainStarted =
+        new java.util.concurrent.atomic.AtomicBoolean(false);
 
     public static synchronized ScheduledExecutorService backgroundExecutor() {
         return backgroundExecutor;
@@ -377,9 +380,37 @@ public class OpenSearch {
                 "does not run in this JVM");
             return false;
         }
-        schedulePermissionsAudit(context, ensureBackgroundExecutor(),
-            BACKGROUND_PERMISSIONS_INITIAL_DELAY_MINUTES);
+        ScheduledExecutorService exec = ensureBackgroundExecutor();
+        if (!permissionsChainStarted.compareAndSet(false, true)) {
+            System.out.println("OpenSearch: the permissions audit is already scheduled");
+            return false;
+        }
+        schedulePermissionsAudit(context, exec, BACKGROUND_PERMISSIONS_INITIAL_DELAY_MINUTES);
         return true;
+    }
+
+    /** One audit tick: run, treat an exception as an incomplete audit, keep the incomplete streak,
+     *  and return the delay (minutes) before the next tick. */
+    public static int permissionsAuditTick(String context) {
+        boolean completed = false;
+        try {
+            completed = runPermissionsAudit(context);
+        } catch (Throwable t) {
+            System.out.println("OpenSearch: permissions audit threw: " + t);
+            t.printStackTrace();
+        }
+        int streak = completed ? 0 : PERMISSIONS_INCOMPLETE_STREAK.incrementAndGet();
+        if (completed) PERMISSIONS_INCOMPLETE_STREAK.set(0);
+        int next = nextPermissionsDelayMinutes(completed, streak);
+        if (!completed && (streak == BACKGROUND_PERMISSIONS_MAX_RETRY_STREAK)) {
+            System.out.println("OpenSearch: WARNING the permissions audit has been incomplete " +
+                streak + " times in a row; back to the normal delay of " + next + " minutes");
+        }
+        return next;
+    }
+
+    public static int permissionsIncompleteStreak() {
+        return PERMISSIONS_INCOMPLETE_STREAK.get();
     }
 
     // One-shot scheduling that re-arms itself from a finally block with a delay chosen by the
@@ -391,18 +422,7 @@ public class OpenSearch {
                 public void run() {
                     long next = BACKGROUND_PERMISSIONS_MINUTES;
                     try {
-                        boolean completed = runPermissionsAudit(context);
-                        int streak = completed ? 0 : PERMISSIONS_INCOMPLETE_STREAK.incrementAndGet();
-                        if (completed) PERMISSIONS_INCOMPLETE_STREAK.set(0);
-                        next = nextPermissionsDelayMinutes(completed, streak);
-                        if (!completed && (streak == BACKGROUND_PERMISSIONS_MAX_RETRY_STREAK)) {
-                            System.out.println("OpenSearch: WARNING the permissions audit has been " +
-                                "incomplete " + streak + " times in a row; back to the normal delay of " +
-                                next + " minutes");
-                        }
-                    } catch (Throwable t) {
-                        System.out.println("OpenSearch: permissions audit threw: " + t);
-                        t.printStackTrace();
+                        next = permissionsAuditTick(context);
                     } finally {
                         if (!exec.isShutdown()) schedulePermissionsAudit(context, exec, next);
                     }
@@ -455,6 +475,9 @@ public class OpenSearch {
     /** Stop every OpenSearch background task (undeploy). An active audit is interrupted and stops
      *  before its next scroll page or rebuild; nothing is rescheduled afterwards. */
     public static synchronized void shutdownBackground() {
+        permissionsChainStarted.set(false); // a fresh executor gets a fresh chain
+        PERMISSIONS_INCOMPLETE_STREAK.set(0);
+        warmupChainStarted.set(false);
         ScheduledExecutorService exec = backgroundExecutor;
         if (exec == null) return;
         backgroundExecutor = null;
@@ -1178,20 +1201,29 @@ public class OpenSearch {
         body.put("seq_no_primary_term", true);
         body.put("sort", new JSONArray().put("_doc"));
         body.put("size", pageSize);
+        // (track_total_hits cannot be disabled in a scroll context: OpenSearch rejects the request)
         Request first = new Request("POST", "/" + indexName + "/_search");
         first.addParameter("scroll", keepAlive);
         first.addParameter("allow_partial_search_results", "false");
         first.setJsonEntity(body.toString());
         String scrollId = null;
         try {
+            if (Thread.currentThread().isInterrupted())
+                throw new java.io.InterruptedIOException("interrupted before the scroll");
             JSONObject page = new JSONObject(getRestResponse(first));
             while (true) {
+                // remember the latest id BEFORE judging the page, so a rejected page's context is
+                // still the one cleared below
+                Object returnedId = page.opt("_scroll_id");
+                if ((returnedId instanceof String) && !((String)returnedId).isEmpty())
+                    scrollId = (String)returnedId;
                 String problem = org.ecocean.security.PermissionsAudit.validatePage(page);
                 if (problem != null) throw new IOException("scroll page rejected: " + problem);
-                scrollId = page.getString("_scroll_id"); // always continue from the latest id
                 JSONArray hits = page.getJSONObject("hits").getJSONArray("hits");
                 if (hits.length() == 0) break;
                 consumer.accept(hits);
+                if (Thread.currentThread().isInterrupted())
+                    throw new java.io.InterruptedIOException("interrupted before the next page");
                 Request next = new Request("POST", "/_search/scroll");
                 next.setJsonEntity(new JSONObject().put("scroll", keepAlive).put("scroll_id",
                     scrollId).toString());

@@ -108,10 +108,6 @@ public class UserCreate extends HttpServlet {
             if ((password.equals(password2)) || (isEdit)) {
                 User newUser = null;
                 String originalUsername = null;
-                // Tracks whether a permission-relevant change (role or org membership) actually
-                // occurred. If so, we flag permissionsNeeded AFTER this transaction commits (see the
-                // end of this block) rather than inside it -- both to avoid the self-deadlock and so
-                // the background ACL reindex cannot run against pre-commit data.
                 try {
                     myShepherd.beginDBTransaction();
                     if (myShepherd.getUserByUUID(uuid) != null) {

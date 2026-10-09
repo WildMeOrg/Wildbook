@@ -3,7 +3,14 @@ package org.ecocean.security;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
+
+import java.io.IOException;
+import org.apache.http.util.EntityUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -447,5 +454,105 @@ import org.testcontainers.utility.DockerImageName;
         assertEquals("boolean", m.get("publiclyReadable").getString("type"));
         assertEquals(null, PermissionsAudit.checkMapping(m, Arrays.asList("publiclyReadable",
             "submitterUserIds", "viewUsers", "encounterId")));
+    }
+
+    // ================= round-17 =================
+
+    @Test void denyIsVisibleBeforeTheRebuildWhenTheRebuildBudgetIsExhausted() throws Exception {
+        reindexAll();
+        drift("annotation", "a1", new JSONObject().put("encounterId", "e3")
+            .put("submitterUserIds", new JSONArray().put(uuid.get("bob"))).put("viewUsers", new JSONArray()));
+        assertTrue(visible("annotation", uuid.get("bob")).contains("a1"), "drifted: bob as owner");
+
+        Result first = PermissionsAudit.run("context0", new Config(2, 20000, 0, "1m")); // no rebuild budget
+        refresh();
+        assertEquals(1, first.index("annotation").structural);
+        assertEquals(1, first.index("annotation").deferred);
+        assertFalse(visible("annotation", uuid.get("bob")).contains("a1"), "closed until rebuilt");
+        assertFalse(visible("annotation", uuid.get("xavier")).contains("a1"));
+
+        Result second = audit();
+        refresh();
+        assertEquals(1, second.index("annotation").structural);
+        assertEquals("e1", source("annotation", "a1").getString("encounterId"));
+        assertTrue(visible("annotation", uuid.get("bob")).contains("a1"), "rebuilt: bob through the Komodo role");
+    }
+
+    @Test void staleFullReplacementAfterARepairIsRepairedAgain() throws Exception {
+        reindexAll();
+        JSONObject stale = source("annotation", "a1").put("viewUsers", new JSONArray());
+        drift("annotation", "a1", new JSONObject().put("viewUsers", new JSONArray()));
+        audit();
+        Request put = new Request("PUT", "/annotation/_doc/a1"); // a stale writer replaces the whole document
+        put.setJsonEntity(stale.toString());
+        os().getRestResponse(put);
+        refresh();
+        assertFalse(visible("annotation", uuid.get("bob")).contains("a1"), "stale again");
+
+        Result again = audit();
+        refresh();
+        assertEquals(1, again.index("annotation").repaired);
+        assertTrue(visible("annotation", uuid.get("bob")).contains("a1"));
+    }
+
+    @Test void serializerThenAuditThenSerializerThenAuditConverges() throws Exception {
+        reindexAll();
+        Result a = audit();
+        assertEquals(0, repaired(a), a.toString());
+        assertTrue(a.completed);
+        reindexAll();
+        Result b = audit();
+        assertEquals(0, repaired(b), b.toString());
+        assertTrue(b.completed);
+    }
+
+    @Test void mappingWithANullValueIsReportedAndRejected() throws Exception {
+        OpenSearch os = os();
+        String index = "individual"; // re-created with a null_value on the owner field, then restored
+        os.getRestResponse(new Request("DELETE", "/" + index));
+        OpenSearch.INDEX_EXISTS_CACHE.remove(index);
+        Request create = new Request("PUT", "/" + index);
+        create.setJsonEntity(new JSONObject().put("mappings", new JSONObject().put("properties", new JSONObject()
+            .put("publiclyReadable", new JSONObject().put("type", "boolean"))
+            .put("viewUsers", new JSONObject().put("type", "keyword"))
+            .put("encounterIds", new JSONObject().put("type", "keyword"))
+            .put("submitterUserIds", new JSONObject().put("type", "keyword").put("null_value", "someone")))).toString());
+        os.getRestResponse(create);
+        try {
+            Map<String, JSONObject> m = os.fieldMappings(index);
+            assertEquals("someone", m.get("submitterUserIds").getString("null_value"));
+            assertNotNull(PermissionsAudit.checkMapping(m, Arrays.asList("publiclyReadable",
+                "submitterUserIds", "viewUsers", "encounterIds")));
+            Result r = audit();
+            assertEquals(0, r.index(index).scanned, "not audited with that mapping");
+            assertFalse(r.completed);
+        } finally {
+            os.getRestResponse(new Request("DELETE", "/" + index));
+            OpenSearch.INDEX_EXISTS_CACHE.remove(index);
+            os.ensureIndex(index, new MarkedIndividual().opensearchMapping());
+            reindexAll();
+        }
+    }
+
+    @Test void scrollContextIsClearedEvenWhenTheFirstPageIsRejected() throws Exception {
+        final List<Request> seen = new ArrayList<Request>();
+        OpenSearch os = spy(os());
+        doAnswer(inv -> {
+            Request req = inv.getArgument(0);
+            seen.add(req);
+            if ("DELETE".equals(req.getMethod())) return "{\"succeeded\":true}";
+            return new JSONObject().put("timed_out", true).put("_scroll_id", "abc")
+                       .put("_shards", new JSONObject().put("failed", 0))
+                       .put("hits", new JSONObject().put("hits", new JSONArray())).toString();
+        }).when(os).getRestResponse(any(Request.class));
+
+        assertThrows(IOException.class, () -> os.scrollDocValues("annotation", Arrays.asList("viewUsers"),
+            2, "1m", hits -> {}));
+        boolean cleared = false;
+        for (Request r : seen) {
+            if ("DELETE".equals(r.getMethod()) && r.getEndpoint().contains("_search/scroll") &&
+                EntityUtils.toString(r.getEntity()).contains("abc")) cleared = true;
+        }
+        assertTrue(cleared, "the rejected page's scroll id must still be cleared: " + seen);
     }
 }

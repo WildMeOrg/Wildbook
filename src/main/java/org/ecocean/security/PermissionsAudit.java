@@ -96,16 +96,18 @@ public final class PermissionsAudit {
      * transaction and immutable afterwards. Expected tuples are computed on demand, never stored.
      */
     public static final class Snapshot {
-        final Map<String, String[]> encounters; // id -> { submitter, locationID }
-        final Map<String, String> usernameToId; // stored username -> user id
-        final Map<String, Set<String> > collabGrants; // raw submitter string -> counterpart ids
-        final Map<String, Set<String> > orgGrants; // owner id -> orgAdmin ids
-        final Map<String, Set<String> > roleNameToUserIds;
+        // Phase data is released once the phase that needs it is over (releaseAfter), so the
+        // three inventories never have to coexist with later phases' work.
+        Map<String, String[]> encounters; // id -> { submitter, locationID }
+        Map<String, String> usernameToId; // stored username -> user id
+        Map<String, Set<String> > collabGrants; // raw submitter string -> counterpart ids
+        Map<String, Set<String> > orgGrants; // owner id -> orgAdmin ids
+        Map<String, Set<String> > roleNameToUserIds;
         final Map<String, Set<String> > lineageCache = new HashMap<String, Set<String> >();
-        final Set<String> eligibleAnnotations; // annotations that should have an index document
-        final Map<String, Set<String> > annotationLinks; // annotation id -> linked encounter ids
-        final Set<String> individuals;
-        final Map<String, Set<String> > individualMembers; // individual id -> member encounter ids
+        Set<String> eligibleAnnotations; // annotations that should have an index document
+        Map<String, Set<String> > annotationLinks; // annotation id -> linked encounter ids
+        Set<String> individuals;
+        Map<String, Set<String> > individualMembers; // individual id -> member encounter ids
 
         public Snapshot(Map<String, String[]> encounters, Map<String, String> usernameToId,
             Map<String, Set<String> > collabGrants, Map<String, Set<String> > orgGrants,
@@ -133,6 +135,24 @@ public final class PermissionsAudit {
 
         public int individualCount() {
             return individuals.size();
+        }
+
+        /** Drop what no later phase needs: after the annotation phase its inventory and links;
+         *  after the individual phase everything. */
+        void releaseAfter(String index) {
+            if ("annotation".equals(index)) {
+                eligibleAnnotations = Collections.<String>emptySet();
+                annotationLinks = Collections.<String, Set<String> >emptyMap();
+            } else if ("individual".equals(index)) {
+                individuals = Collections.<String>emptySet();
+                individualMembers = Collections.<String, Set<String> >emptyMap();
+                encounters = Collections.<String, String[]>emptyMap();
+                collabGrants = Collections.<String, Set<String> >emptyMap();
+                orgGrants = Collections.<String, Set<String> >emptyMap();
+                roleNameToUserIds = Collections.<String, Set<String> >emptyMap();
+                usernameToId = Collections.<String, String>emptyMap();
+                lineageCache.clear();
+            }
         }
 
         /**
@@ -267,15 +287,20 @@ public final class PermissionsAudit {
             doc.error = "hit " + doc.id + " with non-numeric _seq_no/_primary_term";
             return doc;
         }
-        JSONObject fields = hit.optJSONObject("fields");
-        if (fields == null) fields = new JSONObject();
-        JSONArray flag = fields.optJSONArray("publiclyReadable");
-        if (flag != null) {
-            if ((flag.length() != 1) || !(flag.opt(0) instanceof Boolean)) {
-                doc.error = "hit " + doc.id + " with a malformed publiclyReadable: " + flag;
+        Object rawFields = hit.opt("fields");
+        if ((rawFields != null) && !(rawFields instanceof JSONObject)) {
+            doc.error = "hit " + doc.id + " with fields that are not an object";
+            return doc;
+        }
+        JSONObject fields = (rawFields == null) ? new JSONObject() : (JSONObject)rawFields;
+        Object rawFlag = fields.opt("publiclyReadable");
+        if (rawFlag != null) {
+            if (!(rawFlag instanceof JSONArray) || (((JSONArray)rawFlag).length() != 1) ||
+                !(((JSONArray)rawFlag).opt(0) instanceof Boolean)) {
+                doc.error = "hit " + doc.id + " with a malformed publiclyReadable: " + rawFlag;
                 return doc;
             }
-            doc.publiclyReadable = flag.getBoolean(0);
+            doc.publiclyReadable = ((JSONArray)rawFlag).getBoolean(0);
         }
         try {
             doc.owners = new LinkedHashSet<String>(strings(fields, ownerField));
@@ -288,10 +313,15 @@ public final class PermissionsAudit {
         return doc;
     }
 
-    private static List<String> strings(JSONObject fields, String name) {
-        JSONArray arr = fields.optJSONArray(name);
+    /** The strings of an array field; absent is empty, anything that is not an array of strings
+     *  is malformed (never read as absence). */
+    static List<String> strings(JSONObject fields, String name) {
         List<String> out = new ArrayList<String>();
-        if (arr == null) return out;
+        Object raw = fields.opt(name);
+        if ((raw == null) || JSONObject.NULL.equals(raw)) return out;
+        if (!(raw instanceof JSONArray))
+            throw new IllegalArgumentException(name + " is not an array: " + raw);
+        JSONArray arr = (JSONArray)raw;
         for (int i = 0; i < arr.length(); i++) {
             Object v = arr.opt(i);
             if (!(v instanceof String))
@@ -317,7 +347,8 @@ public final class PermissionsAudit {
         if (shards.optInt("failed", 0) > 0) return "shard failures: " + shards.optInt("failed");
         JSONObject hits = page.optJSONObject("hits");
         if ((hits == null) || (hits.optJSONArray("hits") == null)) return "no hits envelope";
-        if (!page.has("_scroll_id") || page.isNull("_scroll_id")) return "no _scroll_id";
+        Object scrollId = page.opt("_scroll_id");
+        if (!(scrollId instanceof String) || ((String)scrollId).isEmpty()) return "no usable _scroll_id";
         return null;
     }
 
@@ -359,6 +390,8 @@ public final class PermissionsAudit {
     public static final class Result {
         public boolean completed;
         public boolean capHit;
+        public boolean interrupted;
+        public long peakHeapMB;
         public long millis;
         public final List<String> reasons = new ArrayList<String>();
         public final Map<String, IndexCounters> indices = new HashMap<String, IndexCounters>();
@@ -373,8 +406,9 @@ public final class PermissionsAudit {
         }
 
         @Override public String toString() {
-            return "Result[completed=" + completed + " capHit=" + capHit + " indices=" + indices +
-                       " reasons=" + reasons + " millis=" + millis + "]";
+            return "Result[completed=" + completed + " capHit=" + capHit + " interrupted=" +
+                       interrupted + " indices=" + indices + " reasons=" + reasons + " millis=" +
+                       millis + " peakHeapMB=" + peakHeapMB + "]";
         }
     }
 
@@ -415,16 +449,20 @@ public final class PermissionsAudit {
                 r.completed = true;
                 return r;
             }
+            if (interrupted(r, "before the snapshot")) return r;
             Snapshot snapshot = loadSnapshot(context, r);
             if (snapshot == null) return r;
-            logHeap("snapshot loaded");
+            sampleHeap(r, "snapshot loaded");
             Runner runner = new Runner(context, config, snapshot, r);
             boolean allAudited = true;
             for (String index : INDICES) {
+                if (interrupted(r, "before auditing " + index)) break;
                 allAudited &= runner.auditIndex(index);
-                logHeap(index + " audited");
+                sampleHeap(r, index + " audited");
+                snapshot.releaseAfter(index); // the next phases do not need this one's structures
             }
-            r.completed = allAudited && !r.capHit && countersClean(r);
+            snapshot.releaseAfter("individual");
+            r.completed = allAudited && !r.capHit && !r.interrupted && countersClean(r);
             return r;
         } catch (Exception ex) {
             r.reasons.add("audit failed: " + ex);
@@ -445,10 +483,19 @@ public final class PermissionsAudit {
         return true;
     }
 
-    private static void logHeap(String when) {
+    /** True (and recorded) when the audit thread has been interrupted: the run stops here. */
+    private static boolean interrupted(Result r, String where) {
+        if (!Thread.currentThread().isInterrupted()) return false;
+        r.interrupted = true;
+        r.reasons.add("interrupted " + where);
+        return true;
+    }
+
+    private static void sampleHeap(Result r, String when) {
         Runtime rt = Runtime.getRuntime();
-        System.out.println("PermissionsAudit: " + when + "; heap used=" +
-            ((rt.totalMemory() - rt.freeMemory()) / (1024 * 1024)) + "MB");
+        long usedMB = (rt.totalMemory() - rt.freeMemory()) / (1024 * 1024);
+        if (usedMB > r.peakHeapMB) r.peakHeapMB = usedMB;
+        System.out.println("PermissionsAudit: " + when + "; heap used=" + usedMB + "MB");
     }
 
     // ---- snapshot ----
@@ -575,11 +622,17 @@ public final class PermissionsAudit {
             for (Object[] row : sqlRows(sh, new Annotation().getAllVersionsSql())) {
                 if ((row != null) && (row[0] != null)) eligible.add((String)row[0]);
             }
+            // relationship rows name encounters by id; share the encounter map's own key instance
+            // so the link and membership sets do not hold a second copy of every id
+            Map<String, String> canonical = new HashMap<String, String>();
+            for (String encId : encounters.keySet()) canonical.put(encId, encId);
             Map<String, Set<String> > links = new HashMap<String, Set<String> >();
             for (Object[] row : sqlRows(sh,
                 "SELECT \"ID_EID\", \"CATALOGNUMBER_OID\" FROM \"ENCOUNTER_ANNOTATIONS\"")) {
                 if (row == null) continue;
-                addTo(links, (String)row[0], (String)row[1]);
+                String encId = (String)row[1];
+                String shared = canonical.get(encId);
+                addTo(links, (String)row[0], (shared != null) ? shared : encId);
             }
             Set<String> individuals = new HashSet<String>();
             for (Object[] row : sqlRows(sh, "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\"")) {
@@ -589,7 +642,9 @@ public final class PermissionsAudit {
             for (Object[] row : sqlRows(sh,
                 "SELECT \"INDIVIDUALID_OID\", \"CATALOGNUMBER_EID\" FROM \"MARKEDINDIVIDUAL_ENCOUNTERS\"")) {
                 if (row == null) continue;
-                addTo(members, (String)row[0], (String)row[1]);
+                String encId = (String)row[1];
+                String shared = canonical.get(encId);
+                addTo(members, (String)row[0], (shared != null) ? shared : encId);
             }
             Snapshot snapshot = new Snapshot(encounters, usernameToId, collabGrants, orgGrants,
                 roleNameToUserIds, eligible, links, individuals, members);
@@ -621,6 +676,8 @@ public final class PermissionsAudit {
                 return "field " + field + " has type " + type + " (doc values need keyword/boolean)";
             if (fm.has("doc_values") && !fm.optBoolean("doc_values", true))
                 return "field " + field + " has doc_values=false";
+            if (fm.has("null_value")) // a JSON null written to clear the field would index this value
+                return "field " + field + " has a null_value";
         }
         return null;
     }
@@ -648,6 +705,7 @@ public final class PermissionsAudit {
         final Result result;
         final OpenSearch os;
         int writes = 0; // toward the repair cap
+        int rebuilds = 0; // toward the rebuild cap, shared by both child indices
 
         Runner(String context, Config config, Snapshot snapshot, Result result) {
             this.context = context;
@@ -682,9 +740,9 @@ public final class PermissionsAudit {
                 os.scrollDocValues(index, fields, config.pageSize, config.keepAlive,
                     new OpenSearch.DocValuesPageConsumer() {
                     public void accept(JSONArray hits) throws IOException {
-                        if (Thread.currentThread().isInterrupted())
-                            throw new InterruptedIOException("interrupted before the next page");
                         for (int i = 0; i < hits.length(); i++) {
+                            if (Thread.currentThread().isInterrupted())
+                                throw new InterruptedIOException("interrupted while auditing " + index);
                             IndexedDoc doc = parseHit(hits.optJSONObject(i), ownerField);
                             if (doc.error != null) throw new IOException(doc.error);
                             processHit(index, doc, c, rebuilds, rebuildVersions);
@@ -693,11 +751,15 @@ public final class PermissionsAudit {
                 });
             } catch (CapReached cap) {
                 result.capHit = true; // stop reading; the next audit continues
+            } catch (InterruptedIOException iex) {
+                result.interrupted = true;
+                result.reasons.add(index + ": " + iex.getMessage());
+                read = false;
             } catch (Exception ex) {
                 result.reasons.add(index + ": " + ex);
                 read = false;
             }
-            if (read) rebuild(index, rebuilds, rebuildVersions, c);
+            if (read && !result.interrupted) rebuild(index, rebuilds, rebuildVersions, c);
             System.out.println("PermissionsAudit: " + index + ": " + c);
             return read;
         }
@@ -788,19 +850,29 @@ public final class PermissionsAudit {
             sh.setAction("PermissionsAudit.rebuild");
             try {
                 sh.beginDBTransaction();
-                int done = 0;
                 Iterator<String> it = ordered.iterator();
                 while (it.hasNext()) {
                     String id = it.next();
-                    if (Thread.currentThread().isInterrupted() || (done >= config.rebuildCap)) {
-                        if (done >= config.rebuildCap) result.capHit = true;
+                    if (Thread.currentThread().isInterrupted()) {
+                        result.interrupted = true;
+                        result.reasons.add(index + ": interrupted before a rebuild");
                         c.deferred += 1 + remaining(it);
                         return;
                     }
-                    done++;
+                    if (rebuilds >= config.rebuildCap) {
+                        result.capHit = true;
+                        c.deferred += 1 + remaining(it);
+                        return;
+                    }
+                    rebuilds++;
                     long[] v = versions.get(id);
                     try {
                         rebuildOne(index, id, v[0], v[1], sh, c);
+                    } catch (InterruptedIOException iex) {
+                        result.interrupted = true;
+                        result.reasons.add(index + ": " + iex.getMessage());
+                        c.deferred += 1 + remaining(it);
+                        return;
                     } catch (Exception ex) {
                         c.failed++;
                         LAST_FAILED_REBUILDS.add(id);
@@ -851,6 +923,8 @@ public final class PermissionsAudit {
                     " rebuilt document disagrees with the snapshot (" + problem + "); left denied");
                 return;
             }
+            if (Thread.currentThread().isInterrupted())
+                throw new InterruptedIOException("interrupted after serializing " + id);
             OpenSearch.ConditionalWrite w = os.putIfUnchanged(index, id, json, seqNo, primaryTerm);
             if (!w.applied) {
                 c.conflicts++;
@@ -859,35 +933,38 @@ public final class PermissionsAudit {
             LAST_FAILED_REBUILDS.remove(id);
         }
 
-        /** The rebuilt document must agree with the snapshot on linkage and ACL, or it is not sent. */
+        /** The rebuilt document must agree with the snapshot on linkage and ACL, with every field
+         *  of the expected shape, or it is not sent. */
         private String verifyRebuilt(String index, String id, JSONObject built) {
             AclTuple expected;
-            if ("annotation".equals(index)) {
-                expected = snapshot.expectedAnnotation(id);
-                Set<String> parents = snapshot.parentsOf(id);
-                String parent = (parents.size() == 1) ? parents.iterator().next() : null;
-                String linked = built.optString("encounterId", null);
-                if ((parent == null) ? (linked != null) : !parent.equals(linked))
-                    return "encounterId " + linked + " vs parent " + parent;
-            } else {
-                expected = snapshot.expectedIndividual(id);
-                Set<String> linked = new HashSet<String>();
-                JSONArray arr = built.optJSONArray("encounterIds");
-                if (arr != null) for (int i = 0; i < arr.length(); i++) linked.add(arr.optString(i));
-                if (!linked.equals(snapshot.membersOf(id)))
-                    return "encounterIds " + linked + " vs members " + snapshot.membersOf(id);
+            try {
+                if ("annotation".equals(index)) {
+                    expected = snapshot.expectedAnnotation(id);
+                    Set<String> parents = snapshot.parentsOf(id);
+                    String parent = (parents.size() == 1) ? parents.iterator().next() : null;
+                    Object rawLinked = built.opt("encounterId");
+                    if ((rawLinked != null) && !(rawLinked instanceof String))
+                        return "encounterId is not a string: " + rawLinked;
+                    String linked = (String)rawLinked;
+                    if ((parent == null) ? (linked != null) : !parent.equals(linked))
+                        return "encounterId " + linked + " vs parent " + parent;
+                } else {
+                    expected = snapshot.expectedIndividual(id);
+                    Set<String> linked = new HashSet<String>(strings(built, "encounterIds"));
+                    if (!linked.equals(snapshot.membersOf(id)))
+                        return "encounterIds " + linked + " vs members " + snapshot.membersOf(id);
+                }
+                if (expected == null) return "no expectation";
+                Object flag = built.opt("publiclyReadable");
+                if (!(flag instanceof Boolean)) return "publiclyReadable missing or not a boolean";
+                AclTuple builtTuple = new AclTuple((Boolean)flag,
+                    new HashSet<String>(strings(built, "submitterUserIds")),
+                    new HashSet<String>(strings(built, "viewUsers")));
+                if (!builtTuple.equals(expected)) return "acl " + builtTuple + " vs " + expected;
+                return null;
+            } catch (IllegalArgumentException malformed) {
+                return "malformed: " + malformed.getMessage();
             }
-            if (expected == null) return "no expectation";
-            if (!built.has("publiclyReadable")) return "no publiclyReadable";
-            Set<String> owners = new HashSet<String>();
-            Set<String> viewers = new HashSet<String>();
-            JSONArray o = built.optJSONArray("submitterUserIds");
-            if (o != null) for (int i = 0; i < o.length(); i++) owners.add(o.optString(i));
-            JSONArray v = built.optJSONArray("viewUsers");
-            if (v != null) for (int i = 0; i < v.length(); i++) viewers.add(v.optString(i));
-            AclTuple builtTuple = new AclTuple(built.optBoolean("publiclyReadable"), owners, viewers);
-            if (!builtTuple.equals(expected)) return "acl " + builtTuple + " vs " + expected;
-            return null;
         }
     }
 }
