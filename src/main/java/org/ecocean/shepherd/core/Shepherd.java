@@ -2456,6 +2456,22 @@ public class Shepherd {
         return al;
     }
 
+    /**
+     * Like getAllOrganizations(), but a datastore failure propagates as a JDOException instead
+     * of being swallowed into an empty list. For writers (the OpenSearch permissions pass) that
+     * must never mistake a failed read for an empty catalog.
+     */
+    public List<Organization> getAllOrganizationsStrict() {
+        Query q = pm.newQuery(pm.getExtent(Organization.class, true));
+
+        try {
+            q.setOrdering("name ascending");
+            return new ArrayList<Organization>((Collection)q.execute());
+        } finally {
+            q.closeAll();
+        }
+    }
+
     public List getPairs(Query query, int pageSize) {
         Collection c;
 

@@ -221,6 +221,7 @@ class ViewUsersParityDbTest {
         e.put("e2", ids("orgadmin", "lake", "pad"));
         e.put("e3", ids("lake", "pad"));          // members never see the orgAdmin's own
         e.put("e4", ids("pad"));                  // lake owns it: never listed
+        e.put("e5", ids("lake", "pad"));          // invalid owner: location grants only
         e.put("e8", ids("ann", "ed", "cpad", "qu\"ote", "back\\slash"));
         e.put("e9", ids("orgadmin", "far"));
         e.put("e10", ids("lake"));                // pad owns it: never listed
@@ -321,6 +322,16 @@ class ViewUsersParityDbTest {
         }
     }
 
+    /** The pass must see a failed organization read as a failure (abort, retry next tick),
+     *  never as "no organizations": the lenient read hides it as an empty catalog. */
+    @Test void strictOrganizationReadPropagatesADatastoreFailure() {
+        Shepherd sh = open();
+        sh.rollbackAndClose(); // closed PersistenceManager: every read from here on fails
+        assertTrue(sh.getAllOrganizations().isEmpty(), "the lenient read swallows the failure");
+        org.junit.jupiter.api.Assertions.assertThrows(javax.jdo.JDOException.class,
+            () -> sh.getAllOrganizationsStrict(), "the strict read propagates it");
+    }
+
     @Test void passAndSerializerAgreeThenConvergeAndRevoke() throws Exception {
         Map<String, Set<String> > expected = expected();
 
@@ -332,8 +343,8 @@ class ViewUsersParityDbTest {
         for (String id : expected.keySet()) {
             assertEquals(expected.get(id), first.written.get(id), "pass viewUsers for " + id);
         }
-        assertEquals(new TreeSet<String>(Arrays.asList("e5")), first.enqueued,
-            "only the invalid-owner row is handed to the full reindex; unknown snapshots never storm");
+        assertTrue(first.enqueued.isEmpty(),
+            "unknown snapshots never storm; an invalid owner is written inline, not reindexed");
 
         // ---- the other writer: computeViewUsers and the real serializer on the same rows ----
         Shepherd sh = open();
@@ -346,8 +357,6 @@ class ViewUsersParityDbTest {
                 assertTrue(computed(sh, id).isEmpty(), id + " is anonymous-owned: no viewers");
                 assertTrue(serialized(sh, id).isEmpty(), id + " serializes an empty viewUsers");
             }
-            assertEquals(ids("lake", "pad"), computed(sh, "e5"),
-                "invalid owner: location grants only, which the full reindex writes");
         } finally {
             sh.rollbackAndClose();
         }
@@ -357,7 +366,7 @@ class ViewUsersParityDbTest {
         fullReindex(indexed, expected.keySet());
         PassRun second = runPass(indexed);
         assertEquals(first.written, second.written, "steady state rewrites the same sets");
-        assertEquals(new TreeSet<String>(Arrays.asList("e5")), second.enqueued,
+        assertTrue(second.enqueued.isEmpty(),
             "an unchanged indexed set must not be reindexed (the #1779 loop)");
 
         // ---- revocation: lake loses Indonesia; only the encounters whose set changes refresh ----
@@ -369,12 +378,11 @@ class ViewUsersParityDbTest {
             if (after.remove(uuid.get("lake"))) lakeGone.add(e.getKey());
             assertEquals(after, fourth.written.get(e.getKey()), "after revocation: " + e.getKey());
         }
-        lakeGone.add("e5");
-        assertEquals(lakeGone, fourth.enqueued, "only changed encounters (plus the invalid owner)");
+        assertEquals(lakeGone, fourth.enqueued, "only the encounters whose set changed");
         assertFalse(fourth.written.get("e10").contains(uuid.get("lake")));
         // the partial update already made the indexed state agree: a further pass is quiet
         PassRun fifth = runPass(indexed);
-        assertEquals(new TreeSet<String>(Arrays.asList("e5")), fifth.enqueued,
+        assertTrue(fifth.enqueued.isEmpty(),
             "once written, the revocation does not keep re-refreshing");
         sh = open();
         try {

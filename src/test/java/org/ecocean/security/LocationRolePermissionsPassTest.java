@@ -65,6 +65,10 @@ class LocationRolePermissionsPassTest {
     private Encounter staleEncounter; // returned by getEncounter(...) for the invalid-owner row
     private Map<String, Encounter> encounters; // id -> Encounter returned by getEncounter(id)
     private Map<String, JSONArray> indexed; // id -> currently indexed viewUsers (null = unknown)
+    private boolean rowsReadFails; // the encounter SQL scan throws
+    private boolean orgReadFails; // the strict organization read throws
+    private Set<String> writeFailsFor; // encounter ids whose indexUpdate throws
+    private Map<String, JSONObject> writtenDocs; // id -> snapshot of the whole partial update
 
     @BeforeEach void setUp() {
         previousTree = LocationRoleTestTree.inject();
@@ -81,6 +85,10 @@ class LocationRolePermissionsPassTest {
         staleEncounter = null;
         encounters = new HashMap<String, Encounter>();
         indexed = new HashMap<String, JSONArray>();
+        rowsReadFails = false;
+        orgReadFails = false;
+        writeFailsFor = new HashSet<String>();
+        writtenDocs = new HashMap<String, JSONObject>();
     }
 
     @AfterEach void tearDown() {
@@ -143,6 +151,12 @@ class LocationRolePermissionsPassTest {
                     when(mock.getUsersWithUsername()).thenReturn(users);
                     when(mock.getAllCollaborations()).thenReturn(collabReadFails ? null : collabs);
                     when(mock.getAllOrganizations()).thenReturn(orgs);
+                    if (orgReadFails) {
+                        when(mock.getAllOrganizationsStrict())
+                            .thenThrow(new javax.jdo.JDOException("datastore down"));
+                    } else {
+                        when(mock.getAllOrganizationsStrict()).thenReturn(orgs);
+                    }
                     when(mock.getUsernamesWithAnyRole(any(), eq("context0")))
                         .thenReturn(orgAdminUsernames);
                     if (roleLoadFailure != null) {
@@ -152,7 +166,11 @@ class LocationRolePermissionsPassTest {
                     }
                     PersistenceManager pm = mock(PersistenceManager.class);
                     Query query = mock(Query.class);
-                    when(query.execute()).thenReturn(rows);
+                    if (rowsReadFails) {
+                        when(query.execute()).thenThrow(new javax.jdo.JDOException("datastore down"));
+                    } else {
+                        when(query.execute()).thenReturn(rows);
+                    }
                     when(pm.newQuery(eq("javax.jdo.query.SQL"), anyString())).thenReturn(query);
                     when(mock.getPM()).thenReturn(pm);
                     if (staleEncounter != null)
@@ -167,11 +185,14 @@ class LocationRolePermissionsPassTest {
                     // the pass reuses ONE updateData object across rows, so snapshot each
                     // document at call time instead of capturing the (mutated) reference
                     org.mockito.Mockito.doAnswer(inv -> {
+                        String id = inv.getArgument(1);
+                        if (writeFailsFor.contains(id)) throw new java.io.IOException("write failed: " + id);
                         JSONObject doc = inv.getArgument(2);
                         JSONArray vu = doc.optJSONArray("viewUsers");
                         Set<String> set = new HashSet<String>();
                         if (vu != null) for (int j = 0; j < vu.length(); j++) set.add(vu.getString(j));
-                        written.put(inv.getArgument(1), set);
+                        written.put(id, set);
+                        writtenDocs.put(id, new JSONObject(doc.toString()));
                         return null;
                     }).when(mock).indexUpdate(eq("encounter"), anyString(), any(JSONObject.class));
                 });
@@ -266,19 +287,107 @@ class LocationRolePermissionsPassTest {
         assertTrue(written.get("enc-none").isEmpty());
     }
 
-    @Test void invalidOwnerRowIsHandedToTheFullReindexNotWrittenInline() {
+    @Test void invalidOwnerRowIsWrittenInlineWithLocationGrantsOnly() {
         user("bob", "uuid-B");
+        user("amy", "uuid-A");
         role("bob", "Indonesia");
+        collab("ghost-user", "amy", Collaboration.STATE_APPROVED); // names the dead username
         encounterRow("enc-ghost", "ghost-user", "Komodo"); // owner has no user row
-        staleEncounter = new Encounter();
-        staleEncounter.setCatalogNumber("enc-ghost");
+        loadable("enc-ghost");
 
         Map<String, Set<String> > written = runPass();
-        assertFalse(written.containsKey("enc-ghost"),
-            "the pass does not write viewUsers inline for an unresolvable owner");
-        // the full reindex it enqueues serializes viewUsers via computeViewUsers, which grants
-        // location roles independently of the owner (see LocationRoleViewUsersTest)
-        verify(indexingManager).addIndexingQueueEntry(eq(staleEncounter), eq(false));
+        // computeViewUsers for an unresolvable owner: location roles grant, owner-dependent
+        // grants (collaborations, orgAdmins) fail closed. The pass must write the same set
+        // inline instead of handing the row to a deep reindex on every pass.
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-B")), written.get("enc-ghost"));
+        JSONObject update = writtenDocs.get("enc-ghost");
+        assertTrue(update.has("submitterUserId") && update.isNull("submitterUserId"),
+            "a stale owner id left by an older document version must be cleared (explicit null)");
+        assertEquals(false, update.getBoolean("publiclyReadable"),
+            "a stale public flag from an older document version must not survive");
+        verify(indexingManager, never()).addIndexingQueueEntry(any(), anyBoolean());
+    }
+
+    /** The partial update applied to a stale document (public, old owner, old viewers) must
+     *  leave the real session-path reader denying the old owner, the stale viewer and the
+     *  public, and admitting the location-role holder. */
+    @Test void partialUpdateRepairsAStaleDocumentForTheRealReader() {
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-ghost", "ghost-user", "Komodo");
+        runPass();
+
+        JSONObject stale = new JSONObject().put("id", "enc-ghost").put("publiclyReadable", true)
+            .put("submitterUserId", "uuid-OLD")
+            .put("viewUsers", new JSONArray(Arrays.asList("uuid-STALE")));
+        JSONObject update = writtenDocs.get("enc-ghost");
+        for (String key : update.keySet()) stale.put(key, update.get(key)); // _update doc merge
+        Shepherd sh = mock(Shepherd.class);
+        assertTrue(Encounter.opensearchAccess(stale, viewer("uuid-B"), sh), "role holder admitted");
+        assertFalse(Encounter.opensearchAccess(stale, viewer("uuid-OLD"), sh), "old owner denied");
+        assertFalse(Encounter.opensearchAccess(stale, viewer("uuid-STALE"), sh), "stale viewer denied");
+        assertFalse(Encounter.opensearchAccess(stale, viewer("uuid-X"), sh), "no longer public");
+    }
+
+    private static User viewer(String id) {
+        User u = mock(User.class);
+        when(u.getId()).thenReturn(id);
+        return u;
+    }
+
+    @Test void organizationReadFailureAbortsBeforeAnyIndexWrite() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-1", "owner", "Komodo");
+        orgReadFails = true;
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("false")), written.get("__completed"),
+            "a failed organization read must not be mistaken for 'no organizations'");
+        assertFalse(written.containsKey("enc-1"),
+            "no write may silently drop every orgAdmin grant for a pass");
+    }
+
+    @Test void resolvableOwnerRowNeverTouchesSubmitterUserId() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-ghost", "ghost-user", "Komodo"); // cleared owner id on THIS row...
+        encounterRow("enc-1", "owner", "Komodo"); // ...must not leak into the next row's update
+
+        runPass();
+        assertFalse(writtenDocs.get("enc-1").has("submitterUserId"),
+            "the serializer owns submitterUserId for a resolvable owner; the pass leaves it alone");
+        assertEquals(false, writtenDocs.get("enc-1").getBoolean("publiclyReadable"),
+            "every processed row is private");
+    }
+
+    @Test void encounterScanFailureReportsIncompleteSoTheFlagStaysSet() {
+        user("owner", "uuid-O");
+        encounterRow("enc-1", "owner", "Komodo");
+        rowsReadFails = true;
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("false")), written.get("__completed"),
+            "an aborted encounter loop must not clear permissionsNeeded");
+        assertFalse(written.containsKey("enc-1"));
+    }
+
+    @Test void failedViewUsersWriteReportsIncompleteButWritesTheOtherRows() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-1", "owner", "Komodo");
+        encounterRow("enc-2", "owner", "Komodo");
+        writeFailsFor.add("enc-1");
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-B")), written.get("enc-2"),
+            "one failed write does not stop the pass");
+        assertFalse(written.containsKey("enc-1"));
+        assertEquals(new HashSet<String>(Arrays.asList("false")), written.get("__completed"),
+            "a failed write means the index may still carry a revoked grant: retry next tick");
     }
 
     // ---- child refresh decision (the #1779 write/erase loop lived here) ----

@@ -4358,7 +4358,9 @@ public class Encounter extends Base implements java.io.Serializable {
             List<String> orgAdminList = myShepherd.getUsernamesWithAnyRole(
                 java.util.Collections.singletonList(Organization.ROLE_MANAGER), "context0");
             if (orgAdminList != null) orgAdminNames.addAll(orgAdminList);
-            List<Organization> allOrgs = myShepherd.getAllOrganizations();
+            // the strict read propagates a datastore failure (the lenient one returns an empty
+            // list, which would silently drop every orgAdmin grant for this pass)
+            List<Organization> allOrgs = myShepherd.getAllOrganizationsStrict();
             if (allOrgs != null) {
                 for (Organization org : allOrgs) {
                     List<User> members = (org == null) ? null : org.getMembers();
@@ -4403,8 +4405,9 @@ public class Encounter extends Base implements java.io.Serializable {
             " location role names");
         // now iterated over (non-public) encounters
         int encCount = 0;
+        int unresolvableOwners = 0;
         int viewUsersWriteFailures = 0;
-        org.json.JSONObject updateData = new org.json.JSONObject();
+        boolean aborted = false;
         // we do not need full Encounter objects here to update index docs, so lets do this via sql/fields - much faster
         String sql =
             "SELECT \"CATALOGNUMBER\", \"SUBMITTERID\", \"LOCATIONID\" FROM \"ENCOUNTER\" WHERE \"SUBMITTERID\" IS NOT NULL AND \"SUBMITTERID\" != '' AND \"SUBMITTERID\" != 'N/A' AND \"SUBMITTERID\" != 'public'";
@@ -4425,36 +4428,37 @@ public class Encounter extends Base implements java.io.Serializable {
                 org.json.JSONArray viewUsers = new org.json.JSONArray();
                 Set<String> viewUserIds = new java.util.LinkedHashSet<String>();
                 String uid = userIdForUsername(usernameToId, submitterId);
-                if (uid == null) {
-                    System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
-                        submitterId + " on enc " + id + " -> full reindex to clear stale ACL fields");
-                    try {
-                        Encounter staleEnc = myShepherd.getEncounter(id);
-                        if (staleEnc != null) {
-                            IndexingManager im = IndexingManagerFactory.getIndexingManager();
-                            im.addIndexingQueueEntry(staleEnc, false); // full reindex: drops submitterUserId + viewUsers
-                        }
-                    } catch (Exception ex) {
-                        System.out.println("  invalid-owner reindex enqueue failed for " + id + ": " + ex);
-                    }
-                    continue;
-                }
+                // An unresolvable owner (deleted or renamed user) is handled the way computeViewUsers
+                // handles it: location roles still grant, owner-dependent grants fail closed, and the
+                // document carries no owner id. The row is written inline like every other one;
+                // handing it to a deep reindex instead made every pass rewrite it and its children.
+                if (uid == null) unresolvableOwners++;
                 encCount++;
                 if (encCount % 1000 == 0) Util.mark("enc[" + encCount + "]", startT);
-                // the owner is granted via submitterUserId, never listed in viewUsers
-                // 1. persisted collaborations of the owner, keyed by the stored submitter string
-                Set<String> collabViewers = collabGrants.get(submitterId);
-                if (collabViewers != null) viewUserIds.addAll(collabViewers);
-                // 2. orgAdmins of the owner's organizations, keyed by the resolved owner id
-                Set<String> orgViewers = orgGrants.get(uid);
-                if (orgViewers != null) viewUserIds.addAll(orgViewers);
+                org.json.JSONObject updateData = new org.json.JSONObject();
+                if (uid != null) {
+                    // the owner is granted via submitterUserId, never listed in viewUsers
+                    // 1. persisted collaborations of the owner, keyed by the stored submitter string
+                    Set<String> collabViewers = collabGrants.get(submitterId);
+                    if (collabViewers != null) viewUserIds.addAll(collabViewers);
+                    // 2. orgAdmins of the owner's organizations, keyed by the resolved owner id
+                    Set<String> orgViewers = orgGrants.get(uid);
+                    if (orgViewers != null) viewUserIds.addAll(orgViewers);
+                }
                 // 3. location-based roles: everyone holding a Role named after this encounter's
                 //    locationID or an ancestor of it (same rule as computeViewUsers)
                 viewUserIds.addAll(org.ecocean.security.LocationRoleAccess.viewUserIdsForLocation(
                     locationID, roleNameToUserIds, lineageCache));
-                viewUserIds.remove(uid); // the owner is granted via submitterUserId, never listed
+                if (uid != null) viewUserIds.remove(uid); // the owner is granted via submitterUserId, never listed
                 for (String viewUid : viewUserIds) viewUsers.put(viewUid);
                 updateData.put("viewUsers", viewUsers); // always write, incl [] so revocation propagates
+                // every processed row is private (anonymous owners were skipped above, and the pass
+                // does not run with security disabled): a stale true from an older document
+                // version must not survive the update
+                updateData.put("publiclyReadable", false);
+                // the serializer omits submitterUserId for an unresolvable owner; a partial update
+                // that merely omits it would leave a stale id from an older document version in place
+                if (uid == null) updateData.put("submitterUserId", org.json.JSONObject.NULL);
                 // Child-refresh decision: the individual and annotation docs carry their own COPY
                 // of this ACL (computeViewUsers, at their own index time). Compare the freshly
                 // computed set with what is CURRENTLY indexed on the encounter and enqueue the deep
@@ -4504,6 +4508,7 @@ public class Encounter extends Base implements java.io.Serializable {
         } catch (Exception ex) {
             System.out.println("opensearchIndexPermissions(): failed during encounter loop: " + ex);
             ex.printStackTrace();
+            aborted = true;
         } finally {
             if (q != null) q.closeAll();
         }
@@ -4511,9 +4516,17 @@ public class Encounter extends Base implements java.io.Serializable {
         myShepherd.rollbackAndClose();
         System.out.println("opensearchIndexPermissions(): ...end [" + encCount + " encs; " +
             Math.round((System.currentTimeMillis() - startT) / 1000) + "sec]");
+        if (unresolvableOwners > 0)
+            System.out.println("opensearchIndexPermissions(): " + unresolvableOwners +
+                " encounters have a submitter with no user row (location grants only, no owner id)");
         if (viewUsersWriteFailures > 0)
             System.out.println("opensearchIndexPermissions(): WARNING " + viewUsersWriteFailures +
                 " viewUsers writes FAILED — revocation may not have propagated for those encounters");
+        if (aborted || (viewUsersWriteFailures > 0)) {
+            // not complete: the wrapper leaves permissionsNeeded set, so the next tick retries
+            System.out.println("opensearchIndexPermissions(): INCOMPLETE — retry next tick");
+            return false;
+        }
         return true;
     }
 
