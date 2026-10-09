@@ -1,6 +1,6 @@
 # Issue #1787 — Run every default algorithm on ml-service bulk imports, and link Match Results to the encounter-wide task
 
-Date: 2026-10-09 (rev 7, after Codex rounds 1–6)
+Date: 2026-10-09 (rev 8, after Codex rounds 1–7)
 Issue: https://github.com/WildMeOrg/Wildbook/issues/1787
 Forum: https://community.wildme.org/t/match-results-not-showing-all-results/5770
 Branch: `fix/bulk-import-multi-algorithm-1787` (off `origin/main` 764268c5aa)
@@ -131,10 +131,18 @@ vector leaves (`new Task(task)` in `Embedding.findMatchProspects`) and
 HotSpotter fan-out children (`IAGateway._doIdentify` copies the option's
 parameters) carry it. A task is the umbrella of a run iff its own id equals
 its `identificationInvocationId`; a reused parent can therefore never make
-an option task look like an umbrella. `IAGateway._doIdentify` keeps
-`importTaskId` and `identificationInvocationId` when it clears the option
-parent's parameters before fanning out; it still drops
-`ibeis.identification`, so that parent's renderability is unchanged.
+an option task look like an umbrella. Every option task — each per-class option child, or the umbrella itself
+when it is the single option — also carries `identificationOption: true`;
+nothing else does (leaves are created by `new Task(task)` from the option,
+so the core sets the marker on the option **after** building its
+parameters but `findMatchProspects` copies parameters at leaf creation —
+therefore the marker is stripped from leaf parameters by
+`findMatchProspects`, and `_doIdentify` strips it from the parameters it
+copies to fan-out children). `IAGateway._doIdentify` keeps `importTaskId`,
+`identificationInvocationId` and `identificationOption` when it clears the
+option parent's parameters before fanning out; it still drops
+`ibeis.identification`, so that parent's renderability is unchanged, and
+the option keeps its identity through the reset (Codex r7 #1).
 
 Tasks outside a run never carry its id: the only copies are made by the
 three builders above, all beneath the umbrella. `IA.intakeMediaAssets` copies
@@ -211,11 +219,13 @@ before it: the `skipIdent` short-circuit and the `MatchVisibilityGate` in
 5. Recovery (after a recorded failure, or in the `catch` of any
    exception): roll back and close `shep` first. With a fresh Shepherd:
    for every group whose commit did not succeed but whose umbrella was
-   persisted by §4.2.3, mark the umbrella and **every option task whose
-   job was not successfully published** (all vector options; HotSpotter
-   options whose publication failed, whose `QUEUE_FAILED` mark the rollback
-   discarded) error `MATCH_PERSIST`; leave option tasks whose job was
-   published alone (the job is durable and completes them); mark `D`
+   persisted by §4.2.3, mark **every option task whose job was not
+   successfully published** (all vector options; HotSpotter options whose
+   publication failed, whose `QUEUE_FAILED` mark the rollback discarded)
+   error `MATCH_PERSIST`, and the umbrella too unless it is itself a
+   successfully published option (single-HotSpotter run: its job is
+   durable and completes it, so it stays pending; Codex r7 #2); leave
+   option tasks whose job was published alone; mark `D`
    error `MATCH_PERSIST` (or `MATCH` for an exception, with the message).
    The recovery commit is checked; on failure the ids are logged at ERROR
    level — nothing further can be done from this thread. Return
@@ -468,12 +478,15 @@ order:
    per annotation, not per page).
 2. If `run == null` (old tree): today's rule, unchanged — the newest direct
    task's `getStatus`, counted once. No new rule applies.
-3. Options of the run for this annotation = the umbrella's direct
-   children that hold the annotation (identity is structural, so an
-   option whose parameters `_doIdentify` cleared still counts); if the
-   umbrella has no children, the umbrella itself (single-option runs use
-   it as the option; a `noWork` umbrella is marked `error` by the core,
-   §4.2.3 step 4). One **representative per option**: the option's newest
+3. Options of the run for this annotation = the tasks of the run that
+   carry `identificationOption` and hold the annotation. The marker, not
+   the tree shape, defines an option: an umbrella that is the single
+   option stays an option after `_doIdentify` has hung fan-out children
+   under it, so for an annotation it has not yet fanned out the umbrella
+   itself is the representative and reads pending. A `noWork` umbrella
+   carries no marker and no options; the core marks it `error` (§4.2.3
+   step 4) and rule 4's "no option" branch does not apply to it because
+   it is itself counted (see below). One **representative per option**: the option's newest
    childless descendant-or-self that holds the annotation (its vector leaf
    or its HotSpotter fan-out child); when the option has children but none
    of them holds this annotation yet (a vector dispatch that threw before
@@ -481,8 +494,11 @@ order:
    itself is the representative (Codex r6 #2).
 4. Per-annotation status over the representatives: any non-terminal →
    that status (`sent` side); else any `error` → `error`; else
-   `completed`. No option holds the annotation (a class with no option) →
-   `completed` plus an informational `numLatestTask_skipped` counter. A
+   `completed`. No option holds the annotation: if the umbrella is a
+   `noWork` umbrella (childless, no `ibeis.identification`) its own status
+   (`error`) is the representative; otherwise (a class with no option
+   while other classes have one) → `completed` plus an informational
+   `numLatestTask_skipped` counter. A
    failed vector option therefore reads `error` for every annotation it
    holds even when the HotSpotter sibling completed, and a HotSpotter
    option mid fan-out reads pending for the annotations it has not yet
@@ -628,7 +644,11 @@ a scoped selection whose only identification tasks carry a foreign stamp
 falls through to today's root fallback, never to the foreign task; partial
 vector dispatch (V_A created, V_B not) with H_B completed → B reads `error`;
 `_doIdentify` mid fan-out (H_A created, H_B not) with V_B completed → B
-reads pending;
+reads pending; single-HotSpotter umbrella U(A,B) mid fan-out (H_A exists)
+next to a newer completed run for A → the import stays "sent" (B's
+representative is U); single-HotSpotter group whose publication succeeded
+and whose final commit failed → U left pending, D marked, the job completes
+U later;
 a second PersistenceManager polling `statsAnnotations` between the send
 failure commit and the requeue decision sees "sent"; a vector dispatch that
 throws after one leaf is attached, followed by a successful group commit →
@@ -709,6 +729,13 @@ Local branch `fix/match-results-multialgo-parent-task` (unpushed,
 2026-07-29).
 
 ## 9. Codex dispositions
+
+Round 7:
+
+| r7 | finding | rev 8 |
+|---|---|---|
+| 1 | single-option umbrella loses option identity during fan-out | §4.0 `identificationOption` marker preserved through the reset; §4.4 options by marker |
+| 2 | recovery errors an umbrella whose own job was published | §4.1 step 5 exemption |
 
 Round 6:
 
