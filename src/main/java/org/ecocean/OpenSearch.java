@@ -76,12 +76,26 @@ public class OpenSearch {
         "backgroundDelayMinutes", 20);
     public static int BACKGROUND_SLICE_SIZE = (Integer)getConfigurationValue("backgroundSliceSize",
         2500);
+    // The permissions audit (org.ecocean.security.PermissionsAudit) is scheduled, not signalled:
+    // it runs this many minutes after the previous audit completed, sooner (bounded) after an
+    // incomplete one, and only in the JVM configured as the runner. Nothing is acknowledged.
     public static int BACKGROUND_PERMISSIONS_MINUTES = (Integer)getConfigurationValue(
         "backgroundPermissionsMinutes", 10);
-    public static int BACKGROUND_PERMISSIONS_MAX_FORCE_MINUTES = (Integer)getConfigurationValue(
-        "backgroundPermissionsMaxForceMinutes", 45);
+    public static int BACKGROUND_PERMISSIONS_RETRY_MINUTES = (Integer)getConfigurationValue(
+        "backgroundPermissionsRetryMinutes", 2);
+    public static int BACKGROUND_PERMISSIONS_MAX_RETRY_STREAK = 5;
+    public static int BACKGROUND_PERMISSIONS_INITIAL_DELAY_MINUTES = 8;
+    public static boolean BACKGROUND_PERMISSIONS_RUNNER = (Boolean)getConfigurationValue(
+        "backgroundPermissionsRunner", Boolean.TRUE);
+    public static int BACKGROUND_PERMISSIONS_PAGE_SIZE = (Integer)getConfigurationValue(
+        "backgroundPermissionsPageSize", 1000);
+    public static int BACKGROUND_PERMISSIONS_MAX_REPAIRS = (Integer)getConfigurationValue(
+        "backgroundPermissionsMaxRepairsPerPass", 20000);
+    public static int BACKGROUND_PERMISSIONS_MAX_REBUILDS = (Integer)getConfigurationValue(
+        "backgroundPermissionsMaxRebuildsPerPass", 500);
+    public static String BACKGROUND_PERMISSIONS_SCROLL_KEEP_ALIVE = (String)getConfigurationValue(
+        "backgroundPermissionsScrollKeepAlive", "5m");
     public static String PERMISSIONS_LAST_RUN_KEY = "OpenSearch_permissions_last_run_timestamp";
-    public static String PERMISSIONS_NEEDED_KEY = "OpenSearch_permissions_needed";
     // kNN match warmup: after startup, load the faiss/kNN native graph for the match index into
     // off-heap memory (and warm the filter/segment paths) so the FIRST user match doesn't pay the
     // cold-load, which can exceed the socket timeout and surface to the user as an empty result.
@@ -218,23 +232,33 @@ public class OpenSearch {
 // http://localhost:9200/encounter/_search?pretty=true&q=*:*
 // http://localhost:9200/_cat/indices?v
 
-    public static void backgroundStartup(String context) {
-        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(8);
-        final ScheduledFuture schedFutureIndexing = schedExec.scheduleWithFixedDelay(
-            new Runnable() {
+    // Every OpenSearch background task runs on this executor, kept here so that undeploy can
+    // stop it (contextDestroyed -> shutdownBackground()); a redeploy gets a fresh one.
+    private static ScheduledExecutorService backgroundExecutor;
+    private static final java.util.concurrent.atomic.AtomicInteger PERMISSIONS_INCOMPLETE_STREAK =
+        new java.util.concurrent.atomic.AtomicInteger(0);
+
+    public static synchronized ScheduledExecutorService backgroundExecutor() {
+        return backgroundExecutor;
+    }
+
+    private static synchronized ScheduledExecutorService ensureBackgroundExecutor() {
+        if ((backgroundExecutor == null) || backgroundExecutor.isShutdown()) {
+            backgroundExecutor = Executors.newScheduledThreadPool(8);
+        }
+        return backgroundExecutor;
+    }
+
+    public static void backgroundStartup(final String context) {
+        final ScheduledExecutorService schedExec = ensureBackgroundExecutor();
+        schedExec.scheduleWithFixedDelay(new Runnable() {
                 public void run() {
                     updateEncounterIndexes(context);
                 }
             }, 2, // initial delay
             BACKGROUND_DELAY_MINUTES, // period delay *after* execution finishes
             TimeUnit.MINUTES); // unit of delays above
-        final ScheduledFuture schedFuturePermissions = schedExec.scheduleWithFixedDelay(
-            new Runnable() {
-                public void run() {
-                    updatePermissionsIndex(context);
-                }
-            }, 8, // initial delay
-            BACKGROUND_PERMISSIONS_MINUTES, TimeUnit.MINUTES); // unit of delays above
+        startPermissionsAuditScheduler(context);
 
         try {
             schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
@@ -342,20 +366,105 @@ public class OpenSearch {
         }
     }
 
-    private static void updatePermissionsIndex(String context) {
+    /**
+     * Schedule the self-rescheduling permissions audit. False (and nothing scheduled) when this
+     * JVM is not the designated runner: a deployment with more than one Tomcat against one
+     * database sets backgroundPermissionsRunner=false on all but one.
+     */
+    public static boolean startPermissionsAuditScheduler(final String context) {
+        if (!BACKGROUND_PERMISSIONS_RUNNER) {
+            System.out.println("OpenSearch: backgroundPermissionsRunner=false; the permissions audit " +
+                "does not run in this JVM");
+            return false;
+        }
+        schedulePermissionsAudit(context, ensureBackgroundExecutor(),
+            BACKGROUND_PERMISSIONS_INITIAL_DELAY_MINUTES);
+        return true;
+    }
+
+    // One-shot scheduling that re-arms itself from a finally block with a delay chosen by the
+    // outcome (scheduleWithFixedDelay cannot vary its delay per run). Never throws out of the task.
+    private static void schedulePermissionsAudit(final String context,
+        final ScheduledExecutorService exec, long delayMinutes) {
+        try {
+            exec.schedule(new Runnable() {
+                public void run() {
+                    long next = BACKGROUND_PERMISSIONS_MINUTES;
+                    try {
+                        boolean completed = runPermissionsAudit(context);
+                        int streak = completed ? 0 : PERMISSIONS_INCOMPLETE_STREAK.incrementAndGet();
+                        if (completed) PERMISSIONS_INCOMPLETE_STREAK.set(0);
+                        next = nextPermissionsDelayMinutes(completed, streak);
+                        if (!completed && (streak == BACKGROUND_PERMISSIONS_MAX_RETRY_STREAK)) {
+                            System.out.println("OpenSearch: WARNING the permissions audit has been " +
+                                "incomplete " + streak + " times in a row; back to the normal delay of " +
+                                next + " minutes");
+                        }
+                    } catch (Throwable t) {
+                        System.out.println("OpenSearch: permissions audit threw: " + t);
+                        t.printStackTrace();
+                    } finally {
+                        if (!exec.isShutdown()) schedulePermissionsAudit(context, exec, next);
+                    }
+                }
+            }, delayMinutes, TimeUnit.MINUTES);
+        } catch (java.util.concurrent.RejectedExecutionException rex) {
+            System.out.println("OpenSearch: permissions audit not rescheduled (executor shut down)");
+        }
+    }
+
+    /** The delay before the next audit: the normal one after a completion, the shorter retry
+     *  after an incomplete run, but at most BACKGROUND_PERMISSIONS_MAX_RETRY_STREAK retries in a
+     *  row so a permanently failing document cannot turn the audit into a tight loop. */
+    public static int nextPermissionsDelayMinutes(boolean completed, int consecutiveIncomplete) {
+        if (completed) return BACKGROUND_PERMISSIONS_MINUTES;
+        if (consecutiveIncomplete >= BACKGROUND_PERMISSIONS_MAX_RETRY_STREAK)
+            return BACKGROUND_PERMISSIONS_MINUTES;
+        return BACKGROUND_PERMISSIONS_RETRY_MINUTES;
+    }
+
+    public static org.ecocean.security.PermissionsAudit.Config permissionsAuditConfig() {
+        return new org.ecocean.security.PermissionsAudit.Config(BACKGROUND_PERMISSIONS_PAGE_SIZE,
+            BACKGROUND_PERMISSIONS_MAX_REPAIRS, BACKGROUND_PERMISSIONS_MAX_REBUILDS,
+            BACKGROUND_PERMISSIONS_SCROLL_KEEP_ALIVE);
+    }
+
+    /** One audit now. The last-run timestamp is stamped whatever the outcome; it is for the log
+     *  only. Returns whether the audit completed (which only selects the next delay). */
+    public static boolean runPermissionsAudit(String context) {
+        System.out.println("OpenSearch background permissions audit running...");
+        org.ecocean.security.PermissionsAudit.Result result =
+            org.ecocean.security.PermissionsAudit.run(context, permissionsAuditConfig());
         Shepherd myShepherd = null;
         try {
             myShepherd = new Shepherd(context);
-            myShepherd.setAction("OpenSearch.backgroundPermissions");
+            myShepherd.setAction("OpenSearch.permissionsAuditStamp");
             myShepherd.beginDBTransaction();
-            System.out.println("OpenSearch background permissions running...");
-            Encounter.opensearchIndexPermissionsBackground(myShepherd);
-            System.out.println("OpenSearch background permissions finished.");
-            myShepherd.commitDBTransaction(); // need commit since we might have changed SystemValues
+            setPermissionsTimestamp(myShepherd);
+            myShepherd.commitDBTransaction();
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
             if (myShepherd != null) myShepherd.rollbackAndClose();
+        }
+        System.out.println("OpenSearch background permissions audit finished: completed=" +
+            result.completed);
+        return result.completed;
+    }
+
+    /** Stop every OpenSearch background task (undeploy). An active audit is interrupted and stops
+     *  before its next scroll page or rebuild; nothing is rescheduled afterwards. */
+    public static synchronized void shutdownBackground() {
+        ScheduledExecutorService exec = backgroundExecutor;
+        if (exec == null) return;
+        backgroundExecutor = null;
+        System.out.println("STOPPING: OpenSearch background tasks");
+        exec.shutdownNow();
+        try {
+            if (!exec.awaitTermination(15L, TimeUnit.SECONDS))
+                System.out.println("OpenSearch background tasks still running after 15s");
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -1154,31 +1263,6 @@ public class OpenSearch {
         return out;
     }
 
-    // Reads the CURRENT indexed viewUsers array for a single doc. Returns the array
-    // (possibly empty) on success, or null if the doc/field cannot be read (missing doc,
-    // index not present, parse failure). null means "unknown": the caller decides the
-    // policy (opensearchIndexPermissions treats unknown as no-change to avoid storming
-    // child reindexes on a degraded read; the reconciler recovers a missed refresh).
-    public org.json.JSONArray getIndexedViewUsers(String index, String id) {
-        if ((index == null) || (id == null)) return null;
-        try {
-            if (!existsIndex(index)) return null;
-            // _source filtered to just viewUsers keeps the response tiny.
-            Request getRequest = new Request("GET", index + "/_doc/" + id + "?_source=viewUsers");
-            String body = getRestResponse(getRequest);
-            if (body == null) return null;
-            org.json.JSONObject parsed = new org.json.JSONObject(body);
-            if (!parsed.optBoolean("found", false)) return null;
-            org.json.JSONObject source = parsed.optJSONObject("_source");
-            if (source == null) return new org.json.JSONArray(); // doc exists, no viewUsers yet -> empty
-            org.json.JSONArray arr = source.optJSONArray("viewUsers");
-            return (arr == null) ? new org.json.JSONArray() : arr;
-        } catch (Exception ex) {
-            // 404 (doc not found) surfaces as ResponseException here; treat as unknown.
-            return null;
-        }
-    }
-
     // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
     public static List<List<String> > resolveVersions(Map<String, Long> objVersions,
         Map<String, Long> indexVersions) {
@@ -1292,32 +1376,6 @@ public class OpenSearch {
 
     public static Long getPermissionsTimestamp(Shepherd myShepherd) {
         return SystemValue.getLong(myShepherd, PERMISSIONS_LAST_RUN_KEY);
-    }
-
-    public static void setPermissionsNeeded(Shepherd myShepherd, boolean value) {
-        SystemValue.set(myShepherd, PERMISSIONS_NEEDED_KEY, value);
-    }
-
-    public static void setPermissionsNeeded(boolean value) {
-        Shepherd myShepherd = null;
-        try {
-            myShepherd = new Shepherd("context0");
-            myShepherd.setAction("OpenSearch.setPermissionsNeeded");
-            myShepherd.beginDBTransaction();
-            setPermissionsNeeded(myShepherd, value);
-            myShepherd.commitDBTransaction();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            if (myShepherd != null) myShepherd.rollbackAndClose();
-        }
-    }
-
-    public static boolean getPermissionsNeeded(Shepherd myShepherd) {
-        Boolean value = SystemValue.getBoolean(myShepherd, PERMISSIONS_NEEDED_KEY);
-
-        if (value == null) return false;
-        return value;
     }
 
     public static JSONObject querySanitize(JSONObject query, User user, Shepherd myShepherd)
@@ -1907,6 +1965,9 @@ public class OpenSearch {
             } catch (NumberFormatException nfe) {
                 return defaultValue;
             }
+        }
+        if (defaultValue instanceof Boolean) {
+            return Boolean.valueOf(propValue.trim());
         }
         // guess we are just a string
         return propValue;

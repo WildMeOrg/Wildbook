@@ -907,6 +907,7 @@ public class StartupWildbook implements ServletContextListener {
         // The poll loop's interrupt/null checks make subsequent work bail.
         if (submissionWorker != null) submissionWorker.close();
         shutdownWbiaRegisterExecutor();
+        OpenSearch.shutdownBackground();
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
         org.ecocean.ia.ParallelIdentify.shutdown();
