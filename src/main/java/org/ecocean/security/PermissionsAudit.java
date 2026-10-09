@@ -473,11 +473,16 @@ public final class PermissionsAudit {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    /** Rows of a SQL query as Object[]: DataNucleus returns a single selected column as the bare
+     *  value, not as a one-element array. */
     private static List<Object[]> sqlRows(Shepherd sh, String sql) {
         Query q = sh.getPM().newQuery("javax.jdo.query.SQL", sql);
         try {
-            return new ArrayList<Object[]>((List<Object[]>)q.execute());
+            List<Object[]> rows = new ArrayList<Object[]>();
+            for (Object o : (List<?>)q.execute()) {
+                rows.add((o instanceof Object[]) ? (Object[])o : new Object[] { o });
+            }
+            return rows;
         } finally {
             q.closeAll();
         }

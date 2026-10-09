@@ -1050,28 +1050,108 @@ public class OpenSearch {
         void accept(JSONArray hits) throws IOException;
     }
 
+    /**
+     * Forward-only scroll of a whole index reading ONLY doc values (no _source: source filtering
+     * would still parse every annotation's embeddings) plus each hit's _seq_no/_primary_term.
+     * Every page is validated (PermissionsAudit.validatePage) and the scroll context is cleared on
+     * every exit. Partial results are refused by the request itself.
+     */
     public void scrollDocValues(String indexName, java.util.List<String> fields, int pageSize,
         String keepAlive, DocValuesPageConsumer consumer)
     throws IOException {
-        throw new UnsupportedOperationException("not implemented");
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        if ((fields == null) || fields.isEmpty() || (consumer == null))
+            throw new IOException("scrollDocValues: fields and consumer are required");
+        JSONObject body = new JSONObject();
+        body.put("query", new JSONObject().put("match_all", new JSONObject()));
+        body.put("_source", false);
+        body.put("docvalue_fields", new JSONArray(fields));
+        body.put("seq_no_primary_term", true);
+        body.put("sort", new JSONArray().put("_doc"));
+        body.put("size", pageSize);
+        Request first = new Request("POST", "/" + indexName + "/_search");
+        first.addParameter("scroll", keepAlive);
+        first.addParameter("allow_partial_search_results", "false");
+        first.setJsonEntity(body.toString());
+        String scrollId = null;
+        try {
+            JSONObject page = new JSONObject(getRestResponse(first));
+            while (true) {
+                String problem = org.ecocean.security.PermissionsAudit.validatePage(page);
+                if (problem != null) throw new IOException("scroll page rejected: " + problem);
+                scrollId = page.getString("_scroll_id"); // always continue from the latest id
+                JSONArray hits = page.getJSONObject("hits").getJSONArray("hits");
+                if (hits.length() == 0) break;
+                consumer.accept(hits);
+                Request next = new Request("POST", "/_search/scroll");
+                next.setJsonEntity(new JSONObject().put("scroll", keepAlive).put("scroll_id",
+                    scrollId).toString());
+                page = new JSONObject(getRestResponse(next));
+            }
+        } finally {
+            if (scrollId != null) {
+                try {
+                    Request clear = new Request("DELETE", "/_search/scroll");
+                    clear.setJsonEntity(new JSONObject().put("scroll_id",
+                        new JSONArray().put(scrollId)).toString());
+                    getRestResponse(clear);
+                } catch (Exception ex) {
+                    System.out.println("scrollDocValues(" + indexName + "): clearing the scroll failed: " + ex);
+                }
+            }
+        }
     }
 
+    /** Partial update applied only if the document still has the given _seq_no/_primary_term. */
     public ConditionalWrite updateIfUnchanged(String indexName, String id, JSONObject doc,
         long seqNo, long primaryTerm)
     throws IOException {
-        throw new UnsupportedOperationException("not implemented");
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        if ((id == null) || (doc == null)) throw new IOException("missing id or doc");
+        Request req = new Request("POST", "/" + indexName + "/_update/" + id);
+        req.addParameter("if_seq_no", String.valueOf(seqNo));
+        req.addParameter("if_primary_term", String.valueOf(primaryTerm));
+        req.setJsonEntity(new JSONObject().put("doc", doc).toString());
+        return conditionalWrite(req);
     }
 
+    /** Whole-document replace applied only if the document still has the given _seq_no/_primary_term. */
     public ConditionalWrite putIfUnchanged(String indexName, String id, String documentJson,
         long seqNo, long primaryTerm)
     throws IOException {
-        throw new UnsupportedOperationException("not implemented");
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        if ((id == null) || (documentJson == null)) throw new IOException("missing id or document");
+        Request req = new Request("PUT", "/" + indexName + "/_doc/" + id);
+        req.addParameter("if_seq_no", String.valueOf(seqNo));
+        req.addParameter("if_primary_term", String.valueOf(primaryTerm));
+        req.setJsonEntity(documentJson);
+        return conditionalWrite(req);
     }
 
-    /** Field name -> its concrete mapping (type, doc_values, ...) as deployed. */
+    private ConditionalWrite conditionalWrite(Request req)
+    throws IOException {
+        try {
+            JSONObject res = new JSONObject(getRestResponse(req));
+            return ConditionalWrite.applied(res.getLong("_seq_no"), res.getLong("_primary_term"));
+        } catch (ResponseException ex) {
+            if (ex.getResponse().getStatusLine().getStatusCode() == 409) return ConditionalWrite.conflict();
+            throw ex;
+        }
+    }
+
+    /** Field name -> its concrete mapping (type, doc_values, ...) as deployed on the cluster. */
     public java.util.Map<String, JSONObject> fieldMappings(String indexName)
     throws IOException {
-        throw new UnsupportedOperationException("not implemented");
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        JSONObject res = new JSONObject(getRestResponse(new Request("GET", "/" + indexName + "/_mapping")));
+        java.util.Map<String, JSONObject> out = new HashMap<String, JSONObject>();
+        for (String key : res.keySet()) { // the concrete index name (an alias resolves to it)
+            JSONObject mappings = res.getJSONObject(key).optJSONObject("mappings");
+            JSONObject properties = (mappings == null) ? null : mappings.optJSONObject("properties");
+            if (properties == null) continue;
+            for (String field : properties.keySet()) out.put(field, properties.getJSONObject(field));
+        }
+        return out;
     }
 
     // Reads the CURRENT indexed viewUsers array for a single doc. Returns the array
