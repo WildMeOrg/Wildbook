@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -26,6 +27,7 @@ import org.ecocean.Encounter;
 import org.ecocean.IndexingManager;
 import org.ecocean.IndexingManagerFactory;
 import org.ecocean.OpenSearch;
+import org.ecocean.Organization;
 import org.ecocean.Role;
 import org.ecocean.User;
 import org.ecocean.shepherd.core.Shepherd;
@@ -43,24 +45,50 @@ import org.mockito.MockedStatic;
  * It must agree with computeViewUsers about location-based roles, and a failed role read must
  * abort the pass (leaving permissionsNeeded set) rather than silently revoke every location
  * grant in the index.
+ *
+ * Its child-refresh decision compares the computed set with what is currently indexed. A full
+ * reindex now writes viewUsers itself (issue #1779), so an unchanged indexed value must NOT
+ * trigger a reindex (that was the write/erase loop), while a changed one must.
  */
 class LocationRolePermissionsPassTest {
     private JSONObject previousTree;
     private List<User> users;
+    private Map<String, User> usersByName;
     private List<Role> roles;
+    private List<Collaboration> collabs;
+    private List<Organization> orgs;
+    private List<String> orgAdminUsernames;
+    private boolean collabReadFails;
     private List<Object[]> rows;
     private RuntimeException roleLoadFailure;
     private IndexingManager indexingManager;
     private Encounter staleEncounter; // returned by getEncounter(...) for the invalid-owner row
+    private Map<String, Encounter> encounters; // id -> Encounter returned by getEncounter(id)
+    private Map<String, JSONArray> indexed; // id -> currently indexed viewUsers (null = unknown)
+    private boolean rowsReadFails; // the encounter SQL scan throws
+    private boolean orgReadFails; // the strict organization read throws
+    private Set<String> writeFailsFor; // encounter ids whose indexUpdate throws
+    private Map<String, JSONObject> writtenDocs; // id -> snapshot of the whole partial update
 
     @BeforeEach void setUp() {
         previousTree = LocationRoleTestTree.inject();
         users = new ArrayList<User>();
+        usersByName = new HashMap<String, User>();
         roles = new ArrayList<Role>();
+        collabs = new ArrayList<Collaboration>();
+        orgs = new ArrayList<Organization>();
+        orgAdminUsernames = new ArrayList<String>();
+        collabReadFails = false;
         rows = new ArrayList<Object[]>();
         roleLoadFailure = null;
         indexingManager = mock(IndexingManager.class);
         staleEncounter = null;
+        encounters = new HashMap<String, Encounter>();
+        indexed = new HashMap<String, JSONArray>();
+        rowsReadFails = false;
+        orgReadFails = false;
+        writeFailsFor = new HashSet<String>();
+        writtenDocs = new HashMap<String, JSONObject>();
     }
 
     @AfterEach void tearDown() {
@@ -72,6 +100,22 @@ class LocationRolePermissionsPassTest {
         when(u.getUsername()).thenReturn(username);
         when(u.getId()).thenReturn(id);
         users.add(u);
+        usersByName.put(username, u);
+    }
+
+    private void collab(String u1, String u2, String state) {
+        Collaboration c = new Collaboration(u1, u2);
+        c.setState(state);
+        collabs.add(c);
+    }
+
+    /** An organization whose members are the named fixture users (by stored username). */
+    private void org(String... memberUsernames) {
+        List<User> members = new ArrayList<User>();
+        for (String m : memberUsernames) members.add(usersByName.get(m));
+        Organization o = mock(Organization.class);
+        when(o.getMembers()).thenReturn(members);
+        orgs.add(o);
     }
 
     private void role(String username, String rolename) {
@@ -84,6 +128,19 @@ class LocationRolePermissionsPassTest {
         rows.add(new Object[] { id, submitter, locationID });
     }
 
+    /** An encounter the pass can load (for the child-refresh enqueue), with auto-indexing on. */
+    private Encounter loadable(String id) {
+        Encounter enc = new Encounter();
+        enc.setCatalogNumber(id);
+        enc.setSkipAutoIndexing(false);
+        encounters.put(id, enc);
+        return enc;
+    }
+
+    private void indexedState(String id, String... viewUserIds) {
+        indexed.put(id, new JSONArray(Arrays.asList(viewUserIds)));
+    }
+
     /** Runs the pass with the fixture; returns viewUsers written per encounter id. */
     private Map<String, Set<String> > runPass() {
         final Map<String, Set<String> > written = new HashMap<String, Set<String> >();
@@ -92,6 +149,16 @@ class LocationRolePermissionsPassTest {
                 (mock, ctx) -> {
                     when(mock.getContext()).thenReturn("context0");
                     when(mock.getUsersWithUsername()).thenReturn(users);
+                    when(mock.getAllCollaborations()).thenReturn(collabReadFails ? null : collabs);
+                    when(mock.getAllOrganizations()).thenReturn(orgs);
+                    if (orgReadFails) {
+                        when(mock.getAllOrganizationsStrict())
+                            .thenThrow(new javax.jdo.JDOException("datastore down"));
+                    } else {
+                        when(mock.getAllOrganizationsStrict()).thenReturn(orgs);
+                    }
+                    when(mock.getUsernamesWithAnyRole(any(), eq("context0")))
+                        .thenReturn(orgAdminUsernames);
                     if (roleLoadFailure != null) {
                         when(mock.getRolesInContext("context0")).thenThrow(roleLoadFailure);
                     } else {
@@ -99,32 +166,42 @@ class LocationRolePermissionsPassTest {
                     }
                     PersistenceManager pm = mock(PersistenceManager.class);
                     Query query = mock(Query.class);
-                    when(query.execute()).thenReturn(rows);
+                    if (rowsReadFails) {
+                        when(query.execute()).thenThrow(new javax.jdo.JDOException("datastore down"));
+                    } else {
+                        when(query.execute()).thenReturn(rows);
+                    }
                     when(pm.newQuery(eq("javax.jdo.query.SQL"), anyString())).thenReturn(query);
                     when(mock.getPM()).thenReturn(pm);
-                    when(mock.getEncounter(anyString())).thenReturn(null);
                     if (staleEncounter != null)
-                        when(mock.getEncounter(staleEncounter.getCatalogNumber())).thenReturn(staleEncounter);
+                        encounters.put(staleEncounter.getCatalogNumber(), staleEncounter);
+                    when(mock.getEncounter(anyString())).thenAnswer(inv ->
+                        encounters.get((String)inv.getArgument(0)));
                 });
             MockedConstruction<OpenSearch> searches = mockConstruction(OpenSearch.class,
                 (mock, ctx) -> {
-                    when(mock.getIndexedViewUsers(anyString(), anyString())).thenReturn(null);
+                    when(mock.getIndexedViewUsers(anyString(), anyString())).thenAnswer(inv ->
+                        indexed.get((String)inv.getArgument(1)));
                     // the pass reuses ONE updateData object across rows, so snapshot each
                     // document at call time instead of capturing the (mutated) reference
                     org.mockito.Mockito.doAnswer(inv -> {
+                        String id = inv.getArgument(1);
+                        if (writeFailsFor.contains(id)) throw new java.io.IOException("write failed: " + id);
                         JSONObject doc = inv.getArgument(2);
                         JSONArray vu = doc.optJSONArray("viewUsers");
                         Set<String> set = new HashSet<String>();
                         if (vu != null) for (int j = 0; j < vu.length(); j++) set.add(vu.getString(j));
-                        written.put(inv.getArgument(1), set);
+                        written.put(id, set);
+                        writtenDocs.put(id, new JSONObject(doc.toString()));
                         return null;
                     }).when(mock).indexUpdate(eq("encounter"), anyString(), any(JSONObject.class));
                 });
-            MockedStatic<IndexingManagerFactory> factory = mockStatic(IndexingManagerFactory.class)) {
+            MockedStatic<IndexingManagerFactory> factory = mockStatic(IndexingManagerFactory.class);
+            MockedStatic<OpenSearch> osStatic = mockStatic(OpenSearch.class)) {
             factory.when(IndexingManagerFactory::getIndexingManager).thenReturn(indexingManager);
+            // enqueueAclReindex honors the global /tmp/skipAutoIndexing kill-switch; pin it off
+            osStatic.when(OpenSearch::skipAutoIndexing).thenReturn(false);
             mc.when(() -> Collaboration.securityEnabled(anyString())).thenReturn(true);
-            mc.when(() -> Collaboration.collaborationsForUser(any(Shepherd.class), anyString()))
-                .thenReturn(new ArrayList<Collaboration>());
 
             boolean completed = Encounter.opensearchIndexPermissions();
             written.put("__completed", new HashSet<String>(Arrays.asList(String.valueOf(completed))));
@@ -210,18 +287,270 @@ class LocationRolePermissionsPassTest {
         assertTrue(written.get("enc-none").isEmpty());
     }
 
-    @Test void invalidOwnerRowIsHandedToTheFullReindexNotWrittenInline() {
+    @Test void invalidOwnerRowIsWrittenInlineWithLocationGrantsOnly() {
         user("bob", "uuid-B");
+        user("amy", "uuid-A");
         role("bob", "Indonesia");
+        collab("ghost-user", "amy", Collaboration.STATE_APPROVED); // names the dead username
         encounterRow("enc-ghost", "ghost-user", "Komodo"); // owner has no user row
-        staleEncounter = new Encounter();
-        staleEncounter.setCatalogNumber("enc-ghost");
+        loadable("enc-ghost");
 
         Map<String, Set<String> > written = runPass();
-        assertFalse(written.containsKey("enc-ghost"),
-            "the pass does not write viewUsers inline for an unresolvable owner");
-        // the full reindex it enqueues serializes viewUsers via computeViewUsers, which grants
-        // location roles independently of the owner (see LocationRoleViewUsersTest)
-        verify(indexingManager).addIndexingQueueEntry(eq(staleEncounter), eq(false));
+        // computeViewUsers for an unresolvable owner: location roles grant, owner-dependent
+        // grants (collaborations, orgAdmins) fail closed. The pass must write the same set
+        // inline instead of handing the row to a deep reindex on every pass.
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-B")), written.get("enc-ghost"));
+        JSONObject update = writtenDocs.get("enc-ghost");
+        assertTrue(update.has("submitterUserId") && update.isNull("submitterUserId"),
+            "a stale owner id left by an older document version must be cleared (explicit null)");
+        assertEquals(false, update.getBoolean("publiclyReadable"),
+            "a stale public flag from an older document version must not survive");
+        verify(indexingManager, never()).addIndexingQueueEntry(any(), anyBoolean());
+    }
+
+    /** The partial update applied to a stale document (public, old owner, old viewers) must
+     *  leave the real session-path reader denying the old owner, the stale viewer and the
+     *  public, and admitting the location-role holder. */
+    @Test void partialUpdateRepairsAStaleDocumentForTheRealReader() {
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-ghost", "ghost-user", "Komodo");
+        runPass();
+
+        JSONObject stale = new JSONObject().put("id", "enc-ghost").put("publiclyReadable", true)
+            .put("submitterUserId", "uuid-OLD")
+            .put("viewUsers", new JSONArray(Arrays.asList("uuid-STALE")));
+        JSONObject update = writtenDocs.get("enc-ghost");
+        for (String key : update.keySet()) stale.put(key, update.get(key)); // _update doc merge
+        Shepherd sh = mock(Shepherd.class);
+        assertTrue(Encounter.opensearchAccess(stale, viewer("uuid-B"), sh), "role holder admitted");
+        assertFalse(Encounter.opensearchAccess(stale, viewer("uuid-OLD"), sh), "old owner denied");
+        assertFalse(Encounter.opensearchAccess(stale, viewer("uuid-STALE"), sh), "stale viewer denied");
+        assertFalse(Encounter.opensearchAccess(stale, viewer("uuid-X"), sh), "no longer public");
+    }
+
+    private static User viewer(String id) {
+        User u = mock(User.class);
+        when(u.getId()).thenReturn(id);
+        return u;
+    }
+
+    @Test void organizationReadFailureAbortsBeforeAnyIndexWrite() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-1", "owner", "Komodo");
+        orgReadFails = true;
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("false")), written.get("__completed"),
+            "a failed organization read must not be mistaken for 'no organizations'");
+        assertFalse(written.containsKey("enc-1"),
+            "no write may silently drop every orgAdmin grant for a pass");
+    }
+
+    @Test void resolvableOwnerRowNeverTouchesSubmitterUserId() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-ghost", "ghost-user", "Komodo"); // cleared owner id on THIS row...
+        encounterRow("enc-1", "owner", "Komodo"); // ...must not leak into the next row's update
+
+        runPass();
+        assertFalse(writtenDocs.get("enc-1").has("submitterUserId"),
+            "the serializer owns submitterUserId for a resolvable owner; the pass leaves it alone");
+        assertEquals(false, writtenDocs.get("enc-1").getBoolean("publiclyReadable"),
+            "every processed row is private");
+    }
+
+    @Test void encounterScanFailureReportsIncompleteSoTheFlagStaysSet() {
+        user("owner", "uuid-O");
+        encounterRow("enc-1", "owner", "Komodo");
+        rowsReadFails = true;
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("false")), written.get("__completed"),
+            "an aborted encounter loop must not clear permissionsNeeded");
+        assertFalse(written.containsKey("enc-1"));
+    }
+
+    @Test void failedViewUsersWriteReportsIncompleteButWritesTheOtherRows() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-1", "owner", "Komodo");
+        encounterRow("enc-2", "owner", "Komodo");
+        writeFailsFor.add("enc-1");
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-B")), written.get("enc-2"),
+            "one failed write does not stop the pass");
+        assertFalse(written.containsKey("enc-1"));
+        assertEquals(new HashSet<String>(Arrays.asList("false")), written.get("__completed"),
+            "a failed write means the index may still carry a revoked grant: retry next tick");
+    }
+
+    // ---- child refresh decision (the #1779 write/erase loop lived here) ----
+
+    @Test void unchangedIndexedViewUsersEnqueuesNothing() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-1", "owner", "Komodo");
+        loadable("enc-1");
+        indexedState("enc-1", "uuid-B"); // a full reindex already wrote the same set
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-B")), written.get("enc-1"),
+            "the pass still (re)writes the set");
+        verify(indexingManager, never()).addIndexingQueueEntry(any(), anyBoolean());
+    }
+
+    @Test void changedIndexedViewUsersEnqueuesTheEncounterOnce() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-1", "owner", "Komodo");
+        Encounter enc = loadable("enc-1");
+        indexedState("enc-1"); // indexed [] -> bob is new
+
+        runPass();
+        verify(indexingManager, org.mockito.Mockito.times(1)).addIndexingQueueEntry(eq(enc), eq(false));
+    }
+
+    @Test void unknownIndexedStateEnqueuesNothing() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-1", "owner", "Komodo");
+        loadable("enc-1");
+        // no indexedState(...) -> null = unreadable/degraded: never storm
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-B")), written.get("enc-1"));
+        verify(indexingManager, never()).addIndexingQueueEntry(any(), anyBoolean());
+    }
+
+    // ---- username resolution must match computeViewUsers (Shepherd.getUser trims) ----
+
+    @Test void paddedRoleUsernameResolvesLikeGetUser() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        role(" bob ", "Indonesia"); // stored with whitespace; getUser(" bob ") finds bob
+        encounterRow("enc-1", "owner", "Komodo");
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-B")), written.get("enc-1"),
+            "the serializer grants bob through getUser's trimmed lookup; so must the pass");
+    }
+
+    @Test void paddedSubmitterResolvesToItsOwner() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        role("owner", "Komodo");
+        encounterRow("enc-1", " owner ", "Komodo");
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-B")), written.get("enc-1"),
+            "a padded submitter is the owner (getUser trims): written inline, owner not listed");
+        verify(indexingManager, never()).addIndexingQueueEntry(any(), anyBoolean());
+    }
+
+    // ---- collaborations and organizations, read the way computeViewUsers reads them ----
+
+    @Test void approvedAndEditCollaboratorsAreGranted_pendingAndRejectedAreNot() {
+        user("owner", "uuid-O");
+        user("ann", "uuid-A");
+        user("ed", "uuid-E");
+        user("pen", "uuid-P");
+        user("rej", "uuid-R");
+        collab("owner", "ann", Collaboration.STATE_APPROVED);
+        collab("owner", "ed", Collaboration.STATE_EDIT_PRIV);
+        collab("owner", "pen", Collaboration.STATE_INITIALIZED);
+        collab("rej", "owner", Collaboration.STATE_REJECTED);
+        encounterRow("enc-1", "owner", null);
+        encounterRow("enc-2", "ann", null); // mutual: owner sees ann's encounter too
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-A", "uuid-E")), written.get("enc-1"));
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-O")), written.get("enc-2"));
+    }
+
+    @Test void paddedCollaborationCounterpartResolvesLikeGetUser() {
+        // computeViewUsers finds this row by the raw submitter string and resolves the
+        // counterpart through getUser (trimmed); the pass must grant the same user
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        collab("owner", " bob ", Collaboration.STATE_APPROVED);
+        encounterRow("enc-1", "owner", null);
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-B")), written.get("enc-1"));
+    }
+
+    @Test void selfCollaborationGrantsNothing() {
+        user("owner", "uuid-O");
+        collab("owner", "owner", Collaboration.STATE_APPROVED);
+        encounterRow("enc-1", "owner", null);
+
+        Map<String, Set<String> > written = runPass();
+        assertTrue(written.get("enc-1").isEmpty());
+    }
+
+    @Test void orgAdminSeesMembersOfAllItsOrganizations_oneWay() {
+        user("admin", "uuid-AD");
+        user("m1", "uuid-1");
+        user("m2", "uuid-2");
+        user("other", "uuid-X");
+        orgAdminUsernames.add("admin");
+        org("admin", "m1");
+        org("admin", "m2");
+        org("other", "m1"); // no orgAdmin here: grants nothing
+        encounterRow("enc-m1", "m1", null);
+        encounterRow("enc-m2", "m2", null);
+        encounterRow("enc-admin", "admin", null);
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-AD")), written.get("enc-m1"));
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-AD")), written.get("enc-m2"));
+        assertTrue(written.get("enc-admin").isEmpty(), "members never see the orgAdmin's own");
+    }
+
+    @Test void paddedSubmitterStillGetsItsOrganizationGrants() {
+        // computeViewUsers resolves the owner through getUser (trimmed) and then walks that
+        // user's organizations; the pass keys organization grants by the resolved user id
+        user("admin", "uuid-AD");
+        user("member", "uuid-M");
+        orgAdminUsernames.add("admin");
+        org("admin", "member");
+        encounterRow("enc-1", " member ", null);
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("uuid-AD")), written.get("enc-1"));
+    }
+
+    @Test void collaborationReadFailureAbortsBeforeAnyIndexWrite() {
+        user("owner", "uuid-O");
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-1", "owner", "Komodo");
+        collabReadFails = true; // Shepherd.getAllCollaborations swallows errors and returns null
+
+        Map<String, Set<String> > written = runPass();
+        assertEquals(new HashSet<String>(Arrays.asList("false")), written.get("__completed"));
+        assertFalse(written.containsKey("enc-1"),
+            "an unreadable collaboration table must not silently revoke every collaboration grant");
+    }
+
+    @Test void whitespaceOnlyOwnerIsAnonymous_neverWritten() {
+        user("bob", "uuid-B");
+        role("bob", "Indonesia");
+        encounterRow("enc-ws", " ", "Komodo"); // User.isUsernameAnonymous trims; the SQL does not
+
+        Map<String, Set<String> > written = runPass();
+        assertFalse(written.containsKey("enc-ws"),
+            "an anonymous-owner encounter is publiclyReadable: computeViewUsers yields [] and the pass must not write a viewer set for it");
+        verify(indexingManager, never()).addIndexingQueueEntry(any(), anyBoolean());
     }
 }
