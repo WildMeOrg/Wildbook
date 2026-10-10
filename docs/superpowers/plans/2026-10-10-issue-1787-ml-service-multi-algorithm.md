@@ -1082,7 +1082,7 @@ import org.mockito.MockedStatic;
 class IAIntakeCoreTest {
 
     /** Records dispatches; builds vector leaves the way Embedding.findMatchProspects does. */
-    static final class RecordingDispatcher implements IA.Dispatcher {
+    static class RecordingDispatcher implements IA.Dispatcher {   // not final: one test subclasses it
         final List<Task> vectorRuns = new ArrayList<Task>();
         final List<JSONObject> published = new ArrayList<JSONObject>();
         boolean publishResult = true;
@@ -1764,9 +1764,15 @@ Replace lines 373-509 (the 2-arg `intakeAnnotations`, the 4-arg `intakeAnnotatio
         if (parent != null) topTask.setParent(parent);   // also parent.addChild(topTask)
 
         // ---- outcome record: every option is listed before anything is durable or dispatched ----
+        // Scalar ids are snapshotted here, before the commit: post-commit logging never touches
+        // a Task (Task.toString() reads persistent fields and lazily fetched collections, which
+        // can throw on a broken PersistenceManager).
+        String umbrellaId = topTask.getId();
+        List<String> optionIds = new ArrayList<String>();
         for (int i = 0; i < plannedTasks.size(); i++) {
             outcome.options.add(new OptionResult(plannedTasks.get(i),
                 Embedding.isVectorConfig(plannedOpts.get(i))));
+            optionIds.add(plannedTasks.get(i).getId());
         }
 
         // ---- persist (checked) ----
@@ -1785,19 +1791,16 @@ Replace lines 373-509 (the 2-arg `intakeAnnotations`, the 4-arg `intakeAnnotatio
             myShepherd.beginDBTransaction();
         } catch (RuntimeException ex) {
             System.out.println("ERROR: IA.intakeAnnotations() could not restart the transaction after persisting run " +
-                topTask.getId() + ": " + ex + "; nothing dispatched");
+                umbrellaId + ": " + ex + "; nothing dispatched");
             for (OptionResult r : outcome.options) r.failureCode = r.vector ? "DISPATCH_FAILED" : "QUEUE_FAILED";
             return outcome;   // the caller's checked commit fails (inactive transaction) and its recovery marks these tasks
         }
         if (outcome.noWork) {
-            System.out.println("INFO: IA.intakeAnnotations() finished run " + topTask.getId() + " with no work");
+            System.out.println("INFO: IA.intakeAnnotations() finished run " + umbrellaId + " with no work");
             return outcome;
         }
 
         // ---- dispatch: never throws; every failure lands on the outcome and, best effort, on the task ----
-        // Post-commit logging uses scalar ids only: Task.toString() reads persistent fields and
-        // lazily fetched collections, which can throw on a broken PersistenceManager.
-        String umbrellaId = topTask.getId();
         try {
             String baseUrl = null;
             String baseUrlError = null;
@@ -1811,7 +1814,7 @@ Replace lines 373-509 (the 2-arg `intakeAnnotations`, the 4-arg `intakeAnnotatio
                 OptionResult r = outcome.options.get(i);
                 JSONObject opt = plannedOpts.get(i);
                 Task t = r.task;
-                String optionId = t.getId();
+                String optionId = optionIds.get(i);
                 try {
                     if (r.vector) {
                         dispatcher.runVector(opt, t, myShepherd);
@@ -4430,9 +4433,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 
 import java.io.File;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -4450,7 +4455,9 @@ import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.IAJsonProperties;
+import org.ecocean.RestClient;
 import org.ecocean.TestIAJsonPropertiesUtil;
+import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.identity.IAQueryCache;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.identity.IdentityServiceLog;
@@ -4459,6 +4466,7 @@ import org.ecocean.media.Feature;
 import org.ecocean.media.FeatureType;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetMetadata;
 import org.ecocean.servlet.IAGateway;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.shepherd.core.Shepherd;
@@ -4503,7 +4511,8 @@ class MultiAlgorithmIntakeDbTest {
     static final class LeafBuildingDispatcher implements IA.Dispatcher {
         volatile Runnable onFirstVector = null;      // persist-before-dispatch probe
         String throwForIaClass = null;
-        boolean killTransactionOnVector = false;     // a datastore failure mid-dispatch: the transaction dies
+        boolean killTransactionOnVector = false;          // a datastore failure mid-dispatch: the transaction dies
+        boolean closePersistenceManagerOnVector = false;  // worse: the manager itself is gone
         final List<JSONObject> published = new ArrayList<JSONObject>();
 
         @Override public void runVector(JSONObject opt, Task optionTask, Shepherd shep) {
@@ -4511,6 +4520,7 @@ class MultiAlgorithmIntakeDbTest {
             onFirstVector = null;
             if (probe != null) probe.run();
             if (killTransactionOnVector) shep.rollbackDBTransaction();   // makePersistent below then throws (no active tx)
+            if (closePersistenceManagerOnVector) shep.getPM().close();   // every later datastore touch throws
             String iaClass = optionTask.getObjectAnnotations().get(0).getIAClass();
             if (iaClass.equals(throwForIaClass)) {
                 Task leaf = leaf(optionTask, optionTask.getObjectAnnotations().get(0));
@@ -4561,8 +4571,8 @@ class MultiAlgorithmIntakeDbTest {
         store = new LocalAssetStore("local-1787", imageDir, "file://" + imageDir, false);
         Shepherd sh = new Shepherd(CTX, props);
         try {
-            sh.beginDBTransaction();
-            FeatureType.initAll(sh);
+            FeatureType.initAll(sh);          // opens, queries and rolls back (or commits) its own transaction
+            sh.beginDBTransaction();          // so begin again before persisting the store
             sh.getPM().makePersistent(store);
             sh.commitDBTransaction();
         } finally {
@@ -4614,7 +4624,7 @@ class MultiAlgorithmIntakeDbTest {
     // An encounter with one annotation per iaClass, each on its own persisted MediaAsset with a
     // bbox feature wired on both owning sides (Feature.asset via addFeature, Feature.annotation
     // via setAnnotation — the mapped-by side of Annotation.features).
-    static Encounter encounter(Shepherd sh, String genus, String species, String... iaClasses) {
+    static Encounter encounter(Shepherd sh, String genus, String species, String... iaClasses) throws Exception {
         Encounter enc = new Encounter();
         enc.setSkipAutoIndexing(true);
         enc.setCatalogNumber("enc-" + (++seq));
@@ -4625,6 +4635,17 @@ class MultiAlgorithmIntakeDbTest {
             ma.setId(100000 + (++seq));
             ma.setSkipAutoIndexing(true);
             ma.setAcmId(ma.getUUID());
+            // dimensions + mime type: WildbookIAM.validMediaAsset (the real eligibility chain) reads them
+            try {
+                ma.updateMetadata();
+            } catch (Exception ex) {
+                System.out.println("WARN: updateMetadata failed in fixture: " + ex);
+            }
+            if (ma.getImageAttributes() == null) {
+                MediaAssetMetadata md = (ma.getMetadata() == null) ? new MediaAssetMetadata() : ma.getMetadata();
+                md.getData().put("attributes", new JSONObject().put("width", 640).put("height", 480).put("contentType", "image/jpeg"));
+                ma.setMetadata(md);
+            }
             Feature f = new Feature("org.ecocean.boundingBox",
                 new JSONObject().put("x", 1).put("y", 1).put("width", 10).put("height", 10));
             ma.addFeature(f);
@@ -4641,7 +4662,7 @@ class MultiAlgorithmIntakeDbTest {
         return enc;
     }
 
-    static Encounter guitarfish(Shepherd sh, String... iaClasses) {
+    static Encounter guitarfish(Shepherd sh, String... iaClasses) throws Exception {
         return encounter(sh, "Pseudobatos", "lentiginosus", iaClasses);
     }
 
@@ -4746,63 +4767,64 @@ class MultiAlgorithmIntakeDbTest {
         };
     }
 
-    /** Records the forced WBIA calls; answers the legacy id lists with the fixture's acmIds. */
-    static final class RecordingPlugin extends WildbookIAM {
-        final List<String> imageCalls = new ArrayList<String>();
-        final List<String> annCalls = new ArrayList<String>();
-        final List<String> legacyKnown;
-        boolean annOk = true;
+    /**
+     * A fake WBIA behind the REAL WildbookIAM registration methods: RestClient is mocked, the
+     * two id-list fetches answer from the lists here, every POST is recorded, and annotation
+     * POSTs echo the uuids they were sent (forced path) or mint fresh ones (legacy path, which
+     * sends no annot_uuid_list — exactly what real WBIA does). The eligibility chain runs real
+     * unless an override names the annotation id.
+     */
+    static final class WbiaFake {
+        final List<String> knownAnnotIds = new ArrayList<String>();
+        final List<String> knownImageIds = new ArrayList<String>();
+        final Map<String, String> eligibilityOverride = new HashMap<String, String>();
+        boolean echoWrongAnnotationUuid = false;
+        final List<JSONObject> posts = new ArrayList<JSONObject>();
+        final List<ArrayList<Annotation>> sentTargets = new ArrayList<ArrayList<Annotation>>();
 
-        RecordingPlugin(List<String> legacyKnown) {
-            super(CTX);
-            this.legacyKnown = legacyKnown;
+        List<JSONObject> imagePosts() {
+            List<JSONObject> out = new ArrayList<JSONObject>();
+            for (JSONObject p : posts) if (p.has("image_uri_list")) out.add(p);
+            return out;
         }
 
-        @Override public boolean registerImageForced(MediaAsset ma) {
-            imageCalls.add(ma.getAcmId());
-            return true;
+        List<JSONObject> annotationPosts() {
+            List<JSONObject> out = new ArrayList<JSONObject>();
+            for (JSONObject p : posts) if (p.has("annot_bbox_list")) out.add(p);
+            return out;
         }
 
-        @Override public boolean sendAnnotationForcedByAcmId(Annotation ann, Shepherd sh) {
-            annCalls.add(ann.getAcmId());
-            return annOk;
+        static JSONObject fancyList(List<String> ids) {
+            JSONArray arr = new JSONArray();
+            for (String id : ids) arr.put(WildbookIAM.toFancyUUID(id));
+            return new JSONObject().put("status", new JSONObject().put("success", true)).put("response", arr);
         }
 
-        @Override public List<String> iaAnnotationIds() { return legacyKnown; }
-        @Override public List<String> iaImageIds() { return legacyKnown; }
-
-        // today's non-forced flow for null/TRUE-flag annotations, recorded instead of POSTed
-        final List<String> legacyAnnotationSends = new ArrayList<String>();
-        final List<String> legacyAssetSends = new ArrayList<String>();
-
-        @Override public JSONObject sendAnnotations(ArrayList<Annotation> anns, boolean checkFirst, Shepherd sh) {
-            for (Annotation a : anns) legacyAnnotationSends.add(a.getId());
-            return new JSONObject().put("status", new JSONObject().put("success", true));
-        }
-
-        @Override public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst) {
-            for (MediaAsset ma : mas) legacyAssetSends.add(ma.getAcmId());
-            return new JSONObject().put("status", new JSONObject().put("success", true));
+        JSONObject reply(URL url, JSONObject body) {
+            posts.add(body);
+            JSONArray echo = new JSONArray();
+            if (url.getPath().contains("image")) {
+                JSONArray sent = body.getJSONArray("image_uuid_list");
+                for (int i = 0; i < sent.length(); i++) echo.put(sent.getJSONObject(i));
+            } else if (body.has("annot_uuid_list")) {               // forced: echo (or refuse)
+                JSONArray sent = body.getJSONArray("annot_uuid_list");
+                for (int i = 0; i < sent.length(); i++) {
+                    echo.put(echoWrongAnnotationUuid ? WildbookIAM.toFancyUUID(java.util.UUID.randomUUID().toString()) : sent.getJSONObject(i));
+                }
+            } else {                                                 // legacy: WBIA mints
+                JSONArray sent = body.getJSONArray("image_uuid_list");
+                for (int i = 0; i < sent.length(); i++) echo.put(WildbookIAM.toFancyUUID(java.util.UUID.randomUUID().toString()));
+            }
+            return new JSONObject().put("status", new JSONObject().put("success", true)).put("response", echo);
         }
     }
 
-    static JSONObject missingAnnotationReply(String acmId) {
-        return new JSONObject()
-            .put("status", new JSONObject().put("code", 600).put("success", false).put("message", "missing"))
-            .put("response", new JSONObject().put("missing_annot_uuid_list",
-                new JSONArray().put(WildbookIAM.toFancyUUID(acmId))));
-    }
-
-    // A REAL beginIdentifyAnnotations with a non-empty explicit target list (so no matching set is
-    // built through OpenSearch): the plugin, the WBIA id list, the eligibility verdict per
-    // annotation id and the identify POST are answered; everything else runs real.
-    static void withRegistrationStubs(WildbookIAM plugin, Map<String, String> reasonByAnnId,
-        List<String> knownIds, List<ArrayList<Annotation>> sentTargets, Body body) throws Exception {
+    static void withRealWbia(WbiaFake wbia, Body body) throws Exception {
         try (MockedStatic<IBEISIA> ibeis = mockStatic(IBEISIA.class, inv -> {
                  String m = inv.getMethod().getName();
-                 if (m.equals("getPluginInstance")) return plugin;
+                 if (m.equals("getPluginInstance")) return new WildbookIAM(CTX);   // the REAL plugin
                  if (m.equals("sendIdentify")) {
-                     sentTargets.add(inv.getArgument(1));
+                     wbia.sentTargets.add(inv.getArgument(1));
                      return new JSONObject().put("status", new JSONObject().put("success", true).put("message", "ok"))
                          .put("response", "job-1");
                  }
@@ -4811,15 +4833,39 @@ class MultiAlgorithmIntakeDbTest {
              });
              MockedStatic<WildbookIAM> iam = mockStatic(WildbookIAM.class, inv -> {
                  String m = inv.getMethod().getName();
-                 if (m.equals("iaAnnotationIdsStrict")) return new ArrayList<String>(knownIds);
+                 if (m.equals("iaAnnotationIdsStrict")) return new ArrayList<String>(wbia.knownAnnotIds);
+                 if (m.equals("iaImageIdsStrict")) return new ArrayList<String>(wbia.knownImageIds);
                  if (m.equals("wbiaEligibilityReason")) {
                      Annotation a = inv.getArgument(0);
-                     return (a == null) ? "null annotation" : reasonByAnnId.get(a.getId());
+                     if ((a != null) && wbia.eligibilityOverride.containsKey(a.getId())) return wbia.eligibilityOverride.get(a.getId());
+                     return inv.callRealMethod();
                  }
                  return inv.callRealMethod();
-             })) {
+             });
+             MockedStatic<IA> ia = mockStatic(IA.class);
+             MockedStatic<RestClient> rest = mockStatic(RestClient.class);
+             MockedStatic<QueryCacheFactory> qc = mockStatic(QueryCacheFactory.class)) {
+            ia.when(() -> IA.getProperty(anyString(), eq("IBEISIARestUrlAddAnnotations"))).thenReturn("http://wbia/api/annot/json/");
+            ia.when(() -> IA.getProperty(anyString(), eq("IBEISIARestUrlAddImages"))).thenReturn("http://wbia/api/image/json/");
+            rest.when(() -> RestClient.post(any(URL.class), any(JSONObject.class)))
+                .thenAnswer(inv -> wbia.reply(inv.getArgument(0), inv.getArgument(1)));
+            rest.when(() -> RestClient.get(any(URL.class))).thenAnswer(inv -> {
+                URL url = inv.getArgument(0);
+                return WbiaFake.fancyList(url.getPath().contains("image") ? wbia.knownImageIds : wbia.knownAnnotIds);
+            });
             body.run();
         }
+    }
+
+    static String fancyAt(JSONObject post, String key, int i) {
+        return WildbookIAM.fromFancyUUID(post.getJSONArray(key).getJSONObject(i));
+    }
+
+    static JSONObject missingAnnotationReply(String acmId) {
+        return new JSONObject()
+            .put("status", new JSONObject().put("code", 600).put("success", false).put("message", "missing"))
+            .put("response", new JSONObject().put("missing_annot_uuid_list",
+                new JSONArray().put(WildbookIAM.toFancyUUID(acmId))));
     }
 
     // an identification task that holds the query annotation (the HotSpotter option of a run)
@@ -4893,7 +4939,7 @@ class MultiAlgorithmIntakeDbTest {
 
     // ---- cases ----
 
-    @Test void fixtureRelationshipsSurviveReload() {
+    @Test void fixtureRelationshipsSurviveReload() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY);
         String annId = annotationIds(e1).get(0);
@@ -4913,7 +4959,7 @@ class MultiAlgorithmIntakeDbTest {
         }
     }
 
-    @Test void processorBuildsOneUmbrellaPerEncounterAndPersistsBeforeDispatch() {
+    @Test void processorBuildsOneUmbrellaPerEncounterAndPersistsBeforeDispatch() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
         Encounter e2 = guitarfish(sh, BODY);
@@ -4976,7 +5022,7 @@ class MultiAlgorithmIntakeDbTest {
         }
     }
 
-    @Test void initialPersistFailureDispatchesNothingAndMarksOnlyD() {
+    @Test void initialPersistFailureDispatchesNothingAndMarksOnlyD() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
         Task d = detectionTask(sh, nextImportId());
@@ -4997,7 +5043,7 @@ class MultiAlgorithmIntakeDbTest {
         }
     }
 
-    @Test void selectorLandsOnTheUmbrellaAfterReloadAndRendersExactlyItsRun() {
+    @Test void selectorLandsOnTheUmbrellaAfterReloadAndRendersExactlyItsRun() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
         Task r = new Task();
@@ -5042,7 +5088,7 @@ class MultiAlgorithmIntakeDbTest {
         }
     }
 
-    @Test void importStatusCountsEveryOptionOfTheRun() {
+    @Test void importStatusCountsEveryOptionOfTheRun() throws Exception {
         Shepherd sh = open("fixture");
         String importId = nextImportId();
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
@@ -5081,7 +5127,7 @@ class MultiAlgorithmIntakeDbTest {
     }
 
     /** §5.2 status matrix: error + pending, single-HotSpotter pending, skipped class, late fan-out next to a newer run. */
-    @Test void importStatusMatrixVariants() {
+    @Test void importStatusMatrixVariants() throws Exception {
         // (a) error vector leaf + pending HotSpotter -> sent
         Shepherd sh = open("fixture-a");
         String importA = nextImportId();
@@ -5159,7 +5205,7 @@ class MultiAlgorithmIntakeDbTest {
     }
 
     /** _doIdentify mid fan-out: the option itself represents the annotation without a child. */
-    @Test void midFanOutReadsPendingForTheUnfannedAnnotation() {
+    @Test void midFanOutReadsPendingForTheUnfannedAnnotation() throws Exception {
         Shepherd sh = open("fixture");
         String importId = nextImportId();
         Encounter e1 = guitarfish(sh, BODY, BODY);        // two body annotations share one option
@@ -5187,7 +5233,7 @@ class MultiAlgorithmIntakeDbTest {
         assertEquals(1, sum.getInt("identificationNumberComplete"), "A is complete, B still waits on its fan-out");
     }
 
-    @Test void secondGroupCommitFailureKeepsTheFirstGroupAndMarksTheSecond() {
+    @Test void secondGroupCommitFailureKeepsTheFirstGroupAndMarksTheSecond() throws Exception {
         Shepherd sh = open("fixture");
         String importId = nextImportId();
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
@@ -5235,7 +5281,7 @@ class MultiAlgorithmIntakeDbTest {
         assertEquals(1, sum.getInt("identificationNumberError"));
     }
 
-    @Test void vectorDispatchExceptionMarksTheOptionAndItsAttachedLeaf() {
+    @Test void vectorDispatchExceptionMarksTheOptionAndItsAttachedLeaf() throws Exception {
         dispatcher.throwForIaClass = ROSTRUM;
         Shepherd sh = open("fixture");
         String importId = nextImportId();
@@ -5268,7 +5314,7 @@ class MultiAlgorithmIntakeDbTest {
         assertEquals(1, sum.getInt("identificationNumberError"), "rostrum reads error through its option");
     }
 
-    @Test void dispatchExceptionThenGroupCommitFailureMarksEveryUnpublishedOption() {
+    @Test void dispatchExceptionThenGroupCommitFailureMarksEveryUnpublishedOption() throws Exception {
         dispatcher.throwForIaClass = ROSTRUM;
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
@@ -5293,7 +5339,7 @@ class MultiAlgorithmIntakeDbTest {
         }
     }
 
-    @Test void singleHotspotterRunWhosePublishedJobSurvivesACommitFailureStaysPending() {
+    @Test void singleHotspotterRunWhosePublishedJobSurvivesACommitFailureStaysPending() throws Exception {
         Shepherd sh = open("fixture");
         Encounter rhina = encounter(sh, "Rhina", "ancylostoma", BODY);
         Task d = detectionTask(sh, nextImportId());
@@ -5393,7 +5439,7 @@ class MultiAlgorithmIntakeDbTest {
     }
 
     /** Review Focus 2: one image, two encounters, one of which has no default option. */
-    @Test void mixedNoWorkGroupsDoNotFailTheDetectionTask() {
+    @Test void mixedNoWorkGroupsDoNotFailTheDetectionTask() throws Exception {
         Shepherd sh = open("fixture");
         String importId = nextImportId();
         Encounter e1 = guitarfish(sh, BODY);
@@ -5423,7 +5469,7 @@ class MultiAlgorithmIntakeDbTest {
         assertEquals(1, sum.getInt("identificationNumberError"), "the no-option encounter's annotation reads error");
     }
 
-    @Test void allGroupsWithoutOptionsMarkTheDetectionTaskInvalid() {
+    @Test void allGroupsWithoutOptionsMarkTheDetectionTaskInvalid() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, "mystery");
         Task d = detectionTask(sh, nextImportId());
@@ -5440,7 +5486,7 @@ class MultiAlgorithmIntakeDbTest {
         }
     }
 
-    @Test void handleRestWithAnUmbrellaAsRootCreatesAFreshRootThatKeepsTheRequestParameters() {
+    @Test void handleRestWithAnUmbrellaAsRootCreatesAFreshRootThatKeepsTheRequestParameters() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY);
         JSONObject requestParams = new JSONObject().put("matchingSetFilter", new JSONObject().put("locationIds", new JSONArray().put("X")));
@@ -5476,115 +5522,8 @@ class MultiAlgorithmIntakeDbTest {
         }
     }
 
-    /** §5.2 registration through a REAL identify: pending query + pending target registered under their acmIds, flags persisted, asset acmId minted, pruned targets sent. */
-    @Test void realIdentifyRegistersPendingAnnotationsAndPersistsTheFlags() throws Exception {
-        Shepherd sh = open("fixture");
-        Encounter e1 = guitarfish(sh, BODY, BODY, BODY);
-        List<String> ids = annotationIds(e1);
-        Annotation q = sh.getAnnotation(ids.get(0));
-        q.setWbiaRegistered(Boolean.FALSE);
-        q.getMediaAsset().setAcmId(null);                    // minted at identify time
-        String qAssetUuid = q.getMediaAsset().getUUID();
-        Annotation t = sh.getAnnotation(ids.get(1));
-        t.setWbiaRegistered(Boolean.FALSE);
-        Annotation k = sh.getAnnotation(ids.get(2));
-        k.setWbiaRegistered(Boolean.TRUE);                    // already registered: legacy path
-        String taskId = identifyTaskFor(sh, q);
-        sh.commitDBTransaction();
-        sh.closeDBTransaction();
-
-        RecordingPlugin plugin = new RecordingPlugin(Arrays.asList(k.getAcmId(), k.getMediaAsset().getAcmId()));
-        List<ArrayList<Annotation>> sent = new ArrayList<ArrayList<Annotation>>();
-        Shepherd consumer = open("consumer");
-        try {
-            withRegistrationStubs(plugin, new HashMap<String, String>(), new ArrayList<String>(), sent, () -> {
-                ArrayList<Annotation> qanns = new ArrayList<Annotation>(Arrays.asList(consumer.getAnnotation(ids.get(0))));
-                ArrayList<Annotation> tanns = new ArrayList<Annotation>(Arrays.asList(
-                    consumer.getAnnotation(ids.get(1)), consumer.getAnnotation(ids.get(2))));
-                JSONObject results = IBEISIA.beginIdentifyAnnotations(qanns, tanns, new JSONObject(), null,
-                    consumer, Task.load(taskId, consumer), "http://wb", false);
-                assertTrue(results.getBoolean("success"), results.toString());
-            });
-            consumer.commitDBTransaction();
-        } finally {
-            consumer.closeDBTransaction();
-        }
-        assertEquals(Arrays.asList(q.getAcmId(), t.getAcmId()), plugin.annCalls, "query first, then the pending target");
-        assertEquals(Arrays.asList(qAssetUuid, t.getMediaAsset().getAcmId()), plugin.imageCalls);
-        assertEquals(1, sent.size());
-        assertEquals(Arrays.asList(ids.get(1), ids.get(2)), idsOf(sent.get(0)), "the identify request lists the pruned targets");
-        Shepherd check = open("check");
-        try {
-            assertEquals(Boolean.TRUE, check.getAnnotation(ids.get(0)).getWbiaRegistered(), "the query's flag is persisted");
-            assertEquals(Boolean.TRUE, check.getAnnotation(ids.get(1)).getWbiaRegistered(), "the target's flag is persisted");
-            assertEquals(qAssetUuid, check.getAnnotation(ids.get(0)).getMediaAsset().getAcmId(), "the minted asset acmId is persisted");
-        } finally {
-            check.rollbackAndClose();
-        }
-    }
-
-    /** A pending query that cannot be registered makes the real identify return success=false; an ineligible pending target is dropped. */
-    @Test void realIdentifyFailsForAnUnregistrablePendingQueryAndDropsAnIneligibleTarget() throws Exception {
-        Shepherd sh = open("fixture");
-        Encounter e1 = guitarfish(sh, BODY, BODY, BODY);
-        List<String> ids = annotationIds(e1);
-        for (String id : ids) sh.getAnnotation(id).setWbiaRegistered(Boolean.FALSE);
-        String taskId = identifyTaskFor(sh, sh.getAnnotation(ids.get(0)));
-        sh.commitDBTransaction();
-        sh.closeDBTransaction();
-
-        // (a) the target ids.get(1) is ineligible -> dropped; query and ids.get(2) register
-        RecordingPlugin plugin = new RecordingPlugin(new ArrayList<String>());
-        Map<String, String> reasons = new HashMap<String, String>();
-        reasons.put(ids.get(1), "missing media asset");
-        List<ArrayList<Annotation>> sent = new ArrayList<ArrayList<Annotation>>();
-        Shepherd consumer = open("consumer");
-        try {
-            withRegistrationStubs(plugin, reasons, new ArrayList<String>(), sent, () -> {
-                JSONObject results = IBEISIA.beginIdentifyAnnotations(
-                    new ArrayList<Annotation>(Arrays.asList(consumer.getAnnotation(ids.get(0)))),
-                    new ArrayList<Annotation>(Arrays.asList(consumer.getAnnotation(ids.get(1)), consumer.getAnnotation(ids.get(2)))),
-                    new JSONObject(), null, consumer, Task.load(taskId, consumer), "http://wb", false);
-                assertTrue(results.getBoolean("success"));
-                assertEquals(ids.get(1), results.getJSONObject("sendAnnotationsAsNeeded").getJSONArray("droppedTargets").getString(0));
-            });
-            consumer.commitDBTransaction();
-        } finally {
-            consumer.closeDBTransaction();
-        }
-        assertEquals(Arrays.asList(ids.get(2)), idsOf(sent.get(0)), "the dropped target is absent from the request");
-
-        // (b) WBIA does not confirm the query -> success=false, nothing sent, flag still FALSE
-        RecordingPlugin refusing = new RecordingPlugin(new ArrayList<String>());
-        refusing.annOk = false;
-        List<ArrayList<Annotation>> sent2 = new ArrayList<ArrayList<Annotation>>();
-        Shepherd consumer2 = open("consumer2");
-        try {
-            withRegistrationStubs(refusing, new HashMap<String, String>(), new ArrayList<String>(), sent2, () -> {
-                Annotation again = consumer2.getAnnotation(ids.get(0));
-                again.setWbiaRegistered(Boolean.FALSE);   // as if the first job had never run
-                JSONObject results = IBEISIA.beginIdentifyAnnotations(
-                    new ArrayList<Annotation>(Arrays.asList(again)),
-                    new ArrayList<Annotation>(Arrays.asList(consumer2.getAnnotation(ids.get(2)))),
-                    new JSONObject(), null, consumer2, Task.load(taskId, consumer2), "http://wb", false);
-                assertFalse(results.getBoolean("success"));
-                assertTrue(results.getString("error").contains(ids.get(0)));
-            });
-            consumer2.rollbackDBTransaction();   // what _doIdentify's caller does on failure
-        } finally {
-            consumer2.closeDBTransaction();
-        }
-        assertTrue(sent2.isEmpty(), "no identify request was sent");
-        Shepherd check = open("check");
-        try {
-            assertEquals(Boolean.TRUE, check.getAnnotation(ids.get(0)).getWbiaRegistered(), "(a)'s successful registration is what persists");
-        } finally {
-            check.rollbackAndClose();
-        }
-    }
-
     /** Partial vector dispatch within one option: V_A attached, V_B never created, H_B completed -> B reads error through the option. */
-    @Test void partialVectorDispatchLeavesTheUnleafedAnnotationOnTheFailedOption() {
+    @Test void partialVectorDispatchLeavesTheUnleafedAnnotationOnTheFailedOption() throws Exception {
         dispatcher.throwForIaClass = BODY;                 // attaches A's leaf, then throws
         Shepherd sh = open("fixture");
         String importId = nextImportId();
@@ -5635,7 +5574,7 @@ class MultiAlgorithmIntakeDbTest {
     }
 
     /** Single-HotSpotter U(A,B) mid fan-out (H_A exists) beside a newer completed run for A -> the import stays sent (B's representative is U). */
-    @Test void singleHotspotterUmbrellaMidFanOutNextToANewerCompletedRunStaysSent() {
+    @Test void singleHotspotterUmbrellaMidFanOutNextToANewerCompletedRunStaysSent() throws Exception {
         Shepherd sh = open("fixture");
         String importId = nextImportId();
         Encounter e1 = encounter(sh, "Rhina", "ancylostoma", BODY, BODY);
@@ -5671,7 +5610,7 @@ class MultiAlgorithmIntakeDbTest {
     }
 
     /** Old trees (no run ids), reloaded: the five-level climb, the pre-fix reused root, and the scoped foreign-only root fallback. */
-    @Test void oldTreeShapesSelectThroughAttachedObjectsAfterReload() {
+    @Test void oldTreeShapesSelectThroughAttachedObjectsAfterReload() throws Exception {
         Shepherd sh = open("fixture");
         Encounter enc = guitarfish(sh, BODY, ROSTRUM);
         List<String> ids = annotationIds(enc);
@@ -5795,7 +5734,7 @@ class MultiAlgorithmIntakeDbTest {
     }
 
     /** The run is durable but the Shepherd cannot restart its transaction: the caller's recovery marks every option and the umbrella. */
-    @Test void transactionRestartFailureAfterThePersistCommitIsRecovered() {
+    @Test void transactionRestartFailureAfterThePersistCommitIsRecovered() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
         Task d = detectionTask(sh, nextImportId());
@@ -5823,6 +5762,129 @@ class MultiAlgorithmIntakeDbTest {
         }
     }
 
+    /** §5.2 registration through a REAL identify and the REAL forced path: pending query + pending target registered under their acmIds (request uuids asserted), flags persisted, asset acmId minted, pruned targets sent. */
+    @Test void realIdentifyRegistersPendingAnnotationsAndPersistsTheFlags() throws Exception {
+        Shepherd sh = open("fixture");
+        Encounter e1 = guitarfish(sh, BODY, BODY, BODY);
+        List<String> ids = annotationIds(e1);
+        Annotation q = sh.getAnnotation(ids.get(0));
+        q.setWbiaRegistered(Boolean.FALSE);
+        q.getMediaAsset().setAcmId(null);                    // minted at identify time
+        String qAssetUuid = q.getMediaAsset().getUUID();
+        String qAcm = q.getAcmId();
+        Annotation t = sh.getAnnotation(ids.get(1));
+        t.setWbiaRegistered(Boolean.FALSE);
+        String tAcm = t.getAcmId();
+        String tAssetAcm = t.getMediaAsset().getAcmId();
+        Annotation k = sh.getAnnotation(ids.get(2));
+        k.setWbiaRegistered(Boolean.TRUE);                    // already registered: legacy path, known to WBIA
+        String taskId = identifyTaskFor(sh, q);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+
+        WbiaFake wbia = new WbiaFake();
+        wbia.knownAnnotIds.add(k.getAcmId());
+        wbia.knownImageIds.add(k.getMediaAsset().getAcmId());
+        Shepherd consumer = open("consumer");
+        try {
+            withRealWbia(wbia, () -> {
+                ArrayList<Annotation> qanns = new ArrayList<Annotation>(Arrays.asList(consumer.getAnnotation(ids.get(0))));
+                ArrayList<Annotation> tanns = new ArrayList<Annotation>(Arrays.asList(
+                    consumer.getAnnotation(ids.get(1)), consumer.getAnnotation(ids.get(2))));
+                JSONObject results = IBEISIA.beginIdentifyAnnotations(qanns, tanns, new JSONObject(), null,
+                    consumer, Task.load(taskId, consumer), "http://wb", false);
+                assertTrue(results.getBoolean("success"), results.toString());
+            });
+            consumer.commitDBTransaction();
+        } finally {
+            consumer.closeDBTransaction();
+        }
+        List<JSONObject> images = wbia.imagePosts();
+        List<JSONObject> annots = wbia.annotationPosts();
+        assertEquals(2, images.size(), "one forced image POST per pending annotation");
+        assertEquals(qAssetUuid, fancyAt(images.get(0), "image_uuid_list", 0), "q's image is forced under the minted acmId");
+        assertEquals(tAssetAcm, fancyAt(images.get(1), "image_uuid_list", 0));
+        assertEquals(2, annots.size(), "one forced annotation POST per pending annotation; none for the registered one");
+        assertEquals(qAcm, fancyAt(annots.get(0), "annot_uuid_list", 0), "the query is forced under its acmId");
+        assertEquals(qAssetUuid, fancyAt(annots.get(0), "image_uuid_list", 0));
+        assertEquals(tAcm, fancyAt(annots.get(1), "annot_uuid_list", 0));
+        assertEquals(1, wbia.sentTargets.size());
+        assertEquals(Arrays.asList(ids.get(1), ids.get(2)), idsOf(wbia.sentTargets.get(0)), "the identify request lists the pruned targets");
+        Shepherd check = open("check");
+        try {
+            assertEquals(Boolean.TRUE, check.getAnnotation(ids.get(0)).getWbiaRegistered(), "the query's flag is persisted");
+            assertEquals(Boolean.TRUE, check.getAnnotation(ids.get(1)).getWbiaRegistered(), "the target's flag is persisted");
+            assertEquals(qAcm, check.getAnnotation(ids.get(0)).getAcmId(), "the forced path never rewrites acmId");
+            assertEquals(qAssetUuid, check.getAnnotation(ids.get(0)).getMediaAsset().getAcmId(), "the minted asset acmId is persisted");
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
+    /** A pending query WBIA does not confirm makes the real identify return success=false (flag stays FALSE); an ineligible pending target is dropped. */
+    @Test void realIdentifyFailsForAnUnregistrablePendingQueryAndDropsAnIneligibleTarget() throws Exception {
+        Shepherd sh = open("fixture");
+        Encounter e1 = guitarfish(sh, BODY, BODY, BODY);
+        List<String> ids = annotationIds(e1);
+        for (String id : ids) sh.getAnnotation(id).setWbiaRegistered(Boolean.FALSE);
+        String taskId = identifyTaskFor(sh, sh.getAnnotation(ids.get(0)));
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+
+        // (a) the target ids.get(1) is ineligible -> dropped; the query and ids.get(2) register
+        WbiaFake wbia = new WbiaFake();
+        wbia.eligibilityOverride.put(ids.get(1), "missing media asset");
+        Shepherd consumer = open("consumer");
+        try {
+            withRealWbia(wbia, () -> {
+                JSONObject results = IBEISIA.beginIdentifyAnnotations(
+                    new ArrayList<Annotation>(Arrays.asList(consumer.getAnnotation(ids.get(0)))),
+                    new ArrayList<Annotation>(Arrays.asList(consumer.getAnnotation(ids.get(1)), consumer.getAnnotation(ids.get(2)))),
+                    new JSONObject(), null, consumer, Task.load(taskId, consumer), "http://wb", false);
+                assertTrue(results.getBoolean("success"), results.toString());
+                assertEquals(ids.get(1), results.getJSONObject("sendAnnotationsAsNeeded").getJSONArray("droppedTargets").getString(0));
+            });
+            consumer.commitDBTransaction();
+        } finally {
+            consumer.closeDBTransaction();
+        }
+        assertEquals(2, wbia.annotationPosts().size(), "the query and the eligible target were forced; the dropped target was not");
+        assertEquals(Arrays.asList(ids.get(2)), idsOf(wbia.sentTargets.get(0)), "the dropped target is absent from the request");
+
+        // (b) WBIA echoes a different uuid for the query -> validation fails -> success=false, nothing sent, flag stays FALSE
+        Shepherd reset = open("reset");
+        try {
+            reset.getAnnotation(ids.get(0)).setWbiaRegistered(Boolean.FALSE);   // as if the first job had never run
+            reset.commitDBTransaction();
+        } finally {
+            reset.closeDBTransaction();
+        }
+        WbiaFake refusing = new WbiaFake();
+        refusing.echoWrongAnnotationUuid = true;
+        Shepherd consumer2 = open("consumer2");
+        try {
+            withRealWbia(refusing, () -> {
+                JSONObject results = IBEISIA.beginIdentifyAnnotations(
+                    new ArrayList<Annotation>(Arrays.asList(consumer2.getAnnotation(ids.get(0)))),
+                    new ArrayList<Annotation>(Arrays.asList(consumer2.getAnnotation(ids.get(2)))),
+                    new JSONObject(), null, consumer2, Task.load(taskId, consumer2), "http://wb", false);
+                assertFalse(results.getBoolean("success"));
+                assertTrue(results.getString("error").contains(ids.get(0)));
+            });
+            consumer2.rollbackDBTransaction();   // what _doIdentify's caller does on failure
+        } finally {
+            consumer2.closeDBTransaction();
+        }
+        assertTrue(refusing.sentTargets.isEmpty(), "no identify request was sent");
+        assertEquals(1, refusing.annotationPosts().size(), "the refused POST was the only one");
+        Shepherd check = open("check");
+        try {
+            assertEquals(Boolean.FALSE, check.getAnnotation(ids.get(0)).getWbiaRegistered(), "unconfirmed: the flag stays pending");
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
     /** Registration, persisted: a pending annotation WBIA already holds under its acmId is flagged TRUE without any POST. */
     @Test void pendingAnnotationAlreadyPresentUnderItsAcmIdIsFlaggedTrueWithoutAPostAndPersisted() throws Exception {
         Shepherd sh = open("fixture");
@@ -5834,11 +5896,11 @@ class MultiAlgorithmIntakeDbTest {
         String taskId = identifyTaskFor(sh, sh.getAnnotation(ids.get(0)));
         sh.commitDBTransaction();
         sh.closeDBTransaction();
-        RecordingPlugin plugin = new RecordingPlugin(new ArrayList<String>());
-        List<ArrayList<Annotation>> sent = new ArrayList<ArrayList<Annotation>>();
+        WbiaFake wbia = new WbiaFake();
+        wbia.knownAnnotIds.addAll(Arrays.asList(qAcm, tAcm));
         Shepherd consumer = open("consumer");
         try {
-            withRegistrationStubs(plugin, new HashMap<String, String>(), Arrays.asList(qAcm, tAcm), sent, () -> {
+            withRealWbia(wbia, () -> {
                 JSONObject results = IBEISIA.beginIdentifyAnnotations(
                     new ArrayList<Annotation>(Arrays.asList(consumer.getAnnotation(ids.get(0)))),
                     new ArrayList<Annotation>(Arrays.asList(consumer.getAnnotation(ids.get(1)))),
@@ -5849,9 +5911,8 @@ class MultiAlgorithmIntakeDbTest {
         } finally {
             consumer.closeDBTransaction();
         }
-        assertTrue(plugin.annCalls.isEmpty(), "no annotation POST");
-        assertTrue(plugin.imageCalls.isEmpty(), "no image POST");
-        assertEquals(Arrays.asList(ids.get(1)), idsOf(sent.get(0)));
+        assertTrue(wbia.posts.isEmpty(), "zero registration POSTs");
+        assertEquals(Arrays.asList(ids.get(1)), idsOf(wbia.sentTargets.get(0)));
         Shepherd check = open("check");
         try {
             assertEquals(Boolean.TRUE, check.getAnnotation(ids.get(0)).getWbiaRegistered());
@@ -5861,47 +5922,53 @@ class MultiAlgorithmIntakeDbTest {
         }
     }
 
-    /** Registration, persisted: a null-flag (legacy) annotation takes today's non-forced path and keeps its null flag. */
+    /** Registration, persisted: a null-flag (legacy) annotation takes today's non-forced path — WBIA mints its uuid and acmId is rewritten — and its flag stays null. */
     @Test void legacyNullFlagAnnotationKeepsTodaysPathAndItsNullFlag() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY, BODY);
         List<String> ids = annotationIds(e1);
         Annotation q = sh.getAnnotation(ids.get(0));
         q.setWbiaRegistered(null);                              // legacy row
+        String qAcmBefore = q.getAcmId();
+        String qAssetAcm = q.getMediaAsset().getAcmId();
         Annotation t = sh.getAnnotation(ids.get(1));
         t.setWbiaRegistered(Boolean.TRUE);
         String taskId = identifyTaskFor(sh, q);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
-        // WBIA knows the target but not the legacy query nor its image: today's flow sends both
-        RecordingPlugin plugin = new RecordingPlugin(Arrays.asList(t.getAcmId(), t.getMediaAsset().getAcmId()));
-        List<ArrayList<Annotation>> sent = new ArrayList<ArrayList<Annotation>>();
+        // WBIA knows the target and its image but not the legacy query nor its image
+        WbiaFake wbia = new WbiaFake();
+        wbia.knownAnnotIds.add(t.getAcmId());
+        wbia.knownImageIds.add(t.getMediaAsset().getAcmId());
         Shepherd consumer = open("consumer");
         try {
-            withRegistrationStubs(plugin, new HashMap<String, String>(), new ArrayList<String>(), sent, () -> {
+            withRealWbia(wbia, () -> {
                 JSONObject results = IBEISIA.beginIdentifyAnnotations(
                     new ArrayList<Annotation>(Arrays.asList(consumer.getAnnotation(ids.get(0)))),
                     new ArrayList<Annotation>(Arrays.asList(consumer.getAnnotation(ids.get(1)))),
                     new JSONObject(), null, consumer, Task.load(taskId, consumer), "http://wb", false);
-                assertTrue(results.getBoolean("success"));
+                assertTrue(results.getBoolean("success"), results.toString());
             });
             consumer.commitDBTransaction();
         } finally {
             consumer.closeDBTransaction();
         }
-        assertTrue(plugin.annCalls.isEmpty(), "never forced");
-        assertEquals(Arrays.asList(ids.get(0)), plugin.legacyAnnotationSends, "today's non-forced send");
-        assertEquals(Arrays.asList(q.getMediaAsset().getAcmId()), plugin.legacyAssetSends);
-        assertEquals(Arrays.asList(ids.get(1)), idsOf(sent.get(0)));
+        assertEquals(1, wbia.imagePosts().size(), "today's non-forced image send");
+        assertEquals(qAssetAcm, fancyAt(wbia.imagePosts().get(0), "image_uuid_list", 0));
+        assertEquals(1, wbia.annotationPosts().size(), "today's non-forced annotation send");
+        assertFalse(wbia.annotationPosts().get(0).has("annot_uuid_list"), "the legacy send lets WBIA mint the uuid");
+        assertEquals(Arrays.asList(ids.get(1)), idsOf(wbia.sentTargets.get(0)));
         Shepherd check = open("check");
         try {
-            assertNull(check.getAnnotation(ids.get(0)).getWbiaRegistered(), "the legacy flag is untouched");
+            Annotation qR = check.getAnnotation(ids.get(0));
+            assertNull(qR.getWbiaRegistered(), "the legacy flag is untouched");
+            assertFalse(qAcmBefore.equals(qR.getAcmId()), "today's path rewrote acmId to WBIA's minted uuid (the behaviour the forced path exists to avoid)");
         } finally {
             check.rollbackAndClose();
         }
     }
 
-    /** Registration, persisted: the missing-annotation repair during identify registers a pending annotation under its acmId and asks for a retry. */
+    /** Registration, persisted: the missing-annotation repair during identify forces a pending annotation under its acmId and asks for a retry; a second report never loops. */
     @Test void iaCheckMissingForcedRepairPersistsTheFlagAndRetries() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY);
@@ -5910,38 +5977,40 @@ class MultiAlgorithmIntakeDbTest {
         String acm = sh.getAnnotation(annId).getAcmId();
         sh.commitDBTransaction();
         sh.closeDBTransaction();
-        RecordingPlugin plugin = new RecordingPlugin(new ArrayList<String>());
+        WbiaFake wbia = new WbiaFake();
         Shepherd consumer = open("consumer");
         try {
-            withRegistrationStubs(plugin, new HashMap<String, String>(), new ArrayList<String>(), new ArrayList<ArrayList<Annotation>>(), () -> {
+            withRealWbia(wbia, () -> {
                 assertTrue(IBEISIA.iaCheckMissing(missingAnnotationReply(acm), CTX, consumer), "repaired: try the identify again");
             });
             consumer.commitDBTransaction();
         } finally {
             consumer.closeDBTransaction();
         }
-        assertEquals(Arrays.asList(acm), plugin.annCalls);
+        assertEquals(1, wbia.annotationPosts().size());
+        assertEquals(acm, fancyAt(wbia.annotationPosts().get(0), "annot_uuid_list", 0), "repaired under its acmId");
         Shepherd check = open("check");
         try {
             assertEquals(Boolean.TRUE, check.getAnnotation(annId).getWbiaRegistered(), "persisted by the consumer's commit");
         } finally {
             check.rollbackAndClose();
         }
-        // a second report for the same (now TRUE) annotation never loops back into the forced branch
-        RecordingPlugin again = new RecordingPlugin(Arrays.asList(acm));
+        // a second report for the same (now TRUE) annotation takes the legacy branch: no forced POST, no retry
+        WbiaFake again = new WbiaFake();
+        again.knownAnnotIds.add(acm);
         Shepherd consumer2 = open("consumer2");
         try {
-            withRegistrationStubs(again, new HashMap<String, String>(), new ArrayList<String>(), new ArrayList<ArrayList<Annotation>>(), () -> {
+            withRealWbia(again, () -> {
                 assertFalse(IBEISIA.iaCheckMissing(missingAnnotationReply(acm), CTX, consumer2));
             });
         } finally {
             consumer2.rollbackAndClose();
         }
-        assertTrue(again.annCalls.isEmpty());
+        assertTrue(again.annotationPosts().isEmpty());
     }
 
-    /** The transaction dies mid-dispatch: the populated outcome still comes back and the caller's recovery marks every unpublished option. */
-    @Test void dispatchThatKillsTheTransactionIsRecovered() {
+    /** The transaction is rolled back mid-dispatch (nontransactional writes disabled): nothing more can be written or published; the caller's recovery marks every option and the umbrella. */
+    @Test void dispatchThatRollsBackTheTransactionIsRecovered() throws Exception {
         dispatcher.killTransactionOnVector = true;
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
@@ -5951,19 +6020,51 @@ class MultiAlgorithmIntakeDbTest {
         sh.closeDBTransaction();
         MlServiceJobOutcome out = processor().runMatchProspects(ids, d.getId(), matchConfig());
         assertEquals("MATCH_PERSIST", out.getCode(), "the group commit finds no active transaction");
-        assertEquals(2, dispatcher.published.size(), "the HotSpotter jobs were still published");
+        assertTrue(dispatcher.published.isEmpty(), "setQueueResumeMessage fails outside a transaction, before publish");
         Shepherd check = open("check");
         try {
             Task dd = Task.load(d.getId(), check);
             assertEquals("MATCH_PERSIST", errorCode(dd));
             Task u = childrenOf(dd).get(0);
             assertEquals("MATCH_PERSIST", errorCode(u));
+            assertEquals(4, childrenOf(u).size());
+            for (Task opt : childrenOf(u)) {
+                assertEquals("MATCH_PERSIST", errorCode(opt), "nothing was published, so every option is marked");
+                assertEquals(0, childrenOf(opt).size());
+            }
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
+    /** The PersistenceManager is closed mid-dispatch (lazy reads and writes fail): the populated outcome still comes back and recovery marks what was not published. */
+    @Test void dispatchThatClosesThePersistenceManagerIsRecovered() throws Exception {
+        dispatcher.closePersistenceManagerOnVector = true;
+        Shepherd sh = open("fixture");
+        Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
+        Task d = detectionTask(sh, nextImportId());
+        List<String> ids = annotationIds(e1);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        MlServiceJobOutcome out = processor().runMatchProspects(ids, d.getId(), matchConfig());
+        assertEquals("MATCH_PERSIST", out.getCode(), "the checked commit cannot succeed on a closed manager");
+        Set<String> publishedOptionIds = new HashSet<String>();
+        for (JSONObject job : dispatcher.published) publishedOptionIds.add(job.getString("taskId"));
+        Shepherd check = open("check");
+        try {
+            Task dd = Task.load(d.getId(), check);
+            assertEquals("MATCH_PERSIST", errorCode(dd));
+            Task u = childrenOf(dd).get(0);
+            assertEquals("MATCH_PERSIST", errorCode(u));
+            assertEquals(4, childrenOf(u).size());
             for (Task opt : childrenOf(u)) {
                 if (opt.getParameters().optBoolean(Task.PARAM_V2_MATCH, false)) {
-                    assertEquals("MATCH_PERSIST", errorCode(opt), "the vector dispatch threw and nothing of it is durable");
+                    assertEquals("MATCH_PERSIST", errorCode(opt), "a vector dispatch on a closed manager cannot have produced durable leaves");
                     assertEquals(0, childrenOf(opt).size());
+                } else if (publishedOptionIds.contains(opt.getId())) {
+                    assertNull(opt.getStoredStatus(), "a published HotSpotter option is left to its job");
                 } else {
-                    assertNull(opt.getStoredStatus(), "published HotSpotter options are left to their jobs");
+                    assertEquals("MATCH_PERSIST", errorCode(opt), "an unpublished HotSpotter option is marked");
                 }
             }
         } finally {
@@ -6030,7 +6131,7 @@ class MultiAlgorithmIntakeDbTest {
 - [ ] **Step 3: Run the datastore test**
 
 Run: `mvn -q test -Dtest=MultiAlgorithmIntakeDbTest -DfailIfNoTests=false` (Docker must be running; first run pulls `postgres:15-alpine`).
-Expected: PASS (26 tests). If `FeatureType.initAll` complains about a missing table on the very first run, run the class a second time (autoCreateTables creates it on first touch). If `LocalAssetStore.create` needs a different webRoot form, mirror `EncounterExportImagesTest` lines 797-802 exactly.
+Expected: PASS (27 tests). If `FeatureType.initAll` complains about a missing table on the very first run, run the class a second time (autoCreateTables creates it on first touch). If `LocalAssetStore.create` needs a different webRoot form, mirror `EncounterExportImagesTest` lines 797-802 exactly.
 
 - [ ] **Step 4: Commit**
 
@@ -6044,8 +6145,9 @@ a five-level tree, old-tree climbs through attached objects, the status
 matrix, mid fan-out, partial dispatch, per-group recovery, dispatch
 exceptions, the single-HotSpotter exemption, the requeue ordering with a
 real _doIdentify, registration through a real beginIdentifyAnnotations
-(pending, already present, legacy, iaCheckMissing repair), a transaction
-that dies mid-dispatch, mixed no-option groups and handleRest root
+(pending, already present, legacy, iaCheckMissing repair) against the
+real WildbookIAM methods with RestClient mocked, a transaction that dies
+and a manager that closes mid-dispatch, mixed no-option groups and handleRest root
 substitution.
 
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
