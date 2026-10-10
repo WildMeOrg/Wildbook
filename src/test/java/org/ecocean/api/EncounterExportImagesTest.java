@@ -22,6 +22,10 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.http.HttpHost;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.shiro.web.servlet.IniShiroFilter;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -33,6 +37,7 @@ import org.ecocean.media.*;
 import org.ecocean.Occurrence;
 import org.ecocean.OpenSearch;
 import org.ecocean.servlet.export.EncounterSearchExportMetadataExcel;
+import org.ecocean.servlet.export.ExportFileFormat;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.jetbrains.annotations.NotNull;
@@ -398,7 +403,7 @@ import static org.mockito.Mockito.when;
         when(mockRequest.getRemoteUser()).thenReturn("test_researcher");
 
         EncounterAnnotationExportFile file = new EncounterAnnotationExportFile(mockRequest,
-            myShepherd);
+            myShepherd, ExportFileFormat.CSV);
         Path outputFilePath = tempPath.resolve(file.getName());
         try {
             System.out.println("Wrote: " + outputFilePath);
@@ -420,6 +425,19 @@ import static org.mockito.Mockito.when;
 
             // Compare CSV files
             assertCsvFilesEqual(actualRows, expectedRows);
+
+            // The same search exported as .xlsx must carry exactly the same rows. That is the
+            // format WildEx consumes, so it has to be the identical data and not a subset.
+            EncounterAnnotationExportFile xlsxExport = new EncounterAnnotationExportFile(
+                mockRequest, myShepherd, ExportFileFormat.XLSX);
+            Path xlsxPath = tempPath.resolve(xlsxExport.getName());
+            try (OutputStream os = Files.newOutputStream(xlsxPath)) {
+                xlsxExport.writeToStream(os);
+            }
+            List<String[]> xlsxRows = loadXlsx(xlsxPath.toFile());
+            assertCsvFilesEqual(xlsxRows, expectedRows);
+            assertEquals(actualRows.size(), xlsxRows.size(),
+                "CSV and XLSX exports must contain the same number of rows");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
@@ -433,6 +451,31 @@ import static org.mockito.Mockito.when;
         } finally {
             myShepherd.closeDBTransaction();
         }
+    }
+
+    /**
+     * Reads an .xlsx export back into the same row shape {@link #loadCsv} produces, so the two
+     * formats can be compared against one another and against the same fixture.
+     */
+    private static @NotNull List<String[]> loadXlsx(File xlsxFile)
+    throws IOException {
+        List<String[]> rows = new ArrayList<>();
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(xlsxFile))) {
+            Sheet sheet = workbook.getSheetAt(0);
+            for (int r = 0; r <= sheet.getLastRowNum(); r++) {
+                Row row = sheet.getRow(r);
+                if (row == null) continue;
+                String[] values = new String[row.getLastCellNum()];
+                for (int c = 0; c < values.length; c++) {
+                    Cell cell = row.getCell(c);
+                    values[c] = (cell == null) ? "" : cell.getStringCellValue();
+                }
+                rows.add(values);
+            }
+        }
+        System.out.println("  Loaded " + rows.size() + " rows from XLSX: " + xlsxFile.toString());
+        return rows;
     }
 
     private static @NotNull List<String[]> loadCsv(File expectedCsvFile)
