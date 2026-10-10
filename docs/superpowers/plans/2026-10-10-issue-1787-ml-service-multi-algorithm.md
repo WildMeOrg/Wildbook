@@ -82,6 +82,7 @@ Create `src/test/java/org/ecocean/ia/TaskSelectRunTest.java`:
 ```java
 package org.ecocean.ia;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -136,7 +137,7 @@ class TaskSelectRunTest {
         opt.addParameter(Task.PARAM_OPTION, true);
         assertTrue(Task.isUmbrella(u));
         assertFalse(Task.isUmbrella(opt), "a child carries the run id but is not the umbrella");
-        assertSame(u.getId(), Task.runIdOf(u));
+        assertEquals(u.getId(), Task.runIdOf(u));
         assertTrue(Task.isOptionTask(opt));
         assertFalse(Task.isOptionTask(u));
         assertTrue(Task.anyRunId(Arrays.asList(new Task(), opt)));
@@ -914,17 +915,17 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 
 - [ ] **Step 1: Write the failing tests**
 
-Append to `EmbeddingTest.java` (add imports `import org.ecocean.ia.Task; import org.ecocean.shepherd.core.Shepherd; import javax.jdo.PersistenceManager; import static org.mockito.ArgumentMatchers.any; import static org.mockito.ArgumentMatchers.anyBoolean; import static org.mockito.Mockito.mock; import static org.mockito.Mockito.when;`):
+Append to `EmbeddingTest.java`. The file's assertions come from `import static org.junit.Assert.*;` (JUnit 4, message FIRST, no `(boolean, String)` overload), so the new tests call `org.junit.jupiter.api.Assertions` explicitly. Add imports: `import org.junit.jupiter.api.Assertions; import org.ecocean.shepherd.core.Shepherd; import javax.jdo.PersistenceManager; import static org.mockito.ArgumentMatchers.any; import static org.mockito.ArgumentMatchers.anyBoolean; import static org.mockito.Mockito.mock; import static org.mockito.Mockito.when;` (`org.ecocean.ia.Task` is already imported):
 
 ```java
     // ---- issue #1787 ----
 
     @Test void isVectorConfig_acceptsMethodOrApiEndpointOnly() {
-        assertFalse(Embedding.isVectorConfig(null));
-        assertFalse(Embedding.isVectorConfig(new JSONObject("{\"query_config_dict\":{\"sv_on\":true}}")));
-        assertTrue(Embedding.isVectorConfig(new JSONObject("{\"method\":\"miewid\",\"version\":\"msv4_v3\"}")));
-        assertTrue(Embedding.isVectorConfig(new JSONObject("{\"api_endpoint\":\"http://x\"}")));
-        assertFalse(Embedding.isVectorConfig(new JSONObject("{\"method\":\"\"}")), "blank method is not vector");
+        Assertions.assertFalse(Embedding.isVectorConfig(null));
+        Assertions.assertFalse(Embedding.isVectorConfig(new JSONObject("{\"query_config_dict\":{\"sv_on\":true}}")));
+        Assertions.assertTrue(Embedding.isVectorConfig(new JSONObject("{\"method\":\"miewid\",\"version\":\"msv4_v3\"}")));
+        Assertions.assertTrue(Embedding.isVectorConfig(new JSONObject("{\"api_endpoint\":\"http://x\"}")));
+        Assertions.assertFalse(Embedding.isVectorConfig(new JSONObject("{\"method\":\"\"}")), "blank method is not vector");
     }
 
     /** Leaves inherit the option task's parameters minus the option marker (spec §4.0). */
@@ -945,14 +946,14 @@ Append to `EmbeddingTest.java` (add imports `import org.ecocean.ia.Task; import 
         option.setParameters(p);
         option.addObject(ann);
 
-        assertTrue(Embedding.findMatchProspects(new JSONObject("{\"method\":\"miewid\",\"version\":\"v\"}"), option, sh));
-        assertEquals(1, option.getChildren().size());
+        Assertions.assertTrue(Embedding.findMatchProspects(new JSONObject("{\"method\":\"miewid\",\"version\":\"v\"}"), option, sh));
+        Assertions.assertEquals(1, option.getChildren().size());
         JSONObject leaf = option.getChildren().get(0).getParameters();
-        assertFalse(leaf.has(Task.PARAM_OPTION), "a leaf is not an option");
-        assertEquals("RUN-1", leaf.getString(Task.PARAM_RUN_ID));
-        assertTrue(leaf.getBoolean(Task.PARAM_V2_MATCH));
-        assertTrue(leaf.has("ibeis.identification"));
-        assertTrue(option.getParameters().getBoolean(Task.PARAM_OPTION), "the option keeps its marker");
+        Assertions.assertFalse(leaf.has(Task.PARAM_OPTION), "a leaf is not an option");
+        Assertions.assertEquals("RUN-1", leaf.getString(Task.PARAM_RUN_ID));
+        Assertions.assertTrue(leaf.getBoolean(Task.PARAM_V2_MATCH));
+        Assertions.assertTrue(leaf.has("ibeis.identification"));
+        Assertions.assertTrue(option.getParameters().getBoolean(Task.PARAM_OPTION), "the option keeps its marker");
     }
 ```
 
@@ -1029,6 +1030,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
   - `public static IntakeOutcome intakeAnnotationsUnder(Shepherd, List<Annotation>, Task parent, JSONObject inheritedParams, boolean fastlane)` — returns null only for an empty annotation list.
   - `public static Task intakeAnnotations(Shepherd, List<Annotation>, Task parentTask, boolean fastlane)` — unchanged signature; now returns `outcome.umbrella`, or null when `persistFailed`.
   - `public static boolean intakeProducedNoWork(Task umbrella)` — no children and no `ibeis.identification`.
+  - `static JSONObject scrubRunParams(JSONObject inherited)` (package-private, pure, never null) — a copy without `identificationInvocationId`, `mlServiceV2Match`, `identificationOption`, `ibeis.identification`; also applied at the media-intake boundary (`intakeMediaAssetsOneSpecies`).
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1451,9 +1453,41 @@ class IAIntakeCoreTest {
         });
     }
 
+    @Test void baseUrlFailureMarksHotspotterOptionsQueueFailedAndStillRunsVector() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> one = new HashMap<String, List<JSONObject>>();
+        one.put("guitarfish", Arrays.asList(miewid(), hotspotter()));
+        IAJsonProperties cfg = config(one);
+        try (MockedStatic<CommonConfiguration> cc = mockStatic(CommonConfiguration.class);
+             MockedStatic<IAJsonProperties> jp = mockStatic(IAJsonProperties.class)) {
+            cc.when(() -> CommonConfiguration.getServerURL(anyString())).thenThrow(new IllegalStateException("no server URL"));
+            jp.when(IAJsonProperties::iaConfig).thenReturn(cfg);
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, false);
+            assertTrue(o.options.get(0).published, "the vector option does not need a base URL");
+            assertEquals("QUEUE_FAILED", o.options.get(1).failureCode);
+            assertEquals("error", o.options.get(1).task.getStoredStatus());
+            assertTrue(d.published.isEmpty());
+        }
+    }
+
     @Test void emptyInputReturnsNull() throws Exception {
         assertNull(IA.intakeAnnotationsUnder(shepherd(true), new ArrayList<Annotation>(), null, null, false));
         assertNull(IA.intakeAnnotationsUnder(shepherd(true), null, null, null, false));
+    }
+
+    @Test void scrubRunParamsRemovesExactlyTheRunKeys() {
+        JSONObject in = new JSONObject().put(Task.PARAM_RUN_ID, "R").put(Task.PARAM_V2_MATCH, true)
+            .put(Task.PARAM_OPTION, true).put("ibeis.identification", new JSONObject())
+            .put("importTaskId", "IMP1").put("matchingSetFilter", new JSONObject().put("k", 1)).put("ibeis.detection", true);
+        JSONObject out = IA.scrubRunParams(in);
+        assertEquals(3, out.length());
+        assertEquals("IMP1", out.getString("importTaskId"));
+        assertTrue(out.has("matchingSetFilter"));
+        assertTrue(out.getBoolean("ibeis.detection"), "the media boundary keeps its own keys; only run keys go");
+        assertEquals(7, in.length(), "input not mutated");
+        assertEquals(0, IA.scrubRunParams(null).length());
     }
 
     @Test void intakeProducedNoWorkIsPure() {
@@ -1567,8 +1601,13 @@ Replace lines 373-509 (the 2-arg `intakeAnnotations`, the 4-arg `intakeAnnotatio
         return (p == null) || !p.has("ibeis.identification");
     }
 
-    // inherited parameters minus the keys that belong to a run (the new run sets its own)
-    private static JSONObject scrubRunParams(JSONObject inherited) {
+    /**
+     * Inherited parameters minus the keys that belong to a run (the new run sets its own).
+     * Also applied where a root's parameters are copied into detection tasks
+     * (intakeMediaAssetsOneSpecies) and onto a substituted handleRest root, so a run id can
+     * never leak across a pipeline boundary (spec §4.0). Never returns null; never mutates.
+     */
+    static JSONObject scrubRunParams(JSONObject inherited) {
         JSONObject p = (inherited == null) ? new JSONObject() : new JSONObject(inherited.toString());
         p.remove(Task.PARAM_RUN_ID);
         p.remove(Task.PARAM_V2_MATCH);
@@ -1704,62 +1743,91 @@ Replace lines 373-509 (the 2-arg `intakeAnnotations`, the 4-arg `intakeAnnotatio
                 Embedding.isVectorConfig(plannedOpts.get(i))));
         }
 
-        // ---- dispatch ----
-        String baseUrl = getBaseURL(context);
+        // ---- dispatch (never throws: every failure lands on the option task and the outcome) ----
+        String baseUrl = null;
+        String baseUrlError = null;
+        try {
+            baseUrl = getBaseURL(context);
+        } catch (RuntimeException ex) {
+            baseUrlError = ex.toString();
+            System.out.println("ERROR: IA.intakeAnnotations() getBaseURL() threw " + ex);
+        }
         for (int i = 0; i < outcome.options.size(); i++) {
             OptionResult r = outcome.options.get(i);
             JSONObject opt = plannedOpts.get(i);
             Task t = r.task;
-            if (r.vector) {
-                try {
+            try {
+                if (r.vector) {
                     dispatcher.runVector(opt, t, myShepherd);
                     r.published = true;
-                } catch (RuntimeException ex) {
-                    System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() vector dispatch threw " +
-                        ex + " on " + t);
-                    ex.printStackTrace();
-                    r.failureCode = "DISPATCH_FAILED";
-                    markTaskError(t, "DISPATCH_FAILED", "vector dispatch threw: " + ex);
-                    terminalizeUnfinishedChildren(t, "DISPATCH_FAILED", "option dispatch threw before this leaf finished");
+                    continue;
                 }
-                continue;
+                if (baseUrlError != null) {
+                    r.failureCode = "QUEUE_FAILED";
+                    markTaskError(t, "QUEUE_FAILED", "no base URL for the queue job: " + baseUrlError);
+                    continue;
+                }
+                JSONArray annArr = new JSONArray();
+                for (Annotation ann : plannedAnns.get(i)) {
+                    annArr.put(ann.getId());
+                }
+                JSONObject aj = new JSONObject();
+                aj.put("annotationIds", annArr);
+                JSONObject qjob = new JSONObject();
+                qjob.put("identify", aj);
+                qjob.put("taskId", t.getId());
+                qjob.put("__context", context);
+                qjob.put("__baseUrl", baseUrl);
+                if (opt != null) qjob.put("opt", opt);
+                if (fastlane) {
+                    qjob.put("fastlane", true);
+                    qjob.put("lane", "fast");
+                }
+                boolean sent = false;
+                try {
+                    t.setQueueResumeMessage(qjob.toString());
+                    sent = dispatcher.publish(context, qjob.toString(), fastlane);
+                } catch (Exception ex) {
+                    System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() addToQueue() threw " + ex);
+                }
+                if (sent) {
+                    r.published = true;
+                } else {
+                    r.failureCode = "QUEUE_FAILED";
+                    markTaskError(t, "QUEUE_FAILED", "identification job could not be published to the queue");
+                }
+                System.out.println("INFO: IA.intakeAnnotations() [opt " + i + "] accepted " +
+                    plannedAnns.get(i).size() + " annots; queued? = " + sent + "; " + t);
+            } catch (RuntimeException ex) {
+                // a vector dispatch that threw, or anything unexpected in the HotSpotter branch
+                System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() dispatch threw " + ex + " on " + t);
+                ex.printStackTrace();
+                r.failureCode = r.vector ? "DISPATCH_FAILED" : "QUEUE_FAILED";
+                markTaskError(t, r.failureCode, "dispatch threw: " + ex);
+                terminalizeUnfinishedChildren(t, r.failureCode, "option dispatch threw before this leaf finished");
             }
-            JSONArray annArr = new JSONArray();
-            for (Annotation ann : plannedAnns.get(i)) {
-                annArr.put(ann.getId());
-            }
-            JSONObject aj = new JSONObject();
-            aj.put("annotationIds", annArr);
-            JSONObject qjob = new JSONObject();
-            qjob.put("identify", aj);
-            qjob.put("taskId", t.getId());
-            qjob.put("__context", context);
-            qjob.put("__baseUrl", baseUrl);
-            if (opt != null) qjob.put("opt", opt);
-            if (fastlane) {
-                qjob.put("fastlane", true);
-                qjob.put("lane", "fast");
-            }
-            boolean sent = false;
-            try {
-                t.setQueueResumeMessage(qjob.toString());
-                sent = dispatcher.publish(context, qjob.toString(), fastlane);
-            } catch (Exception ex) {
-                System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() addToQueue() threw " + ex);
-            }
-            if (sent) {
-                r.published = true;
-            } else {
-                r.failureCode = "QUEUE_FAILED";
-                markTaskError(t, "QUEUE_FAILED", "identification job could not be published to the queue");
-            }
-            System.out.println("INFO: IA.intakeAnnotations() [opt " + i + "] accepted " +
-                plannedAnns.get(i).size() + " annots; queued? = " + sent + "; " + t);
         }
         System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
         return outcome;
     }
 ```
+
+Also in `IA.intakeMediaAssetsOneSpecies` (line 149) replace
+
+```java
+        if (parentTask != null) topTask.setParameters(parentTask.getParameters());
+```
+
+with
+
+```java
+        // issue #1787 (spec §4.0): a detection task never carries a run's keys, even when the
+        // root it descends from is a reused umbrella (handleRest)
+        if ((parentTask != null) && (parentTask.getParameters() != null))
+            topTask.setParameters(scrubRunParams(parentTask.getParameters()));
+```
+
+(`enqueueOneAssetForMlService` builds its per-asset child with `new Task(topTask)`, so it inherits the scrubbed copy.)
 
 Notes for the implementer:
 - Today's code put `fastlane`/`lane` into `newTaskParams` AFTER the tasks had serialized their parameters, so the flag never reached the task parameters; it only reached the queue job. The code above puts it on the task parameters only when `fastlane` is true (a `fastlane:false` key would make the `/metrics` fastlane gauge, which matches the substring `fastlane`, count every task).
@@ -1835,6 +1903,8 @@ import static org.mockito.Mockito.mock;
 
 import org.ecocean.Annotation;
 import org.ecocean.media.MediaAsset;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 /** Spec §4.0: nothing is attached beneath an umbrella; handleRest substitutes a fresh root. */
@@ -1858,8 +1928,13 @@ class IAHandleRestRootTest {
         assertSame(loaded, IA.resolveRequestRoot(loaded, "req-2", false));
     }
 
-    @Test void rootHoldingAnnotationsIsReplaced() {
+    @Test void rootHoldingAnnotationsIsReplacedAndKeepsTheRequestParameters() {
         Task loaded = new Task("req-3");
+        loaded.setParameters(new JSONObject()
+            .put("matchingSetFilter", new JSONObject().put("locationIds", new JSONArray().put("X")))
+            .put("matchingAlgorithms", new JSONArray().put(new JSONObject().put("default", true)))
+            .put("userId", "u1").put(Task.PARAM_RUN_ID, "req-3").put(Task.PARAM_OPTION, true)
+            .put("ibeis.identification", new JSONObject()));
         Annotation a = new Annotation();
         a.setId("A");
         loaded.addObject(a);
@@ -1867,7 +1942,14 @@ class IAHandleRestRootTest {
         assertNotSame(loaded, root);
         assertNotEquals("req-3", root.getId());
         assertFalse(root.hasObjectAnnotations());
-        assertTrue(root.getParameters().getBoolean("fastlane"));
+        JSONObject p = root.getParameters();
+        assertTrue(p.getBoolean("fastlane"));
+        assertTrue(p.has("matchingSetFilter"), "the matching-set filter survives the substitution");
+        assertTrue(p.has("matchingAlgorithms"));
+        assertEquals("u1", p.getString("userId"));
+        assertFalse(p.has(Task.PARAM_RUN_ID));
+        assertFalse(p.has(Task.PARAM_OPTION));
+        assertFalse(p.has("ibeis.identification"));
     }
 
     @Test void rootCarryingARunIdIsReplaced() {
@@ -1908,6 +1990,10 @@ In `IA.java` add before `handleRest`:
                 " holds annotations or belongs to identification run " + Task.runIdOf(root) +
                 "; creating a fresh root instead");
             root = new Task();
+            // the request's parameters (IAGateway stores taskParameters — matchingSetFilter,
+            // matchingAlgorithms, userId… — on the loaded task) travel to the fresh root,
+            // minus the keys that belong to the old run
+            if (loaded.getParameters() != null) root.setParameters(scrubRunParams(loaded.getParameters()));
         }
         if (root == null) root = new Task(taskId);
         if (fastlane) root.addParameter("fastlane", true);
@@ -1997,8 +2083,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.nullable;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -2059,21 +2143,27 @@ class IAGatewayDoIdentifyTest {
 
     interface Body { void run() throws Exception; }
 
+    // Partial static mocks through a custom default Answer: the few IBEISIA / IAGateway statics
+    // _doIdentify needs are answered here, everything else runs real. (MockedStatic.when(...)
+    // on a CALLS_REAL_METHODS mock would execute the real method while defining the stub —
+    // waitForIAPriming can block for minutes and requeueJob(null, …) would throw.)
     private static void withIdentifyStubs(JSONObject sendResult, boolean requeueResult, Body body)
     throws Exception {
-        try (MockedStatic<IBEISIA> ibeis = mockStatic(IBEISIA.class, CALLS_REAL_METHODS);
+        try (MockedStatic<IBEISIA> ibeis = mockStatic(IBEISIA.class, inv -> {
+                 String m = inv.getMethod().getName();
+                 if (m.equals("waitForIAPriming")) return null;
+                 if (m.equals("queryConfigDict")) return new JSONObject();
+                 if (m.equals("beginIdentifyAnnotations")) return sendResult;
+                 if (m.equals("log")) return null;
+                 return inv.callRealMethod();
+             });
              MockedStatic<IAQueryCache> cache = mockStatic(IAQueryCache.class);
-             MockedStatic<IAGateway> gw = mockStatic(IAGateway.class, CALLS_REAL_METHODS)) {
-            ibeis.when(IBEISIA::waitForIAPriming).thenAnswer(inv -> null);
-            ibeis.when(() -> IBEISIA.queryConfigDict(any(Shepherd.class), any())).thenReturn(new JSONObject());
-            ibeis.when(() -> IBEISIA.beginIdentifyAnnotations(any(), any(), any(), any(),
-                any(Shepherd.class), any(Task.class), nullable(String.class), anyBoolean()))
-                .thenReturn(sendResult);
-            ibeis.when(() -> IBEISIA.log(nullable(String.class), nullable(String.class),
-                nullable(String.class), any(JSONObject.class), nullable(String.class))).thenReturn(null);
+             MockedStatic<IAGateway> gw = mockStatic(IAGateway.class, inv -> {
+                 if (inv.getMethod().getName().equals("requeueJob")) return requeueResult;
+                 return inv.callRealMethod();
+             })) {
             cache.when(() -> IAQueryCache.tryTargetAnnotationsCache(anyString(), any(Annotation.class),
                 any(JSONObject.class), any(Shepherd.class))).thenReturn(null);
-            gw.when(() -> IAGateway.requeueJob(any(JSONObject.class), anyBoolean())).thenReturn(requeueResult);
             body.run();
         }
     }
@@ -2680,7 +2770,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -2702,6 +2791,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.mockito.stubbing.Answer;
 
 /** Spec §4.2.5: the poller and the identify-time registration force the same identifier end to end. */
 class WildbookIAMForcedIdTest {
@@ -2722,18 +2812,28 @@ class WildbookIAMForcedIdTest {
 
     interface Body { void run() throws Exception; }
 
-    // IA.getProperty answers the two WBIA endpoints; the id lists and the cache are stubbed.
-    static void withWbia(List<String> knownAnnots, List<String> knownImages, JSONObject postReply, Body body)
+    static Answer<JSONObject> reply(final JSONObject r) {
+        return inv -> r;
+    }
+
+    // IA.getProperty answers the two WBIA endpoints (plain mock); WildbookIAM is a PARTIAL static
+    // mock through a custom Answer (the two id-list fetches are answered, everything else —
+    // toFancyUUID, buildForcedRequestMap, validateForcedResponse, validMediaAsset — runs real);
+    // RestClient.post is answered by `post`; the query cache is a plain mock.
+    static void withWbia(List<String> knownAnnots, List<String> knownImages, Answer<JSONObject> post, Body body)
     throws Exception {
         try (MockedStatic<IA> ia = mockStatic(IA.class);
-             MockedStatic<WildbookIAM> iam = mockStatic(WildbookIAM.class, CALLS_REAL_METHODS);
+             MockedStatic<WildbookIAM> iam = mockStatic(WildbookIAM.class, inv -> {
+                 String m = inv.getMethod().getName();
+                 if (m.equals("iaAnnotationIdsStrict")) return knownAnnots;
+                 if (m.equals("iaImageIdsStrict")) return knownImages;
+                 return inv.callRealMethod();
+             });
              MockedStatic<RestClient> rest = mockStatic(RestClient.class);
              MockedStatic<QueryCacheFactory> qc = mockStatic(QueryCacheFactory.class)) {
             ia.when(() -> IA.getProperty(anyString(), eq("IBEISIARestUrlAddAnnotations"))).thenReturn("http://wbia/api/annot/json/");
             ia.when(() -> IA.getProperty(anyString(), eq("IBEISIARestUrlAddImages"))).thenReturn("http://wbia/api/image/json/");
-            iam.when(() -> WildbookIAM.iaAnnotationIdsStrict(anyString())).thenReturn(knownAnnots);
-            iam.when(() -> WildbookIAM.iaImageIdsStrict(anyString())).thenReturn(knownImages);
-            rest.when(() -> RestClient.post(any(URL.class), any(JSONObject.class))).thenReturn(postReply);
+            rest.when(() -> RestClient.post(any(URL.class), any(JSONObject.class))).thenAnswer(post);
             body.run();
         }
     }
@@ -2747,11 +2847,11 @@ class WildbookIAMForcedIdTest {
     @Test void presenceIsCheckedOnTheForcedIdOnly() throws Exception {
         WildbookIAM plugin = new WildbookIAM("context0");
         // present under the acmId: already registered, no POST
-        withWbia(Arrays.asList(ACM_ID), Arrays.asList(MA_ACM), echo(ACM_ID), () -> {
+        withWbia(Arrays.asList(ACM_ID), Arrays.asList(MA_ACM), reply(echo(ACM_ID)), () -> {
             assertEquals(WbiaRegisterOutcome.REGISTERED_ALREADY_PRESENT, plugin.registerOneByDto(dto(ANN_ID, ACM_ID)));
         });
         // present only under the annotation id: NOT evidence the acmId is registered -> POST the acmId
-        withWbia(Arrays.asList(ANN_ID), Arrays.asList(MA_ACM), echo(ACM_ID), () -> {
+        withWbia(Arrays.asList(ANN_ID), Arrays.asList(MA_ACM), reply(echo(ACM_ID)), () -> {
             assertEquals(WbiaRegisterOutcome.REGISTERED_OK, plugin.registerOneByDto(dto(ANN_ID, ACM_ID)));
         });
     }
@@ -2759,22 +2859,17 @@ class WildbookIAMForcedIdTest {
     @Test void postBodyCarriesTheAcmIdAndAMismatchedEchoIsRejected() throws Exception {
         WildbookIAM plugin = new WildbookIAM("context0");
         final JSONObject[] captured = new JSONObject[1];
-        try (MockedStatic<IA> ia = mockStatic(IA.class);
-             MockedStatic<WildbookIAM> iam = mockStatic(WildbookIAM.class, CALLS_REAL_METHODS);
-             MockedStatic<RestClient> rest = mockStatic(RestClient.class);
-             MockedStatic<QueryCacheFactory> qc = mockStatic(QueryCacheFactory.class)) {
-            ia.when(() -> IA.getProperty(anyString(), eq("IBEISIARestUrlAddAnnotations"))).thenReturn("http://wbia/api/annot/json/");
-            ia.when(() -> IA.getProperty(anyString(), eq("IBEISIARestUrlAddImages"))).thenReturn("http://wbia/api/image/json/");
-            iam.when(() -> WildbookIAM.iaAnnotationIdsStrict(anyString())).thenReturn(new ArrayList<String>());
-            iam.when(() -> WildbookIAM.iaImageIdsStrict(anyString())).thenReturn(Arrays.asList(MA_ACM));
-            rest.when(() -> RestClient.post(any(URL.class), any(JSONObject.class))).thenAnswer(inv -> {
-                captured[0] = inv.getArgument(1);
-                return echo(ANN_ID);   // WBIA echoes the wrong id
-            });
+        withWbia(new ArrayList<String>(), Arrays.asList(MA_ACM), inv -> {
+            captured[0] = inv.getArgument(1);
+            return echo(ANN_ID);   // WBIA echoes the wrong id
+        }, () -> {
             assertEquals(WbiaRegisterOutcome.RESPONSE_BAD, plugin.registerOneByDto(dto(ANN_ID, ACM_ID)));
             JSONObject sent = captured[0].getJSONArray("annot_uuid_list").getJSONObject(0);
             assertEquals(ACM_ID, WildbookIAM.fromFancyUUID(sent));
-        }
+        });
+        withWbia(new ArrayList<String>(), Arrays.asList(MA_ACM), reply(echo(ACM_ID)), () -> {
+            assertEquals(WbiaRegisterOutcome.REGISTERED_OK, plugin.registerOneByDto(dto(ANN_ID, ACM_ID)));
+        });
     }
 
     // ---- wbiaEligibilityReason ----
@@ -2841,13 +2936,13 @@ class WildbookIAMForcedIdTest {
     @Test void registerImageForcedSucceedsWhenPresentOrWhenWbiaEchoesTheAcmId() throws Exception {
         WildbookIAM plugin = new WildbookIAM("context0");
         MediaAsset ma = validAsset();
-        withWbia(new ArrayList<String>(), Arrays.asList(MA_ACM), null, () -> {
+        withWbia(new ArrayList<String>(), Arrays.asList(MA_ACM), reply(null), () -> {
             assertTrue(plugin.registerImageForced(ma), "already present: no POST needed");
         });
-        withWbia(new ArrayList<String>(), new ArrayList<String>(), echo(MA_ACM), () -> {
+        withWbia(new ArrayList<String>(), new ArrayList<String>(), reply(echo(MA_ACM)), () -> {
             assertTrue(plugin.registerImageForced(ma));
         });
-        withWbia(new ArrayList<String>(), new ArrayList<String>(), echo(ACM_ID), () -> {
+        withWbia(new ArrayList<String>(), new ArrayList<String>(), reply(echo(ACM_ID)), () -> {
             assertFalse(plugin.registerImageForced(ma), "a mismatched echo is a failure");
         });
         MediaAsset noAcm = validAsset();
@@ -2982,7 +3077,8 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `WildbookIAM.wbiaEligibilityReason`, `registerImageForced`, `sendAnnotationForcedByAcmId`, `iaAnnotationIdsStrict` (Task 8 / existing); the existing single-list `sendAnnotationsAsNeeded(ArrayList<Annotation>, Shepherd)` (kept for its other callers).
 - Produces (static on `IBEISIA`):
-  - `public static ArrayList<Annotation> sendAnnotationsAsNeeded(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, Shepherd myShepherd, JSONObject report) throws IOException` — registers pending (`wbiaRegistered == FALSE`) annotations under their acmId first, then runs today's non-forced flow for the rest; returns the pruned target list (null when `tanns` is null); throws for a pending query that cannot be registered. `report` (nullable) receives `forcedRegistered`, `droppedTargets`, `legacy`.
+  - `public static ArrayList<Annotation> sendAnnotationsAsNeeded(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, Shepherd myShepherd, JSONObject report) throws IOException` — `qanns` is EVERY query annotation (unfiltered): pending ones (`wbiaRegistered == FALSE`) are registered under their acmId first, the rest go through today's `validForIdentification` filter and non-forced flow; returns the pruned target list (null when `tanns` is null); throws for a pending query that cannot be registered (for any reason); a pending target that cannot be registered (for any reason, including an id-list fetch failure) is dropped. `report` (nullable) receives `forcedRegistered`, `droppedTargets`, `legacy`.
+  - `public static ArrayList<Annotation> sendAnnotationsAsNeeded(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, Shepherd myShepherd) throws IOException` — the §4.2.5 signature; delegates with a null report.
   - `static String registerPendingAnnotation(WildbookIAM plugin, Annotation ann, Set<String> knownAcmIds, Shepherd myShepherd)` (package-private) — null on success (flag set TRUE), else the reason.
   - `iaCheckMissing` returns true only when the forced branch newly registered at least one annotation and every forced attempt succeeded; the legacy branch is unchanged.
 
@@ -3000,7 +3096,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -3078,14 +3174,30 @@ class IBEISIASendAnnotationsAsNeededTest {
 
     interface Body { void run() throws Exception; }
 
+    // Partial static mocks through custom Answers: IBEISIA.getPluginInstance -> the fake and
+    // validForIdentification -> true (the legacy filter; the real one needs bbox features);
+    // WildbookIAM.iaAnnotationIdsStrict -> the test's list (null = the fetch throws IOException)
+    // and wbiaEligibilityReason -> the test's reason (null = eligible); everything else runs real.
+    // IA is a plain mock: getProperty -> null, so the legacy __sendAnnotations throws and is
+    // swallowed exactly as in production without WBIA configured.
     static void withPlugin(FakePlugin plugin, List<String> knownForced, String eligibilityReason, Body body)
     throws Exception {
-        try (MockedStatic<IBEISIA> ibeis = mockStatic(IBEISIA.class, CALLS_REAL_METHODS);
-             MockedStatic<WildbookIAM> iam = mockStatic(WildbookIAM.class, CALLS_REAL_METHODS);
+        try (MockedStatic<IBEISIA> ibeis = mockStatic(IBEISIA.class, inv -> {
+                 String m = inv.getMethod().getName();
+                 if (m.equals("getPluginInstance")) return plugin;
+                 if (m.equals("validForIdentification")) return true;
+                 return inv.callRealMethod();
+             });
+             MockedStatic<WildbookIAM> iam = mockStatic(WildbookIAM.class, inv -> {
+                 String m = inv.getMethod().getName();
+                 if (m.equals("iaAnnotationIdsStrict")) {
+                     if (knownForced == null) throw new IOException("WBIA unreachable");
+                     return knownForced;
+                 }
+                 if (m.equals("wbiaEligibilityReason")) return eligibilityReason;
+                 return inv.callRealMethod();
+             });
              MockedStatic<IA> ia = mockStatic(IA.class)) {
-            ibeis.when(() -> IBEISIA.getPluginInstance(anyString())).thenReturn(plugin);
-            iam.when(() -> WildbookIAM.iaAnnotationIdsStrict(anyString())).thenReturn(knownForced);
-            iam.when(() -> WildbookIAM.wbiaEligibilityReason(any(Annotation.class))).thenReturn(eligibilityReason);
             body.run();
         }
     }
@@ -3118,11 +3230,44 @@ class IBEISIASendAnnotationsAsNeededTest {
                 new ArrayList<Annotation>(Arrays.asList(q)), null, sh, null));
             verify(q, never()).setWbiaRegistered(Boolean.TRUE);
         });
+        // an ineligible pending query fails the job even when a valid legacy query is in the same call
         FakePlugin eligible = new FakePlugin();
+        eligible.legacyKnown = Arrays.asList(ACM_N);
+        Annotation legacyQuery = ann("n", ACM_N, null, asset(MA_UUID));
         withPlugin(eligible, new ArrayList<String>(), "missing media asset", () -> {
             assertThrows(IOException.class, () -> IBEISIA.sendAnnotationsAsNeeded(
-                new ArrayList<Annotation>(Arrays.asList(q)), null, sh, null));
+                new ArrayList<Annotation>(Arrays.asList(legacyQuery, q)), null, sh, null));
             assertTrue(eligible.annCalls.isEmpty());
+        });
+    }
+
+    @Test void idListFetchFailureFailsAPendingQueryButOnlyDropsAPendingTarget() throws Exception {
+        FakePlugin plugin = new FakePlugin();
+        plugin.legacyKnown = Arrays.asList(ACM_N);
+        Annotation legacyQuery = ann("n", ACM_N, Boolean.TRUE, asset(MA_UUID));
+        Annotation t = ann("t", ACM_T, Boolean.FALSE, asset(MA_UUID));
+        Shepherd sh = shepherd();
+        withPlugin(plugin, null /* the fetch throws */, null, () -> {
+            JSONObject report = new JSONObject();
+            ArrayList<Annotation> targets = IBEISIA.sendAnnotationsAsNeeded(
+                new ArrayList<Annotation>(Arrays.asList(legacyQuery)), new ArrayList<Annotation>(Arrays.asList(t)), sh, report);
+            assertTrue(targets.isEmpty(), "the pending target is dropped, the job goes on");
+            assertEquals("t", report.getJSONArray("droppedTargets").getString(0));
+            Annotation pendingQuery = ann("p", ACM_Q, Boolean.FALSE, asset(MA_UUID));
+            assertThrows(IOException.class, () -> IBEISIA.sendAnnotationsAsNeeded(
+                new ArrayList<Annotation>(Arrays.asList(pendingQuery)), null, sh, null));
+        });
+    }
+
+    @Test void threeArgumentOverloadDelegatesWithoutAReport() throws Exception {
+        FakePlugin plugin = new FakePlugin();
+        Annotation t = ann("t", ACM_T, Boolean.FALSE, asset(MA_UUID));
+        Shepherd sh = shepherd();
+        withPlugin(plugin, new ArrayList<String>(), null, () -> {
+            ArrayList<Annotation> targets = IBEISIA.sendAnnotationsAsNeeded(
+                new ArrayList<Annotation>(), new ArrayList<Annotation>(Arrays.asList(t)), sh);
+            assertEquals(Arrays.asList(t), targets);
+            assertEquals(Arrays.asList(ACM_T), plugin.annCalls);
         });
     }
 
@@ -3157,13 +3302,21 @@ class IBEISIASendAnnotationsAsNeededTest {
 
     @Test void assetWithoutAcmIdIsMintedFromItsUuidBeforeTheImageIsForced() throws Exception {
         FakePlugin plugin = new FakePlugin();
-        MediaAsset ma = asset(null);
+        MediaAsset ma = mock(MediaAsset.class);   // stateful: setAcmId is visible to getAcmId
+        final String[] acm = { null };
+        when(ma.getAcmId()).thenAnswer(inv -> acm[0]);
+        when(ma.getUUID()).thenReturn(MA_UUID);
+        doAnswer(inv -> {
+            acm[0] = inv.getArgument(0);
+            return null;
+        }).when(ma).setAcmId(anyString());
         Annotation q = ann("q", ACM_Q, Boolean.FALSE, ma);
         Shepherd sh = shepherd();
         withPlugin(plugin, new ArrayList<String>(), null, () -> {
             IBEISIA.sendAnnotationsAsNeeded(new ArrayList<Annotation>(Arrays.asList(q)), null, sh, null);
             verify(ma).setAcmId(MA_UUID);
-            assertEquals(1, plugin.imageCalls.size());
+            assertEquals(Arrays.asList(MA_UUID), plugin.imageCalls, "the image is forced under the minted acmId");
+            assertEquals(Arrays.asList(ACM_Q), plugin.annCalls);
         });
     }
 
@@ -3266,6 +3419,13 @@ In `IBEISIA.java`, directly before the existing single-list `sendAnnotationsAsNe
      * registered is dropped from the returned target list. Returns the pruned targets (null
      * stays null). {@code report} (nullable) receives forcedRegistered / droppedTargets / legacy.
      */
+    /** The §4.2.5 signature; delegates with no report. */
+    public static ArrayList<Annotation> sendAnnotationsAsNeeded(ArrayList<Annotation> qanns,
+        ArrayList<Annotation> tanns, Shepherd myShepherd)
+    throws IOException {
+        return sendAnnotationsAsNeeded(qanns, tanns, myShepherd, null);
+    }
+
     public static ArrayList<Annotation> sendAnnotationsAsNeeded(ArrayList<Annotation> qanns,
         ArrayList<Annotation> tanns, Shepherd myShepherd, JSONObject report)
     throws IOException {
@@ -3279,10 +3439,13 @@ In `IBEISIA.java`, directly before the existing single-list `sendAnnotationsAsNe
         if (qanns != null) {
             for (Annotation q : qanns) {
                 if (!Boolean.FALSE.equals(q.getWbiaRegistered())) {
-                    legacy.add(q);
+                    // registered / legacy queries: today's filter, today's non-forced flow
+                    if (validForIdentification(q, context)) legacy.add(q);
                     continue;
                 }
-                if (knownAcmIds == null) knownAcmIds = new HashSet<String>(WildbookIAM.iaAnnotationIdsStrict(context));
+                // a pending QUERY is registered under its acmId or the job fails (any failure)
+                if (knownAcmIds == null)
+                    knownAcmIds = new HashSet<String>(WildbookIAM.iaAnnotationIdsStrict(context));
                 String why = registerPendingAnnotation(plugin, q, knownAcmIds, myShepherd);
                 if (why != null)
                     throw new IOException("query annotation " + q.getId() +
@@ -3299,8 +3462,16 @@ In `IBEISIA.java`, directly before the existing single-list `sendAnnotationsAsNe
                     keptTargets.add(t);
                     continue;
                 }
-                if (knownAcmIds == null) knownAcmIds = new HashSet<String>(WildbookIAM.iaAnnotationIdsStrict(context));
-                String why = registerPendingAnnotation(plugin, t, knownAcmIds, myShepherd);
+                // a pending TARGET that cannot be registered — for any reason, including an
+                // id-list fetch failure — is dropped from this job; the job goes on
+                String why;
+                try {
+                    if (knownAcmIds == null)
+                        knownAcmIds = new HashSet<String>(WildbookIAM.iaAnnotationIdsStrict(context));
+                    why = registerPendingAnnotation(plugin, t, knownAcmIds, myShepherd);
+                } catch (Exception ex) {
+                    why = ex.toString();
+                }
                 if (why != null) {
                     System.out.println("WARNING: IBEISIA.sendAnnotationsAsNeeded() dropping target " +
                         t.getId() + " from this job: " + why);
@@ -3346,7 +3517,7 @@ In `IBEISIA.java`, directly before the existing single-list `sendAnnotationsAsNe
     }
 ```
 
-In `beginIdentifyAnnotations` (8-arg), replace the block that appends `tanns` into `allAnns` and the registration call:
+In `beginIdentifyAnnotations` (8-arg): delete the `ArrayList<Annotation> allAnns = new ArrayList<Annotation>();` declaration and the loop at the top of the `try` that filled it (`for (Annotation ann : qanns) { if (validForIdentification(ann, …)) allAnns.add(ann); }`) — the role-aware method applies that filter itself to non-pending queries, and a pending query with an invalid bbox must reach the forced branch (and fail the job) rather than be silently skipped. Then replace
 
 ```java
             if (tanns != null && !tanns.isEmpty()) {
@@ -3371,12 +3542,11 @@ with
             // issue #1787: pending (ml-service) annotations are registered under their acmId
             // first; a pending query that cannot be registered throws here, which the catch
             // below turns into success=false. The identify request is built from the pruned
-            // target list this returns.
+            // target list this returns. qanns is passed unfiltered on purpose.
             JSONObject registration = new JSONObject();
-            tanns = sendAnnotationsAsNeeded(allAnns, tanns, myShepherd, registration);
+            tanns = sendAnnotationsAsNeeded(qanns, tanns, myShepherd, registration);
             results.put("sendAnnotationsAsNeeded", registration);
 ```
-(`allAnns` now holds only the validated query annotations; rename it `validQanns` if you like, updating both uses.)
 
 In `iaCheckMissing`, replace the `missing_annot_uuid_list` branch body (from `ArrayList<Annotation> anns = new ArrayList<Annotation>();` through the `tryAgain = true;    // it "worked"?` line) with:
 
@@ -3601,6 +3771,18 @@ class ImportTaskIdentificationStatusTest {
         Task vl = leaf(v, "completed", a);
         v.setStatus("completed");
         Task h = option(u, false, a);   // stored status null: queued at WBIA
+        withNoLogs(() -> {
+            assertEquals("waiting to queue", status(a, Arrays.asList(vl, h, v, u), ids("A"), shepherd()).status);
+        });
+    }
+
+    @Test void errorVectorWithPendingHotspotterReadsPending() throws Exception {
+        Annotation a = annot("A");
+        Task u = umbrella(a);
+        Task v = option(u, true, a);
+        Task vl = leaf(v, "error", a);
+        v.setStatus("error");
+        Task h = option(u, false, a);   // queued at WBIA: pending beats the error
         withNoLogs(() -> {
             assertEquals("waiting to queue", status(a, Arrays.asList(vl, h, v, u), ids("A"), shepherd()).status);
         });
@@ -4096,7 +4278,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Create: `src/test/java/org/ecocean/ia/MultiAlgorithmIntakeDbTest.java`
 
 **Interfaces:**
-- Consumes: everything above; `TestPMFUtil.closePMF`, `CommonConfiguration.initialize`, `FeatureType.initAll(Shepherd)`, `Shepherd(String, Properties)`, `IA.setDispatcherForTests`, `MlServiceProcessor.openShepherd`, the package-private `MlServiceProcessor(String, MlServiceClient, MatchVisibilityGate, DeferredMatchPublisher)` constructor.
+- Consumes: everything above; `TestPMFUtil.closePMF`, `CommonConfiguration.initialize`, `FeatureType.initAll(Shepherd)`, `Shepherd(String, Properties)`, `IA.setDispatcherForTests`, `MlServiceProcessor.openShepherd`, the package-private `MlServiceProcessor(String, MlServiceClient, MatchVisibilityGate, DeferredMatchPublisher)` constructor, `LocalAssetStore(String, Path, String, boolean)` + `create(File)` (pattern of `EncounterExportImagesTest`), the test image `src/test/bulk-images/image-ok-0.jpg`, `IdentityServiceLog(String, String[], String, String, JSONObject)`.
 - Produces: `IAJsonProperties.overrideForTests(IAJsonProperties)` (package-private static) and the public bridge `TestIAJsonPropertiesUtil.override(IAJsonProperties)`.
 
 - [ ] **Step 1: Add the IA.json test seam**
@@ -4152,10 +4334,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockStatic;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -4166,8 +4355,14 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.TestIAJsonPropertiesUtil;
+import org.ecocean.identity.IAQueryCache;
+import org.ecocean.identity.IBEISIA;
+import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.media.Feature;
 import org.ecocean.media.FeatureType;
+import org.ecocean.media.LocalAssetStore;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.servlet.IAGateway;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.TestPMFUtil;
@@ -4177,15 +4372,18 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.stubbing.Answer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
- * Spec §5.2: the intake core, the ml-service match step, the selector and the import status
- * against real DataNucleus on real Postgres. The dispatcher seam builds vector leaves the way
- * Embedding.findMatchProspects does and records HotSpotter jobs, so no OpenSearch, ml-service
- * or file queue is touched.
+ * Spec §5.2: the intake core, the ml-service match step, the identify handler's retry
+ * contract, the selector and the import status against real DataNucleus on real Postgres.
+ * The dispatcher seam builds vector leaves the way Embedding.findMatchProspects does and
+ * records HotSpotter jobs; WBIA is answered by partial static mocks. No OpenSearch,
+ * ml-service, WBIA or file queue is touched.
  */
 @Testcontainers
 class MultiAlgorithmIntakeDbTest {
@@ -4200,6 +4398,9 @@ class MultiAlgorithmIntakeDbTest {
     static final String BODY = "guitarfish";
     static final String ROSTRUM = "guitarfish+rostrum";
     static int seq = 0;
+    static Path imageDir;
+    static File testImage;
+    static LocalAssetStore store;
 
     /** Production-shaped stand-in for the two dispatch targets. */
     static final class LeafBuildingDispatcher implements IA.Dispatcher {
@@ -4232,7 +4433,7 @@ class MultiAlgorithmIntakeDbTest {
             return true;
         }
 
-        private static Task leaf(Task option, Annotation a) {
+        static Task leaf(Task option, Annotation a) {
             Task leaf = new Task(option);                   // inherits the option's parameters
             JSONObject p = leaf.getParameters();
             p.remove(Task.PARAM_OPTION);
@@ -4254,10 +4455,15 @@ class MultiAlgorithmIntakeDbTest {
         props.setProperty("datanucleus.ConnectionURL", postgres.getJdbcUrl());
         props.setProperty("datanucleus.schema.autoCreateTables", "true");
         TestPMFUtil.closePMF(CTX);
+        imageDir = Files.createTempDirectory("multialgo-1787");
+        testImage = Files.copy(Paths.get("src", "test", "bulk-images", "image-ok-0.jpg").toAbsolutePath(),
+            imageDir.resolve("image.jpg"), StandardCopyOption.REPLACE_EXISTING).toFile();
+        store = new LocalAssetStore("local-1787", imageDir, "file://" + imageDir, false);
         Shepherd sh = new Shepherd(CTX, props);
         try {
             sh.beginDBTransaction();
             FeatureType.initAll(sh);
+            sh.getPM().makePersistent(store);
             sh.commitDBTransaction();
         } finally {
             sh.closeDBTransaction();
@@ -4280,6 +4486,8 @@ class MultiAlgorithmIntakeDbTest {
         IA.setDispatcherForTests(dispatcher);
     }
 
+    // JsonProperties.get walks dotted keys through NESTED objects, so the fixture nests
+    // genus -> species -> iaClass exactly like a real IA.json.
     // Pseudobatos lentiginosus: MiewID + HotSpotter default for both classes.
     // Rhina ancylostoma: HotSpotter only (single-option runs).
     static JSONObject iaJson() {
@@ -4288,15 +4496,24 @@ class MultiAlgorithmIntakeDbTest {
             .put(new JSONObject("{\"query_config_dict\":{\"sv_on\":true},\"default\":true,\"description\":\"HotSpotter\"}"));
         JSONArray hsOnly = new JSONArray()
             .put(new JSONObject("{\"query_config_dict\":{\"sv_on\":true},\"default\":true,\"description\":\"HotSpotter\"}"));
-        JSONObject guitarfish = new JSONObject()
+        JSONObject lentiginosus = new JSONObject()
             .put(BODY, new JSONObject().put("_id_conf", both))
             .put(ROSTRUM, new JSONObject().put("_id_conf", new JSONArray(both.toString())));
-        JSONObject rhina = new JSONObject().put(BODY, new JSONObject().put("_id_conf", hsOnly));
-        return new JSONObject().put("Pseudobatos.lentiginosus", guitarfish).put("Rhina.ancylostoma", rhina);
+        JSONObject ancylostoma = new JSONObject().put(BODY, new JSONObject().put("_id_conf", hsOnly));
+        return new JSONObject()
+            .put("Pseudobatos", new JSONObject().put("lentiginosus", lentiginosus))
+            .put("Rhina", new JSONObject().put("ancylostoma", ancylostoma));
     }
 
     // ---- fixtures ----
 
+    static String nextImportId() {
+        return "import-" + (++seq);
+    }
+
+    // An encounter with one annotation per iaClass, each on its own persisted MediaAsset with a
+    // bbox feature wired on both owning sides (Feature.asset via addFeature, Feature.annotation
+    // via setAnnotation — the mapped-by side of Annotation.features).
     static Encounter encounter(Shepherd sh, String genus, String species, String... iaClasses) {
         Encounter enc = new Encounter();
         enc.setSkipAutoIndexing(true);
@@ -4304,12 +4521,19 @@ class MultiAlgorithmIntakeDbTest {
         enc.setGenus(genus);
         enc.setSpecificEpithet(species);
         for (String iaClass : iaClasses) {
+            MediaAsset ma = store.create(testImage);
+            ma.setId(100000 + (++seq));
+            ma.setSkipAutoIndexing(true);
+            ma.setAcmId(ma.getUUID());
             Feature f = new Feature("org.ecocean.boundingBox",
                 new JSONObject().put("x", 1).put("y", 1).put("width", 10).put("height", 10));
+            ma.addFeature(f);
             Annotation ann = new Annotation(null, f, iaClass);
+            f.setAnnotation(ann);
             ann.setSkipAutoIndexing(true);
             ann.setMatchAgainst(true);
             ann.setAcmId(ann.getId());
+            sh.getPM().makePersistent(ma);
             sh.getPM().makePersistent(ann);
             enc.addAnnotation(ann);
         }
@@ -4321,6 +4545,7 @@ class MultiAlgorithmIntakeDbTest {
         return encounter(sh, "Pseudobatos", "lentiginosus", iaClasses);
     }
 
+    // root (stamped with the import) -> D (detection task, completed)
     static Task detectionTask(Shepherd sh, String importId) {
         Task root = new Task();
         root.setParameters(new JSONObject().put("importTaskId", importId));
@@ -4332,8 +4557,9 @@ class MultiAlgorithmIntakeDbTest {
         return d;
     }
 
-    static ImportTask importWith(Shepherd sh, Task root, Encounter... encs) {
-        ImportTask itask = new ImportTask(null, "import-" + (++seq));
+    // the ImportTask's own id is what statsAnnotations scopes by, so it MUST equal the stamp
+    static ImportTask importWith(Shepherd sh, String importId, Task root, Encounter... encs) {
+        ImportTask itask = new ImportTask(null, importId);
         for (Encounter e : encs) itask.addEncounter(e);
         itask.setIATask(root);
         sh.storeNewImportTask(itask);
@@ -4349,9 +4575,7 @@ class MultiAlgorithmIntakeDbTest {
     }
 
     static Set<String> idSet(Encounter enc) {
-        Set<String> ids = new HashSet<String>();
-        for (Annotation a : enc.getAnnotations()) ids.add(a.getId());
-        return ids;
+        return new HashSet<String>(annotationIds(enc));
     }
 
     static Shepherd open(String action) {
@@ -4390,6 +4614,31 @@ class MultiAlgorithmIntakeDbTest {
         };
     }
 
+    interface Body { void run() throws Exception; }
+
+    // Partial static mocks for a real _doIdentify run (same shape as IAGatewayDoIdentifyTest):
+    // IBEISIA.beginIdentifyAnnotations answers sendResult, requeueJob answers through `requeue`.
+    static void withIdentifyStubs(JSONObject sendResult, Answer<Boolean> requeue, Body body)
+    throws Exception {
+        try (MockedStatic<IBEISIA> ibeis = mockStatic(IBEISIA.class, inv -> {
+                 String m = inv.getMethod().getName();
+                 if (m.equals("waitForIAPriming")) return null;
+                 if (m.equals("queryConfigDict")) return new JSONObject();
+                 if (m.equals("beginIdentifyAnnotations")) return sendResult;
+                 if (m.equals("log")) return null;
+                 return inv.callRealMethod();
+             });
+             MockedStatic<IAQueryCache> cache = mockStatic(IAQueryCache.class);
+             MockedStatic<IAGateway> gw = mockStatic(IAGateway.class, inv -> {
+                 if (inv.getMethod().getName().equals("requeueJob")) return requeue.answer(inv);
+                 return inv.callRealMethod();
+             })) {
+            cache.when(() -> IAQueryCache.tryTargetAnnotationsCache(anyString(), any(Annotation.class),
+                any(JSONObject.class), any(Shepherd.class))).thenReturn(null);
+            body.run();
+        }
+    }
+
     static List<Task> childrenOf(Task t) {
         return (t.getChildren() == null) ? new ArrayList<Task>() : t.getChildren();
     }
@@ -4414,8 +4663,7 @@ class MultiAlgorithmIntakeDbTest {
         try {
             Task t = Task.load(taskId, sh);
             t.setStatus(status);
-            if (status != null && (status.equals("completed") || status.equals("error")))
-                t.setCompletionDateInMilliseconds();
+            if ("completed".equals(status) || "error".equals(status)) t.setCompletionDateInMilliseconds();
             sh.commitDBTransaction();
         } finally {
             sh.closeDBTransaction();
@@ -4424,11 +4672,31 @@ class MultiAlgorithmIntakeDbTest {
 
     // ---- cases ----
 
+    @Test void fixtureRelationshipsSurviveReload() {
+        Shepherd sh = open("fixture");
+        Encounter e1 = guitarfish(sh, BODY);
+        String annId = annotationIds(e1).get(0);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        Shepherd check = open("check");
+        try {
+            Annotation ann = check.getAnnotation(annId);
+            assertNotNull(ann.getMediaAsset(), "the bbox feature links the annotation to its asset");
+            assertEquals(1, ann.getFeatures().size());
+            assertTrue(Arrays.equals(new int[] { 1, 1, 10, 10 }, ann.getBbox()));
+            assertFalse(ann.isTrivial());
+            assertEquals(e1.getCatalogNumber(), ann.findEncounter(check).getCatalogNumber());
+            assertNotNull(ann.getTaxonomy(check), "identOpts resolves the taxonomy through the encounter");
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
     @Test void processorBuildsOneUmbrellaPerEncounterAndPersistsBeforeDispatch() {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
         Encounter e2 = guitarfish(sh, BODY);
-        Task d = detectionTask(sh, "IMP-1");
+        Task d = detectionTask(sh, nextImportId());
         List<String> ids = annotationIds(e1, e2);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
@@ -4459,7 +4727,7 @@ class MultiAlgorithmIntakeDbTest {
             for (Task u : childrenOf(dd)) {
                 assertTrue(Task.isUmbrella(u));
                 assertEquals(dId, u.getParent().getId());
-                assertEquals("IMP-1", u.getParameters().getString("importTaskId"));
+                assertEquals(dd.getParameters().getString("importTaskId"), u.getParameters().getString("importTaskId"));
                 assertFalse(u.getParameters().has("ibeis.detection"));
                 for (Task opt : childrenOf(u)) {
                     options++;
@@ -4487,6 +4755,27 @@ class MultiAlgorithmIntakeDbTest {
         }
     }
 
+    @Test void initialPersistFailureDispatchesNothingAndMarksOnlyD() {
+        Shepherd sh = open("fixture");
+        Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
+        Task d = detectionTask(sh, nextImportId());
+        List<String> ids = annotationIds(e1);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        // checked commit 1 = the intake core's persist commit
+        MlServiceJobOutcome out = processorFailingCommit(1).runMatchProspects(ids, d.getId(), matchConfig());
+        assertEquals("MATCH_PERSIST", out.getCode());
+        assertTrue(dispatcher.published.isEmpty(), "nothing was dispatched");
+        Shepherd check = open("check");
+        try {
+            Task dd = Task.load(d.getId(), check);
+            assertEquals("MATCH_PERSIST", errorCode(dd));
+            assertEquals(0, childrenOf(dd).size(), "nothing of the run is durable");
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
     @Test void selectorLandsOnTheUmbrellaAfterReloadAndRendersExactlyItsRun() {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
@@ -4506,8 +4795,8 @@ class MultiAlgorithmIntakeDbTest {
 
         Shepherd sh2 = open("reload");   // five levels: r -> subParent -> U -> T_vec -> SA
         try {
-            for (Annotation a : e1.getAnnotations()) {
-                Annotation ann = sh2.getAnnotation(a.getId());
+            for (String annId : annotationIds(e1)) {
+                Annotation ann = sh2.getAnnotation(annId);
                 Task picked = Task.getPreferredMatchResultsTaskForAnnotation(ann, "IMP-2", encSet, sh2);
                 assertEquals(uId, picked.getId(), "both annotations link to the run's umbrella");
                 assertEquals(uId, Task.getPreferredMatchResultsTaskForAnnotation(ann, null, encSet, sh2).getId(),
@@ -4534,10 +4823,11 @@ class MultiAlgorithmIntakeDbTest {
 
     @Test void importStatusCountsEveryOptionOfTheRun() {
         Shepherd sh = open("fixture");
+        String importId = nextImportId();
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
         Encounter e2 = guitarfish(sh, BODY);
-        Task d = detectionTask(sh, "IMP-3");
-        ImportTask itask = importWith(sh, d.getParent(), e1, e2);
+        Task d = detectionTask(sh, importId);
+        ImportTask itask = importWith(sh, importId, d.getParent(), e1, e2);
         List<String> ids = annotationIds(e1, e2);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
@@ -4550,16 +4840,14 @@ class MultiAlgorithmIntakeDbTest {
         assertEquals(0, sum.getInt("identificationNumberComplete"));
 
         // every HotSpotter option completes (the WBIA callback) -> complete
-        List<String> hsOptionIds = hotspotterOptionIds(d.getId());
-        for (String id : hsOptionIds) setStatus(id, "completed");
+        for (String id : hotspotterOptionIds(d.getId())) setStatus(id, "completed");
         sum = summary(itask.getId());
         assertEquals("complete", sum.getString("identificationStatus"));
         assertEquals(3, sum.getInt("identificationNumberComplete"));
         assertEquals(0, sum.getInt("identificationNumberError"));
 
-        // one vector option fails -> still complete, with the error counted for its annotation
-        String vectorOptionId = vectorOptionId(d.getId(), e2);
-        setStatus(vectorOptionId, "error");
+        // e2's vector LEAF (the option's representative) fails -> still complete, one error
+        setStatus(vectorLeafId(d.getId(), e2), "error");
         sum = summary(itask.getId());
         assertEquals("complete", sum.getString("identificationStatus"));
         assertEquals(1, sum.getInt("identificationNumberError"));
@@ -4571,12 +4859,120 @@ class MultiAlgorithmIntakeDbTest {
         assertEquals(BODY + ", " + ROSTRUM, e1Tasks.getJSONArray(0).getString(2));
     }
 
+    /** §5.2 status matrix: error + pending, single-HotSpotter pending, skipped class, late fan-out next to a newer run. */
+    @Test void importStatusMatrixVariants() {
+        // (a) error vector leaf + pending HotSpotter -> sent
+        Shepherd sh = open("fixture-a");
+        String importA = nextImportId();
+        Encounter ea = guitarfish(sh, BODY);
+        Task da = detectionTask(sh, importA);
+        ImportTask ia = importWith(sh, importA, da.getParent(), ea);
+        List<String> idsA = annotationIds(ea);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        processor().runMatchProspects(idsA, da.getId(), matchConfig());
+        setStatus(vectorLeafId(da.getId(), ea), "error");
+        assertEquals("sent", summary(ia.getId()).getString("identificationStatus"), "pending beats error");
+
+        // (b) single-HotSpotter umbrella pending -> sent; completed -> complete
+        sh = open("fixture-b");
+        String importB = nextImportId();
+        Encounter eb = encounter(sh, "Rhina", "ancylostoma", BODY);
+        Task db = detectionTask(sh, importB);
+        ImportTask ib = importWith(sh, importB, db.getParent(), eb);
+        List<String> idsB = annotationIds(eb);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        processor().runMatchProspects(idsB, db.getId(), matchConfig());
+        assertEquals("sent", summary(ib.getId()).getString("identificationStatus"));
+        for (String id : hotspotterOptionIds(db.getId())) setStatus(id, "completed");
+        assertEquals("complete", summary(ib.getId()).getString("identificationStatus"));
+
+        // (c) a class without options next to one with -> completed + skipped for that annotation
+        sh = open("fixture-c");
+        String importC = nextImportId();
+        Encounter ec = guitarfish(sh, BODY, "mystery");
+        Task dc = detectionTask(sh, importC);
+        ImportTask ic = importWith(sh, importC, dc.getParent(), ec);
+        List<String> idsC = annotationIds(ec);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        processor().runMatchProspects(idsC, dc.getId(), matchConfig());
+        for (String id : hotspotterOptionIds(dc.getId())) setStatus(id, "completed");
+        JSONObject sumC = summary(ic.getId());
+        assertEquals("complete", sumC.getString("identificationStatus"));
+        assertEquals(1, sumC.getJSONObject("statsAnnotations").getInt("numLatestTask_skipped"));
+        assertEquals(2, sumC.getInt("identificationNumberComplete"));
+
+        // (d) a late fan-out child under an OLDER run next to a NEWER pending run -> sent
+        sh = open("fixture-d");
+        String importD = nextImportId();
+        Encounter ed = guitarfish(sh, BODY);
+        Task dd = detectionTask(sh, importD);
+        ImportTask idTask = importWith(sh, importD, dd.getParent(), ed);
+        List<Annotation> annsD = new ArrayList<Annotation>(ed.getAnnotations());
+        JSONObject inherited = MlServiceProcessor.matchIntakeParams(dd.getParameters());
+        IA.IntakeOutcome run1 = IA.intakeAnnotationsUnder(sh, annsD, dd, inherited, false);
+        sh.commitDBTransaction();
+        sh.beginDBTransaction();
+        IA.IntakeOutcome run2 = IA.intakeAnnotationsUnder(sh, annsD, dd, inherited, false);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        String run1Hs = null;
+        for (IA.OptionResult r : run1.options) if (!r.vector) run1Hs = r.task.getId();
+        setStatus(run1Hs, "completed");                    // run 1 fully complete
+        Shepherd late = open("late");                      // the late fan-out child, created after run 2
+        try {
+            Task hs1 = Task.load(run1Hs, late);
+            Task child = new Task(hs1);
+            child.addObject(late.getAnnotation(annsD.get(0).getId()));
+            child.setStatus("completed");
+            late.getPM().makePersistent(child);
+            late.commitDBTransaction();
+        } finally {
+            late.closeDBTransaction();
+        }
+        assertEquals("sent", summary(idTask.getId()).getString("identificationStatus"),
+            "run 2's pending HotSpotter wins over run 1's late completed child");
+        assertNotNull(run2.umbrella);
+    }
+
+    /** _doIdentify mid fan-out: the option itself represents the annotation without a child. */
+    @Test void midFanOutReadsPendingForTheUnfannedAnnotation() {
+        Shepherd sh = open("fixture");
+        String importId = nextImportId();
+        Encounter e1 = guitarfish(sh, BODY, BODY);        // two body annotations share one option
+        Task d = detectionTask(sh, importId);
+        ImportTask itask = importWith(sh, importId, d.getParent(), e1);
+        List<String> ids = annotationIds(e1);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        processor().runMatchProspects(ids, d.getId(), matchConfig());
+        String hsId = hotspotterOptionIds(d.getId()).get(0);
+        Shepherd fan = open("fanout");                      // H_A exists, H_B not yet
+        try {
+            Task hs = Task.load(hsId, fan);
+            Task hA = new Task(hs);
+            hA.setParameters(Task.withoutOptionMarker(hs.getParameters()));
+            hA.addObject(fan.getAnnotation(ids.get(0)));
+            hA.setStatus("completed");
+            fan.getPM().makePersistent(hA);
+            fan.commitDBTransaction();
+        } finally {
+            fan.closeDBTransaction();
+        }
+        JSONObject sum = summary(itask.getId());
+        assertEquals("sent", sum.getString("identificationStatus"));
+        assertEquals(1, sum.getInt("identificationNumberComplete"), "A is complete, B still waits on its fan-out");
+    }
+
     @Test void secondGroupCommitFailureKeepsTheFirstGroupAndMarksTheSecond() {
         Shepherd sh = open("fixture");
+        String importId = nextImportId();
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
         Encounter e2 = guitarfish(sh, BODY);
-        Task d = detectionTask(sh, "IMP-4");
-        ImportTask itask = importWith(sh, d.getParent(), e1, e2);
+        Task d = detectionTask(sh, importId);
+        ImportTask itask = importWith(sh, importId, d.getParent(), e1, e2);
         List<String> ids = annotationIds(e1, e2);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
@@ -4621,9 +5017,10 @@ class MultiAlgorithmIntakeDbTest {
     @Test void vectorDispatchExceptionMarksTheOptionAndItsAttachedLeaf() {
         dispatcher.throwForIaClass = ROSTRUM;
         Shepherd sh = open("fixture");
+        String importId = nextImportId();
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
-        Task d = detectionTask(sh, "IMP-5");
-        ImportTask itask = importWith(sh, d.getParent(), e1);
+        Task d = detectionTask(sh, importId);
+        ImportTask itask = importWith(sh, importId, d.getParent(), e1);
         List<String> ids = annotationIds(e1);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
@@ -4654,7 +5051,7 @@ class MultiAlgorithmIntakeDbTest {
         dispatcher.throwForIaClass = ROSTRUM;
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);
-        Task d = detectionTask(sh, "IMP-6");
+        Task d = detectionTask(sh, nextImportId());
         List<String> ids = annotationIds(e1);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
@@ -4678,7 +5075,7 @@ class MultiAlgorithmIntakeDbTest {
     @Test void singleHotspotterRunWhosePublishedJobSurvivesACommitFailureStaysPending() {
         Shepherd sh = open("fixture");
         Encounter rhina = encounter(sh, "Rhina", "ancylostoma", BODY);
-        Task d = detectionTask(sh, "IMP-7");
+        Task d = detectionTask(sh, nextImportId());
         List<String> ids = annotationIds(rhina);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
@@ -4699,28 +5096,89 @@ class MultiAlgorithmIntakeDbTest {
         }
     }
 
-    @Test void requeuedHotspotterReadsAsSentFromASecondPersistenceManager() {
+    /** §4.4: a poll between the inner commit and the requeue decision sees a pending task, not a terminal error. */
+    @Test void failedSendIsPendingWhilePollingBetweenTheInnerCommitAndTheRequeueDecision() throws Exception {
         Shepherd sh = open("fixture");
+        String importId = nextImportId();
         Encounter e1 = guitarfish(sh, BODY);
-        Task d = detectionTask(sh, "IMP-8");
-        ImportTask itask = importWith(sh, d.getParent(), e1);
+        Task d = detectionTask(sh, importId);
+        ImportTask itask = importWith(sh, importId, d.getParent(), e1);
         List<String> ids = annotationIds(e1);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
         assertEquals(MlServiceJobOutcome.Kind.OK, processor().runMatchProspects(ids, d.getId(), matchConfig()).getKind());
-        for (String id : hotspotterOptionIds(d.getId())) setStatus(id, Task.STATUS_REQUEUED);
+        String hsId = hotspotterOptionIds(d.getId()).get(0);
+        // the log line a failed send leaves behind: with a NULL stored status getStatus reads it as "error"
+        Shepherd logSh = open("log");
+        try {
+            logSh.getPM().makePersistent(new IdentityServiceLog(hsId, null, "IBEISIA", "-1",
+                new JSONObject().put("_action", "sendIdentify")
+                    .put("_response", new JSONObject().put("error", "HTTP error code : 500"))));
+            logSh.commitDBTransaction();
+        } finally {
+            logSh.closeDBTransaction();
+        }
+        final String[] polled = new String[1];
+        JSONObject failed = new JSONObject().put("success", false).put("error", "WBIA refused");
+        JSONObject jin = new JSONObject()
+            .put("identify", new JSONObject().put("annotationIds", new JSONArray().put(ids.get(0))))
+            .put("opt", new JSONObject());
+        Shepherd consumer = open("consumer");   // the queue consumer's Shepherd
+        try {
+            withIdentifyStubs(failed, inv -> {
+                polled[0] = summary(itask.getId()).getString("identificationStatus");   // a second PM
+                return true;                                                              // retry scheduled
+            }, () -> {
+                IAGateway._doIdentify(jin, new JSONObject().put("taskId", hsId), consumer, CTX, "http://wb", false);
+            });
+            consumer.commitDBTransaction();
+        } finally {
+            consumer.closeDBTransaction();
+        }
+        assertEquals("sent", polled[0], "pending between the inner commit and the requeue decision");
+        Shepherd check = open("check");
+        try {
+            Task h = Task.load(hsId, check);
+            assertEquals(Task.STATUS_REQUEUED, h.getStoredStatus());
+            assertEquals(Task.STATUS_REQUEUED, h.getStatus(check), "the stored status wins over the HTTP-error log");
+            assertNull(h.getCompletionDateInMilliseconds());
+        } finally {
+            check.rollbackAndClose();
+        }
         assertEquals("sent", summary(itask.getId()).getString("identificationStatus"));
-        for (String id : hotspotterOptionIds(d.getId())) setStatus(id, "error");
-        assertEquals("complete", summary(itask.getId()).getString("identificationStatus"));
+
+        // the retry budget is exhausted on the next attempt -> terminal SEND_FAILED
+        Shepherd consumer2 = open("consumer2");
+        try {
+            withIdentifyStubs(failed, inv -> false, () -> {
+                IAGateway._doIdentify(jin, new JSONObject().put("taskId", hsId), consumer2, CTX, "http://wb", false);
+            });
+            consumer2.commitDBTransaction();
+        } finally {
+            consumer2.closeDBTransaction();
+        }
+        Shepherd check2 = open("check2");
+        try {
+            Task h = Task.load(hsId, check2);
+            assertEquals("error", h.getStoredStatus());
+            assertEquals("SEND_FAILED", errorCode(h));
+            assertNotNull(h.getCompletionDateInMilliseconds());
+        } finally {
+            check2.rollbackAndClose();
+        }
+        JSONObject sum = summary(itask.getId());
+        assertEquals("complete", sum.getString("identificationStatus"));
+        assertEquals(1, sum.getInt("identificationNumberError"));
     }
 
     /** Review Focus 2: one image, two encounters, one of which has no default option. */
     @Test void mixedNoWorkGroupsDoNotFailTheDetectionTask() {
         Shepherd sh = open("fixture");
+        String importId = nextImportId();
         Encounter e1 = guitarfish(sh, BODY);
         Encounter e2 = guitarfish(sh, "mystery");   // no _id_conf for this class
-        Task d = detectionTask(sh, "IMP-9");
-        ImportTask itask = importWith(sh, d.getParent(), e1, e2);
+        Task d = detectionTask(sh, importId);
+        ImportTask itask = importWith(sh, importId, d.getParent(), e1, e2);
         List<String> ids = annotationIds(e1, e2);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
@@ -4747,7 +5205,7 @@ class MultiAlgorithmIntakeDbTest {
     @Test void allGroupsWithoutOptionsMarkTheDetectionTaskInvalid() {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, "mystery");
-        Task d = detectionTask(sh, "IMP-10");
+        Task d = detectionTask(sh, nextImportId());
         List<String> ids = annotationIds(e1);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
@@ -4761,14 +5219,15 @@ class MultiAlgorithmIntakeDbTest {
         }
     }
 
-    @Test void handleRestWithAnUmbrellaAsRootCreatesAFreshRoot() {
+    @Test void handleRestWithAnUmbrellaAsRootCreatesAFreshRootThatKeepsTheRequestParameters() {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY);
-        IA.IntakeOutcome first = IA.intakeAnnotationsUnder(sh, new ArrayList<Annotation>(e1.getAnnotations()), null, null, false);
+        JSONObject requestParams = new JSONObject().put("matchingSetFilter", new JSONObject().put("locationIds", new JSONArray().put("X")));
+        IA.IntakeOutcome first = IA.intakeAnnotationsUnder(sh, new ArrayList<Annotation>(e1.getAnnotations()), null, requestParams, false);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
         String oldUmbrella = first.umbrella.getId();
-        String annId = e1.getAnnotations().get(0).getId();
+        String annId = annotationIds(e1).get(0);
 
         JSONObject jin = new JSONObject().put("__context", CTX).put("taskId", oldUmbrella)
             .put("annotationIds", new JSONArray().put(annId));
@@ -4789,6 +5248,8 @@ class MultiAlgorithmIntakeDbTest {
             assertFalse(freshRoot.getId().equals(oldUmbrella));
             assertNull(Task.runIdOf(freshRoot));
             assertEquals(0, freshRoot.numberAnnotations());
+            assertTrue(freshRoot.getParameters().has("matchingSetFilter"), "the request parameters moved to the fresh root");
+            assertTrue(newUmbrella.getParameters().has("matchingSetFilter"), "and the new run inherited them");
         } finally {
             check.rollbackAndClose();
         }
@@ -4797,7 +5258,7 @@ class MultiAlgorithmIntakeDbTest {
     // ---- lookups ----
 
     static Task umbrellaFor(Task d, Encounter enc) {
-        String firstAnn = enc.getAnnotations().get(0).getId();
+        String firstAnn = annotationIds(enc).get(0);
         for (Task u : childrenOf(d)) {
             if (u.holdsAnnotationId(firstAnn)) return u;
         }
@@ -4811,7 +5272,7 @@ class MultiAlgorithmIntakeDbTest {
             for (Task u : childrenOf(Task.load(dId, sh))) {
                 if (Task.isOptionTask(u) && !u.getParameters().optBoolean(Task.PARAM_V2_MATCH, false)) ids.add(u.getId());
                 for (Task opt : childrenOf(u)) {
-                    if (!opt.getParameters().optBoolean(Task.PARAM_V2_MATCH, false)) ids.add(opt.getId());
+                    if (Task.isOptionTask(opt) && !opt.getParameters().optBoolean(Task.PARAM_V2_MATCH, false)) ids.add(opt.getId());
                 }
             }
         } finally {
@@ -4820,10 +5281,19 @@ class MultiAlgorithmIntakeDbTest {
         return ids;
     }
 
-    static String vectorOptionId(String dId, Encounter enc) {
-        Shepherd sh = open("vectorOption");
+    // the vector leaf (the option's representative) for the encounter's first annotation
+    static String vectorLeafId(String dId, Encounter enc) {
+        String firstAnn = annotationIds(enc).get(0);
+        Shepherd sh = open("vectorLeaf");
         try {
-            return optionOf(umbrellaFor(Task.load(dId, sh), enc), true, BODY).getId();
+            Task u = umbrellaFor(Task.load(dId, sh), enc);
+            for (Task opt : childrenOf(u)) {
+                if (!opt.getParameters().optBoolean(Task.PARAM_V2_MATCH, false)) continue;
+                for (Task leaf : childrenOf(opt)) {
+                    if (leaf.holdsAnnotationId(firstAnn)) return leaf.getId();
+                }
+            }
+            throw new IllegalStateException("no vector leaf for " + firstAnn);
         } finally {
             sh.rollbackAndClose();
         }
@@ -4841,10 +5311,12 @@ class MultiAlgorithmIntakeDbTest {
 }
 ```
 
+Deviation from §5.2, stated: the "persisted registration flag change through a real identify" case is not here. A real `beginIdentifyAnnotations` builds the matching set through OpenSearch (`Annotation.getMatchingSet`), which this test has no seam for; the flag flip is verified at the unit level in Task 9 (`verify(ann).setWbiaRegistered(TRUE)` on the attached object, which the consumer's transaction commits) and live by staging check §5.3-5.
+
 - [ ] **Step 3: Run the datastore test**
 
 Run: `mvn -q test -Dtest=MultiAlgorithmIntakeDbTest -DfailIfNoTests=false` (Docker must be running; first run pulls `postgres:15-alpine`).
-Expected: PASS (11 tests). If `enc.getAnnotations()` is lazily loaded and empty after reload, store the annotation ids from the fixture before closing the Shepherd (the helpers above already take ids from the in-memory `Encounter`). If `FeatureType.initAll` complains about a missing table on the very first run, run the test class a second time (autoCreateTables creates it on first touch).
+Expected: PASS (16 tests). If `FeatureType.initAll` complains about a missing table on the very first run, run the class a second time (autoCreateTables creates it on first touch). If `LocalAssetStore.create` needs a different webRoot form, mirror `EncounterExportImagesTest` lines 797-802 exactly.
 
 - [ ] **Step 4: Commit**
 
@@ -4853,9 +5325,10 @@ git add src/main/java/org/ecocean/IAJsonProperties.java src/test/java/org/ecocea
 git commit -m "Datastore tests for the multi-algorithm intake, selector and import status (#1787)
 
 Testcontainers PostgreSQL coverage of spec §5.2: persist-before-dispatch,
-reload and render of a five-level tree, the status matrix, per-group
-recovery, dispatch exceptions, the single-HotSpotter exemption, requeued
-reads as sent, mixed no-option groups and handleRest root substitution.
+initial persist failure, reload and render of a five-level tree, the status
+matrix, mid fan-out, per-group recovery, dispatch exceptions, the
+single-HotSpotter exemption, the requeue ordering with a real _doIdentify,
+mixed no-option groups and handleRest root substitution.
 
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ```
