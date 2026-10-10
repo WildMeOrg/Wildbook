@@ -4663,7 +4663,7 @@ class MultiAlgorithmIntakeDbTest {
         enc.setCatalogNumber("enc-" + (++seq));
         enc.setGenus(genus);
         enc.setSpecificEpithet(species);
-        Fx f = new Fx(enc.getCatalogNumber());
+        Fx snapshot = new Fx(enc.getCatalogNumber());
         LocalAssetStore attachedStore = (LocalAssetStore)AssetStore.get(sh, storeId.intValue());   // attached: its config loads
         for (String iaClass : iaClasses) {
             MediaAsset ma = attachedStore.create(testImage);
@@ -4692,12 +4692,12 @@ class MultiAlgorithmIntakeDbTest {
             sh.getPM().makePersistent(ma);
             sh.getPM().makePersistent(ann);
             enc.addAnnotation(ann);
-            f.annIds.add(ann.getId());
-            f.acmByAnn.put(ann.getId(), ann.getAcmId());
-            f.assetAcmByAnn.put(ann.getId(), ma.getAcmId());
+            snapshot.annIds.add(ann.getId());
+            snapshot.acmByAnn.put(ann.getId(), ann.getAcmId());
+            snapshot.assetAcmByAnn.put(ann.getId(), ma.getAcmId());
         }
         sh.getPM().makePersistent(enc);
-        fixtures.put(f.catalogNumber, f);
+        fixtures.put(snapshot.catalogNumber, snapshot);
         return enc;
     }
 
@@ -5230,6 +5230,7 @@ class MultiAlgorithmIntakeDbTest {
         try {
             Task hs1 = Task.load(run1Hs, late);
             Task child = new Task(hs1);
+            child.setParameters(Task.withoutOptionMarker(hs1.getParameters()));   // a fan-out child is a leaf, not an option (§4.0)
             child.addObject(late.getAnnotation(annsD.get(0).getId()));
             child.setStatus("completed");
             late.getPM().makePersistent(child);
