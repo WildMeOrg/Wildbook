@@ -4464,6 +4464,7 @@ import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.ia.plugin.WildbookIAM;
 import org.ecocean.media.Feature;
 import org.ecocean.media.FeatureType;
+import org.ecocean.media.AssetStore;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetMetadata;
@@ -4505,7 +4506,37 @@ class MultiAlgorithmIntakeDbTest {
     static int seq = 0;
     static Path imageDir;
     static File testImage;
-    static LocalAssetStore store;
+    static Integer storeId;   // the persisted LocalAssetStore; reloaded ATTACHED inside each fixture transaction
+
+    /**
+     * Scalars of a fixture encounter, snapshotted while its objects are attached. DataNucleus
+     * clears non-key fields at commit (RetainValues=false) and disconnects objects at close, so
+     * a test never reads a fixture Encounter / Annotation / MediaAsset after its transaction: it
+     * goes through this registry, keyed by catalogNumber (a primary key, which stays readable).
+     */
+    static final class Fx {
+        final String catalogNumber;
+        final List<String> annIds = new ArrayList<String>();
+        final Map<String, String> acmByAnn = new HashMap<String, String>();
+        final Map<String, String> assetAcmByAnn = new HashMap<String, String>();
+
+        Fx(String catalogNumber) {
+            this.catalogNumber = catalogNumber;
+        }
+    }
+    static final Map<String, Fx> fixtures = new HashMap<String, Fx>();
+
+    static Fx fx(Encounter enc) {
+        return fixtures.get(enc.getCatalogNumber());
+    }
+
+    static String acmOf(Encounter enc, int i) {
+        return fx(enc).acmByAnn.get(fx(enc).annIds.get(i));
+    }
+
+    static String assetAcmOf(Encounter enc, int i) {
+        return fx(enc).assetAcmByAnn.get(fx(enc).annIds.get(i));
+    }
 
     /** Production-shaped stand-in for the two dispatch targets. */
     static final class LeafBuildingDispatcher implements IA.Dispatcher {
@@ -4568,13 +4599,14 @@ class MultiAlgorithmIntakeDbTest {
         imageDir = Files.createTempDirectory("multialgo-1787");
         testImage = Files.copy(Paths.get("src", "test", "bulk-images", "image-ok-0.jpg").toAbsolutePath(),
             imageDir.resolve("image.jpg"), StandardCopyOption.REPLACE_EXISTING).toFile();
-        store = new LocalAssetStore("local-1787", imageDir, "file://" + imageDir, false);
+        LocalAssetStore store = new LocalAssetStore("local-1787", imageDir, "file://" + imageDir, false);
         Shepherd sh = new Shepherd(CTX, props);
         try {
             FeatureType.initAll(sh);          // opens, queries and rolls back (or commits) its own transaction
             sh.beginDBTransaction();          // so begin again before persisting the store
             sh.getPM().makePersistent(store);
             sh.commitDBTransaction();
+            storeId = store.getId();          // the primary key survives commit and close; nothing else is read later
         } finally {
             sh.closeDBTransaction();
         }
@@ -4623,15 +4655,18 @@ class MultiAlgorithmIntakeDbTest {
 
     // An encounter with one annotation per iaClass, each on its own persisted MediaAsset with a
     // bbox feature wired on both owning sides (Feature.asset via addFeature, Feature.annotation
-    // via setAnnotation — the mapped-by side of Annotation.features).
+    // via setAnnotation — the mapped-by side of Annotation.features). Its scalars are snapshotted
+    // into the registry before the caller commits.
     static Encounter encounter(Shepherd sh, String genus, String species, String... iaClasses) throws Exception {
         Encounter enc = new Encounter();
         enc.setSkipAutoIndexing(true);
         enc.setCatalogNumber("enc-" + (++seq));
         enc.setGenus(genus);
         enc.setSpecificEpithet(species);
+        Fx f = new Fx(enc.getCatalogNumber());
+        LocalAssetStore attachedStore = (LocalAssetStore)AssetStore.get(sh, storeId.intValue());   // attached: its config loads
         for (String iaClass : iaClasses) {
-            MediaAsset ma = store.create(testImage);
+            MediaAsset ma = attachedStore.create(testImage);
             ma.setId(100000 + (++seq));
             ma.setSkipAutoIndexing(true);
             ma.setAcmId(ma.getUUID());
@@ -4657,8 +4692,12 @@ class MultiAlgorithmIntakeDbTest {
             sh.getPM().makePersistent(ma);
             sh.getPM().makePersistent(ann);
             enc.addAnnotation(ann);
+            f.annIds.add(ann.getId());
+            f.acmByAnn.put(ann.getId(), ann.getAcmId());
+            f.assetAcmByAnn.put(ann.getId(), ma.getAcmId());
         }
         sh.getPM().makePersistent(enc);
+        fixtures.put(f.catalogNumber, f);
         return enc;
     }
 
@@ -4687,11 +4726,10 @@ class MultiAlgorithmIntakeDbTest {
         return itask;
     }
 
+    // registry-backed: safe before and after the fixture's transaction
     static List<String> annotationIds(Encounter... encs) {
         List<String> ids = new ArrayList<String>();
-        for (Encounter e : encs) {
-            for (Annotation a : e.getAnnotations()) ids.add(a.getId());
-        }
+        for (Encounter e : encs) ids.addAll(fx(e).annIds);
         return ids;
     }
 
@@ -5378,7 +5416,7 @@ class MultiAlgorithmIntakeDbTest {
         // the log line a failed send leaves behind: with a NULL stored status getStatus reads it as "error"
         Shepherd logSh = open("log");
         try {
-            logSh.getPM().makePersistent(new IdentityServiceLog(hsId, null, "IBEISIA", "-1",
+            logSh.getPM().makePersistent(new IdentityServiceLog(hsId, "IBEISIA", "-1",   // the 4-arg ctor: objectIDs null
                 new JSONObject().put("_action", "sendIdentify")
                     .put("_response", new JSONObject().put("error", "HTTP error code : 500"))));
             logSh.commitDBTransaction();
@@ -5783,8 +5821,8 @@ class MultiAlgorithmIntakeDbTest {
         sh.closeDBTransaction();
 
         WbiaFake wbia = new WbiaFake();
-        wbia.knownAnnotIds.add(k.getAcmId());
-        wbia.knownImageIds.add(k.getMediaAsset().getAcmId());
+        wbia.knownAnnotIds.add(acmOf(e1, 2));          // snapshots: k's objects are detached by now
+        wbia.knownImageIds.add(assetAcmOf(e1, 2));
         Shepherd consumer = open("consumer");
         try {
             withRealWbia(wbia, () -> {
@@ -5938,8 +5976,8 @@ class MultiAlgorithmIntakeDbTest {
         sh.closeDBTransaction();
         // WBIA knows the target and its image but not the legacy query nor its image
         WbiaFake wbia = new WbiaFake();
-        wbia.knownAnnotIds.add(t.getAcmId());
-        wbia.knownImageIds.add(t.getMediaAsset().getAcmId());
+        wbia.knownAnnotIds.add(acmOf(e1, 1));          // snapshots: t's objects are detached by now
+        wbia.knownImageIds.add(assetAcmOf(e1, 1));
         Shepherd consumer = open("consumer");
         try {
             withRealWbia(wbia, () -> {
@@ -6127,6 +6165,8 @@ class MultiAlgorithmIntakeDbTest {
     }
 }
 ```
+
+Fixture-access rule for this class (an implementer adding cases must keep it): after a fixture Shepherd commits, read only primary keys from its objects (`Encounter.getCatalogNumber()`, `Annotation.getId()`, `Task.getId()`); everything else comes from the `Fx` registry, from values snapshotted before the commit, or from a fresh `open(...)` Shepherd.
 
 - [ ] **Step 3: Run the datastore test**
 
