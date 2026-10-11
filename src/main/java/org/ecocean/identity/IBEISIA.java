@@ -5,6 +5,7 @@ import org.ecocean.AnnotationLite;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ContextConfiguration;
 import org.ecocean.Encounter;
+import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.ia.*;
 import org.ecocean.ia.plugin.*;
 import org.ecocean.IAJsonProperties;
@@ -833,14 +834,17 @@ public class IBEISIA {
                     }
                     forcedAny = true;
                     try {
-                        if (knownAcmIds == null)
+                        if (knownAcmIds == null) {
+                            // WBIA just reported these ids missing: a cached id list is stale
+                            QueryCacheFactory.safeInvalidate(context, "iaAnnotationIds");
                             knownAcmIds = new HashSet<String>(WildbookIAM.iaAnnotationIdsStrict(context));
+                        }
                         String why = registerPendingAnnotation(getPluginInstance(context), a, knownAcmIds, myShepherd);
                         if (why != null) {
                             System.out.println("WARNING: iaCheckMissing() forced repair of " + a.getId() + " failed: " + why);
                             forcedAllOk = false;
                         }
-                    } catch (IOException ex) {
+                    } catch (Exception ex) {
                         System.out.println("WARNING: iaCheckMissing() forced repair of " + a.getId() + " threw " + ex);
                         forcedAllOk = false;
                     }
@@ -943,7 +947,15 @@ public class IBEISIA {
             // below turns into success=false. The identify request is built from the pruned
             // target list this returns. qanns is passed unfiltered on purpose.
             JSONObject registration = new JSONObject();
+            boolean hadTargets = (tanns != null) && !tanns.isEmpty();
             tanns = sendAnnotationsAsNeeded(qanns, tanns, myShepherd, registration);
+            if (hadTargets && tanns.isEmpty()) {
+                results.put("sendAnnotationsAsNeeded", registration);
+                results.put("error",
+                    "all target annotations were dropped (none could be registered with WBIA)");
+                results.put("success", false);
+                return results;
+            }
             results.put("sendAnnotationsAsNeeded", registration);
             Util.mark("OPT bia 4X", tt);
             if (tanns != null) {
