@@ -728,6 +728,31 @@ public class IA {
         return new ArrayList<List<Annotation> >(iaClassToAnns.values());
     }
 
+    /**
+     * Issue #1787 (spec §4.0): a client-supplied root id may name an existing task. If that task
+     * holds annotations or belongs to an identification run (umbrella, option or leaf), a new
+     * run must not hang beneath it — the umbrella's Match Results page renders exactly its own
+     * run — so a fresh root is used instead. A media-asset-only root (the detection root the
+     * hamburger-menu New Match attaches to) is reused as before.
+     */
+    static Task resolveRequestRoot(Task loaded, String taskId, boolean fastlane) {
+        Task root = loaded;
+
+        if ((root != null) && (root.hasObjectAnnotations() || (Task.runIdOf(root) != null))) {
+            System.out.println("WARN: IA.handleRest() root task " + taskId +
+                " holds annotations or belongs to identification run " + Task.runIdOf(root) +
+                "; creating a fresh root instead");
+            root = new Task();
+            // the request's parameters (IAGateway stores taskParameters — matchingSetFilter,
+            // matchingAlgorithms, userId… — on the loaded task) travel to the fresh root,
+            // minus the keys that belong to the old run
+            if (loaded.getParameters() != null) root.setParameters(scrubRunParams(loaded.getParameters()));
+        }
+        if (root == null) root = new Task(taskId);
+        if (fastlane) root.addParameter("fastlane", true);
+        return root;
+    }
+
     // possibly (should?) have .taskId, and *definitely* should have .__context and .__baseUrl
     // note: this is processed *from the queue* and as such does not have "output"
     public static void handleRest(JSONObject jin) {
@@ -745,9 +770,7 @@ public class IA {
         myShepherd.beginDBTransaction();
         try {
             String taskId = jin.optString("taskId", Util.generateUUID());
-            Task topTask = Task.load(taskId, myShepherd);
-            if (topTask == null) topTask = new Task(taskId);
-            if (fastlane) topTask.addParameter("fastlane", true);
+            Task topTask = resolveRequestRoot(Task.load(taskId, myShepherd), taskId, fastlane);
             myShepherd.storeNewTask(topTask);
             JSONObject opt = jin.optJSONObject("opt"); // should use this to decide how to branch differently than "default"
             JSONArray mlist = jin.optJSONArray("mediaAssetIds");
@@ -789,9 +812,7 @@ public class IA {
                 }
                 // i cant think of a scenario where we would get here and accidently double-add mas... but jic
                 for (MediaAsset ma : masForNewRoot) {
-                    if (!topTask.getObjectMediaAssets().contains(ma)) {
-                        topTask.addObject(ma);
-                    }
+                    topTask.addObject(ma);   // dedupes; also safe on a fresh root whose list is null
                 }
                 Task atask = intakeAnnotations(myShepherd, anns, topTask, fastlane);
                 System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask +
