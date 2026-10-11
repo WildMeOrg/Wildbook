@@ -618,9 +618,17 @@ public class ImportTask implements java.io.Serializable {
         return "completed".equals(s) || "error".equals(s) || "dropped-stale".equals(s);
     }
 
+    // non-mutating: Task.getStatus's watchdog rewrites an aged non-null status; the aggregate only reports (§4.4 rule 5)
+    private static String peekStatus(Task t, Shepherd myShepherd) {
+        String stored = t.getStoredStatus();
+
+        if (stored != null) return stored;
+        return t.getStatus(myShepherd);   // null stored status: log-derived read, never mutates
+    }
+
     // rule 5: maximum age, reported only (Task.getStatus exempts null stored statuses from its watchdog)
     private static String reportedStatus(Task t, Shepherd myShepherd) {
-        String s = t.getStatus(myShepherd);
+        String s = peekStatus(t, myShepherd);
 
         if (!isTerminalStatus(s) && t.timedOutDueToInactivity()) return "error";
         return s;

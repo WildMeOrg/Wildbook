@@ -247,6 +247,26 @@ class ImportTaskIdentificationStatusTest {
         }
     }
 
+    @Test void agedRequeuedRepresentativeIsReportedAsErrorWithoutBeingChanged() throws Exception {
+        Annotation a = annot("A");
+        Task u = umbrella(a);
+        Task h = option(u, false, a);
+        h.setStatus(Task.STATUS_REQUEUED);
+        h.setStatusDetailsAddError("SEND_FAILED", "could not send");
+        String detailsBefore = h.getStatusDetails().toString();
+        long saved = Task.TIMEOUT_INACTIVE_MILLIS;
+        Task.TIMEOUT_INACTIVE_MILLIS = -1L;
+        try {
+            withNoLogs(() -> {
+                assertEquals("error", status(a, Arrays.asList(h, u), ids("A"), shepherd()).status);
+                assertEquals(Task.STATUS_REQUEUED, h.getStoredStatus(), "stored status untouched");
+                assertEquals(detailsBefore, h.getStatusDetails().toString(), "details untouched");
+            });
+        } finally {
+            Task.TIMEOUT_INACTIVE_MILLIS = saved;
+        }
+    }
+
     @Test void oldTreeUsesTodaysRule() throws Exception {
         Annotation a = annot("A");
         Task root = new Task();
@@ -280,8 +300,9 @@ class ImportTaskIdentificationStatusTest {
         Task u = umbrella(a, b);          // spans encounters: ineligible for {A}
         Task h = option(u, false, a, b);
         h.setStatus("completed");
+        Task h2 = option(u, false, a, b);   // pending sibling: only the run-aware fallback sees it
         withNoLogs(() -> {
-            assertEquals("completed", status(a, Arrays.asList(h, u), ids("A"), shepherd()).status);
+            assertEquals("waiting to queue", status(a, Arrays.asList(h, h2, u), ids("A"), shepherd()).status);
         });
     }
 
