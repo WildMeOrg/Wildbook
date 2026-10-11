@@ -2,11 +2,8 @@ package org.ecocean.ia;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -492,9 +489,10 @@ class TaskSelectPreferredMatchTaskTest {
         // an older, unrelated renderable leaf outside the run must not be chosen
         Task oldRoot = withAnnots(new Task(), a);
         Task oldLeaf = withAnnots(task(null, true, false, oldRoot), a);
-        oldLeaf.setCreated(10L);
+        oldLeaf.setCreated(9000L);
+        oldRoot.setCreated(8999L);
         assertSame(leafA, Task.selectPreferredMatchTask(
-            Arrays.asList(leafA, opt, u, oldLeaf, oldRoot), null, ids("A")));
+            Arrays.asList(oldLeaf, leafA, opt, u, oldRoot), null, ids("A")));
     }
 
     /** The climb is bounded: a cycle in parent links and more than 20 ancestors both terminate. */
@@ -503,7 +501,7 @@ class TaskSelectPreferredMatchTaskTest {
         Task p = withAnnots(new Task(), a);
         Task w = withAnnots(task(null, true, false, p), a);
         p.setParent(w);                      // cycle: p -> w -> p
-        assertNotNull(Task.selectPreferredMatchTask(Arrays.asList(w, p), null, ids("A")));
+        assertSame(p, Task.selectPreferredMatchTask(Arrays.asList(w, p), null, ids("A")));
         // 25-deep chain of annotation-holding, unstamped ancestors
         Task[] chain = new Task[26];
         chain[25] = withAnnots(new Task(), a);
