@@ -39,8 +39,17 @@ public class IAJsonProperties extends JsonProperties {
         super("IA.json");
     }
 
+    private static volatile IAJsonProperties testOverride = null;
+
+    /** Test seam (issue #1787 datastore tests): a fixture instance returned by iaConfig() until cleared with null. */
+    static void overrideForTests(IAJsonProperties override) {
+        testOverride = override;
+    }
+
     // hackey constructor so we don't need to catch an exception every time we use these. Is there a better way?
     public static IAJsonProperties iaConfig() {
+        IAJsonProperties override = testOverride;
+        if (override != null) return override;
         try {
             return new IAJsonProperties();
         } catch (Exception e) {
