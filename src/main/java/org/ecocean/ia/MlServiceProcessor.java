@@ -773,6 +773,7 @@ public class MlServiceProcessor {
         List<GroupRecord> processed = new ArrayList<GroupRecord>();
         String failureCode = null;
         String failureMessage = null;
+        String parentId = taskId;
         MlServiceJobOutcome result = null;
         Shepherd shep = openShepherd("runMatchProspects");
         try {
@@ -790,9 +791,10 @@ public class MlServiceProcessor {
             }
             Task parent = Task.load(taskId, shep);
             if (parent == null) {   // as before: an orphan root when the detection task is gone
-                parent = new Task(taskId);
+                parent = (taskId == null) ? new Task() : new Task(taskId);
                 shep.getPM().makePersistent(parent);
             }
+            parentId = parent.getId();
             Map<String, String> annToEnc = new HashMap<String, String>();
             for (Annotation ann : anns) {
                 Encounter enc = ann.findEncounter(shep);
@@ -826,9 +828,13 @@ public class MlServiceProcessor {
             if (failureCode == null) {
                 if (noWorkGroups == groups.size()) {
                     markTaskError(parent, "INVALID_MATCH_CONFIG", "no default identification options");
-                    shep.commitDBTransaction();
-                    result = MlServiceJobOutcome.validationError("INVALID_MATCH_CONFIG",
-                        "no default identification options");
+                    if (shep.commitDBTransactionWithStatus()) {
+                        result = MlServiceJobOutcome.validationError("INVALID_MATCH_CONFIG",
+                            "no default identification options");
+                    } else {
+                        failureCode = "MATCH_PERSIST";
+                        failureMessage = "could not commit the INVALID_MATCH_CONFIG mark on " + parentId;
+                    }
                 } else {
                     result = MlServiceJobOutcome.ok(annotationIds);
                 }
@@ -841,7 +847,7 @@ public class MlServiceProcessor {
             shep.rollbackAndClose();   // rolls back whatever the failed group left open
         }
         if (failureCode != null) {
-            recoverMatchFailure(taskId, processed, failureCode, failureMessage);
+            recoverMatchFailure(parentId, processed, failureCode, failureMessage);
             return MlServiceJobOutcome.persistError(failureCode, failureMessage);
         }
         // PairX inspection-image generation is intentionally OFF the synchronous match path.
