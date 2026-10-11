@@ -69,4 +69,31 @@ class IAHandleRestRootTest {
         inherited.addParameter(Task.PARAM_RUN_ID, "someone-else");   // an option/leaf of a run
         assertNotSame(inherited, IA.resolveRequestRoot(inherited, "req-5", false));
     }
+
+    /** Review Minor: legacy annotation tasks with no run id must also be replaced. */
+    @Test void rootHoldingAnnotationsWithoutARunIdIsReplaced() {
+        Task loaded = new Task("req-6");
+        Annotation a = new Annotation();
+        a.setId("A");
+        loaded.addObject(a);
+        Task root = IA.resolveRequestRoot(loaded, "req-6", false);
+        assertNotSame(loaded, root);
+        assertNotEquals("req-6", root.getId());
+        assertFalse(root.hasObjectAnnotations());
+    }
+
+    @Test void mustReplaceRequestRootIsFalseOnlyForEmptyOrMediaOnlyRoots() {
+        assertFalse(IA.mustReplaceRequestRoot(null));
+        Task mediaOnly = new Task("req-7");
+        mediaOnly.addObject(mock(MediaAsset.class));
+        assertFalse(IA.mustReplaceRequestRoot(mediaOnly));
+        Task annotated = new Task("req-8");
+        Annotation a = new Annotation();
+        a.setId("B");
+        annotated.addObject(a);
+        assertTrue(IA.mustReplaceRequestRoot(annotated));
+        Task runOnly = new Task("req-9");
+        runOnly.addParameter(Task.PARAM_RUN_ID, "x");
+        assertTrue(IA.mustReplaceRequestRoot(runOnly));
+    }
 }

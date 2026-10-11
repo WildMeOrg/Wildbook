@@ -729,6 +729,15 @@ public class IA {
     }
 
     /**
+     * Issue #1787 (spec §4.0): a client-supplied root id must not name a task of an
+     * identification run (umbrella, option or leaf) nor any task holding annotations —
+     * reusing it would hang a new run beneath an old one or overwrite the old run's identity.
+     */
+    public static boolean mustReplaceRequestRoot(Task loaded) {
+        return (loaded != null) && (loaded.hasObjectAnnotations() || (Task.runIdOf(loaded) != null));
+    }
+
+    /**
      * Issue #1787 (spec §4.0): a client-supplied root id may name an existing task. If that task
      * holds annotations or belongs to an identification run (umbrella, option or leaf), a new
      * run must not hang beneath it — the umbrella's Match Results page renders exactly its own
@@ -738,7 +747,7 @@ public class IA {
     static Task resolveRequestRoot(Task loaded, String taskId, boolean fastlane) {
         Task root = loaded;
 
-        if ((root != null) && (root.hasObjectAnnotations() || (Task.runIdOf(root) != null))) {
+        if (mustReplaceRequestRoot(root)) {
             System.out.println("WARN: IA.handleRest() root task " + taskId +
                 " holds annotations or belongs to identification run " + Task.runIdOf(root) +
                 "; creating a fresh root instead");

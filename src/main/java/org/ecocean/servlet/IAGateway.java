@@ -173,8 +173,8 @@ public class IAGateway extends HttpServlet {
                 } else {
                     j.put("taskId", taskId);
                 }
-                Task task = Task.load(taskId, myShepherd);
-                if (task == null) task = new Task(taskId);
+                Task task = resolveGatewayRoot(Task.load(taskId, myShepherd), taskId, j, res);
+                taskId = task.getId();
                 JSONObject tparams = j.optJSONObject("taskParameters"); // optional
                 if (tparams == null) tparams = new JSONObject(); // but we want it, to set user:
                 User tuser = AccessControl.getUser(request, myShepherd);
@@ -330,6 +330,27 @@ public class IAGateway extends HttpServlet {
     }
 
     // we pass 'res' in but also it is the return value
+    /**
+     * Issue #1787 (spec §4.0): the root a /ia request runs under. The parameters below are
+     * written onto this task and committed BEFORE the job is queued, so a supplied id that
+     * names a task of an identification run (or any task holding annotations) is replaced by a
+     * fresh root here — and the fresh id is written into the queued payload and the response,
+     * so the client polls the run it asked for. A media-asset-only root is reused as before.
+     */
+    static Task resolveGatewayRoot(Task loaded, String taskId, JSONObject j, JSONObject res) {
+        if (org.ecocean.ia.IA.mustReplaceRequestRoot(loaded)) {
+            Task fresh = new Task();
+            System.out.println("WARN: IAGateway /ia: supplied taskId " + taskId +
+                " belongs to identification run " + Task.runIdOf(loaded) +
+                " or holds annotations; using fresh root " + fresh.getId());
+            j.put("taskId", fresh.getId());
+            res.put("taskId", fresh.getId());
+            return fresh;
+        }
+        if (loaded == null) return new Task(taskId);
+        return loaded;
+    }
+
     public static JSONObject _doIdentify(JSONObject jin, JSONObject res, Shepherd myShepherd,
         String context, String baseUrl, boolean fastlane)
     throws ServletException, IOException {
