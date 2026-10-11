@@ -392,6 +392,36 @@ class IAIntakeCoreTest {
         });
     }
 
+    /** Under non-transactional writes a transaction that dies inside runVector is noticed: no later option is dispatched. */
+    @Test void transactionThatDiesDuringAVectorDispatchStopsEveryLaterDispatch() throws Exception {
+        final boolean[] active = { true };
+        RecordingDispatcher d = new RecordingDispatcher() {
+            @Override public void runVector(JSONObject opt, Task optionTask, Shepherd shep) {
+                super.runVector(opt, optionTask, shep);
+                active[0] = false;   // the transaction died during the dispatch
+            }
+        };
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        when(sh.isDBTransactionActive()).thenAnswer(inv -> active[0]);
+        Map<String, List<JSONObject>> one = new HashMap<String, List<JSONObject>>();
+        one.put("guitarfish", Arrays.asList(miewid(), hotspotter()));
+        withStatics(config(one), () -> {
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, false);
+            assertEquals(2, o.options.size());
+            IA.OptionResult vec = o.options.get(0);
+            assertTrue(vec.vector);
+            assertFalse(vec.published, "a dispatch whose transaction died is not published");
+            assertEquals("DISPATCH_FAILED", vec.failureCode);
+            IA.OptionResult hs = o.options.get(1);
+            assertFalse(hs.vector);
+            assertFalse(hs.published);
+            assertEquals("QUEUE_FAILED", hs.failureCode);
+            assertEquals(1, d.vectorRuns.size());
+            assertTrue(d.published.isEmpty(), "the HotSpotter job after the dead transaction is not published");
+        });
+    }
+
     @Test void noDefaultOptionsMarksTheUmbrellaInvalidAndDispatchesNothing() throws Exception {
         RecordingDispatcher d = new RecordingDispatcher();
         IA.setDispatcherForTests(d);

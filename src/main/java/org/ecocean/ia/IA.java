@@ -640,9 +640,24 @@ public class IA {
                 JSONObject opt = plannedOpts.get(i);
                 Task t = r.task;
                 String optionId = optionIds.get(i);
+                // a transaction that died during an earlier dispatch stops every later one: under
+                // non-transactional writes nothing else would notice, and a job published now
+                // would point at a run the caller's checked commit is about to roll back
+                if (!myShepherd.isDBTransactionActive()) {
+                    if (r.failureCode == null) r.failureCode = r.vector ? "DISPATCH_FAILED" : "QUEUE_FAILED";
+                    System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() transaction inactive; option " +
+                        optionId + " of run " + umbrellaId + " not dispatched");
+                    continue;
+                }
                 try {
                     if (r.vector) {
                         dispatcher.runVector(opt, t, myShepherd);
+                        if (!myShepherd.isDBTransactionActive()) {
+                            r.failureCode = "DISPATCH_FAILED";
+                            System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() transaction died during the vector dispatch of option " +
+                                optionId + " of run " + umbrellaId);
+                            continue;
+                        }
                         r.published = true;
                         continue;
                     }
@@ -797,7 +812,7 @@ public class IA {
                 Task mtask = intakeMediaAssets(myShepherd, mas, topTask);
                 System.out.println("INFO: IA.handleRest() just intook MediaAssets as " + mtask +
                     " for (parent) " + topTask);
-                topTask.addChild(mtask);
+                mtask.setParent(topTask);   // sets the field too: L2-cache readers see the link
             }
             JSONArray alist = jin.optJSONArray("annotationIds");
             if ((alist != null) && (alist.length() > 0)) {
@@ -827,7 +842,7 @@ public class IA {
                 System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask +
                     " for " + topTask);
                 myShepherd.getPM().refresh(topTask);
-                topTask.addChild(atask);
+                atask.setParent(topTask);   // sets the field too: L2-cache readers see the link
                 topTask.setModified();
                 myShepherd.getPM().makePersistent(atask);
             }
