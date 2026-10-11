@@ -7,7 +7,9 @@ package org.ecocean.ia;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,6 +29,17 @@ import org.ecocean.identity.IdentityServiceLog;
 
 public class Task implements java.io.Serializable {
     public static long TIMEOUT_INACTIVE_MILLIS = 7l * 24l * 60l * 60l * 1000l;
+    // ---- issue #1787: one identifier for one identification run (spec §4.0) ----
+    /** Parameter key: the umbrella id of the identification run every task of that run carries. */
+    public static final String PARAM_RUN_ID = "identificationInvocationId";
+    /** Parameter key: marks a per-option task, or the umbrella when it is the single option. */
+    public static final String PARAM_OPTION = "identificationOption";
+    /** Parameter key: vector (ml-service) option tasks and their per-annotation leaves. */
+    public static final String PARAM_V2_MATCH = "mlServiceV2Match";
+    /** Parameter key: the bulk import that stamped this task (PR #1625). */
+    public static final String PARAM_IMPORT_TASK_ID = "importTaskId";
+    /** Stored status of a HotSpotter task whose send failed while a retry may still be scheduled (§4.4). Non-terminal. */
+    public static final String STATUS_REQUEUED = "requeued";
     private String id = null;
     private long created = -1;
     private long modified = -1;
@@ -63,6 +76,11 @@ public class Task implements java.io.Serializable {
 
     public long getCreatedLong() {
         return created;
+    }
+
+    // test fixtures only: lets a hand-built tree carry distinct creation times
+    void setCreated(long millis) {
+        created = millis;
     }
 
     public long getModifiedLong() {
@@ -242,6 +260,15 @@ public class Task implements java.io.Serializable {
     public boolean contains(MediaAsset ma) {
         if (objectMediaAssets == null) return false;
         return objectMediaAssets.contains(ma);
+    }
+
+    /** Membership by annotation id (Annotation.equals is id-based, but this never depends on it). */
+    public boolean holdsAnnotationId(String annId) {
+        if ((annId == null) || (objectAnnotations == null)) return false;
+        for (Annotation a : objectAnnotations) {
+            if ((a != null) && annId.equals(a.getId())) return true;
+        }
+        return false;
     }
 
     public List<Task> getChildren() {
@@ -676,6 +703,85 @@ public class Task implements java.io.Serializable {
         String tid = (p == null) ? null : p.optString("importTaskId", null);
         if ((tid != null) && tid.trim().isEmpty()) tid = null;  // blank == un-stamped
         return tid;
+    }
+
+    // ---- issue #1787 run vocabulary ----
+
+    /** The run id a task carries, or null for a task outside any run (null task / parameters / blank). */
+    public static String runIdOf(Task t) {
+        if (t == null) return null;
+        JSONObject p = t.getParameters();
+        String rid = (p == null) ? null : p.optString(PARAM_RUN_ID, null);
+        if ((rid != null) && rid.trim().isEmpty()) rid = null;
+        return rid;
+    }
+
+    /** A task is the umbrella of a run iff its own id equals its run id (§4.0). */
+    public static boolean isUmbrella(Task t) {
+        if ((t == null) || (t.getId() == null)) return false;
+        return t.getId().equals(runIdOf(t));
+    }
+
+    /** Option tasks carry {@link #PARAM_OPTION}; leaves and fan-out children never do (§4.0). */
+    public static boolean isOptionTask(Task t) {
+        if (t == null) return false;
+        JSONObject p = t.getParameters();
+        return (p != null) && p.optBoolean(PARAM_OPTION, false);
+    }
+
+    public static boolean anyRunId(List<Task> tasks) {
+        if (tasks == null) return false;
+        for (Task t : tasks) {
+            if (runIdOf(t) != null) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Spec §4.0 run selection, shared by the Match Results link and the import status.
+     * Returns the newest ELIGIBLE umbrella among the annotation's direct tasks, comparing
+     * umbrella creation times (never leaf times, so a late HotSpotter fan-out under an older
+     * run cannot outrank a newer run). Eligible: the task is an umbrella; its stamp satisfies
+     * the import rule (scoped: this import's stamp first, else unstamped, never foreign;
+     * unscoped: any); and, when {@code encounterAnnotationIds} is non-null, every annotation
+     * on it is in that set. {@code direct} may be in any order; it is sorted (stably) here.
+     */
+    public static Task selectRun(List<Task> direct, String importTaskId,
+        Set<String> encounterAnnotationIds) {
+        if (Util.collectionIsEmptyOrNull(direct)) return null;
+        if ((importTaskId != null) && importTaskId.trim().isEmpty()) importTaskId = null;
+        List<Task> sorted = new ArrayList<Task>(direct);
+        Collections.sort(sorted, new Comparator<Task>() {  // stable: equal times keep caller order
+            @Override public int compare(Task a, Task b) {
+                return Long.compare(b.getCreatedLong(), a.getCreatedLong());
+            }
+        });
+        Task newestStamped = null;
+        Task newestUnstamped = null;
+        for (Task t : sorted) {
+            if (!isUmbrella(t)) continue;
+            if (!allAnnotationsIn(t, encounterAnnotationIds)) continue;
+            if (importTaskId == null) return t;   // unscoped: newest eligible umbrella wins
+            String tid = importTaskIdOf(t);
+            if (importTaskId.equals(tid)) {
+                if (newestStamped == null) newestStamped = t;
+            } else if ((tid == null) && (newestUnstamped == null)) {
+                newestUnstamped = t;
+            }
+        }
+        if (newestStamped != null) return newestStamped;
+        return newestUnstamped;
+    }
+
+    // every annotation on the task is in the set (a null set means "no encounter check")
+    private static boolean allAnnotationsIn(Task t, Set<String> encounterAnnotationIds) {
+        if (encounterAnnotationIds == null) return true;
+        if (t.getObjectAnnotations() == null) return true;
+        for (Annotation a : t.getObjectAnnotations()) {
+            if ((a == null) || (a.getId() == null) || !encounterAnnotationIds.contains(a.getId()))
+                return false;
+        }
+        return true;
     }
 
     // A bare mlServiceV2Match=true flag isn't enough — Task(Task p)
