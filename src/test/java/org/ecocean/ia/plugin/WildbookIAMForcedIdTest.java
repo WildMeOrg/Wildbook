@@ -47,6 +47,10 @@ class WildbookIAMForcedIdTest {
             .put("response", new JSONArray().put(WildbookIAM.toFancyUUID(uuid)));
     }
 
+    // every RestClient.post made inside withWbia (reset per call)
+    static final List<URL> POST_URLS = new ArrayList<URL>();
+    static final List<JSONObject> POST_BODIES = new ArrayList<JSONObject>();
+
     interface Body { void run() throws Exception; }
 
     static Answer<JSONObject> reply(final JSONObject r) {
@@ -59,6 +63,8 @@ class WildbookIAMForcedIdTest {
     // RestClient.post is answered by `post`; the query cache is a plain mock.
     static void withWbia(List<String> knownAnnots, List<String> knownImages, Answer<JSONObject> post, Body body)
     throws Exception {
+        POST_URLS.clear();
+        POST_BODIES.clear();
         try (MockedStatic<IA> ia = mockStatic(IA.class);
              MockedStatic<WildbookIAM> iam = mockStatic(WildbookIAM.class, inv -> {
                  String m = inv.getMethod().getName();
@@ -70,7 +76,11 @@ class WildbookIAMForcedIdTest {
              MockedStatic<QueryCacheFactory> qc = mockStatic(QueryCacheFactory.class)) {
             ia.when(() -> IA.getProperty(anyString(), eq("IBEISIARestUrlAddAnnotations"))).thenReturn("http://wbia/api/annot/json/");
             ia.when(() -> IA.getProperty(anyString(), eq("IBEISIARestUrlAddImages"))).thenReturn("http://wbia/api/image/json/");
-            rest.when(() -> RestClient.post(any(URL.class), any(JSONObject.class))).thenAnswer(post);
+            rest.when(() -> RestClient.post(any(URL.class), any(JSONObject.class))).thenAnswer(inv -> {
+                POST_URLS.add(inv.getArgument(0));
+                POST_BODIES.add(inv.getArgument(1));
+                return post.answer(inv);
+            });
             body.run();
         }
     }
@@ -86,6 +96,7 @@ class WildbookIAMForcedIdTest {
         // present under the acmId: already registered, no POST
         withWbia(Arrays.asList(ACM_ID), Arrays.asList(MA_ACM), reply(echo(ACM_ID)), () -> {
             assertEquals(WbiaRegisterOutcome.REGISTERED_ALREADY_PRESENT, plugin.registerOneByDto(dto(ANN_ID, ACM_ID)));
+            assertEquals(0, POST_BODIES.size(), "already present: no POST");
         });
         // present only under the annotation id: NOT evidence the acmId is registered -> POST the acmId
         withWbia(Arrays.asList(ANN_ID), Arrays.asList(MA_ACM), reply(echo(ACM_ID)), () -> {
@@ -158,9 +169,13 @@ class WildbookIAMForcedIdTest {
             when(notImage.isMimeTypeMajor("image")).thenReturn(false);
             assertTrue(WildbookIAM.wbiaEligibilityReason(validAnnotation(notImage)).startsWith("MediaAsset failed validMediaAsset"));
 
+            Annotation noAcmAnn = validAnnotation(validAsset());
+            when(noAcmAnn.getAcmId()).thenReturn(null);
+            assertNull(WildbookIAM.wbiaEligibilityReason(noAcmAnn), "blank acmId falls back to the uuid id");
+
             Annotation badAcm = validAnnotation(validAsset());
             when(badAcm.getAcmId()).thenReturn("not-a-uuid");
-            assertTrue(WildbookIAM.wbiaEligibilityReason(badAcm).startsWith("annotation acmId"));
+            assertTrue(WildbookIAM.wbiaEligibilityReason(badAcm).startsWith("annotation forced id"));
 
             MediaAsset noAcm = validAsset();
             when(noAcm.getAcmId()).thenReturn(null);
@@ -173,11 +188,17 @@ class WildbookIAMForcedIdTest {
     @Test void registerImageForcedSucceedsWhenPresentOrWhenWbiaEchoesTheAcmId() throws Exception {
         WildbookIAM plugin = new WildbookIAM("context0");
         MediaAsset ma = validAsset();
+        when(ma.getUUID()).thenReturn("44444444-4444-4444-4444-444444444444");
         withWbia(new ArrayList<String>(), Arrays.asList(MA_ACM), reply(null), () -> {
             assertTrue(plugin.registerImageForced(ma), "already present: no POST needed");
+            assertEquals(0, POST_BODIES.size(), "already present: no POST");
         });
         withWbia(new ArrayList<String>(), new ArrayList<String>(), reply(echo(MA_ACM)), () -> {
             assertTrue(plugin.registerImageForced(ma));
+            assertEquals(1, POST_BODIES.size());
+            assertTrue(POST_URLS.get(0).getPath().contains("/api/image/json/"));
+            assertEquals(MA_ACM, WildbookIAM.fromFancyUUID(
+                POST_BODIES.get(0).getJSONArray("image_uuid_list").getJSONObject(0)));
         });
         withWbia(new ArrayList<String>(), new ArrayList<String>(), reply(echo(ACM_ID)), () -> {
             assertFalse(plugin.registerImageForced(ma), "a mismatched echo is a failure");

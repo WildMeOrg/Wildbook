@@ -1107,7 +1107,8 @@ public class WildbookIAM extends IAPlugin {
         if ((ma.isValidImageForIA() != null) && !ma.isValidImageForIA())
             return "MediaAsset.isValidImageForIA() == false (corrupt/invalid)";
         if (!validMediaAsset(ma)) return "MediaAsset failed validMediaAsset (mime/dims/url)";
-        if (!Util.isUUID(ann.getAcmId())) return "annotation acmId is not a uuid: " + ann.getAcmId();
+        String forced = Util.stringExists(ann.getAcmId()) ? ann.getAcmId() : ann.getId();
+        if (!Util.isUUID(forced)) return "annotation forced id is not a uuid: " + forced;
         if (!Util.isUUID(ma.getAcmId())) return "media asset acmId is not a uuid: " + ma.getAcmId();
         return null;
     }
