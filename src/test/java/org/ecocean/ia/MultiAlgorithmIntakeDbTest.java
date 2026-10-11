@@ -122,12 +122,14 @@ class MultiAlgorithmIntakeDbTest {
         boolean killTransactionOnVector = false;          // a datastore failure mid-dispatch: the transaction dies
         boolean closePersistenceManagerOnVector = false;  // worse: the manager itself is gone
         final List<JSONObject> published = new ArrayList<JSONObject>();
+        int vectorCalls = 0;                              // counted at entry, before anything else
 
         @Override public void runVector(JSONObject opt, Task optionTask, Shepherd shep) {
+            vectorCalls++;
             Runnable probe = onFirstVector;
             onFirstVector = null;
             if (probe != null) probe.run();
-            if (killTransactionOnVector) shep.rollbackDBTransaction();   // makePersistent below then throws (no active tx)
+            if (killTransactionOnVector) shep.rollbackDBTransaction();   // on a strict Shepherd the writes below then throw
             if (closePersistenceManagerOnVector) shep.getPM().close();   // every later datastore touch throws
             String iaClass = optionTask.getObjectAnnotations().get(0).getIAClass();
             if (iaClass.equals(throwForIaClass)) {
@@ -177,8 +179,6 @@ class MultiAlgorithmIntakeDbTest {
         props.setProperty("datanucleus.ConnectionDriverName", postgres.getDriverClassName());
         props.setProperty("datanucleus.ConnectionURL", postgres.getJdbcUrl());
         props.setProperty("datanucleus.schema.autoCreateTables", "true");
-        // the JDO key (DataNucleus ignores "datanucleus.NontransactionalWrite"): a dead transaction makes writes throw
-        props.setProperty("javax.jdo.option.NontransactionalWrite", "false");
         TestPMFUtil.closePMF(CTX);
         noIndexing = mockStatic(IndexingManagerFactory.class);
         noIndexing.when(IndexingManagerFactory::getIndexingManager).thenReturn(Mockito.mock(IndexingManager.class));
@@ -339,6 +339,29 @@ class MultiAlgorithmIntakeDbTest {
 
     static MlServiceProcessor processor() {
         return processorFailingCommit(-1);
+    }
+
+    // Production write defaults everywhere else; the two dead-transaction cases make only the
+    // processor's own managers strict (non-transactional writes refused), which is per-manager.
+    static MlServiceProcessor strictProcessor() {
+        MatchVisibilityGate gate = (ids, task, cfg, attempt, first) ->
+            MatchVisibilityGate.GateOutcome.ready(attempt, System.currentTimeMillis());
+        DeferredMatchPublisher publisher = payload -> { };
+        return new MlServiceProcessor(CTX, new MlServiceClient(), gate, publisher) {
+            @Override Shepherd openShepherd(String action) {
+                Shepherd s = new Shepherd(CTX) {
+                    @Override public void beginDBTransaction() {
+                        super.beginDBTransaction();
+                        try {
+                            getPM().currentTransaction().setNontransactionalWrite(false);
+                        } catch (RuntimeException ex) {   // a closed manager: nothing to make strict
+                        }
+                    }
+                };
+                s.setAction("MultiAlgorithmIntakeDbTest.strictProcessor." + action);
+                return s;
+            }
+        };
     }
 
     // The processor's own Shepherds come from openShepherd; the Nth checked commit (counting
@@ -660,6 +683,7 @@ class MultiAlgorithmIntakeDbTest {
         // checked commit 1 = the intake core's persist commit
         MlServiceJobOutcome out = processorFailingCommit(1).runMatchProspects(ids, d.getId(), matchConfig());
         assertEquals("MATCH_PERSIST", out.getCode());
+        assertEquals(0, dispatcher.vectorCalls, "no vector dispatch was entered");
         assertTrue(dispatcher.published.isEmpty(), "nothing was dispatched");
         Shepherd check = open("check");
         try {
@@ -741,6 +765,7 @@ class MultiAlgorithmIntakeDbTest {
         assertEquals(3, sum.getInt("identificationNumberComplete"));
         assertEquals(0, sum.getInt("identificationNumberError"));
 
+        JSONArray e1Before = sum.getJSONObject("statsAnnotations").getJSONObject("encounterTaskInfo").getJSONArray(e1.getCatalogNumber());
         // e2's vector LEAF (the option's representative) fails -> still complete, one error
         setStatus(vectorLeafId(d.getId(), e2), "error");
         sum = summary(itask.getId());
@@ -752,6 +777,9 @@ class MultiAlgorithmIntakeDbTest {
         JSONArray e1Tasks = info.getJSONArray(e1.getCatalogNumber());
         assertEquals(1, e1Tasks.length(), "both annotations of e1 link to one task");
         assertEquals(BODY + ", " + ROSTRUM, e1Tasks.getJSONArray(0).getString(2));
+        assertEquals(1, e1Before.length());
+        assertEquals(e1Before.getJSONArray(0).getString(0), e1Tasks.getJSONArray(0).getString(0), "e2's failure leaves e1's task unchanged");
+        assertEquals(e1Before.getJSONArray(0).getString(2), e1Tasks.getJSONArray(0).getString(2), "and its label");
     }
 
     /** §5.2 status matrix: error + pending, single-HotSpotter pending, skipped class, late fan-out next to a newer run. */
@@ -848,8 +876,10 @@ class MultiAlgorithmIntakeDbTest {
         Shepherd fan = open("fanout");                      // H_A exists, H_B not yet
         try {
             Task hs = Task.load(hsId, fan);
+            JSONObject params = hs.getParameters();             // as _doIdentify: snapshot, then strip the option
+            hs.setParameters(Task.identityParams(params));      // drops ibeis.identification; keeps run id + option marker
             Task hA = new Task(hs);
-            hA.setParameters(Task.withoutOptionMarker(hs.getParameters()));
+            hA.setParameters(Task.withoutOptionMarker(params));
             hA.addObject(fan.getAnnotation(ids.get(0)));
             hA.setStatus("completed");
             fan.getPM().makePersistent(hA);
@@ -1131,10 +1161,6 @@ class MultiAlgorithmIntakeDbTest {
 
         Shepherd check = open("check");
         try {
-            // handleRest links the new umbrella with root.addChild only; the link is durable (the
-            // children join table) but the level-2 cache keeps the umbrella's commit-time state
-            // with parent == null, so read the datastore state
-            check.getPM().getPersistenceManagerFactory().getDataStoreCache().evictAll();
             Task old = Task.load(oldUmbrella, check);
             assertEquals(2, childrenOf(old).size(), "the old run gained nothing");
             Annotation ann = check.getAnnotation(annId);
@@ -1150,6 +1176,26 @@ class MultiAlgorithmIntakeDbTest {
             assertEquals(0, freshRoot.numberAnnotations());
             assertTrue(freshRoot.getParameters().has("matchingSetFilter"), "the request parameters moved to the fresh root");
             assertTrue(newUmbrella.getParameters().has("matchingSetFilter"), "and the new run inherited them");
+            // the old umbrella's page renders only the old run
+            Set<String> newRunIds = new HashSet<String>();
+            newRunIds.add(newUmbrella.getId());
+            for (Task opt : childrenOf(newUmbrella)) {
+                newRunIds.add(opt.getId());
+                for (Task leaf : childrenOf(opt)) newRunIds.add(leaf.getId());
+            }
+            Set<String> oldLeafIds = new HashSet<String>();
+            for (Task opt : childrenOf(old)) for (Task leaf : childrenOf(opt)) oldLeafIds.add(leaf.getId());
+            assertEquals(1, oldLeafIds.size(), "the old run has its one vector leaf");
+            JSONArray oldOptions = Task.load(oldUmbrella, check).matchResultsJson(10, null, check).getJSONArray("children");
+            Set<String> rendered = new HashSet<String>();
+            for (int i = 0; i < oldOptions.length(); i++) {
+                rendered.add(oldOptions.getJSONObject(i).getString("id"));
+                JSONArray kids = oldOptions.getJSONObject(i).optJSONArray("children");
+                if (kids == null) continue;
+                for (int j = 0; j < kids.length(); j++) rendered.add(kids.getJSONObject(j).getString("id"));
+            }
+            assertTrue(rendered.containsAll(oldLeafIds), "the old run's leaves are rendered");
+            for (String id : newRunIds) assertFalse(rendered.contains(id), "no task of the new run on the old page: " + id);
         } finally {
             check.rollbackAndClose();
         }
@@ -1222,8 +1268,10 @@ class MultiAlgorithmIntakeDbTest {
         Shepherd more = open("more");
         try {
             Task u = Task.load(uId, more);
+            JSONObject params = u.getParameters();           // as _doIdentify: snapshot, then strip the option
+            u.setParameters(Task.identityParams(params));
             Task hA = new Task(u);                           // _doIdentify fanned A out, not B yet
-            hA.setParameters(Task.withoutOptionMarker(u.getParameters()));
+            hA.setParameters(Task.withoutOptionMarker(params));
             hA.addObject(more.getAnnotation(ids.get(0)));
             hA.setStatus("completed");
             more.getPM().makePersistent(hA);
@@ -1376,6 +1424,7 @@ class MultiAlgorithmIntakeDbTest {
         sh.closeDBTransaction();
         MlServiceJobOutcome out = processorFailingRestart(1).runMatchProspects(ids, d.getId(), matchConfig());
         assertEquals("MATCH_PERSIST", out.getCode());
+        assertEquals(0, dispatcher.vectorCalls, "no vector dispatch was entered");
         assertTrue(dispatcher.published.isEmpty(), "nothing was dispatched");
         Shepherd check = open("check");
         try {
@@ -1503,8 +1552,10 @@ class MultiAlgorithmIntakeDbTest {
                     new JSONObject(), null, consumer2, Task.load(taskId, consumer2), "http://wb", false);
                 assertFalse(results.getBoolean("success"));
                 assertTrue(results.getString("error").contains(ids.get(0)));
+                assertEquals(Boolean.FALSE, consumer2.getAnnotation(ids.get(0)).getWbiaRegistered(),
+                    "unconfirmed: the attached flag stays pending right after the failed identify");
             });
-            consumer2.rollbackDBTransaction();   // what _doIdentify's caller does on failure
+            consumer2.commitDBTransaction();     // commit, so nothing a failure path wrote can hide behind a rollback
         } finally {
             consumer2.closeDBTransaction();
         }
@@ -1643,12 +1694,13 @@ class MultiAlgorithmIntakeDbTest {
         // exactly as before (its POST carries no annot_theta_list); what must not happen is a
         // WildbookIAM (forced) registration POST — every WildbookIAM annotation POST carries
         // annot_theta_list — or a retry
+        assertEquals(1, again.annotationPosts().size(), "the legacy resend happened exactly once");
         for (JSONObject post : again.annotationPosts()) {
             assertFalse(post.has("annot_theta_list"), "no forced annotation POST for a TRUE annotation");
         }
     }
 
-    /** The transaction is rolled back mid-dispatch (nontransactional writes disabled): nothing more can be written or published; the caller's recovery marks every option and the umbrella. */
+    /** The transaction is rolled back mid-dispatch (the processor's managers refuse nontransactional writes): the intake core stops dispatching, nothing is published, and the caller's recovery marks every option and the umbrella. */
     @Test void dispatchThatRollsBackTheTransactionIsRecovered() throws Exception {
         dispatcher.killTransactionOnVector = true;
         Shepherd sh = open("fixture");
@@ -1657,9 +1709,10 @@ class MultiAlgorithmIntakeDbTest {
         List<String> ids = annotationIds(e1);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
-        MlServiceJobOutcome out = processor().runMatchProspects(ids, d.getId(), matchConfig());
+        MlServiceJobOutcome out = strictProcessor().runMatchProspects(ids, d.getId(), matchConfig());
         assertEquals("MATCH_PERSIST", out.getCode(), "the group commit finds no active transaction");
-        assertTrue(dispatcher.published.isEmpty(), "setQueueResumeMessage fails outside a transaction, before publish");
+        assertEquals(1, dispatcher.vectorCalls, "only the dispatch that killed the transaction ran");
+        assertTrue(dispatcher.published.isEmpty(), "no publication followed the dead transaction");
         Shepherd check = open("check");
         try {
             Task dd = Task.load(d.getId(), check);
@@ -1671,8 +1724,10 @@ class MultiAlgorithmIntakeDbTest {
                 assertEquals("MATCH_PERSIST", errorCode(opt), "nothing was published, so every option is marked");
                 // new Task(option) links the leaf into option.children before the field write
                 // throws; DataNucleus performs that collection add on the (now nontransactional)
-                // option atomically, so an EMPTY child row can survive. No usable leaf can: none
-                // holds an annotation and none completed.
+                // option atomically, so ONE empty child row can survive on the option whose
+                // dispatch killed the transaction. No usable leaf can: none holds an annotation
+                // and none completed.
+                assertTrue(childrenOf(opt).size() <= 1, "at most one orphan child per option");
                 for (Task leaf : childrenOf(opt)) {
                     assertEquals(0, leaf.numberAnnotations(), "no leaf for an annotation is durable");
                     assertFalse("completed".equals(leaf.getStoredStatus()));
@@ -1692,8 +1747,10 @@ class MultiAlgorithmIntakeDbTest {
         List<String> ids = annotationIds(e1);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
-        MlServiceJobOutcome out = processor().runMatchProspects(ids, d.getId(), matchConfig());
+        MlServiceJobOutcome out = strictProcessor().runMatchProspects(ids, d.getId(), matchConfig());
         assertEquals("MATCH_PERSIST", out.getCode(), "the checked commit cannot succeed on a closed manager");
+        assertEquals(1, dispatcher.vectorCalls, "the intake core stops after the dispatch that closed the manager");
+        assertTrue(dispatcher.published.isEmpty(), "nothing is published on a closed manager");
         Set<String> publishedOptionIds = new HashSet<String>();
         for (JSONObject job : dispatcher.published) publishedOptionIds.add(job.getString("taskId"));
         Shepherd check = open("check");
