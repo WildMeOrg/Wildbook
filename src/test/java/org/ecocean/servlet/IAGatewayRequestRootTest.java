@@ -1,6 +1,7 @@
 package org.ecocean.servlet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
@@ -20,6 +21,7 @@ class IAGatewayRequestRootTest {
         JSONObject res = new JSONObject().put("taskId", "u-1");
         Task root = IAGateway.resolveGatewayRoot(umbrella, "u-1", j, res);
         assertNotSame(umbrella, root);
+        assertNotEquals(umbrella.getId(), root.getId(), "the replacement carries a fresh id, not the umbrella's");
         assertEquals(root.getId(), j.getString("taskId"), "queued payload names the fresh root");
         assertEquals(root.getId(), res.getString("taskId"), "response names the fresh root");
         assertEquals("u-1", umbrella.getParameters().getString(Task.PARAM_RUN_ID),
