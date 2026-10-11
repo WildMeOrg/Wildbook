@@ -780,6 +780,12 @@ class MultiAlgorithmIntakeDbTest {
         assertEquals(1, e1Before.length());
         assertEquals(e1Before.getJSONArray(0).getString(0), e1Tasks.getJSONArray(0).getString(0), "e2's failure leaves e1's task unchanged");
         assertEquals(e1Before.getJSONArray(0).getString(2), e1Tasks.getJSONArray(0).getString(2), "and its label");
+        assertEquals(e1Before.getJSONArray(0).get(1).toString(), e1Tasks.getJSONArray(0).get(1).toString(),
+            "and its overall status");
+        JSONArray e2Tasks = info.getJSONArray(e2.getCatalogNumber());
+        assertEquals(1, e2Tasks.length());
+        assertTrue(e2Tasks.getJSONArray(0).get(1).toString().contains("error"),
+            "e2's overall status shows its failed leaf: " + e2Tasks.getJSONArray(0).get(1));
     }
 
     /** §5.2 status matrix: error + pending, single-HotSpotter pending, skipped class, late fan-out next to a newer run. */

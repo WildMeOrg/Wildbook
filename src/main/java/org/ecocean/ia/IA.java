@@ -759,6 +759,13 @@ public class IA {
      * run — so a fresh root is used instead. A media-asset-only root (the detection root the
      * hamburger-menu New Match attaches to) is reused as before.
      */
+    // the old topTask.addChild(...) silently skipped null and the root itself; keep that, but set
+    // the field too (level-2-cache readers otherwise see getParent() == null)
+    static void linkUnderRoot(Task child, Task root) {
+        if ((child == null) || (root == null) || (child == root) || child.getId().equals(root.getId())) return;
+        child.setParent(root);
+    }
+
     static Task resolveRequestRoot(Task loaded, String taskId, boolean fastlane) {
         Task root = loaded;
 
@@ -812,7 +819,7 @@ public class IA {
                 Task mtask = intakeMediaAssets(myShepherd, mas, topTask);
                 System.out.println("INFO: IA.handleRest() just intook MediaAssets as " + mtask +
                     " for (parent) " + topTask);
-                mtask.setParent(topTask);   // sets the field too: L2-cache readers see the link
+                linkUnderRoot(mtask, topTask);
             }
             JSONArray alist = jin.optJSONArray("annotationIds");
             if ((alist != null) && (alist.length() > 0)) {
@@ -842,9 +849,9 @@ public class IA {
                 System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask +
                     " for " + topTask);
                 myShepherd.getPM().refresh(topTask);
-                atask.setParent(topTask);   // sets the field too: L2-cache readers see the link
+                linkUnderRoot(atask, topTask);
                 topTask.setModified();
-                myShepherd.getPM().makePersistent(atask);
+                if (atask != null) myShepherd.getPM().makePersistent(atask);
             }
             myShepherd.commitDBTransaction();
         } catch (Exception e) {

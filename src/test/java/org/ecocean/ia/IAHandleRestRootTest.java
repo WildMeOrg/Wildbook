@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -95,5 +96,28 @@ class IAHandleRestRootTest {
         Task runOnly = new Task("req-9");
         runOnly.addParameter(Task.PARAM_RUN_ID, "x");
         assertTrue(IA.mustReplaceRequestRoot(runOnly));
+    }
+
+    /** handleRest's link: intakeMediaAssets can return the root itself, and a failed intake returns null. */
+    @Test void linkUnderRootSkipsNullAndTheRootItself() {
+        Task root = new Task("root-1");
+        IA.linkUnderRoot(null, root);                       // no-op, no NPE
+        assertTrue((root.getChildren() == null) || root.getChildren().isEmpty());
+
+        IA.linkUnderRoot(root, root);
+        assertNull(root.getParent(), "the root is never its own parent");
+        assertTrue((root.getChildren() == null) || !root.getChildren().contains(root));
+        assertSame(root, root.getRootTask(), "no recursion");
+
+        Task twin = new Task("root-1");                      // a different object with the root's id
+        IA.linkUnderRoot(twin, root);
+        assertNull(twin.getParent());
+        assertSame(root, root.getRootTask());
+
+        Task child = new Task("child-1");
+        IA.linkUnderRoot(child, root);
+        assertSame(root, child.getParent());
+        assertTrue(root.getChildren().contains(child));
+        assertSame(root, child.getRootTask());
     }
 }
