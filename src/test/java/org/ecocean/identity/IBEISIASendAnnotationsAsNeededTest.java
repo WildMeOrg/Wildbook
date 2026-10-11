@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.ecocean.Annotation;
+import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.plugin.WildbookIAM;
 import org.ecocean.media.MediaAsset;
@@ -155,10 +157,20 @@ class IBEISIASendAnnotationsAsNeededTest {
                  }
                  return inv.callRealMethod();
              });
-             MockedStatic<IA> ia = mockStatic(IA.class)) {
-            body.run();
+             MockedStatic<IA> ia = mockStatic(IA.class);
+             // the forced repair invalidates the iaAnnotationIds cache: never the real cache/PMF
+             MockedStatic<QueryCacheFactory> cache = mockStatic(QueryCacheFactory.class)) {
+            CACHE = cache;
+            try {
+                body.run();
+            } finally {
+                CACHE = null;
+            }
         }
     }
+
+    /** The QueryCacheFactory static mock of the running withPlugin body (for verification). */
+    static MockedStatic<QueryCacheFactory> CACHE = null;
 
     @Test void pendingQueryIsRegisteredUnderItsAcmIdAndFlaggedTrue() throws Exception {
         FakePlugin plugin = new FakePlugin();
@@ -175,6 +187,27 @@ class IBEISIASendAnnotationsAsNeededTest {
             verify(q).setWbiaRegistered(Boolean.TRUE);
             assertEquals("q", report.getJSONArray("forcedRegistered").getString(0));
             assertEquals(0, report.getJSONArray("droppedTargets").length());
+        });
+    }
+
+    /** Final fix 5: a blank pending acmId takes the annotation id (the ml-service persistence convention). */
+    @Test void pendingAnnotationWithABlankAcmIdIsRegisteredUnderItsId() throws Exception {
+        FakePlugin plugin = new FakePlugin();
+        Annotation q = statefulAnn(ACM_Q, null, Boolean.FALSE, asset(MA_UUID));
+        final String[] acm = { "" };
+        when(q.getAcmId()).thenAnswer(inv -> acm[0]);
+        doAnswer(inv -> {
+            acm[0] = inv.getArgument(0);
+            return null;
+        }).when(q).setAcmId(anyString());
+        Shepherd sh = shepherd();
+        withPlugin(plugin, new ArrayList<String>(), null, () -> {
+            JSONObject report = new JSONObject();
+            IBEISIA.sendAnnotationsAsNeeded(new ArrayList<Annotation>(Arrays.asList(q)),
+                new ArrayList<Annotation>(), sh, report);
+            assertEquals(ACM_Q, acm[0], "the acmId is the annotation id");
+            assertEquals(Arrays.asList(ACM_Q), plugin.annCalls, "registered under its id");
+            assertEquals(Boolean.TRUE, q.getWbiaRegistered());
         });
     }
 
@@ -345,6 +378,7 @@ class IBEISIASendAnnotationsAsNeededTest {
         withPlugin(plugin, new ArrayList<String>(), null, () -> {
             assertTrue(IBEISIA.iaCheckMissing(missing(ACM_Q), "context0", sh));
             assertEquals(Arrays.asList(ACM_Q), plugin.annCalls);
+            CACHE.verify(() -> QueryCacheFactory.safeInvalidate(anyString(), eq("iaAnnotationIds")));
         });
         FakePlugin failing = new FakePlugin();
         failing.annOk = false;

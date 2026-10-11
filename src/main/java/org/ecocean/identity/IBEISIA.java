@@ -3857,7 +3857,7 @@ public class IBEISIA {
 
     /**
      * Registers one pending annotation under its acmId. Mints the media asset's acmId from its
-     * UUID when missing (the AcmIdBot convention), applies the shared eligibility chain, forces
+     * UUID when missing (the AcmIdBot convention) and the annotation's from its id, applies the shared eligibility chain, forces
      * the image then the annotation (skipping the POSTs when WBIA already holds the acmId), and
      * flips the flag to TRUE on the attached object. Returns null on success, else the reason.
      */
@@ -3866,6 +3866,9 @@ public class IBEISIA {
         MediaAsset ma = ann.getMediaAsset();
 
         if ((ma != null) && !Util.stringExists(ma.getAcmId())) ma.setAcmId(ma.getUUID());
+        // a blank acmId takes the annotation id, as ml-service persistence does (and as the
+        // eligibility check's forced-id fallback assumes)
+        if (!Util.stringExists(ann.getAcmId())) ann.setAcmId(ann.getId());
         String reason = WildbookIAM.wbiaEligibilityReason(ann);
         if (reason != null) return reason;
         if (!knownAcmIds.contains(ann.getAcmId())) {
