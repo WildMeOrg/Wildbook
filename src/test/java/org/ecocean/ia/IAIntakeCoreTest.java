@@ -28,6 +28,7 @@ import javax.jdo.PersistenceManager;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.IAJsonProperties;
+import org.ecocean.servlet.IAGateway;
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -46,6 +47,8 @@ class IAIntakeCoreTest {
     static class RecordingDispatcher implements IA.Dispatcher {   // not final: one test subclasses it
         final List<Task> vectorRuns = new ArrayList<Task>();
         final List<JSONObject> published = new ArrayList<JSONObject>();
+        final List<Boolean> publishedFastlane = new ArrayList<Boolean>();
+        List<String> events = null;
         boolean publishResult = true;
         boolean publishThrows = false;
         String vectorThrowsForIaClass = null;
@@ -53,6 +56,7 @@ class IAIntakeCoreTest {
 
         @Override public void runVector(JSONObject opt, Task optionTask, Shepherd shep) {
             vectorRuns.add(optionTask);
+            if (events != null) events.add("runVector");
             String iaClass = optionTask.getObjectAnnotations().get(0).getIAClass();
             if (iaClass.equals(vectorThrowsForIaClass)) {
                 if (attachLeafBeforeThrow) {
@@ -73,6 +77,8 @@ class IAIntakeCoreTest {
         throws java.io.IOException {
             if (publishThrows) throw new java.io.IOException("queue unwritable");
             published.add(new JSONObject(job));
+            publishedFastlane.add(fastlane);
+            if (events != null) events.add("publish");
             return publishResult;
         }
     }
@@ -87,6 +93,7 @@ class IAIntakeCoreTest {
         when(sh.getPM()).thenReturn(pm);
         when(sh.getContext()).thenReturn("context0");
         when(sh.commitDBTransactionWithStatus()).thenReturn(commitOk);
+        when(sh.isDBTransactionActive()).thenReturn(true);
         return sh;
     }
 
@@ -268,16 +275,35 @@ class IAIntakeCoreTest {
     }
 
     @Test void parentIsLinkedBeforeThePersistCommit() throws Exception {
-        IA.setDispatcherForTests(new RecordingDispatcher());
+        RecordingDispatcher d = new RecordingDispatcher();
+        final List<String> events = new ArrayList<String>();
+        d.events = events;
+        IA.setDispatcherForTests(d);
         Shepherd sh = shepherd(true);
-        Task parent = new Task();
+        final Task parent = new Task();
+        final Task[] umbrella = new Task[1];
+        when(sh.getPM().makePersistent(any())).thenAnswer(inv -> {
+            umbrella[0] = inv.getArgument(0);
+            events.add("persist");
+            return inv.getArgument(0);
+        });
+        when(sh.commitDBTransactionWithStatus()).thenAnswer(inv -> {
+            assertSame(parent, umbrella[0].getParent(), "linked before the commit");
+            assertTrue(parent.getChildren().contains(umbrella[0]));
+            events.add("commit");
+            return true;
+        });
         withStatics(config(twoClassesTwoOptions()), () -> {
             IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh,
                 Arrays.asList(ann("body", "guitarfish")), parent, null, false);
             assertSame(parent, o.umbrella.getParent());
-            assertTrue(parent.getChildren().contains(o.umbrella));
-            InOrder order = inOrder(sh.getPM(), sh);
-            order.verify(sh.getPM()).makePersistent(o.umbrella);
+            assertEquals("persist", events.get(0));
+            assertEquals("commit", events.get(1));
+            assertEquals(4, events.size());
+            for (int k = 2; k < events.size(); k++) {
+                assertTrue(events.get(k).equals("runVector") || events.get(k).equals("publish"));
+            }
+            InOrder order = inOrder(sh);
             order.verify(sh).commitDBTransactionWithStatus();
             order.verify(sh).beginDBTransaction();
         });
@@ -433,6 +459,57 @@ class IAIntakeCoreTest {
             assertFalse(o.options.get(0).vector);
             assertTrue(d.published.get(0).getBoolean("fastlane"));
             assertEquals("fast", d.published.get(0).getString("lane"));
+            assertEquals(Arrays.asList(true), d.publishedFastlane);
+            assertTrue(o.options.get(0).task.getParameters().getBoolean("fastlane"));
+            assertEquals("fast", o.options.get(0).task.getParameters().getString("lane"));
+
+            RecordingDispatcher d2 = new RecordingDispatcher();
+            IA.setDispatcherForTests(d2);
+            IA.IntakeOutcome o2 = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("b", "guitarfish")), null, null, false);
+            assertEquals(Arrays.asList(false), d2.publishedFastlane);
+            assertFalse(o2.options.get(0).task.getParameters().has("fastlane"));
+            assertFalse(o2.options.get(0).task.getParameters().has("lane"));
+        });
+    }
+
+    @Test void realDispatcherRoutesFastlaneToTheDetectionQueue() throws Exception {
+        IA.setDispatcherForTests(null);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> m = new HashMap<String, List<JSONObject>>();
+        m.put("guitarfish", Arrays.asList(hotspotter()));
+        try (MockedStatic<IAGateway> gw = mockStatic(IAGateway.class)) {
+            gw.when(() -> IAGateway.addToDetectionQueue(anyString(), anyString())).thenReturn(true);
+            gw.when(() -> IAGateway.addToQueue(anyString(), anyString())).thenReturn(true);
+            withStatics(config(m), () -> {
+                IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, true);
+                assertTrue(o.options.get(0).published);
+            });
+            gw.verify(() -> IAGateway.addToDetectionQueue(anyString(), anyString()));
+            gw.verify(() -> IAGateway.addToQueue(anyString(), anyString()), never());
+        }
+        try (MockedStatic<IAGateway> gw = mockStatic(IAGateway.class)) {
+            gw.when(() -> IAGateway.addToDetectionQueue(anyString(), anyString())).thenReturn(true);
+            gw.when(() -> IAGateway.addToQueue(anyString(), anyString())).thenReturn(true);
+            withStatics(config(m), () -> {
+                IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, false);
+                assertTrue(o.options.get(0).published);
+            });
+            gw.verify(() -> IAGateway.addToQueue(anyString(), anyString()));
+            gw.verify(() -> IAGateway.addToDetectionQueue(anyString(), anyString()), never());
+        }
+    }
+
+    @Test void singleVectorOptionPutsTheV2FlagOnTheUmbrella() throws Exception {
+        IA.setDispatcherForTests(new RecordingDispatcher());
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> m = new HashMap<String, List<JSONObject>>();
+        m.put("guitarfish", Arrays.asList(miewid()));
+        withStatics(config(m), () -> {
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, false);
+            assertSame(o.umbrella, o.options.get(0).task);
+            assertTrue(o.options.get(0).vector);
+            assertTrue(o.umbrella.getParameters().getBoolean(Task.PARAM_V2_MATCH));
+            assertTrue(o.umbrella.getParameters().getBoolean(Task.PARAM_OPTION));
         });
     }
 
@@ -446,6 +523,24 @@ class IAIntakeCoreTest {
             IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh,
                 Arrays.asList(ann("body", "guitarfish")), null, null, false);
             assertFalse(o.persistFailed, "the run IS durable");
+            assertEquals(2, o.options.size());
+            for (IA.OptionResult r : o.options) {
+                assertFalse(r.published);
+                assertEquals(r.vector ? "DISPATCH_FAILED" : "QUEUE_FAILED", r.failureCode);
+            }
+            assertTrue(d.vectorRuns.isEmpty() && d.published.isEmpty(), "nothing was dispatched");
+        });
+    }
+
+    @Test void transactionRestartThatSwallowsItsFailureIsDetected() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        when(sh.isDBTransactionActive()).thenReturn(false);   // beginDBTransaction() returns normally, no transaction
+        withStatics(config(twoClassesTwoOptions()), () -> {
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh,
+                Arrays.asList(ann("body", "guitarfish")), null, null, false);
+            assertFalse(o.persistFailed);
             assertEquals(2, o.options.size());
             for (IA.OptionResult r : o.options) {
                 assertFalse(r.published);

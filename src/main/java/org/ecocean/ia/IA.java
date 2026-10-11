@@ -383,6 +383,7 @@ public class IA {
     public static final class OptionResult {
         public final Task task;
         public final boolean vector;
+        /** true once the option's dispatch ran (vector) or its queue job was published (HotSpotter); says nothing about the match outcome */
         public boolean published = false;
         public String failureCode = null;
 
@@ -476,6 +477,12 @@ public class IA {
         return p;
     }
 
+    private static void markOption(JSONObject params, JSONObject opt) {
+        params.put("ibeis.identification", (opt == null) ? "DEFAULT" : opt);
+        params.put(Task.PARAM_OPTION, true);
+        if (Embedding.isVectorConfig(opt)) params.put(Task.PARAM_V2_MATCH, true);
+    }
+
     private static void markTaskError(Task t, String code, String message) {
         t.setStatus("error");
         t.setStatusDetailsAddError(code, message);
@@ -551,9 +558,7 @@ public class IA {
             if (opts.size() == 1 && annotsByIaClass.size() == 1) {
                 // one IA class, one algorithm: the umbrella is *the* (only) option task
                 JSONObject opt = opts.get(0);
-                newTaskParams.put("ibeis.identification", (opt == null) ? "DEFAULT" : opt);
-                newTaskParams.put(Task.PARAM_OPTION, true);
-                if (Embedding.isVectorConfig(opt)) newTaskParams.put(Task.PARAM_V2_MATCH, true);
+                markOption(newTaskParams, opt);
                 topTask.setParameters(newTaskParams);
                 plannedOpts.add(opt);
                 plannedTasks.add(topTask);
@@ -564,9 +569,7 @@ public class IA {
                     Task t = new Task();
                     t.setObjectAnnotations(annsOneIAClass);
                     JSONObject tp = new JSONObject(newTaskParams.toString());
-                    tp.put("ibeis.identification", (opt == null) ? "DEFAULT" : opt);
-                    tp.put(Task.PARAM_OPTION, true);
-                    if (Embedding.isVectorConfig(opt)) tp.put(Task.PARAM_V2_MATCH, true);
+                    markOption(tp, opt);
                     t.setParameters(tp);
                     topTask.addChild(t);
                     plannedOpts.add(opt);
@@ -608,6 +611,9 @@ public class IA {
         // always receives.
         try {
             myShepherd.beginDBTransaction();
+            // the real beginDBTransaction() swallows some failures, so check the result
+            if (!myShepherd.isDBTransactionActive())
+                throw new IllegalStateException("transaction not active after restart");
         } catch (RuntimeException ex) {
             System.out.println("ERROR: IA.intakeAnnotations() could not restart the transaction after persisting run " +
                 umbrellaId + ": " + ex + "; nothing dispatched");
