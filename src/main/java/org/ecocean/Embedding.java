@@ -274,14 +274,21 @@ public class Embedding implements java.io.Serializable {
         return embData;
     }
 
+    /**
+     * The new _id_conf contract (entries with method/version/pipeline_root) and legacy entries
+     * (api_endpoint) are both vector configs; everything else (HotSpotter etc.) is not. Pure.
+     */
+    public static boolean isVectorConfig(JSONObject iaConfig) {
+        if (iaConfig == null) return false;
+        return Util.stringExists(iaConfig.optString("method", null))
+            || Util.stringExists(iaConfig.optString("api_endpoint", null));
+    }
+
     public static boolean findMatchProspects(JSONObject iaConfig, Task task, Shepherd myShepherd) {
         // Migration plan v2 §commit #3: gate accepts the new _id_conf
         // contract (entries with `method`/`version`/`pipeline_root` and no
         // api_endpoint) as well as legacy entries (with `api_endpoint`).
-        if (iaConfig == null) return false;
-        boolean isVectorConfig = Util.stringExists(iaConfig.optString("method", null))
-            || Util.stringExists(iaConfig.optString("api_endpoint", null));
-        if (!isVectorConfig) return false;
+        if (!isVectorConfig(iaConfig)) return false;
         // from here on out we should return true since this is a vector match, even when something goes wrong
         // and we should also set status on the task (and subtasks)
         if (task == null) return true; // cant really set status on this :(
@@ -300,6 +307,13 @@ public class Embedding implements java.io.Serializable {
         for (Annotation ann : task.getObjectAnnotations()) {
             // every ann gets a subTask
             Task subTask = new Task(task);
+            // issue #1787: new Task(task) copies the option's parameters; a leaf is not an
+            // option, so drop the marker (the run id and mlServiceV2Match stay).
+            JSONObject leafParams = subTask.getParameters();
+            if ((leafParams != null) && leafParams.has(Task.PARAM_OPTION)) {
+                leafParams.remove(Task.PARAM_OPTION);
+                subTask.setParameters(leafParams);
+            }
             subTask.addObject(ann);
             // we need embedding(s) on this annot to find prospects, so lets try to make some on the fly if we dont have one
             // TODO not sure if this is wise, or it would be better to just fail outright and let some background process do this
