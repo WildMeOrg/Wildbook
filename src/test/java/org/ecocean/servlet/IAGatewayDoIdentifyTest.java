@@ -1,0 +1,227 @@
+package org.ecocean.servlet;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.jdo.PersistenceManager;
+
+import org.ecocean.Annotation;
+import org.ecocean.ia.Task;
+import org.ecocean.identity.IAQueryCache;
+import org.ecocean.identity.IBEISIA;
+import org.ecocean.shepherd.core.Shepherd;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+
+/** Spec §4.0 (fan-out identity) and §4.4 (queued retries are pending). */
+class IAGatewayDoIdentifyTest {
+
+    // The Shepherd's PM answers getObjectById from a map, so Task.load and the annotation
+    // lookups in _doIdentify resolve to our fixtures. Ids must be distinct across types.
+    private static Shepherd shepherdWith(Map<String, Object> byId) {
+        PersistenceManager pm = mock(PersistenceManager.class);
+        when(pm.newObjectIdInstance(any(Class.class), any())).thenAnswer(inv -> inv.getArgument(1));
+        when(pm.getObjectById(any(), anyBoolean())).thenAnswer(inv -> byId.get(inv.getArgument(0)));
+        Shepherd sh = mock(Shepherd.class);
+        when(sh.getPM()).thenReturn(pm);
+        when(sh.getContext()).thenReturn("context0");
+        return sh;
+    }
+
+    private static Annotation ann(String id) {
+        Annotation a = new Annotation();
+        a.setId(id);
+        a.setIAClass("guitarfish");
+        return a;
+    }
+
+    private static JSONObject jin(String... annIds) {
+        JSONArray ids = new JSONArray();
+        for (String id : annIds) ids.put(id);
+        return new JSONObject().put("identify", new JSONObject().put("annotationIds", ids))
+            .put("opt", new JSONObject("{\"query_config_dict\":{\"sv_on\":true}}"));
+    }
+
+    private static JSONObject sendResult(boolean ok) {
+        JSONObject r = new JSONObject().put("success", ok);
+        if (ok) {
+            r.put("status", new JSONObject().put("success", true)).put("response", "job-1");
+        } else {
+            r.put("error", "WBIA refused");
+        }
+        return r;
+    }
+
+    interface Body { void run() throws Exception; }
+
+    // Partial static mocks through a custom default Answer: the few IBEISIA / IAGateway statics
+    // _doIdentify needs are answered here, everything else runs real. (MockedStatic.when(...)
+    // on a CALLS_REAL_METHODS mock would execute the real method while defining the stub —
+    // waitForIAPriming can block for minutes and requeueJob(null, …) would throw.)
+    private static void withIdentifyStubs(JSONObject sendResult, boolean requeueResult, Body body)
+    throws Exception {
+        try (MockedStatic<IBEISIA> ibeis = mockStatic(IBEISIA.class, inv -> {
+                 String m = inv.getMethod().getName();
+                 if (m.equals("waitForIAPriming")) return null;
+                 if (m.equals("queryConfigDict")) return new JSONObject();
+                 if (m.equals("beginIdentifyAnnotations")) return sendResult;
+                 if (m.equals("log")) return null;
+                 return inv.callRealMethod();
+             });
+             MockedStatic<IAQueryCache> cache = mockStatic(IAQueryCache.class);
+             MockedStatic<IAGateway> gw = mockStatic(IAGateway.class, inv -> {
+                 if (inv.getMethod().getName().equals("requeueJob")) return requeueResult;
+                 return inv.callRealMethod();
+             })) {
+            cache.when(() -> IAQueryCache.tryTargetAnnotationsCache(anyString(), any(Annotation.class),
+                any(JSONObject.class), any(Shepherd.class))).thenReturn(null);
+            body.run();
+        }
+    }
+
+    private static String lastErrorCode(Task t) {
+        JSONObject sd = t.getStatusDetails();
+        JSONArray errs = (sd == null) ? null : sd.optJSONArray("errors");
+        if ((errs == null) || (errs.length() == 0)) return null;
+        return errs.getJSONObject(errs.length() - 1).optString("code", null);
+    }
+
+    @Test void failedSendStoresRequeuedWhileARetryIsScheduled() throws Exception {
+        Task t = new Task("T1");
+        Annotation a = ann("A1");
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T1", t);
+        byId.put("A1", a);
+        Shepherd sh = shepherdWith(byId);
+        JSONObject res = new JSONObject().put("taskId", "T1");
+        withIdentifyStubs(sendResult(false), true, () -> {
+            JSONObject out = IAGateway._doIdentify(jin("A1"), res, sh, "context0", "http://wb", false);
+            assertTrue(out.getBoolean("success"));
+            assertEquals(Task.STATUS_REQUEUED, t.getStoredStatus());
+            assertFalse(t.statusInEndState());
+            assertEquals("SEND_FAILED", lastErrorCode(t));
+            assertNull(t.getCompletionDateInMilliseconds(), "not terminal: no completion date");
+        });
+    }
+
+    @Test void failedSendStoresErrorWhenTheRetryBudgetIsExhausted() throws Exception {
+        Task t = new Task("T2");
+        Annotation a = ann("A2");
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T2", t);
+        byId.put("A2", a);
+        Shepherd sh = shepherdWith(byId);
+        JSONObject res = new JSONObject().put("taskId", "T2");
+        withIdentifyStubs(sendResult(false), false, () -> {
+            IAGateway._doIdentify(jin("A2"), res, sh, "context0", "http://wb", false);
+            assertEquals("error", t.getStoredStatus());
+            assertTrue(t.statusInEndState());
+            assertEquals("SEND_FAILED", lastErrorCode(t));
+            assertNotNull(t.getCompletionDateInMilliseconds());
+        });
+    }
+
+    @Test void fanOutParentKeepsIdentityParamsAndChildrenDropTheOptionMarker() throws Exception {
+        Task parent = new Task("T3");
+        JSONObject params = new JSONObject()
+            .put("importTaskId", "IMP1").put(Task.PARAM_RUN_ID, "RUN-1").put(Task.PARAM_OPTION, true)
+            .put("ibeis.identification", new JSONObject("{\"query_config_dict\":{\"sv_on\":true}}"))
+            .put("matchingSetFilter", new JSONObject().put("locationIds", new JSONArray().put("X")));
+        parent.setParameters(params);
+        Annotation a = ann("A3");
+        Annotation b = ann("B3");
+        parent.addObject(a);
+        parent.addObject(b);
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T3", parent);
+        byId.put("A3", a);
+        byId.put("B3", b);
+        Shepherd sh = shepherdWith(byId);
+        JSONObject res = new JSONObject().put("taskId", "T3");
+        withIdentifyStubs(sendResult(true), true, () -> {
+            IAGateway._doIdentify(jin("A3", "B3"), res, sh, "context0", "http://wb", false);
+            JSONObject kept = parent.getParameters();
+            assertEquals(3, kept.length(), "exactly importTaskId, run id and option marker survive the reset");
+            assertEquals("IMP1", kept.getString("importTaskId"));
+            assertEquals("RUN-1", kept.getString(Task.PARAM_RUN_ID));
+            assertTrue(kept.getBoolean(Task.PARAM_OPTION));
+            assertFalse(kept.has("ibeis.identification"), "renderability of the parent is unchanged");
+            assertEquals(2, parent.getChildren().size());
+            for (Task kid : parent.getChildren()) {
+                JSONObject kp = kid.getParameters();
+                assertEquals("IMP1", kp.getString("importTaskId"));
+                assertEquals("RUN-1", kp.getString(Task.PARAM_RUN_ID));
+                assertTrue(kp.has("ibeis.identification"));
+                assertTrue(kp.has("matchingSetFilter"));
+                assertFalse(kp.has(Task.PARAM_OPTION), "fan-out children are leaves, not options");
+                assertEquals(1, kid.numberAnnotations());
+            }
+        });
+    }
+
+    @Test void fanOutParentWithoutIdentityParamsIsClearedToNullAsToday() throws Exception {
+        Task parent = new Task("T4");
+        parent.setParameters(new JSONObject().put("ibeis.identification", new JSONObject()));
+        Annotation a = ann("A4");
+        Annotation b = ann("B4");
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T4", parent);
+        byId.put("A4", a);
+        byId.put("B4", b);
+        Shepherd sh = shepherdWith(byId);
+        withIdentifyStubs(sendResult(true), true, () -> {
+            IAGateway._doIdentify(jin("A4", "B4"), new JSONObject().put("taskId", "T4"), sh, "context0", "http://wb", false);
+            assertNull(parent.getParameters());
+            assertTrue(parent.getChildren().get(0).getParameters().has("ibeis.identification"));
+        });
+    }
+
+    /** Review Focus 4: the requeued job re-enters with one annotation; no second fan-out, status left for the callback. */
+    @Test void retryReentryWithOneAnnotationDoesNotFanOut() throws Exception {
+        Task t = new Task("T5");
+        t.setStatus(Task.STATUS_REQUEUED);
+        t.setParameters(new JSONObject().put("ibeis.identification", new JSONObject()).put(Task.PARAM_RUN_ID, "RUN-5"));
+        Annotation a = ann("A5");
+        t.addObject(a);
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T5", t);
+        byId.put("A5", a);
+        Shepherd sh = shepherdWith(byId);
+        withIdentifyStubs(sendResult(true), true, () -> {
+            JSONObject out = IAGateway._doIdentify(jin("A5"), new JSONObject().put("taskId", "T5"), sh, "context0", "http://wb", false);
+            assertTrue(out.getBoolean("success"));
+            assertFalse(t.hasChildren());
+            assertEquals(Task.STATUS_REQUEUED, t.getStoredStatus(), "the WBIA callback overwrites it with completed");
+            assertEquals(IBEISIA.STATUS_PROCESSING, a.getIdentificationStatus());
+            assertEquals("job-1", out.getJSONArray("tasks").getJSONObject(0).getString("jobId"));
+        });
+    }
+
+    @Test void identityParamsOfNullIsNull() {
+        assertNull(Task.identityParams(null));
+        assertNull(Task.identityParams(new JSONObject().put("ibeis.identification", new JSONObject())));
+        JSONObject p = Task.identityParams(new JSONObject().put("importTaskId", "IMP1").put("x", 1));
+        assertEquals(1, p.length());
+        assertEquals("IMP1", p.getString("importTaskId"));
+        assertNull(Task.withoutOptionMarker(null));
+        JSONObject src = new JSONObject().put(Task.PARAM_OPTION, true).put("k", "v");
+        JSONObject copy = Task.withoutOptionMarker(src);
+        assertFalse(copy.has(Task.PARAM_OPTION));
+        assertEquals("v", copy.getString("k"));
+        assertTrue(src.has(Task.PARAM_OPTION), "input not mutated");
+    }
+}

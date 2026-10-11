@@ -855,6 +855,28 @@ public class Task implements java.io.Serializable {
     }
 
     /**
+     * The keys that identify a task within its run (issue #1787): kept on the option parent
+     * when {@code IAGateway._doIdentify} clears its parameters before fanning out. Returns
+     * null when nothing applies, so a legacy parent still ends up with null parameters.
+     */
+    public static JSONObject identityParams(JSONObject params) {
+        if (params == null) return null;
+        JSONObject keep = new JSONObject();
+        for (String key : new String[] { PARAM_IMPORT_TASK_ID, PARAM_RUN_ID, PARAM_OPTION }) {
+            if (params.has(key)) keep.put(key, params.get(key));
+        }
+        return (keep.length() == 0) ? null : keep;
+    }
+
+    /** A copy of {@code params} without the option marker (fan-out children are leaves). */
+    public static JSONObject withoutOptionMarker(JSONObject params) {
+        if (params == null) return null;
+        JSONObject copy = new JSONObject(params.toString());
+        copy.remove(PARAM_OPTION);
+        return copy;
+    }
+
+    /**
      * Spec §4.0 run selection, shared by the Match Results link and the import status.
      * Returns the newest ELIGIBLE umbrella among the annotation's direct tasks, comparing
      * umbrella creation times (never leaf times, so a late HotSpotter fan-out under an older
