@@ -1134,6 +1134,43 @@ class MultiAlgorithmIntakeDbTest {
         assertEquals(1, sum.getInt("identificationNumberError"), "the no-option encounter's annotation reads error");
     }
 
+    /** Final fix 2: an encounter with no genus/species makes identOpts throw; only its group is skipped. */
+    @Test void encounterWithoutTaxonomyIsANoWorkGroupAndDoesNotAbortTheOthers() throws Exception {
+        Shepherd sh = open("fixture");
+        String importId = nextImportId();
+        Encounter bad = encounter(sh, null, null, BODY);   // first group: identOpts -> taxonomyKey(null)
+        Encounter good = guitarfish(sh, BODY);
+        Task d = detectionTask(sh, importId);
+        ImportTask itask = importWith(sh, importId, d.getParent(), bad, good);
+        List<String> ids = annotationIds(bad, good);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        // final fix 1 wiring: the processor's match config completes the vector option
+        JSONObject mc = matchConfig().put("api_endpoint", "http://ml/match");
+        assertEquals(MlServiceJobOutcome.Kind.OK, processor().runMatchProspects(ids, d.getId(), mc).getKind());
+
+        Shepherd check = open("check");
+        try {
+            Task dd = Task.load(d.getId(), check);
+            assertEquals("completed", dd.getStoredStatus(), "D is not INVALID_MATCH_CONFIG: not every group is noWork");
+            Task ub = umbrellaFor(dd, bad);
+            assertEquals("error", ub.getStoredStatus());
+            assertEquals("INVALID_MATCH_CONFIG", errorCode(ub));
+            assertTrue(IA.intakeProducedNoWork(ub));
+            Task ug = umbrellaFor(dd, good);
+            assertEquals(2, childrenOf(ug).size(), "the other encounter's run is built normally");
+            Task vopt = optionOf(ug, true, BODY);
+            assertEquals("completed", vopt.getStoredStatus());
+            assertEquals("http://ml/match", vopt.getParameters().getJSONObject("ibeis.identification")
+                .getString("api_endpoint"), "vector defaults come from runMatchProspects' matchConfig");
+        } finally {
+            check.rollbackAndClose();
+        }
+        for (String id : hotspotterOptionIds(d.getId())) setStatus(id, "completed");
+        JSONObject sum = summary(itask.getId());
+        assertEquals("complete", sum.getString("identificationStatus"));
+    }
+
     @Test void allGroupsWithoutOptionsMarkTheDetectionTaskInvalid() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, "mystery");

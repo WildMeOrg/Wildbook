@@ -762,7 +762,8 @@ public class MlServiceProcessor {
     /**
      * Spec §4.1: every default identification option runs for each encounter's annotations
      * through the shared intake. {@code matchConfig} keeps its gate / embedding-presence roles
-     * upstream (waitAndRunMatchInternal); it no longer selects the algorithm.
+     * upstream (waitAndRunMatchInternal) and completes each vector option (method/version/
+     * api_endpoint) where IA.json leaves them out; it no longer selects the algorithm.
      */
     public MlServiceJobOutcome runMatchProspects(List<String> annotationIds, String taskId,
         JSONObject matchConfig) {
@@ -804,7 +805,8 @@ public class MlServiceProcessor {
             JSONObject inherited = matchIntakeParams(parent.getParameters());
             int noWorkGroups = 0;
             for (List<Annotation> group : groups) {
-                IA.IntakeOutcome o = IA.intakeAnnotationsUnder(shep, group, parent, inherited, false);
+                IA.IntakeOutcome o = IA.intakeAnnotationsUnder(shep, group, parent, inherited, false,
+                    matchConfig);
                 if (o == null) continue;
                 GroupRecord rec = new GroupRecord(o);
                 processed.add(rec);

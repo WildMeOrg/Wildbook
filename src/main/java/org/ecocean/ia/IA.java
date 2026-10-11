@@ -438,7 +438,7 @@ public class IA {
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns,
         final Task parentTask, boolean fastlane) {
         JSONObject inherited = (parentTask == null) ? null : parentTask.getParameters();
-        IntakeOutcome o = intakeCore(myShepherd, anns, null, inherited, fastlane);
+        IntakeOutcome o = intakeCore(myShepherd, anns, null, inherited, fastlane, null);
 
         if ((o == null) || o.persistFailed) return null;
         return o.umbrella;
@@ -451,7 +451,17 @@ public class IA {
      */
     public static IntakeOutcome intakeAnnotationsUnder(Shepherd myShepherd, List<Annotation> anns,
         Task parent, JSONObject inheritedParams, boolean fastlane) {
-        return intakeCore(myShepherd, anns, parent, inheritedParams, fastlane);
+        return intakeAnnotationsUnder(myShepherd, anns, parent, inheritedParams, fastlane, null);
+    }
+
+    /**
+     * As above; {@code vectorDefaults} (the ml-service match config: method/version from the
+     * embedding response, api_endpoint from the ml-service config) fills only the missing
+     * method/version/api_endpoint keys of each vector option, on a copy. Null = no filling.
+     */
+    public static IntakeOutcome intakeAnnotationsUnder(Shepherd myShepherd, List<Annotation> anns,
+        Task parent, JSONObject inheritedParams, boolean fastlane, JSONObject vectorDefaults) {
+        return intakeCore(myShepherd, anns, parent, inheritedParams, fastlane, vectorDefaults);
     }
 
     /** A childless umbrella without an option: no class had a default identification option. */
@@ -475,6 +485,34 @@ public class IA {
         p.remove(Task.PARAM_OPTION);
         p.remove("ibeis.identification");
         return p;
+    }
+
+    private static final String[] VECTOR_DEFAULT_KEYS = { "method", "version", "api_endpoint" };
+
+    /*
+     * Final fix 1 (#1787): a vector option (isVectorConfig, or pipeline_root "vector") takes the
+     * missing method/version/api_endpoint from the ml-service match config, on a copy, so an
+     * option without a version never matches across embedding-model versions and one without a
+     * method is still recognized as vector. Existing keys are never overwritten.
+     */
+    static List<JSONObject> withVectorDefaults(List<JSONObject> opts, JSONObject defaults) {
+        if ((opts == null) || (defaults == null)) return opts;
+        List<JSONObject> out = new ArrayList<JSONObject>();
+        for (JSONObject opt : opts) {
+            if ((opt == null) || !(Embedding.isVectorConfig(opt) ||
+                "vector".equals(opt.optString("pipeline_root", null)))) {
+                out.add(opt);
+                continue;
+            }
+            JSONObject copy = new JSONObject(opt.toString());
+            for (String key : VECTOR_DEFAULT_KEYS) {
+                if (Util.stringExists(copy.optString(key, null))) continue;
+                String val = defaults.optString(key, null);
+                if (Util.stringExists(val)) copy.put(key, val);
+            }
+            out.add(copy);
+        }
+        return out;
     }
 
     private static void markOption(JSONObject params, JSONObject opt) {
@@ -503,7 +541,7 @@ public class IA {
      * always lists every option with its publication result (spec §4.2.3).
      */
     private static IntakeOutcome intakeCore(Shepherd myShepherd, List<Annotation> anns,
-        Task parent, JSONObject inheritedParams, boolean fastlane) {
+        Task parent, JSONObject inheritedParams, boolean fastlane, JSONObject vectorDefaults) {
         if ((anns == null) || (anns.size() < 1)) return null;
         String context = myShepherd.getContext();
         IntakeOutcome outcome = new IntakeOutcome();
@@ -522,7 +560,16 @@ public class IA {
         List<List<Annotation> > plannedAnns = new ArrayList<List<Annotation> >();
         for (List<Annotation> annsOneIAClass : annotsByIaClass) {
             String iaClass = annsOneIAClass.get(0).getIAClass();
-            List<JSONObject> opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
+            List<JSONObject> opts = null;
+            try {
+                opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
+            } catch (RuntimeException ex) {
+                // e.g. an annotation with no encounter, or an encounter with no genus/species
+                // (IAJsonProperties.taxonomyKey(null)): this class gets no options, the others run
+                System.out.println("WARN: IA.intakeAnnotations() identOpts threw " + ex +
+                    " for iaClass " + iaClass + "; skipping that class");
+                opts = null;
+            }
             // drop default=false options (a matchingAlgorithms parameter may re-add them below)
             if (opts != null) {
                 Iterator<JSONObject> itr = opts.iterator();
@@ -547,6 +594,7 @@ public class IA {
                     System.out.println("Swapping opts for newOpts!!");
                 }
             }
+            opts = withVectorDefaults(opts, vectorDefaults);
             if ((opts == null) || (opts.size() < 1)) {   // no ID for this iaClass
                 outcome.skippedIaClasses.add(iaClass);
                 continue;
