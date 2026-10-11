@@ -2,10 +2,16 @@ package org.ecocean.ia;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.ecocean.Annotation;
 import org.json.JSONObject;
@@ -146,6 +152,44 @@ class TaskSelectPreferredMatchTaskTest {
         return t;
     }
 
+    private static Set<String> ids(String... s) {
+        return new HashSet<String>(Arrays.asList(s));
+    }
+
+    // Stamp a task with an import id without touching its other parameters.
+    private static Task stamp(Task t, String importTaskId) {
+        t.addParameter("importTaskId", importTaskId);
+        return t;
+    }
+
+    // Live Mantamatcher resend shape (§1 Layer B / §5.1): subParent -> U(body, rostrum) ->
+    // {T_vec_body -> SA_body, T_hs_body, T_vec_rostrum -> SA_rostrum, T_hs_rostrum}.
+    // Returns {subParent, U, T_vec_body, SA_body, T_hs_body, T_vec_rostrum, SA_rostrum, T_hs_rostrum}.
+    private static Task[] mantamatcherTree(String importTaskId, Annotation body, Annotation rostrum) {
+        Task subParent = new Task();
+        if (importTaskId != null) subParent.addParameter("importTaskId", importTaskId);
+        subParent.addParameter("matchingSetFilter", new JSONObject());
+        Task u = withAnnots(new Task(subParent), body, rostrum);
+        u.setCreated(1000L);
+        Task tVecBody = withAnnots(new Task(u), body);
+        tVecBody.addParameter("ibeis.identification", new JSONObject("{\"method\":\"miewid\"}"));
+        tVecBody.setCreated(1001L);
+        Task tHsBody = withAnnots(new Task(u), body);
+        tHsBody.addParameter("ibeis.identification", new JSONObject("{\"query_config_dict\":{\"sv_on\":true}}"));
+        tHsBody.setCreated(1002L);
+        Task tVecRostrum = withAnnots(new Task(u), rostrum);
+        tVecRostrum.addParameter("ibeis.identification", new JSONObject("{\"method\":\"miewid\"}"));
+        tVecRostrum.setCreated(1003L);
+        Task tHsRostrum = withAnnots(new Task(u), rostrum);
+        tHsRostrum.addParameter("ibeis.identification", new JSONObject("{\"query_config_dict\":{\"sv_on\":true}}"));
+        tHsRostrum.setCreated(1004L);
+        Task saBody = withAnnots(new Task(tVecBody), body);
+        saBody.setCreated(1005L);
+        Task saRostrum = withAnnots(new Task(tVecRostrum), rostrum);
+        saRostrum.setCreated(1006L);
+        return new Task[] { subParent, u, tVecBody, saBody, tHsBody, tVecRostrum, saRostrum, tHsRostrum };
+    }
+
     /**
      * v2 ml-service shape (MlServiceProcessor.runMatchProspects +
      * Embedding.findMatchProspects): detection root D -> umbrella M holding EVERY
@@ -258,26 +302,229 @@ class TaskSelectPreferredMatchTaskTest {
             Task.selectPreferredMatchTask(Arrays.asList(bodyBranch, umbrella), null));
     }
 
-    /**
-     * Documented trade-off: multi-ALGORITHM x multi-annotation. The umbrella
-     * fans out per algorithm (each child still holding every annotation) and
-     * each algorithm fans out per annotation. There is no per-annotation
-     * umbrella, so the newest per-annotation leaf (one algorithm) is selected
-     * rather than the image-wide umbrella that previously rendered everything.
-     */
-    @Test void nestedMultiAlgorithmFanOutSelectsNewestPerAnnotationLeaf() {
-        Annotation annA = annot("annA");
-        Annotation annB = annot("annB");
+    // ---- issue #1787: encounter-scoped selection ----
+
+    /** The live Mantamatcher shape, scoped to the import: both annotations land on the umbrella U. */
+    @Test void scopedMantamatcherShapeLandsOnTheUmbrellaForBothAnnotations() {
+        Annotation body = annot("body");
+        Annotation rostrum = annot("rostrum");
+        Task[] t = mantamatcherTree("IMP1", body, rostrum);
+        Task u = t[1], saBody = t[3], tHsBody = t[4], tVecBody = t[2];
+        Task saRostrum = t[6], tHsRostrum = t[7], tVecRostrum = t[5];
+        Set<String> enc = ids("body", "rostrum");
+        assertSame(u, Task.selectPreferredMatchTask(
+            Arrays.asList(saBody, tHsBody, tVecBody, u), "IMP1", enc));
+        assertSame(u, Task.selectPreferredMatchTask(
+            Arrays.asList(saRostrum, tHsRostrum, tVecRostrum, u), "IMP1", enc));
+    }
+
+    /** A null encounter set is today's behaviour: the newest renderable leaf. */
+    @Test void nullEncounterSetKeepsTodaysSelection() {
+        Annotation body = annot("body");
+        Annotation rostrum = annot("rostrum");
+        Task[] t = mantamatcherTree("IMP1", body, rostrum);
+        assertSame(t[3], Task.selectPreferredMatchTask(
+            Arrays.asList(t[3], t[4], t[2], t[1]), "IMP1", null));
+        assertSame(t[3], Task.selectPreferredMatchTask(Arrays.asList(t[3], t[4], t[2], t[1]), "IMP1"));
+    }
+
+    /** New Match shape, unscoped: root(media) -> U(A) -> {T_vec -> SA, T_hs}; the root stops the climb. */
+    @Test void unscopedOneAnnotationTwoOptionShapeLandsOnTheUmbrella() {
+        Annotation a = annot("A");
         Task root = new Task();
-        Task umbrella = withAnnots(task(null, false, false, root), annA, annB);
-        Task algo1 = withAnnots(task(null, true, false, umbrella), annA, annB);
-        Task algo2 = withAnnots(task(null, true, false, umbrella), annA, annB);
-        Task algo1A = withAnnots(task(null, true, false, algo1), annA);
-        withAnnots(task(null, true, false, algo1), annB);
-        Task algo2A = withAnnots(task(null, true, false, algo2), annA);
-        withAnnots(task(null, true, false, algo2), annB);
-        // created-DESC: newest first
-        assertSame(algo2A, Task.selectPreferredMatchTask(
-            Arrays.asList(algo2A, algo1A, algo2, algo1, umbrella), null));
+        root.addObject(mock(org.ecocean.media.MediaAsset.class));
+        Task u = withAnnots(new Task(root), a);
+        Task tVec = withAnnots(task(null, true, false, u), a);
+        Task tHs = withAnnots(task(null, true, false, u), a);
+        Task sa = withAnnots(new Task(tVec), a);
+        assertSame(u, Task.selectPreferredMatchTask(Arrays.asList(sa, tHs, tVec, u), null, ids("A")));
+    }
+
+    /** #1744 boundary: an ancestor holding an annotation outside the encounter stops the climb. */
+    @Test void climbStopsAtAMultiEncounterAncestor() {
+        Annotation a = annot("A");
+        Annotation b = annot("B");
+        Task d = new Task();
+        d.addParameter("ibeis.detection", true);
+        Task m = withAnnots(task(null, true, true, d), a, b);
+        Task sa = withAnnots(new Task(m), a);
+        withAnnots(new Task(m), b);
+        assertSame(sa, Task.selectPreferredMatchTask(Arrays.asList(sa, m), null, ids("A")));
+    }
+
+    @Test void climbStopsAtZeroAnnotationMediaAssetDetectionAndExtractionAncestors() {
+        Annotation a = annot("A");
+        // zero-annotation ancestor
+        Task sub = new Task();
+        Task u1 = withAnnots(new Task(sub), a);
+        Task leaf1 = withAnnots(task(null, true, false, u1), a);
+        assertSame(u1, Task.selectPreferredMatchTask(Arrays.asList(leaf1, u1), null, ids("A")));
+        // media-asset ancestor
+        Task ma = withAnnots(new Task(), a);
+        ma.addObject(mock(org.ecocean.media.MediaAsset.class));
+        Task u2 = withAnnots(new Task(ma), a);
+        Task leaf2 = withAnnots(task(null, true, false, u2), a);
+        assertSame(u2, Task.selectPreferredMatchTask(Arrays.asList(leaf2, u2, ma), null, ids("A")));
+        // ibeis.detection ancestor
+        Task det = withAnnots(new Task(), a);
+        det.addParameter("ibeis.detection", true);
+        Task u3 = withAnnots(new Task(det), a);
+        u3.setParameters(new JSONObject());
+        Task leaf3 = withAnnots(task(null, true, false, u3), a);
+        assertSame(u3, Task.selectPreferredMatchTask(Arrays.asList(leaf3, u3, det), null, ids("A")));
+        // embeddingExtraction ancestor (legacy callback extraction: D -> E -> M_old, M_new)
+        Task e = withAnnots(new Task(), a);
+        e.addParameter("embeddingExtraction", true);
+        Task mOld = withAnnots(new Task(e), a);
+        mOld.setParameters(new JSONObject().put("ibeis.identification", new JSONObject()));
+        Task mNew = withAnnots(new Task(e), a);
+        mNew.setParameters(new JSONObject().put("ibeis.identification", new JSONObject()));
+        assertSame(mNew, Task.selectPreferredMatchTask(Arrays.asList(mNew, mOld, e), null, ids("A")));
+    }
+
+    /** API extraction: E(annotation, no params, no parent) -> M_old, M_new: the parameterless root stops the climb. */
+    @Test void parameterlessRootWithTwoRunsLandsOnTheNewestRun() {
+        Annotation a = annot("A");
+        Task e = withAnnots(new Task(), a);        // parameters == null, parent == null
+        Task mOld = withAnnots(task(null, true, false, e), a);
+        Task mNew = withAnnots(task(null, true, false, e), a);
+        assertSame(mNew, Task.selectPreferredMatchTask(Arrays.asList(mNew, mOld, e), null, ids("A")));
+    }
+
+    /** Stamp matrix for the climb (§4.3): winner stamped IMP1. */
+    @Test void stampedWinnerClimbsOnlyThroughSameStampOrBridgingAncestors() {
+        Annotation a = annot("A");
+        // same stamp: climb
+        Task u1 = stamp(withAnnots(new Task(), a), "IMP1");
+        Task l1 = withAnnots(task("IMP1", true, false, u1), a);
+        assertSame(u1, Task.selectPreferredMatchTask(Arrays.asList(l1, u1), "IMP1", ids("A")));
+        // other stamp: stop
+        Task u2 = stamp(withAnnots(new Task(), a), "IMP2");
+        Task l2 = withAnnots(task("IMP1", true, false, u2), a);
+        assertSame(l2, Task.selectPreferredMatchTask(Arrays.asList(l2, u2), "IMP1", ids("A")));
+        // unstamped ancestor (under a zero-annotation sub-parent, as a _doIdentify parent is),
+        // every direct child stamped IMP1: bridge
+        Task u3 = withAnnots(new Task(new Task()), a);
+        Task l3 = withAnnots(task("IMP1", true, false, u3), a);
+        withAnnots(task("IMP1", true, false, u3), a);
+        assertSame(u3, Task.selectPreferredMatchTask(Arrays.asList(l3, u3), "IMP1", ids("A")));
+        // unstamped ancestor with a foreign-stamped child: stop
+        Task sub4 = new Task();
+        new Task(sub4);   // a second child keeps u4 itself from being renderable, so the climb is what is tested
+        Task u4 = withAnnots(new Task(sub4), a);
+        Task l4 = withAnnots(task("IMP1", true, false, u4), a);
+        withAnnots(task("IMP2", true, false, u4), a);
+        assertSame(l4, Task.selectPreferredMatchTask(Arrays.asList(l4, u4), "IMP1", ids("A")));
+    }
+
+    /** Stamp matrix: winner unstamped. */
+    @Test void unstampedWinnerStopsAtAStampedAncestor() {
+        Annotation a = annot("A");
+        Task stamped = stamp(withAnnots(new Task(), a), "IMP1");
+        Task l1 = withAnnots(task(null, true, false, stamped), a);
+        assertSame(l1, Task.selectPreferredMatchTask(Arrays.asList(l1, stamped), null, ids("A")));
+        Task unstamped = withAnnots(new Task(), a);
+        unstamped.setParameters(new JSONObject());   // a root with parameters is not the createFromApi stop
+        Task l2 = withAnnots(task(null, true, false, unstamped), a);
+        assertSame(unstamped, Task.selectPreferredMatchTask(Arrays.asList(l2, unstamped), null, ids("A")));
+    }
+
+    /** _doIdentify fan-out: U(stamped) -> T_hs(params null) -> H_A, H_B(stamped): the bridge rule reaches U. */
+    @Test void doIdentifyBridgeReachesTheUmbrella() {
+        Annotation a = annot("A");
+        Annotation b = annot("B");
+        Task sub = new Task();
+        Task u = stamp(withAnnots(new Task(sub), a, b), "IMP1");
+        Task tHs = withAnnots(new Task(u), a, b);
+        tHs.setParameters((String)null);
+        Task hA = withAnnots(task("IMP1", true, false, tHs), a);
+        withAnnots(task("IMP1", true, false, tHs), b);
+        assertSame(u, Task.selectPreferredMatchTask(Arrays.asList(hA, tHs, u), "IMP1", ids("A", "B")));
+    }
+
+    /** Pre-fix reused root (§4.3 table): phase 1 excludes U1 (media assets); phase 2 seeds H4; climb stops at U1. */
+    @Test void preFixReusedRootLandsOnTheInnerUmbrella() {
+        Annotation a = annot("A");
+        Task r = new Task();
+        r.addObject(mock(org.ecocean.media.MediaAsset.class));
+        Task u1 = withAnnots(new Task(r), a);
+        u1.addObject(mock(org.ecocean.media.MediaAsset.class));
+        Task h1 = withAnnots(task(null, true, false, u1), a);
+        Task h2 = withAnnots(task(null, true, false, u1), a);
+        Task u2 = withAnnots(new Task(u1), a);
+        Task h3 = withAnnots(task(null, true, false, u2), a);
+        Task h4 = withAnnots(task(null, true, false, u2), a);
+        assertSame(u2, Task.selectPreferredMatchTask(Arrays.asList(h4, h3, u2, h2, h1, u1), null, ids("A")));
+    }
+
+    /** Only foreign-stamped identification tasks under this import's scope: phases 1 and 2 find nothing; root fallback as today. */
+    @Test void foreignOnlyIdentificationTasksFallToTheRootFallback() {
+        Annotation a = annot("A");
+        Task r = withAnnots(new Task(), a);             // unstamped root, no params
+        Task f = withAnnots(task("IMP2", true, false, r), a);
+        assertSame(r, Task.selectPreferredMatchTask(Arrays.asList(f, r), "IMP1", ids("A")));
+    }
+
+    /** New tree: an eligible umbrella wins outright, even over a newer leaf of an older run. */
+    @Test void newTreeReturnsTheRunUmbrella() {
+        Annotation a = annot("A");
+        Task u1 = TaskSelectRunTest.umbrella(null, 1000L, a);
+        Task opt1 = TaskSelectRunTest.under(u1, 1001L, a);
+        opt1.addParameter("ibeis.identification", new JSONObject());
+        Task u2 = TaskSelectRunTest.umbrella(null, 2000L, a);
+        Task opt2 = TaskSelectRunTest.under(u2, 2001L, a);
+        opt2.addParameter("ibeis.identification", new JSONObject());
+        Task late = TaskSelectRunTest.under(opt1, 3000L, a);
+        late.addParameter("ibeis.identification", new JSONObject());
+        assertSame(u2, Task.selectPreferredMatchTask(Arrays.asList(late, opt2, u2, opt1, u1), null, ids("A")));
+    }
+
+    /** New tree whose newest umbrella spans encounters (§3): today's selection restricted to that run. */
+    @Test void mixedEncounterRunFallsBackToTodaysSelectionWithinTheRun() {
+        Annotation a = annot("A");
+        Annotation b = annot("B");
+        Task u = TaskSelectRunTest.umbrella(null, 1000L, a, b);
+        Task opt = TaskSelectRunTest.under(u, 1001L, a, b);
+        opt.addParameter("ibeis.identification", new JSONObject());
+        Task leafA = TaskSelectRunTest.under(opt, 1002L, a);
+        leafA.addParameter("ibeis.identification", new JSONObject());
+        TaskSelectRunTest.under(opt, 1003L, b).addParameter("ibeis.identification", new JSONObject());
+        // an older, unrelated renderable leaf outside the run must not be chosen
+        Task oldRoot = withAnnots(new Task(), a);
+        Task oldLeaf = withAnnots(task(null, true, false, oldRoot), a);
+        oldLeaf.setCreated(10L);
+        assertSame(leafA, Task.selectPreferredMatchTask(
+            Arrays.asList(leafA, opt, u, oldLeaf, oldRoot), null, ids("A")));
+    }
+
+    /** The climb is bounded: a cycle in parent links and more than 20 ancestors both terminate. */
+    @Test void climbIsBoundedByVisitedSetAndHopCap() {
+        Annotation a = annot("A");
+        Task p = withAnnots(new Task(), a);
+        Task w = withAnnots(task(null, true, false, p), a);
+        p.setParent(w);                      // cycle: p -> w -> p
+        assertNotNull(Task.selectPreferredMatchTask(Arrays.asList(w, p), null, ids("A")));
+        // 25-deep chain of annotation-holding, unstamped ancestors
+        Task[] chain = new Task[26];
+        chain[25] = withAnnots(new Task(), a);
+        chain[25].setParameters(new JSONObject());
+        for (int i = 24; i >= 1; i--) {
+            chain[i] = withAnnots(new Task(chain[i + 1]), a);
+        }
+        chain[0] = withAnnots(task(null, true, false, chain[1]), a);
+        assertSame(chain[20], Task.selectPreferredMatchTask(Arrays.asList(chain[0]), null, ids("A")));
+    }
+
+    /** A throwing parent link falls back to the best task found so far. */
+    @Test void throwingParentFallsBackToBestSoFar() {
+        Annotation a = annot("A");
+        Task top = withAnnots(new Task(), a);
+        Task bad = new Task(top) {
+            @Override public Task getParent() { throw new IllegalStateException("boom"); }
+        };
+        bad.addObject(a);
+        Task mid = withAnnots(new Task(bad), a);
+        Task w = withAnnots(task(null, true, false, mid), a);
+        assertSame(mid, Task.selectPreferredMatchTask(Arrays.asList(w), null, ids("A")));
     }
 }
