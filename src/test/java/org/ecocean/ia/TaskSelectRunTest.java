@@ -137,6 +137,22 @@ class TaskSelectRunTest {
         assertNull(Task.selectRun(Arrays.asList(mixed), null, ids("A")));
     }
 
+    @Test void umbrellaWithANullAnnotationListIsEligible() {
+        Task bare = umbrella(null, 2000L);   // no addObject: getObjectAnnotations() == null
+        assertNull(bare.getObjectAnnotations());
+        Task own = umbrella(null, 1000L, annot("A"));
+        assertSame(bare, Task.selectRun(Arrays.asList(bare, own), null, ids("A")),
+            "no annotation outside the set");
+    }
+
+    @Test void equalCreatedTimesKeepCallerOrder() {
+        Annotation a = annot("A");
+        Task first = umbrella(null, 1000L, a);
+        Task second = umbrella(null, 1000L, a);
+        assertSame(first, Task.selectRun(Arrays.asList(first, second), null, ids("A")));
+        assertSame(second, Task.selectRun(Arrays.asList(second, first), null, ids("A")));
+    }
+
     @Test void nullEncounterSetSkipsTheEncounterCheck() {
         Annotation a = annot("A");
         Annotation b = annot("B");

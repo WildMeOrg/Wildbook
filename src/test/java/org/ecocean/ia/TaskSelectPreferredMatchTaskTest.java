@@ -486,13 +486,13 @@ class TaskSelectPreferredMatchTaskTest {
         Task leafA = TaskSelectRunTest.under(opt, 1002L, a);
         leafA.addParameter("ibeis.identification", new JSONObject());
         TaskSelectRunTest.under(opt, 1003L, b).addParameter("ibeis.identification", new JSONObject());
-        // an older, unrelated renderable leaf outside the run must not be chosen
+        // an unrelated renderable leaf outside the run must not be chosen (input strictly created-DESC)
         Task oldRoot = withAnnots(new Task(), a);
         Task oldLeaf = withAnnots(task(null, true, false, oldRoot), a);
         oldLeaf.setCreated(9000L);
         oldRoot.setCreated(8999L);
         assertSame(leafA, Task.selectPreferredMatchTask(
-            Arrays.asList(oldLeaf, leafA, opt, u, oldRoot), null, ids("A")));
+            Arrays.asList(oldLeaf, oldRoot, leafA, opt, u), null, ids("A")));
     }
 
     /** The climb is bounded: a cycle in parent links and more than 20 ancestors both terminate. */

@@ -801,6 +801,12 @@ public class IA {
         return (loaded != null) && (loaded.hasObjectAnnotations() || (Task.runIdOf(loaded) != null));
     }
 
+    /** Links a handleRest child under its root: skips null and the root itself, like the old addChild, but also sets the parent field. */
+    static void linkUnderRoot(Task child, Task root) {
+        if ((child == null) || (root == null) || (child == root) || child.getId().equals(root.getId())) return;
+        child.setParent(root);
+    }
+
     /**
      * Issue #1787 (spec §4.0): a client-supplied root id may name an existing task. If that task
      * holds annotations or belongs to an identification run (umbrella, option or leaf), a new
@@ -808,13 +814,6 @@ public class IA {
      * run — so a fresh root is used instead. A media-asset-only root (the detection root the
      * hamburger-menu New Match attaches to) is reused as before.
      */
-    // the old topTask.addChild(...) silently skipped null and the root itself; keep that, but set
-    // the field too (level-2-cache readers otherwise see getParent() == null)
-    static void linkUnderRoot(Task child, Task root) {
-        if ((child == null) || (root == null) || (child == root) || child.getId().equals(root.getId())) return;
-        child.setParent(root);
-    }
-
     static Task resolveRequestRoot(Task loaded, String taskId, boolean fastlane) {
         Task root = loaded;
 
