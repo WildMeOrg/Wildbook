@@ -8,11 +8,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.jdo.PersistenceManager;
@@ -40,6 +43,19 @@ class IAGatewayDoIdentifyTest {
         when(sh.getPM()).thenReturn(pm);
         when(sh.getContext()).thenReturn("context0");
         return sh;
+    }
+
+    // Records the task's stored status at every commit boundary, so the tests can see what a
+    // concurrent poller could have read (spec §4.4: no terminal error before the requeue decision).
+    private static void recordCommits(Shepherd sh, Task t, List<String> events) {
+        doAnswer(inv -> {
+            events.add("commit:" + t.getStoredStatus());
+            return null;
+        }).when(sh).updateDBTransaction();
+        doAnswer(inv -> {
+            events.add("commit:" + t.getStoredStatus());
+            return null;
+        }).when(sh).commitDBTransaction();
     }
 
     private static Annotation ann(String id) {
@@ -72,7 +88,8 @@ class IAGatewayDoIdentifyTest {
     // _doIdentify needs are answered here, everything else runs real. (MockedStatic.when(...)
     // on a CALLS_REAL_METHODS mock would execute the real method while defining the stub —
     // waitForIAPriming can block for minutes and requeueJob(null, …) would throw.)
-    private static void withIdentifyStubs(JSONObject sendResult, boolean requeueResult, Body body)
+    private static void withIdentifyStubs(JSONObject sendResult, boolean requeueResult, Task task,
+        List<String> events, Body body)
     throws Exception {
         try (MockedStatic<IBEISIA> ibeis = mockStatic(IBEISIA.class, inv -> {
                  String m = inv.getMethod().getName();
@@ -84,13 +101,23 @@ class IAGatewayDoIdentifyTest {
              });
              MockedStatic<IAQueryCache> cache = mockStatic(IAQueryCache.class);
              MockedStatic<IAGateway> gw = mockStatic(IAGateway.class, inv -> {
-                 if (inv.getMethod().getName().equals("requeueJob")) return requeueResult;
+                 if (inv.getMethod().getName().equals("requeueJob")) {
+                     events.add("requeue:" + task.getStoredStatus());
+                     return requeueResult;
+                 }
                  return inv.callRealMethod();
              })) {
             cache.when(() -> IAQueryCache.tryTargetAnnotationsCache(anyString(), any(Annotation.class),
                 any(JSONObject.class), any(Shepherd.class))).thenReturn(null);
             body.run();
         }
+    }
+
+    private static int firstIndexStartingWith(List<String> events, String prefix) {
+        for (int i = 0; i < events.size(); i++) {
+            if (events.get(i).startsWith(prefix)) return i;
+        }
+        return -1;
     }
 
     private static String lastErrorCode(Task t) {
@@ -107,14 +134,23 @@ class IAGatewayDoIdentifyTest {
         byId.put("T1", t);
         byId.put("A1", a);
         Shepherd sh = shepherdWith(byId);
+        List<String> events = new ArrayList<String>();
+        recordCommits(sh, t, events);
         JSONObject res = new JSONObject().put("taskId", "T1");
-        withIdentifyStubs(sendResult(false), true, () -> {
+        withIdentifyStubs(sendResult(false), true, t, events, () -> {
             JSONObject out = IAGateway._doIdentify(jin("A1"), res, sh, "context0", "http://wb", false);
             assertTrue(out.getBoolean("success"));
             assertEquals(Task.STATUS_REQUEUED, t.getStoredStatus());
             assertFalse(t.statusInEndState());
             assertEquals("SEND_FAILED", lastErrorCode(t));
             assertNull(t.getCompletionDateInMilliseconds(), "not terminal: no completion date");
+            int firstCommit = firstIndexStartingWith(events, "commit:");
+            int requeueAt = firstIndexStartingWith(events, "requeue:");
+            assertTrue(firstCommit >= 0 && requeueAt >= 0, "events: " + events);
+            assertEquals("commit:requeued", events.get(firstCommit), "first commit: " + events);
+            assertTrue(events.indexOf("commit:requeued") < requeueAt, "requeued committed before the requeue decision: " + events);
+            assertEquals("requeue:requeued", events.get(requeueAt), "events: " + events);
+            assertEquals(-1, firstIndexStartingWith(events, "commit:error"), "no terminal error while a retry is queued: " + events);
         });
     }
 
@@ -125,13 +161,22 @@ class IAGatewayDoIdentifyTest {
         byId.put("T2", t);
         byId.put("A2", a);
         Shepherd sh = shepherdWith(byId);
+        List<String> events = new ArrayList<String>();
+        recordCommits(sh, t, events);
         JSONObject res = new JSONObject().put("taskId", "T2");
-        withIdentifyStubs(sendResult(false), false, () -> {
+        withIdentifyStubs(sendResult(false), false, t, events, () -> {
             IAGateway._doIdentify(jin("A2"), res, sh, "context0", "http://wb", false);
             assertEquals("error", t.getStoredStatus());
             assertTrue(t.statusInEndState());
             assertEquals("SEND_FAILED", lastErrorCode(t));
             assertNotNull(t.getCompletionDateInMilliseconds());
+            int pending = events.indexOf("commit:requeued");
+            int requeueAt = events.indexOf("requeue:requeued");
+            int terminal = events.indexOf("commit:error");
+            assertTrue(pending >= 0 && pending < requeueAt && requeueAt < terminal,
+                "order commit:requeued, requeue:requeued, commit:error: " + events);
+            assertTrue(firstIndexStartingWith(events, "commit:error") > requeueAt,
+                "no commit:error before the requeue decision: " + events);
         });
     }
 
@@ -152,7 +197,7 @@ class IAGatewayDoIdentifyTest {
         byId.put("B3", b);
         Shepherd sh = shepherdWith(byId);
         JSONObject res = new JSONObject().put("taskId", "T3");
-        withIdentifyStubs(sendResult(true), true, () -> {
+        withIdentifyStubs(sendResult(true), true, parent, new ArrayList<String>(), () -> {
             IAGateway._doIdentify(jin("A3", "B3"), res, sh, "context0", "http://wb", false);
             JSONObject kept = parent.getParameters();
             assertEquals(3, kept.length(), "exactly importTaskId, run id and option marker survive the reset");
@@ -183,14 +228,14 @@ class IAGatewayDoIdentifyTest {
         byId.put("A4", a);
         byId.put("B4", b);
         Shepherd sh = shepherdWith(byId);
-        withIdentifyStubs(sendResult(true), true, () -> {
+        withIdentifyStubs(sendResult(true), true, parent, new ArrayList<String>(), () -> {
             IAGateway._doIdentify(jin("A4", "B4"), new JSONObject().put("taskId", "T4"), sh, "context0", "http://wb", false);
             assertNull(parent.getParameters());
             assertTrue(parent.getChildren().get(0).getParameters().has("ibeis.identification"));
         });
     }
 
-    /** Review Focus 4: the requeued job re-enters with one annotation; no second fan-out, status left for the callback. */
+    /** The requeued job re-enters with one annotation: no second fan-out; the stored status is left for the WBIA callback. */
     @Test void retryReentryWithOneAnnotationDoesNotFanOut() throws Exception {
         Task t = new Task("T5");
         t.setStatus(Task.STATUS_REQUEUED);
@@ -201,7 +246,7 @@ class IAGatewayDoIdentifyTest {
         byId.put("T5", t);
         byId.put("A5", a);
         Shepherd sh = shepherdWith(byId);
-        withIdentifyStubs(sendResult(true), true, () -> {
+        withIdentifyStubs(sendResult(true), true, t, new ArrayList<String>(), () -> {
             JSONObject out = IAGateway._doIdentify(jin("A5"), new JSONObject().put("taskId", "T5"), sh, "context0", "http://wb", false);
             assertTrue(out.getBoolean("success"));
             assertFalse(t.hasChildren());
