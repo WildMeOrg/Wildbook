@@ -58,6 +58,12 @@ class TaskSelectRunTest {
         assertEquals(u.getId(), Task.runIdOf(u));
         assertTrue(Task.isOptionTask(opt));
         assertFalse(Task.isOptionTask(u));
+        Task leaf = under(u, 1002L, a);   // carries the run id, no option marker
+        assertFalse(Task.isOptionTask(leaf), "a child carrying the run id is not an option without the marker");
+        Task single = umbrella(null, 3000L, a);   // single-option umbrella
+        single.addParameter(Task.PARAM_OPTION, true);
+        assertTrue(Task.isOptionTask(single));
+        assertTrue(Task.isUmbrella(single));
         assertTrue(Task.anyRunId(Arrays.asList(new Task(), opt)));
         assertFalse(Task.anyRunId(Arrays.asList(new Task())));
         assertTrue(u.holdsAnnotationId("A"));
