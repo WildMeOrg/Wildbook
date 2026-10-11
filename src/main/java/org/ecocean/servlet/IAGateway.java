@@ -175,16 +175,7 @@ public class IAGateway extends HttpServlet {
                 }
                 Task task = resolveGatewayRoot(Task.load(taskId, myShepherd), taskId, j, res);
                 taskId = task.getId();
-                JSONObject tparams = j.optJSONObject("taskParameters"); // optional
-                if (tparams == null) tparams = new JSONObject(); // but we want it, to set user:
-                User tuser = AccessControl.getUser(request, myShepherd);
-                if (tuser == null) { // "anonymous" but we want to make sure we zero these out to prevent them from being passed in
-                    tparams.remove("userId");
-                    tparams.remove("username");
-                } else {
-                    tparams.put("userId", tuser.getUUID());
-                    tparams.put("username", tuser.getUsername());
-                }
+                JSONObject tparams = gatewayTaskParams(j, AccessControl.getUser(request, myShepherd));
                 task.setParameters(tparams);
                 myShepherd.storeNewTask(task);
                 myShepherd.updateDBTransaction(); // hack
@@ -333,12 +324,17 @@ public class IAGateway extends HttpServlet {
     /**
      * Issue #1787 (spec §4.0): the root a /ia request runs under. The parameters below are
      * written onto this task and committed BEFORE the job is queued, so a supplied id that
-     * names a task of an identification run (or any task holding annotations) is replaced by a
-     * fresh root here — and the fresh id is written into the queued payload and the response,
+     * names a task of an identification run (or, for a request that is not a legacy identify
+     * job, any task holding annotations) is replaced by a fresh root here — and the fresh id is written into the queued payload and the response,
      * so the client polls the run it asked for. A media-asset-only root is reused as before.
      */
     static Task resolveGatewayRoot(Task loaded, String taskId, JSONObject j, JSONObject res) {
-        if (org.ecocean.ia.IA.mustReplaceRequestRoot(loaded)) {
+        // a legacy identify request ({identify:{annotationIds}}) names its own identification
+        // task, which holds the query annotation: reuse it unless it belongs to a run
+        boolean identifyJob = (j != null) && (j.optJSONObject("identify") != null);
+        boolean replace = (loaded != null) && ((Task.runIdOf(loaded) != null) ||
+            (!identifyJob && org.ecocean.ia.IA.mustReplaceRequestRoot(loaded)));
+        if (replace) {
             Task fresh = new Task();
             System.out.println("WARN: IAGateway /ia: supplied taskId " + taskId +
                 " belongs to identification run " + Task.runIdOf(loaded) +
@@ -349,6 +345,26 @@ public class IAGateway extends HttpServlet {
         }
         if (loaded == null) return new Task(taskId);
         return loaded;
+    }
+
+    /**
+     * The parameters the /ia enqueue branch writes onto its root: the request's optional
+     * taskParameters with the user stamped (or zeroed for anonymous requests), minus the keys
+     * that belong to an identification run (issue #1787 §4.0): a client-supplied run id or
+     * option marker on the root would make handleRest replace it again and disconnect the
+     * response's taskId from the run.
+     */
+    static JSONObject gatewayTaskParams(JSONObject j, User tuser) {
+        JSONObject tparams = j.optJSONObject("taskParameters"); // optional
+        if (tparams == null) tparams = new JSONObject(); // but we want it, to set user:
+        if (tuser == null) { // "anonymous" but we want to make sure we zero these out to prevent them from being passed in
+            tparams.remove("userId");
+            tparams.remove("username");
+        } else {
+            tparams.put("userId", tuser.getUUID());
+            tparams.put("username", tuser.getUsername());
+        }
+        return org.ecocean.ia.IA.scrubRunParams(tparams);
     }
 
     public static JSONObject _doIdentify(JSONObject jin, JSONObject res, Shepherd myShepherd,
@@ -441,6 +457,9 @@ public class IAGateway extends HttpServlet {
             myShepherd.storeNewTask(parentTask);
             myShepherd.beginDBTransaction();
         } else { // we just use the existing "parent" task
+            // issue #1787: a replaced (fresh) root holds nothing; attach the query annotation so
+            // task lookups by annotation and the import status find this run
+            if ((anns.size() > 0) && !parentTask.contains(anns.get(0))) parentTask.addObject(anns.get(0));
             subTasks.add(parentTask);
         }
         for (int i = 0; i < anns.size(); i++) {

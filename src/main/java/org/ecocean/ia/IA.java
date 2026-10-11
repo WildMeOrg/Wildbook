@@ -475,10 +475,11 @@ public class IA {
     /**
      * Inherited parameters minus the keys that belong to a run (the new run sets its own).
      * Also applied where a root's parameters are copied into detection tasks
-     * (intakeMediaAssetsOneSpecies) and onto a substituted handleRest root, so a run id can
+     * (intakeMediaAssetsOneSpecies), onto a substituted handleRest root and onto the /ia
+     * gateway's root (IAGateway.gatewayTaskParams), so a run id can
      * never leak across a pipeline boundary (spec §4.0). Never returns null; never mutates.
      */
-    static JSONObject scrubRunParams(JSONObject inherited) {
+    public static JSONObject scrubRunParams(JSONObject inherited) {
         JSONObject p = (inherited == null) ? new JSONObject() : new JSONObject(inherited.toString());
         p.remove(Task.PARAM_RUN_ID);
         p.remove(Task.PARAM_V2_MATCH);

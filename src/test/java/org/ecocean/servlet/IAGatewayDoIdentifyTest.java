@@ -256,6 +256,50 @@ class IAGatewayDoIdentifyTest {
         });
     }
 
+    /** Final fix 4b: a single-annotation identify on a task that does not hold the annotation attaches it. */
+    @Test void singleAnnotationIdentifyAttachesTheQueryAnnotationToItsTask() throws Exception {
+        Task t = new Task("T6");   // e.g. a fresh gateway root: no objects yet
+        t.setParameters(new JSONObject().put("ibeis.identification", new JSONObject()));
+        Annotation a = ann("A6");
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T6", t);
+        byId.put("A6", a);
+        Shepherd sh = shepherdWith(byId);
+        withIdentifyStubs(sendResult(true), true, t, new ArrayList<String>(), () -> {
+            JSONObject out = IAGateway._doIdentify(jin("A6"), new JSONObject().put("taskId", "T6"), sh, "context0", "http://wb", false);
+            assertTrue(out.getBoolean("success"));
+            assertFalse(t.hasChildren());
+            assertTrue(t.contains(a), "task lookups by annotation find the run");
+            assertEquals(1, t.getObjectAnnotations().size());
+        });
+    }
+
+    @Test void singleAnnotationIdentifyDoesNotAttachTheAnnotationTwice() throws Exception {
+        Task t = new Task("T7");
+        t.setParameters(new JSONObject().put("ibeis.identification", new JSONObject()));
+        Annotation a = ann("A7");
+        t.addObject(a);
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T7", t);
+        byId.put("A7", a);
+        Shepherd sh = shepherdWith(byId);
+        withIdentifyStubs(sendResult(true), true, t, new ArrayList<String>(), () -> {
+            IAGateway._doIdentify(jin("A7"), new JSONObject().put("taskId", "T7"), sh, "context0", "http://wb", false);
+            assertEquals(1, t.getObjectAnnotations().size());
+        });
+    }
+
+    @Test void identifyWithNoResolvableAnnotationLeavesTheTaskEmpty() throws Exception {
+        Task t = new Task("T8");
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T8", t);
+        Shepherd sh = shepherdWith(byId);
+        withIdentifyStubs(sendResult(true), true, t, new ArrayList<String>(), () -> {
+            IAGateway._doIdentify(jin("missing"), new JSONObject().put("taskId", "T8"), sh, "context0", "http://wb", false);
+            assertFalse(t.hasObjectAnnotations());
+        });
+    }
+
     @Test void identityParamsOfNullIsNull() {
         assertNull(Task.identityParams(null));
         assertNull(Task.identityParams(new JSONObject().put("ibeis.identification", new JSONObject())));
