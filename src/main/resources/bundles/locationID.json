@@ -1330,6 +1330,36 @@
 			"locationID": []
 		},
 		{
+			"name": "Panama",
+			"id": "Panama",
+			"locationID":[
+				{
+					"name": "Parque Nacional y Reserva Biológica Altos de Campana",
+					"id": "Parque Nacional y Reserva Biológica Altos de Campana",
+					"locationID":[
+						{
+							"name": "Quebrada Anguillosa",
+							"id": "Quebrada Anguillosa",
+							"geospatialInfo": {
+								"lat": 8.68489,
+								"long": -79.92684
+							},
+							"locationID":[]
+						},
+						{
+							"name": "Quebrada TR2",
+							"id": "Quebrada TR2",
+							"geospatialInfo":{
+								"lat": 8.68223,
+								"long": -79.92019
+							},
+							"locationID":[]
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Poland",
 			"id": "Poland",
 			"locationID": [
