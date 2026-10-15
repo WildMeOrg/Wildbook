@@ -256,7 +256,7 @@
 				#/encounters/encounter.jsp = authc
 				/encounters/encounterMediaGallery.jsp = authc
 				/encounters/projectManagement.jsp = authc
-				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
+				/encounters/encounterSpotTool.jsp = authc, roles[researcher]
 				/encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
 				/encounters/manualAnnotation.jsp = authc, roles[researcher]
 				/encounters/encounterVM.jsp = authc, roles[researcher]
