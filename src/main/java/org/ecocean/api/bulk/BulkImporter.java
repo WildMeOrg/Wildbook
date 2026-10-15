@@ -135,7 +135,7 @@ public class BulkImporter {
         // existing sighting already has. Legacy behavior retained: a -1.0 latitude or longitude is skipped
         // as "unset", even though it is also a valid coordinate.
         for (Occurrence occ : occurrenceCache.values()) occ.setLatLonFromEncs(false);
-        // submissions only create new sightings, so they take the first row's pair as given:
+        // submissions only create new sightings, so they take the first row with a complete pair as given:
         // unlike the legacy pass above, -1.0 is a real coordinate here (validation accepts it)
         if (newOccurrencesOnly) {
             for (Occurrence occ : occurrenceCache.values()) {
