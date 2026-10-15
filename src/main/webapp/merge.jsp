@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
@@ -439,7 +440,7 @@ table.compareZone tr th {
     			<th><h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("Species") %></h4></th>
     			<% for (MarkedIndividual ind: inds) {%>
     			<td class="col-md-2 diff_check">
-    				<%=ind.getGenusSpeciesDeep()%>
+    				<%=StringEscapeUtils.escapeHtml4(ind.getGenusSpeciesDeep())%>
     			</td>
     			<%}%>
     			<td class="merge-field">
@@ -448,15 +449,15 @@ table.compareZone tr th {
             		if(markA.getGenusSpeciesDeep()!= null && markB.getGenusSpeciesDeep()!= null && !markA.getGenusSpeciesDeep().equals("") && !markB.getGenusSpeciesDeep().equals("") && !markA.getGenusSpeciesDeep().equals(markB.getGenusSpeciesDeep())){
               %>
                 <select name="taxonomy-dropdown" id="taxonomy-dropdown" class="">
-                	<option value="<%= markA.getGenusSpeciesDeep()%>" selected><%= markA.getGenusSpeciesDeep()%></option>
-                	<option value="<%= markB.getGenusSpeciesDeep()%>"><%= markB.getGenusSpeciesDeep()%></option>
+                	<option value="<%= StringEscapeUtils.escapeHtml4(markA.getGenusSpeciesDeep())%>" selected><%= StringEscapeUtils.escapeHtml4(markA.getGenusSpeciesDeep())%></option>
+                	<option value="<%= StringEscapeUtils.escapeHtml4(markB.getGenusSpeciesDeep())%>"><%= StringEscapeUtils.escapeHtml4(markB.getGenusSpeciesDeep())%></option>
                 </select>
               <%
             }
             else{
               System.out.println("getting here");
               %>
-              <%= mergeTaxy%>
+              <%= StringEscapeUtils.escapeHtml4(mergeTaxy)%>
               <%
             }
     				%>
@@ -497,10 +498,10 @@ table.compareZone tr th {
         $("#mergeBtn").click(function(event) {
           event.preventDefault();
           
-        	let id1="<%=indIdA%>";
-        	let id2="<%=indIdB%>";
-        	let fullNameA = '<%=fullNameA%>';
-        	let fullNameB = '<%=fullNameB%>';
+        	let id1="<%=Util.escapeJsString(indIdA)%>";
+        	let id2="<%=Util.escapeJsString(indIdB)%>";
+        	let fullNameA = '<%=Util.escapeJsString(fullNameA)%>';
+        	let fullNameB = '<%=Util.escapeJsString(fullNameB)%>';
           
         	//let's check the dropdown
         	var nameSelect = document.getElementById("default-ID-dropdown").value;
@@ -525,7 +526,7 @@ table.compareZone tr th {
           let taxonomy = $("#taxonomy-dropdown").val();
           if(!taxonomy){
             //It's because they match
-            taxonomy = '<%= Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep()) %>';
+            taxonomy = '<%= Util.escapeJsString(Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep())) %>';
           }
           let projIdElems = $('[data-id^=proj-confirm-dropdown-]');
           let projIdConsolidated = '';

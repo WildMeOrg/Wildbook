@@ -1,5 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
@@ -88,7 +89,7 @@ try {
 			<%
 			for(Encounter enc:encs){
 			%>
-				<tr><td><a href="../encounters/encounter.jsp?number=<%=enc.getCatalogNumber() %>" target="_blank"><%=enc.getCatalogNumber() %></a></td><td><%=enc.getGenus() %> <%=enc.getSpecificEpithet() %></td></tr>
+				<tr><td><a href="../encounters/encounter.jsp?number=<%=enc.getCatalogNumber() %>" target="_blank"><%=enc.getCatalogNumber() %></a></td><td><%=StringEscapeUtils.escapeHtml4(enc.getGenus()) %> <%=StringEscapeUtils.escapeHtml4(enc.getSpecificEpithet()) %></td></tr>
 			<%
 			}
 			%>

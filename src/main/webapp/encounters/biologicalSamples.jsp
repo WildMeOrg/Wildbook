@@ -2026,7 +2026,7 @@ $(window).on('load',function() {
 catch(Exception e){
 	e.printStackTrace();
 	%>
-	<p>Hit an error.<br /> <%=e.toString()%></p>
+	<p>Hit an error.<br /> <%=StringEscapeUtils.escapeHtml4(e.toString())%></p>
 
 
 <%

@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.security.HiddenIndividualReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, 
          org.datanucleus.api.jdo.JDOPersistenceManager,
@@ -86,7 +87,7 @@
 		
 		      <p><%=props.getProperty("instructions")%></p>
 		      
-		      <p><a href="individualSearchResults.jsp?community=<%=request.getParameter("name") %>"><%=props.getProperty("clickHere")%></a></p>
+		      <p><a href="individualSearchResults.jsp?community=<%=StringEscapeUtils.escapeHtml4(Util.urlEncode(request.getParameter("name"))) %>"><%=props.getProperty("clickHere")%></a></p>
 		      
 		    </td>
 		  </tr>
@@ -607,7 +608,7 @@
     %>
     
     <p>Exception on page!</p>
-    <p><%=e.getMessage() %></p>
+    <p><%=StringEscapeUtils.escapeHtml4(e.getMessage()) %></p>
     
     <%	
     }

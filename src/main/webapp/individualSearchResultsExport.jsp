@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" 
 		language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties,java.util.Enumeration, java.util.Vector" %>
@@ -117,13 +118,13 @@ if(request.getQueryString()!=null){
 
 %>
 
-  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=props.getProperty("table")%>
   </a></li>
-  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=props.getProperty("matchingImages")%>
   </a></li>
-   <li><a href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("mappedResults")%>
+   <li><a href="individualMappedSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=props.getProperty("mappedResults")%>
   </a></li>
-  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
+  <li><a href="individualSearchResultsAnalysis.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=props.getProperty("analysis")%>
   </a></li>
     <li><a class="active"><%=props.getProperty("export")%>
   </a></li>
@@ -136,7 +137,7 @@ if(request.getQueryString()!=null){
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
   <tr><td bgcolor="#CCCCCC"><strong><%=props.getProperty("pictureBook")%></strong><br/><%=props.getProperty("generatePictureBook") %></td></tr>
-  <tr><td bgcolor="#FFFFFF"><a href="//<%=CommonConfiguration.getURLLocation(request)%>/pictureBook.jsp?<%=queryString%>">
+  <tr><td bgcolor="#FFFFFF"><a href="//<%=CommonConfiguration.getURLLocation(request)%>/pictureBook.jsp?<%=StringEscapeUtils.escapeHtml4(queryString) %>">
     <%=props.getProperty("clickHere") %></a>
         </td></tr>
 </table>
@@ -149,7 +150,7 @@ if(request.getQueryString()!=null){
   <tr>
   	<td bgcolor="#FFFFFF">
   	
-		<form name="pictureBook" action="//<%=CommonConfiguration.getURLLocation(request)%>/pictureBook.jsp?<%=queryString%>" method="get">
+		<form name="pictureBook" action="//<%=CommonConfiguration.getURLLocation(request)%>/pictureBook.jsp?<%=StringEscapeUtils.escapeHtml4(queryString) %>" method="get">
 		  	<%=props.getProperty("maxPagesToDisplay") %> <input type="text" name="maxPages" size="5" maxLength="10" value="50"/>
 		    	
 		  <input type="submit" value="<%=props.getProperty("clickHere") %>">
@@ -164,7 +165,7 @@ if(request.getQueryString()!=null){
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
 	<tr><td bgcolor="#CCCCCC"><strong>CAPTURE with annual seasons (example only)</strong><br/>For use with the web version available <a href="http://www.mbr-pwrc.usgs.gov/software/capture.html">here.</a></td></tr>
-	<tr><td bgcolor="#FFFFFF"><a href="//<%=CommonConfiguration.getURLLocation(request)%>/IndividualSearchExportCapture?<%=queryString%>">
+	<tr><td bgcolor="#FFFFFF"><a href="//<%=CommonConfiguration.getURLLocation(request)%>/IndividualSearchExportCapture?<%=StringEscapeUtils.escapeHtml4(queryString) %>">
 		Click here</a>
         </td></tr>
 </table>
@@ -173,7 +174,7 @@ if(request.getQueryString()!=null){
 	<p>	<table border="1" bordercolor="black" cellspacing="0">
 			<tr><td bgcolor="#CCCCCC"><strong>SOCPROG Excel</strong></td></tr>
 			<tr><td bgcolor="#FFFFFF">
-		<a href="//<%=CommonConfiguration.getURLLocation(request)%>/SOCPROGExport?<%=queryString%>">
+		<a href="//<%=CommonConfiguration.getURLLocation(request)%>/SOCPROGExport?<%=StringEscapeUtils.escapeHtml4(queryString) %>">
 Click here</a>
 </td></tr>
 </table>
@@ -182,14 +183,14 @@ Click here</a>
 	<p>	<table border="1" bordercolor="black" cellspacing="0">
 			<tr><td bgcolor="#CCCCCC"><strong>Genetics Export CSV File</strong></td></tr>
 			<tr><td bgcolor="#FFFFFF">
-		<a href="//<%=CommonConfiguration.getURLLocation(request)%>/KinalyzerExport?<%=queryString%>">
+		<a href="//<%=CommonConfiguration.getURLLocation(request)%>/KinalyzerExport?<%=StringEscapeUtils.escapeHtml4(queryString) %>">
 Click here</a>
 </td></tr>
 </table>
 </p>
 
 <p>
-<form name="simpleCMR" action="//<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMRSpecifySessions.jsp?<%=queryString%>" method="get">
+<form name="simpleCMR" action="//<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMRSpecifySessions.jsp?<%=StringEscapeUtils.escapeHtml4(queryString) %>" method="get">
 		<table border="1" bordercolor="black" cellspacing="0">
 			<tr>
 			  <td bgcolor="#CCCCCC"><strong>Simple Mark-Recapture History File Export (single site, single state)</strong></td></tr>
@@ -212,7 +213,7 @@ while(params.hasMoreElements()){
 	String name=(String)params.nextElement();
 	String value=request.getParameter(name);
 %>
-	<input type="hidden" id="<%=name %>" name="<%=name %>" value="<%=value %>" />
+	<input type="hidden" id="<%=StringEscapeUtils.escapeHtml4(name) %>" name="<%=StringEscapeUtils.escapeHtml4(name) %>" value="<%=StringEscapeUtils.escapeHtml4(value) %>" />
 <%
 }
 %>
@@ -235,12 +236,12 @@ while(params.hasMoreElements()){
 		
 		      <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
 		      </strong><br/>
-		        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
+		        <%=Util.escapeHtmlKeepLineBreaks(result.getQueryPrettyPrint()).replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
 		      </p>
 		
 		      <p class="caption"><strong><%=props.getProperty("jdoql")%>
 		      </strong><br/>
-		        <%=result.getJDOQLRepresentation()%>
+		        <%=StringEscapeUtils.escapeHtml4(result.getJDOQLRepresentation())%>
 		      </p>
 		
 		    </td>
