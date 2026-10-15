@@ -577,13 +577,16 @@ class SubmissionStoreDbTest {
     @Test void sightingInsertedAfterTheImporterCheckRollsBackEverything(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
         String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id"), herd = "late-" + UUID.randomUUID();
         long mediaBefore = mediaAssetCount();
-        try {
+        // every queued index entry goes through the factory; bulkOpensearchIndex is the importer's direct path
+        try (org.mockito.MockedStatic<org.ecocean.IndexingManagerFactory> factory = org.mockito.Mockito.mockStatic(org.ecocean.IndexingManagerFactory.class);
+             org.mockito.MockedStatic<org.ecocean.api.bulk.BulkImportUtil> bulk = org.mockito.Mockito.mockStatic(org.ecocean.api.bulk.BulkImportUtil.class, org.mockito.Mockito.CALLS_REAL_METHODS)) {
             realImport(owner, id, root, java.util.Arrays.asList(new JSONObject().put("Encounter.sightingID", herd),
                 new JSONObject().put("Encounter.sightingID", herd)), () -> { saveOccurrence(herd); hiddenOccurrence = herd; });
+            factory.verifyNoInteractions();
+            bulk.verify(() -> org.ecocean.api.bulk.BulkImportUtil.bulkOpensearchIndex(org.mockito.ArgumentMatchers.any()), org.mockito.Mockito.never());
         } finally { hiddenOccurrence = null; }
         assertEquals("needs_reconciliation", store.get("context0", owner, id, false, false).getString("state"));
         assertEquals(mediaBefore, mediaAssetCount()); // copied photos rolled back with the encounters
-        assertFalse(new SubmissionJobs(SubmissionStoreDbTest::realShepherd).pendingPostprocessing("context0").contains(id)); // nothing to index
         Shepherd sh = new Shepherd("context0", properties);
         try {
             sh.beginDBTransaction();
