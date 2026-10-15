@@ -123,6 +123,11 @@ public class BulkImporter {
             markProgress(rowNum, dataRows.size(), 0.2d, 0.5d);
         }
         logProgress("end processRows");
+        // derive sighting coordinates only now: inside processRow a row's own coordinate values are not
+        // yet set, so the final row's values were never examined. overwrite=false keeps coordinates an
+        // existing sighting already has. Legacy behavior retained: a -1.0 latitude or longitude is skipped
+        // as "unset", even though it is also a valid coordinate.
+        for (Occurrence occ : occurrenceCache.values()) occ.setLatLonFromEncs(false);
         trace(
             "------------ all rows processed; beginning persistence -------------\n");
         int persistenceTicksTotal = mediaAssetMap.values().size() + userCache.values().size() +
@@ -234,7 +239,6 @@ public class BulkImporter {
             indiv.setTaxonomyFromEncounters(true);
         }
         occ.addEncounterAndUpdateIt(enc);
-        occ.setLatLonFromEncs(false);
         // this line can be uncommented to disable persisting for development purposes
         // TODO remove this when no longer useful
         // if (enc != null) return;
