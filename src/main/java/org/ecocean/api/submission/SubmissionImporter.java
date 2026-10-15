@@ -47,7 +47,7 @@ public class SubmissionImporter {
         }
         if (!media.keySet().equals(requiredFiles)) throw new IllegalStateException("Required media unavailable");
         Map<Integer, Encounter> resolved = new TreeMap<>();
-        BulkImporter importer = new BulkImporter(taskId, validated, media, owner, sh).deferSideEffects(resolved::put);
+        BulkImporter importer = new BulkImporter(taskId, validated, media, owner, sh).deferSideEffects(resolved::put).newOccurrencesOnly();
         JSONObject imported = importer.createImport();
         JSONArray mapping = new JSONArray();
         for (int i = 0; i < rows.length(); i++) {
