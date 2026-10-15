@@ -1143,15 +1143,19 @@ public class Shepherd {
     public User getUser(String username) {
         if (username == null) return null;
         User user = null;
-        String filter = "SELECT FROM org.ecocean.User WHERE username == \"" + username.trim() +
-            "\"";
-        Query query = getPM().newQuery(filter);
-        Collection c = (Collection)(query.execute());
-        Iterator it = c.iterator();
-        if (it.hasNext()) {
-            user = (User)it.next();
+        // parameterized (not a string-built literal): a quote or backslash in a username must
+        // resolve, not throw -- this runs inside every encounter/annotation/individual index write
+        Query query = getPM().newQuery(User.class);
+        try {
+            query.setFilter("username == :u");
+            Collection c = (Collection)query.execute(username.trim());
+            Iterator it = c.iterator();
+            if (it.hasNext()) {
+                user = (User)it.next();
+            }
+        } finally {
+            query.closeAll();
         }
-        query.closeAll();
         return user;
     }
 
@@ -2450,6 +2454,22 @@ public class Shepherd {
             return al;
         }
         return al;
+    }
+
+    /**
+     * Like getAllOrganizations(), but a datastore failure propagates as a JDOException instead
+     * of being swallowed into an empty list. For writers (the OpenSearch permissions pass) that
+     * must never mistake a failed read for an empty catalog.
+     */
+    public List<Organization> getAllOrganizationsStrict() {
+        Query q = pm.newQuery(pm.getExtent(Organization.class, true));
+
+        try {
+            q.setOrdering("name ascending");
+            return new ArrayList<Organization>((Collection)q.execute());
+        } finally {
+            q.closeAll();
+        }
     }
 
     public List getPairs(Query query, int pageSize) {

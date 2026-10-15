@@ -4,13 +4,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -28,6 +33,13 @@ class ComputeViewUsersTest {
         User u = new User(id);     // constructor sets uuid = id
         u.setUsername(username);
         return u;
+    }
+
+    // orgAdmins are resolved with ONE batched role query (not one doesUserHaveRole per member)
+    private static void orgAdmins(Shepherd myShepherd, String... usernames) {
+        when(myShepherd.getUsernamesWithAnyRole(argThat((Collection<String> names) ->
+            (names != null) && (names.size() == 1) && names.contains(Organization.ROLE_MANAGER)),
+            eq("context0"))).thenReturn(Arrays.asList(usernames));
     }
 
     @Test void publicEncounter_yieldsEmpty() {
@@ -103,8 +115,7 @@ class ComputeViewUsersTest {
         when(myShepherd.getUser("admin")).thenReturn(admin);
         when(myShepherd.getAllOrganizationsForUser(member)).thenReturn(Arrays.asList(testOrg));
         when(myShepherd.getAllOrganizationsForUser(admin)).thenReturn(Arrays.asList(testOrg));
-        when(myShepherd.doesUserHaveRole(eq("admin"),  eq(Organization.ROLE_MANAGER), eq("context0"))).thenReturn(true);
-        when(myShepherd.doesUserHaveRole(eq("member"), eq(Organization.ROLE_MANAGER), eq("context0"))).thenReturn(false);
+        orgAdmins(myShepherd, "admin");
 
         try (MockedStatic<Collaboration> mc = mockStatic(Collaboration.class, Answers.CALLS_REAL_METHODS)) {
             mc.when(() -> Collaboration.securityEnabled(anyString())).thenReturn(true);
@@ -150,10 +161,7 @@ class ComputeViewUsersTest {
         when(myShepherd.getAllOrganizationsForUser(m2)).thenReturn(Arrays.asList(orgB));
         // m3 belongs to both orgs so admin appears via two org paths (dedupe check)
         when(myShepherd.getAllOrganizationsForUser(m3)).thenReturn(Arrays.asList(orgA, orgB));
-        when(myShepherd.doesUserHaveRole(eq("admin"), eq(Organization.ROLE_MANAGER), eq("context0"))).thenReturn(true);
-        when(myShepherd.doesUserHaveRole(eq("m1"),    eq(Organization.ROLE_MANAGER), eq("context0"))).thenReturn(false);
-        when(myShepherd.doesUserHaveRole(eq("m2"),    eq(Organization.ROLE_MANAGER), eq("context0"))).thenReturn(false);
-        when(myShepherd.doesUserHaveRole(eq("m3"),    eq(Organization.ROLE_MANAGER), eq("context0"))).thenReturn(false);
+        orgAdmins(myShepherd, "admin");
 
         try (MockedStatic<Collaboration> mc = mockStatic(Collaboration.class, Answers.CALLS_REAL_METHODS)) {
             mc.when(() -> Collaboration.securityEnabled(anyString())).thenReturn(true);
@@ -221,6 +229,41 @@ class ComputeViewUsersTest {
         }
     }
 
+    @Test void orgAdmin_resolvedWithOneBatchedRoleQuery_neverPerMember() {
+        // computeViewUsers runs on every encounter/annotation/individual index write; a bulk
+        // import by a member of a large organization must not cost one role query per member
+        Shepherd myShepherd = mock(Shepherd.class);
+        when(myShepherd.getContext()).thenReturn("context0");
+
+        User member = user("member", "member-uuid");
+        User admin  = user("admin",  "admin-uuid");
+        User m2     = user("m2",     "m2-uuid");
+        User m3     = user("m3",     "m3-uuid");
+
+        Organization bigOrg = new Organization("bigOrg");
+        bigOrg.addMember(member);
+        bigOrg.addMember(admin);
+        bigOrg.addMember(m2);
+        bigOrg.addMember(m3);
+
+        when(myShepherd.getUser("member")).thenReturn(member);
+        when(myShepherd.getAllOrganizationsForUser(member)).thenReturn(Arrays.asList(bigOrg));
+        orgAdmins(myShepherd, "admin");
+
+        try (MockedStatic<Collaboration> mc = mockStatic(Collaboration.class, Answers.CALLS_REAL_METHODS)) {
+            mc.when(() -> Collaboration.securityEnabled(anyString())).thenReturn(true);
+            mc.when(() -> Collaboration.persistedCollaborationsForUser(any(Shepherd.class), anyString()))
+              .thenReturn(new ArrayList<Collaboration>());
+
+            Encounter enc = new Encounter();
+            enc.setSubmitterID("member");
+            List<String> ids = enc.computeViewUsers(myShepherd);
+            assertEquals(Arrays.asList("admin-uuid"), ids, "only the orgAdmin is granted");
+        }
+        verify(myShepherd, times(1)).getUsernamesWithAnyRole(any(), eq("context0"));
+        verify(myShepherd, never()).doesUserHaveRole(anyString(), eq(Organization.ROLE_MANAGER), anyString());
+    }
+
     @Test void orgAdminOwner_withRealCollabs_doesNotInvert() {
         Shepherd myShepherd = mock(Shepherd.class);
         when(myShepherd.getContext()).thenReturn("context0");
@@ -237,8 +280,7 @@ class ComputeViewUsersTest {
         when(myShepherd.getUser("member")).thenReturn(member);
         when(myShepherd.getUser("friend")).thenReturn(friend);
         when(myShepherd.getAllOrganizationsForUser(owner)).thenReturn(Arrays.asList(testOrg));
-        when(myShepherd.doesUserHaveRole(eq("owner"),  eq(Organization.ROLE_MANAGER), eq("context0"))).thenReturn(true);
-        when(myShepherd.doesUserHaveRole(eq("member"), eq(Organization.ROLE_MANAGER), eq("context0"))).thenReturn(false);
+        orgAdmins(myShepherd, "owner");
 
         Collaboration cFriend = new Collaboration("owner", "friend");
         cFriend.setState(Collaboration.STATE_APPROVED);

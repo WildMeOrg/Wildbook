@@ -504,31 +504,28 @@ class IAIntakeCoreTest {
         });
     }
 
-    @Test void realDispatcherRoutesFastlaneToTheDetectionQueue() throws Exception {
+    @Test void realDispatcherPublishesThroughTheLaneClassifier() throws Exception {
         IA.setDispatcherForTests(null);
         Shepherd sh = shepherd(true);
         Map<String, List<JSONObject>> m = new HashMap<String, List<JSONObject>>();
         m.put("guitarfish", Arrays.asList(hotspotter()));
+        List<String> jobs = new ArrayList<String>();
         try (MockedStatic<IAGateway> gw = mockStatic(IAGateway.class)) {
-            gw.when(() -> IAGateway.addToDetectionQueue(anyString(), anyString())).thenReturn(true);
-            gw.when(() -> IAGateway.addToQueue(anyString(), anyString())).thenReturn(true);
-            withStatics(config(m), () -> {
-                IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, true);
-                assertTrue(o.options.get(0).published);
+            gw.when(() -> IAGateway.publishToLane(anyString(), anyString())).thenAnswer(inv -> {
+                jobs.add(inv.getArgument(1));
+                return true;
             });
-            gw.verify(() -> IAGateway.addToDetectionQueue(anyString(), anyString()));
+            withStatics(config(m), () -> {
+                assertTrue(IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, true).options.get(0).published);
+                assertTrue(IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, false).options.get(0).published);
+            });
+            gw.verify(() -> IAGateway.addToDetectionQueue(anyString(), anyString()), never());
             gw.verify(() -> IAGateway.addToQueue(anyString(), anyString()), never());
         }
-        try (MockedStatic<IAGateway> gw = mockStatic(IAGateway.class)) {
-            gw.when(() -> IAGateway.addToDetectionQueue(anyString(), anyString())).thenReturn(true);
-            gw.when(() -> IAGateway.addToQueue(anyString(), anyString())).thenReturn(true);
-            withStatics(config(m), () -> {
-                IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, false);
-                assertTrue(o.options.get(0).published);
-            });
-            gw.verify(() -> IAGateway.addToQueue(anyString(), anyString()));
-            gw.verify(() -> IAGateway.addToDetectionQueue(anyString(), anyString()), never());
-        }
+        // classified outside the mock: the real IAGateway.laneFor decides where each job goes
+        assertEquals(2, jobs.size());
+        assertEquals(IAGateway.LANE_FASTLANE, IAGateway.laneFor(new JSONObject(jobs.get(0))));
+        assertEquals(IAGateway.LANE_IA, IAGateway.laneFor(new JSONObject(jobs.get(1))));
     }
 
     @Test void singleVectorOptionPutsTheV2FlagOnTheUmbrella() throws Exception {

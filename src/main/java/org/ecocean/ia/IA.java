@@ -418,8 +418,10 @@ public class IA {
 
         @Override public boolean publish(String context, String job, boolean fastlane)
         throws java.io.IOException {
-            if (fastlane) return org.ecocean.servlet.IAGateway.addToDetectionQueue(context, job);
-            return org.ecocean.servlet.IAGateway.addToQueue(context, job);
+            // One classifier decides the lane (IAGateway.laneFor reads the job's "fastlane" flag).
+            // Routing fastlane work to the SERIAL detection queue left it behind every queued
+            // ml-service detection.
+            return org.ecocean.servlet.IAGateway.publishToLane(context, job);
         }
     };
     private static volatile Dispatcher dispatcher = REAL_DISPATCHER;
