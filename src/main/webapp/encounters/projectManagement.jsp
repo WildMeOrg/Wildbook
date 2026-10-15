@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
          java.io.File,
@@ -60,25 +61,25 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 %>
 <ul id="tabmenu">
   <li><a
-    href="/react/encounter-search?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("table")%>
+    href="/react/encounter-search?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=projProps.getProperty("table")%>
   </a></li>
   <li><a class="active"
-    href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("projectManagement")%>
+    href="projectManagement.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=projProps.getProperty("projectManagement")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("matchingImages")%>
+    href="thumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=projProps.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("mappedResults")%>
+    href="mappedSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=projProps.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=projProps.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=projProps.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=StringEscapeUtils.escapeHtml4(queryString) %>"><%=projProps.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=queryString %>"><%=projProps.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString) %>"><%=projProps.getProperty("export")%>
    </a></li>
 </ul>
 

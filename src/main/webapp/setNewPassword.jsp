@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
 <%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat, java.io.*" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
@@ -63,9 +64,9 @@ Properties props= ShepherdProperties.getProperties("users.properties", langCode,
 		        		   
 		        			<form action="UserResetPassword" method="post" id="editUser">	    
     		    	
-    		    				<input type="hidden" name="username" value="<%=request.getParameter("username") %>" />
-    		    				<input type="hidden" name="OTP" value="<%=request.getParameter("OTP") %>" />
-    		    				<input type="hidden" name="time" value="<%=request.getParameter("time") %>" />
+    		    				<input type="hidden" name="username" value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("username")) %>" />
+    		    				<input type="hidden" name="OTP" value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("OTP")) %>" />
+    		    				<input type="hidden" name="time" value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("time")) %>" />
     		    	
     		    			
     		    				<table width="100%">

@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.util.Collections" %>
 <%@ page import="java.util.Properties, java.io.IOException" %>
 <%@ page import="org.ecocean.FormUtilities" %>
@@ -243,7 +244,7 @@ if(compareAgainst.getGeneticSex()!=null){
     <%
 	if(request.getParameter("individualDistanceSearch")!=null){
 	%>
-		<input type="hidden" name="individualDistanceSearch" value="<%=request.getParameter("individualDistanceSearch") %>" />
+		<input type="hidden" name="individualDistanceSearch" value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("individualDistanceSearch")) %>" />
 	<%
 	}
     %>
@@ -779,7 +780,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 					       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
 					       	  	%>
 
-					       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %></option>
+					       	  	  <option value="<%=StringEscapeUtils.escapeHtml4(CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")) %>"><%=StringEscapeUtils.escapeHtml4(CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")) %></option>
 					       	  	<%
 					       		taxNum++;
 					          }

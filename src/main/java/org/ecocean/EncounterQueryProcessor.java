@@ -434,7 +434,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
                     prettyPrint.append("Social roles is one of the following: ");
                 }
                 for (int h = 0; h < numRoles; h++) {
-                    prettyPrint.append(roles[h] + "&nbsp;");
+                    prettyPrint.append(roles[h] + " ");
                 }
                 // logical OR the roles
                 for (int q = 0; q < rIndividuals.size(); q++) {

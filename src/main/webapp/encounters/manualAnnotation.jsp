@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
 		org.ecocean.servlet.ServletUtilities,
@@ -217,7 +218,7 @@ try{
 	if (encounterId != null) {
 	    enc = myShepherd.getEncounter(encounterId);
 	    if (enc == null) {
-	        out.println("<p class=\"error\">Invalid <b>encounterId=" + encounterId + "</b></p>");
+	        out.println("<p class=\"error\">Invalid <b>encounterId=" + StringEscapeUtils.escapeHtml4(encounterId) + "</b></p>");
 	        myShepherd.rollbackDBTransaction();
 		    myShepherd.closeDBTransaction();
 	        return;
@@ -596,7 +597,7 @@ try{
 	<% } %>
 	</p>
 
-				<h2><a href="manualAnnotation.jsp?<%=request.getQueryString()%>&save">SAVE</a></h2>
+				<h2><a href="manualAnnotation.jsp?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>&save">SAVE</a></h2>
 
 
 

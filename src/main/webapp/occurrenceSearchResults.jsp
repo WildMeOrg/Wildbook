@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, org.ecocean.security.HiddenOccReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.json.JSONObject, org.json.JSONArray,  org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
@@ -42,9 +43,9 @@
 
     	OccurrenceQueryResult result = OccurrenceQueryProcessor.processQuery(myShepherd, request, order);
 
-    	jdoqlRep=result.getJDOQLRepresentation();
+    	jdoqlRep=StringEscapeUtils.escapeHtml4(result.getJDOQLRepresentation());
 
-    	prettyPrint=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")));
+    	prettyPrint=Util.escapeHtmlKeepLineBreaks(result.getQueryPrettyPrint()).replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")));
     	rOccurrences = result.getResult();
 
 		// viewOnly=true arg means this hiddenData relates to viewing the summary results
@@ -163,7 +164,7 @@
         <li><a class="active"><%=occProps.getProperty("table")%>
         </a></li>
             <li><a
-           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("export")%>
+           href="occurrenceExportSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=occProps.getProperty("export")%>
          </a></li>
 
       </ul>

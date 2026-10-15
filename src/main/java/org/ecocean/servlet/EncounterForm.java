@@ -84,6 +84,17 @@ public class EncounterForm extends HttpServlet {
         return formValues.get(key).toString();
     }
 
+    // true if the parsed genus/epithet matches a configured or stored taxonomy name,
+    // with both sides normalized the same way by Util.parseGenusSpecies()
+    static boolean isConfiguredTaxonomy(String[] gs, Shepherd myShepherd) {
+        for (String name : myShepherd.getAllTaxonomyNames()) {
+            String[] allowed = Util.parseGenusSpecies(name);
+            if ((allowed != null) && allowed[0].equalsIgnoreCase(gs[0]) &&
+                allowed[1].equalsIgnoreCase(gs[1])) return true;
+        }
+        return false;
+    }
+
     private SatelliteTag getSatelliteTag(Map formValues) {
         String argosPttNumber = getVal(formValues, "satelliteTagArgosPttNumber");
         String satelliteTagName = getVal(formValues, "satelliteTagName");
@@ -402,7 +413,12 @@ public class EncounterForm extends HttpServlet {
                     // trinomial keeps its subspecies (e.g. "Delphinus capensis tropicalis")
                     String[] gs = Util.parseGenusSpecies(formValues.get(
                         "genusSpecies").toString());
-                    if (gs != null) {
+                    // only accept configured taxonomy names, as the v3 API does
+                    if ((gs != null) &&
+                        !isConfiguredTaxonomy(gs, myShepherd)) {
+                        System.out.println(
+                            "EncounterForm: ignoring genusSpecies value that is not a configured taxonomy");
+                    } else if (gs != null) {
                         genus = gs[0];
                         specificEpithet = gs[1];
                     }
