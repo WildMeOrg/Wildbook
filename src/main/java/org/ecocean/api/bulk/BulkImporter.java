@@ -52,6 +52,13 @@ public class BulkImporter {
         return this;
     }
 
+    private boolean newOccurrencesOnly = false;
+    /** Opt-in for submissions: a supplied sighting ID must name a new occurrence, never an existing one. */
+    public BulkImporter newOccurrencesOnly() {
+        this.newOccurrencesOnly = true;
+        return this;
+    }
+
     // caching loaded and (more imporantly?) newly created objects, so they can be
     // used across all rows. StandardImport seemed to do some caching *based on user*
     // (of, for example, MarkedIndividuals). not sure why. maybe this will be revealed later.
@@ -123,6 +130,20 @@ public class BulkImporter {
             markProgress(rowNum, dataRows.size(), 0.2d, 0.5d);
         }
         logProgress("end processRows");
+        // per-row derivation runs before that row's coordinates are set, so a sighting's first
+        // (or only) row never contributes; derive again now that every encounter is populated.
+        // Unlike Occurrence.setLatLonFromEncs, -1.0 is a real coordinate here (validation accepts it).
+        if (newOccurrencesOnly) {
+            for (Occurrence occ : occurrenceCache.values()) {
+                for (Encounter enc : occ.getEncounters()) {
+                    Double lat = enc.getDecimalLatitudeAsDouble(), lon = enc.getDecimalLongitudeAsDouble();
+                    if ((lat == null) || (lon == null)) continue;
+                    occ.setDecimalLatitude(lat);
+                    occ.setDecimalLongitude(lon);
+                    break;
+                }
+            }
+        }
         trace(
             "------------ all rows processed; beginning persistence -------------\n");
         int persistenceTicksTotal = mediaAssetMap.values().size() + userCache.values().size() +
@@ -1053,8 +1074,16 @@ public class BulkImporter {
         if ((id == null) && fmap.containsKey("Encounter.sightingID"))
             id = fmap.get("Encounter.sightingID").getValueString();
         if ((id != null) && occurrenceCache.containsKey(id)) return occurrenceCache.get(id);
-        // this will create a new one *even if null id* (assigns random)
-        Occurrence occ = myShepherd.getOrCreateOccurrence(id);
+        Occurrence occ;
+        if (newOccurrencesOnly && (id != null)) {
+            // a concurrent writer that creates this id after the check fails our insert at commit
+            if (myShepherd.getOccurrence(id) != null)
+                throw new IllegalStateException("sighting ID already exists: " + id);
+            occ = new Occurrence(id);
+        } else {
+            // this will create a new one *even if null id* (assigns random)
+            occ = myShepherd.getOrCreateOccurrence(id);
+        }
         occ.setSkipAutoIndexing(true);
         occurrenceCache.put(occ.getId(), occ); // we use getId() in case of id==null
         return occ;
