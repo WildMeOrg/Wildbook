@@ -1236,6 +1236,102 @@ public class OpenSearch {
         void accept(JSONArray hits) throws IOException;
     }
 
+    /** An uncached index snapshot owned by one audit, established BEFORE its database snapshot. */
+    public DocValuesSnapshot openDocValuesSnapshot(java.util.List<String> indices, String keepAlive)
+    throws IOException {
+        if ((indices == null) || indices.isEmpty()) throw new IOException("no snapshot indices");
+        for (String index : indices) {
+            if (!isValidIndexName(index)) throw new IOException("invalid index name: " + index);
+        }
+        if (Thread.currentThread().isInterrupted())
+            throw new java.io.InterruptedIOException("interrupted before the index snapshot");
+        Request request = new Request("POST", "/" + String.join(",", indices) + "/_search/point_in_time");
+        request.addParameter("keep_alive", keepAlive);
+        request.addParameter("allow_partial_pit_creation", "false");
+        JSONObject response = new JSONObject(getRestResponse(request));
+        String id = response.optString("pit_id", null);
+        if ((id == null) || id.isEmpty()) throw new IOException("index snapshot has no PIT id");
+        DocValuesSnapshot snapshot = new DocValuesSnapshot(id, indices, keepAlive);
+        JSONObject shards = response.optJSONObject("_shards");
+        if ((shards == null) || (shards.optInt("total", -1) <= 0) ||
+            (shards.optInt("failed", -1) != 0) ||
+            (shards.optInt("successful", -1) != shards.optInt("total", -2))) {
+            snapshot.close();
+            throw new IOException("incomplete index snapshot: " + response);
+        }
+        return snapshot;
+    }
+
+    public final class DocValuesSnapshot implements AutoCloseable {
+        private String pitId;
+        private final java.util.List<String> indices;
+        private final String keepAlive;
+
+        private DocValuesSnapshot(String pitId, java.util.List<String> indices, String keepAlive) {
+            this.pitId = pitId;
+            this.indices = new java.util.ArrayList<String>(indices);
+            this.keepAlive = keepAlive;
+        }
+
+        /** Read one index from the SAME PIT; expiration is an error, never a reason to reopen it. */
+        public void scan(String index, java.util.List<String> fields, int pageSize,
+            DocValuesPageConsumer consumer)
+        throws IOException {
+            if ((pitId == null) || !indices.contains(index))
+                throw new IOException("index is outside the audit snapshot: " + index);
+            JSONObject body = new JSONObject().put("_source", false)
+                .put("docvalue_fields", new JSONArray(fields)).put("seq_no_primary_term", true)
+                .put("size", pageSize).put("track_total_hits", false)
+                .put("query", new JSONObject().put("term", new JSONObject().put("_index", index)))
+                .put("sort", new JSONArray().put(new JSONObject().put("id", "asc")));
+            JSONArray after = null;
+            while (true) {
+                if (Thread.currentThread().isInterrupted())
+                    throw new java.io.InterruptedIOException("interrupted while reading " + index);
+                body.put("pit", new JSONObject().put("id", pitId).put("keep_alive", keepAlive));
+                if (after != null) body.put("search_after", after);
+                Request request = new Request("POST", "/_search");
+                request.addParameter("allow_partial_search_results", "false");
+                request.setJsonEntity(body.toString());
+                JSONObject page = new JSONObject(getRestResponse(request));
+                String returnedId = page.optString("pit_id", null);
+                if ((returnedId != null) && !returnedId.isEmpty()) pitId = returnedId;
+                String problem = org.ecocean.security.PermissionsAudit.validateSearchPage(page);
+                if (problem != null) throw new IOException("snapshot page rejected: " + problem);
+                JSONArray hits = page.getJSONObject("hits").getJSONArray("hits");
+                if (hits.length() == 0) return;
+                // id is a unique keyword in each index. Refuse missing/invalid sort keys rather
+                // than skipping documents when search_after cannot advance unambiguously.
+                String previous = (after == null) ? null : after.getString(0);
+                for (int i = 0; i < hits.length(); i++) {
+                    JSONObject hit = hits.getJSONObject(i);
+                    JSONArray sort = hit.optJSONArray("sort");
+                    if ((sort == null) ||
+                        (sort.length() != 1) || !(sort.opt(0) instanceof String) ||
+                        !sort.getString(0).equals(hit.optString("_id")) ||
+                        ((previous != null) && previous.equals(sort.getString(0))))
+                        throw new IOException("unusable snapshot pagination key in " + index);
+                    previous = sort.getString(0);
+                }
+                after = hits.getJSONObject(hits.length() - 1).getJSONArray("sort");
+                consumer.accept(hits);
+            }
+        }
+
+        @Override public void close() {
+            if (pitId == null) return;
+            String id = pitId;
+            pitId = null;
+            try {
+                deletePitId(id);
+            } catch (Exception ex) {
+                System.out.println("Permissions audit: clearing the PIT failed: " + ex);
+                if ((ex instanceof java.io.InterruptedIOException) &&
+                    !(ex instanceof java.net.SocketTimeoutException)) Thread.currentThread().interrupt();
+            }
+        }
+    }
+
     /**
      * Forward-only scroll of a whole index reading ONLY doc values (no _source: source filtering
      * would still parse every annotation's embeddings) plus each hit's _seq_no/_primary_term.

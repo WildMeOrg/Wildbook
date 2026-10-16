@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
@@ -272,6 +274,88 @@ import org.testcontainers.utility.DockerImageName;
         int n = 0;
         for (PermissionsAudit.IndexCounters c : r.indices.values()) n += c.repaired;
         return n;
+    }
+
+    private static void transferPrivateEncounters(String owner) throws Exception {
+        Shepherd sh = new Shepherd("context0");
+        try {
+            sh.beginDBTransaction();
+            for (String id : new String[] { "e1", "e4" }) {
+                Encounter enc = sh.getEncounter(id);
+                enc.setSkipAutoIndexing(true);
+                enc.setSubmitterID(owner);
+            }
+            assertTrue(sh.commitDBTransactionWithStatus());
+        } finally {
+            sh.rollbackAndClose();
+        }
+        reindexAll();
+    }
+
+    private static void assertOldOwnerCannotSearchTransferredRecords() throws Exception {
+        refresh();
+        assertFalse(visible("encounter", uuid.get("owner")).contains("e1"));
+        assertFalse(visible("annotation", uuid.get("owner")).contains("a1"));
+        assertFalse(visible("individual", uuid.get("owner")).contains(INDIVIDUALS.get(2)));
+    }
+
+    @Test void revocationIndexedBeforeTheIndexSnapshotIsPreserved() throws Exception {
+        try {
+            transferPrivateEncounters("xavier");
+            Result r = audit();
+            assertTrue(r.completed, r.toString());
+            assertEquals(0, repaired(r));
+            assertOldOwnerCannotSearchTransferredRecords();
+        } finally {
+            transferPrivateEncounters("owner");
+        }
+    }
+
+    @Test void revocationBetweenIndexAndDatabaseSnapshotsIsPreserved() throws Exception {
+        reindexAll();
+        OpenSearch os = spy(os());
+        doAnswer(inv -> {
+            OpenSearch.DocValuesSnapshot view = (OpenSearch.DocValuesSnapshot)inv.callRealMethod();
+            try {
+                transferPrivateEncounters("xavier");
+                return view;
+            } catch (Exception ex) {
+                view.close();
+                throw ex;
+            }
+        }).when(os).openDocValuesSnapshot(any(), anyString());
+        try {
+            Result r = PermissionsAudit.run("context0", CONFIG, os);
+            assertTrue(r.index("encounter").conflicts > 0, r.toString());
+            assertTrue(r.index("annotation").conflicts > 0, r.toString());
+            assertTrue(r.index("individual").conflicts > 0, r.toString());
+            assertOldOwnerCannotSearchTransferredRecords();
+        } finally {
+            transferPrivateEncounters("owner");
+        }
+    }
+
+    @Test void revocationAfterDatabaseSnapshotBeforeFirstIndexReadIsPreserved() throws Exception {
+        reindexAll();
+        // Make the OLD index view require a repair that would restore the old owner's access.
+        drift("annotation", "a1", new JSONObject().put("submitterUserIds", new JSONArray())
+            .put("viewUsers", new JSONArray()));
+        OpenSearch os = spy(os());
+        doAnswer(inv -> {
+            OpenSearch.DocValuesSnapshot view = spy((OpenSearch.DocValuesSnapshot)inv.callRealMethod());
+            doAnswer(scan -> {
+                transferPrivateEncounters("xavier");
+                return scan.callRealMethod();
+            }).when(view).scan(eq("encounter"), any(), anyInt(), any());
+            return view;
+        }).when(os).openDocValuesSnapshot(any(), anyString());
+        try {
+            Result r = PermissionsAudit.run("context0", CONFIG, os);
+            assertEquals(1, r.index("annotation").conflicts, r.toString());
+            assertOldOwnerCannotSearchTransferredRecords();
+        } finally {
+            transferPrivateEncounters("owner");
+        }
     }
 
     // ================= the audit end to end =================

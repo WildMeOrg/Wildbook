@@ -92,6 +92,7 @@ class PermissionsAuditRunTest {
     private Set<String> failOn; // ids whose conditional write throws
     private boolean skipAutoIndexing;
     // observations
+    private List<String> readOrder;
     private List<JSONObject> writes; // {kind, index, id, doc|json, seqNo, primaryTerm}
 
     @BeforeEach void setUp() {
@@ -130,6 +131,7 @@ class PermissionsAuditRunTest {
         failOn = new HashSet<String>();
         skipAutoIndexing = false;
         writes = new ArrayList<JSONObject>();
+        readOrder = new ArrayList<String>();
         // the usual cast: owner owns, bob holds Indonesia (covers Komodo), amy collaborates
         user("owner", "uuid-O");
         user("bob", "uuid-B");
@@ -146,6 +148,7 @@ class PermissionsAuditRunTest {
 
     private static Map<String, JSONObject> goodMapping(String index) {
         Map<String, JSONObject> m = new HashMap<String, JSONObject>();
+        m.put("id", new JSONObject().put("type", "keyword"));
         m.put("publiclyReadable", new JSONObject().put("type", "boolean"));
         m.put("viewUsers", new JSONObject().put("type", "keyword"));
         if ("encounter".equals(index)) {
@@ -303,7 +306,10 @@ class PermissionsAuditRunTest {
             MockedStatic<OpenSearch> osStatic = mockStatic(OpenSearch.class);
             MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class, (mock, ctx) -> {
                 when(mock.getContext()).thenReturn("context0");
-                when(mock.getUsersWithUsername()).thenReturn(users);
+                when(mock.getUsersWithUsername()).thenAnswer(inv -> {
+                    readOrder.add("database");
+                    return users;
+                });
                 when(mock.getAllCollaborations()).thenReturn(collabs);
                 when(mock.getAllOrganizationsStrict()).thenReturn(orgs);
                 when(mock.getUsernamesWithAnyRole(any(), eq("context0"))).thenReturn(orgAdminUsernames);
@@ -345,12 +351,19 @@ class PermissionsAuditRunTest {
                     if (mappingInterruptOn.contains(index)) throw new InterruptedIOException("interrupted: " + index);
                     return mappings.get(index);
                 });
+                OpenSearch.DocValuesSnapshot view = mock(OpenSearch.DocValuesSnapshot.class);
+                when(mock.openDocValuesSnapshot(any(), anyString())).thenAnswer(inv -> {
+                    readOrder.add("index snapshot");
+                    return view;
+                });
+                doAnswer(inv -> { readOrder.add("closed"); return null; }).when(view).close();
                 doAnswer(inv -> {
                     String index = inv.getArgument(0);
+                    readOrder.add("scan " + index);
                     if (scrollFails.contains(index)) throw new IOException("scroll failed: " + index);
                     if (scrollInterruptOn.contains(index)) throw new InterruptedIOException("interrupted: " + index);
                     if ((gate != null) && "encounter".equals(index)) gate.await(10, TimeUnit.SECONDS);
-                    OpenSearch.DocValuesPageConsumer consumer = inv.getArgument(4);
+                    OpenSearch.DocValuesPageConsumer consumer = inv.getArgument(3);
                     int delivered = 0;
                     for (JSONArray p : pages.get(index)) {
                         Integer failAfter = pageFailsAfter.get(index);
@@ -360,7 +373,7 @@ class PermissionsAuditRunTest {
                         delivered++;
                     }
                     return null;
-                }).when(mock).scrollDocValues(anyString(), any(), anyInt(), anyString(), any());
+                }).when(view).scan(anyString(), any(), anyInt(), any());
                 doAnswer(inv -> conditionalWrite("update", inv.getArgument(0), inv.getArgument(1),
                     inv.getArgument(2), inv.getArgument(3), inv.getArgument(4)))
                     .when(mock).updateIfUnchanged(anyString(), anyString(), any(JSONObject.class), anyLong(), anyLong());
@@ -410,6 +423,21 @@ class PermissionsAuditRunTest {
         Set<String> s = new HashSet<String>();
         for (int i = 0; i < a.length(); i++) s.add(a.getString(i));
         return s;
+    }
+
+    @Test void indexSnapshotPrecedesDatabaseSnapshotAndIsClosed() throws Exception {
+        Result r = run();
+        assertTrue(r.completed, r.toString());
+        assertEquals(Arrays.asList("index snapshot", "database", "scan encounter", "scan annotation",
+            "scan individual", "closed"), readOrder);
+    }
+
+    @Test void unusableDatabaseSnapshotStillClosesTheIndexSnapshot() throws Exception {
+        isolationLevel = "read-committed";
+        Result r = run();
+        assertFalse(r.completed);
+        assertEquals(Arrays.asList("index snapshot", "closed"), readOrder);
+        assertTrue(writes.isEmpty());
     }
 
     // ================= converged system =================

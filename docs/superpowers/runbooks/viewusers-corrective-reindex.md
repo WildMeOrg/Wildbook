@@ -19,6 +19,21 @@ re-reads from a fresh snapshot.
   is 0. A steady non-zero `repaired` on a quiet system means a serializer and the
   audit disagree about a document: treat it as a bug, not as drift.
 
+## Snapshot ordering
+
+Each audit opens its own uncached OpenSearch point-in-time (PIT) view of the audited
+indices BEFORE acquiring the repeatable-read database snapshot. All index pages use
+that same PIT and the original sequence numbers for conditional writes. A newer
+indexed permission change is either included in the later database snapshot or
+causes a version conflict; the audit cannot restore old permissions by reading a
+newer document against an older snapshot. An expired PIT fails the run: it is never
+reopened under the old database snapshot.
+
+The legacy property `backgroundPermissionsScrollKeepAlive` now controls this PIT's
+lifetime. It must cover database snapshot loading and the interval between page
+requests; each page renews the shared PIT across all three indices. The audit closes
+its PIT on success, failure, or interruption, independently of cached search PITs.
+
 ## Consistency contract
 
 An existing eligible document is repaired by a subsequent audit whose snapshot
@@ -36,10 +51,10 @@ token-authenticated annotation and individual search paths and `MediaResolveApi`
 | `backgroundPermissionsMinutes` | 10 | delay after a completed audit |
 | `backgroundPermissionsRetryMinutes` | 2 | delay after an incomplete audit (at most 5 in a row) |
 | `backgroundPermissionsRunner` | true | whether this JVM runs the audit |
-| `backgroundPermissionsPageSize` | 1000 | scroll page size |
+| `backgroundPermissionsPageSize` | 1000 | index page size |
 | `backgroundPermissionsMaxRepairsPerPass` | 20000 | conditional ACL writes per audit |
 | `backgroundPermissionsMaxRebuildsPerPass` | 500 | child rebuilds per audit |
-| `backgroundPermissionsScrollKeepAlive` | 5m | scroll context keep-alive |
+| `backgroundPermissionsScrollKeepAlive` | 5m | audit PIT keep-alive |
 
 Exactly one JVM per database may run the audit. With several Tomcats sharing a
 database, set `backgroundPermissionsRunner=false` on all but one. A restart is a

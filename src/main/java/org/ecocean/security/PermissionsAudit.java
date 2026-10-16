@@ -334,8 +334,8 @@ public final class PermissionsAudit {
                    doc.owners.equals(expected.owners) && doc.viewers.equals(expected.viewers);
     }
 
-    /** Null when a scroll page is usable; otherwise the reason the audit of this index aborts. */
-    public static String validatePage(JSONObject page) {
+    /** Null when a search page is usable; otherwise the reason the audit of this index aborts. */
+    public static String validateSearchPage(JSONObject page) {
         if (page == null) return "no page";
         if (page.optBoolean("timed_out", false)) return "timed_out";
         JSONObject shards = page.optJSONObject("_shards");
@@ -343,6 +343,12 @@ public final class PermissionsAudit {
         if (shards.optInt("failed", 0) > 0) return "shard failures: " + shards.optInt("failed");
         JSONObject hits = page.optJSONObject("hits");
         if ((hits == null) || (hits.optJSONArray("hits") == null)) return "no hits envelope";
+        return null;
+    }
+
+    public static String validatePage(JSONObject page) {
+        String problem = validateSearchPage(page);
+        if (problem != null) return problem;
         Object scrollId = page.opt("_scroll_id");
         if (!(scrollId instanceof String) || ((String)scrollId).isEmpty()) return "no usable _scroll_id";
         return null;
@@ -425,8 +431,8 @@ public final class PermissionsAudit {
     }
 
     /**
-     * One audit: one repeatable-read snapshot of the database, then for each index a doc-values
-     * scroll, a comparison of every document against its expected tuple, conditional repairs, and
+     * One audit: freeze the index PIT, acquire one repeatable-read database snapshot, then read
+     * each index from that PIT and conditionally repair documents against their expected tuples. Use
      * for a child document whose linkage disagrees with the database a deny write followed by a
      * verified rebuild. Nothing is acknowledged: completion only selects the next delay.
      */
@@ -451,36 +457,54 @@ public final class PermissionsAudit {
                 return r;
             }
             if (interrupted(r, "before the snapshot")) return r;
-            Snapshot snapshot = loadSnapshot(context, r);
-            if (snapshot == null) return r;
-            sampleHeap(r, "snapshot loaded");
-            Runner runner = new Runner(context, config, snapshot, r, os);
-            boolean allAudited = true;
+            OpenSearch search = (os == null) ? new OpenSearch() : os;
+            List<String> indices = new ArrayList<String>();
             for (String index : INDICES) {
-                if (r.interrupted || interrupted(r, "before auditing " + index)) {
-                    allAudited = false;
-                    break;
+                if (interrupted(r, "before checking " + index)) return r;
+                if (checkIndexMapping(index, search, r)) indices.add(index);
+                if (r.interrupted) return r;
+            }
+            if (indices.isEmpty()) return r;
+            // Freeze EVERY index before acquiring the database snapshot. A newer indexed
+            // revocation is either reflected by that snapshot or conflicts with the PIT's
+            // original sequence number. Never substitute a fresh PIT under an old DB snapshot.
+            try (OpenSearch.DocValuesSnapshot view = search.openDocValuesSnapshot(indices, config.keepAlive)) {
+                Snapshot snapshot = loadSnapshot(context, r);
+                if (snapshot == null) return r;
+                sampleHeap(r, "snapshot loaded");
+                try {
+                    Runner runner = new Runner(context, config, snapshot, r, search, view);
+                    boolean allAudited = indices.size() == INDICES.length;
+                    for (String index : indices) {
+                        if (r.interrupted || interrupted(r, "before auditing " + index)) {
+                            allAudited = false;
+                            break;
+                        }
+                        allAudited &= runner.auditIndex(index);
+                        sampleHeap(r, index + " audited");
+                    }
+                    if (!r.interrupted && !interrupted(r, "before the rebuilds")) {
+                        runner.rebuildAll();
+                        sampleHeap(r, "rebuilds done");
+                    } else {
+                        runner.deferAllPending();
+                    }
+                    interrupted(r, "at completion");
+                    for (String index : INDICES) {
+                        if (r.indices.containsKey(index))
+                            System.out.println("PermissionsAudit: " + index + ": " + r.index(index));
+                    }
+                    r.completed = allAudited && !r.capHit && !r.interrupted && countersClean(r);
+                } finally {
+                    snapshot.release();
                 }
-                allAudited &= runner.auditIndex(index);
-                sampleHeap(r, index + " audited");
             }
-            // the queued rebuilds depend only on this snapshot and on documents that are already
-            // closed, so an index that could not be audited does not hold them back
-            if (!r.interrupted && !interrupted(r, "before the rebuilds")) {
-                runner.rebuildAll(); // verifies against the snapshot: release only afterwards
-                sampleHeap(r, "rebuilds done");
-            } else {
-                runner.deferAllPending(); // closed documents that wait for the next audit
-            }
-            snapshot.release();
-            interrupted(r, "at completion"); // raised during the last page or the rebuilds
-            for (String index : INDICES) {
-                if (r.indices.containsKey(index))
-                    System.out.println("PermissionsAudit: " + index + ": " + r.index(index));
-            }
-            r.completed = allAudited && !r.capHit && !r.interrupted && countersClean(r);
+            interrupted(r, "after closing the index snapshot");
+            if (r.interrupted) r.completed = false;
             return r;
         } catch (Exception ex) {
+            if ((ex instanceof InterruptedIOException) &&
+                !(ex instanceof java.net.SocketTimeoutException)) r.interrupted = true;
             r.reasons.add("audit failed: " + ex);
             ex.printStackTrace();
             return r;
@@ -689,7 +713,7 @@ public final class PermissionsAudit {
             JSONObject fm = mappings.get(field);
             if (fm == null) return "field " + field + " is not mapped";
             String type = fm.optString("type", "");
-            if (!"keyword".equals(type) && !"boolean".equals(type))
+            if (!("publiclyReadable".equals(field) ? "boolean" : "keyword").equals(type))
                 return "field " + field + " has type " + type + " (doc values need keyword/boolean)";
             if (fm.has("doc_values") && !fm.optBoolean("doc_values", true))
                 return "field " + field + " has doc_values=false";
@@ -715,54 +739,66 @@ public final class PermissionsAudit {
         return doc;
     }
 
+    private static List<String> auditFields(String index) {
+        String ownerField = "encounter".equals(index) ? "submitterUserId" : "submitterUserIds";
+        List<String> fields = new ArrayList<String>(Arrays.asList("id", "publiclyReadable", ownerField, "viewUsers"));
+        if ("annotation".equals(index)) fields.add("encounterId");
+        if ("individual".equals(index)) fields.add("encounterIds");
+        return fields;
+    }
+
+    private static boolean checkIndexMapping(String index, OpenSearch os, Result result) {
+        try {
+            String bad = checkMapping(os.fieldMappings(index), auditFields(index));
+            if (bad != null) {
+                result.reasons.add(index + ": not audited: " + bad);
+                return false;
+            }
+        } catch (java.net.SocketTimeoutException timeout) {
+            result.reasons.add(index + ": mapping check timed out: " + timeout);
+            return false;
+        } catch (InterruptedIOException iex) {
+            result.interrupted = true;
+            result.reasons.add(index + ": interrupted during the mapping check");
+            return false;
+        } catch (Exception ex) {
+            result.reasons.add(index + ": mapping check failed: " + ex);
+            return false;
+        }
+        return true;
+    }
+
     private static final class Runner {
         final String context;
         final Config config;
         final Snapshot snapshot;
         final Result result;
         final OpenSearch os;
+        final OpenSearch.DocValuesSnapshot view;
         int writes = 0; // toward the repair cap
         int rebuilds = 0; // toward the rebuild cap, shared by both child indices
         // child documents whose linkage disagreed with the database and that are now closed:
         // { index, id, seqNo, primaryTerm }, rebuilt after ALL scrolls under the one budget
         final List<Object[]> pending = new ArrayList<Object[]>();
 
-        Runner(String context, Config config, Snapshot snapshot, Result result, OpenSearch os) {
+        Runner(String context, Config config, Snapshot snapshot, Result result, OpenSearch os,
+            OpenSearch.DocValuesSnapshot view) {
             this.context = context;
             this.config = config;
             this.snapshot = snapshot;
             this.result = result;
-            this.os = (os != null) ? os : new OpenSearch();
+            this.os = os;
+            this.view = view;
         }
 
         /** True when the index was fully read (repairs may still have failed, which the counters show). */
         boolean auditIndex(final String index) {
             final IndexCounters c = result.index(index);
             final String ownerField = "encounter".equals(index) ? "submitterUserId" : "submitterUserIds";
-            final List<String> fields = new ArrayList<String>(Arrays.asList("publiclyReadable",
-                ownerField, "viewUsers"));
-            if ("annotation".equals(index)) fields.add("encounterId");
-            if ("individual".equals(index)) fields.add("encounterIds");
-            try {
-                String bad = checkMapping(os.fieldMappings(index), fields);
-                if (bad != null) {
-                    result.reasons.add(index + ": not audited: " + bad);
-                    return false;
-                }
-            } catch (java.net.SocketTimeoutException timeout) {
-                result.reasons.add(index + ": mapping check timed out: " + timeout);
-                return false;
-            } catch (InterruptedIOException iex) {
-                result.interrupted = true;
-                result.reasons.add(index + ": interrupted during the mapping check");
-                return false;
-            } catch (Exception ex) {
-                result.reasons.add(index + ": mapping check failed: " + ex);
-                return false;
-            }
+            final List<String> fields = auditFields(index);
             boolean read = true;
             try {
-                os.scrollDocValues(index, fields, config.pageSize, config.keepAlive,
+                view.scan(index, fields, config.pageSize,
                     new OpenSearch.DocValuesPageConsumer() {
                     public void accept(JSONArray hits) throws IOException {
                         for (int i = 0; i < hits.length(); i++) {
