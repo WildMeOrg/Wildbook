@@ -2056,7 +2056,12 @@ public class OpenSearch {
             }
         }
         if (defaultValue instanceof Boolean) {
-            return Boolean.valueOf(propValue.trim());
+            String value = propValue.trim();
+            if ("true".equalsIgnoreCase(value)) return Boolean.TRUE;
+            if ("false".equalsIgnoreCase(value)) return Boolean.FALSE;
+            System.out.println("OpenSearch.getConfigurationValue(): WARNING invalid Boolean for " +
+                key + "; using defaultValue [" + defaultValue + "]");
+            return defaultValue;
         }
         // guess we are just a string
         return propValue;
