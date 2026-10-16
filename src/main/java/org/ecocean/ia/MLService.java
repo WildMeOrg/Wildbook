@@ -17,6 +17,7 @@ import org.ecocean.media.Feature;
 import org.ecocean.media.FeatureType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.RestClient;
+import org.ecocean.Taxonomy;
 import org.ecocean.servlet.IAGateway;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
@@ -30,6 +31,11 @@ public class MLService {
 
     public MLService() {
         iaConfig = IAJsonProperties.iaConfig();
+    }
+
+    // reuse an already-loaded IA.json (and lets tests inject one)
+    MLService(IAJsonProperties iaConfig) {
+        this.iaConfig = iaConfig;
     }
 
     public JSONObject initiateRequest(MediaAsset ma, String taxonomyString)
@@ -297,10 +303,63 @@ public class MLService {
         return ann;
     }
 
+    /**
+     * The configs {@link #send(Annotation, String, Shepherd)} extracts with.
+     * Every species entry, as before, unless the species is multi-pipeline
+     * (docs/plans/2026-10-16-mlservice-multi-config.md): then exactly one,
+     * chosen by the annotation's iaClass, so a box is embedded by the same
+     * extractor on every path. Throws like {@link #getConfigs(String)} when
+     * the species has no {@code _mlservice_conf}.
+     */
+    List<JSONObject> extractionConfigs(Annotation ann, String taxonomyString)
+    throws IAException {
+        List<JSONObject> confs = getConfigs(taxonomyString);
+        JSONObject multiConf = multiPipelineExtractionConfig(ann, taxonomyString);
+        if (multiConf == null) return confs;
+        requireSplittableExtractor(multiConf);
+        List<JSONObject> one = new ArrayList<JSONObject>();
+        one.add(multiConf);
+        return one;
+    }
+
+    // null unless the taxonomy is multi-pipeline
+    private JSONObject multiPipelineExtractionConfig(Annotation ann, String taxonomyString) {
+        IAJsonProperties iac = getIAConfig();
+        if ((iac == null) || (ann == null) || !Util.stringExists(taxonomyString)) return null;
+        Taxonomy taxy = new Taxonomy(taxonomyString);
+        if (!iac.isMultiPipeline(taxy)) return null;
+        return iac.selectExtractionConfig(taxy, ann.getIAClass());
+    }
+
+    // multi-pipeline only: same rule as MlServiceProcessor, enforced on this path too
+    private static void requireSplittableExtractor(JSONObject conf)
+    throws IAException {
+        if (MlServiceProcessor.extractorIdentity(conf) == null)
+            throw new IAException("INVALID", MlServiceProcessor.MULTI_PIPELINE_EXTRACT_ID_RULE +
+                    "; got " + conf, false, false);
+    }
+
+    /**
+     * {@code {method, version}} for an {@code /extract/} response's
+     * {@code model_id}. Multi-pipeline species split on the FIRST dash, the
+     * rule the v2 detection path uses, so a model id with several dashes
+     * names the same embedding space on both paths ({@link
+     * #extractionConfigs} has already rejected an extractor id without a
+     * dash); everything else keeps {@link #getMethodValues(JSONObject)}.
+     */
+    static String[] annotationResultIdentity(JSONObject res, boolean multiPipeline) {
+        if (multiPipeline && (res != null)) {
+            String[] split = MlServiceProcessor.splitModelId(res.optString("model_id", null));
+            if (split != null) return split;
+        }
+        return getMethodValues(res);
+    }
+
     public void send(Annotation ann, String taxonomyString, Shepherd myShepherd)
     throws IAException {
         if (ann == null) throw new IAException("null Annotation passed");
-        for (JSONObject conf : getConfigs(taxonomyString)) {
+        boolean multiPipeline = multiPipelineExtractionConfig(ann, taxonomyString) != null;
+        for (JSONObject conf : extractionConfigs(ann, taxonomyString)) {
             JSONObject payload = createPayload(ann, conf);
             JSONObject res = sendPayload(conf.optString("api_endpoint", null) + "/extract/",
                 payload);
@@ -317,13 +376,19 @@ public class MLService {
                     "]");
             System.out.println("MLService.send() conf=" + conf + "; payload=" + payload +
                 "; RESPONSE => " + logRes);
-            processAnnotationResults(ann, res, myShepherd);
+            processAnnotationResults(ann, res, myShepherd, multiPipeline);
             System.out.println("MLService.send() process results on " + ann);
         }
     }
 
     // not sure what (if anything) we need to return here
     public void processAnnotationResults(Annotation ann, JSONObject res, Shepherd myShepherd)
+    throws IAException {
+        processAnnotationResults(ann, res, myShepherd, false);
+    }
+
+    void processAnnotationResults(Annotation ann, JSONObject res, Shepherd myShepherd,
+        boolean multiPipeline)
     throws IAException {
         if (res == null) throw new IAException("empty results");
         if (ann == null) throw new IAException("null Annotation");
@@ -335,7 +400,7 @@ public class MLService {
         if ((embs.length() < 1) || (embs.optJSONArray(0) == null))
             throw new IAException("results has no embeddings array[0]: " + res);
         JSONArray vecArr = embs.getJSONArray(0);
-        String[] methodValues = getMethodValues(res);
+        String[] methodValues = annotationResultIdentity(res, multiPipeline);
         Embedding emb = new Embedding(ann, methodValues[0], methodValues[1], vecArr);
         // maybe this is unwise? could 2 embeddings *from different methods* have same vectors? TODO
         Embedding exists = ann.findEmbeddingByVector(emb);
