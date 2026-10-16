@@ -587,6 +587,11 @@
 		]
 	},
 	{
+		"name": "Glorieuses Islands",
+		"id": "Glorieuses Islands",
+		"locationID":[]
+	},
+	{
 		"name": "Indonesia", 
 		"id": "Indonesia", 
 		"prefix": "ID-", 
