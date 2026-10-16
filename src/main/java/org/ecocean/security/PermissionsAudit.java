@@ -875,10 +875,8 @@ public final class PermissionsAudit {
             }
             ordered.addAll(failedBefore);
             int next = 0; // the first candidate not attempted (or not completed); the rest are deferred
-            Shepherd sh = new Shepherd(context);
-            sh.setAction("PermissionsAudit.rebuild");
+            Shepherd sh = null;
             try {
-                sh.beginDBTransaction();
                 while (next < ordered.size()) {
                     Object[] p = ordered.get(next);
                     String index = (String)p[0];
@@ -894,6 +892,13 @@ public final class PermissionsAudit {
                         result.capHit = true;
                         break;
                     }
+                    // A serializer SQL error aborts its PostgreSQL transaction. A fresh
+                    // PersistenceManager per candidate also discards its failed object cache.
+                    sh = new Shepherd(context);
+                    sh.setAction("PermissionsAudit.rebuild");
+                    sh.beginDBTransaction();
+                    if (!sh.isDBTransactionActive())
+                        throw new IOException("could not begin the rebuild transaction");
                     next++;
                     rebuilds++;
                     try {
@@ -910,13 +915,16 @@ public final class PermissionsAudit {
                         c.failed++;
                         LAST_FAILED_REBUILDS.add(id);
                         System.out.println("PermissionsAudit: " + index + "/" + id + " rebuild failed: " + ex);
+                    } finally {
+                        sh.rollbackAndClose();
+                        sh = null;
                     }
                 }
             } catch (Exception ex) {
                 result.reasons.add("rebuilds aborted: " + ex);
                 result.index((String)pending.get(0)[0]).failed++;
             } finally {
-                sh.rollbackAndClose();
+                if (sh != null) sh.rollbackAndClose();
                 for (int i = next; i < ordered.size(); i++) result.index((String)ordered.get(i)[0]).deferred++;
             }
         }

@@ -74,6 +74,7 @@ class PermissionsAuditRunTest {
     private List<Object[]> memberRows; // individual id, encounter id
     private Map<String, Annotation> annotations; // for rebuilds
     private Map<String, MarkedIndividual> individuals;
+    private Set<Shepherd> abortedRebuildTransactions;
     private String isolationLevel;
     private boolean securityEnabled;
     // index fixture
@@ -108,6 +109,7 @@ class PermissionsAuditRunTest {
         memberRows = new ArrayList<Object[]>();
         annotations = new HashMap<String, Annotation>();
         individuals = new HashMap<String, MarkedIndividual>();
+        abortedRebuildTransactions = new HashSet<Shepherd>();
         isolationLevel = "repeatable-read";
         securityEnabled = true;
         pages = new HashMap<String, List<JSONArray> >();
@@ -306,7 +308,12 @@ class PermissionsAuditRunTest {
                 when(mock.getAllOrganizationsStrict()).thenReturn(orgs);
                 when(mock.getUsernamesWithAnyRole(any(), eq("context0"))).thenReturn(orgAdminUsernames);
                 when(mock.getRolesInContext("context0")).thenReturn(roles);
-                when(mock.getAnnotation(anyString())).thenAnswer(inv -> annotations.get((String)inv.getArgument(0)));
+                when(mock.getAnnotation(anyString())).thenAnswer(inv -> {
+                    if (abortedRebuildTransactions.contains(mock))
+                        throw new javax.jdo.JDODataStoreException("current transaction is aborted");
+                    return annotations.get((String)inv.getArgument(0));
+                });
+                when(mock.isDBTransactionActive()).thenReturn(true);
                 when(mock.getMarkedIndividual(anyString())).thenAnswer(inv -> individuals.get((String)inv.getArgument(0)));
                 final String[] action = { "" };
                 doAnswer(inv -> {
@@ -1151,6 +1158,26 @@ class PermissionsAuditRunTest {
         Result r = run();
         assertEquals(0, puts());
         assertEquals(2, r.index("annotation").deferred, "both wait for the next audit");
+        assertFalse(r.completed);
+    }
+
+    @Test void failedSerializerDoesNotPoisonTheNextRebuildTransaction() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("tx-bad", "e1");
+        annotation("tx-good", "e1");
+        page("annotation", childHit("tx-bad", false, arr(), arr(), "encounterId", arr("eOld")),
+            childHit("tx-good", false, arr(), arr(), "encounterId", arr("eOld")));
+        Annotation bad = rebuildableAnnotation("tx-bad", correctChild("tx-bad", "encounterId", "e1"));
+        doAnswer(inv -> {
+            abortedRebuildTransactions.add(inv.getArgument(1));
+            throw new javax.jdo.JDODataStoreException("serializer SQL failed");
+        }).when(bad).opensearchDocumentSerializer(any(JsonGenerator.class), any(Shepherd.class));
+        rebuildableAnnotation("tx-good", correctChild("tx-good", "encounterId", "e1"));
+
+        Result r = run();
+        assertEquals(1, r.index("annotation").failed);
+        assertEquals(1, writesTo("annotation", "tx-good").stream()
+            .filter(w -> "put".equals(w.getString("kind"))).count());
         assertFalse(r.completed);
     }
 
