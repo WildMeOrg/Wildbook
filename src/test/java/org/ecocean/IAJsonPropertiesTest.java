@@ -259,8 +259,50 @@ class IAJsonPropertiesTest {
         // Back-compat: one species entry => that entry, even if the class
         // carries a different _mlservice_conf.
         IAJsonProperties iac = iaConfigWith(MultiPipelineIAJson.dogFaceOnly());
-        assertEquals("miewid-pet_v1.1.0",
-            iac.selectExtractionConfig(DOG, "dog_face").getString("extract_model_id"));
+        JSONObject conf = iac.selectExtractionConfig(DOG, "dog_face");
+        assertEquals(MultiPipelineIAJson.facePipeline().toString(), conf.toString(),
+            "single-entry species must get its species [0] object, endpoint included");
+    }
+
+    @Test void getMlServiceConfigsForIAClass_followsRedirects() {
+        JSONObject json = MultiPipelineIAJson.dogBodyAndFace();
+        JSONObject species = json.getJSONObject("Canis").getJSONObject("familiaris");
+        // leaf redirect: the class's _mlservice_conf points at another class's array
+        species.getJSONObject("animal").put("_mlservice_conf",
+            "@Canis.familiaris.dog+face._mlservice_conf");
+        // intermediate redirect: the whole class node points at another class
+        species.put("puppy_face", "@Canis.familiaris.dog+face");
+        IAJsonProperties iac = iaConfigWith(json);
+        assertEquals("miewid-pet_v1.1.0", iac.getMlServiceConfigsForIAClass(DOG, "animal")
+            .getJSONObject(0).getString("extract_model_id"));
+        assertEquals("miewid-pet_v1.1.0", iac.getMlServiceConfigsForIAClass(DOG, "puppy_face")
+            .getJSONObject(0).getString("extract_model_id"));
+        assertEquals("pet_v1.1.0",
+            iac.getDefaultVectorIdentConfig(DOG, "puppy_face").getString("version"));
+    }
+
+    @Test void getMlServiceConfigsForIAClass_nullForEmptyOrWrongType() {
+        JSONObject json = MultiPipelineIAJson.dogBodyAndFace();
+        JSONObject species = json.getJSONObject("Canis").getJSONObject("familiaris");
+        species.getJSONObject("dog").put("_mlservice_conf", new JSONArray());
+        species.getJSONObject("dog+face").put("_mlservice_conf",
+            new JSONObject().put("oops", "not_an_array"));
+        species.getJSONObject("animal").put("_mlservice_conf", "plain string");
+        IAJsonProperties iac = iaConfigWith(json);
+        assertNull(iac.getMlServiceConfigsForIAClass(DOG, "dog"));
+        assertNull(iac.getMlServiceConfigsForIAClass(DOG, "dog+face"));
+        assertNull(iac.getMlServiceConfigsForIAClass(DOG, "animal"));
+        // and extraction falls back to the first species entry
+        assertEquals("miewid-msv4.1",
+            iac.selectExtractionConfig(DOG, "dog+face").getString("extract_model_id"));
+    }
+
+    @Test void getDefaultVectorIdentConfig_nullForWrongType() {
+        JSONObject json = MultiPipelineIAJson.dogBodyAndFace();
+        json.getJSONObject("Canis").getJSONObject("familiaris").getJSONObject("dog")
+            .put("_id_conf", new JSONObject().put("default", true));
+        IAJsonProperties iac = iaConfigWith(json);
+        assertNull(iac.getDefaultVectorIdentConfig(DOG, "dog"));
     }
 
     @Test void selectExtractionConfig_nullWhenNotRouted() {

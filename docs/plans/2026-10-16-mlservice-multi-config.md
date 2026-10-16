@@ -121,13 +121,19 @@ keeps today's behavior.
   group. Each group gets its own match child Task under the same detection task,
   so the match-results page shows one tree per class/model. Every group is
   attempted/deferred even if an earlier one fails; the returned outcome is the first
-  non-ok group outcome, else ok with all ids. (The outcome is only logged by
+  group outcome with `isError()`, else ok with all ids (a STALE group, e.g. annotations
+  deleted mid-flight, does not mask the others). (The outcome is only logged by
   `IAGateway`; `findMatchProspects` returning true with an error subtask is a
   pre-existing limitation and is not changed here.)
-- For multi-pipeline species `runMatchProspects` also stamps `method` and `version`
-  into the match task's `ibeis.identification` block (it already stamps
-  `description`), so every MatchResult's task carries the embedding space it was
-  computed in (§6).
+- `runMatchProspects` also stamps `method` and `version` (when the match config has
+  both) into the match task's `ibeis.identification` block, next to the
+  `description` it already stamps, so every MatchResult's task carries the embedding
+  space it was computed in (§6). This is done for all v2 match tasks, not only
+  multi-pipeline ones: it is additive (`Task.getIdentificationMethodInfo` reads only
+  `api_endpoint`, `model_id`, `description`, `query_config_dict`), it brings v2 in
+  line with the legacy path whose block already holds the whole `_id_conf` entry,
+  and `api_endpoint` is deliberately not copied because it would switch the
+  match-results header to the legacy label.
 
 ### 4. v2 `annotationId` extraction job
 
