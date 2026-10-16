@@ -201,8 +201,16 @@ public class MlServiceProcessor {
         MlServiceJobOutcome firstError = null;
         for (MatchGroup group : groupByMatchConfig(iac, taxy, detected)) {
             allIds.addAll(group.annotationIds);
-            MlServiceJobOutcome outcome = waitAndRunMatch(group.annotationIds, taskId,
-                group.matchConfig, true);
+            MlServiceJobOutcome outcome;
+            try {
+                outcome = waitAndRunMatch(group.annotationIds, taskId, group.matchConfig, true);
+            } catch (RuntimeException ex) {
+                // e.g. a failing error-marker inside runMatchProspects' catch;
+                // never let one group stop the others from being matched.
+                System.out.println("[ERROR] MlServiceProcessor: match group " +
+                    group.annotationIds + " for task " + taskId + " threw " + ex);
+                outcome = MlServiceJobOutcome.persistError("MATCH", String.valueOf(ex));
+            }
             if ((firstError == null) && (outcome != null) && outcome.isError()) {
                 firstError = outcome;
             }

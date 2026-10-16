@@ -132,8 +132,14 @@ class MultiPipelineExtractionAndPairxTest {
             .selectMultiPipelinePairxConfig(iac, DOG, "dog+face", null, null)
             .getString("api_endpoint"));
         assertEquals(MultiPipelineIAJson.BODY_ENDPOINT, MatchResult
-            .selectMultiPipelinePairxConfig(iac, DOG, "dog", "miewid", null)
+            .selectMultiPipelinePairxConfig(iac, DOG, "dog", "", "")
             .getString("api_endpoint"));
+    }
+
+    @Test void pairxSkipsPartialIdentity() {
+        IAJsonProperties iac = iac(MultiPipelineIAJson.dogBodyAndFace());
+        assertNull(MatchResult.selectMultiPipelinePairxConfig(iac, DOG, "dog", "miewid", null));
+        assertNull(MatchResult.selectMultiPipelinePairxConfig(iac, DOG, "dog", null, "msv4.1"));
     }
 
     @Test void taskMatchIdentityReadsIbeisIdentification() {

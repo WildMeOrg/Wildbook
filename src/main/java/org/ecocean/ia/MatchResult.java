@@ -693,11 +693,19 @@ public class MatchResult implements java.io.Serializable {
      * version) is known, use the config (species entries, then the class's
      * entries) whose extract_model_id produces it, and if none does, skip
      * PairX (null) rather than visualise with a different model. Only a
-     * match with no recorded identity falls back to the class's extractor.
+     * match with no recorded identity falls back to the class's extractor;
+     * a partial one (method without version or vice versa) is skipped too.
      */
     static JSONObject selectMultiPipelinePairxConfig(IAJsonProperties iac, Taxonomy taxy,
         String iaClass, String method, String version) {
-        if (Util.stringExists(method) && Util.stringExists(version)) {
+        boolean hasMethod = Util.stringExists(method);
+        boolean hasVersion = Util.stringExists(version);
+        if (hasMethod != hasVersion) {
+            System.out.println("[WARN] MatchResult: partial match identity method=" + method +
+                " version=" + version + " for " + taxy + "; skipping PairX");
+            return null;
+        }
+        if (hasMethod) {
             List<JSONArray> sources = new ArrayList<JSONArray>();
             sources.add(iac.getActiveMlServiceConfigs(taxy));
             sources.add(iac.getMlServiceConfigsForIAClass(taxy, iaClass));
