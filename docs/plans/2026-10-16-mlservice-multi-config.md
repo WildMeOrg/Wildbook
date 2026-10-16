@@ -70,7 +70,13 @@ keeps today's behavior.
   `_id_conf`, else null. No fallback.
 - `isMultiPipeline(Taxonomy)` → active species array length > 1.
 - `selectExtractionConfig(Taxonomy, iaClass)`: single-pipeline → species `[0]`;
-  multi → class-level `[0]` if present, else species `[0]` (logged WARN).
+  multi → class-level `[0]` if present, else species `[0]` (logged WARN). This is the
+  **one** extractor selector; the v2 extraction job, `MLService.send(Annotation)` and
+  the PairX fallback all use it, so a multi-pipeline annotation is embedded by exactly
+  one extractor on every path.
+- `extractorIdentity(JSONObject mlConfig)` → `(method, version)` of
+  `extract_model_id`, parsed with the v2 rule (`MlServiceProcessor.parseEmbeddingMethodVersion`:
+  split on the first dash, keep everything after it).
 
 ### 2. `MlServiceProcessor` detection
 
@@ -92,6 +98,10 @@ keeps today's behavior.
   Zero results across all entries → `finalizeZeroDetections`.
 - Each persisted annotation remembers which entry produced it and the
   `(method, version)` of the embedding that came back with it.
+- Dedup (`findExistingAnnotation`) for multi-pipeline species additionally requires
+  the existing annotation's iaClass to equal the newly resolved iaClass, so a body
+  box and a face box with identical rounded geometry stay two annotations.
+  Single-pipeline dedup unchanged (geometry only).
 
 ### 3. Match after detection
 
@@ -109,27 +119,51 @@ keeps today's behavior.
 - Group annotation ids by the resolved match config (canonical JSON string as the
   key, insertion-ordered) and call `waitAndRunMatch(groupIds, taskId, cfg)` once per
   group. Each group gets its own match child Task under the same detection task,
-  so the match-results page shows one tree per class/model. Outcome: first
-  non-ok group outcome wins; otherwise ok with all ids.
+  so the match-results page shows one tree per class/model. Every group is
+  attempted/deferred even if an earlier one fails; the returned outcome is the first
+  non-ok group outcome, else ok with all ids. (The outcome is only logged by
+  `IAGateway`; `findMatchProspects` returning true with an error subtask is a
+  pre-existing limitation and is not changed here.)
+- For multi-pipeline species `runMatchProspects` also stamps `method` and `version`
+  into the match task's `ibeis.identification` block (it already stamps
+  `description`), so every MatchResult's task carries the embedding space it was
+  computed in (§6).
 
 ### 4. v2 `annotationId` extraction job
 
-`loadExtractionContext` uses `selectExtractionConfig(taxy, ann.getIAClass())` and,
-for multi-pipeline species, the class-level match config (same resolution as §3,
-step 1).
+Multi-pipeline species only:
+- `loadExtractionContext` uses `selectExtractionConfig(taxy, ann.getIAClass())`.
+- "Already has an embedding" is tested against `extractorIdentity(selected)`, not the
+  match config, so an old embedding from another model never suppresses extraction.
+- `persistExtraction` dedups against the identity parsed from the **response**
+  (`parseEmbeddingMethodVersion(response)`), as detection does.
+- The match config is resolved with the full §3 rules (class-level → `_default` →
+  embedding-derived fallback when the configured identity differs from the
+  embedding just stored).
+Single-pipeline: unchanged.
 
 ### 5. `MLService.send(Annotation)` (manual / API / catch-up path)
 
-Multi-pipeline species with a class-level `_mlservice_conf` for the annotation's
-iaClass → only those entries are used. Otherwise unchanged (all species entries).
-Single-pipeline species unchanged.
+Multi-pipeline species: exactly one config, `selectExtractionConfig(taxy,
+ann.getIAClass())`, and the stored `(method, version)` is parsed with the v2 rule
+(first-dash split) instead of `MLService.getMethodValues` (which keeps only the
+second dash token: `miewid-pet-v1` would be stored as version `pet` on this path but
+`pet-v1` on the detection path). Single-pipeline species: unchanged (loop over all
+species entries, `getMethodValues`).
 
 ### 6. PairX
 
-`MatchResult._getPairxConfig(txStr)` gains `_getPairxConfig(txStr, iaClass)`; both
-callers (`createInspectionPairxAsset`, `MatchInspectionPairxEnricher`) pass the
-query annotation's iaClass. Selection = `selectExtractionConfig` rules, so a dog
-face visualises with the pet model on Kaiju. Single-pipeline unchanged.
+New `_getPairxConfig(txStr, iaClass, method, version)`; both callers
+(`createInspectionPairxAsset`, `MatchInspectionPairxEnricher`) pass the query
+annotation's iaClass and the `method`/`version` from the MatchResult task's
+`ibeis.identification` block. That block is the `_id_conf` entry on the legacy/manual
+ident path, and is stamped by §3 on the detection path. Selection for multi-pipeline
+species:
+1. the config (species entries, then class-level entries) whose
+   `extractorIdentity` equals the match's `(method, version)`, so PairX visualises
+   the space the match was computed in, including after a §3 fallback;
+2. else `selectExtractionConfig(taxy, iaClass)`.
+Single-pipeline: unchanged (species `[0]`).
 
 ## Not changed
 
@@ -138,6 +172,23 @@ face visualises with the pet model on Kaiju. Single-pipeline unchanged.
   only test "is the array populated").
 - `_save_as` semantics. The face detector's raw `dog_face` → `dog+face` and
   MegaDetector's raw `animal` → `dog` are pure IA.json.
+
+## Encounters for body + part boxes
+
+`MediaAsset.assignEncounters` treats a class containing `+` as a part. One `dog` +
+one `dog+face` on a photo, contiguous → both on one Encounter. Two or more bodies, or
+repeated parts → every unassigned box gets its own Encounter, with no body-to-face
+association (two dogs → four Encounters). This is today's behavior for any species
+whose detector emits parts (e.g. `lion` + `lion+head`); this branch does not change
+it, and IA.json authors must name the part class with `+` (`dog+face`, not
+`dog_face`) for the single-animal case to work.
+
+## Out of scope
+
+- Requeue exhaustion: `IAGateway.requeueJob` can refuse a requeue and the processor
+  still reports `requeue`, leaving the MA in `processing-mlservice`. Pre-existing and
+  fixed separately on `fix/mlservice-retry-exhaustion-terminal`; this branch keeps a
+  single requeue call site per job so that fix applies unchanged.
 
 ## Tests
 
