@@ -579,7 +579,7 @@ class PermissionsAuditRunTest {
         encounter("e2", "owner", "Komodo");
         page("encounter", encounterHit("e1", false, "uuid-O"), encounterHit("e2", false, "uuid-O"));
 
-        Result r = run(new Config(1000, 1, 500, "5m"));
+        Result r = run(new Config(1000, 3, 500, "5m"));
         assertEquals(1, writes.size());
         assertFalse(r.completed);
         assertTrue(r.capHit);
@@ -1278,4 +1278,42 @@ class PermissionsAuditRunTest {
             Thread.interrupted();
         }
     }
+    @Test void encounterGrantBacklogCannotConsumeTheChildRepairBudgets() throws Exception {
+        for (String id : new String[] { "e1", "e2", "e3" }) encounter(id, "owner", "Komodo");
+        annotation("a1", "e1");
+        individual("i1", "e1");
+        page("encounter", encounterHit("e1", false, "uuid-O"), encounterHit("e2", false, "uuid-O"),
+            encounterHit("e3", false, "uuid-O"));
+        page("annotation", childHit("a1", false, arr("uuid-O"), arr("uuid-A", "uuid-B", "revoked"),
+            "encounterId", arr("e1")));
+        page("individual", childHit("i1", false, arr("uuid-O"), arr("uuid-A", "uuid-B", "revoked"),
+            "encounterIds", arr("e1")));
+
+        Result r = run(new Config(1000, 3, 500, "5m"));
+        assertEquals(1, r.index("encounter").repaired);
+        assertEquals(1, r.index("annotation").repaired);
+        assertEquals(1, r.index("individual").repaired);
+        assertEquals(3, writes.size(), "the original total cap is preserved");
+        assertTrue(r.capHit);
+        assertFalse(r.completed);
+    }
+
+    @Test void aOneWriteBudgetRotatesAcrossAllThreeIndices() throws Exception {
+        encounter("e1", "owner", "Komodo");
+        annotation("a1", "e1");
+        individual("i1", "e1");
+        page("encounter", encounterHit("e1", false, "uuid-O"));
+        page("annotation", childHit("a1", false, arr("uuid-O"), arr(), "encounterId", arr("e1")));
+        page("individual", childHit("i1", false, arr("uuid-O"), arr(), "encounterIds", arr("e1")));
+        Set<String> repairedIndices = new HashSet<String>();
+        for (int i = 0; i < 3; i++) {
+            writes.clear();
+            Result r = run(new Config(1000, 1, 500, "5m"));
+            assertEquals(1, writes.size());
+            repairedIndices.add(writes.get(0).getString("index"));
+            assertFalse(r.completed);
+        }
+        assertEquals(set("encounter", "annotation", "individual"), repairedIndices);
+    }
+
 }

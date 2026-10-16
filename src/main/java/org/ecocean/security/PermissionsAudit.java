@@ -421,6 +421,8 @@ public final class PermissionsAudit {
     private static final Set<String> LAST_FAILED_REBUILDS = Collections.synchronizedSet(
         new HashSet<String>());
     private static final String ISOLATION = "repeatable-read";
+    private static final java.util.concurrent.atomic.AtomicInteger REPAIR_TURN =
+        new java.util.concurrent.atomic.AtomicInteger();
     private static final String[] INDICES = { "encounter", "annotation", "individual" };
 
     /** Thrown inside the scroll consumer when the repair cap is reached: stop reading, not an abort. */
@@ -432,9 +434,8 @@ public final class PermissionsAudit {
 
     /**
      * One audit: freeze the index PIT, acquire one repeatable-read database snapshot, then read
-     * each index from that PIT and conditionally repair documents against their expected tuples. Use
-     * for a child document whose linkage disagrees with the database a deny write followed by a
-     * verified rebuild. Nothing is acknowledged: completion only selects the next delay.
+     * each index from that PIT and conditionally repair documents against their expected tuples.
+     * A child whose linkage disagrees with the database is denied first, then rebuilt and verified. Nothing is acknowledged: completion only selects the next delay.
      */
     public static Result run(String context, Config config) {
         return run(context, config, null);
@@ -775,7 +776,7 @@ public final class PermissionsAudit {
         final Result result;
         final OpenSearch os;
         final OpenSearch.DocValuesSnapshot view;
-        int writes = 0; // toward the repair cap
+        final Map<String, Integer> remainingRepairs = new HashMap<String, Integer>();
         int rebuilds = 0; // toward the rebuild cap, shared by both child indices
         // child documents whose linkage disagreed with the database and that are now closed:
         // { index, id, seqNo, primaryTerm }, rebuilt after ALL scrolls under the one budget
@@ -789,6 +790,15 @@ public final class PermissionsAudit {
             this.result = result;
             this.os = os;
             this.view = view;
+            // Reserve a share of the EXISTING total cap for each index. Encounter grants
+            // cannot consume the slots needed to revoke access on annotations/individuals.
+            // Rotate the remainder, including caps smaller than the number of indices.
+            int cap = Math.max(0, config.repairCap);
+            int turn = Math.floorMod(REPAIR_TURN.getAndIncrement(), INDICES.length);
+            for (int i = 0; i < INDICES.length; i++) {
+                int extra = Math.floorMod(i - turn, INDICES.length) < cap % INDICES.length ? 1 : 0;
+                remainingRepairs.put(INDICES[i], cap / INDICES.length + extra);
+            }
         }
 
         /** True when the index was fully read (repairs may still have failed, which the counters show). */
@@ -876,8 +886,9 @@ public final class PermissionsAudit {
         throws IOException {
             if (Thread.currentThread().isInterrupted())
                 throw new InterruptedIOException("interrupted before repairing " + index + "/" + id);
-            if (writes >= config.repairCap) throw new CapReached();
-            writes++;
+            int remaining = remainingRepairs.get(index);
+            if (remaining <= 0) throw new CapReached();
+            remainingRepairs.put(index, remaining - 1);
             try {
                 OpenSearch.ConditionalWrite w = os.updateIfUnchanged(index, id, doc, seqNo, primaryTerm);
                 if (!w.applied) {

@@ -798,7 +798,7 @@ import org.testcontainers.utility.DockerImageName;
         drift("annotation", "a1", new JSONObject().put("viewUsers", new JSONArray()));
         drift("annotation", "a3", new JSONObject().put("viewUsers", new JSONArray().put("someone")));
 
-        Result capped = PermissionsAudit.run("context0", new Config(2, 1, 500, "1m"));
+        Result capped = PermissionsAudit.run("context0", new Config(2, 3, 500, "1m"));
         refresh();
         assertEquals(1, capped.index("annotation").repaired);
         assertTrue(capped.capHit);

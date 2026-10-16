@@ -12,6 +12,12 @@ re-reads from a fresh snapshot.
 - The first audits repair whatever drifted before, within the per-audit caps
   (`backgroundPermissionsMaxRepairsPerPass`, `backgroundPermissionsMaxRebuildsPerPass`).
   A catalog with a lot of drift takes a few audits at the retry delay.
+- The ACL write cap is split equally across the three indices. Remainder slots rotate
+  between audits, so even a total cap below three eventually serves every index. Unused
+  shares are not borrowed: encounter grants cannot consume child-record revocation
+  capacity. With the default total of 20,000, each index has 6,666 or 6,667 attempts.
+  Failed/conflicted attempts consume their slot, as before. Child rebuilds keep their
+  separate shared budget.
 - Each audit logs one line per index (`PermissionsAudit: <index>: scanned=... repaired=...
   conflicts=... structural=... deferred=... failed=...`) and a summary with the
   elapsed time and the sampled peak heap (heap use at phase boundaries). On a converged
