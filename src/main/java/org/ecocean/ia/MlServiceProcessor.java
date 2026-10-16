@@ -31,8 +31,12 @@ import org.json.JSONObject;
  *
  * <p>Owns Shepherd transaction boundaries: load/revalidate, release DB while
  * the network call runs, then reopen for idempotent persistence and matching.
- * The dispatcher branch that routes {@code mlServiceV2:true} payloads lives in
- * a later commit.</p>
+ * {@code IAGateway.processQueueMessage} routes {@code mlServiceV2:true}
+ * payloads here.</p>
+ *
+ * <p>A species whose active {@code _mlservice_conf} has several entries runs
+ * every pipeline and embeds/matches each class in its own space; see
+ * docs/plans/2026-10-16-mlservice-multi-config.md.</p>
  */
 public class MlServiceProcessor {
     private static final String ACTION_PREFIX = "MlServiceProcessor.";
@@ -174,6 +178,33 @@ public class MlServiceProcessor {
             }
         }
         return run;
+    }
+
+    /**
+     * Every path names an embedding space by splitting extract_model_id on
+     * its first dash; a model id without one (e.g. "msv3") would be named
+     * differently by the legacy extraction path, so multi-pipeline species
+     * reject it outright.
+     */
+    static final String MULTI_PIPELINE_EXTRACT_ID_RULE =
+        "multi-pipeline _mlservice_conf entries need an extract_model_id of the form " +
+        "<method>-<version>";
+
+    /**
+     * Why a multi-pipeline species' entries cannot run, or null when every
+     * entry is an object with a predict_model_id and a splittable
+     * extract_model_id.
+     */
+    static String invalidMultiPipelineEntry(List<JSONObject> pipelines) {
+        for (int i = 0; i < pipelines.size(); i++) {
+            JSONObject pipeline = pipelines.get(i);
+            if ((pipeline == null) ||
+                !Util.stringExists(pipeline.optString("predict_model_id", null)))
+                return "_mlservice_conf[" + i + "] missing predict_model_id";
+            if (extractorIdentity(pipeline) == null)
+                return "_mlservice_conf[" + i + "]: " + MULTI_PIPELINE_EXTRACT_ID_RULE;
+        }
+        return null;
     }
 
     /** Requeue a retryable /pipeline/ failure, else fail the detection. */
@@ -404,17 +435,14 @@ public class MlServiceProcessor {
                     "_mlservice_conf missing predict_model_id"));
             }
             // Multi-pipeline: every entry must be runnable, or none run.
-            for (int i = 1; i < configs.pipelines.size(); i++) {
-                JSONObject pipeline = configs.pipelines.get(i);
-                if ((pipeline != null) &&
-                    Util.stringExists(pipeline.optString("predict_model_id", null))) continue;
-                markTaskError(task, "INVALID",
-                    "_mlservice_conf[" + i + "] missing predict_model_id for " +
-                    effectiveTaxonomy);
+            String invalid = configs.multiPipeline
+                ? invalidMultiPipelineEntry(configs.pipelines) : null;
+            if (invalid != null) {
+                markTaskError(task, "INVALID", invalid + " for " + effectiveTaxonomy);
                 ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
                 shep.commitDBTransaction();
                 return DetectionContext.done(MlServiceJobOutcome.validationError("INVALID",
-                    "_mlservice_conf[" + i + "] missing predict_model_id"));
+                    invalid));
             }
 
             URL webUrl = ma.webURL();
@@ -476,10 +504,14 @@ public class MlServiceProcessor {
                 Taxonomy taxy = shep.getOrCreateTaxonomy(effectiveTaxonomy, false);
                 mlConfig = iac.selectExtractionConfig(taxy, ann.getIAClass());
                 String[] extractMv = extractorIdentity(mlConfig);
-                boolean exists = (extractMv == null)
-                    ? hasEmbeddingForMatchConfig(ann, configs.matchConfig)
-                    : (ann.getEmbeddingByMethod(extractMv[0], extractMv[1]) != null);
-                if (exists) {
+                if (extractMv == null) {
+                    markTaskError(task, "INVALID", MULTI_PIPELINE_EXTRACT_ID_RULE + "; got " +
+                        mlConfig + " for " + effectiveTaxonomy);
+                    shep.commitDBTransaction();
+                    return ExtractionContext.done(MlServiceJobOutcome.validationError(
+                        "INVALID", MULTI_PIPELINE_EXTRACT_ID_RULE));
+                }
+                if (ann.getEmbeddingByMethod(extractMv[0], extractMv[1]) != null) {
                     markTaskCompleted(task);
                     shep.commitDBTransaction();
                     return ExtractionContext.done(MlServiceJobOutcome.stale("embedding-exists"));

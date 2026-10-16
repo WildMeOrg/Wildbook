@@ -2,6 +2,7 @@ package org.ecocean.ia;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -81,6 +82,17 @@ class MultiPipelineExtractionAndPairxTest {
     @Test void extractionConfigsThrowsWhenSpeciesUnconfigured() {
         MLService mls = new MLService(iac(MultiPipelineIAJson.dogBodyAndFace()));
         assertThrows(IAException.class, () -> mls.extractionConfigs(ann("x"), "Felis catus"));
+    }
+
+    @Test void multiPipelineRejectsExtractorIdWithoutDash() {
+        JSONObject json = MultiPipelineIAJson.dogBodyAndFace();
+        json.getJSONObject("Canis").getJSONObject("familiaris").getJSONObject("dog+face")
+            .getJSONArray("_mlservice_conf").getJSONObject(0).put("extract_model_id", "msv3");
+        MLService mls = new MLService(iac(json));
+        IAException ex = assertThrows(IAException.class,
+            () -> mls.extractionConfigs(ann("dog+face"), DOG_TX));
+        assertEquals("INVALID", ex.getCode());
+        assertFalse(ex.shouldRequeue(), "a config error must not be retried");
     }
 
     @Test void annotationResultIdentitySplitsOnFirstDashOnlyForMultiPipeline() {

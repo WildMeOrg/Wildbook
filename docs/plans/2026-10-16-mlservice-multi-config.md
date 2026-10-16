@@ -49,15 +49,29 @@ array has more than one entry:
 
 ### Back-compat rule
 
-**When the species-level array has exactly one entry, behavior is byte-for-byte
-unchanged**: that entry is used for detection and extraction, and the match config
-is the `_default` default vector entry, as today. Per-class resolution below only
+**When the species-level array has exactly one entry, processing and config
+selection are unchanged**: that entry is used for detection and extraction, and the
+match config is the `_default` default vector entry, as today. The one deliberate
+difference is additive metadata: v2 match tasks now record `method`/`version` in
+`ibeis.identification` (§3). Per-class resolution below only
 applies when the array has two or more entries. Every production IA.json (17 files
 scanned 2026-10-16) has at most one entry per species, so this branch changes no
 deployed behavior until a second entry is added. The only per-class
 `_mlservice_conf` that differs from its species entry today is Sharkbook
 (whaleshark, leopard_shark), and only in `orientation_model_id`; under this rule it
 keeps today's behavior.
+
+### Multi-pipeline config requirements
+
+Every species-level entry of a multi-pipeline species must have a `predict_model_id`
+and an `extract_model_id` of the form `<method>-<version>` (split on the first dash:
+`miewid-pet_v1.1.0` → `miewid` / `pet_v1.1.0`). An id without a dash (`msv3`) would
+be named differently by the legacy extraction path than by the v2 paths, so it is
+rejected: detection marks the asset `error` (INVALID, not retried), and both
+extraction paths fail that annotation's job with INVALID. A class with no
+`_mlservice_conf` of its own falls back to the first species entry (not to
+`_default._mlservice_conf`), and `_default._id_conf` must keep a default vector
+entry, because that is what routes the species to ml-service at all.
 
 ## Changes
 
@@ -74,7 +88,7 @@ keeps today's behavior.
   **one** extractor selector; the v2 extraction job, `MLService.send(Annotation)` and
   the PairX fallback all use it, so a multi-pipeline annotation is embedded by exactly
   one extractor on every path.
-- `extractorIdentity(JSONObject mlConfig)` → `(method, version)` of
+- `MlServiceProcessor.extractorIdentity(JSONObject mlConfig)` (with `splitModelId`) → `(method, version)` of
   `extract_model_id`, parsed with the v2 rule (`MlServiceProcessor.parseEmbeddingMethodVersion`:
   split on the first dash, keep everything after it).
 
@@ -152,8 +166,8 @@ Single-pipeline: unchanged.
 
 Multi-pipeline species: exactly one config, `selectExtractionConfig(taxy,
 ann.getIAClass())`, and the stored `(method, version)` is parsed with the v2 rule
-(first-dash split of the legacy response's `model_id` field, via a small
-`firstDashSplit(String)` helper shared with `parseEmbeddingMethodVersion`; the v1
+(first-dash split of the legacy response's `model_id` field, via
+`MlServiceProcessor.splitModelId(String)`, shared with `parseEmbeddingMethodVersion`; the v1
 response carries `model_id` + `embeddings[0]`, not `embedding_model_id`) instead of
 `MLService.getMethodValues` (which keeps only the
 second dash token: `miewid-pet-v1` would be stored as version `pet` on this path but

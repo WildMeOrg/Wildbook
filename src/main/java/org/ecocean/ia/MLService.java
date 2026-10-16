@@ -33,7 +33,7 @@ public class MLService {
         iaConfig = IAJsonProperties.iaConfig();
     }
 
-    // tests: inject a config instead of reading IA.json
+    // reuse an already-loaded IA.json (and lets tests inject one)
     MLService(IAJsonProperties iaConfig) {
         this.iaConfig = iaConfig;
     }
@@ -316,6 +316,7 @@ public class MLService {
         List<JSONObject> confs = getConfigs(taxonomyString);
         JSONObject multiConf = multiPipelineExtractionConfig(ann, taxonomyString);
         if (multiConf == null) return confs;
+        requireSplittableExtractor(multiConf);
         List<JSONObject> one = new ArrayList<JSONObject>();
         one.add(multiConf);
         return one;
@@ -330,12 +331,21 @@ public class MLService {
         return iac.selectExtractionConfig(taxy, ann.getIAClass());
     }
 
+    // multi-pipeline only: same rule as MlServiceProcessor, enforced on this path too
+    private static void requireSplittableExtractor(JSONObject conf)
+    throws IAException {
+        if (MlServiceProcessor.extractorIdentity(conf) == null)
+            throw new IAException("INVALID", MlServiceProcessor.MULTI_PIPELINE_EXTRACT_ID_RULE +
+                    "; got " + conf, false, false);
+    }
+
     /**
      * {@code {method, version}} for an {@code /extract/} response's
      * {@code model_id}. Multi-pipeline species split on the FIRST dash, the
      * rule the v2 detection path uses, so a model id with several dashes
-     * names the same embedding space on both paths; everything else keeps
-     * {@link #getMethodValues(JSONObject)}.
+     * names the same embedding space on both paths ({@link
+     * #extractionConfigs} has already rejected an extractor id without a
+     * dash); everything else keeps {@link #getMethodValues(JSONObject)}.
      */
     static String[] annotationResultIdentity(JSONObject res, boolean multiPipeline) {
         if (multiPipeline && (res != null)) {

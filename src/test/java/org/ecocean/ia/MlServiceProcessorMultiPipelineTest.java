@@ -154,6 +154,32 @@ class MlServiceProcessorMultiPipelineTest {
         assertTrue(MlServiceProcessor.groupByMatchConfig(null, null, in).isEmpty());
     }
 
+    // --- multi-pipeline config validation ---------------------------------
+
+    @Test void validMultiPipelineEntriesPass() {
+        assertNull(MlServiceProcessor.invalidMultiPipelineEntry(bodyThenFace()));
+    }
+
+    @Test void multiPipelineEntryNeedsPredictModelId() {
+        List<JSONObject> pipelines = new ArrayList<>(bodyThenFace());
+        pipelines.get(1).remove("predict_model_id");
+        assertEquals("_mlservice_conf[1] missing predict_model_id",
+            MlServiceProcessor.invalidMultiPipelineEntry(pipelines));
+        pipelines.set(1, null);
+        assertEquals("_mlservice_conf[1] missing predict_model_id",
+            MlServiceProcessor.invalidMultiPipelineEntry(pipelines));
+    }
+
+    @Test void multiPipelineEntryNeedsSplittableExtractModelId() {
+        List<JSONObject> pipelines = new ArrayList<>(bodyThenFace());
+        pipelines.get(0).put("extract_model_id", "msv3");
+        assertTrue(MlServiceProcessor.invalidMultiPipelineEntry(pipelines)
+            .startsWith("_mlservice_conf[0]: "));
+        pipelines.get(0).remove("extract_model_id");
+        assertTrue(MlServiceProcessor.invalidMultiPipelineEntry(pipelines)
+            .startsWith("_mlservice_conf[0]: "));
+    }
+
     // --- pipeline fan-out -------------------------------------------------
 
     /** Records each /pipeline/ call; can fail on the Nth call. */

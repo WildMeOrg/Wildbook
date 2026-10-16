@@ -655,9 +655,12 @@ public class MatchResult implements java.io.Serializable {
      * once per value per visualisation.
      */
     static JSONObject _getPairxConfig(String txStr) {
+        return _getPairxConfig(txStr, new MLService());
+    }
+
+    private static JSONObject _getPairxConfig(String txStr, MLService mls) {
         if (txStr == null) return null;
         try {
-            MLService mls = new MLService();
             List<JSONObject> confs = mls.getConfigs(txStr);
             if (confs.size() < 1) {
                 System.out.println("[WARNING] _getPairxConfig() empty MLService configs for tx=" +
@@ -681,9 +684,11 @@ public class MatchResult implements java.io.Serializable {
     static JSONObject _getPairxConfig(String txStr, String iaClass, String method,
         String version) {
         if (txStr == null) return null;
+        // one IA.json read, shared with the single-pipeline fallback
         IAJsonProperties iac = IAJsonProperties.iaConfig();
         Taxonomy taxy = new Taxonomy(txStr);
-        if ((iac == null) || !iac.isMultiPipeline(taxy)) return _getPairxConfig(txStr);
+        if ((iac == null) || !iac.isMultiPipeline(taxy))
+            return _getPairxConfig(txStr, new MLService(iac));
         return selectMultiPipelinePairxConfig(iac, taxy, iaClass, method, version);
     }
 
