@@ -146,7 +146,10 @@ Single-pipeline: unchanged.
 
 Multi-pipeline species: exactly one config, `selectExtractionConfig(taxy,
 ann.getIAClass())`, and the stored `(method, version)` is parsed with the v2 rule
-(first-dash split) instead of `MLService.getMethodValues` (which keeps only the
+(first-dash split of the legacy response's `model_id` field, via a small
+`firstDashSplit(String)` helper shared with `parseEmbeddingMethodVersion`; the v1
+response carries `model_id` + `embeddings[0]`, not `embedding_model_id`) instead of
+`MLService.getMethodValues` (which keeps only the
 second dash token: `miewid-pet-v1` would be stored as version `pet` on this path but
 `pet-v1` on the detection path). Single-pipeline species: unchanged (loop over all
 species entries, `getMethodValues`).
@@ -162,7 +165,10 @@ species:
 1. the config (species entries, then class-level entries) whose
    `extractorIdentity` equals the match's `(method, version)`, so PairX visualises
    the space the match was computed in, including after a §3 fallback;
-2. else `selectExtractionConfig(taxy, iaClass)`.
+2. if the task carries a `(method, version)` that matches no configured extractor
+   (e.g. a historical match from a model since removed), **skip PairX with a WARN**;
+   never visualise with a different model;
+3. only when the task carries no identity at all, `selectExtractionConfig(taxy, iaClass)`.
 Single-pipeline: unchanged (species `[0]`).
 
 ## Not changed
