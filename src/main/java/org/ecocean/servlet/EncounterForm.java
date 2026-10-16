@@ -930,7 +930,6 @@ public class EncounterForm extends HttpServlet {
                         enc + " bc no ia config was found.");
                     e.printStackTrace();
                 }
-                OpenSearch.setPermissionsNeeded(myShepherd, true);
                 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
                 ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
             }
