@@ -90,7 +90,8 @@ public class SubmissionJobs extends SubmissionStore {
             sh.rollbackAndClose(); sh = null;
             if (!started) throw new SubmissionException(503, "CAPABILITY_UNAVAILABLE", "Execution claim unavailable; inspect status before retrying");
             // Re-read after rollback/acknowledgment failure. A durable imported row wins.
-            fail(context, id, attempted ? "COMMIT_OUTCOME_UNCERTAIN" : "IMPORT_FAILED", attempted || !(ex instanceof SubmissionImporter.PreImportRejection));
+            boolean rejected = !attempted && ex instanceof SubmissionImporter.PreImportRejection;
+            fail(context, id, attempted ? "COMMIT_OUTCOME_UNCERTAIN" : rejected ? ((SubmissionException)ex).code : "IMPORT_FAILED", !rejected);
         } finally { if (sh != null) sh.rollbackAndClose(); }
     }
     private void fail(String context, String id, String code, boolean uncertain) {
@@ -126,7 +127,7 @@ public class SubmissionJobs extends SubmissionStore {
                 .put("indexing", new JSONObject().put("state", draft.getPhase()).put("message", "unknown means dispatched; completion is not acknowledged"))
                 .put("derivatives", new JSONObject().put("state", draft.getDerivatives()))
                 .put("detection", draft.aiPhase()).put("identification", draft.aiPhase())
-                .put("errors", draft.getErrorCode() == null ? new JSONArray() : new JSONArray().put(new JSONObject().put("code", draft.getErrorCode()).put("message", "Operator inspection required")));
+                .put("errors", draft.getErrorCode() == null ? new JSONArray() : new JSONArray().put(new JSONObject().put("code", draft.getErrorCode()).put("message", draft.getErrorMessage())));
             if ((long)offset + limit < all.length()) result.put("nextCursor", String.valueOf(offset + limit));
             if (draft.getJobId() != null) result.put("links", new JSONObject().put("importTask", "/react/bulk-import-task?id=" + draft.getJobId()));
             return result;

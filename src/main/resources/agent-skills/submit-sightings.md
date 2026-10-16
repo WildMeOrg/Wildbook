@@ -187,6 +187,7 @@ Supported fields for this pilot are exactly:
 | `Encounter.behavior` | string | Optional descriptive text; use the installation's terminology. The current importer treats this as text, not a submissions enum. |
 | `Encounter.verbatimLocality` | string | Optional original locality description; does not replace locationID. |
 | `Encounter.researcherComments` | string | Optional free text preserving relevant observation context. |
+| `Encounter.sightingID` | string | Optional. The source's sighting, occurrence or group ID; rows that share it become one new sighting. 1–100 letters, digits, `.`, `_` or `-`, starting with a letter or digit. See "Grouping rows into one sighting". |
 | `Encounter.mediaAsset0` … `Encounter.mediaAsset199` | string | Exact completed upload filename. Start at 0 and use successive slots for photographs of this encounter. At least one image is required per row. |
 
 Send year/month/day/hour/minutes as JSON integers such as `2025`, not floating-point
@@ -201,9 +202,31 @@ Do not send legacy fields such as `Encounter.submitterID`, `Encounter.id`,
 `Encounter.catalogNumber`, `Encounter.individualID`, `Encounter.otherCatalogNumbers`,
 `Encounter.latitude`, `Encounter.longitude`, timestamp/millisecond fields, project,
 keyword, measurement, `Sighting.*` or `MarkedIndividual.*` fields. They are not
-supported by this pilot even when legacy bulk import accepts them. Preserve source
+supported by this pilot even when legacy bulk import accepts them. In particular,
+send a sighting ID as `Encounter.sightingID`, never `Sighting.sightingID`. Preserve source
 references in your local mapping and client row IDs; report unsupported requirements
 to the person rather than silently dropping scientific information.
+
+#### Grouping rows into one sighting
+
+When the source records several animals seen together (a herd, pod or school) under
+one sighting or occurrence ID, send that ID unchanged as `Encounter.sightingID` on
+each of those rows. All rows in one submission that share the value become one new
+Wildbook sighting with exactly that ID; each row is still its own encounter. Rows
+without the field each get their own new sighting with a generated ID. Do not make
+up an ID to group rows the source does not group, and do not merge rows because
+their times or coordinates look close.
+
+The sighting takes its coordinates from the first of its rows that has coordinates,
+and its group behavior from the last of its rows that has `Encounter.behavior`.
+
+This API only creates new sightings. If a sighting with that ID already exists
+anywhere in this Wildbook, including one created by an earlier submission, every row
+using it gets `SIGHTING_EXISTS` and nothing is imported. Rows for one sighting
+therefore belong in a single submission. This check reveals only that the ID is in
+use; it never says whose sighting it is. If the source ID does not match the allowed
+format (for example it contains spaces), validation reports `INVALID_VALUE` on the
+field: tell the person rather than rewriting the ID yourself.
 
 ### 3. Create a draft, upload files, and replace its rows
 
@@ -341,6 +364,8 @@ Concrete failure examples and corrections (assume other fields are valid):
 | same image in two slots or rows | `DUPLICATE_MEDIA` | Put each uploaded image in exactly one slot in one row. |
 | too many images in one row | `LIMIT_EXCEEDED` | Respect maxMediaPerEncounter; do not split one observation into fabricated encounters to bypass it. |
 | `Encounter.submitterID`, `Encounter.otherCatalogNumbers`, or another unsupported field | `UNSUPPORTED_FIELD` | Use the supported contract; the authenticated account determines ownership. |
+| `Encounter.sightingID` already used by a sighting in this Wildbook | `SIGHTING_EXISTS` on `Encounter.sightingID` | Ask the person. Existing sightings cannot be added to through this API; do not invent a different ID. |
+| `Encounter.sightingID` `"herd 12"`, or a number instead of a string | `INVALID_VALUE` (`INVALID`) on `Encounter.sightingID` | Report the source ID to the person; do not alter it to pass validation. |
 
 Envelope errors happen earlier: duplicate `clientRowId` values return HTTP 422
 `DUPLICATE_CLIENT_ROW_ID`; null/nested field values or unknown envelope properties
@@ -423,7 +448,11 @@ Read `detection.state`, `detection.code`, `detection.message` and the correspond
 `identification` fields on GET `/api/v3/submissions/{id}` or GET `/results`.
 A failed or uncertain record import reports `IMPORT_FAILED` or
 `IMPORT_OUTCOME_UNCERTAIN`: detection/identification were not started, and import
-reconciliation comes first. For an already imported submission, `AI_HANDOFF_FAILED`
+reconciliation comes first. Rows are checked again when the import runs. If approved
+rows are no longer valid by then, for example because a sighting with the same
+`Encounter.sightingID` was created after validation, the submission becomes
+`failed` with error code `VALIDATION_STALE` and nothing is imported. A failed
+submission cannot be retried: validate the rows in a new submission. For an already imported submission, `AI_HANDOFF_FAILED`
 or `AI_HANDOFF_UNKNOWN` concerns the later handoff; the imported records remain
 and the submission stays `imported`. These AI outcomes do not count toward the
 one queued/importing/uncertain record-import job limit per owner.
