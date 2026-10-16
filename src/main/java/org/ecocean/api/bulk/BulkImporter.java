@@ -130,9 +130,13 @@ public class BulkImporter {
             markProgress(rowNum, dataRows.size(), 0.2d, 0.5d);
         }
         logProgress("end processRows");
-        // per-row derivation runs before that row's coordinates are set, so a sighting's first
-        // (or only) row never contributes; derive again now that every encounter is populated.
-        // Unlike Occurrence.setLatLonFromEncs, -1.0 is a real coordinate here (validation accepts it).
+        // derive sighting coordinates only now: inside processRow a row's own coordinate values are not
+        // yet set, so the final row's values were never examined. overwrite=false keeps coordinates an
+        // existing sighting already has. Legacy behavior retained: a -1.0 latitude or longitude is skipped
+        // as "unset", even though it is also a valid coordinate.
+        for (Occurrence occ : occurrenceCache.values()) occ.setLatLonFromEncs(false);
+        // submissions only create new sightings, so they take the first row with a complete pair as given:
+        // unlike the legacy pass above, -1.0 is a real coordinate here (validation accepts it)
         if (newOccurrencesOnly) {
             for (Occurrence occ : occurrenceCache.values()) {
                 for (Encounter enc : occ.getEncounters()) {
@@ -255,7 +259,6 @@ public class BulkImporter {
             indiv.setTaxonomyFromEncounters(true);
         }
         occ.addEncounterAndUpdateIt(enc);
-        occ.setLatLonFromEncs(false);
         // this line can be uncommented to disable persisting for development purposes
         // TODO remove this when no longer useful
         // if (enc != null) return;
