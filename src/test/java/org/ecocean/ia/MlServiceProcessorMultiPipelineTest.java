@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.ecocean.Annotation;
@@ -246,5 +247,94 @@ class MlServiceProcessorMultiPipelineTest {
             new double[] { 11, 20, 30, 40 }, 0.0, "dog"));
         assertNull(MlServiceProcessor.findExistingAnnotation(ma,
             new double[] { 10, 20, 30, 40 }, 0.5, "dog"));
+    }
+
+    // --- canonical group key ----------------------------------------------
+
+    @Test void canonicalJsonIgnoresKeyOrder() {
+        JSONObject a = new JSONObject().put("method", "miewid").put("version", "msv4.1")
+            .put("q", new JSONObject().put("x", 1).put("y", "z"));
+        JSONObject b = new JSONObject().put("q", new JSONObject().put("y", "z").put("x", 1))
+            .put("version", "msv4.1").put("method", "miewid");
+        assertEquals(MlServiceProcessor.canonicalJson(a), MlServiceProcessor.canonicalJson(b));
+    }
+
+    @Test void groupsDistinguishConfigsBeyondIdentityAndDelimiters() {
+        // Same method/version/endpoint/description, different extra field;
+        // and values containing the old "|" delimiter.
+        JSONObject json = MultiPipelineIAJson.dogBodyAndFace();
+        JSONObject species = json.getJSONObject("Canis").getJSONObject("familiaris");
+        species.put("pup", new JSONObject().put("_id_conf",
+            MultiPipelineIAJson.idConf("msv4.1", "MiewID v4.1 (vector)")));
+        species.getJSONObject("pup").getJSONArray("_id_conf").getJSONObject(0)
+            .put("k", 5);
+        species.getJSONObject("dog").getJSONArray("_id_conf").getJSONObject(0)
+            .put("description", "a|b");
+        species.put("cat", new JSONObject().put("_id_conf",
+            MultiPipelineIAJson.idConf("msv4.1", "a")));
+        species.getJSONObject("cat").getJSONArray("_id_conf").getJSONObject(0)
+            .put("api_endpoint", "b|" + MultiPipelineIAJson.BODY_ENDPOINT);
+        JSONObject body = MultiPipelineIAJson.bodyPipeline();
+        List<MlServiceProcessor.MatchGroup> groups = MlServiceProcessor.groupByMatchConfig(
+            iac(json), DOG, Arrays.asList(det("d1", "dog", MSV41, body),
+            det("p1", "pup", MSV41, body), det("c1", "cat", MSV41, body)));
+        assertEquals(3, groups.size());
+    }
+
+    // --- match groups stay local across deferral ----------------------------
+
+    private static final class Recorder implements DeferredMatchPublisher {
+        final List<JSONObject> published = new ArrayList<>();
+        @Override public void publish(JSONObject payload) { published.add(payload); }
+    }
+
+    private static final class DeferGate implements MatchVisibilityGate {
+        @Override public GateOutcome gateForBatch(Collection<String> ids, String taskId,
+            JSONObject matchConfig, int attempt, Long firstDeferredAt) {
+            return GateOutcome.defer(attempt, 1000L, "sibling pending");
+        }
+    }
+
+    private static MlServiceProcessor deferringProcessor(Recorder publisher) {
+        return new MlServiceProcessor("context0", new MlServiceClient(), new DeferGate(),
+            publisher) {
+            @Override boolean readSkipIdent(String taskId) { return false; }
+        };
+    }
+
+    private static JSONObject deferredPayload(Boolean matchGroup) {
+        JSONObject jo = new JSONObject().put("mlServiceV2", true).put("deferredMatch", true)
+            .put("annotationIds", new JSONArray().put("f1")).put("taskId", "task-1")
+            .put("matchConfig", new JSONObject().put("method", "miewid")
+                .put("version", "pet_v1.1.0"))
+            .put("attempt", 2).put("firstDeferredAt", 1000L);
+        if (matchGroup != null) jo.put("matchGroup", matchGroup.booleanValue());
+        return jo;
+    }
+
+    @Test void deferredMatchGroupKeepsItsFlagOnReFire() {
+        Recorder publisher = new Recorder();
+        deferringProcessor(publisher).runDeferredMatch(deferredPayload(true));
+        assertEquals(1, publisher.published.size());
+        assertTrue(publisher.published.get(0).optBoolean("matchGroup", false));
+        assertEquals("pet_v1.1.0",
+            publisher.published.get(0).getJSONObject("matchConfig").getString("version"));
+    }
+
+    @Test void singlePipelineDeferredPayloadHasNoMatchGroupKey() {
+        Recorder publisher = new Recorder();
+        deferringProcessor(publisher).runDeferredMatch(deferredPayload(null));
+        assertEquals(1, publisher.published.size());
+        assertFalse(publisher.published.get(0).has("matchGroup"),
+            "single-pipeline deferred payloads must be unchanged");
+    }
+
+    @Test void emptyMatchGroupDoesNotTouchTheSharedParent() {
+        // The non-group variant marks the parent complete through a Shepherd;
+        // a group must return without any DB work (no Shepherd in this test).
+        MlServiceProcessor p = deferringProcessor(new Recorder());
+        assertEquals(MlServiceJobOutcome.Kind.OK,
+            p.runMatchProspects(new ArrayList<String>(), "task-1", new JSONObject(), true)
+                .getKind());
     }
 }

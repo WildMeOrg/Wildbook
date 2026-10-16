@@ -202,7 +202,7 @@ public class MlServiceProcessor {
         for (MatchGroup group : groupByMatchConfig(iac, taxy, detected)) {
             allIds.addAll(group.annotationIds);
             MlServiceJobOutcome outcome = waitAndRunMatch(group.annotationIds, taskId,
-                group.matchConfig);
+                group.matchConfig, true);
             if ((firstError == null) && (outcome != null) && outcome.isError()) {
                 firstError = outcome;
             }
@@ -226,9 +226,7 @@ public class MlServiceProcessor {
                 continue;
             JSONObject config = resolveMultiPipelineMatchConfig(iac, taxy, d.iaClass,
                 d.embeddingIdentity, d.producedBy);
-            String key = config.optString("method", "") + "|" + config.optString("version", "") +
-                "|" + config.optString("api_endpoint", "") + "|" +
-                config.optString("description", "");
+            String key = canonicalJson(config);
             MatchGroup group = groups.get(key);
             if (group == null) {
                 group = new MatchGroup(config);
@@ -274,6 +272,36 @@ public class MlServiceProcessor {
             config.put("api_endpoint", producedBy.optString("api_endpoint"));
         }
         return config;
+    }
+
+    /**
+     * Key-sorted JSON text, so two configs with the same content give the
+     * same string whatever order their keys were inserted in.
+     */
+    static String canonicalJson(Object value) {
+        if (value instanceof JSONObject) {
+            JSONObject obj = (JSONObject) value;
+            List<String> keys = new ArrayList<String>(obj.keySet());
+            java.util.Collections.sort(keys);
+            StringBuilder sb = new StringBuilder("{");
+            for (int i = 0; i < keys.size(); i++) {
+                if (i > 0) sb.append(',');
+                sb.append(JSONObject.quote(keys.get(i))).append(':')
+                    .append(canonicalJson(obj.opt(keys.get(i))));
+            }
+            return sb.append('}').toString();
+        }
+        if (value instanceof JSONArray) {
+            JSONArray arr = (JSONArray) value;
+            StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < arr.length(); i++) {
+                if (i > 0) sb.append(',');
+                sb.append(canonicalJson(arr.opt(i)));
+            }
+            return sb.append(']').toString();
+        }
+        if (value instanceof String) return JSONObject.quote((String) value);
+        return String.valueOf(value);
     }
 
     private static boolean identityMatches(JSONObject config, String[] identity) {
@@ -813,6 +841,11 @@ public class MlServiceProcessor {
                     ensureMatchConfig(ext.matchConfig, response, ext.mlConfig));
             }
             if (exists) {
+                // loadExtractionContext set processing-mlservice against the
+                // selected extractor; if the response named another model
+                // that is already stored, close the annotation out here.
+                if (ext.multiPipeline)
+                    ann.setIdentificationStatus(IBEISIA.STATUS_COMPLETE_MLSERVICE);
                 markTaskCompleted(task);
                 shep.commitDBTransaction();
                 annotationIds.add(ann.getId());
@@ -839,10 +872,22 @@ public class MlServiceProcessor {
 
     private MlServiceJobOutcome waitAndRunMatch(List<String> annotationIds, String taskId,
         JSONObject matchConfig) {
+        return waitAndRunMatch(annotationIds, taskId, matchConfig, false);
+    }
+
+    /**
+     * @param matchGroup true when this is one of several match groups that
+     *        share {@code taskId} (multi-pipeline detection). A group then
+     *        never writes a stale status onto the shared parent task, so it
+     *        cannot overwrite a sibling group's error or mask its success.
+     */
+    private MlServiceJobOutcome waitAndRunMatch(List<String> annotationIds, String taskId,
+        JSONObject matchConfig, boolean matchGroup) {
         // Initial invocation: attempt=1, firstDeferredAt=null (the
         // gate stamps `now` so age-out is measured from this first
         // call, not from later re-fires).
-        return waitAndRunMatchInternal(annotationIds, taskId, matchConfig, 1, null);
+        return waitAndRunMatchInternal(annotationIds, taskId, matchConfig, 1, null,
+            matchGroup);
     }
 
     /**
@@ -866,7 +911,8 @@ public class MlServiceProcessor {
      * <p>(Empty-match-prospects design Track 2 C11.)</p>
      */
     private MlServiceJobOutcome waitAndRunMatchInternal(List<String> annotationIds,
-        String taskId, JSONObject matchConfig, int attempt, Long firstDeferredAt) {
+        String taskId, JSONObject matchConfig, int attempt, Long firstDeferredAt,
+        boolean matchGroup) {
         if (readSkipIdent(taskId)) {
             System.out.println(
                 "NOTICE: MlServiceProcessor skipped identification for task " + taskId +
@@ -877,9 +923,9 @@ public class MlServiceProcessor {
             annotationIds, taskId, matchConfig, attempt, firstDeferredAt);
         switch (gate.kind) {
           case READY:
-            return runMatchProspects(annotationIds, taskId, matchConfig);
+            return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup);
           case DEFER:
-            enqueueDeferredMatch(annotationIds, taskId, matchConfig, gate);
+            enqueueDeferredMatch(annotationIds, taskId, matchConfig, gate, matchGroup);
             return MlServiceJobOutcome.ok(annotationIds);
           case GIVE_UP:
           default:
@@ -888,7 +934,7 @@ public class MlServiceProcessor {
                 " after attempt=" + gate.attempt + " elapsed=" +
                 gate.elapsedMillis + "ms reason=" + gate.reason +
                 "; running match against current visible corpus");
-            return runMatchProspects(annotationIds, taskId, matchConfig);
+            return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup);
         }
     }
 
@@ -920,13 +966,18 @@ public class MlServiceProcessor {
         // initial call (Codex round-2 Major: don't degrade back to
         // today's bug on the first deferral).
         return waitAndRunMatchInternal(annotationIds, taskId, matchConfig,
-            attempt, firstDeferredAt);
+            attempt, firstDeferredAt, jobData.optBoolean("matchGroup", false));
     }
 
     public MlServiceJobOutcome runMatchProspects(List<String> annotationIds, String taskId,
         JSONObject matchConfig) {
+        return runMatchProspects(annotationIds, taskId, matchConfig, false);
+    }
+
+    MlServiceJobOutcome runMatchProspects(List<String> annotationIds, String taskId,
+        JSONObject matchConfig, boolean matchGroup) {
         if (annotationIds == null || annotationIds.isEmpty()) {
-            markTaskCompleted(taskId);
+            if (!matchGroup) markTaskCompleted(taskId);
             return MlServiceJobOutcome.ok(new ArrayList<String>());
         }
 
@@ -940,6 +991,10 @@ public class MlServiceProcessor {
                 if (ann != null) anns.add(ann);
             }
             if (anns.isEmpty()) {
+                // A match group's staleness stays local: the shared parent
+                // already holds the detection's terminal status and any
+                // sibling group's error.
+                if (matchGroup) return MlServiceJobOutcome.stale("annotations missing");
                 Task task = Task.load(taskId, shep);
                 markTaskDroppedStale(shep, task, "annotations missing");
                 shep.commitDBTransaction();
@@ -1474,7 +1529,7 @@ public class MlServiceProcessor {
      * {@code lastGateReason} (Codex round-2 #6 diagnostic).</p>
      */
     private void enqueueDeferredMatch(List<String> annotationIds, String parentTaskId,
-        JSONObject matchConfig, MatchVisibilityGate.GateOutcome gate) {
+        JSONObject matchConfig, MatchVisibilityGate.GateOutcome gate, boolean matchGroup) {
         JSONObject payload = new JSONObject();
         // Routing flags — both required for the dispatcher to land
         // the requeue back on MlServiceProcessor's deferred entry
@@ -1486,6 +1541,9 @@ public class MlServiceProcessor {
         payload.put("annotationIds", new JSONArray(annotationIds));
         if (Util.stringExists(parentTaskId)) payload.put("taskId", parentTaskId);
         if (matchConfig != null) payload.put("matchConfig", matchConfig);
+        // Only multi-pipeline groups carry this, so single-pipeline payloads
+        // are unchanged; runDeferredMatch restores it on re-fire.
+        if (matchGroup) payload.put("matchGroup", true);
         // Carry __context in the payload so the dispatcher's
         // jobj.optString("__context", "context0") fallback at
         // IAGateway.java doesn't silently route the deferred-match
