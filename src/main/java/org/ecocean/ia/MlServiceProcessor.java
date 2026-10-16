@@ -949,10 +949,10 @@ public class MlServiceProcessor {
         }
         String method;
         String version;
-        int dash = embeddingModelId.indexOf('-');
-        if (dash > 0 && dash < embeddingModelId.length() - 1) {
-            method = embeddingModelId.substring(0, dash);
-            version = embeddingModelId.substring(dash + 1);
+        String[] split = splitModelId(embeddingModelId);
+        if (split != null) {
+            method = split[0];
+            version = split[1];
         } else {
             method = embeddingModelId;
             version = response.optString("embedding_model_version", null);
@@ -965,6 +965,31 @@ public class MlServiceProcessor {
                     + response.optString("embedding_model_version", null));
         }
         return new String[] { method, version };
+    }
+
+    /**
+     * Split an ml-service model id on its FIRST dash into
+     * {@code {method, version}} ({@code "miewid-pet-v1"} → {@code {"miewid",
+     * "pet-v1"}}), or null when there is no dash with text on both sides.
+     * The one rule every multi-pipeline path uses to name an embedding space.
+     */
+    public static String[] splitModelId(String modelId) {
+        if (!Util.stringExists(modelId)) return null;
+        int dash = modelId.indexOf('-');
+        if (dash > 0 && dash < modelId.length() - 1) {
+            return new String[] { modelId.substring(0, dash), modelId.substring(dash + 1) };
+        }
+        return null;
+    }
+
+    /**
+     * {@code {method, version}} of the embedding an ml-service config's
+     * {@code extract_model_id} produces, or null when it has none or it
+     * cannot be split.
+     */
+    public static String[] extractorIdentity(JSONObject mlConfig) {
+        if (mlConfig == null) return null;
+        return splitModelId(mlConfig.optString("extract_model_id", null));
     }
 
     private JSONObject ensureMatchConfig(JSONObject matchConfig, JSONObject embeddingSource,
