@@ -27,6 +27,8 @@ import org.ecocean.identity.IdentityServiceLog;
 
 public class Task implements java.io.Serializable {
     public static long TIMEOUT_INACTIVE_MILLIS = 7l * 24l * 60l * 60l * 1000l;
+    /** Non-terminal while a failed WBIA send has a retry queued. */
+    public static final String STATUS_REQUEUED = "requeued";
     private String id = null;
     private long created = -1;
     private long modified = -1;

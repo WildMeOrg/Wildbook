@@ -6,7 +6,14 @@ import org.ecocean.Embedding;
 import org.ecocean.ia.Task;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.ecocean.shepherd.core.Shepherd;
+import javax.jdo.PersistenceManager;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.junit.Assert.*;
 
 class EmbeddingTest {
@@ -116,4 +123,16 @@ class EmbeddingTest {
         assertEquals(CATCHUP_SQL_BASE + " order by \"ANNOTATION\".\"ID\" limit 50",
             Embedding.catchUpEmbeddingsSql("not-a-uuid'; drop table", 50));
     }
+
+    // ---- issue #1787 ----
+
+    @Test void isVectorConfig_acceptsMethodOrApiEndpointOnly() {
+        Assertions.assertFalse(Embedding.isVectorConfig(null));
+        Assertions.assertFalse(Embedding.isVectorConfig(new JSONObject("{\"query_config_dict\":{\"sv_on\":true}}")));
+        Assertions.assertTrue(Embedding.isVectorConfig(new JSONObject("{\"method\":\"miewid\",\"version\":\"msv4_v3\"}")));
+        Assertions.assertTrue(Embedding.isVectorConfig(new JSONObject("{\"api_endpoint\":\"http://x\"}")));
+        Assertions.assertFalse(Embedding.isVectorConfig(new JSONObject("{\"method\":\"\"}")), "blank method is not vector");
+    }
+
+
 }

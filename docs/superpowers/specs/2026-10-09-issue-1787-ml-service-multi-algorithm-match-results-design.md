@@ -20,3 +20,30 @@ Missing pending annotations are forced under the same id before a bounded retry.
 
 Validation includes unit tests and PostgreSQL tests with actual attached objects,
 commits, reloads, real registration request construction, and simulated WBIA replies.
+
+## 4.2 Shared intake persistence and dispatch
+
+The shared intake builds its entire option tree and links an optional parent before
+a checked database commit. A failed commit publishes nothing and returns a failure
+outcome; existing callers guard its null task result. After persistence, the intake
+checks that the transaction restarted and remains active before each dispatch.
+Vector dispatch runs inline; WBIA publication records whether the queue accepted
+its job. Queue failures and unfinished vector leaves receive terminal errors.
+
+An encounter/class with no default options receives a persisted
+`INVALID_MATCH_CONFIG` task rather than an indefinitely pending task. Explicit
+algorithm overrides still replace defaults. Fastlane parameters are stored on the
+option tasks and routed by the existing lane classifier.
+
+This layer leaves ml-service bulk matching, run identifiers, root replacement,
+result selection, and import-status aggregation for the feature layer. Database
+tests verify that both dispatch targets can read the committed tree from a second
+manager and that a failed checked commit leaves no tree and publishes nothing.
+
+## 4.4 WBIA send retries
+
+A failed send stores nonterminal `requeued` before deciding whether to retry.
+`SEND_FAILED` becomes terminal only when the retry budget refuses another attempt.
+Existing import summaries count only completed/error tasks as finished, so this
+state remains "sent" while work is queued. The existing seven-day watchdog still
+reports work stuck beyond its retry window.
