@@ -55,7 +55,8 @@ public static boolean resumeIntakeAnnotations(Shepherd myShepherd, Task task) {
                 qjob.put("fastlane", fastlane);
                 qjob.put("lane", "fast");
                 //task.setQueueResumeMessage(qjob.toString());
-                sent = org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
+                //lane chosen by IAGateway.laneFor()
+                sent = org.ecocean.servlet.IAGateway.publishToLane(context, qjob.toString());
               }
               else {
             	//tasks.get(i).setQueueResumeMessage(qjob.toString());
@@ -134,7 +135,10 @@ try{
 			            jobj.put("__enqueuedByIAGateway", System.currentTimeMillis());
 						jobj.put("identify", aj);
 						jobj.put("taskId", task.getId());
-						boolean worked=IAGateway.addToQueue(context, jobj.toString());
+						//lane chosen by IAGateway.laneFor(): a resent FASTLANE task now reaches the
+						//interactive lane instead of the bulk IA queue. Non-fastlane legacy identify
+						//still classifies to IA, so its routing is unchanged.
+						boolean worked=IAGateway.publishToLane(context, jobj.toString());
 						//System.out.println("     requeue task: "+worked);
 						
 					//}

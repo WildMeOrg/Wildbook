@@ -843,5 +843,11 @@
   "MATCH_RESULTS_ERROR_UNKNOWN": "Error desconocido",
   "MATCH_RESULTS_ERROR_TIMEOUT": "La tarea ha superado el tiempo límite",
   "NO_MATCH_CANDIDATES": "Ningún candidato coincidió con los filtros aplicados. Intenta ajustarlos o considera que se trata de un individuo nuevo.",
-  "NO_MATCH_PROSPECTS": "No pudimos encontrar ninguna coincidencia con los filtros actuales. Intenta ajustarlos o considera que se trata de un individuo nuevo."
+  "NO_MATCH_PROSPECTS": "No pudimos encontrar ninguna coincidencia con los filtros actuales. Intenta ajustarlos o considera que se trata de un individuo nuevo.",
+  "API_TOKEN_PURPOSE": "Propósito del token",
+  "API_TOKEN_READ": "Leer datos",
+  "API_TOKEN_IMPORT": "Importar datos",
+  "API_TOKEN_READ_HELP": "Lee los datos a los que tiene acceso. No permite importaciones.",
+  "API_TOKEN_IMPORT_HELP": "Crea envíos e importa datos. Requiere el rol api-submission, asignado por un administrador del sitio. Este token no sirve para la API general de lectura.",
+  "API_IMPORT_ROLE_REQUIRED": "La importación requiere el rol api-submission. Pida a un administrador del sitio que lo asigne a su cuenta."
 }

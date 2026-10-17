@@ -6,7 +6,7 @@
         <%
         String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
-        // This file is for window-dressing at the top of the (java-servlet) uploader at WebImport.java
+        // This file is for window-dressing at the top of the (java-servlet) uploader at StandardImport.java
 
         String commitStr = request.getParameter("commit");
         boolean committing = (commitStr!=null);

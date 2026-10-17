@@ -175,12 +175,12 @@ public class Collaboration implements java.io.Serializable {
     @SuppressWarnings("unchecked")
     public static List<Collaboration> persistedCollaborationsForUser(Shepherd myShepherd,
         String username) {
-        String queryString =
-            "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username +
-            "') || (username2 == '" + username + "'))";
-        Query query = myShepherd.getPM().newQuery(queryString);
+        // parameterized: this runs on every encounter/annotation/individual index write, and a
+        // username with a quote must not break the query (and empty the owner's ACL)
+        Query query = myShepherd.getPM().newQuery(Collaboration.class);
         try {
-            Collection c = (Collection)(query.execute());
+            query.setFilter("username1 == :u || username2 == :u");
+            Collection c = (Collection)query.execute(username);
             return new ArrayList<Collaboration>(c);
         } finally {
             query.closeAll();
