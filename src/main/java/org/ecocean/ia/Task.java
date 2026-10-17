@@ -269,7 +269,7 @@ public class Task implements java.io.Serializable {
 
     public void setParent(Task t) {
         parent = t;
-        t.addChild(this);
+        if (t != null) t.addChild(this);
     }
 
     public Task getParent() {
