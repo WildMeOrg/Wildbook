@@ -120,21 +120,12 @@ public class StartupWildbook implements ServletContextListener {
                 myShepherd.beginDBTransaction();
                 System.out.println("Creating tomcat roles...");
 
-                Role newRole1 = new Role("tomcat", "admin");
-                newRole1.setContext("context0");
-                myShepherd.getPM().makePersistent(newRole1);
-                Role newRole1a = new Role("tomcat", "orgAdmin");
-                newRole1a.setContext("context0");
-                myShepherd.getPM().makePersistent(newRole1a);
-                Role newRole2 = new Role("tomcat", "researcher");
-                newRole2.setContext("context0");
-                myShepherd.getPM().makePersistent(newRole2);
-                Role newRole3 = new Role("tomcat", "machinelearning");
-                newRole3.setContext("context0");
-                myShepherd.getPM().makePersistent(newRole3);
-                Role newRole5 = new Role("tomcat", "rest");
-                newRole5.setContext("context0");
-                myShepherd.getPM().makePersistent(newRole5);
+                // seeded in hierarchy order; the order these rows are written is not significant
+                for (String rolename : Role.SYSTEM_ROLES) {
+                    Role newRole = new Role("tomcat", rolename);
+                    newRole.setContext("context0");
+                    myShepherd.getPM().makePersistent(newRole);
+                }
                 myShepherd.commitDBTransaction();
                 System.out.println("Creating tomcat user account...");
             }
@@ -165,6 +156,8 @@ public class StartupWildbook implements ServletContextListener {
     }
 
     // these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
+    private org.ecocean.api.submission.SubmissionWorker submissionWorker;
+
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
         String context = "context0";
@@ -231,6 +224,8 @@ public class StartupWildbook implements ServletContextListener {
         } catch (Exception f) {
             f.printStackTrace();
         } finally { myShepherd.rollbackAndClose(); }
+        if (org.ecocean.api.submission.SubmissionPolicy.workerEnabled(context))
+            submissionWorker = new org.ecocean.api.submission.SubmissionWorker(sContext);
     }
 
     private void startIAQueues(String context) {
@@ -354,6 +349,15 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException ex) {
             System.out.println("+ ERROR: acmid queue startup exception: " + ex.toString());
         }
+        // Interactive ("fastlane") match lane. Deliberately OUTSIDE the all-queues-required
+        // check below: it is optional, and failing to start it must degrade to the previous
+        // behaviour (fastlane work published to the detection queue) rather than abort IA.
+        Queue fastlaneQ = null;
+        try {
+            fastlaneQ = QueueUtil.getBest(context, "iafastlane");
+        } catch (IOException ex) {
+            System.out.println("+ ERROR: iafastlane queue startup exception: " + ex.toString());
+        }
         if ((queue == null) || (queueCallback == null) || (detectionQ == null) || (acmidQ == null)) {
             System.out.println("+ WARNING: IA queue service(s) NOT started");
             return;
@@ -399,6 +403,40 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException iox) {
             System.out.println("+ StartupWildbook.startIAQueues() detectionQ.consume() FAILED on " +
                 detectionQ.toString() + ": " + iox.toString());
+        }
+        // Interactive match lane. CONCURRENT, unlike detection: its work is OpenSearch kNN
+        // rather than a blocking ml-service round trip. Consumers start regardless of
+        // iaFastlaneQueueEnabled so that an install which later disables the flag still
+        // drains whatever it already published. FileQueue.consume(handler,int) remains the
+        // authoritative gate -- it probes for atomic moves and clamps to 1 when unsupported.
+        if (fastlaneQ == null) {
+            System.out.println(
+                "+ WARNING: iafastlane queue unavailable; interactive matches stay on the detection queue");
+            org.ecocean.servlet.IAGateway.setFastlaneReady(false);
+        } else {
+            int fastWorkers = 2;
+            String fastCfg = CommonConfiguration.getProperty("iaFastlaneConsumerThreads", context);
+            if ((fastCfg != null) && (fastCfg.trim().length() > 0)) {
+                try { fastWorkers = Integer.parseInt(fastCfg.trim()); } catch (
+                    NumberFormatException nfe) {
+                    System.out.println("+ WARNING: iaFastlaneConsumerThreads not an int ('" +
+                        fastCfg + "'); using 2");
+                }
+            }
+            try {
+                fastlaneQ.consume(new IAMessageHandler(), fastWorkers);
+                // Consume-return flag only -- see IAGateway.setFastlaneReady. This does NOT
+                // prove the workers are alive, only that registration did not throw.
+                org.ecocean.servlet.IAGateway.setFastlaneReady(true);
+                System.out.println(
+                    "+ StartupWildbook.startIAQueues() fastlaneQ.consume() started on " +
+                    fastlaneQ.toString() + " (requested " + fastWorkers + " worker(s))");
+            } catch (IOException iox) {
+                org.ecocean.servlet.IAGateway.setFastlaneReady(false);
+                System.out.println(
+                    "+ StartupWildbook.startIAQueues() fastlaneQ.consume() FAILED on " +
+                    fastlaneQ.toString() + ": " + iox.toString());
+            }
         }
         //ACM ID queue handler
         AcmIdMessageHandler qh4 = new AcmIdMessageHandler();
@@ -910,6 +948,7 @@ public class StartupWildbook implements ServletContextListener {
         // nulling the executor handle and waits up to 15s for in-flight
         // ticks; any tick still running after that gets shutdownNow().
         // The poll loop's interrupt/null checks make subsequent work bail.
+        if (submissionWorker != null) submissionWorker.close();
         shutdownWbiaRegisterExecutor();
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();

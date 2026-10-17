@@ -174,10 +174,12 @@ const styles = {
 
 const MatchProspectTable = ({
   sectionId,
+  taskId,
   numCandidates,
   date,
   selectedMatch,
   onToggleSelected,
+  thisEncounterId,
   thisEncounterImageUrl,
   thisEncounterAnnotations,
   thisEncounterImageAsset,
@@ -314,8 +316,11 @@ const MatchProspectTable = ({
   const [hoveredRow, setHoveredRow] = React.useState(null);
 
   const handleRowClick = (rowData, rowKey) => {
+    // No reset() here: at this point the overlay still holds the previous
+    // prospect's geometry, so resetting would frame the outgoing annotation for
+    // a beat. The overlay returns to its default view when the image changes and
+    // fits the new annotation once it loads.
     setPreviewedRow({ ...rowData, _rowKey: rowKey });
-    rightOverlayRef.current?.reset?.();
   };
 
   const isSelected = (rowKey) => selectedMatch?.some((d) => d.key === rowKey);
@@ -377,6 +382,25 @@ const MatchProspectTable = ({
     taskStatusOverall !== "error";
 
   const isError = taskStatusOverall === "error";
+
+  // Label linking back to the query annotation's encounter; falls back to
+  // plain text when the match result carried no encounter id.
+  const renderThisEncounterLabel = (labelLinkId) =>
+    thisEncounterId ? (
+      <a
+        href={`/react/encounter?number=${encodeURIComponent(thisEncounterId)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-decoration-underline"
+        style={{ color: "inherit" }}
+        id={labelLinkId}
+        data-testid={labelLinkId}
+      >
+        <FormattedMessage id="THIS_ENCOUNTER" />
+      </a>
+    ) : (
+      <FormattedMessage id="THIS_ENCOUNTER" />
+    );
 
   return (
     <div
@@ -460,7 +484,13 @@ const MatchProspectTable = ({
                     const canOpenIndividual = Boolean(candidateIndividualId);
 
                     const rowKey = `${candidate.annotation?.id ?? candidate.annotation?.encounter?.id ?? "no-annot"}-${candidate.displayIndex ?? "no-idx"}`;
-                    const isRowSelected = isSelected(rowKey);
+                    // Issue #1744: qualify the selection key by task so the
+                    // same prospect at the same rank in two sections (an
+                    // image-wide umbrella task with one child per
+                    // annotation) cannot collide and read as selected in
+                    // both.
+                    const selectionKey = `${taskId ?? sectionId}-${rowKey}`;
+                    const isRowSelected = isSelected(selectionKey);
                     const isRowPreviewed = rowKey === previewedRow?._rowKey;
                     const isRowHovered = rowKey === hoveredRow;
 
@@ -570,7 +600,7 @@ const MatchProspectTable = ({
                             onChange={(e) =>
                               onToggleSelected(
                                 e.target.checked,
-                                rowKey,
+                                selectionKey,
                                 candidateEncounterId,
                                 candidateIndividualId,
                                 candidateIndividualDisplayName,
@@ -677,7 +707,9 @@ const MatchProspectTable = ({
               style={styles.cornerLabel(themeColor)}
               data-testid={`match-prospect-left-label-${sectionId}`}
             >
-              <FormattedMessage id="THIS_ENCOUNTER" />
+              {renderThisEncounterLabel(
+                `match-prospect-left-label-link-${sectionId}`,
+              )}
             </div>
             <div
               style={styles.imageContainer}
@@ -686,6 +718,7 @@ const MatchProspectTable = ({
               {hasLeftImage ? (
                 <InteractiveAnnotationOverlay
                   ref={leftOverlayRef}
+                  fitToAnnotation
                   imageUrl={leftImageUrl}
                   originalWidth={leftOrigW}
                   originalHeight={leftOrigH}
@@ -766,6 +799,7 @@ const MatchProspectTable = ({
               {hasRightImage ? (
                 <InteractiveAnnotationOverlay
                   ref={rightOverlayRef}
+                  fitToAnnotation
                   imageUrl={rightImageUrl}
                   originalWidth={rightOrigW}
                   originalHeight={rightOrigH}
@@ -945,7 +979,9 @@ const MatchProspectTable = ({
                     style={styles.fullscreenLabel}
                     data-testid={`match-prospect-fullscreen-left-label-${sectionId}`}
                   >
-                    <FormattedMessage id="THIS_ENCOUNTER" />
+                    {renderThisEncounterLabel(
+                      `match-prospect-fullscreen-left-label-link-${sectionId}`,
+                    )}
                   </div>
 
                   <div
@@ -988,6 +1024,7 @@ const MatchProspectTable = ({
 
                   <InteractiveAnnotationOverlay
                     ref={fsLeftRef}
+                    fitToAnnotation
                     imageUrl={leftImageUrl}
                     originalWidth={leftOrigW}
                     originalHeight={leftOrigH}
@@ -1117,6 +1154,7 @@ const MatchProspectTable = ({
 
                   <InteractiveAnnotationOverlay
                     ref={fsRightRef}
+                    fitToAnnotation
                     imageUrl={rightImageUrl}
                     originalWidth={rightOrigW}
                     originalHeight={rightOrigH}

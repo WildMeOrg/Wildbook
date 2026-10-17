@@ -7,7 +7,6 @@ package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.LinkedList;
 import java.util.Random;
 import javax.jdo.*;
 import javax.servlet.http.HttpServlet;
@@ -342,6 +341,11 @@ public class UserConsolidate extends HttpServlet {
             if (consolidatedUserRoles != null && consolidatedUserRoles.size() > 0) {
                 for (int i = 0; i < consolidatedUserRoles.size(); i++) {
                     Role currentRole = consolidatedUserRoles.get(i);
+                    // Enrollment belongs to the retained account, not an automatically merged identity.
+                    if (Role.API_SUBMISSION.equals(currentRole.getRolename())) {
+                        myShepherd.getPM().deletePersistent(currentRole);
+                        continue;
+                    }
                     if (!retainedUserRoles.contains(currentRole)) {
                         // it's a new role for the retained user; add it. Note: this because the role usernames are different, this will in effect
                         // capture all retainedUserRoles. But since username is converted downstream, this is not actually a bug. Might could be
@@ -908,13 +912,8 @@ public class UserConsolidate extends HttpServlet {
         for (Role currentRole : bRoles) {
             bRoleNames.add(currentRole.getRolename());
         }
-        List<String> roleHierarchy = new LinkedList<String>(); // ArrayBlockingQueue because of enforce FIFO structure
-        roleHierarchy.add("admin"); // don't know how to make this anything but hard-coded, highest-in-hierarchy first
-        roleHierarchy.add("orgAdmin");
-        roleHierarchy.add("researcher");
-        roleHierarchy.add("rest");
-        roleHierarchy.add("machinelearning");
-        for (String currentRoleBeingChecked : roleHierarchy) {
+        // Role.SYSTEM_ROLES is ordered highest-in-hierarchy first
+        for (String currentRoleBeingChecked : Role.SYSTEM_ROLES) {
             if (aRoleNames.contains(currentRoleBeingChecked) &&
                 !bRoleNames.contains(currentRoleBeingChecked)) {
                 return true;

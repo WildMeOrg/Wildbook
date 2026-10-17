@@ -107,4 +107,73 @@ class AnnotationTest {
         long v2 = ann.getVersion();
         assertTrue("incrementWbiaRegisterAttempts should bump version", v2 > v1);
     }
+
+    // A MediaAsset shared by multiple encounters (e.g. one image imported on
+    // several bulk-import rows) carries one trivial placeholder per encounter.
+    // The manual-annotation cleanup must only ever consume the placeholder
+    // belonging to the encounter being annotated -- picking another
+    // encounter's placeholder deletes its feature while leaving it attached,
+    // stranding a featureless annotation there and dropping the image from
+    // that encounter.
+    @Test void findTrivialPlaceholderScopedToEncounter() {
+        AssetStore store = null;
+        MediaAsset ma = new MediaAsset(store, null);
+        Annotation trivialA = new Annotation("species", ma);
+        Annotation trivialB = new Annotation("species", ma);
+        // in-memory only: set the feature->annotation back-references that JDO
+        // maintains for persistent objects, so an (incorrect) asset-wide
+        // search would see both trivials and this test can catch it
+        trivialA.getFeatures().get(0).setAnnotation(trivialA);
+        trivialB.getFeatures().get(0).setAnnotation(trivialB);
+        Encounter encA = new Encounter();
+        encA.addAnnotation(trivialA);
+        Encounter encB = new Encounter();
+        encB.addAnnotation(trivialB);
+
+        assertEquals(trivialA, Annotation.findTrivialPlaceholder(encA, ma));
+        assertEquals(trivialB, Annotation.findTrivialPlaceholder(encB, ma));
+    }
+
+    @Test void findTrivialPlaceholderNoneOnEncounter() {
+        AssetStore store = null;
+        MediaAsset ma = new MediaAsset(store, null);
+        Annotation otherEncsTrivial = new Annotation("species", ma);
+        otherEncsTrivial.getFeatures().get(0).setAnnotation(otherEncsTrivial);
+        Encounter owner = new Encounter();
+        owner.addAnnotation(otherEncsTrivial);
+        Encounter encWithoutTrivial = new Encounter();
+
+        // must NOT fall back to another encounter's placeholder
+        assertNull(Annotation.findTrivialPlaceholder(encWithoutTrivial, ma));
+    }
+
+    // multiple placeholders on one encounter is malformed data, but lock in
+    // the intentional selection rule (last one wins, matching the historical
+    // asset-wide scan)
+    @Test void findTrivialPlaceholderKeepsLastOfMultiple() {
+        AssetStore store = null;
+        MediaAsset ma = new MediaAsset(store, null);
+        Annotation first = new Annotation("species", ma);
+        Annotation second = new Annotation("species", ma);
+        first.getFeatures().get(0).setAnnotation(first);
+        second.getFeatures().get(0).setAnnotation(second);
+        Encounter enc = new Encounter();
+        enc.addAnnotation(first);
+        enc.addAnnotation(second);
+
+        assertEquals(second, Annotation.findTrivialPlaceholder(enc, ma));
+    }
+
+    @Test void findTrivialPlaceholderNullEncounterSearchesAsset() {
+        AssetStore store = null;
+        MediaAsset ma = new MediaAsset(store, null);
+        Annotation trivial = new Annotation("species", ma);
+
+        // in-memory only: set the feature->annotation back-reference that JDO
+        // maintains for persistent objects (MediaAsset.getAnnotations() walks it)
+        trivial.getFeatures().get(0).setAnnotation(trivial);
+
+        assertEquals(trivial, Annotation.findTrivialPlaceholder(null, ma));
+        assertNull(Annotation.findTrivialPlaceholder(null, new MediaAsset(store, null)));
+    }
 }
