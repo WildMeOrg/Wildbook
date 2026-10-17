@@ -64,12 +64,35 @@ public class AuthToken extends ApiBase {
                 return;
             }
             long ttl = ttlFromConfig(tokenContext);
-            String token = jwt.sign(user.getId(), tokenContext, ttl);
+            String scope = request.getParameter("scope");
+            if (scope != null) {
+                if (!org.ecocean.api.submission.SubmissionPolicy.READ.equals(scope)
+                    && !org.ecocean.api.submission.SubmissionPolicy.WRITE.equals(scope)) {
+                    writeError(response, 400, "unsupported scope");
+                    return;
+                }
+                // Basic credentials are resolved in context0; do not grant a capability for another context.
+                if (!context.equals(tokenContext)) {
+                    writeError(response, 503, "submission token context unavailable");
+                    return;
+                }
+                if (org.ecocean.api.submission.SubmissionPolicy.WRITE.equals(scope)) {
+                    try {
+                        org.ecocean.api.submission.SubmissionPolicy.requireAdmission(context, user.getId());
+                    } catch (org.ecocean.api.submission.SubmissionException ex) {
+                        writeError(response, ex.status, ex.getMessage());
+                        return;
+                    }
+                }
+            }
+            String token = scope == null ? jwt.sign(user.getId(), tokenContext, ttl)
+                : jwt.signSubmission(user.getId(), tokenContext, ttl, scope);
             System.out.println("AuthToken mint OK user=" + username + " ip=" + clientIp);
             JSONObject out = new JSONObject();
             out.put("token", token);
             out.put("tokenType", "Bearer");
             out.put("expiresInSeconds", ttl / 1000L);
+            if (scope != null) out.put("scope", scope);
             response.setStatus(200);
             response.setContentType("application/json");
             response.getWriter().write(out.toString());

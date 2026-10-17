@@ -20,6 +20,7 @@ import org.ecocean.Encounter;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.resumableupload.UploadPaths;
 import org.ecocean.resumableupload.UploadServlet;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
@@ -53,7 +54,12 @@ public class UploadedFiles {
         }
         if (filenames.size() < 1) return files;
         for (String fname : filenames) {
-            File file = new File(uploadDir, fname);
+            // these names arrive from an API payload and the resulting File becomes a MediaAsset,
+            // so a traversing name would disclose an arbitrary readable file
+            if (!UploadPaths.isSingleComponentName(fname))
+                throw new IOException("invalid filename: " + fname);
+            File file = UploadPaths.resolveWithin(uploadDir, fname);
+            if (file == null) throw new IOException("invalid filename: " + fname);
             if (!file.exists()) throw new IOException(file + " does not exist in uploadDir");
             files.add(file);
         }
@@ -66,9 +72,11 @@ public class UploadedFiles {
         File dir = getUploadDir(subdir);
 
         if (dir == null) throw new IOException("invalid subdirectory: " + subdir);
-        if (Util.stringIsEmptyOrNull(filename) || filename.startsWith("."))
+        // startsWith(".") alone let "existingChild/../../secret" through
+        if (!UploadPaths.isSingleComponentName(filename))
             throw new IOException("invalid filename: " + filename);
-        File file = new File(dir, filename);
+        File file = UploadPaths.resolveWithin(dir, filename);
+        if (file == null) throw new IOException("invalid filename: " + filename);
         System.out.println("[DEBUG] UploadedFiles.getFile() looking for " + file);
         if (!file.exists())
             throw new IOException("file does not exist: " + subdir + "/" + filename);
@@ -96,9 +104,16 @@ public class UploadedFiles {
     // see getUploadDir() above for full-featured version. (this is loosely based on UploadServlet.getUploadDir())
     public static File getUploadDir(String subdir) {
         if (!Util.isUUID(subdir)) return null;
-        String fullDir = CommonConfiguration.getUploadTmpDir("context0") +
-            "/_anonymous/submission/" + subdir;
-        return new File(fullDir);
+        File uploadRoot = new File(CommonConfiguration.getUploadTmpDir("context0"));
+        try {
+            // the UUID cannot traverse, but this directory is the trusted base for getFile(), so
+            // confirm it really sits under the configured root before anything is read from it
+            return UploadPaths.resolveDirWithin(uploadRoot,
+                UploadPaths.ANONYMOUS_SUBMISSION_PREFIX + subdir);
+        } catch (java.io.IOException ex) {
+            System.out.println("UploadedFiles.getUploadDir could not resolve " + subdir + ": " + ex);
+            return null;
+        }
     }
 
 /*

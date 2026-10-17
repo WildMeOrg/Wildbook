@@ -3,12 +3,12 @@ import { useState, useCallback } from "react";
 // Mint a short-lived API token via step-up Basic auth.
 // IMPORTANT: uses a raw fetch with credentials:"omit" so NO session cookie is sent — the server
 // must verify the supplied password fresh (a session alone cannot mint).
-export async function mintToken(username, password) {
+export async function mintToken(username, password, scope) {
   const creds = `${username}:${password}`;
   const utf8 = new TextEncoder().encode(creds);
   let binary = "";
   for (let i = 0; i < utf8.length; i++) binary += String.fromCharCode(utf8[i]);
-  const resp = await fetch("/api/v3/auth/token", {
+  const resp = await fetch("/api/v3/auth/token" + (scope ? `?scope=${encodeURIComponent(scope)}` : ""), {
     method: "POST",
     credentials: "omit",
     headers: {
@@ -28,9 +28,9 @@ export async function mintToken(username, password) {
 // Thin hook wrapper for components (keeps call sites declarative).
 export default function useMintToken() {
   const [loading, setLoading] = useState(false);
-  const mint = useCallback(async (username, password) => {
+  const mint = useCallback(async (username, password, scope) => {
     setLoading(true);
-    try { return await mintToken(username, password); }
+    try { return await mintToken(username, password, scope); }
     finally { setLoading(false); }
   }, []);
   return { mint, loading };
