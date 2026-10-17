@@ -58,6 +58,12 @@ result selection, and import-status aggregation for the feature layer. Database
 tests verify that both dispatch targets can read the committed tree from a second
 manager and that a failed checked commit leaves no tree and publishes nothing.
 
+If the database connection dies after the persist commit and before dispatch, the
+legacy wrapper cannot durably mark unpublished work without another working
+transaction. Those callers discard the detailed outcome, so null-status tasks can
+remain waiting. Group recovery and the import summary's nonmutating age limit cover
+the feature path; the legacy connection-loss limitation remains.
+
 ### 4.2.4 WBIA send retries
 
 A failed send stores nonterminal `requeued` before deciding whether to retry.

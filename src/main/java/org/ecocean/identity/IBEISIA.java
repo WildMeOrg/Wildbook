@@ -949,14 +949,12 @@ public class IBEISIA {
             JSONObject registration = new JSONObject();
             boolean hadTargets = (tanns != null) && !tanns.isEmpty();
             tanns = sendAnnotationsAsNeeded(qanns, tanns, myShepherd, registration);
-            if (hadTargets && tanns.isEmpty()) {
-                results.put("sendAnnotationsAsNeeded", registration);
-                results.put("error",
-                    "all target annotations were dropped (none could be registered with WBIA)");
-                results.put("success", false);
-                return results;
-            }
             results.put("sendAnnotationsAsNeeded", registration);
+            if (hadTargets && tanns.isEmpty()) {
+                // Use the common failure/logging path so this attempt remains observable.
+                throw new IllegalStateException(
+                    "all target annotations were dropped (none could be registered with WBIA)");
+            }
             Util.mark("OPT bia 4X", tt);
             if (tanns != null) {
                 System.out.println("                               ... qanns has: " + qanns.size() +
@@ -1570,7 +1568,11 @@ public class IBEISIA {
 
                     Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask,
                         false);
-                    if (childTask == null) throw new IllegalStateException("IA.intakeAnnotations() could not persist the identification run for " + encUUID);
+                    if (childTask == null) {
+                        System.out.println("ERROR: IA.intakeAnnotations() could not persist the identification run for " + encUUID);
+                        myShepherd2.beginDBTransaction();
+                        continue;
+                    }
                     myShepherd2.storeNewTask(childTask);
                     myShepherd2.updateDBTransaction();
                     subParentTask.addChild(childTask);

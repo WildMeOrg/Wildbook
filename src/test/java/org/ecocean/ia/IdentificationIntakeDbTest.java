@@ -103,6 +103,52 @@ class IdentificationIntakeDbTest extends IdentificationDbTestSupport {
             reader.rollbackAndClose();
         }
     }
+    @Test void failedEncounterIntakeDoesNotStopTheRestOfTheCallback() throws Exception {
+        Shepherd fixture = open("callbackFixture");
+        Encounter first = guitarfish(fixture, BODY);
+        Encounter second = guitarfish(fixture, BODY);
+        Task detection = detectionTask(fixture, nextImportId());
+        List<String> ids = annotationIds(first, second);
+        String taskId = detection.getId();
+        fixture.commitDBTransaction();
+        fixture.closeDBTransaction();
+        AtomicInteger attempts = new AtomicInteger();
+        java.util.concurrent.atomic.AtomicReference<String> successfulTask = new java.util.concurrent.atomic.AtomicReference<String>();
+        try (org.mockito.MockedStatic<IA> ia = org.mockito.Mockito.mockStatic(IA.class, org.mockito.Mockito.CALLS_REAL_METHODS);
+             org.mockito.MockedStatic<org.ecocean.identity.IBEISIA> ibeis = org.mockito.Mockito.mockStatic(
+                 org.ecocean.identity.IBEISIA.class, org.mockito.Mockito.CALLS_REAL_METHODS)) {
+            ia.when(() -> IA.getProperty(CTX, "IBEISIADisableIdentification")).thenReturn("false");
+            ibeis.when(() -> org.ecocean.identity.IBEISIA.validForIdentification(
+                org.mockito.ArgumentMatchers.any(Annotation.class), org.mockito.ArgumentMatchers.eq(CTX))).thenReturn(true);
+            ia.when(() -> IA.intakeAnnotations(org.mockito.ArgumentMatchers.any(Shepherd.class),
+                org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.any(Task.class),
+                org.mockito.ArgumentMatchers.eq(false))).thenAnswer(call -> {
+                    Shepherd sh = call.getArgument(0);
+                    if (attempts.incrementAndGet() == 1) {
+                        sh.rollbackDBTransaction();
+                        return null;
+                    }
+                    Task child = new Task();
+                    child.setObjectAnnotations(call.getArgument(1));
+                    successfulTask.set(child.getId());
+                    return child;
+                });
+            JSONObject response = new JSONObject().put("embeddingExtraction", true)
+                .put("annotationMap", new JSONObject().put("fixtureAsset", new JSONArray(ids)));
+            org.ecocean.identity.IBEISIA.processCallback(taskId, response, CTX, "");
+        }
+        assertEquals(2, attempts.get(), "a failed encounter must not suppress later encounters");
+        Shepherd reader = open("callbackCheck");
+        try {
+            Task succeeded = Task.load(successfulTask.get(), reader);
+            assertNotNull(succeeded, "the later encounter's task is durable");
+            assertNotNull(succeeded.getParent());
+            assertEquals(1, succeeded.numberAnnotations());
+        } finally {
+            reader.rollbackAndClose();
+        }
+    }
+
     static JSONObject iaJson() {
         JSONArray both = new JSONArray()
             .put(new JSONObject("{\"pipeline_root\":\"vector\",\"method\":\"miewid\",\"version\":\"msv4_v3\",\"default\":true,\"description\":\"MiewID\"}"))
