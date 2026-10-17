@@ -1942,6 +1942,11 @@ public class Annotation extends Base implements java.io.Serializable {
         return Task.getPreferredMatchResultsTaskForAnnotation(this, myShepherd);
     }
 
+    /** Issue #1787: scoped to the encounter's annotation ids (spec §4.3); null keeps today's behaviour. */
+    public Task getPreferredMatchResultsTask(Shepherd myShepherd, Set<String> encounterAnnotationIds) {
+        return Task.getPreferredMatchResultsTaskForAnnotation(this, null, encounterAnnotationIds, myShepherd);
+    }
+
     public int detachFromTasks(Shepherd myShepherd) {
         List<Task> tasks = Task.getTasksFor(this, myShepherd);
 

@@ -180,14 +180,66 @@ class IAGatewayDoIdentifyTest {
         });
     }
 
+    @Test void fanOutParentKeepsIdentityParamsAndChildrenDropTheOptionMarker() throws Exception {
+        Task parent = new Task("T3");
+        JSONObject params = new JSONObject()
+            .put("importTaskId", "IMP1").put(Task.PARAM_RUN_ID, "RUN-1").put(Task.PARAM_OPTION, true)
+            .put("ibeis.identification", new JSONObject("{\"query_config_dict\":{\"sv_on\":true}}"))
+            .put("matchingSetFilter", new JSONObject().put("locationIds", new JSONArray().put("X")));
+        parent.setParameters(params);
+        Annotation a = ann("A3");
+        Annotation b = ann("B3");
+        parent.addObject(a);
+        parent.addObject(b);
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T3", parent);
+        byId.put("A3", a);
+        byId.put("B3", b);
+        Shepherd sh = shepherdWith(byId);
+        JSONObject res = new JSONObject().put("taskId", "T3");
+        withIdentifyStubs(sendResult(true), true, parent, new ArrayList<String>(), () -> {
+            IAGateway._doIdentify(jin("A3", "B3"), res, sh, "context0", "http://wb", false);
+            JSONObject kept = parent.getParameters();
+            assertEquals(3, kept.length(), "exactly importTaskId, run id and option marker survive the reset");
+            assertEquals("IMP1", kept.getString("importTaskId"));
+            assertEquals("RUN-1", kept.getString(Task.PARAM_RUN_ID));
+            assertTrue(kept.getBoolean(Task.PARAM_OPTION));
+            assertFalse(kept.has("ibeis.identification"), "renderability of the parent is unchanged");
+            assertEquals(2, parent.getChildren().size());
+            for (Task kid : parent.getChildren()) {
+                JSONObject kp = kid.getParameters();
+                assertEquals("IMP1", kp.getString("importTaskId"));
+                assertEquals("RUN-1", kp.getString(Task.PARAM_RUN_ID));
+                assertTrue(kp.has("ibeis.identification"));
+                assertTrue(kp.has("matchingSetFilter"));
+                assertFalse(kp.has(Task.PARAM_OPTION), "fan-out children are leaves, not options");
+                assertEquals(1, kid.numberAnnotations());
+            }
+        });
+    }
 
-
-
+    @Test void fanOutParentWithoutIdentityParamsIsClearedToNullAsToday() throws Exception {
+        Task parent = new Task("T4");
+        parent.setParameters(new JSONObject().put("ibeis.identification", new JSONObject()));
+        Annotation a = ann("A4");
+        Annotation b = ann("B4");
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T4", parent);
+        byId.put("A4", a);
+        byId.put("B4", b);
+        Shepherd sh = shepherdWith(byId);
+        withIdentifyStubs(sendResult(true), true, parent, new ArrayList<String>(), () -> {
+            IAGateway._doIdentify(jin("A4", "B4"), new JSONObject().put("taskId", "T4"), sh, "context0", "http://wb", false);
+            assertNull(parent.getParameters());
+            assertTrue(parent.getChildren().get(0).getParameters().has("ibeis.identification"));
+        });
+    }
 
     /** The requeued job re-enters with one annotation: no second fan-out; the stored status is left for the WBIA callback. */
     @Test void retryReentryWithOneAnnotationDoesNotFanOut() throws Exception {
         Task t = new Task("T5");
         t.setStatus(Task.STATUS_REQUEUED);
+        t.setParameters(new JSONObject().put("ibeis.identification", new JSONObject()).put(Task.PARAM_RUN_ID, "RUN-5"));
         Annotation a = ann("A5");
         t.addObject(a);
         Map<String, Object> byId = new HashMap<String, Object>();
@@ -204,11 +256,61 @@ class IAGatewayDoIdentifyTest {
         });
     }
 
+    /** A single-annotation identify on a task that does not hold the annotation attaches it. */
+    @Test void singleAnnotationIdentifyAttachesTheQueryAnnotationToItsTask() throws Exception {
+        Task t = new Task("T6");   // e.g. a fresh gateway root: no objects yet
+        t.setParameters(new JSONObject().put("ibeis.identification", new JSONObject()));
+        Annotation a = ann("A6");
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T6", t);
+        byId.put("A6", a);
+        Shepherd sh = shepherdWith(byId);
+        withIdentifyStubs(sendResult(true), true, t, new ArrayList<String>(), () -> {
+            JSONObject out = IAGateway._doIdentify(jin("A6"), new JSONObject().put("taskId", "T6"), sh, "context0", "http://wb", false);
+            assertTrue(out.getBoolean("success"));
+            assertFalse(t.hasChildren());
+            assertTrue(t.contains(a), "task lookups by annotation find the run");
+            assertEquals(1, t.getObjectAnnotations().size());
+        });
+    }
 
+    @Test void singleAnnotationIdentifyDoesNotAttachTheAnnotationTwice() throws Exception {
+        Task t = new Task("T7");
+        t.setParameters(new JSONObject().put("ibeis.identification", new JSONObject()));
+        Annotation a = ann("A7");
+        t.addObject(a);
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T7", t);
+        byId.put("A7", a);
+        Shepherd sh = shepherdWith(byId);
+        withIdentifyStubs(sendResult(true), true, t, new ArrayList<String>(), () -> {
+            IAGateway._doIdentify(jin("A7"), new JSONObject().put("taskId", "T7"), sh, "context0", "http://wb", false);
+            assertEquals(1, t.getObjectAnnotations().size());
+        });
+    }
 
+    @Test void identifyWithNoResolvableAnnotationLeavesTheTaskEmpty() throws Exception {
+        Task t = new Task("T8");
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put("T8", t);
+        Shepherd sh = shepherdWith(byId);
+        withIdentifyStubs(sendResult(true), true, t, new ArrayList<String>(), () -> {
+            IAGateway._doIdentify(jin("missing"), new JSONObject().put("taskId", "T8"), sh, "context0", "http://wb", false);
+            assertFalse(t.hasObjectAnnotations());
+        });
+    }
 
-
-
-
-
+    @Test void identityParamsOfNullIsNull() {
+        assertNull(Task.identityParams(null));
+        assertNull(Task.identityParams(new JSONObject().put("ibeis.identification", new JSONObject())));
+        JSONObject p = Task.identityParams(new JSONObject().put("importTaskId", "IMP1").put("x", 1));
+        assertEquals(1, p.length());
+        assertEquals("IMP1", p.getString("importTaskId"));
+        assertNull(Task.withoutOptionMarker(null));
+        JSONObject src = new JSONObject().put(Task.PARAM_OPTION, true).put("k", "v");
+        JSONObject copy = Task.withoutOptionMarker(src);
+        assertFalse(copy.has(Task.PARAM_OPTION));
+        assertEquals("v", copy.getString("k"));
+        assertTrue(src.has(Task.PARAM_OPTION), "input not mutated");
+    }
 }

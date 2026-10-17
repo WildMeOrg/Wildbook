@@ -5176,6 +5176,13 @@ public class Encounter extends Base implements java.io.Serializable {
             rtn.put("mediaAssets", mas);
         } else {
             // for real users we add some extras to assets and annotations
+            // issue #1787: the Match Results link is scoped to this encounter's annotations
+            java.util.Set<String> encounterAnnotationIds = new java.util.HashSet<String>();
+            if (this.getAnnotations() != null) {
+                for (Annotation a : this.getAnnotations()) {
+                    if ((a != null) && (a.getId() != null)) encounterAnnotationIds.add(a.getId());
+                }
+            }
             if (rtn.optJSONArray("mediaAssets") != null) {
                 for (int i = 0; i < rtn.getJSONArray("mediaAssets").length(); i++) {
                     if (rtn.getJSONArray("mediaAssets").optJSONObject(i) != null) {
@@ -5220,7 +5227,7 @@ public class Encounter extends Base implements java.io.Serializable {
                                 // bearing tasks into mid-chain WBIA orchestration
                                 // tasks (recursion-depth=3 on Task.parent caps
                                 // the in-memory ancestor walk).
-                                Task matchTask = ann.getPreferredMatchResultsTask(myShepherd);
+                                Task matchTask = ann.getPreferredMatchResultsTask(myShepherd, encounterAnnotationIds);
                                 if (matchTask != null) {
                                     rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
                                         "annotations").getJSONObject(j).put("iaTaskId",

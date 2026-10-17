@@ -146,7 +146,10 @@ public class IA {
         System.out.println("intakeMediaAssetsOneSpecies constructed maArr " + maArr.toString());
 
         Task topTask = new Task();
-        if (parentTask != null) topTask.setParameters(parentTask.getParameters());
+        // issue #1787 (spec §4.0): a detection task never carries a run's keys, even when the
+        // root it descends from is a reused umbrella (handleRest)
+        if ((parentTask != null) && (parentTask.getParameters() != null))
+            topTask.setParameters(scrubRunParams(parentTask.getParameters()));
         topTask.setObjectMediaAssets(mas);
         myShepherd.storeNewTask(topTask);
 
@@ -437,7 +440,7 @@ public class IA {
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns,
         final Task parentTask, boolean fastlane) {
         JSONObject inherited = (parentTask == null) ? null : parentTask.getParameters();
-        IntakeOutcome o = intakeCore(myShepherd, anns, null, inherited, fastlane);
+        IntakeOutcome o = intakeCore(myShepherd, anns, null, inherited, fastlane, null);
 
         if ((o == null) || o.persistFailed) return null;
         return o.umbrella;
@@ -450,20 +453,75 @@ public class IA {
      */
     public static IntakeOutcome intakeAnnotationsUnder(Shepherd myShepherd, List<Annotation> anns,
         Task parent, JSONObject inheritedParams, boolean fastlane) {
-        return intakeCore(myShepherd, anns, parent, inheritedParams, fastlane);
+        return intakeAnnotationsUnder(myShepherd, anns, parent, inheritedParams, fastlane, null);
     }
 
+    /**
+     * As above; {@code vectorDefaults} (the ml-service match config: method/version from the
+     * embedding response, api_endpoint from the ml-service config) fills only the missing
+     * method/version/api_endpoint keys of each vector option, on a copy. Null = no filling.
+     */
+    public static IntakeOutcome intakeAnnotationsUnder(Shepherd myShepherd, List<Annotation> anns,
+        Task parent, JSONObject inheritedParams, boolean fastlane, JSONObject vectorDefaults) {
+        return intakeCore(myShepherd, anns, parent, inheritedParams, fastlane, vectorDefaults);
+    }
 
+    /** A childless umbrella without an option: no class had a default identification option. */
+    public static boolean intakeProducedNoWork(Task umbrella) {
+        if (umbrella == null) return false;
+        if (umbrella.hasChildren()) return false;
+        JSONObject p = umbrella.getParameters();
+        return (p == null) || !p.has("ibeis.identification");
+    }
 
+    /**
+     * Inherited parameters minus the keys that belong to a run (the new run sets its own).
+     * Also applied where a root's parameters are copied into detection tasks
+     * (intakeMediaAssetsOneSpecies), onto a substituted handleRest root and onto the /ia
+     * gateway's root (IAGateway.gatewayTaskParams), so a run id can
+     * never leak across a pipeline boundary (spec §4.0). Never returns null; never mutates.
+     */
+    public static JSONObject scrubRunParams(JSONObject inherited) {
+        JSONObject p = (inherited == null) ? new JSONObject() : new JSONObject(inherited.toString());
+        p.remove(Task.PARAM_RUN_ID);
+        p.remove(Task.PARAM_V2_MATCH);
+        p.remove(Task.PARAM_OPTION);
+        p.remove("ibeis.identification");
+        return p;
+    }
 
+    private static final String[] VECTOR_DEFAULT_KEYS = { "method", "version", "api_endpoint" };
 
-
-
-
-
+    /*
+     * For ml-service matching, a vector option (isVectorConfig, or pipeline_root "vector") takes the
+     * missing method/version/api_endpoint from the ml-service match config, on a copy, so an
+     * option without a version never matches across embedding-model versions and one without a
+     * method is still recognized as vector. Existing keys are never overwritten.
+     */
+    static List<JSONObject> withVectorDefaults(List<JSONObject> opts, JSONObject defaults) {
+        if ((opts == null) || (defaults == null)) return opts;
+        List<JSONObject> out = new ArrayList<JSONObject>();
+        for (JSONObject opt : opts) {
+            if ((opt == null) || !(Embedding.isVectorConfig(opt) ||
+                "vector".equals(opt.optString("pipeline_root", null)))) {
+                out.add(opt);
+                continue;
+            }
+            JSONObject copy = new JSONObject(opt.toString());
+            for (String key : VECTOR_DEFAULT_KEYS) {
+                if (Util.stringExists(copy.optString(key, null))) continue;
+                String val = defaults.optString(key, null);
+                if (Util.stringExists(val)) copy.put(key, val);
+            }
+            out.add(copy);
+        }
+        return out;
+    }
 
     private static void markOption(JSONObject params, JSONObject opt) {
         params.put("ibeis.identification", (opt == null) ? "DEFAULT" : opt);
+        params.put(Task.PARAM_OPTION, true);
+        if (Embedding.isVectorConfig(opt)) params.put(Task.PARAM_V2_MATCH, true);
     }
 
     private static void markTaskError(Task t, String code, String message) {
@@ -486,7 +544,7 @@ public class IA {
      * always lists every option with its publication result (spec §4.2.3).
      */
     private static IntakeOutcome intakeCore(Shepherd myShepherd, List<Annotation> anns,
-        Task parent, JSONObject inheritedParams, boolean fastlane) {
+        Task parent, JSONObject inheritedParams, boolean fastlane, JSONObject vectorDefaults) {
         if ((anns == null) || (anns.size() < 1)) return null;
         String context = myShepherd.getContext();
         IntakeOutcome outcome = new IntakeOutcome();
@@ -494,8 +552,8 @@ public class IA {
         // ---- build ----
         Task topTask = new Task();
         outcome.umbrella = topTask;
-        JSONObject runParams = (inheritedParams == null) ? new JSONObject() :
-            new JSONObject(inheritedParams.toString());
+        JSONObject runParams = scrubRunParams(inheritedParams);
+        runParams.put(Task.PARAM_RUN_ID, topTask.getId());   // every task of this run carries it
         topTask.setParameters(runParams);
         topTask.setObjectAnnotations(anns);
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
@@ -539,6 +597,7 @@ public class IA {
                     System.out.println("Swapping opts for newOpts!!");
                 }
             }
+            opts = withVectorDefaults(opts, vectorDefaults);
             if ((opts == null) || (opts.size() < 1)) {   // no ID for this iaClass
                 outcome.skippedIaClasses.add(iaClass);
                 continue;
@@ -584,8 +643,16 @@ public class IA {
         String umbrellaId = topTask.getId();
         List<String> optionIds = new ArrayList<String>();
         for (int i = 0; i < plannedTasks.size(); i++) {
-            outcome.options.add(new OptionResult(plannedTasks.get(i),
-                Embedding.isVectorConfig(plannedOpts.get(i))));
+            JSONObject opt = plannedOpts.get(i);
+            boolean vector = Embedding.isVectorConfig(opt);
+            boolean invalidVector = (vectorDefaults != null) && (opt != null) &&
+                "vector".equals(opt.optString("pipeline_root", null)) && !vector;
+            OptionResult result = new OptionResult(plannedTasks.get(i), vector || invalidVector);
+            if (invalidVector) {
+                result.failureCode = "INVALID_MATCH_CONFIG";
+                markTaskError(result.task, result.failureCode, "vector option has no method or api_endpoint");
+            }
+            outcome.options.add(result);
             optionIds.add(plannedTasks.get(i).getId());
         }
 
@@ -630,6 +697,7 @@ public class IA {
             for (int i = 0; i < outcome.options.size(); i++) {
                 OptionResult r = outcome.options.get(i);
                 JSONObject opt = plannedOpts.get(i);
+                if (r.failureCode != null) continue; // invalid vector config was persisted as an error
                 Task t = r.task;
                 String optionId = optionIds.get(i);
                 // a transaction that died during an earlier dispatch stops every later one: under
@@ -735,11 +803,45 @@ public class IA {
         return new ArrayList<List<Annotation> >(iaClassToAnns.values());
     }
 
+    /**
+     * Issue #1787 (spec §4.0): a client-supplied root id must not name a task of an
+     * identification run (umbrella, option or leaf) nor any task holding annotations —
+     * reusing it would hang a new run beneath an old one or overwrite the old run's identity.
+     */
+    public static boolean mustReplaceRequestRoot(Task loaded) {
+        return (loaded != null) && (loaded.hasObjectAnnotations() || (Task.runIdOf(loaded) != null));
+    }
 
+    /** Links a handleRest child under its root: skips null and the root itself, like the old addChild, but also sets the parent field. */
+    static void linkUnderRoot(Task child, Task root) {
+        if ((child == null) || (root == null) || (child == root) || child.getId().equals(root.getId())) return;
+        child.setParent(root);
+    }
 
+    /**
+     * Issue #1787 (spec §4.0): a client-supplied root id may name an existing task. If that task
+     * holds annotations or belongs to an identification run (umbrella, option or leaf), a new
+     * run must not hang beneath it — the umbrella's Match Results page renders exactly its own
+     * run — so a fresh root is used instead. A media-asset-only root (the detection root the
+     * hamburger-menu New Match attaches to) is reused as before.
+     */
+    static Task resolveRequestRoot(Task loaded, String taskId, boolean fastlane) {
+        Task root = loaded;
 
-
-
+        if (mustReplaceRequestRoot(root)) {
+            System.out.println("WARN: IA.handleRest() root task " + taskId +
+                " holds annotations or belongs to identification run " + Task.runIdOf(root) +
+                "; creating a fresh root instead");
+            root = new Task();
+            // the request's parameters (IAGateway stores taskParameters — matchingSetFilter,
+            // matchingAlgorithms, userId… — on the loaded task) travel to the fresh root,
+            // minus the keys that belong to the old run
+            if (loaded.getParameters() != null) root.setParameters(scrubRunParams(loaded.getParameters()));
+        }
+        if (root == null) root = new Task(taskId);
+        if (fastlane) root.addParameter("fastlane", true);
+        return root;
+    }
 
     // possibly (should?) have .taskId, and *definitely* should have .__context and .__baseUrl
     // note: this is processed *from the queue* and as such does not have "output"
@@ -758,9 +860,7 @@ public class IA {
         myShepherd.beginDBTransaction();
         try {
             String taskId = jin.optString("taskId", Util.generateUUID());
-            Task topTask = Task.load(taskId, myShepherd);
-            if (topTask == null) topTask = new Task(taskId);
-            if (fastlane) topTask.addParameter("fastlane", true);
+            Task topTask = resolveRequestRoot(Task.load(taskId, myShepherd), taskId, fastlane);
             myShepherd.storeNewTask(topTask);
             JSONObject opt = jin.optJSONObject("opt"); // should use this to decide how to branch differently than "default"
             JSONArray mlist = jin.optJSONArray("mediaAssetIds");
@@ -778,7 +878,7 @@ public class IA {
                 Task mtask = intakeMediaAssets(myShepherd, mas, topTask);
                 System.out.println("INFO: IA.handleRest() just intook MediaAssets as " + mtask +
                     " for (parent) " + topTask);
-                topTask.addChild(mtask);
+                linkUnderRoot(mtask, topTask);
             }
             JSONArray alist = jin.optJSONArray("annotationIds");
             if ((alist != null) && (alist.length() > 0)) {
@@ -802,15 +902,13 @@ public class IA {
                 }
                 // i cant think of a scenario where we would get here and accidently double-add mas... but jic
                 for (MediaAsset ma : masForNewRoot) {
-                    if (!topTask.getObjectMediaAssets().contains(ma)) {
-                        topTask.addObject(ma);
-                    }
+                    topTask.addObject(ma);   // dedupes; also safe on a fresh root whose list is null
                 }
                 Task atask = intakeAnnotations(myShepherd, anns, topTask, fastlane);
                 System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask +
                     " for " + topTask);
                 myShepherd.getPM().refresh(topTask);
-                topTask.addChild(atask);
+                linkUnderRoot(atask, topTask);
                 topTask.setModified();
                 if (atask != null) myShepherd.getPM().makePersistent(atask);
             }

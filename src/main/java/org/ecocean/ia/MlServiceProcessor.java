@@ -2,7 +2,10 @@ package org.ecocean.ia;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ecocean.Annotation;
 import org.ecocean.Embedding;
@@ -706,15 +709,80 @@ public class MlServiceProcessor {
             attempt, firstDeferredAt);
     }
 
+    /** Package-private seam so tests can substitute a Shepherd whose checked commit fails. */
+    Shepherd openShepherd(String action) {
+        Shepherd shep = new Shepherd(context);
+        shep.setAction(ACTION_PREFIX + action);
+        return shep;
+    }
+
+    /** Spec §4.1 step 3: D's parameters minus the keys a run sets for itself. Pure. */
+    static JSONObject matchIntakeParams(JSONObject parentParams) {
+        JSONObject p = (parentParams == null) ? new JSONObject() : new JSONObject(parentParams.toString());
+        p.remove("ibeis.detection");          // detection gauges must not count match tasks
+        p.remove(Task.PARAM_RUN_ID);
+        p.remove(Task.PARAM_V2_MATCH);
+        p.remove(Task.PARAM_OPTION);
+        p.remove("ibeis.identification");
+        return p;
+    }
+
+    /** Spec §4.1 step 2: one group per encounter in first-seen order; no-encounter annotations form their own group. Pure. */
+    static List<List<Annotation> > groupByEncounter(List<Annotation> anns, Map<String, String> annIdToEncId) {
+        Map<String, List<Annotation> > groups = new LinkedHashMap<String, List<Annotation> >();
+        for (Annotation ann : anns) {
+            String enc = annIdToEncId.get(ann.getId());
+            String key = (enc == null) ? "\u0000no-encounter" : enc;
+            List<Annotation> g = groups.get(key);
+            if (g == null) {
+                g = new ArrayList<Annotation>();
+                groups.put(key, g);
+            }
+            g.add(ann);
+        }
+        return new ArrayList<List<Annotation> >(groups.values());
+    }
+
+    // per-group recovery record (spec §4.1 step 4)
+    private static final class GroupRecord {
+        final IA.IntakeOutcome outcome;
+        boolean committed = false;
+        final List<String> annotationIds = new ArrayList<String>();
+
+        GroupRecord(IA.IntakeOutcome outcome, List<Annotation> group) {
+            this.outcome = outcome;
+            for (Annotation ann : group) annotationIds.add(ann.getId());
+        }
+    }
+
+    private static String annotationIdList(List<Annotation> anns) {
+        List<String> ids = new ArrayList<String>();
+        for (Annotation a : anns) ids.add(a.getId());
+        return ids.toString();
+    }
+
+    /**
+     * Spec §4.1: every default identification option runs for each encounter's annotations
+     * through the shared intake. {@code matchConfig} keeps its gate / embedding-presence roles
+     * upstream (waitAndRunMatchInternal) and completes each vector option (method/version/
+     * api_endpoint) where IA.json leaves them out; it no longer selects the algorithm.
+     */
     public MlServiceJobOutcome runMatchProspects(List<String> annotationIds, String taskId,
         JSONObject matchConfig) {
         if (annotationIds == null || annotationIds.isEmpty()) {
             markTaskCompleted(taskId);
             return MlServiceJobOutcome.ok(new ArrayList<String>());
         }
-
-        Shepherd shep = new Shepherd(context);
-        shep.setAction(ACTION_PREFIX + "runMatchProspects");
+        List<GroupRecord> processed = new ArrayList<GroupRecord>();
+        // Keep scalar inputs even if loading/grouping fails before any intake can begin.
+        List<List<String>> groupsToRecover = new ArrayList<List<String>>();
+        groupsToRecover.add(new ArrayList<String>(annotationIds));
+        String inheritedParameters = null;
+        String failureCode = null;
+        String failureMessage = null;
+        String parentId = taskId;
+        MlServiceJobOutcome result = null;
+        Shepherd shep = openShepherd("runMatchProspects");
         try {
             shep.beginDBTransaction();
             List<Annotation> anns = new ArrayList<Annotation>();
@@ -728,77 +796,167 @@ public class MlServiceProcessor {
                 shep.commitDBTransaction();
                 return MlServiceJobOutcome.stale("annotations missing");
             }
-
             Task parent = Task.load(taskId, shep);
-            Task matchTask = (parent == null) ? new Task() : new Task(parent);
-            // new Task(parent) copies the parent's parameters. The v2 detection
-            // task is tagged ibeis.detection (IA.enqueueOneAssetForMlService) so
-            // the /metrics detection gauges count it; strip that flag here so it
-            // does NOT propagate onto this match task or the per-annotation
-            // subtasks Embedding.findMatchProspects creates from it below
-            // (new Task(matchTask)). Otherwise the detection gauges would
-            // miscount match/subtasks as detections, and the existential child
-            // clause in MetricsBot would stop counting the parent detection
-            // task. Mirror of IBEISIA's params.remove("ibeis.detection").
-            JSONObject inheritedParams = matchTask.getParameters();
-            if ((inheritedParams != null) && inheritedParams.has("ibeis.detection")) {
-                inheritedParams.remove("ibeis.detection");
-                matchTask.setParameters(inheritedParams);
+            if (parent == null) {   // as before: an orphan root when the detection task is gone
+                parent = (taskId == null) ? new Task() : new Task(taskId);
+                shep.getPM().makePersistent(parent);
             }
-            matchTask.setObjectAnnotations(anns);
-            matchTask.addParameter("mlServiceV2Match", true);
-            // Stamp the chosen _id_conf entry's description into an
-            // ibeis.identification block so Task.getIdentificationMethodInfo
-            // surfaces a method/description for the React match-results page
-            // header. Pure-v2 imports (no legacy WBIA in the chain) leave the
-            // task tree without any ibeis.identification anywhere, which
-            // causes matchResultsJson to omit `method` from the API tree —
-            // the React header reads `method?.name ?? method?.description`
-            // and renders blank. Stamp unconditionally — even the error
-            // branch below (matchConfig == null / findMatchProspects rejects)
-            // persists this task and the user can hit its match-results page.
-            String desc = (matchConfig == null) ? null
-                : matchConfig.optString("description", null);
-            JSONObject identBlock = new JSONObject();
-            identBlock.put("description",
-                (desc == null || desc.isEmpty()) ? "ml-service vector matching" : desc);
-            matchTask.addParameter("ibeis.identification", identBlock);
-            shep.getPM().makePersistent(matchTask);
-            // findMatchProspects returns false when the match config is not
-            // a vector config or matchConfig is null. Don't leave the match
-            // task without a terminal status — mark the parent task error.
-            boolean ran = Embedding.findMatchProspects(matchConfig, matchTask, shep);
-            if (!ran) {
-                matchTask.setStatus("error");
-                matchTask.setStatusDetailsAddError("INVALID_MATCH_CONFIG",
-                    "findMatchProspects rejected match config: " +
-                    (matchConfig == null ? "null" : matchConfig.toString()));
-                matchTask.setCompletionDateInMilliseconds();
-                // Update the parent task in this same transaction (parent is
-                // already loaded above) so the two updates commit atomically.
-                // Splitting across transactions risks leaving the parent
-                // "completed" if the second commit fails or the JVM dies.
-                if (parent != null) {
-                    markTaskError(parent, "INVALID_MATCH_CONFIG",
-                        "no usable vector match config");
+            parentId = parent.getId();
+            Map<String, String> annToEnc = new HashMap<String, String>();
+            for (Annotation ann : anns) {
+                Encounter enc = ann.findEncounter(shep);
+                annToEnc.put(ann.getId(), (enc == null) ? null : enc.getCatalogNumber());
+            }
+            List<List<Annotation> > groups = groupByEncounter(anns, annToEnc);
+            JSONObject inherited = matchIntakeParams(parent.getParameters());
+            inheritedParameters = inherited.toString();
+            groupsToRecover.clear();
+            for (List<Annotation> group : groups) {
+                List<String> ids = new ArrayList<String>();
+                for (Annotation ann : group) ids.add(ann.getId());
+                groupsToRecover.add(ids);
+            }
+            int noWorkGroups = 0;
+            for (List<Annotation> group : groups) {
+                IA.IntakeOutcome o = IA.intakeAnnotationsUnder(shep, group, parent, inherited, false,
+                    matchConfig);
+                if (o == null) {
+                    failureCode = "MATCH_PERSIST";
+                    failureMessage = "no identification run for annotations " + annotationIdList(group);
+                    break;
                 }
-                shep.commitDBTransaction();
-                return MlServiceJobOutcome.validationError("INVALID_MATCH_CONFIG",
-                    "no usable vector match config");
+                GroupRecord rec = new GroupRecord(o, group);
+                processed.add(rec);
+                if (o.persistFailed) {
+                    failureCode = "MATCH_PERSIST";
+                    failureMessage = "could not persist the identification run for annotations " +
+                        annotationIdList(group);
+                    break;
+                }
+                if (o.noWork) noWorkGroups++;
+                // one checked commit per group: a later group's failure never rolls back an
+                // earlier group's vector leaves
+                if (!shep.commitDBTransactionWithStatus()) {
+                    failureCode = "MATCH_PERSIST";
+                    failureMessage = "group commit failed for identification run " + o.umbrella.getId();
+                    break;
+                }
+                rec.committed = true;
+                shep.beginDBTransaction();
             }
-            shep.commitDBTransaction();
+            if (failureCode == null) {
+                if (noWorkGroups == groups.size()) {
+                    markTaskError(parent, "INVALID_MATCH_CONFIG", "no default identification options");
+                    if (shep.commitDBTransactionWithStatus()) {
+                        result = MlServiceJobOutcome.validationError("INVALID_MATCH_CONFIG",
+                            "no default identification options");
+                    } else {
+                        failureCode = "MATCH_PERSIST";
+                        failureMessage = "could not commit the INVALID_MATCH_CONFIG mark on " + parentId;
+                    }
+                } else {
+                    result = MlServiceJobOutcome.ok(annotationIds);
+                }
+            }
         } catch (Exception ex) {
-            markTaskError(taskId, "MATCH", "findMatchProspects failed: " + ex.getMessage());
-            return MlServiceJobOutcome.persistError("MATCH", ex.getMessage());
+            failureCode = "MATCH";
+            failureMessage = "identification intake failed: " + ex.getMessage();
+            ex.printStackTrace();
+        } finally {
+            shep.rollbackAndClose();   // rolls back whatever the failed group left open
+        }
+        if (failureCode != null) {
+            recoverMatchFailure(parentId, processed, groupsToRecover, inheritedParameters, failureCode, failureMessage);
+            return MlServiceJobOutcome.persistError(failureCode, failureMessage);
+        }
+        // PairX inspection-image generation is intentionally OFF the synchronous match path.
+        // The UI lazy-fetches each prospect's inspection asset via
+        // POST /api/v3/match-inspection/{mrId}/{annId} when the inspector opens.
+        return result;
+    }
+
+    /**
+     * Spec §4.1 step 5. With a fresh Shepherd: for every processed group whose commit did not
+     * succeed but whose run was persisted by the intake core, mark every option task whose job
+     * was not successfully published (every vector option; HotSpotter options whose publication
+     * failed) error MATCH_PERSIST, and the umbrella too unless it is itself a published option;
+     * leave published HotSpotter options alone (their job is durable and will complete them).
+     * Mark the detection/extraction task with {@code code}. Groups whose commit succeeded are
+     * untouched. Groups with no durable run receive terminal error umbrellas holding their
+     * annotations, so the import can finish. The recovery commit is checked; failures log ids.
+     */
+    private void recoverMatchFailure(String parentTaskId, List<GroupRecord> processed,
+        List<List<String>> groups, String inheritedParameters, String code, String message) {
+        Shepherd shep = openShepherd("runMatchProspects.recover");
+        List<String> marked = new ArrayList<String>();
+        try {
+            shep.beginDBTransaction();
+            java.util.Set<String> covered = new java.util.HashSet<String>();
+            for (GroupRecord rec : processed) {
+                if (rec.committed) {
+                    covered.addAll(rec.annotationIds);
+                    continue;
+                }
+                if (rec.outcome.persistFailed) continue;
+                IA.IntakeOutcome o = rec.outcome;
+                if (o.umbrella == null) continue;
+                Task umbrella = Task.load(o.umbrella.getId(), shep);
+                if (umbrella == null) continue;
+                covered.addAll(rec.annotationIds);
+                boolean umbrellaIsPublishedOption = false;
+                for (IA.OptionResult r : o.options) {
+                    if (r.published && !r.vector) {
+                        if (r.task.getId().equals(umbrella.getId())) umbrellaIsPublishedOption = true;
+                        continue;
+                    }
+                    Task opt = Task.load(r.task.getId(), shep);
+                    if ((opt == null) || opt.statusInEndState()) continue;
+                    markTaskError(opt, "MATCH_PERSIST", message);
+                    marked.add(opt.getId());
+                }
+                if (!umbrellaIsPublishedOption && !umbrella.statusInEndState()) {
+                    markTaskError(umbrella, "MATCH_PERSIST", message);
+                    marked.add(umbrella.getId());
+                }
+            }
+            Task parent = Task.load(parentTaskId, shep);
+            if (parent == null) {
+                parent = (parentTaskId == null) ? new Task() : new Task(parentTaskId);
+                shep.getPM().makePersistent(parent);
+            }
+            JSONObject inherited = (inheritedParameters == null) ? matchIntakeParams(parent.getParameters()) :
+                new JSONObject(inheritedParameters);
+            for (List<String> group : groups) {
+                List<Annotation> missing = new ArrayList<Annotation>();
+                for (String id : group) {
+                    if (covered.contains(id)) continue;
+                    Annotation ann = shep.getAnnotation(id);
+                    if (ann != null) missing.add(ann);
+                }
+                if (missing.isEmpty()) continue;
+                // A failed/unattempted group still needs a durable run: the import cannot age
+                // out annotations that have no tasks. Published options above remain untouched.
+                Task failed = new Task();
+                failed.setParameters(new JSONObject(inherited.toString()));
+                failed.addParameter(Task.PARAM_RUN_ID, failed.getId());
+                failed.setObjectAnnotations(missing);
+                failed.setParent(parent);
+                markTaskError(failed, code, message);
+                shep.getPM().makePersistent(failed);
+                marked.add(failed.getId());
+            }
+            markTaskError(parent, code, message);
+            if (!shep.commitDBTransactionWithStatus()) {
+                System.out.println("ERROR: MlServiceProcessor.runMatchProspects() recovery commit failed; " +
+                    "tasks left pending: " + marked + "; parent " + parentTaskId + "; " + message);
+            }
+        } catch (Exception ex) {
+            System.out.println("ERROR: MlServiceProcessor.runMatchProspects() recovery threw " + ex +
+                "; tasks: " + marked + "; parent " + parentTaskId);
+            ex.printStackTrace();
         } finally {
             shep.rollbackAndClose();
         }
-        // PairX inspection-image generation is intentionally OFF the
-        // synchronous match path. The UI lazy-fetches each prospect's
-        // inspection asset via POST /api/v3/match-inspection/{mrId}/{annId}
-        // when the inspector opens — see api/MatchInspection and the
-        // lazy-fetch in MatchProspectTable.jsx.
-        return MlServiceJobOutcome.ok(annotationIds);
     }
 
     static MlServiceJobOutcome mapNonRetryableError(IAException ex) {

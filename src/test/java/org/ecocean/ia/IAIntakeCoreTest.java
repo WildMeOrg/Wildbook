@@ -168,6 +168,9 @@ class IAIntakeCoreTest {
 
             Task u = o.umbrella;
             assertNotNull(u);
+            assertTrue(Task.isUmbrella(u));
+            assertFalse(Task.isOptionTask(u));
+            assertFalse(u.getParameters().has(Task.PARAM_V2_MATCH));
             assertEquals("IMP1", u.getParameters().getString("importTaskId"));
             assertEquals(2, u.numberAnnotations());
             assertFalse(o.noWork);
@@ -177,6 +180,9 @@ class IAIntakeCoreTest {
             int vectors = 0;
             for (IA.OptionResult r : o.options) {
                 Task t = r.task;
+                assertEquals(u.getId(), Task.runIdOf(t));
+                assertTrue(Task.isOptionTask(t));
+                assertFalse(Task.isUmbrella(t));
                 assertEquals("IMP1", t.getParameters().getString("importTaskId"));
                 assertTrue(t.getParameters().has("matchingSetFilter"));
                 assertEquals(1, t.numberAnnotations(), "one class per option task");
@@ -184,8 +190,10 @@ class IAIntakeCoreTest {
                 if (r.vector) {
                     vectors++;
                     assertEquals("miewid", ident.getString("method"));
+                    assertTrue(t.getParameters().getBoolean(Task.PARAM_V2_MATCH));
                 } else {
                     assertTrue(ident.has("query_config_dict"));
+                    assertFalse(t.getParameters().has(Task.PARAM_V2_MATCH), "HotSpotter never carries the v2 flag");
                 }
                 assertTrue(r.published);
                 assertNull(r.failureCode);
@@ -206,7 +214,32 @@ class IAIntakeCoreTest {
         });
     }
 
-
+    @Test void inheritedRunIdAndMarkersAreReplaced() throws Exception {
+        IA.setDispatcherForTests(new RecordingDispatcher());
+        Shepherd sh = shepherd(true);
+        Annotation body = ann("body", "guitarfish");
+        Map<String, List<JSONObject>> one = new HashMap<String, List<JSONObject>>();
+        one.put("guitarfish", Arrays.asList(miewid(), hotspotter()));
+        withStatics(config(one), () -> {
+            JSONObject inherited = new JSONObject()
+                .put(Task.PARAM_RUN_ID, "OLD-RUN").put(Task.PARAM_V2_MATCH, true)
+                .put(Task.PARAM_OPTION, true).put("ibeis.identification", new JSONObject().put("x", 1))
+                .put("importTaskId", "IMP1").put("skipIdent", false);
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(body), null, inherited, false);
+            Task u = o.umbrella;
+            assertEquals(u.getId(), Task.runIdOf(u));
+            assertFalse(u.getParameters().has(Task.PARAM_OPTION));
+            assertFalse(u.getParameters().has(Task.PARAM_V2_MATCH));
+            assertFalse(u.getParameters().has("ibeis.identification"));
+            assertEquals("IMP1", u.getParameters().getString("importTaskId"));
+            assertFalse(u.getParameters().getBoolean("skipIdent"));
+            for (IA.OptionResult r : o.options) {
+                assertEquals(u.getId(), Task.runIdOf(r.task));
+                assertFalse(r.task.getParameters().toString().contains("OLD-RUN"));
+            }
+            assertEquals("OLD-RUN", inherited.getString(Task.PARAM_RUN_ID), "the caller's object is not mutated");
+        });
+    }
 
     @Test void singleOptionSingleClassUsesTheUmbrellaAsTheOption() throws Exception {
         RecordingDispatcher d = new RecordingDispatcher();
@@ -218,6 +251,8 @@ class IAIntakeCoreTest {
             IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, false);
             assertEquals(1, o.options.size());
             assertSame(o.umbrella, o.options.get(0).task);
+            assertTrue(Task.isUmbrella(o.umbrella));
+            assertTrue(Task.isOptionTask(o.umbrella));
             assertFalse(o.umbrella.hasChildren());
             assertTrue(o.umbrella.getParameters().has("ibeis.identification"));
             assertEquals(1, d.published.size());
@@ -399,6 +434,7 @@ class IAIntakeCoreTest {
         withStatics(config(none), () -> {
             IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, false);
             assertTrue(o.noWork);
+            assertTrue(IA.intakeProducedNoWork(o.umbrella));
             assertEquals("error", o.umbrella.getStoredStatus());
             assertEquals("INVALID_MATCH_CONFIG", errorCode(o.umbrella));
             assertNotNull(o.umbrella.getCompletionDateInMilliseconds());
@@ -437,6 +473,8 @@ class IAIntakeCoreTest {
             IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, inherited, false);
             assertEquals(1, o.options.size());
             assertFalse(o.options.get(0).vector);
+            assertTrue(Task.isOptionTask(o.options.get(0).task));
+            assertEquals(o.umbrella.getId(), Task.runIdOf(o.options.get(0).task));
             assertTrue(d.vectorRuns.isEmpty());
         });
     }
@@ -490,7 +528,19 @@ class IAIntakeCoreTest {
         assertEquals(IAGateway.LANE_IA, IAGateway.laneFor(new JSONObject(jobs.get(1))));
     }
 
-
+    @Test void singleVectorOptionPutsTheV2FlagOnTheUmbrella() throws Exception {
+        IA.setDispatcherForTests(new RecordingDispatcher());
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> m = new HashMap<String, List<JSONObject>>();
+        m.put("guitarfish", Arrays.asList(miewid()));
+        withStatics(config(m), () -> {
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, false);
+            assertSame(o.umbrella, o.options.get(0).task);
+            assertTrue(o.options.get(0).vector);
+            assertTrue(o.umbrella.getParameters().getBoolean(Task.PARAM_V2_MATCH));
+            assertTrue(o.umbrella.getParameters().getBoolean(Task.PARAM_OPTION));
+        });
+    }
 
     @Test void transactionRestartFailureAfterThePersistCommitReportsEveryOptionUndispatched() throws Exception {
         RecordingDispatcher d = new RecordingDispatcher();
@@ -553,20 +603,108 @@ class IAIntakeCoreTest {
         assertNull(IA.intakeAnnotationsUnder(shepherd(true), null, null, null, false));
     }
 
+    @Test void scrubRunParamsRemovesExactlyTheRunKeys() {
+        JSONObject in = new JSONObject().put(Task.PARAM_RUN_ID, "R").put(Task.PARAM_V2_MATCH, true)
+            .put(Task.PARAM_OPTION, true).put("ibeis.identification", new JSONObject())
+            .put("importTaskId", "IMP1").put("matchingSetFilter", new JSONObject().put("k", 1)).put("ibeis.detection", true);
+        JSONObject out = IA.scrubRunParams(in);
+        assertEquals(3, out.length());
+        assertEquals("IMP1", out.getString("importTaskId"));
+        assertTrue(out.has("matchingSetFilter"));
+        assertTrue(out.getBoolean("ibeis.detection"), "the media boundary keeps its own keys; only run keys go");
+        assertEquals(7, in.length(), "input not mutated");
+        assertEquals(0, IA.scrubRunParams(null).length());
+    }
 
-
-
+    @Test void intakeProducedNoWorkIsPure() {
+        assertFalse(IA.intakeProducedNoWork(null));
+        Task bare = new Task();
+        assertTrue(IA.intakeProducedNoWork(bare));
+        bare.addParameter("ibeis.identification", new JSONObject());
+        assertFalse(IA.intakeProducedNoWork(bare), "a single-option umbrella is work");
+        Task withKid = new Task();
+        new Task(withKid);
+        assertFalse(IA.intakeProducedNoWork(withKid));
+    }
     // ---- final fix 1: vector options are completed from the ml-service match config ----
 
+    static JSONObject vectorDefaults() {
+        return new JSONObject().put("method", "miewid-default").put("version", "msv9")
+            .put("api_endpoint", "http://ml/match").put("pipeline_root", "ignored");
+    }
 
+    @Test void vectorOptionWithoutVersionTakesTheVersionFromTheDefaults() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        JSONObject noVersion = new JSONObject(
+            "{\"pipeline_root\":\"vector\",\"method\":\"miewid\",\"default\":true}");
+        Map<String, List<JSONObject>> one = new HashMap<String, List<JSONObject>>();
+        one.put("guitarfish", Arrays.asList(noVersion, hotspotter()));
+        withStatics(config(one), () -> {
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")),
+                null, null, false, vectorDefaults());
+            assertEquals(1, d.vectorOpts.size());
+            JSONObject used = d.vectorOpts.get(0);
+            assertEquals("msv9", used.getString("version"));
+            assertEquals("miewid", used.getString("method"), "the option's own method is kept");
+            assertEquals("http://ml/match", used.getString("api_endpoint"));
+            assertEquals("vector", used.getString("pipeline_root"), "only method/version/api_endpoint are filled");
+            JSONObject ident = o.options.get(0).task.getParameters().getJSONObject("ibeis.identification");
+            assertEquals("msv9", ident.getString("version"), "the marker records the completed option");
+            assertFalse(noVersion.has("version"), "the IA.json option object is never mutated");
+        });
+    }
 
+    @Test void pipelineRootVectorWithoutMethodBecomesAVectorOptionOnceDefaultsSupplyIt() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> one = new HashMap<String, List<JSONObject>>();
+        one.put("guitarfish", Arrays.asList(new JSONObject(
+            "{\"pipeline_root\":\"vector\",\"version\":\"own\",\"default\":true}")));
+        withStatics(config(one), () -> {
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")),
+                null, null, false, vectorDefaults());
+            assertEquals(1, d.vectorRuns.size(), "ran as a vector option");
+            assertTrue(d.published.isEmpty(), "never published to the HotSpotter queue");
+            assertTrue(o.options.get(0).vector);
+            assertTrue(o.umbrella.getParameters().getBoolean(Task.PARAM_V2_MATCH));
+            assertEquals("miewid-default", d.vectorOpts.get(0).getString("method"));
+            assertEquals("own", d.vectorOpts.get(0).getString("version"), "existing keys are never overwritten");
+        });
+    }
 
+    @Test void hotspotterOptionIsUntouchedByVectorDefaults() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> one = new HashMap<String, List<JSONObject>>();
+        one.put("guitarfish", Arrays.asList(hotspotter()));
+        withStatics(config(one), () -> {
+            IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, false,
+                vectorDefaults());
+            assertTrue(d.vectorRuns.isEmpty());
+            assertEquals(1, d.published.size());
+            assertEquals(hotspotter().toString(), d.published.get(0).getJSONObject("opt").toString());
+        });
+    }
 
-
-
-
-
-
+    @Test void nullVectorDefaultsKeepTodaysBehaviour() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> one = new HashMap<String, List<JSONObject>>();
+        one.put("guitarfish", Arrays.asList(new JSONObject(
+            "{\"pipeline_root\":\"vector\",\"method\":\"miewid\",\"default\":true}"),
+            new JSONObject("{\"pipeline_root\":\"vector\",\"default\":true}")));
+        withStatics(config(one), () -> {
+            IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")), null, null, false, null);
+            assertEquals(1, d.vectorRuns.size());
+            assertFalse(d.vectorOpts.get(0).has("version"));
+            assertEquals(1, d.published.size(), "without defaults a method-less option is not vector, as today");
+        });
+    }
 
     // ---- final fix 2: an identOpts failure skips that class instead of aborting the run ----
 
@@ -616,4 +754,21 @@ class IAIntakeCoreTest {
             assertTrue(d.published.isEmpty());
         });
     }
+    @Test void unusableVectorDefaultsNeverPublishTheVectorOptionToWbia() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> opts = new HashMap<String, List<JSONObject>>();
+        opts.put("guitarfish", Arrays.asList(new JSONObject().put("pipeline_root", "vector").put("default", true)));
+        withStatics(config(opts), () -> {
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "guitarfish")),
+                null, null, false, new JSONObject());
+            assertEquals("INVALID_MATCH_CONFIG", o.options.get(0).failureCode);
+            assertEquals("error", o.options.get(0).task.getStoredStatus());
+            assertFalse(o.options.get(0).published);
+            assertTrue(d.published.isEmpty(), "a malformed vector option must not become a WBIA job");
+            assertTrue(d.vectorRuns.isEmpty());
+        });
+    }
+
 }
