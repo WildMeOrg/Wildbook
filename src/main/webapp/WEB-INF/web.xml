@@ -1496,14 +1496,6 @@
 		<url-pattern>/ImportSRGD</url-pattern>
 	</servlet-mapping>
 	<servlet>
-		<servlet-name>ImportIA</servlet-name>
-		<servlet-class>org.ecocean.servlet.importer.ImportIA</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>ImportIA</servlet-name>
-		<url-pattern>/ImportIA</url-pattern>
-	</servlet-mapping>
-	<servlet>
 		<servlet-name>ImportAccess</servlet-name>
 		<servlet-class>org.ecocean.servlet.importer.ImportAccess</servlet-class>
 	</servlet>
@@ -1522,14 +1514,6 @@
 	<servlet-mapping>
 		<servlet-name>StandardImport</servlet-name>
 		<url-pattern>/import/standard-upload</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>UpdateStandard</servlet-name>
-		<servlet-class>org.ecocean.servlet.importer.UpdateStandard</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>UpdateStandard</servlet-name>
-		<url-pattern>/UpdateStandard</url-pattern>
 	</servlet-mapping>
 	<servlet>
 		<servlet-name>FixStandardImport</servlet-name>
