@@ -128,13 +128,6 @@ const MatchResults = observer(() => {
         </div>
       )}
 
-      {store.hasResults && store.encounterId && (
-        <div
-          style={{ height: "70px" }}
-          data-testid="match-results-bottom-bar-spacer"
-        />
-      )}
-
       <div
         className="d-flex flex-row justify-content-between align-items-center mb-3"
         id="match-results-header"
