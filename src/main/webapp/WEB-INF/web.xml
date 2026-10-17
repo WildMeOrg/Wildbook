@@ -149,10 +149,8 @@
 
 				# ===== Import Operations =====
 				/import/** = authc, roles[researcher]
-				/ImportSRGD = authc, roles[admin]
 				/ImportAccess = authc, roles[admin]
 				/StandardImport = authc, roles[admin]
-				/FixStandardImport = authc, roles[admin]
 				/ImportTaskDetection = authc, roles[admin]
 				/imports.jsp = authc
 				/DeleteImportTask = authc, roles[researcher]
@@ -1488,14 +1486,6 @@
 	</servlet-mapping>
 
 	<servlet>
-		<servlet-name>ImportSRGD</servlet-name>
-		<servlet-class>org.ecocean.servlet.importer.ImportSRGD</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>ImportSRGD</servlet-name>
-		<url-pattern>/ImportSRGD</url-pattern>
-	</servlet-mapping>
-	<servlet>
 		<servlet-name>ImportAccess</servlet-name>
 		<servlet-class>org.ecocean.servlet.importer.ImportAccess</servlet-class>
 	</servlet>
@@ -1514,14 +1504,6 @@
 	<servlet-mapping>
 		<servlet-name>StandardImport</servlet-name>
 		<url-pattern>/import/standard-upload</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>FixStandardImport</servlet-name>
-		<servlet-class>org.ecocean.servlet.importer.FixStandardImport</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>FixStandardImport</servlet-name>
-		<url-pattern>/FixStandardImport</url-pattern>
 	</servlet-mapping>
 	<servlet>
 		<servlet-name>ResumableUpload</servlet-name>
