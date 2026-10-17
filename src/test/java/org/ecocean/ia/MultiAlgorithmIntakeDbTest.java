@@ -1362,13 +1362,19 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
             Shepherd reader = open("nullConfigCheck");
             try {
                 Task run = umbrellaFor(Task.load(detection.getId(), reader), encounter);
-                Task invalid = optionOf(run, true, BODY);
+                Task invalid = null;
+                for (Task option : childrenOf(run)) {
+                    JSONObject algorithm = option.getParameters().optJSONObject("ibeis.identification");
+                    if ((algorithm != null) && "vector".equals(algorithm.optString("pipeline_root")))
+                        invalid = option;
+                }
+                assertNotNull(invalid, "the explicitly vector option is persisted even though unusable");
                 assertEquals("INVALID_MATCH_CONFIG", errorCode(invalid));
                 assertEquals("error", invalid.getStoredStatus());
             } finally {
                 reader.rollbackAndClose();
             }
-            for (String id : hotspotterOptionIds(detection.getId())) setStatus(id, "completed");
+            for (JSONObject job : dispatcher.published) setStatus(job.getString("taskId"), "completed");
             JSONObject sum = summary(imported.getId());
             assertEquals("complete", sum.getString("identificationStatus"));
             assertEquals(1, sum.getInt("identificationNumberError"));
