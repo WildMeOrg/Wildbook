@@ -949,14 +949,12 @@ public class IBEISIA {
             JSONObject registration = new JSONObject();
             boolean hadTargets = (tanns != null) && !tanns.isEmpty();
             tanns = sendAnnotationsAsNeeded(qanns, tanns, myShepherd, registration);
-            if (hadTargets && tanns.isEmpty()) {
-                results.put("sendAnnotationsAsNeeded", registration);
-                results.put("error",
-                    "all target annotations were dropped (none could be registered with WBIA)");
-                results.put("success", false);
-                return results;
-            }
             results.put("sendAnnotationsAsNeeded", registration);
+            if (hadTargets && tanns.isEmpty()) {
+                // Use the common failure/logging path so this attempt remains observable.
+                throw new IllegalStateException(
+                    "all target annotations were dropped (none could be registered with WBIA)");
+            }
             Util.mark("OPT bia 4X", tt);
             if (tanns != null) {
                 System.out.println("                               ... qanns has: " + qanns.size() +
