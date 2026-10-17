@@ -566,7 +566,16 @@ public class IAGateway extends HttpServlet {
                 if (fastlane) jobj.put("fastlane", true);
                 System.out.println("_doIdentify() requeueing from jin=" + jin);
                 System.out.println("_doIdentify() requeueing as jobj=" + jobj);
-                requeueJob(jobj, true);
+                boolean requeued = requeueJob(jobj, true);
+                if (!requeued) {
+                    // retry budget / two-day window exhausted: the only terminal commit on this
+                    // path (spec §4.4). While a retry is queued the task stays "requeued".
+                    subTask.setStatus("error");
+                    subTask.setStatusDetailsAddError("SEND_FAILED",
+                        "identification could not be sent and the retry budget is exhausted: " + ex.toString());
+                    subTask.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                    myShepherd.updateDBTransaction();
+                }
             }
             taskRes.put("subTaskId", subTask.getId());
             taskRes.put("subTaskIndex", i);
@@ -631,15 +640,16 @@ public class IAGateway extends HttpServlet {
                 String errorMsg = sent.optString("error", "(unknown error)");
                 System.out.println("beginIdentifyAnnotations() was unsuccessful due to " +
                     errorMsg + "; hopefully we requeue");
-                // sendIdentify failed before WBIA accepted the job; surface this as an
-                // error rather than "completed" so the import page doesn't falsely
-                // report the task as done. (Mirrors the sibling error path ~30 lines
-                // below that already sets status="error" on a different failure mode.)
+                // sendIdentify failed before WBIA accepted the job; never leave the task
+                // "completed" so the import page doesn't falsely report it as done. The
+                // terminal error is now written by _doIdentify when the requeue is refused.
                 if (task != null) {
-                    task.setStatus("error");
+                    // issue #1787 (spec §4.4): non-terminal while _doIdentify may still schedule a
+                    // retry. An explicit stored status, because a null status would make
+                    // Task.getStatus derive "error" from the HTTP-error log this failure leaves.
+                    task.setStatus(Task.STATUS_REQUEUED);
                     task.setStatusDetailsAddError("SEND_FAILED",
-                        "beginIdentifyAnnotations() failed: " + errorMsg);
-                    task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                        "beginIdentifyAnnotations() failed: " + errorMsg + "; retry pending");
                     myShepherd.updateDBTransaction();
                 }
                 throw new IOException("beginIdentifyAnnotations() failed due to " + errorMsg);

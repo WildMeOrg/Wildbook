@@ -1568,6 +1568,11 @@ public class IBEISIA {
 
                     Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask,
                         false);
+                    if (childTask == null) {
+                        System.out.println("ERROR: IA.intakeAnnotations() could not persist the identification run for " + encUUID);
+                        myShepherd2.beginDBTransaction();
+                        continue;
+                    }
                     myShepherd2.storeNewTask(childTask);
                     myShepherd2.updateDBTransaction();
                     subParentTask.addChild(childTask);

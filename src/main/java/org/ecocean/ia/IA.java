@@ -374,49 +374,139 @@ public class IA {
         return intakeAnnotations(myShepherd, anns, null, false);
     }
 
+    // ---- issue #1787 (spec §4.2): outcome record and dispatcher seam ----
+
+    /** One option task of an intake run and what happened to its dispatch. */
+    public static final class OptionResult {
+        public final Task task;
+        public final boolean vector;
+        /** true once the option's dispatch ran (vector) or its queue job was published (HotSpotter); says nothing about the match outcome */
+        public boolean published = false;
+        public String failureCode = null;
+
+        OptionResult(Task task, boolean vector) {
+            this.task = task;
+            this.vector = vector;
+        }
+    }
+
+    /** What {@link #intakeAnnotationsUnder} built, persisted and dispatched. */
+    public static final class IntakeOutcome {
+        public Task umbrella = null;
+        public final List<OptionResult> options = new ArrayList<OptionResult>();
+        public final List<String> skippedIaClasses = new ArrayList<String>();
+        public boolean noWork = false;
+        public boolean persistFailed = false;
+    }
+
+    /** Seam between the core and its two dispatch targets, so tests run with no OpenSearch, ml-service or file queue. */
+    interface Dispatcher {
+        /** Runs a vector option inline (Embedding.findMatchProspects); may throw. */
+        void runVector(JSONObject opt, Task optionTask, Shepherd myShepherd);
+
+        /** Publishes a HotSpotter job; false or an exception means "not published". */
+        boolean publish(String context, String job, boolean fastlane) throws java.io.IOException;
+    }
+
+    private static final Dispatcher REAL_DISPATCHER = new Dispatcher() {
+        @Override public void runVector(JSONObject opt, Task optionTask, Shepherd myShepherd) {
+            Embedding.findMatchProspects(opt, optionTask, myShepherd);
+        }
+
+        @Override public boolean publish(String context, String job, boolean fastlane)
+        throws java.io.IOException {
+            // One classifier decides the lane (IAGateway.laneFor reads the job's "fastlane" flag).
+            // Routing fastlane work to the SERIAL detection queue left it behind every queued
+            // ml-service detection.
+            return org.ecocean.servlet.IAGateway.publishToLane(context, job);
+        }
+    };
+    private static volatile Dispatcher dispatcher = REAL_DISPATCHER;
+
+    /** Test hook; null restores the real dispatcher. */
+    static void setDispatcherForTests(Dispatcher d) {
+        dispatcher = (d == null) ? REAL_DISPATCHER : d;
+    }
+
+    /**
+     * Existing entry point, unchanged signature. The umbrella is NOT linked to
+     * {@code parentTask} here (callers attach it afterwards, as before); the parent only
+     * supplies the inherited parameters. Returns null when the run could not be persisted
+     * (today's code continued blind after a swallowed commit failure).
+     */
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns,
         final Task parentTask, boolean fastlane) {
-        // List<List<Annotation>> annses = binAnnotsByIaClass(anns);
-        //// slightly complicated bc we need to create child tasks only if there are multiple iaClasses
-        // if (annses.size() == 1) return intakeAnnotationsOneIAClass(myShepherd, annses.get(0), parentTask);
-        //// here we make child tasks
-        // Task topTask = (parentTask==null) ? new Task() : parentTask;
-        // for (List<Annotation> annsOneIaClass: annses) {
-        // topTask.addChild(intakeAnnotationsOneIAClass(myShepherd, anns, parentTask));
-        // }
-        // return topTask;
-        // }
-        // public static Task intakeAnnotationsOneIAClass(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
-        // System.out.println("Starting intakeAnnotations");
-        if ((anns == null) || (anns.size() < 1)) return null;
-        Task topTask = new Task();
-        if (parentTask != null) topTask.setParameters(parentTask.getParameters());
-        topTask.setObjectAnnotations(anns);
-        String context = myShepherd.getContext();
+        JSONObject inherited = (parentTask == null) ? null : parentTask.getParameters();
+        IntakeOutcome o = intakeCore(myShepherd, anns, null, inherited, fastlane);
 
-        /*
-            what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed for this we use
-               IBEISIA.identOpts to decide how many flavors of identification we need to do!   if have more than one we need to make a set of subtasks
-         */
+        if ((o == null) || o.persistFailed) return null;
+        return o.umbrella;
+    }
 
-/*
-        String iaClass = anns.get(0).getIAClass(); //IAClass is a standard with image analysis that identifies the featuretype used for identification
-           List<JSONObject> opts = null;
-        // below gets it working for dolphins but can be generalized easily from IA.properties String inferredIaClass =
-           IBEISIA.inferIaClass(anns.get(0), myShepherd);
-        String bottlenose = "dolphin_bottlenose_fin";
-        if (bottlenose.equals(iaClass) || bottlenose.equals(inferredIaClass)) {
-            System.out.println("IA.java is sending a Tursiops truncatus job");
-            opts = IBEISIA.identOpts(context, bottlenose);
-        } else { // defaults to the default ia.properties IBEISIdentOpt, in our case humpback flukes opts = IBEISIA.identOpts(context);
+    /**
+     * Issue #1787 entry point for the ml-service match step (spec §4.2.1). When {@code parent}
+     * is non-null the umbrella is linked under it BEFORE the persist commit. Returns null only
+     * for an empty annotation list.
+     */
+    public static IntakeOutcome intakeAnnotationsUnder(Shepherd myShepherd, List<Annotation> anns,
+        Task parent, JSONObject inheritedParams, boolean fastlane) {
+        return intakeCore(myShepherd, anns, parent, inheritedParams, fastlane);
+    }
+
+    private static void markOption(JSONObject params, JSONObject opt) {
+        params.put("ibeis.identification", (opt == null) ? "DEFAULT" : opt);
+    }
+
+    private static void markTaskError(Task t, String code, String message) {
+        t.setStatus("error");
+        t.setStatusDetailsAddError(code, message);
+        t.setCompletionDateInMilliseconds();
+    }
+
+    // §4.2.3 step 3: a vector dispatch that threw may have attached unfinished leaves
+    private static void terminalizeUnfinishedChildren(Task option, String code, String message) {
+        if (option.getChildren() == null) return;
+        for (Task kid : option.getChildren()) {
+            if (!kid.statusInEndState()) markTaskError(kid, code, message);
         }
- */
-        // List<JSONObject> opts = IBEISIA.identOpts(myShepherd, anns.get(0));
+    }
+
+    /*
+     * The core: build the whole tree, persist it with a checked commit, then dispatch each
+     * option through the Dispatcher seam. Never throws after the persist step; the outcome
+     * always lists every option with its publication result (spec §4.2.3).
+     */
+    private static IntakeOutcome intakeCore(Shepherd myShepherd, List<Annotation> anns,
+        Task parent, JSONObject inheritedParams, boolean fastlane) {
+        if ((anns == null) || (anns.size() < 1)) return null;
+        String context = myShepherd.getContext();
+        IntakeOutcome outcome = new IntakeOutcome();
+
+        // ---- build ----
+        Task topTask = new Task();
+        outcome.umbrella = topTask;
+        JSONObject runParams = (inheritedParams == null) ? new JSONObject() :
+            new JSONObject(inheritedParams.toString());
+        topTask.setParameters(runParams);
+        topTask.setObjectAnnotations(anns);
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
         List<List<Annotation> > annotsByIaClass = binAnnotsByIaClass(anns);
+        List<JSONObject> plannedOpts = new ArrayList<JSONObject>();
+        List<Task> plannedTasks = new ArrayList<Task>();
+        List<List<Annotation> > plannedAnns = new ArrayList<List<Annotation> >();
         for (List<Annotation> annsOneIAClass : annotsByIaClass) {
-            List<JSONObject> opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
-            // now we remove ones with default=false (they may get added in below via matchingAlgorithms param (via newOpts)
+            String iaClass = annsOneIAClass.get(0).getIAClass();
+            List<JSONObject> opts = null;
+            try {
+                opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
+            } catch (RuntimeException ex) {
+                // e.g. an annotation with no encounter, or an encounter with no genus/species
+                // (IAJsonProperties.taxonomyKey(null)): this class gets no options, the others run
+                System.out.println("WARN: IA.intakeAnnotations() identOpts threw " + ex +
+                    " for iaClass " + iaClass + "; skipping that class");
+                opts = null;
+            }
+            // drop default=false options (a matchingAlgorithms parameter may re-add them below)
             if (opts != null) {
                 Iterator<JSONObject> itr = opts.iterator();
                 while (itr.hasNext()) {
@@ -424,87 +514,198 @@ public class IA {
                 }
             }
             System.out.println("identOpts: " + opts);
-            List<Task> tasks = new ArrayList<Task>();
-            JSONObject newTaskParams = new JSONObject(); // we merge parentTask.parameters in with opts from above
-            if (parentTask != null && parentTask.getParameters() != null) {
-                newTaskParams = parentTask.getParameters();
-                System.out.println("newTaskParams: " + newTaskParams.toString());
-                if (newTaskParams.optJSONArray("matchingAlgorithms") != null) {
-                    JSONArray matchingAlgorithms = newTaskParams.optJSONArray("matchingAlgorithms");
-                    System.out.println("matchingAlgorithms1: " + matchingAlgorithms.toString());
-                    ArrayList<JSONObject> newOpts = new ArrayList<JSONObject>();
-                    int maLength = matchingAlgorithms.length();
-                    for (int y = 0; y < maLength; y++) {
-                        newOpts.add(matchingAlgorithms.getJSONObject(y));
-                    }
-                    System.out.println("matchingAlgorithms2: " + newOpts.toString());
-                    if (newOpts.size() > 0) {
-                        opts = newOpts;
-                        System.out.println("Swapping opts for newOpts!!");
-                    }
+            // a fresh copy of the inherited parameters per iaClass, as before
+            JSONObject newTaskParams = new JSONObject(runParams.toString());
+            if (newTaskParams.optJSONArray("matchingAlgorithms") != null) {
+                JSONArray matchingAlgorithms = newTaskParams.optJSONArray("matchingAlgorithms");
+                System.out.println("matchingAlgorithms1: " + matchingAlgorithms.toString());
+                ArrayList<JSONObject> newOpts = new ArrayList<JSONObject>();
+                int maLength = matchingAlgorithms.length();
+                for (int y = 0; y < maLength; y++) {
+                    newOpts.add(matchingAlgorithms.getJSONObject(y));
+                }
+                System.out.println("matchingAlgorithms2: " + newOpts.toString());
+                if (newOpts.size() > 0) {
+                    opts = newOpts;
+                    System.out.println("Swapping opts for newOpts!!");
                 }
             }
-            if ((opts == null) || (opts.size() < 1)) continue; // no ID for this iaClass.
-            // just one IA class, one algorithm case
+            if ((opts == null) || (opts.size() < 1)) {   // no ID for this iaClass
+                outcome.skippedIaClasses.add(iaClass);
+                continue;
+            }
+            if (fastlane) {
+                newTaskParams.put("fastlane", true);
+                newTaskParams.put("lane", "fast");
+            }
             if (opts.size() == 1 && annotsByIaClass.size() == 1) {
-                newTaskParams.put("ibeis.identification",
-                    ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
+                // one IA class, one algorithm: the umbrella is *the* (only) option task
+                JSONObject opt = opts.get(0);
+                markOption(newTaskParams, opt);
                 topTask.setParameters(newTaskParams);
-                tasks.add(topTask); // topTask will be used as *the*(only) task -- no children
+                plannedOpts.add(opt);
+                plannedTasks.add(topTask);
+                plannedAnns.add(annsOneIAClass);
             } else {
                 for (int i = 0; i < opts.size(); i++) {
+                    JSONObject opt = opts.get(i);
                     Task t = new Task();
                     t.setObjectAnnotations(annsOneIAClass);
-                    newTaskParams.put("ibeis.identification",
-                        ((opts.get(i) == null) ? "DEFAULT" : opts.get(i)));                                        // overwrites each time
-                    t.setParameters(newTaskParams);
+                    JSONObject tp = new JSONObject(newTaskParams.toString());
+                    markOption(tp, opt);
+                    t.setParameters(tp);
                     topTask.addChild(t);
-                    tasks.add(t);
+                    plannedOpts.add(opt);
+                    plannedTasks.add(t);
+                    plannedAnns.add(annsOneIAClass);
                 }
-            }
-            newTaskParams.put("fastlane", fastlane);
-            if (fastlane) newTaskParams.put("lane", "fast");
-            myShepherd.storeNewTask(topTask);
-
-            // these are re-used in every task
-            JSONArray annArr = new JSONArray();
-            for (Annotation ann : annsOneIAClass) {
-                annArr.put(ann.getId());
-            }
-            JSONObject aj = new JSONObject();
-            aj.put("annotationIds", annArr);
-            String baseUrl = getBaseURL(context);
-            for (int i = 0; i < opts.size(); i++) {
-                // if this is a vector-based matching option, this will just do the job and be done
-                if (Embedding.findMatchProspects(opts.get(i), tasks.get(i), myShepherd)) continue;
-                JSONObject qjob = new JSONObject();
-                qjob.put("identify", aj);
-                qjob.put("taskId", tasks.get(i).getId());
-                qjob.put("__context", context);
-                qjob.put("__baseUrl", baseUrl);
-                if (opts.get(i) != null) qjob.put("opt", opts.get(i));
-                boolean sent = false;
-                try {
-                    if (fastlane) {
-                        // if fastlane and a smaller, bespoke request, get this into the faster queue
-                        qjob.put("fastlane", fastlane);
-                        qjob.put("lane", "fast");
-                    }
-                    // One classifier decides the lane (IAGateway.laneFor). This used to
-                    // publish fastlane work onto the SERIAL detection queue, where it sat
-                    // behind every queued ml-service detection.
-                    tasks.get(i).setQueueResumeMessage(qjob.toString());
-                    sent = org.ecocean.servlet.IAGateway.publishToLane(context, qjob.toString());
-                } catch (java.io.IOException iox) {
-                    System.out.println("ERROR[" + i +
-                        "]: IA.intakeAnnotations() addToQueue() threw " + iox.toString());
-                }
-                System.out.println("INFO: IA.intakeAnnotations() [opt " + i + "] accepted " +
-                    annsOneIAClass.size() + " annots; queued? = " + sent + "; " + tasks.get(i));
             }
         } // end for each iaClass
-        System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
-        return topTask;
+        if (plannedTasks.isEmpty()) {   // §4.2.3 step 4: terminal, for every caller
+            outcome.noWork = true;
+            markTaskError(topTask, "INVALID_MATCH_CONFIG",
+                "no default identification options for iaClass(es) " + outcome.skippedIaClasses);
+        }
+        if (parent != null) topTask.setParent(parent);   // also parent.addChild(topTask)
+
+        // ---- outcome record: every option is listed before anything is durable or dispatched ----
+        // Scalar ids are snapshotted here, before the commit: post-commit logging never touches
+        // a Task (Task.toString() reads persistent fields and lazily fetched collections, which
+        // can throw on a broken PersistenceManager).
+        String umbrellaId = topTask.getId();
+        List<String> optionIds = new ArrayList<String>();
+        for (int i = 0; i < plannedTasks.size(); i++) {
+            outcome.options.add(new OptionResult(plannedTasks.get(i),
+                Embedding.isVectorConfig(plannedOpts.get(i))));
+            optionIds.add(plannedTasks.get(i).getId());
+        }
+
+        // ---- persist (checked) ----
+        myShepherd.beginDBTransaction();   // no-op when already active
+        myShepherd.getPM().makePersistent(topTask);   // children by reachability
+        if (!myShepherd.commitDBTransactionWithStatus()) {
+            System.out.println("ERROR: IA.intakeAnnotations() could not persist run " +
+                topTask.getId() + "; nothing dispatched");
+            outcome.persistFailed = true;
+            return outcome;
+        }
+        // From here on the run is durable and this method never throws (spec §4.2.3): every
+        // failure lands on the option task (best effort) and on the outcome, which the caller
+        // always receives.
+        try {
+            myShepherd.beginDBTransaction();
+            // the real beginDBTransaction() swallows some failures, so check the result
+            if (!myShepherd.isDBTransactionActive())
+                throw new IllegalStateException("transaction not active after restart");
+        } catch (RuntimeException ex) {
+            System.out.println("ERROR: IA.intakeAnnotations() could not restart the transaction after persisting run " +
+                umbrellaId + ": " + ex + "; nothing dispatched");
+            for (OptionResult r : outcome.options) r.failureCode = r.vector ? "DISPATCH_FAILED" : "QUEUE_FAILED";
+            return outcome;   // the caller's checked commit fails (inactive transaction) and its recovery marks these tasks
+        }
+        if (outcome.noWork) {
+            System.out.println("INFO: IA.intakeAnnotations() finished run " + umbrellaId + " with no work");
+            return outcome;
+        }
+
+        // ---- dispatch: never throws; every failure lands on the outcome and, best effort, on the task ----
+        try {
+            String baseUrl = null;
+            String baseUrlError = null;
+            try {
+                baseUrl = getBaseURL(context);
+            } catch (RuntimeException ex) {
+                baseUrlError = ex.toString();
+                System.out.println("ERROR: IA.intakeAnnotations() getBaseURL() threw " + ex + " for run " + umbrellaId);
+            }
+            for (int i = 0; i < outcome.options.size(); i++) {
+                OptionResult r = outcome.options.get(i);
+                JSONObject opt = plannedOpts.get(i);
+                Task t = r.task;
+                String optionId = optionIds.get(i);
+                // a transaction that died during an earlier dispatch stops every later one: under
+                // non-transactional writes nothing else would notice, and a job published now
+                // would point at a run the caller's checked commit is about to roll back
+                if (!myShepherd.isDBTransactionActive()) {
+                    if (r.failureCode == null) r.failureCode = r.vector ? "DISPATCH_FAILED" : "QUEUE_FAILED";
+                    System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() transaction inactive; option " +
+                        optionId + " of run " + umbrellaId + " not dispatched");
+                    continue;
+                }
+                try {
+                    if (r.vector) {
+                        dispatcher.runVector(opt, t, myShepherd);
+                        if (!myShepherd.isDBTransactionActive()) {
+                            r.failureCode = "DISPATCH_FAILED";
+                            System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() transaction died during the vector dispatch of option " +
+                                optionId + " of run " + umbrellaId);
+                            continue;
+                        }
+                        r.published = true;
+                        continue;
+                    }
+                    if (baseUrlError != null) {
+                        r.failureCode = "QUEUE_FAILED";
+                        markTaskError(t, "QUEUE_FAILED", "no base URL for the queue job: " + baseUrlError);
+                        continue;
+                    }
+                    JSONArray annArr = new JSONArray();
+                    for (Annotation ann : plannedAnns.get(i)) {
+                        annArr.put(ann.getId());
+                    }
+                    JSONObject aj = new JSONObject();
+                    aj.put("annotationIds", annArr);
+                    JSONObject qjob = new JSONObject();
+                    qjob.put("identify", aj);
+                    qjob.put("taskId", optionId);
+                    qjob.put("__context", context);
+                    qjob.put("__baseUrl", baseUrl);
+                    if (opt != null) qjob.put("opt", opt);
+                    if (fastlane) {
+                        qjob.put("fastlane", true);
+                        qjob.put("lane", "fast");
+                    }
+                    boolean sent = false;
+                    try {
+                        t.setQueueResumeMessage(qjob.toString());
+                        sent = dispatcher.publish(context, qjob.toString(), fastlane);
+                    } catch (Exception ex) {
+                        System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() addToQueue() threw " + ex +
+                            " for option " + optionId);
+                    }
+                    if (sent) {
+                        r.published = true;
+                    } else {
+                        r.failureCode = "QUEUE_FAILED";
+                        markTaskError(t, "QUEUE_FAILED", "identification job could not be published to the queue");
+                    }
+                    System.out.println("INFO: IA.intakeAnnotations() [opt " + i + "] accepted " +
+                        plannedAnns.get(i).size() + " annots; queued? = " + sent + "; option " + optionId);
+                } catch (RuntimeException ex) {
+                    // a vector dispatch that threw, or anything unexpected in the HotSpotter branch
+                    r.failureCode = r.vector ? "DISPATCH_FAILED" : "QUEUE_FAILED";
+                    System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() dispatch threw " + ex +
+                        " on option " + optionId);
+                    ex.printStackTrace();
+                    try {
+                        markTaskError(t, r.failureCode, "dispatch threw: " + ex);
+                        terminalizeUnfinishedChildren(t, r.failureCode, "option dispatch threw before this leaf finished");
+                    } catch (RuntimeException ex2) {   // e.g. a detached object after a broken transaction
+                        System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() could not mark option " +
+                            optionId + ": " + ex2);
+                    }
+                }
+            }
+        } catch (RuntimeException ex) {   // anything outside the per-option guards (e.g. a dead PersistenceManager)
+            System.out.println("ERROR: IA.intakeAnnotations() dispatch phase aborted for run " + umbrellaId + ": " + ex);
+            ex.printStackTrace();
+            for (OptionResult r : outcome.options) {
+                if (!r.published && (r.failureCode == null)) r.failureCode = r.vector ? "DISPATCH_FAILED" : "QUEUE_FAILED";
+            }
+        }
+        System.out.println("INFO: IA.intakeAnnotations() finished run " + umbrellaId + " with " +
+            outcome.options.size() + " option(s)");
+        return outcome;
     }
 
     public static List<List<Annotation> > binAnnotsByIaClass(List<Annotation> anns) {
@@ -596,7 +797,7 @@ public class IA {
                 myShepherd.getPM().refresh(topTask);
                 topTask.addChild(atask);
                 topTask.setModified();
-                myShepherd.getPM().makePersistent(atask);
+                if (atask != null) myShepherd.getPM().makePersistent(atask);
             }
             myShepherd.commitDBTransaction();
         } catch (Exception e) {
