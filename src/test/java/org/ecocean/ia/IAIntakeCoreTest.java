@@ -626,7 +626,7 @@ class IAIntakeCoreTest {
         new Task(withKid);
         assertFalse(IA.intakeProducedNoWork(withKid));
     }
-    // ---- final fix 1: vector options are completed from the ml-service match config ----
+    // ---- vector options are completed from the ml-service match config ----
 
     static JSONObject vectorDefaults() {
         return new JSONObject().put("method", "miewid-default").put("version", "msv9")
@@ -706,7 +706,7 @@ class IAIntakeCoreTest {
         });
     }
 
-    // ---- final fix 2: an identOpts failure skips that class instead of aborting the run ----
+    // ---- an identOpts failure skips that class instead of aborting the run ----
 
     static IAJsonProperties configThrowingFor(final Map<String, List<JSONObject>> optsByClass,
         final String throwingClass) {

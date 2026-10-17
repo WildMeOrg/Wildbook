@@ -776,7 +776,7 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
         List<String> ids = annotationIds(bad, good);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
-        // final fix 1 wiring: the processor's match config completes the vector option
+        // the processor's match config completes the vector option
         JSONObject mc = matchConfig().put("api_endpoint", "http://ml/match");
         assertEquals(MlServiceJobOutcome.Kind.OK, processor().runMatchProspects(ids, d.getId(), mc).getKind());
 
@@ -1336,6 +1336,45 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
         JSONObject sum = summary(itask.getId());
         assertEquals("complete", sum.getString("identificationStatus"));
         assertEquals(2, sum.getInt("identificationNumberError"));
+    }
+
+    @Test void nullMatchConfigDoesNotPublishAnIncompleteVectorOptionToWbia() throws Exception {
+        JSONObject defaults = iaJson();
+        JSONObject vector = defaults.getJSONObject("Pseudobatos").getJSONObject("lentiginosus")
+            .getJSONObject(BODY).getJSONArray("_id_conf").getJSONObject(0);
+        vector.remove("method");
+        vector.remove("version");
+        IAJsonProperties config = IAJsonProperties.iaConfig();
+        config.setJson(defaults);
+        try {
+            Shepherd sh = open("nullConfigFixture");
+            String importId = nextImportId();
+            Encounter encounter = guitarfish(sh, BODY);
+            Task detection = detectionTask(sh, importId);
+            ImportTask imported = importWith(sh, importId, detection.getParent(), encounter);
+            List<String> ids = annotationIds(encounter);
+            sh.commitDBTransaction();
+            sh.closeDBTransaction();
+            assertEquals(MlServiceJobOutcome.Kind.OK,
+                processor().runMatchProspects(ids, detection.getId(), null).getKind());
+            assertEquals(1, dispatcher.published.size(), "only the real HotSpotter option is queued");
+            assertEquals(0, dispatcher.vectorCalls);
+            Shepherd reader = open("nullConfigCheck");
+            try {
+                Task run = umbrellaFor(Task.load(detection.getId(), reader), encounter);
+                Task invalid = optionOf(run, true, BODY);
+                assertEquals("INVALID_MATCH_CONFIG", errorCode(invalid));
+                assertEquals("error", invalid.getStoredStatus());
+            } finally {
+                reader.rollbackAndClose();
+            }
+            for (String id : hotspotterOptionIds(detection.getId())) setStatus(id, "completed");
+            JSONObject sum = summary(imported.getId());
+            assertEquals("complete", sum.getString("identificationStatus"));
+            assertEquals(1, sum.getInt("identificationNumberError"));
+        } finally {
+            config.setJson(iaJson());
+        }
     }
 
 }

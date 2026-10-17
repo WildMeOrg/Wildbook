@@ -819,7 +819,7 @@ public class MlServiceProcessor {
             int noWorkGroups = 0;
             for (List<Annotation> group : groups) {
                 IA.IntakeOutcome o = IA.intakeAnnotationsUnder(shep, group, parent, inherited, false,
-                    matchConfig);
+                    (matchConfig == null) ? new JSONObject() : matchConfig);
                 if (o == null) {
                     failureCode = "MATCH_PERSIST";
                     failureMessage = "no identification run for annotations " + annotationIdList(group);
