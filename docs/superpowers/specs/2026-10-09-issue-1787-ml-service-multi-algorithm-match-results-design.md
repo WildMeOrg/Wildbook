@@ -47,3 +47,10 @@ A failed send stores nonterminal `requeued` before deciding whether to retry.
 Existing import summaries count only completed/error tasks as finished, so this
 state remains "sent" while work is queued. The existing seven-day watchdog still
 reports work stuck beyond its retry window.
+
+If the database connection dies after the persist commit and before dispatch, the
+legacy wrapper returns the stored umbrella but cannot durably mark unpublished work
+without another working transaction. Those callers discard the detailed outcome;
+null-status tasks can remain waiting. The feature layer adds group recovery and a
+nonmutating age limit for import summaries. This connection-loss limitation also
+exists on main and remains outside the legacy caller fix.

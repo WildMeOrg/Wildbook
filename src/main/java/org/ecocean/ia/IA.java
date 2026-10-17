@@ -453,15 +453,6 @@ public class IA {
         return intakeCore(myShepherd, anns, parent, inheritedParams, fastlane);
     }
 
-
-
-
-
-
-
-
-
-
     private static void markOption(JSONObject params, JSONObject opt) {
         params.put("ibeis.identification", (opt == null) ? "DEFAULT" : opt);
     }
@@ -734,12 +725,6 @@ public class IA {
             " bins: " + iaClassToAnns.keySet());
         return new ArrayList<List<Annotation> >(iaClassToAnns.values());
     }
-
-
-
-
-
-
 
     // possibly (should?) have .taskId, and *definitely* should have .__context and .__baseUrl
     // note: this is processed *from the queue* and as such does not have "output"

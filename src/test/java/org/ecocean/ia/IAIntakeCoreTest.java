@@ -206,8 +206,6 @@ class IAIntakeCoreTest {
         });
     }
 
-
-
     @Test void singleOptionSingleClassUsesTheUmbrellaAsTheOption() throws Exception {
         RecordingDispatcher d = new RecordingDispatcher();
         IA.setDispatcherForTests(d);
@@ -490,8 +488,6 @@ class IAIntakeCoreTest {
         assertEquals(IAGateway.LANE_IA, IAGateway.laneFor(new JSONObject(jobs.get(1))));
     }
 
-
-
     @Test void transactionRestartFailureAfterThePersistCommitReportsEveryOptionUndispatched() throws Exception {
         RecordingDispatcher d = new RecordingDispatcher();
         IA.setDispatcherForTests(d);
@@ -552,21 +548,6 @@ class IAIntakeCoreTest {
         assertNull(IA.intakeAnnotationsUnder(shepherd(true), new ArrayList<Annotation>(), null, null, false));
         assertNull(IA.intakeAnnotationsUnder(shepherd(true), null, null, null, false));
     }
-
-
-
-
-    // ---- final fix 1: vector options are completed from the ml-service match config ----
-
-
-
-
-
-
-
-
-
-
 
     // ---- final fix 2: an identOpts failure skips that class instead of aborting the run ----
 

@@ -6,14 +6,8 @@ import org.ecocean.Embedding;
 import org.ecocean.ia.Task;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.ecocean.shepherd.core.Shepherd;
-import javax.jdo.PersistenceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.junit.Assert.*;
 
 class EmbeddingTest {
@@ -133,6 +127,5 @@ class EmbeddingTest {
         Assertions.assertTrue(Embedding.isVectorConfig(new JSONObject("{\"api_endpoint\":\"http://x\"}")));
         Assertions.assertFalse(Embedding.isVectorConfig(new JSONObject("{\"method\":\"\"}")), "blank method is not vector");
     }
-
 
 }
