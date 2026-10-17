@@ -3583,6 +3583,11 @@ public class IBEISIA {
         return Util.asSortedList(jobIds);
     }
 
+    /**
+     * @deprecated the IA.properties identificationClassN allowlist is no longer consulted by
+     * validForIdentification; path-specific IA.json checks remain. Retained for external callers.
+     */
+    @Deprecated
     public static boolean validIAClassForIdentification(Annotation ann, String context) {
         ArrayList<String> idClasses = getAllIdentificationClasses(context);
 
@@ -3594,6 +3599,11 @@ public class IBEISIA {
         return false;
     }
 
+    /**
+     * @deprecated the IA.properties identificationClassN allowlist is no longer consulted by
+     * validForIdentification; path-specific IA.json checks remain. Retained for external callers.
+     */
+    @Deprecated
     public static boolean validIAClassForIdentification(String iaClassName, String context) {
         ArrayList<String> idClasses = getAllIdentificationClasses(context);
 
@@ -3641,19 +3651,6 @@ public class IBEISIA {
             }
             return false;
         }
-        if (context != null && !validIAClassForIdentification(ann, context) && !ann.isTrivial()) {
-            System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() +
-                " - annotation does not have valid Identification class.");
-            if (acmId != null) {
-                if (annl == null) {
-                    annl = new AnnotationLite(false);
-                } else {
-                    annl.setValidForIdentification(false);
-                }
-                AnnotationLite.setCache(acmId, annl);
-            }
-            return false;
-        }
         if (acmId != null) {
             if (annl == null) {
                 annl = new AnnotationLite(true);
@@ -3665,7 +3662,11 @@ public class IBEISIA {
         return true;
     }
 
-    // this is likely deprecated as it uses the properties file rather than IA.json
+    /**
+     * @deprecated the IA.properties identificationClassN allowlist is no longer consulted by
+     * validForIdentification; path-specific IA.json checks remain. Retained for external callers.
+     */
+    @Deprecated
     public static ArrayList<String> getAllIdentificationClasses(String context) {
         String className = "";
         ArrayList<String> allClasses = new ArrayList<String>();

@@ -1,6 +1,8 @@
 package org.ecocean;
 
-import java.util.Calendar;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import static org.junit.Assert.*;
@@ -27,22 +29,43 @@ class UtilTest {
         assertEquals(testVal, Util.roundISO8601toMillis(testVal));
     }
 
-    // note there is an extremely slim chance that if this test is run a couple cpu
-    // cycles before midnight, it might return invalid results. taking my chances.
     @Test void testDateFuture() {
-        Calendar cal = Calendar.getInstance();
-        int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH) + 1; // frikken zero-based months!
-        int day = cal.get(Calendar.DAY_OF_MONTH);
+        LocalDate today = LocalDate.of(2026, 9, 25);
 
-        assertFalse(Util.dateIsInFuture(null, null, null));
-        assertFalse(Util.dateIsInFuture(year - 1, null, null));
-        assertFalse(Util.dateIsInFuture(year, null, null));
-        assertFalse(Util.dateIsInFuture(year, month, null));
-        assertFalse(Util.dateIsInFuture(year, month, day));
-        assertTrue(Util.dateIsInFuture(year, month + 1, null));
-        assertTrue(Util.dateIsInFuture(year, month, day + 1));
-        assertTrue(Util.dateIsInFuture(year + 1, month, day));
+        assertFalse(Util.dateIsInFuture(null, null, null, today));
+        assertFalse(Util.dateIsInFuture(2025, null, null, today));
+        assertFalse(Util.dateIsInFuture(2026, null, null, today));
+        assertFalse(Util.dateIsInFuture(2026, 9, null, today));
+        assertFalse(Util.dateIsInFuture(2026, 9, 25, today));
+        assertFalse(Util.dateIsInFuture(2026, 8, 31, today));
+        assertTrue(Util.dateIsInFuture(2026, 10, null, today));
+        assertTrue(Util.dateIsInFuture(2026, 9, 26, today));
+        assertTrue(Util.dateIsInFuture(2027, null, null, today));
+        assertTrue(Util.dateIsInFuture(2027, 1, 1, today));
+        // year boundary: the next calendar year is future only once it has begun
+        LocalDate newYearsEve = LocalDate.of(2026, 12, 31);
+        assertFalse(Util.dateIsInFuture(2026, 12, 31, newYearsEve));
+        assertTrue(Util.dateIsInFuture(2027, 1, 1, newYearsEve));
+    }
+
+    // at 19:00 UTC a UTC server is still on the 25th while Sydney (UTC+10) is already on the 26th;
+    // the observer's "today" must not be rejected, but a date beyond UTC+14's today still is
+    @Test void testDateFutureAllowsSubmittersAheadOfServer() {
+        Instant now = Instant.parse("2026-09-25T19:00:00Z");
+        LocalDate latestToday = now.atOffset(Util.LATEST_CIVIL_OFFSET).toLocalDate();
+        LocalDate serverToday = now.atOffset(ZoneOffset.UTC).toLocalDate();
+        LocalDate sydneyToday = now.atOffset(ZoneOffset.ofHours(10)).toLocalDate();
+
+        assertEquals(LocalDate.of(2026, 9, 25), serverToday);
+        assertEquals(LocalDate.of(2026, 9, 26), sydneyToday);
+        assertFalse(Util.dateIsInFuture(2026, 9, 26, latestToday));
+        assertFalse(Util.dateIsInFuture(2026, 9, 25, latestToday));
+        assertTrue(Util.dateIsInFuture(2026, 9, 27, latestToday));
+        // the clock-based entry point accepts the current date at UTC+14 (a later read can only
+        // move "today" forward, so this cannot flake at midnight)
+        LocalDate latestNow = LocalDate.now(Util.LATEST_CIVIL_OFFSET);
+        assertFalse(Util.dateIsInFuture(latestNow.getYear(), latestNow.getMonthValue(),
+            latestNow.getDayOfMonth()));
     }
 
     @Test void testHumanApprox() {

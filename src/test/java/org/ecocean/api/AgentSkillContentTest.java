@@ -165,14 +165,34 @@ class AgentSkillContentTest {
         for (String n : analytical)
             assertTrue(index.contains(n), "index toolbox must list " + n);
         assertTrue(index.contains("api-reference"), "index must reference api-reference");
-        // (c) the map's analytical keys are exactly those four (api-reference is the only extra)
+        // (c) analytical keys remain those four alongside reference and intake skills
         assertTrue(AgentSkill.SKILL_RESOURCES.containsKey("inat-to-wildbook-import"),
             "the import-prep skill must be registered");
         java.util.Set<String> keys = new java.util.HashSet<>(AgentSkill.SKILL_RESOURCES.keySet());
         keys.remove("api-reference");
         keys.remove("inat-to-wildbook-import");
+        keys.remove("submit-sightings");
         assertEquals(new java.util.HashSet<>(java.util.Arrays.asList(analytical)), keys,
             "the analytical skills in the map must be exactly the four listed in the index");
+    }
+
+    @Test void submission_skill_examples_match_the_runtime_input_contract() {
+        String md = load("/agent-skills/submit-sightings.md");
+        assertEquals("submit-sightings.md", AgentSkill.SKILL_RESOURCES.get("submit-sightings"));
+        assertTrue(load("/agent-skills/index.md").contains("/api/v3/agent-skill/submit-sightings"));
+        for (String section : REQUIRED_SECTIONS) assertTrue(md.contains(section));
+        assertNoLeak(md);
+        java.util.regex.Matcher examples = java.util.regex.Pattern.compile("```json\\s*\\n(.*?)\\n```", java.util.regex.Pattern.DOTALL).matcher(md);
+        assertTrue(examples.find());
+        org.json.JSONObject create = org.ecocean.api.submission.SubmissionJson.create(new org.json.JSONObject(examples.group(1)));
+        assertEquals("detect-and-identify", create.getJSONObject("processing").getString("mode"));
+        assertTrue(examples.find());
+        org.json.JSONArray rows = org.ecocean.api.submission.SubmissionJson.rows(new org.json.JSONObject(examples.group(1)));
+        for (int i = 0; i < rows.length(); i++)
+            for (String field : rows.getJSONObject(i).getJSONObject("fields").keySet())
+                assertTrue(org.ecocean.api.submission.SubmissionValidator.supported(field), field);
+        for (String field : org.ecocean.api.submission.SubmissionValidator.FIELDS)
+            assertTrue(md.contains("`" + field + "`"), "document supported field " + field);
     }
 
     @Test void inat_to_wildbook_import_is_well_formed() {

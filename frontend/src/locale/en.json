@@ -841,5 +841,11 @@
     "MATCH_RESULTS_ERROR_UNKNOWN": "Unknown error",
     "MATCH_RESULTS_ERROR_TIMEOUT": "Task has timed out",
     "NO_MATCH_CANDIDATES": "No candidates matched the applied filters. Please try adjusting them or consider this a new individual.",
-    "NO_MATCH_PROSPECTS": "We couldn't find any matches based on your current filters. Please try adjusting them or consider this a new individual."
+    "NO_MATCH_PROSPECTS": "We couldn't find any matches based on your current filters. Please try adjusting them or consider this a new individual.",
+  "API_TOKEN_PURPOSE": "Token purpose",
+  "API_TOKEN_READ": "Read data",
+  "API_TOKEN_IMPORT": "Data import",
+  "API_TOKEN_READ_HELP": "Reads data you can access. Does not allow imports.",
+  "API_TOKEN_IMPORT_HELP": "Creates submissions and imports data. Requires the api-submission role, assigned by a site administrator. This token cannot be used for the general read API.",
+  "API_IMPORT_ROLE_REQUIRED": "Data import requires the api-submission role. Ask a site administrator to enable it for your account."
 }

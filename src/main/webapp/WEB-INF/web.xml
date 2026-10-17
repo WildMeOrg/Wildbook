@@ -42,6 +42,16 @@
 		<url-pattern>/di/ImgFilter/*</url-pattern>
 	</filter-mapping>
 
+    <servlet>
+        <servlet-name>Submissions</servlet-name>
+        <servlet-class>org.ecocean.api.Submissions</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Submissions</servlet-name>
+        <url-pattern>/api/v3/submissions</url-pattern>
+        <url-pattern>/api/v3/submissions/*</url-pattern>
+    </servlet-mapping>
+
 	<servlet>
 		<servlet-name>ReactAppServlet</servlet-name>
 		<servlet-class>org.ecocean.servlet.ReactAppServlet</servlet-class>
@@ -86,6 +96,7 @@
 				roles.unauthorizedUrl = /accessDenied.jsp
 				authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
 				tokenAuthSearch = org.ecocean.security.WildbookTokenAuthenticationFilter
+				submissionAuth = org.ecocean.security.SubmissionAuthenticationFilter
 				authc.loginUrl = /react/login
 
 				[filters]
@@ -101,6 +112,8 @@
 
 				# ===== v3 API Security =====
 				/api/v3/auth/token = authcBasicWildbook
+				/api/v3/submissions = submissionAuth
+				/api/v3/submissions/** = submissionAuth
 				/api/v3/can-user-access = authcBasicWildbook, roles[admin]
 				/api/v3/bulk-import = authc
 				/api/v3/bulk-import/** = authc
