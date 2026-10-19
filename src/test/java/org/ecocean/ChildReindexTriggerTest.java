@@ -21,8 +21,8 @@ import org.mockito.MockedStatic;
  * affected encounter + old/new individuals via IndexingManager, and that skipAutoIndexing
  * suppresses the enqueue (so bulk import / deserialization do not storm the queue).
  *
- * The ACL-propagation path inside Encounter.opensearchIndexPermissions() requires a live
- * Shepherd + OpenSearch and is covered by the Task 9 integration test, not here.
+ * The ACL copies the children carry are verified and repaired by the scheduled permissions
+ * audit (org.ecocean.security.PermissionsAudit), covered by its own integration test, not here.
  */
 class ChildReindexTriggerTest {
 

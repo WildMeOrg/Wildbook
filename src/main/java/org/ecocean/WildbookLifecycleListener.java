@@ -35,11 +35,6 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
                 ex.printStackTrace();
             }
         }
-        if (Collaboration.class.isInstance(obj) || Organization.class.isInstance(obj)
-            || Role.class.isInstance(obj)) {
-            System.out.println("WildbookLifecycleListener postDelete() permissions-relevant delete -> permissionsNeeded=true");
-            OpenSearch.setPermissionsNeeded(true);
-        }
     }
 
     public void preStore(InstanceLifecycleEvent event) {}
@@ -52,11 +47,6 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             "; detachedInstance=" + event.getDetachedInstance() + "; persistentInstance=" +
             event.getPersistentInstance());
  */
-        // NOTE: the skipAutoIndexing() guard scopes ONLY the Base indexing-queue work below.
-        // It must NOT gate the Collaboration/Organization/Role permissionsNeeded flag: that flag
-        // is the signal that drives the background ACL (viewUsers) reindex, and suppressing it
-        // during a /tmp/skipAutoIndexing window would leave search permissions stale until the
-        // periodic forced reindex caught up.
         if (Base.class.isInstance(obj)) {
             if (OpenSearch.skipAutoIndexing()) {
                 System.out.println("WildbookLifecycleListener skipAutoIndexing set");
@@ -73,14 +63,6 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-        } else if (Collaboration.class.isInstance(obj)) {
-            System.out.println("WildbookLifecycleListener postStore() event on " + obj +
-                " triggering permissionsNeeded=true");
-            OpenSearch.setPermissionsNeeded(true);
-        } else if (Organization.class.isInstance(obj) || Role.class.isInstance(obj)) {
-            System.out.println("WildbookLifecycleListener postStore() " +
-                obj.getClass().getSimpleName() + " -> permissionsNeeded=true");
-            OpenSearch.setPermissionsNeeded(true);
         }
     }
 
