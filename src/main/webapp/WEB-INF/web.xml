@@ -262,10 +262,10 @@
 				/encounters/encounterVM.jsp = authc, roles[researcher]
 
 				# ===== Spots =====
-				/SubmitSpots = authc, roles[imageProcessor]
-				/InterconnectSubmitSpots = authc, roles[imageProcessor]
-				/interconnectSubmitSpots = authc, roles[imageProcessor]
-				/SubmitSpotsAndImage = authc, roles[imageProcessor]
+				/SubmitSpots = authc, roles[researcher]
+				/InterconnectSubmitSpots = authc, roles[researcher]
+				/interconnectSubmitSpots = authc, roles[researcher]
+				/SubmitSpotsAndImage = authc, roles[researcher]
 				/SubmitSpotsAndTransformImage = authc,roles[researcher]
 				/EncounterAddSpotFile = authc, roles[identifier]
 				/EncounterRemoveSpots = authc, roles[researcher]
