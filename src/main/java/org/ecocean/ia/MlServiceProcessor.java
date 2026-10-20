@@ -1113,9 +1113,16 @@ public class MlServiceProcessor {
             }
             parentId = parent.getId();
             Map<String, String> annToEnc = new HashMap<String, String>();
+            // annotations of a multi-pipeline species match only in the embedding space
+            // resolveMultiPipelineMatchConfig resolved into matchConfig (detection and extraction)
+            Set<String> pinnedAnns = new HashSet<String>();
+            IAJsonProperties iac = IAJsonProperties.iaConfig();
             for (Annotation ann : anns) {
                 Encounter enc = ann.findEncounter(shep);
                 annToEnc.put(ann.getId(), (enc == null) ? null : enc.getCatalogNumber());
+                String taxonomy = (enc == null) ? null : enc.getTaxonomyString();
+                if ((iac != null) && Util.stringExists(taxonomy) &&
+                    iac.isMultiPipeline(new Taxonomy(taxonomy))) pinnedAnns.add(ann.getId());
             }
             List<List<Annotation> > groups = groupByEncounter(anns, annToEnc);
             JSONObject inherited = matchIntakeParams(parent.getParameters());
@@ -1128,10 +1135,9 @@ public class MlServiceProcessor {
             }
             int noWorkGroups = 0;
             for (List<Annotation> group : groups) {
-                // a multi-pipeline match group carries the embedding space resolved for its
-                // annotations (resolveMultiPipelineMatchConfig), so its vector matching is pinned there
                 IA.IntakeOutcome o = IA.intakeAnnotationsUnder(shep, group, parent, inherited, false,
-                    (matchConfig == null) ? new JSONObject() : matchConfig, matchGroup);
+                    (matchConfig == null) ? new JSONObject() : matchConfig,
+                    pinnedAnns.contains(group.get(0).getId()));
                 if (o == null) {
                     failureCode = "MATCH_PERSIST";
                     failureMessage = "no identification run for annotations " + annotationIdList(group);

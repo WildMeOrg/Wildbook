@@ -734,6 +734,26 @@ class IAIntakeCoreTest {
         });
     }
 
+    @Test void aChosenVectorOptionInThePinnedSpaceIsKeptAndOthersAreDropped() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> one = new HashMap<String, List<JSONObject>>();
+        one.put("dog", Arrays.asList(miewid()));
+        JSONObject chosen = new JSONObject("{\"pipeline_root\":\"vector\",\"method\":\"miewid\"," +
+            "\"version\":\"pet_v1.1.0\",\"description\":\"user's pet option\"}");
+        JSONArray algos = new JSONArray().put(miewid()).put(chosen).put(hotspotter());
+        withStatics(config(one), () -> {
+            IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "dog")), null,
+                new JSONObject().put("matchingAlgorithms", algos), false, petSpace(), true);
+            assertEquals(1, d.vectorOpts.size(), "msv4_v3 has no embedding for this annotation");
+            assertEquals("user's pet option", d.vectorOpts.get(0).getString("description"));
+            assertEquals("https://face.example.org:5050", d.vectorOpts.get(0).getString("api_endpoint"),
+                "missing keys come from the pin");
+            assertEquals(1, d.published.size());
+        });
+    }
+
     @Test void pinnedConfigWithoutAnIdentityOnlyFillsMissingKeys() throws Exception {
         RecordingDispatcher d = new RecordingDispatcher();
         IA.setDispatcherForTests(d);

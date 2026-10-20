@@ -531,25 +531,38 @@ public class IA {
     }
 
     /*
-     * Multi-pipeline match group: the class's vector options collapse to one copy of the pinned
-     * config, in the first vector option's place; other options are kept. A class without a
-     * vector option gets none. A pin without method and version only fills, as above.
+     * Multi-pipeline species: an annotation has an embedding in one space only, the one
+     * MlServiceProcessor.resolveMultiPipelineMatchConfig pinned. Vector options in that space
+     * (same method and version) are kept and filled from the pin; vector options in any other
+     * space would search a corpus this annotation is not in, so they are dropped, and if none
+     * was in the pinned space the pin itself takes the first one's place. Other options are
+     * kept; a class without a vector option gets none. A pin without method and version only
+     * fills, as above.
      */
     static List<JSONObject> withPinnedVector(List<JSONObject> opts, JSONObject pin) {
         if ((opts == null) || (pin == null) || !Util.stringExists(pin.optString("method", null)) ||
             !Util.stringExists(pin.optString("version", null)))
             return withVectorDefaults(opts, pin);
-        List<JSONObject> out = new ArrayList<JSONObject>();
-        boolean pinned = false;
-        for (JSONObject opt : opts) {
+        List<JSONObject> out = withVectorDefaults(opts, pin);
+        int firstVector = -1;
+        boolean inPinnedSpace = false;
+        Iterator<JSONObject> itr = out.iterator();
+        for (int i = 0; itr.hasNext(); i++) {
+            JSONObject opt = itr.next();
             if ((opt == null) || !(Embedding.isVectorConfig(opt) ||
-                "vector".equals(opt.optString("pipeline_root", null)))) {
-                out.add(opt);
-            } else if (!pinned) {
-                out.add(new JSONObject(pin.toString()));
-                pinned = true;
+                "vector".equals(opt.optString("pipeline_root", null)))) continue;
+            if (firstVector < 0) firstVector = i;
+            if (pin.getString("method").equals(opt.optString("method", null)) &&
+                pin.getString("version").equals(opt.optString("version", null))) {
+                inPinnedSpace = true;
+                continue;
             }
+            System.out.println("INFO: IA.withPinnedVector() dropped " + opt + " outside " +
+                pin.getString("method") + "-" + pin.getString("version"));
+            itr.remove();
+            i--;
         }
+        if ((firstVector >= 0) && !inPinnedSpace) out.add(firstVector, new JSONObject(pin.toString()));
         return out;
     }
 

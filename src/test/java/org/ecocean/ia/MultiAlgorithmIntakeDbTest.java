@@ -16,6 +16,7 @@ import java.util.Set;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.IAJsonProperties;
+import org.ecocean.MultiPipelineIAJson;
 import org.ecocean.RestClient;
 import org.ecocean.TestIAJsonPropertiesUtil;
 import org.ecocean.identity.IBEISIA;
@@ -296,32 +297,55 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
         }
     }
 
+    static JSONObject petSpace() {
+        return new JSONObject().put("pipeline_root", "vector").put("method", "miewid")
+            .put("version", "pet_v1.1.0").put("api_endpoint", MultiPipelineIAJson.FACE_ENDPOINT)
+            .put("description", "MiewID pet (vector)");
+    }
+
     /**
-     * A multi-pipeline match group (docs/plans/2026-10-16-mlservice-multi-config.md) carries the
-     * embedding space MlServiceProcessor resolved for its annotations, which can differ from the
-     * class's configured vector option. The group matches in that space.
+     * A multi-pipeline species (docs/plans/2026-10-16-mlservice-multi-config.md) matches in the
+     * embedding space MlServiceProcessor resolved for the annotation, which can differ from the
+     * class's configured vector option. Extraction calls runMatchProspects as no match group.
      */
-    @Test void matchGroupMatchesInItsResolvedEmbeddingSpace() throws Exception {
+    @Test void multiPipelineSpeciesMatchesInItsResolvedEmbeddingSpace() throws Exception {
+        Shepherd sh = open("fixture");
+        Encounter e1 = encounter(sh, "Canis", "familiaris", "dog");
+        Task d = detectionTask(sh, nextImportId());
+        List<String> ids = annotationIds(e1);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        MlServiceJobOutcome out = processor().runMatchProspects(ids, d.getId(), petSpace(), false);
+        assertEquals(MlServiceJobOutcome.Kind.OK, out.getKind());
+
+        Shepherd check = open("check");
+        try {
+            Task u = childrenOf(Task.load(d.getId(), check)).get(0);
+            Task vopt = optionOf(u, true, "dog");
+            JSONObject ident = vopt.getParameters().getJSONObject("ibeis.identification");
+            assertEquals("pet_v1.1.0", ident.getString("version"), "not the class's msv4_v3");
+            assertEquals(MultiPipelineIAJson.FACE_ENDPOINT, ident.getString("api_endpoint"));
+            assertEquals(1, dispatcher.published.size(), "HotSpotter still runs");
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
+    @Test void singlePipelineSpeciesKeepsItsConfiguredVectorOption() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY);
         Task d = detectionTask(sh, nextImportId());
         List<String> ids = annotationIds(e1);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
-        JSONObject ownSpace = new JSONObject().put("pipeline_root", "vector").put("method", "miewid")
-            .put("version", "pet_v1.1.0").put("api_endpoint", "https://face.example.org:5050")
-            .put("description", "MiewID pet (vector)");
-        MlServiceJobOutcome out = processor().runMatchProspects(ids, d.getId(), ownSpace, true);
-        assertEquals(MlServiceJobOutcome.Kind.OK, out.getKind());
+        assertEquals(MlServiceJobOutcome.Kind.OK,
+            processor().runMatchProspects(ids, d.getId(), petSpace(), true).getKind());
 
         Shepherd check = open("check");
         try {
             Task u = childrenOf(Task.load(d.getId(), check)).get(0);
-            Task vopt = optionOf(u, true, BODY);
-            JSONObject ident = vopt.getParameters().getJSONObject("ibeis.identification");
-            assertEquals("pet_v1.1.0", ident.getString("version"), "not the class's msv4_v3");
-            assertEquals("https://face.example.org:5050", ident.getString("api_endpoint"));
-            assertEquals(1, dispatcher.published.size(), "HotSpotter still runs");
+            JSONObject ident = optionOf(u, true, BODY).getParameters().getJSONObject("ibeis.identification");
+            assertEquals("msv4_v3", ident.getString("version"), "only filled, never pinned");
         } finally {
             check.rollbackAndClose();
         }
@@ -1302,9 +1326,13 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
             .put(BODY, new JSONObject().put("_id_conf", both))
             .put(ROSTRUM, new JSONObject().put("_id_conf", new JSONArray(both.toString())));
         JSONObject ancylostoma = new JSONObject().put(BODY, new JSONObject().put("_id_conf", hsOnly));
+        // Canis familiaris: multi-pipeline (body + face ml-services); dog has MiewID + HotSpotter
+        JSONObject canis = MultiPipelineIAJson.dogBodyAndFace().getJSONObject("Canis");
+        canis.getJSONObject("familiaris").getJSONObject("dog").put("_id_conf", new JSONArray(both.toString()));
         return new JSONObject()
             .put("Pseudobatos", new JSONObject().put("lentiginosus", lentiginosus))
-            .put("Rhina", new JSONObject().put("ancylostoma", ancylostoma));
+            .put("Rhina", new JSONObject().put("ancylostoma", ancylostoma))
+            .put("Canis", canis);
     }
     @Test void laterGroupsAfterAGroupCommitFailureGetTerminalTasks() throws Exception {
         Shepherd sh = open("fixture");
