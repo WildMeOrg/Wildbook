@@ -1,11 +1,48 @@
 package org.ecocean;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  * <code>User</code> stores information about a contact/user. Examples: photographer, submitter
  * @author Ed Stastny
  */
 public class Role implements java.io.Serializable {
     private static final long serialVersionUID = -7034712240056255450L;
+
+    /**
+     * The role names Wildbook defines itself, highest privilege first. They are seeded at first
+     * startup (StartupWildbook), ranked when merging two users (UserConsolidate), and excluded
+     * from location-based role matching (LocationRoleAccess) so that a location id which happens
+     * to collide with one of them is never read as a location grant.
+     *
+     * This is not the list of roles an admin may assign: that is the indexed "roleN" property in
+     * commonConfiguration.properties, which installs extend with their own location role names
+     * (see appadmin/users.jsp). Site configuration must not change what counts as a system role,
+     * because the names below are also hard-coded in the Shiro rules in web.xml.
+     */
+    public static final List<String> SYSTEM_ROLES = Collections.unmodifiableList(
+        Arrays.asList("admin", "orgAdmin", "researcher", "rest", "machinelearning"));
+
+    /** Explicitly assigned capability; never included in bootstrap grants or merge ranking. */
+    public static final String API_SUBMISSION = "api-submission";
+
+    /** Reserved system names, including opt-in capabilities, excluded from location grants. */
+    public static final Set<String> SYSTEM_ROLE_NAMES = Collections.unmodifiableSet(
+        reservedRoleNames());
+
+    private static Set<String> reservedRoleNames() {
+        Set<String> names = new LinkedHashSet<String>(SYSTEM_ROLES);
+        names.add(API_SUBMISSION);
+        return names;
+    }
+
+    public static boolean canEditRole(String role, boolean siteAdmin) {
+        return siteAdmin || (!API_SUBMISSION.equals(role) && !"admin".equals(role));
+    }
 
     private String username;
     private String rolename;

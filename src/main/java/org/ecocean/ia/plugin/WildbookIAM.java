@@ -409,6 +409,66 @@ public class WildbookIAM extends IAPlugin {
         return rtn;
     }
 
+    /**
+     * Register ONE annotation with WBIA under a forced annotation UUID equal to
+     * its {@code acmId}, and report whether WBIA acknowledged that exact UUID.
+     * This is the heal step of the annotation reconciliation sweep.
+     *
+     * <p>Differs from {@link #sendAnnotationsForceId} in the identifier it
+     * forces ({@code acmId}, not {@code id} — see
+     * {@link #buildForcedRequestMap(WbiaRegisterRequest, String)}) and from
+     * {@link #sendAnnotations} in not letting WBIA mint the UUID at all: the
+     * non-forced path routes its response through
+     * {@code AcmUtil.rectifyAnnotationIds}, which would rewrite {@code acmId}
+     * to WBIA's value on every sweep — churning
+     * {@code Annotation.version} (and so OpenSearch reindexing) and orphaning
+     * any {@code MatchResultProspect} keyed on the old value.</p>
+     *
+     * <p>Performs no already-present check: the sweep has just probed, and the
+     * full-list {@code iaAnnotationIds()} fetch it would need is ~1M UUIDs on a
+     * large install. Callers own eligibility screening; this method assumes the
+     * annotation has a media asset with an acmId, a well-formed own acmId, and
+     * passes {@code validForIdentification}.</p>
+     *
+     * @return true only if WBIA echoed the forced acmId back. A false return
+     *         means the registration must NOT be recorded as successful.
+     */
+    public boolean sendAnnotationForcedByAcmId(Annotation ann, Shepherd myShepherd)
+    throws MalformedURLException, IOException {
+        if ((ann == null) || !Util.stringExists(ann.getAcmId())) return false;
+        String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
+        if (u == null)
+            throw new MalformedURLException(
+                      "WildbookIAM configuration value IBEISIARestUrlAddAnnotations is not set");
+        MediaAsset ma = ann.getMediaAsset();
+        if ((ma == null) || !Util.stringExists(ma.getAcmId())) return false;
+        String forcedAcmId = ann.getAcmId();
+        WbiaRegisterRequest dto = new WbiaRegisterRequest(ann.getId(), forcedAcmId,
+            ma.getAcmId(), ann.getBbox(), ann.getTheta(), ann.getIAClass(),
+            ann.findIndividualId(myShepherd));
+        JSONObject rtn;
+        try {
+            rtn = RestClient.post(new URL(u),
+                IBEISIA.hashMapToJSONObject(buildForcedRequestMap(dto, forcedAcmId)));
+        } catch (Exception ex) {
+            throw new IOException("WBIA add-annotations POST failed for acmId=" + forcedAcmId +
+                    ": " + ex.getMessage(), ex);
+        }
+        // The POST landed at WBIA, so the cached annotation-id list is stale
+        // regardless of how we classify the response below. Invalidate before
+        // validating so a rejected-but-applied POST cannot leave a later caller
+        // looking at a stale "annotation absent" cache.
+        QueryCacheFactory.safeInvalidate(context, "iaAnnotationIds");
+        try {
+            validateForcedResponse(forcedAcmId, rtn);
+        } catch (IOException ex) {
+            IA.log("WARNING: WildbookIAM.sendAnnotationForcedByAcmId() unconfirmed for acmId=" +
+                forcedAcmId + " (ann=" + ann.getId() + "): " + ex.getMessage());
+            return false;
+        }
+        return true;
+    }
+
     // ------------------------------------------------------------------
     // ml-service migration v2: no-Shepherd WBIA registration helpers.
     //
@@ -461,6 +521,13 @@ public class WildbookIAM extends IAPlugin {
         public final Double imageLongitude;      // nullable; ma.getLongitude()
         public final Long   imageDateTimeMillis; // nullable epoch-ms; ma.getDateTime().getMillis()
 
+        /**
+         * Issue #1787 (spec §4.2.5): the ONE identifier every registration path forces --
+         * the annotation's acmId when it has one (what IBEISIA.sendIdentify asks WBIA
+         * about), else its id. Presence, request and validation all use this.
+         */
+        public final String forcedId;
+
         public WbiaRegisterRequest(String annotationId, String annotationAcmId,
             String mediaAssetAcmId, int[] bbox, double theta, String iaClass,
             String individualName, String imageUri, Double imageLatitude,
@@ -476,6 +543,7 @@ public class WildbookIAM extends IAPlugin {
             this.imageLatitude       = imageLatitude;
             this.imageLongitude      = imageLongitude;
             this.imageDateTimeMillis = imageDateTimeMillis;
+            this.forcedId = Util.stringExists(annotationAcmId) ? annotationAcmId : annotationId;
         }
 
         /**
@@ -695,6 +763,44 @@ public class WildbookIAM extends IAPlugin {
      */
     public static List<String> iaMissingImageIds(List<String> acmIds, String context)
     throws IOException {
+        return iaMissingIds(acmIds, context, "/api/image/rowid/uuid/");
+    }
+
+    /**
+     * Ask WBIA which of the given ANNOTATION acmIds it does NOT have, via
+     * GET /api/annot/rowid/uuid/ — the annotation sibling of the image probe
+     * above (wildbook-ia {@code manual_annot_funcs.get_annot_aids_from_uuid},
+     * whose {@code get_annot_missing_uuid} companion defines missing as exactly
+     * "rowid is None", the same semantics {@link #parseRowidProbeResponse}
+     * implements).
+     *
+     * <p>Note this probes the annotation's {@code acmId}, not its {@code id}:
+     * {@code IBEISIA.sendIdentify} builds its query/database annot uuid lists
+     * from {@code getAcmId()}, so the acmId is the only identifier whose
+     * presence at WBIA actually determines whether identification can run.</p>
+     *
+     * <p>(WBIA annotation reconciliation sweep spec §3.)</p>
+     */
+    public static List<String> iaMissingAnnotationIds(List<String> acmIds, String context)
+    throws IOException {
+        return iaMissingIds(acmIds, context, "/api/annot/rowid/uuid/");
+    }
+
+    /**
+     * Shared body for {@link #iaMissingImageIds} and
+     * {@link #iaMissingAnnotationIds}: both WBIA endpoints are
+     * {@code getter_1to1} rowid lookups keyed on UUID, returning a parallel
+     * list with a null entry per unknown UUID.
+     *
+     * <p>Null or malformed (non-UUID) acmIds are skipped rather than sent:
+     * callers treat those objects as heal candidates without probing, and a
+     * malformed value would make WBIA reject the whole chunk and could strand
+     * the rest of the page. Throws IOException if any chunk fails, so callers
+     * never mistake a failed probe for "all present".</p>
+     */
+    private static List<String> iaMissingIds(List<String> acmIds, String context,
+        String endpointPath)
+    throws IOException {
         List<String> missing = new ArrayList<String>();
 
         if (acmIds == null) return missing;
@@ -710,10 +816,10 @@ public class WildbookIAM extends IAPlugin {
             }
             JSONArray resp = null;
             try {
-                resp = apiGetJSONArray("/api/image/rowid/uuid/?uuid_list=[" + sb.toString() +
+                resp = apiGetJSONArray(endpointPath + "?uuid_list=[" + sb.toString() +
                     "]", context);
             } catch (Exception ex) {
-                throw new IOException("WBIA /api/image/rowid/uuid/ probe failed: " +
+                throw new IOException("WBIA " + endpointPath + " probe failed: " +
                         ex.getMessage(), ex);
             }
             // apiGetJSONArray returns null when status.success is false or
@@ -758,6 +864,21 @@ public class WildbookIAM extends IAPlugin {
      * a network round trip.
      */
     static HashMap<String, ArrayList> buildForcedRequestMap(WbiaRegisterRequest dto) {
+        return buildForcedRequestMap(dto, dto.annotationId);
+    }
+
+    /**
+     * As above, but forcing an explicit annotation UUID instead of the DTO's
+     * {@code annotationId}. The reconciliation sweep forces the annotation's
+     * {@code acmId}, because that — not {@code id} — is the identifier
+     * {@code IBEISIA.sendIdentify} asks WBIA about. For ml-service-created
+     * annotations the two are equal ({@code MlServiceProcessor} sets
+     * {@code acmId = getId()}), but for legacy annotations whose acmId WBIA
+     * minted they differ, and forcing the wrong one leaves identification
+     * broken. (WBIA annotation reconciliation sweep spec §4.)
+     */
+    static HashMap<String, ArrayList> buildForcedRequestMap(WbiaRegisterRequest dto,
+        String forcedAnnotUuid) {
         HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
         map.put("image_uuid_list", new ArrayList<JSONObject>());
         map.put("annot_uuid_list", new ArrayList<JSONObject>());
@@ -766,7 +887,7 @@ public class WildbookIAM extends IAPlugin {
         map.put("annot_name_list", new ArrayList<String>());
         map.put("annot_theta_list", new ArrayList<Double>());
         map.get("image_uuid_list").add(toFancyUUID(dto.mediaAssetAcmId));
-        map.get("annot_uuid_list").add(toFancyUUID(dto.annotationId));
+        map.get("annot_uuid_list").add(toFancyUUID(forcedAnnotUuid));
         map.get("annot_species_list").add(dto.iaClass);
         map.get("annot_bbox_list").add(dto.bbox);
         map.get("annot_name_list").add(
@@ -811,7 +932,8 @@ public class WildbookIAM extends IAPlugin {
      *       Phase 1's annotation POST returns HTTP 500 with
      *       {@code image_uuid_list has invalid values [(0, None)]}.</li>
      *   <li><b>Phase 1</b> (annotation registration, existing): the
-     *       already-present check, the forced-id POST, classification.</li>
+     *       already-present check, the forced-id POST and the validation
+     *       all on {@code dto.forcedId}.</li>
      * </ol>
      *
      * Does NOT touch any Shepherd or JDO state; callers must hand it
@@ -846,12 +968,9 @@ public class WildbookIAM extends IAPlugin {
                 dto.annotationId + ": " + ex.getMessage());
             return WbiaRegisterOutcome.NETWORK_FAIL;
         }
-        // iaAnnotationIds returns ANNOTATION uuids (not image uuids), so
-        // only check the annotation's id and acmId here. Comparing against
-        // the media-asset's acmId is wrong - that would compare an image
-        // identifier against a list of annotation identifiers.
-        if (known.contains(dto.annotationId) ||
-            (Util.stringExists(dto.annotationAcmId) && known.contains(dto.annotationAcmId))) {
+        // issue #1787: presence under the forced id only. Presence of the annotation id is
+        // never evidence that the acmId is registered (the two differ on pre-fix rows).
+        if (known.contains(dto.forcedId)) {
             return WbiaRegisterOutcome.REGISTERED_ALREADY_PRESENT;
         }
         URL url;
@@ -862,7 +981,7 @@ public class WildbookIAM extends IAPlugin {
                 " for ann=" + dto.annotationId);
             return WbiaRegisterOutcome.NETWORK_FAIL;
         }
-        HashMap<String, ArrayList> map = buildForcedRequestMap(dto);
+        HashMap<String, ArrayList> map = buildForcedRequestMap(dto, dto.forcedId);
         JSONObject rtn;
         try {
             rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
@@ -878,7 +997,7 @@ public class WildbookIAM extends IAPlugin {
         // Finding 1, applied to both phases).
         QueryCacheFactory.safeInvalidate(context, "iaAnnotationIds");
         try {
-            validateForcedResponse(dto.annotationId, rtn);
+            validateForcedResponse(dto.forcedId, rtn);
         } catch (IOException ex) {
             IA.log("WARNING: WildbookIAM.registerOneByDto() Phase 1 response invalid for " +
                 dto.annotationId + ": " + ex.getMessage());
@@ -971,6 +1090,46 @@ public class WildbookIAM extends IAPlugin {
             return WbiaRegisterOutcome.RESPONSE_BAD;
         }
         return WbiaRegisterOutcome.REGISTERED_OK;
+    }
+
+    /**
+     * Issue #1787 (spec §4.2.5): the eligibility chain shared by the background registrar
+     * (StartupWildbook) and the identify-time registration of pending annotations. Returns
+     * null when the annotation can be registered under its acmId, else the reason.
+     */
+    public static String wbiaEligibilityReason(Annotation ann) {
+        if (ann == null) return "null annotation";
+        MediaAsset ma = ann.getMediaAsset();
+        if (ma == null) return "missing media asset";
+        if (!Util.stringExists(ann.getId())) return "annotation has no id";
+        if (!IBEISIA.validForIdentification(ann))
+            return "validForIdentification returned false (bbox/iaClass/etc.)";
+        if ((ma.isValidImageForIA() != null) && !ma.isValidImageForIA())
+            return "MediaAsset.isValidImageForIA() == false (corrupt/invalid)";
+        if (!validMediaAsset(ma)) return "MediaAsset failed validMediaAsset (mime/dims/url)";
+        String forced = Util.stringExists(ann.getAcmId()) ? ann.getAcmId() : ann.getId();
+        if (!Util.isUUID(forced)) return "annotation forced id is not a uuid: " + forced;
+        if (!Util.isUUID(ma.getAcmId())) return "media asset acmId is not a uuid: " + ma.getAcmId();
+        return null;
+    }
+
+    /**
+     * Issue #1787 (spec §4.2.5): register one image under its acmId (forced). Builds the request
+     * the way the registrar does ({@link #registerImageIfMissing}: forces
+     * {@code image_uuid = MediaAsset.acmId}, validates the acknowledgement, treats "already
+     * present" as success). Replaces {@link #sendMediaAssetsForceId} for this purpose, which
+     * forces {@code MediaAsset.getUUID()} while checking presence by acmId. Returns true when
+     * WBIA holds the image under {@code ma.getAcmId()} after the call.
+     */
+    public boolean registerImageForced(MediaAsset ma) {
+        if ((ma == null) || !Util.stringExists(ma.getAcmId())) return false;
+        org.joda.time.DateTime dt = ma.getDateTime();
+        WbiaRegisterRequest dto = new WbiaRegisterRequest("image-only", null, ma.getAcmId(), null, 0.0d,
+            null, null, mediaAssetToUri(ma), ma.getLatitude(), ma.getLongitude(),
+            (dt == null) ? null : Long.valueOf(dt.getMillis()));
+        WbiaRegisterOutcome out = registerImageIfMissing(dto);
+        return (out == WbiaRegisterOutcome.REGISTERED_OK) ||
+               (out == WbiaRegisterOutcome.REGISTERED_ALREADY_PRESENT);
     }
 
     /**

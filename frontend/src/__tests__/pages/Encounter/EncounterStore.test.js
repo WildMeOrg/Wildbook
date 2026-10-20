@@ -181,6 +181,19 @@ describe("EncounterStore", () => {
       );
       expect(store.individualSearchResults).toEqual(mockResults);
     });
+
+    it("should sort individual search results by name descending", async () => {
+      axios.post.mockResolvedValue({ data: { hits: [] } });
+
+      await store.searchIndividualsByNameAndId("Whale");
+
+      expect(axios.post).toHaveBeenCalledWith(
+        "/api/v3/search/individual?size=20&from=0",
+        expect.objectContaining({
+          sort: [{ names: { order: "desc", unmapped_type: "keyword" } }],
+        }),
+      );
+    });
   });
 
   describe("Sighting Search", () => {

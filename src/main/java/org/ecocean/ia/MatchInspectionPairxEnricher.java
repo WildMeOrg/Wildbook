@@ -68,6 +68,8 @@ public final class MatchInspectionPairxEnricher {
             String taxonomy = null;
             Encounter qEnc = queryAnn.findEncounter(shep);
             if (qEnc != null) taxonomy = qEnc.getTaxonomyString();
+            String queryIaClass = queryAnn.getIAClass();
+            String[] matchIdentity = MatchResult.taskMatchIdentity(mr.getTaskParameters());
             String queryImageUri = imageUriOf(queryAnn);
             int[] queryBbox = MatchResult.clampBbox(queryAnn.getBbox());
             double queryTheta = queryAnn.getTheta();
@@ -85,7 +87,8 @@ public final class MatchInspectionPairxEnricher {
                     out.add(new PairxDto(
                         matchResultId, pAnn.getId(), prospect.getType(),
                         taxonomy, queryImageUri, prospectImageUri,
-                        queryBbox, prospectBbox, queryTheta, prospectTheta));
+                        queryBbox, prospectBbox, queryTheta, prospectTheta,
+                        queryIaClass, matchIdentity[0], matchIdentity[1]));
                 }
             }
             shep.commitDBTransaction();
@@ -124,9 +127,16 @@ public final class MatchInspectionPairxEnricher {
             return null;
         }
         if (!Util.stringExists(dto.taxonomyString)) return null;
-        URL pairxUrl = MatchResult._getPairxUrl(dto.taxonomyString);
+        // One IA.json read for endpoint + model id + layer key; MLService
+        // re-parses the file per construction, so resolving these
+        // separately would read it three times per visualisation.
+        JSONObject pairxConf = MatchResult._getPairxConfig(dto.taxonomyString,
+            dto.queryIaClass, dto.matchMethod, dto.matchVersion);
+        URL pairxUrl = MatchResult._pairxUrlFromConfig(pairxConf);
         if (pairxUrl == null) return null;
-        JSONObject payload = buildPayload(dto);
+        JSONObject payload = buildPayload(dto,
+            MatchResult._pairxModelIdFromConfig(pairxConf),
+            MatchResult._pairxLayerKeyFromConfig(pairxConf));
         JSONObject res = RestClient.postJSON(pairxUrl, payload, null);
         if (res == null) return null;
         JSONArray imgs = res.optJSONArray("images");
@@ -143,13 +153,30 @@ public final class MatchInspectionPairxEnricher {
      * C12 clampBbox and addBboxPayload fixes baked in.
      */
     static JSONObject buildPayload(PairxDto dto) {
+        return buildPayload(dto, MatchResult.DEFAULT_PAIRX_MODEL_ID,
+            MatchResult.DEFAULT_PAIRX_LAYER_KEY);
+    }
+
+    /**
+     * As {@link #buildPayload(PairxDto)}, with {@code model_id} and
+     * {@code layer_key} supplied by the caller. Both are resolved from the
+     * taxonomy's MLService config rather than hardcoded, because
+     * ml-service registries differ per installation and an unknown id used
+     * to produce an HTTP 500 that Wildbook then retried indefinitely.
+     *
+     * <p>A null or blank argument normalises to the historic default: the
+     * payload must never carry a null {@code model_id}.
+     */
+    static JSONObject buildPayload(PairxDto dto, String modelId, String layerKey) {
+        if (!Util.stringExists(modelId)) modelId = MatchResult.DEFAULT_PAIRX_MODEL_ID;
+        if (!Util.stringExists(layerKey)) layerKey = MatchResult.DEFAULT_PAIRX_LAYER_KEY;
         JSONObject payload = new JSONObject();
         payload.put("algorithm", "pairx");
         payload.put("visualization_type", "only_colors");
         payload.put("k_colors", 5);
-        payload.put("model_id", "miewid-msv4.1");
+        payload.put("model_id", modelId);
         payload.put("crop_bbox", false);
-        payload.put("layer_key", "backbone.blocks.3");
+        payload.put("layer_key", layerKey);
         payload.put("image1_uris", new JSONArray().put(dto.queryImageUri));
         payload.put("image2_uris", new JSONArray().put(dto.prospectImageUri));
         payload.put("theta1", new JSONArray().put(dto.queryTheta));
@@ -443,11 +470,26 @@ public final class MatchInspectionPairxEnricher {
         final int[] prospectBbox;           // pre-clamped
         final double queryTheta;
         final double prospectTheta;
+        // multi-pipeline PairX config selection: the query's class and the
+        // embedding space the match ran in (null when unknown)
+        final String queryIaClass;
+        final String matchMethod;
+        final String matchVersion;
 
         PairxDto(String matchResultId, String prospectAnnotationId, String scoreType,
             String taxonomyString, String queryImageUri, String prospectImageUri,
             int[] queryBbox, int[] prospectBbox,
             double queryTheta, double prospectTheta) {
+            this(matchResultId, prospectAnnotationId, scoreType, taxonomyString, queryImageUri,
+                prospectImageUri, queryBbox, prospectBbox, queryTheta, prospectTheta, null, null,
+                null);
+        }
+
+        PairxDto(String matchResultId, String prospectAnnotationId, String scoreType,
+            String taxonomyString, String queryImageUri, String prospectImageUri,
+            int[] queryBbox, int[] prospectBbox,
+            double queryTheta, double prospectTheta, String queryIaClass,
+            String matchMethod, String matchVersion) {
             this.matchResultId = matchResultId;
             this.prospectAnnotationId = prospectAnnotationId;
             this.scoreType = scoreType;
@@ -458,6 +500,9 @@ public final class MatchInspectionPairxEnricher {
             this.prospectBbox = prospectBbox;
             this.queryTheta = queryTheta;
             this.prospectTheta = prospectTheta;
+            this.queryIaClass = queryIaClass;
+            this.matchMethod = matchMethod;
+            this.matchVersion = matchVersion;
         }
     }
 }
