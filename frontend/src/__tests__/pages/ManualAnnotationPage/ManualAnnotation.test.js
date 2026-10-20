@@ -270,6 +270,94 @@ describe("ManualAnnotation (important coverage)", () => {
     expect(screen.getAllByTestId("mock-select")).toHaveLength(2);
   });
 
+  test("shows image loading spinner until the image fires load", async () => {
+    renderComponent();
+
+    expect(screen.getByTestId("image-loading-spinner")).toBeInTheDocument();
+    expect(screen.getByText("LOADING_IMAGE")).toBeInTheDocument();
+
+    await screen.findByText("DRAW_ANNOTATION");
+    await waitFor(() => {
+      expect(screen.getByAltText("annotationimages")).toHaveAttribute(
+        "src",
+        "test.jpg",
+      );
+    });
+    expect(screen.getByTestId("image-loading-spinner")).toBeInTheDocument();
+
+    fireEvent.load(screen.getByAltText("annotationimages"));
+
+    expect(
+      screen.queryByTestId("image-loading-spinner"),
+    ).not.toBeInTheDocument();
+  });
+
+  test("hides image loading spinner when the image fails to load", async () => {
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByAltText("annotationimages")).toHaveAttribute(
+        "src",
+        "test.jpg",
+      );
+    });
+    fireEvent.error(screen.getByAltText("annotationimages"));
+
+    expect(
+      screen.queryByTestId("image-loading-spinner"),
+    ).not.toBeInTheDocument();
+  });
+
+  test("hides image loading spinner when the media asset has no url", async () => {
+    mockFetchWith({ ...defaultFetchPayload, url: undefined });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("image-loading-spinner"),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  test("hides image loading spinner when fetching the media asset fails", async () => {
+    global.fetch = jest.fn(() => Promise.reject(new Error("network")));
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("image-loading-spinner"),
+      ).not.toBeInTheDocument();
+    });
+    expect(global.alert).toHaveBeenCalled();
+  });
+
+  test("does not show image loading spinner when assetId is missing", async () => {
+    renderComponent("/manual-annotation?encounterId=2");
+
+    expect(await screen.findByText("DRAW_ANNOTATION")).toBeInTheDocument();
+    expect(
+      screen.queryByTestId("image-loading-spinner"),
+    ).not.toBeInTheDocument();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  test("does not show image loading spinner when site settings failed", async () => {
+    useSiteSettings.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: new Error("settings"),
+    });
+
+    renderComponent();
+
+    expect(await screen.findByText("DRAW_ANNOTATION")).toBeInTheDocument();
+    expect(
+      screen.queryByTestId("image-loading-spinner"),
+    ).not.toBeInTheDocument();
+  });
+
   test("draw-existing-annotations effect draws only non-trivial annotations on canvas", async () => {
     renderComponent();
 
