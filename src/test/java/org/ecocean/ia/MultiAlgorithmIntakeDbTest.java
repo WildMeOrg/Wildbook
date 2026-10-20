@@ -296,6 +296,37 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
         }
     }
 
+    /**
+     * A multi-pipeline match group (docs/plans/2026-10-16-mlservice-multi-config.md) carries the
+     * embedding space MlServiceProcessor resolved for its annotations, which can differ from the
+     * class's configured vector option. The group matches in that space.
+     */
+    @Test void matchGroupMatchesInItsResolvedEmbeddingSpace() throws Exception {
+        Shepherd sh = open("fixture");
+        Encounter e1 = guitarfish(sh, BODY);
+        Task d = detectionTask(sh, nextImportId());
+        List<String> ids = annotationIds(e1);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        JSONObject ownSpace = new JSONObject().put("pipeline_root", "vector").put("method", "miewid")
+            .put("version", "pet_v1.1.0").put("api_endpoint", "https://face.example.org:5050")
+            .put("description", "MiewID pet (vector)");
+        MlServiceJobOutcome out = processor().runMatchProspects(ids, d.getId(), ownSpace, true);
+        assertEquals(MlServiceJobOutcome.Kind.OK, out.getKind());
+
+        Shepherd check = open("check");
+        try {
+            Task u = childrenOf(Task.load(d.getId(), check)).get(0);
+            Task vopt = optionOf(u, true, BODY);
+            JSONObject ident = vopt.getParameters().getJSONObject("ibeis.identification");
+            assertEquals("pet_v1.1.0", ident.getString("version"), "not the class's msv4_v3");
+            assertEquals("https://face.example.org:5050", ident.getString("api_endpoint"));
+            assertEquals(1, dispatcher.published.size(), "HotSpotter still runs");
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
     @Test void initialPersistFailureDispatchesNothingAndMarksEveryAnnotation() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY, ROSTRUM);

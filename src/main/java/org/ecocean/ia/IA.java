@@ -440,7 +440,7 @@ public class IA {
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns,
         final Task parentTask, boolean fastlane) {
         JSONObject inherited = (parentTask == null) ? null : parentTask.getParameters();
-        IntakeOutcome o = intakeCore(myShepherd, anns, null, inherited, fastlane, null);
+        IntakeOutcome o = intakeCore(myShepherd, anns, null, inherited, fastlane, null, false);
 
         if ((o == null) || o.persistFailed) return null;
         return o.umbrella;
@@ -463,7 +463,19 @@ public class IA {
      */
     public static IntakeOutcome intakeAnnotationsUnder(Shepherd myShepherd, List<Annotation> anns,
         Task parent, JSONObject inheritedParams, boolean fastlane, JSONObject vectorDefaults) {
-        return intakeCore(myShepherd, anns, parent, inheritedParams, fastlane, vectorDefaults);
+        return intakeCore(myShepherd, anns, parent, inheritedParams, fastlane, vectorDefaults, false);
+    }
+
+    /**
+     * As above; with {@code pinVector} a {@code vectorConfig} naming a method and version is the
+     * one embedding space these annotations match in (a multi-pipeline match group, see
+     * MlServiceProcessor.resolveMultiPipelineMatchConfig): it replaces each class's vector
+     * options. Without method and version it only fills missing keys, as above.
+     */
+    public static IntakeOutcome intakeAnnotationsUnder(Shepherd myShepherd, List<Annotation> anns,
+        Task parent, JSONObject inheritedParams, boolean fastlane, JSONObject vectorConfig,
+        boolean pinVector) {
+        return intakeCore(myShepherd, anns, parent, inheritedParams, fastlane, vectorConfig, pinVector);
     }
 
     /** A childless umbrella without an option: no class had a default identification option. */
@@ -518,6 +530,29 @@ public class IA {
         return out;
     }
 
+    /*
+     * Multi-pipeline match group: the class's vector options collapse to one copy of the pinned
+     * config, in the first vector option's place; other options are kept. A class without a
+     * vector option gets none. A pin without method and version only fills, as above.
+     */
+    static List<JSONObject> withPinnedVector(List<JSONObject> opts, JSONObject pin) {
+        if ((opts == null) || (pin == null) || !Util.stringExists(pin.optString("method", null)) ||
+            !Util.stringExists(pin.optString("version", null)))
+            return withVectorDefaults(opts, pin);
+        List<JSONObject> out = new ArrayList<JSONObject>();
+        boolean pinned = false;
+        for (JSONObject opt : opts) {
+            if ((opt == null) || !(Embedding.isVectorConfig(opt) ||
+                "vector".equals(opt.optString("pipeline_root", null)))) {
+                out.add(opt);
+            } else if (!pinned) {
+                out.add(new JSONObject(pin.toString()));
+                pinned = true;
+            }
+        }
+        return out;
+    }
+
     private static void markOption(JSONObject params, JSONObject opt) {
         params.put("ibeis.identification", (opt == null) ? "DEFAULT" : opt);
         params.put(Task.PARAM_OPTION, true);
@@ -544,7 +579,8 @@ public class IA {
      * always lists every option with its publication result (spec §4.2.3).
      */
     private static IntakeOutcome intakeCore(Shepherd myShepherd, List<Annotation> anns,
-        Task parent, JSONObject inheritedParams, boolean fastlane, JSONObject vectorDefaults) {
+        Task parent, JSONObject inheritedParams, boolean fastlane, JSONObject vectorDefaults,
+        boolean pinVector) {
         if ((anns == null) || (anns.size() < 1)) return null;
         String context = myShepherd.getContext();
         IntakeOutcome outcome = new IntakeOutcome();
@@ -597,7 +633,7 @@ public class IA {
                     System.out.println("Swapping opts for newOpts!!");
                 }
             }
-            opts = withVectorDefaults(opts, vectorDefaults);
+            opts = pinVector ? withPinnedVector(opts, vectorDefaults) : withVectorDefaults(opts, vectorDefaults);
             if ((opts == null) || (opts.size() < 1)) {   // no ID for this iaClass
                 outcome.skippedIaClasses.add(iaClass);
                 continue;

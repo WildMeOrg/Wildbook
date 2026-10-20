@@ -706,6 +706,63 @@ class IAIntakeCoreTest {
         });
     }
 
+    // ---- a multi-pipeline match group matches in the embedding space it was resolved to ----
+
+    static JSONObject petSpace() {
+        return new JSONObject().put("pipeline_root", "vector").put("method", "miewid")
+            .put("version", "pet_v1.1.0").put("api_endpoint", "https://face.example.org:5050")
+            .put("description", "MiewID pet (vector)");
+    }
+
+    @Test void pinnedVectorConfigReplacesTheClassesVectorOptionsAndKeepsTheOthers() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        JSONObject older = new JSONObject(
+            "{\"pipeline_root\":\"vector\",\"method\":\"miewid\",\"version\":\"msv3\",\"default\":true}");
+        Map<String, List<JSONObject>> one = new HashMap<String, List<JSONObject>>();
+        one.put("dog", Arrays.asList(miewid(), hotspotter(), older));
+        withStatics(config(one), () -> {
+            IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "dog")), null, null, false,
+                petSpace(), true);
+            assertEquals(1, d.vectorOpts.size(), "every vector option collapses to the one pinned space");
+            assertEquals("pet_v1.1.0", d.vectorOpts.get(0).getString("version"));
+            assertEquals("https://face.example.org:5050", d.vectorOpts.get(0).getString("api_endpoint"));
+            assertEquals("MiewID pet (vector)", d.vectorOpts.get(0).getString("description"));
+            assertEquals(1, d.published.size(), "the non-vector option still runs");
+            assertEquals(hotspotter().toString(), d.published.get(0).getJSONObject("opt").toString());
+        });
+    }
+
+    @Test void pinnedConfigWithoutAnIdentityOnlyFillsMissingKeys() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> one = new HashMap<String, List<JSONObject>>();
+        one.put("dog", Arrays.asList(miewid()));
+        withStatics(config(one), () -> {
+            IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "dog")), null, null, false,
+                new JSONObject().put("api_endpoint", "http://ml/match"), true);
+            assertEquals(1, d.vectorOpts.size());
+            assertEquals("msv4_v3", d.vectorOpts.get(0).getString("version"), "the configured option is kept");
+            assertEquals("http://ml/match", d.vectorOpts.get(0).getString("api_endpoint"));
+        });
+    }
+
+    @Test void pinnedConfigAddsNoVectorOptionToAClassWithoutOne() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> one = new HashMap<String, List<JSONObject>>();
+        one.put("dog", Arrays.asList(hotspotter()));
+        withStatics(config(one), () -> {
+            IA.intakeAnnotationsUnder(sh, Arrays.asList(ann("a", "dog")), null, null, false,
+                petSpace(), true);
+            assertTrue(d.vectorRuns.isEmpty(), "IA.json, not the pin, decides whether a class matches by vector");
+            assertEquals(1, d.published.size());
+        });
+    }
+
     // ---- an identOpts failure skips that class instead of aborting the run ----
 
     static IAJsonProperties configThrowingFor(final Map<String, List<JSONObject>> optsByClass,
