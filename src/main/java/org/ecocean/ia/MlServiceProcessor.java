@@ -209,7 +209,7 @@ public class MlServiceProcessor {
     }
 
     /** Requeue a retryable /pipeline/ failure, else fail the detection. */
-    private MlServiceJobOutcome detectionCallFailed(JSONObject jobData, String maId,
+    MlServiceJobOutcome detectionCallFailed(JSONObject jobData, String maId,
         String taskId, IAException ex) {
         if (ex.shouldRequeue()) return handleRetryableDetectionFailure(jobData, maId, taskId, ex);
         markDetectionFailure(maId, taskId, ex.getCode(), ex.getMessage());

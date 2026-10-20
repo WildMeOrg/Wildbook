@@ -101,6 +101,26 @@ public class MlServiceProcessorRetryExhaustionTest {
         assertEquals("ma-1", p.detectionFailureMaId, "terminal write targets the right asset");
     }
 
+    // #1802's detectionCallFailed is the one exit for /pipeline/ failures, single- and
+    // multi-pipeline (runPipelines propagates the first failing pipeline's IAException)
+    @Test void pipelineCallFailureRoutesThroughTheRetryHandler() {
+        RecordingProcessor exhausted = new RecordingProcessor(IAGateway.RequeueResult.RETRY_CAP);
+        assertEquals(MlServiceJobOutcome.Kind.ERROR_NETWORK,
+            exhausted.detectionCallFailed(job(), "ma-1", "task-1", retryable()).getKind());
+        assertEquals("RETRIES_EXHAUSTED", exhausted.detectionFailureCode);
+
+        RecordingProcessor lost = new RecordingProcessor(IAGateway.RequeueResult.EXECUTOR_REJECTED);
+        assertEquals(MlServiceJobOutcome.Kind.REQUEUE,
+            lost.detectionCallFailed(job(), "ma-1", "task-1", retryable()).getKind());
+        assertNull(lost.detectionFailureCode, "left recoverable for the startup reconciler");
+
+        RecordingProcessor fatal = new RecordingProcessor(IAGateway.RequeueResult.QUEUED);
+        fatal.detectionCallFailed(job(), "ma-1", "task-1",
+            new IAException("INVALID", "bad image", false, false));
+        assertTrue(fatal.requeueIncrements.isEmpty(), "a non-retryable failure is never requeued");
+        assertEquals("INVALID", fatal.detectionFailureCode);
+    }
+
     @Test void detectionTimeCapAlsoLandsTerminal() {
         RecordingProcessor p = new RecordingProcessor(IAGateway.RequeueResult.TIME_CAP);
         p.handleRetryableDetectionFailure(job(), "ma-1", "task-1", retryable());

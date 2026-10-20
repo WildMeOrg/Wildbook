@@ -1127,16 +1127,6 @@ public class IAGateway extends HttpServlet {
     private static final java.util.Set<PendingRequeue> PENDING_REQUEUES =
         java.util.concurrent.ConcurrentHashMap.newKeySet();
 
-    // Route the payload onto its queue NOW (a plain spool-file write), with the same classifier
-    // as the initial publish. The old condition sent ANY fastlane payload back to the detection
-    // queue, so a single retry silently undid the lane separation. laneFor still keeps
-    // detect/MLService/mlServiceV2 on the detection queue, which retryable ml-service failures
-    // depend on to reach MlServiceProcessor.
-    private static void publishRequeueNow(JSONObject jobj, String context)
-    throws IOException {
-        publishToLane(context, jobj.toString());
-    }
-
     // The single publish path shared by the delayed runnable, the shutdown flush, and the
     // schedule-rejection fallback. Returns true iff THIS call performed the durable spool write.
     // Idempotent: an already-published or currently-in-flight entry is left alone. On write
@@ -1144,7 +1134,15 @@ public class IAGateway extends HttpServlet {
     private static boolean publishPending(PendingRequeue pr) {
         if (pr.published || !pr.inFlight.compareAndSet(false, true)) return false;
         try {
-            publishRequeueNow(pr.jobj, pr.context);
+            // recheck under the guard: another actor may have published between the read above
+            // and the CAS, and released inFlight since
+            if (pr.published) return false;
+            // the same classifier as the initial publish (a plain spool-file write NOW). The old
+            // condition sent ANY fastlane payload back to the detection queue, so a single retry
+            // silently undid the lane separation. laneFor still keeps detect/MLService/mlServiceV2
+            // on the detection queue, which retryable ml-service failures depend on to reach
+            // MlServiceProcessor.
+            publishToLane(pr.context, pr.jobj.toString());
             pr.published = true;
             PENDING_REQUEUES.remove(pr);
             return true;
