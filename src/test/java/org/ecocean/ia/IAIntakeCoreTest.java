@@ -923,6 +923,34 @@ class IAIntakeCoreTest {
             assertTrue(d.published.isEmpty());
         });
     }
+
+    /** No eligibility was established, so neither a user's algorithm nor a vector pin runs. */
+    @Test void identOptsThrowingSkipsTheClassDespiteAChosenAlgorithmOrAPin() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        withStatics(configThrowingFor(twoClassesTwoOptions(), "guitarfish+rostrum"), () -> {
+            JSONObject inherited = new JSONObject().put("matchingAlgorithms",
+                new JSONArray().put(hotspotterChoice()).put(miewid()));
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh,
+                Arrays.asList(ann("body", "guitarfish"), ann("rostrum", "guitarfish+rostrum")), null,
+                inherited, false, miewid(), true);
+            assertEquals(Arrays.asList("guitarfish+rostrum"), o.skippedIaClasses);
+            assertOnlyIaClassRan(o, "guitarfish");
+            assertEquals(1, d.vectorRuns.size());
+            assertEquals(1, d.published.size());
+
+            RecordingDispatcher alone = new RecordingDispatcher();
+            IA.setDispatcherForTests(alone);
+            IA.IntakeOutcome o2 = IA.intakeAnnotationsUnder(sh,
+                Arrays.asList(ann("r2", "guitarfish+rostrum")), null, inherited, false, miewid(), true);
+            assertTrue(o2.noWork);
+            assertEquals("INVALID_MATCH_CONFIG", errorCode(o2.umbrella));
+            assertTrue(alone.vectorRuns.isEmpty());
+            assertTrue(alone.published.isEmpty());
+        });
+    }
+
     @Test void unusableVectorDefaultsNeverPublishTheVectorOptionToWbia() throws Exception {
         RecordingDispatcher d = new RecordingDispatcher();
         IA.setDispatcherForTests(d);
