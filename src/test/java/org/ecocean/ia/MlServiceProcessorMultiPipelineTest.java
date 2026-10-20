@@ -343,6 +343,8 @@ class MlServiceProcessorMultiPipelineTest {
         deferringProcessor(publisher).runDeferredMatch(deferredPayload(true));
         assertEquals(1, publisher.published.size());
         assertTrue(publisher.published.get(0).optBoolean("matchGroup", false));
+        assertTrue(publisher.published.get(0).optBoolean("pinVector", false),
+            "a group payload from before pinVector existed is pinned from then on");
         assertEquals("pet_v1.1.0",
             publisher.published.get(0).getJSONObject("matchConfig").getString("version"));
     }
@@ -353,6 +355,15 @@ class MlServiceProcessorMultiPipelineTest {
         assertEquals(1, publisher.published.size());
         assertFalse(publisher.published.get(0).has("matchGroup"),
             "single-pipeline deferred payloads must be unchanged");
+        assertFalse(publisher.published.get(0).has("pinVector"));
+    }
+
+    @Test void deferredMultiPipelineExtractionKeepsItsPinWithoutBeingAGroup() {
+        Recorder publisher = new Recorder();
+        deferringProcessor(publisher).runDeferredMatch(deferredPayload(null).put("pinVector", true));
+        assertEquals(1, publisher.published.size());
+        assertTrue(publisher.published.get(0).optBoolean("pinVector", false));
+        assertFalse(publisher.published.get(0).has("matchGroup"));
     }
 
     @Test void emptyMatchGroupDoesNotTouchTheSharedParent() {
