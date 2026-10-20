@@ -55,6 +55,8 @@ public class OpenSearch {
     public static volatile OpenSearchClient client = null;
     public static volatile RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new ConcurrentHashMap<String, Boolean>();
+    // indexes known to have every vector field of their mapping (created or upgraded by this JVM)
+    private static final Set<String> VECTOR_FIELDS_READY = ConcurrentHashMap.newKeySet();
     // ConcurrentHashMap: PIT_CACHE is read/mutated from concurrent request threads (SearchApi,
     // EncounterQueryProcessor, MediaResolveApi) and, once IA match consumers can run concurrently,
     // from those too. This only removes the structural-corruption hazard of an unsynchronized
@@ -208,6 +210,7 @@ public class OpenSearch {
             new JacksonJsonpMapper());
 
         client = new OpenSearchClient(transport);
+        VECTOR_FIELDS_READY.clear(); // known only for the cluster we were connected to
     }
 
     // Stateless single-page search (no PIT, no shared static state) -- safe under concurrency.
@@ -603,9 +606,6 @@ public class OpenSearch {
         }
         createIndex(indexName, mapping);
     }
-
-    // indexes known to have every vector field of their mapping (created or upgraded by this JVM)
-    private static final Set<String> VECTOR_FIELDS_READY = ConcurrentHashMap.newKeySet();
 
     // An index created before a vector length was supported lacks that length's knn_vector field,
     // and the nested "embeddings" mapping is dynamic:false, so such vectors would be silently

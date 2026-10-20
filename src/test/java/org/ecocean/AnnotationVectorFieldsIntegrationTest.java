@@ -166,7 +166,11 @@ import org.testcontainers.utility.DockerImageName;
         new Embedding(both, "miewid-dinov3", "msv5", vec(1536, 0.4));
         indexDoc(os, a1536);
         indexDoc(os, both);
-        os.ensureIndex(INDEX, new Annotation().opensearchMapping()); // idempotent
+        // racing writers may each PUT the same upgrade: re-adding identical fields is accepted
+        JSONObject upgrade = new JSONObject().put("properties",
+            OpenSearch.vectorFieldsUpgradeMapping(new Annotation().opensearchMapping()));
+        rest("PUT", "/" + INDEX + "/_mapping", upgrade);
+        rest("PUT", "/" + INDEX + "/_mapping", upgrade);
 
         JSONObject emb = embeddingsMapping();
         assertEquals(1536, emb.getJSONObject("vector_1536").getInt("dimension"));
@@ -188,6 +192,28 @@ import org.testcontainers.utility.DockerImageName;
         assertEquals(1, readyCount("ann-old-2152", "miewid", "msv4.1"));
         assertEquals(1, readyCount("ann-old-2152", null, null));
         assertEquals(0, readyCount("ann-1536", "miewid", "msv4.1"));
+    }
+
+    @Test void docWrittenBeforeUpgrade_matchableOnlyAfterReindex() throws Exception {
+        // a 1536 vector written while the field was missing is kept in _source but not indexed
+        // (embeddings is dynamic:false); adding the field does not index existing docs, a
+        // reindex of that annotation (version bump) does
+        Annotation ann = annot("ann-early");
+        new Embedding(ann, "miewid-dinov3", "msv5", vec(1536, 0.7));
+        rest("PUT", "/" + INDEX + "/_doc/ann-early?refresh=true", new JSONObject()
+            .put("matchAgainst", true).put("acmId", "ann-early").put("embeddings",
+            new JSONArray().put(new JSONObject().put("method", "miewid-dinov3").put(
+            "methodVersion", "msv5").put("vector_1536", vec(1536, 0.7)))));
+        assertEquals(0, readyCount("ann-early", "miewid-dinov3", "msv5"));
+
+        os.ensureIndex(INDEX, ann.opensearchMapping());
+        assertTrue(embeddingsMapping().has("vector_1536"));
+        assertEquals(0, readyCount("ann-early", "miewid-dinov3", "msv5"),
+            "mapping upgrade alone does not index existing docs");
+
+        indexDoc(os, ann);
+        assertEquals(1, readyCount("ann-early", "miewid-dinov3", "msv5"));
+        assertTrue(containsId(knnHits(ann, "miewid-dinov3", "msv5"), "ann-early"));
     }
 
     @Test void readiness_rejectsMetadataWithoutIndexedVector() throws Exception {
