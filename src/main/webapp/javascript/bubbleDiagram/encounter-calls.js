@@ -22,6 +22,10 @@ var getData = function(individualID, displayName) {
     var encArrWithUUID = [];
     var occurrenceArray = [];
     var dataObject = {};
+    // sex and location of each co-occurring individual, keyed by the same "name id=uuid" string
+    // used for dataObject. These belong to the individual whose row they are shown in, so they
+    // cannot be held in a variable shared by every row.
+    var individualDetails = {};
 
 	console.log("QUERY: "+wildbookGlobals.baseUrl + "/api?useProjectContext=true&query="+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"));
 
@@ -39,10 +43,8 @@ var getData = function(individualID, displayName) {
             // make encounterArray, containing the individualIDs of every encounter in thisOcc;
             for(var j=0; j < encounterSize; j++) {
 				console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
-				var thisEncIndID = getIndividualIDFromEncounterToString(thisOcc.encounters[j]);
-				var sex=thisOcc.encounters[j].sex;
-				var haplotype=thisOcc.encounters[j].haplotype;
-				var location=thisOcc.encounters[j].locationID;
+				var thisEnc = thisOcc.encounters[j];
+				var thisEncIndID = getIndividualIDFromEncounterToString(thisEnc);
 				//console.log("thisEncIndID="+thisEncIndID);
 		
 				//var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
@@ -50,6 +52,18 @@ var getData = function(individualID, displayName) {
 				if (!thisEncIndID) continue;
 				var individualName = thisEncIndID.split(" id=")[0];
 				if (individualName === displayName) continue;  //unknown indiv -> false
+
+				// record against this individual, not against the loop: an individual can be seen in
+				// several occurrences, and each of them may state a different location
+				var indivDetails = individualDetails[thisEncIndID];
+				if (!indivDetails) {
+					indivDetails = {sex: thisEnc.sex, locations: []};
+					individualDetails[thisEncIndID] = indivDetails;
+				}
+				if (thisEnc.locationID && indivDetails.locations.indexOf(thisEnc.locationID) < 0) {
+					indivDetails.locations.push(thisEnc.locationID);
+				}
+
 				if(!encounterArray.includes(individualName)) {
 					encounterArray.push(individualName);
 					encArrWithUUID.push(thisEncIndID);
@@ -79,8 +93,11 @@ var getData = function(individualID, displayName) {
             ++dataObject[occurrenceArray[i]];
 	}
 	for (var prop in dataObject) {
+            var rowDetails = individualDetails[prop] || {};
             var whale = new Object();
-            whale = {text:prop, count:dataObject[prop], sex: sex, location: location};
+            whale = {text:prop, count:dataObject[prop],
+                     sex: rowDetails.sex || dict['unknown'],
+                     location: (rowDetails.locations || []).join(", ")};
             items.push(whale);	
 	}
 	//if (items.length > 0) {

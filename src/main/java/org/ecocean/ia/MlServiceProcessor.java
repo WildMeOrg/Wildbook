@@ -2,7 +2,13 @@ package org.ecocean.ia;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import org.ecocean.Annotation;
 import org.ecocean.Embedding;
@@ -26,8 +32,12 @@ import org.json.JSONObject;
  *
  * <p>Owns Shepherd transaction boundaries: load/revalidate, release DB while
  * the network call runs, then reopen for idempotent persistence and matching.
- * The dispatcher branch that routes {@code mlServiceV2:true} payloads lives in
- * a later commit.</p>
+ * {@code IAGateway.processQueueMessage} routes {@code mlServiceV2:true}
+ * payloads here.</p>
+ *
+ * <p>A species whose active {@code _mlservice_conf} has several entries runs
+ * every pipeline and embeds/matches each class in its own space; see
+ * docs/plans/2026-10-16-mlservice-multi-config.md.</p>
  */
 public class MlServiceProcessor {
     private static final String ACTION_PREFIX = "MlServiceProcessor.";
@@ -103,31 +113,239 @@ public class MlServiceProcessor {
         }
         if (det.outcome != null) return det.outcome;
 
-        JSONObject response;
-        try {
-            response = client.pipeline(det.apiEndpoint, det.imageUri, det.mlConfig);
-        } catch (IAException ex) {
-            if (ex.shouldRequeue()) {
-                return handleRetryableDetectionFailure(jobData, maId, taskId, ex);
+        JSONArray results;
+        // Multi-pipeline only: producedBy.get(i) is the _mlservice_conf entry
+        // whose /pipeline/ call returned results[i]. Null for single-pipeline.
+        List<JSONObject> producedBy = null;
+        if (!det.multiPipeline) {
+            JSONObject response;
+            try {
+                response = client.pipeline(det.apiEndpoint, det.imageUri, det.mlConfig);
+            } catch (IAException ex) {
+                return detectionCallFailed(jobData, maId, taskId, ex);
             }
-            markDetectionFailure(maId, taskId, ex.getCode(), ex.getMessage());
-            return mapNonRetryableError(ex);
+            results = response.optJSONArray("results");
+        } else {
+            PipelineRun run;
+            try {
+                run = runPipelines(client, det.pipelines, det.imageUri);
+            } catch (IAException ex) {
+                return detectionCallFailed(jobData, maId, taskId, ex);
+            }
+            results = run.results;
+            producedBy = run.producedBy;
         }
-
-        JSONArray results = response.optJSONArray("results");
         if (results == null || results.length() == 0) {
             return finalizeZeroDetections(maId, taskId);
         }
 
-        PersistResult persisted = persistDetections(maId, encounterId, taskId, det, results);
+        PersistResult persisted = persistDetections(maId, encounterId, taskId, det, results,
+            producedBy);
         if (persisted.outcome != null) return persisted.outcome;
 
+        if (det.multiPipeline) {
+            return runMultiPipelineMatches(persisted.detected, taskId,
+                det.effectiveTaxonomyString);
+        }
         JSONObject matchConfig = ensureMatchConfig(det.matchConfig, results.optJSONObject(0),
             det.mlConfig);
         MlServiceJobOutcome matchOutcome = waitAndRunMatch(persisted.annotationIds, taskId,
             matchConfig);
         if (matchOutcome != null) return matchOutcome;
         return MlServiceJobOutcome.ok(persisted.annotationIds);
+    }
+
+    /**
+     * Call {@code /pipeline/} once per entry, in IA.json order, each on its
+     * own {@code api_endpoint}, and concatenate the results. Runs every
+     * pipeline before anything is persisted: the first failure propagates,
+     * so the caller fails or requeues the whole job and the MediaAsset never
+     * completes with one class silently missing. A requeue re-runs every
+     * pipeline; detection dedup keeps that idempotent.
+     */
+    static PipelineRun runPipelines(MlServiceClient client, List<JSONObject> pipelines,
+        String imageUri)
+    throws IAException {
+        PipelineRun run = new PipelineRun();
+        for (JSONObject pipeline : pipelines) {
+            JSONObject response = client.pipeline(pipeline.optString("api_endpoint", null),
+                imageUri, pipeline);
+            JSONArray pipelineResults = (response == null) ? null
+                : response.optJSONArray("results");
+            if (pipelineResults == null) continue;
+            for (int i = 0; i < pipelineResults.length(); i++) {
+                run.results.put(pipelineResults.get(i));
+                run.producedBy.add(pipeline);
+            }
+        }
+        return run;
+    }
+
+    /**
+     * Every path names an embedding space by splitting extract_model_id on
+     * its first dash; a model id without one (e.g. "msv3") would be named
+     * differently by the legacy extraction path, so multi-pipeline species
+     * reject it outright.
+     */
+    static final String MULTI_PIPELINE_EXTRACT_ID_RULE =
+        "multi-pipeline _mlservice_conf entries need an extract_model_id of the form " +
+        "<method>-<version>";
+
+    /**
+     * Why a multi-pipeline species' entries cannot run, or null when every
+     * entry is an object with a predict_model_id and a splittable
+     * extract_model_id.
+     */
+    static String invalidMultiPipelineEntry(List<JSONObject> pipelines) {
+        for (int i = 0; i < pipelines.size(); i++) {
+            JSONObject pipeline = pipelines.get(i);
+            if ((pipeline == null) ||
+                !Util.stringExists(pipeline.optString("predict_model_id", null)))
+                return "_mlservice_conf[" + i + "] missing predict_model_id";
+            if (extractorIdentity(pipeline) == null)
+                return "_mlservice_conf[" + i + "]: " + MULTI_PIPELINE_EXTRACT_ID_RULE;
+        }
+        return null;
+    }
+
+    /** Requeue a retryable /pipeline/ failure, else fail the detection. */
+    private MlServiceJobOutcome detectionCallFailed(JSONObject jobData, String maId,
+        String taskId, IAException ex) {
+        if (ex.shouldRequeue()) return handleRetryableDetectionFailure(jobData, maId, taskId, ex);
+        markDetectionFailure(maId, taskId, ex.getCode(), ex.getMessage());
+        return mapNonRetryableError(ex);
+    }
+
+    /**
+     * Multi-pipeline species: match each detected annotation in the embedding
+     * space it was given, one {@link #waitAndRunMatch} per resolved match
+     * config. Every group is attempted; the outcome is the first error group
+     * outcome, else ok with every annotation id.
+     */
+    private MlServiceJobOutcome runMultiPipelineMatches(List<DetectedAnnotation> detected,
+        String taskId, String taxonomyString) {
+        IAJsonProperties iac = IAJsonProperties.iaConfig();
+        Taxonomy taxy = Util.stringExists(taxonomyString) ? new Taxonomy(taxonomyString) : null;
+        List<String> allIds = new ArrayList<String>();
+        MlServiceJobOutcome firstError = null;
+        for (MatchGroup group : groupByMatchConfig(iac, taxy, detected)) {
+            allIds.addAll(group.annotationIds);
+            MlServiceJobOutcome outcome;
+            try {
+                outcome = waitAndRunMatch(group.annotationIds, taskId, group.matchConfig, true,
+                    true);
+            } catch (RuntimeException ex) {
+                // e.g. a failing error-marker inside runMatchProspects' catch;
+                // never let one group stop the others from being matched.
+                System.out.println("[ERROR] MlServiceProcessor: match group " +
+                    group.annotationIds + " for task " + taskId + " threw " + ex);
+                outcome = MlServiceJobOutcome.persistError("MATCH", String.valueOf(ex));
+            }
+            if ((firstError == null) && (outcome != null) && outcome.isError()) {
+                firstError = outcome;
+            }
+        }
+        if (firstError != null) return firstError;
+        return MlServiceJobOutcome.ok(allIds);
+    }
+
+    /**
+     * Group detected annotations by the match config each resolves to
+     * ({@link #resolveMultiPipelineMatchConfig}), in first-seen order. An
+     * annotation id appears in at most one group.
+     */
+    static List<MatchGroup> groupByMatchConfig(IAJsonProperties iac, Taxonomy taxy,
+        List<DetectedAnnotation> detected) {
+        Map<String, MatchGroup> groups = new LinkedHashMap<String, MatchGroup>();
+        Set<String> seen = new HashSet<String>();
+        if (detected == null) return new ArrayList<MatchGroup>();
+        for (DetectedAnnotation d : detected) {
+            if ((d == null) || !Util.stringExists(d.annotationId) || !seen.add(d.annotationId))
+                continue;
+            JSONObject config = resolveMultiPipelineMatchConfig(iac, taxy, d.iaClass,
+                d.embeddingIdentity, d.producedBy);
+            String key = canonicalJson(config);
+            MatchGroup group = groups.get(key);
+            if (group == null) {
+                group = new MatchGroup(config);
+                groups.put(key, group);
+            }
+            group.annotationIds.add(d.annotationId);
+        }
+        return new ArrayList<MatchGroup>(groups.values());
+    }
+
+    /**
+     * Match config for one annotation of a multi-pipeline species: the
+     * iaClass's default vector {@code _id_conf} entry, else {@code _default}'s.
+     * If that entry names a different (method, version) than the embedding
+     * the annotation actually has, it would match against the wrong (or an
+     * empty) corpus, so fall back to a config derived from the embedding
+     * itself and log a WARN. {@code api_endpoint} defaults to the producing
+     * pipeline's.
+     */
+    static JSONObject resolveMultiPipelineMatchConfig(IAJsonProperties iac, Taxonomy taxy,
+        String iaClass, String[] embeddingIdentity, JSONObject producedBy) {
+        JSONObject config = null;
+        if ((iac != null) && (taxy != null)) {
+            config = iac.getDefaultVectorIdentConfig(taxy, iaClass);
+            if (config == null) config = iac.getDefaultVectorIdentConfig(taxy, "_default");
+        }
+        if ((embeddingIdentity != null) && !identityMatches(config, embeddingIdentity)) {
+            System.out.println("[WARN] MlServiceProcessor: match config " + config +
+                " for iaClass " + iaClass + " (" + taxy + ") does not match embedding " +
+                embeddingIdentity[0] + "-" + embeddingIdentity[1] +
+                "; matching in the embedding's own space instead");
+            config = new JSONObject();
+            config.put("pipeline_root", "vector");
+            config.put("method", embeddingIdentity[0]);
+            config.put("version", embeddingIdentity[1]);
+            String desc = (producedBy == null) ? null : producedBy.optString("description", null);
+            config.put("description",
+                Util.stringExists(desc) ? desc : "ml-service vector matching");
+        }
+        if (config == null) config = new JSONObject();
+        if (!Util.stringExists(config.optString("api_endpoint", null)) && (producedBy != null) &&
+            Util.stringExists(producedBy.optString("api_endpoint", null))) {
+            config.put("api_endpoint", producedBy.optString("api_endpoint"));
+        }
+        return config;
+    }
+
+    /**
+     * Key-sorted JSON text, so two configs with the same content give the
+     * same string whatever order their keys were inserted in.
+     */
+    static String canonicalJson(Object value) {
+        if (value instanceof JSONObject) {
+            JSONObject obj = (JSONObject) value;
+            List<String> keys = new ArrayList<String>(obj.keySet());
+            java.util.Collections.sort(keys);
+            StringBuilder sb = new StringBuilder("{");
+            for (int i = 0; i < keys.size(); i++) {
+                if (i > 0) sb.append(',');
+                sb.append(JSONObject.quote(keys.get(i))).append(':')
+                    .append(canonicalJson(obj.opt(keys.get(i))));
+            }
+            return sb.append('}').toString();
+        }
+        if (value instanceof JSONArray) {
+            JSONArray arr = (JSONArray) value;
+            StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < arr.length(); i++) {
+                if (i > 0) sb.append(',');
+                sb.append(canonicalJson(arr.opt(i)));
+            }
+            return sb.append(']').toString();
+        }
+        if (value instanceof String) return JSONObject.quote((String) value);
+        return String.valueOf(value);
+    }
+
+    private static boolean identityMatches(JSONObject config, String[] identity) {
+        if ((config == null) || (identity == null)) return false;
+        return identity[0].equals(config.optString("method", null)) &&
+               identity[1].equals(config.optString("version", null));
     }
 
     private MlServiceJobOutcome processExtraction(JSONObject jobData, String taxonomyString,
@@ -157,9 +375,19 @@ public class MlServiceProcessor {
         PersistResult persisted = persistExtraction(annId, taskId, ext, response);
         if (persisted.outcome != null) return persisted.outcome;
 
-        JSONObject matchConfig = ensureMatchConfig(ext.matchConfig, response, ext.mlConfig);
+        JSONObject matchConfig;
+        if (ext.multiPipeline) {
+            // Resolve against the embedding just stored (the response's
+            // identity), not the configured one. persistExtraction already
+            // parsed it successfully, so this cannot throw here.
+            matchConfig = resolveMultiPipelineMatchConfig(IAJsonProperties.iaConfig(),
+                new Taxonomy(ext.taxonomyString), ext.iaClass,
+                parseEmbeddingMethodVersion(response), ext.mlConfig);
+        } else {
+            matchConfig = ensureMatchConfig(ext.matchConfig, response, ext.mlConfig);
+        }
         MlServiceJobOutcome matchOutcome = waitAndRunMatch(persisted.annotationIds, taskId,
-            matchConfig);
+            matchConfig, false, ext.multiPipeline);
         if (matchOutcome != null) return matchOutcome;
         return MlServiceJobOutcome.ok(persisted.annotationIds);
     }
@@ -204,6 +432,16 @@ public class MlServiceProcessor {
                 return DetectionContext.done(MlServiceJobOutcome.validationError("INVALID",
                     "_mlservice_conf missing predict_model_id"));
             }
+            // Multi-pipeline: every entry must be runnable, or none run.
+            String invalid = configs.multiPipeline
+                ? invalidMultiPipelineEntry(configs.pipelines) : null;
+            if (invalid != null) {
+                markTaskError(task, "INVALID", invalid + " for " + effectiveTaxonomy);
+                ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
+                shep.commitDBTransaction();
+                return DetectionContext.done(MlServiceJobOutcome.validationError("INVALID",
+                    invalid));
+            }
 
             URL webUrl = ma.webURL();
             if (webUrl == null) {
@@ -219,7 +457,8 @@ public class MlServiceProcessor {
             shep.commitDBTransaction();
             return new DetectionContext(webUrl.toString(),
                 configs.mlConfig.optString("api_endpoint", null), configs.mlConfig,
-                configs.matchConfig, effectiveTaxonomy);
+                configs.matchConfig, effectiveTaxonomy, configs.pipelines,
+                configs.multiPipeline);
         } finally {
             shep.rollbackAndClose();
         }
@@ -254,7 +493,28 @@ public class MlServiceProcessor {
                 shep.commitDBTransaction();
                 return ExtractionContext.done(MlServiceJobOutcome.stale("pending-species"));
             }
-            if (hasEmbeddingForMatchConfig(ann, configs.matchConfig)) {
+            JSONObject mlConfig = configs.mlConfig;
+            if (configs.multiPipeline) {
+                // One extractor per annotation, chosen by its iaClass; "already
+                // extracted" means an embedding from THAT extractor, so an old
+                // embedding from another model never suppresses extraction.
+                IAJsonProperties iac = IAJsonProperties.iaConfig();
+                Taxonomy taxy = shep.getOrCreateTaxonomy(effectiveTaxonomy, false);
+                mlConfig = iac.selectExtractionConfig(taxy, ann.getIAClass());
+                String[] extractMv = extractorIdentity(mlConfig);
+                if (extractMv == null) {
+                    markTaskError(task, "INVALID", MULTI_PIPELINE_EXTRACT_ID_RULE + "; got " +
+                        mlConfig + " for " + effectiveTaxonomy);
+                    shep.commitDBTransaction();
+                    return ExtractionContext.done(MlServiceJobOutcome.validationError(
+                        "INVALID", MULTI_PIPELINE_EXTRACT_ID_RULE));
+                }
+                if (ann.getEmbeddingByMethod(extractMv[0], extractMv[1]) != null) {
+                    markTaskCompleted(task);
+                    shep.commitDBTransaction();
+                    return ExtractionContext.done(MlServiceJobOutcome.stale("embedding-exists"));
+                }
+            } else if (hasEmbeddingForMatchConfig(ann, configs.matchConfig)) {
                 markTaskCompleted(task);
                 shep.commitDBTransaction();
                 return ExtractionContext.done(MlServiceJobOutcome.stale("embedding-exists"));
@@ -279,8 +539,9 @@ public class MlServiceProcessor {
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING_MLSERVICE);
             shep.commitDBTransaction();
             return new ExtractionContext(webUrl.toString(),
-                configs.mlConfig.optString("api_endpoint", null), configs.mlConfig,
-                configs.matchConfig, toDoubleArray(bbox), ann.getTheta());
+                mlConfig.optString("api_endpoint", null), mlConfig,
+                configs.matchConfig, toDoubleArray(bbox), ann.getTheta(),
+                configs.multiPipeline, effectiveTaxonomy, ann.getIAClass());
         } finally {
             shep.rollbackAndClose();
         }
@@ -333,10 +594,13 @@ public class MlServiceProcessor {
     }
 
     private PersistResult persistDetections(String maId, String encounterId, String taskId,
-        DetectionContext det, JSONArray results) {
+        DetectionContext det, JSONArray results, List<JSONObject> producedBy) {
         Shepherd shep = new Shepherd(context);
         shep.setAction(ACTION_PREFIX + "persistDetections");
         List<String> annotationIds = new ArrayList<String>();
+        // Multi-pipeline only: what each annotation id was detected as, so the
+        // match step can pick a match config per class/embedding space.
+        List<DetectedAnnotation> detected = new ArrayList<DetectedAnnotation>();
 
         try {
             FeatureType.initAll(shep);
@@ -412,7 +676,12 @@ public class MlServiceProcessor {
                         iaClass + "' not valid for taxonomy " + taxy + " (raw='" + rawIaClass +
                         "'); persisting anyway.");
                 }
-                Annotation existing = findExistingAnnotation(ma, bbox, theta);
+                // Multi-pipeline: two pipelines can return the same rounded
+                // geometry for different classes (body vs part); only a box of
+                // the same resolved class is a duplicate.
+                Annotation existing = det.multiPipeline
+                    ? findExistingAnnotation(ma, bbox, theta, iaClass)
+                    : findExistingAnnotation(ma, bbox, theta);
                 if (existing != null) {
                     // Dedup hit: an annotation with this bbox+theta already
                     // exists on the MediaAsset (idempotent retry, or another
@@ -445,6 +714,9 @@ public class MlServiceProcessor {
                         }
                     }
                     annotationIds.add(existing.getId());
+                    if (det.multiPipeline)
+                        detected.add(new DetectedAnnotation(existing.getId(),
+                            existing.getIAClass(), mv, producedBy.get(i)));
                     continue;
                 }
 
@@ -510,6 +782,9 @@ public class MlServiceProcessor {
                     result.getJSONArray("embedding"));
                 shep.getPM().makePersistent(emb);
                 annotationIds.add(ann.getId());
+                if (det.multiPipeline)
+                    detected.add(new DetectedAnnotation(ann.getId(), iaClass, mv,
+                        producedBy.get(i)));
             }
 
             // Capture originating bulk-import context BEFORE assignEncounters
@@ -548,7 +823,7 @@ public class MlServiceProcessor {
             ma.setDetectionStatus(IBEISIA.STATUS_COMPLETE_MLSERVICE);
             markTaskCompleted(task);
             shep.commitDBTransaction();
-            return PersistResult.ok(annotationIds);
+            return PersistResult.ok(annotationIds, detected);
         } catch (Exception ex) {
             // Release locks on the MA before markDetectionFailure (which
             // opens a second Shepherd on the same MA row) — swallow the
@@ -592,8 +867,23 @@ public class MlServiceProcessor {
                 shep.commitDBTransaction();
                 return PersistResult.done(MlServiceJobOutcome.stale("annotation missing"));
             }
-            JSONObject matchConfig = ensureMatchConfig(ext.matchConfig, response, ext.mlConfig);
-            if (hasEmbeddingForMatchConfig(ann, matchConfig)) {
+            String[] mv;
+            boolean exists;
+            if (ext.multiPipeline) {
+                // Dedup on the embedding the service actually returned.
+                mv = parseEmbeddingMethodVersion(response);
+                exists = ann.getEmbeddingByMethod(mv[0], mv[1]) != null;
+            } else {
+                mv = null;
+                exists = hasEmbeddingForMatchConfig(ann,
+                    ensureMatchConfig(ext.matchConfig, response, ext.mlConfig));
+            }
+            if (exists) {
+                // loadExtractionContext set processing-mlservice against the
+                // selected extractor; if the response named another model
+                // that is already stored, close the annotation out here.
+                if (ext.multiPipeline)
+                    ann.setIdentificationStatus(IBEISIA.STATUS_COMPLETE_MLSERVICE);
                 markTaskCompleted(task);
                 shep.commitDBTransaction();
                 annotationIds.add(ann.getId());
@@ -601,7 +891,7 @@ public class MlServiceProcessor {
             }
 
             ann.setIdentificationStatus(IBEISIA.STATUS_COMPLETE_MLSERVICE);
-            String[] mv = parseEmbeddingMethodVersion(response);
+            if (mv == null) mv = parseEmbeddingMethodVersion(response);
             Embedding emb = new Embedding(ann, mv[0], mv[1],
                 response.getJSONArray("embedding"));
             shep.getPM().makePersistent(emb);
@@ -620,10 +910,25 @@ public class MlServiceProcessor {
 
     private MlServiceJobOutcome waitAndRunMatch(List<String> annotationIds, String taskId,
         JSONObject matchConfig) {
+        return waitAndRunMatch(annotationIds, taskId, matchConfig, false, false);
+    }
+
+    /**
+     * @param matchGroup true when this is one of several match groups that
+     *        share {@code taskId} (multi-pipeline detection). A group then
+     *        never writes a stale status onto the shared parent task, so it
+     *        cannot overwrite a sibling group's error or mask its success.
+     * @param pinVector true when {@code matchConfig} is the one embedding space
+     *        resolveMultiPipelineMatchConfig resolved for these annotations
+     *        (multi-pipeline species): vector matching is pinned to it.
+     */
+    private MlServiceJobOutcome waitAndRunMatch(List<String> annotationIds, String taskId,
+        JSONObject matchConfig, boolean matchGroup, boolean pinVector) {
         // Initial invocation: attempt=1, firstDeferredAt=null (the
         // gate stamps `now` so age-out is measured from this first
         // call, not from later re-fires).
-        return waitAndRunMatchInternal(annotationIds, taskId, matchConfig, 1, null);
+        return waitAndRunMatchInternal(annotationIds, taskId, matchConfig, 1, null,
+            matchGroup, pinVector);
     }
 
     /**
@@ -647,7 +952,8 @@ public class MlServiceProcessor {
      * <p>(Empty-match-prospects design Track 2 C11.)</p>
      */
     private MlServiceJobOutcome waitAndRunMatchInternal(List<String> annotationIds,
-        String taskId, JSONObject matchConfig, int attempt, Long firstDeferredAt) {
+        String taskId, JSONObject matchConfig, int attempt, Long firstDeferredAt,
+        boolean matchGroup, boolean pinVector) {
         if (readSkipIdent(taskId)) {
             System.out.println(
                 "NOTICE: MlServiceProcessor skipped identification for task " + taskId +
@@ -658,9 +964,9 @@ public class MlServiceProcessor {
             annotationIds, taskId, matchConfig, attempt, firstDeferredAt);
         switch (gate.kind) {
           case READY:
-            return runMatchProspects(annotationIds, taskId, matchConfig);
+            return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup, pinVector);
           case DEFER:
-            if (enqueueDeferredMatch(annotationIds, taskId, matchConfig, gate))
+            if (enqueueDeferredMatch(annotationIds, taskId, matchConfig, gate, matchGroup, pinVector))
                 return MlServiceJobOutcome.ok(annotationIds);
             // The deferred re-fire was NOT queued (requeue executor gone / publish failed).
             // There is no passive backstop here: the parent task was already marked completed
@@ -670,7 +976,7 @@ public class MlServiceProcessor {
             // silently never creating a match task).
             System.out.println("WARN: MlServiceProcessor deferred-match enqueue failed for task " +
                 taskId + "; running match against current visible corpus instead of dropping it");
-            return runMatchProspects(annotationIds, taskId, matchConfig);
+            return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup, pinVector);
           case GIVE_UP:
           default:
             System.out.println(
@@ -678,7 +984,7 @@ public class MlServiceProcessor {
                 " after attempt=" + gate.attempt + " elapsed=" +
                 gate.elapsedMillis + "ms reason=" + gate.reason +
                 "; running match against current visible corpus");
-            return runMatchProspects(annotationIds, taskId, matchConfig);
+            return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup, pinVector);
         }
     }
 
@@ -709,19 +1015,99 @@ public class MlServiceProcessor {
         // Re-gate; deferred match earns the same protection as the
         // initial call (Codex round-2 Major: don't degrade back to
         // today's bug on the first deferral).
+        // payloads deferred before pinVector existed: only multi-pipeline groups set matchGroup
+        boolean matchGroup = jobData.optBoolean("matchGroup", false);
         return waitAndRunMatchInternal(annotationIds, taskId, matchConfig,
-            attempt, firstDeferredAt);
+            attempt, firstDeferredAt, matchGroup, jobData.optBoolean("pinVector", matchGroup));
     }
 
+    /** Package-private seam so tests can substitute a Shepherd whose checked commit fails. */
+    Shepherd openShepherd(String action) {
+        Shepherd shep = new Shepherd(context);
+        shep.setAction(ACTION_PREFIX + action);
+        return shep;
+    }
+
+    /** Spec §4.1 step 3: D's parameters minus the keys a run sets for itself. Pure. */
+    static JSONObject matchIntakeParams(JSONObject parentParams) {
+        JSONObject p = (parentParams == null) ? new JSONObject() : new JSONObject(parentParams.toString());
+        p.remove("ibeis.detection");          // detection gauges must not count match tasks
+        p.remove(Task.PARAM_RUN_ID);
+        p.remove(Task.PARAM_V2_MATCH);
+        p.remove(Task.PARAM_OPTION);
+        p.remove("ibeis.identification");
+        return p;
+    }
+
+    /** Spec §4.1 step 2: one group per encounter in first-seen order; no-encounter annotations form their own group. Pure. */
+    static List<List<Annotation> > groupByEncounter(List<Annotation> anns, Map<String, String> annIdToEncId) {
+        Map<String, List<Annotation> > groups = new LinkedHashMap<String, List<Annotation> >();
+        for (Annotation ann : anns) {
+            String enc = annIdToEncId.get(ann.getId());
+            String key = (enc == null) ? "\u0000no-encounter" : enc;
+            List<Annotation> g = groups.get(key);
+            if (g == null) {
+                g = new ArrayList<Annotation>();
+                groups.put(key, g);
+            }
+            g.add(ann);
+        }
+        return new ArrayList<List<Annotation> >(groups.values());
+    }
+
+    // per-group recovery record (spec §4.1 step 4)
+    private static final class GroupRecord {
+        final IA.IntakeOutcome outcome;
+        boolean committed = false;
+        final List<String> annotationIds = new ArrayList<String>();
+
+        GroupRecord(IA.IntakeOutcome outcome, List<Annotation> group) {
+            this.outcome = outcome;
+            for (Annotation ann : group) annotationIds.add(ann.getId());
+        }
+    }
+
+    private static String annotationIdList(List<Annotation> anns) {
+        List<String> ids = new ArrayList<String>();
+        for (Annotation a : anns) ids.add(a.getId());
+        return ids.toString();
+    }
+
+    /**
+     * Spec §4.1: every default identification option runs for each encounter's annotations
+     * through the shared intake. {@code matchConfig} keeps its gate / embedding-presence roles
+     * upstream (waitAndRunMatchInternal) and completes each vector option (method/version/
+     * api_endpoint) where IA.json leaves them out; it no longer selects the algorithm.
+     */
     public MlServiceJobOutcome runMatchProspects(List<String> annotationIds, String taskId,
         JSONObject matchConfig) {
+        return runMatchProspects(annotationIds, taskId, matchConfig, false);
+    }
+
+    MlServiceJobOutcome runMatchProspects(List<String> annotationIds, String taskId,
+        JSONObject matchConfig, boolean matchGroup) {
+        return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup, matchGroup);
+    }
+
+    /**
+     * {@code pinVector}: see {@link #waitAndRunMatch(List, String, JSONObject, boolean, boolean)}.
+     */
+    MlServiceJobOutcome runMatchProspects(List<String> annotationIds, String taskId,
+        JSONObject matchConfig, boolean matchGroup, boolean pinVector) {
         if (annotationIds == null || annotationIds.isEmpty()) {
-            markTaskCompleted(taskId);
+            if (!matchGroup) markTaskCompleted(taskId);
             return MlServiceJobOutcome.ok(new ArrayList<String>());
         }
-
-        Shepherd shep = new Shepherd(context);
-        shep.setAction(ACTION_PREFIX + "runMatchProspects");
+        List<GroupRecord> processed = new ArrayList<GroupRecord>();
+        // Keep scalar inputs even if loading/grouping fails before any intake can begin.
+        List<List<String>> groupsToRecover = new ArrayList<List<String>>();
+        groupsToRecover.add(new ArrayList<String>(annotationIds));
+        String inheritedParameters = null;
+        String failureCode = null;
+        String failureMessage = null;
+        String parentId = taskId;
+        MlServiceJobOutcome result = null;
+        Shepherd shep = openShepherd("runMatchProspects");
         try {
             shep.beginDBTransaction();
             List<Annotation> anns = new ArrayList<Annotation>();
@@ -730,82 +1116,176 @@ public class MlServiceProcessor {
                 if (ann != null) anns.add(ann);
             }
             if (anns.isEmpty()) {
+                // A match group's staleness stays local: the shared parent
+                // already holds the detection's terminal status and any
+                // sibling group's error.
+                if (matchGroup) return MlServiceJobOutcome.stale("annotations missing");
                 Task task = Task.load(taskId, shep);
                 markTaskDroppedStale(shep, task, "annotations missing");
                 shep.commitDBTransaction();
                 return MlServiceJobOutcome.stale("annotations missing");
             }
-
             Task parent = Task.load(taskId, shep);
-            Task matchTask = (parent == null) ? new Task() : new Task(parent);
-            // new Task(parent) copies the parent's parameters. The v2 detection
-            // task is tagged ibeis.detection (IA.enqueueOneAssetForMlService) so
-            // the /metrics detection gauges count it; strip that flag here so it
-            // does NOT propagate onto this match task or the per-annotation
-            // subtasks Embedding.findMatchProspects creates from it below
-            // (new Task(matchTask)). Otherwise the detection gauges would
-            // miscount match/subtasks as detections, and the existential child
-            // clause in MetricsBot would stop counting the parent detection
-            // task. Mirror of IBEISIA's params.remove("ibeis.detection").
-            JSONObject inheritedParams = matchTask.getParameters();
-            if ((inheritedParams != null) && inheritedParams.has("ibeis.detection")) {
-                inheritedParams.remove("ibeis.detection");
-                matchTask.setParameters(inheritedParams);
+            if (parent == null) {   // as before: an orphan root when the detection task is gone
+                parent = (taskId == null) ? new Task() : new Task(taskId);
+                shep.getPM().makePersistent(parent);
             }
-            matchTask.setObjectAnnotations(anns);
-            matchTask.addParameter("mlServiceV2Match", true);
-            // Stamp the chosen _id_conf entry's description into an
-            // ibeis.identification block so Task.getIdentificationMethodInfo
-            // surfaces a method/description for the React match-results page
-            // header. Pure-v2 imports (no legacy WBIA in the chain) leave the
-            // task tree without any ibeis.identification anywhere, which
-            // causes matchResultsJson to omit `method` from the API tree —
-            // the React header reads `method?.name ?? method?.description`
-            // and renders blank. Stamp unconditionally — even the error
-            // branch below (matchConfig == null / findMatchProspects rejects)
-            // persists this task and the user can hit its match-results page.
-            String desc = (matchConfig == null) ? null
-                : matchConfig.optString("description", null);
-            JSONObject identBlock = new JSONObject();
-            identBlock.put("description",
-                (desc == null || desc.isEmpty()) ? "ml-service vector matching" : desc);
-            matchTask.addParameter("ibeis.identification", identBlock);
-            shep.getPM().makePersistent(matchTask);
-            // findMatchProspects returns false when the match config is not
-            // a vector config or matchConfig is null. Don't leave the match
-            // task without a terminal status — mark the parent task error.
-            boolean ran = Embedding.findMatchProspects(matchConfig, matchTask, shep);
-            if (!ran) {
-                matchTask.setStatus("error");
-                matchTask.setStatusDetailsAddError("INVALID_MATCH_CONFIG",
-                    "findMatchProspects rejected match config: " +
-                    (matchConfig == null ? "null" : matchConfig.toString()));
-                matchTask.setCompletionDateInMilliseconds();
-                // Update the parent task in this same transaction (parent is
-                // already loaded above) so the two updates commit atomically.
-                // Splitting across transactions risks leaving the parent
-                // "completed" if the second commit fails or the JVM dies.
-                if (parent != null) {
-                    markTaskError(parent, "INVALID_MATCH_CONFIG",
-                        "no usable vector match config");
+            parentId = parent.getId();
+            Map<String, String> annToEnc = new HashMap<String, String>();
+            for (Annotation ann : anns) {
+                Encounter enc = ann.findEncounter(shep);
+                annToEnc.put(ann.getId(), (enc == null) ? null : enc.getCatalogNumber());
+            }
+            List<List<Annotation> > groups = groupByEncounter(anns, annToEnc);
+            JSONObject inherited = matchIntakeParams(parent.getParameters());
+            inheritedParameters = inherited.toString();
+            groupsToRecover.clear();
+            for (List<Annotation> group : groups) {
+                List<String> ids = new ArrayList<String>();
+                for (Annotation ann : group) ids.add(ann.getId());
+                groupsToRecover.add(ids);
+            }
+            int noWorkGroups = 0;
+            for (List<Annotation> group : groups) {
+                IA.IntakeOutcome o = IA.intakeAnnotationsUnder(shep, group, parent, inherited, false,
+                    (matchConfig == null) ? new JSONObject() : matchConfig, pinVector);
+                if (o == null) {
+                    failureCode = "MATCH_PERSIST";
+                    failureMessage = "no identification run for annotations " + annotationIdList(group);
+                    break;
                 }
-                shep.commitDBTransaction();
-                return MlServiceJobOutcome.validationError("INVALID_MATCH_CONFIG",
-                    "no usable vector match config");
+                GroupRecord rec = new GroupRecord(o, group);
+                processed.add(rec);
+                if (o.persistFailed) {
+                    failureCode = "MATCH_PERSIST";
+                    failureMessage = "could not persist the identification run for annotations " +
+                        annotationIdList(group);
+                    break;
+                }
+                if (o.noWork) noWorkGroups++;
+                // one checked commit per group: a later group's failure never rolls back an
+                // earlier group's vector leaves
+                if (!shep.commitDBTransactionWithStatus()) {
+                    failureCode = "MATCH_PERSIST";
+                    failureMessage = "group commit failed for identification run " + o.umbrella.getId();
+                    break;
+                }
+                rec.committed = true;
+                shep.beginDBTransaction();
             }
-            shep.commitDBTransaction();
+            if (failureCode == null) {
+                if (noWorkGroups == groups.size()) {
+                    markTaskError(parent, "INVALID_MATCH_CONFIG", "no default identification options");
+                    if (shep.commitDBTransactionWithStatus()) {
+                        result = MlServiceJobOutcome.validationError("INVALID_MATCH_CONFIG",
+                            "no default identification options");
+                    } else {
+                        failureCode = "MATCH_PERSIST";
+                        failureMessage = "could not commit the INVALID_MATCH_CONFIG mark on " + parentId;
+                    }
+                } else {
+                    result = MlServiceJobOutcome.ok(annotationIds);
+                }
+            }
         } catch (Exception ex) {
-            markTaskError(taskId, "MATCH", "findMatchProspects failed: " + ex.getMessage());
-            return MlServiceJobOutcome.persistError("MATCH", ex.getMessage());
+            failureCode = "MATCH";
+            failureMessage = "identification intake failed: " + ex.getMessage();
+            ex.printStackTrace();
+        } finally {
+            shep.rollbackAndClose();   // rolls back whatever the failed group left open
+        }
+        if (failureCode != null) {
+            recoverMatchFailure(parentId, processed, groupsToRecover, inheritedParameters, failureCode, failureMessage);
+            return MlServiceJobOutcome.persistError(failureCode, failureMessage);
+        }
+        // PairX inspection-image generation is intentionally OFF the synchronous match path.
+        // The UI lazy-fetches each prospect's inspection asset via
+        // POST /api/v3/match-inspection/{mrId}/{annId} when the inspector opens.
+        return result;
+    }
+
+    /**
+     * Spec §4.1 step 5. With a fresh Shepherd: for every processed group whose commit did not
+     * succeed but whose run was persisted by the intake core, mark every option task whose job
+     * was not successfully published (every vector option; HotSpotter options whose publication
+     * failed) error MATCH_PERSIST, and the umbrella too unless it is itself a published option;
+     * leave published HotSpotter options alone (their job is durable and will complete them).
+     * Mark the detection/extraction task with {@code code}. Groups whose commit succeeded are
+     * untouched. Groups with no durable run receive terminal error umbrellas holding their
+     * annotations, so the import can finish. The recovery commit is checked; failures log ids.
+     */
+    private void recoverMatchFailure(String parentTaskId, List<GroupRecord> processed,
+        List<List<String>> groups, String inheritedParameters, String code, String message) {
+        Shepherd shep = openShepherd("runMatchProspects.recover");
+        List<String> marked = new ArrayList<String>();
+        try {
+            shep.beginDBTransaction();
+            java.util.Set<String> covered = new java.util.HashSet<String>();
+            for (GroupRecord rec : processed) {
+                if (rec.committed) {
+                    covered.addAll(rec.annotationIds);
+                    continue;
+                }
+                if (rec.outcome.persistFailed) continue;
+                IA.IntakeOutcome o = rec.outcome;
+                if (o.umbrella == null) continue;
+                Task umbrella = Task.load(o.umbrella.getId(), shep);
+                if (umbrella == null) continue;
+                covered.addAll(rec.annotationIds);
+                boolean umbrellaIsPublishedOption = false;
+                for (IA.OptionResult r : o.options) {
+                    if (r.published && !r.vector) {
+                        if (r.task.getId().equals(umbrella.getId())) umbrellaIsPublishedOption = true;
+                        continue;
+                    }
+                    Task opt = Task.load(r.task.getId(), shep);
+                    if ((opt == null) || opt.statusInEndState()) continue;
+                    markTaskError(opt, "MATCH_PERSIST", message);
+                    marked.add(opt.getId());
+                }
+                if (!umbrellaIsPublishedOption && !umbrella.statusInEndState()) {
+                    markTaskError(umbrella, "MATCH_PERSIST", message);
+                    marked.add(umbrella.getId());
+                }
+            }
+            Task parent = Task.load(parentTaskId, shep);
+            if (parent == null) {
+                parent = (parentTaskId == null) ? new Task() : new Task(parentTaskId);
+                shep.getPM().makePersistent(parent);
+            }
+            JSONObject inherited = (inheritedParameters == null) ? matchIntakeParams(parent.getParameters()) :
+                new JSONObject(inheritedParameters);
+            for (List<String> group : groups) {
+                List<Annotation> missing = new ArrayList<Annotation>();
+                for (String id : group) {
+                    if (covered.contains(id)) continue;
+                    Annotation ann = shep.getAnnotation(id);
+                    if (ann != null) missing.add(ann);
+                }
+                if (missing.isEmpty()) continue;
+                // A failed/unattempted group still needs a durable run: the import cannot age
+                // out annotations that have no tasks. Published options above remain untouched.
+                Task failed = new Task();
+                failed.setParameters(new JSONObject(inherited.toString()));
+                failed.addParameter(Task.PARAM_RUN_ID, failed.getId());
+                failed.setObjectAnnotations(missing);
+                failed.setParent(parent);
+                markTaskError(failed, code, message);
+                shep.getPM().makePersistent(failed);
+                marked.add(failed.getId());
+            }
+            markTaskError(parent, code, message);
+            if (!shep.commitDBTransactionWithStatus()) {
+                System.out.println("ERROR: MlServiceProcessor.runMatchProspects() recovery commit failed; " +
+                    "tasks left pending: " + marked + "; parent " + parentTaskId + "; " + message);
+            }
+        } catch (Exception ex) {
+            System.out.println("ERROR: MlServiceProcessor.runMatchProspects() recovery threw " + ex +
+                "; tasks: " + marked + "; parent " + parentTaskId);
+            ex.printStackTrace();
         } finally {
             shep.rollbackAndClose();
         }
-        // PairX inspection-image generation is intentionally OFF the
-        // synchronous match path. The UI lazy-fetches each prospect's
-        // inspection asset via POST /api/v3/match-inspection/{mrId}/{annId}
-        // when the inspector opens — see api/MatchInspection and the
-        // lazy-fetch in MatchProspectTable.jsx.
-        return MlServiceJobOutcome.ok(annotationIds);
     }
 
     // Package-private seam so tests can stub the requeue verdict without the static IAGateway
@@ -907,6 +1387,34 @@ public class MlServiceProcessor {
         return null;
     }
 
+    /**
+     * Multi-pipeline variant of {@link #findExistingAnnotation(MediaAsset,
+     * double[], double)}: same geometry test, but only an annotation whose
+     * iaClass equals {@code iaClass} (both null counts as equal) is a
+     * duplicate.
+     */
+    static Annotation findExistingAnnotation(MediaAsset ma, double[] bbox, double theta,
+        String iaClass) {
+        if (ma == null || bbox == null || bbox.length != 4) return null;
+        List<Feature> fts = ma.getFeatures();
+        if (fts == null) return null;
+        for (Feature ft : fts) {
+            if (ft == null || !ft.isType(BOUNDING_BOX_FEATURE)) continue;
+            Annotation ann = ft.getAnnotation();
+            if (ann == null || !Objects.equals(ann.getIAClass(), iaClass)) continue;
+            JSONObject p = ft.getParameters();
+            if (p == null) continue;
+            if (Math.round(p.optDouble("x", 0)) == Math.round(bbox[0])
+                && Math.round(p.optDouble("y", 0)) == Math.round(bbox[1])
+                && Math.round(p.optDouble("width", 0)) == Math.round(bbox[2])
+                && Math.round(p.optDouble("height", 0)) == Math.round(bbox[3])
+                && Math.abs(p.optDouble("theta", 0.0d) - theta) < 1.0e-4) {
+                return ann;
+            }
+        }
+        return null;
+    }
+
     private ConfigPair activeConfigs(Shepherd shep, String taxonomyString) {
         if (!Util.stringExists(taxonomyString)) return null;
         IAJsonProperties iac = IAJsonProperties.iaConfig();
@@ -917,7 +1425,13 @@ public class MlServiceProcessor {
         JSONObject mlConfig = configs.optJSONObject(0);
         if (mlConfig == null) return null;
         JSONObject matchConfig = defaultMatchConfig(iac, taxy, mlConfig);
-        return new ConfigPair(mlConfig, matchConfig);
+        // Every entry, in IA.json order; a non-object entry stays as null so
+        // loadDetectionContext rejects it rather than silently skipping it.
+        List<JSONObject> pipelines = new ArrayList<JSONObject>();
+        for (int i = 0; i < configs.length(); i++) {
+            pipelines.add(configs.optJSONObject(i));
+        }
+        return new ConfigPair(mlConfig, matchConfig, pipelines, configs.length() > 1);
     }
 
     private JSONObject defaultMatchConfig(IAJsonProperties iac, Taxonomy taxy,
@@ -1008,10 +1522,10 @@ public class MlServiceProcessor {
         }
         String method;
         String version;
-        int dash = embeddingModelId.indexOf('-');
-        if (dash > 0 && dash < embeddingModelId.length() - 1) {
-            method = embeddingModelId.substring(0, dash);
-            version = embeddingModelId.substring(dash + 1);
+        String[] split = splitModelId(embeddingModelId);
+        if (split != null) {
+            method = split[0];
+            version = split[1];
         } else {
             method = embeddingModelId;
             version = response.optString("embedding_model_version", null);
@@ -1024,6 +1538,31 @@ public class MlServiceProcessor {
                     + response.optString("embedding_model_version", null));
         }
         return new String[] { method, version };
+    }
+
+    /**
+     * Split an ml-service model id on its FIRST dash into
+     * {@code {method, version}} ({@code "miewid-pet-v1"} → {@code {"miewid",
+     * "pet-v1"}}), or null when there is no dash with text on both sides.
+     * The one rule every multi-pipeline path uses to name an embedding space.
+     */
+    public static String[] splitModelId(String modelId) {
+        if (!Util.stringExists(modelId)) return null;
+        int dash = modelId.indexOf('-');
+        if (dash > 0 && dash < modelId.length() - 1) {
+            return new String[] { modelId.substring(0, dash), modelId.substring(dash + 1) };
+        }
+        return null;
+    }
+
+    /**
+     * {@code {method, version}} of the embedding an ml-service config's
+     * {@code extract_model_id} produces, or null when it has none or it
+     * cannot be split.
+     */
+    public static String[] extractorIdentity(JSONObject mlConfig) {
+        if (mlConfig == null) return null;
+        return splitModelId(mlConfig.optString("extract_model_id", null));
     }
 
     private JSONObject ensureMatchConfig(JSONObject matchConfig, JSONObject embeddingSource,
@@ -1245,7 +1784,8 @@ public class MlServiceProcessor {
      */
     // returns true iff the deferred payload was actually queued for re-fire
     private boolean enqueueDeferredMatch(List<String> annotationIds, String parentTaskId,
-        JSONObject matchConfig, MatchVisibilityGate.GateOutcome gate) {
+        JSONObject matchConfig, MatchVisibilityGate.GateOutcome gate, boolean matchGroup,
+        boolean pinVector) {
         JSONObject payload = new JSONObject();
         // Routing flags — both required for the dispatcher to land
         // the requeue back on MlServiceProcessor's deferred entry
@@ -1257,6 +1797,10 @@ public class MlServiceProcessor {
         payload.put("annotationIds", new JSONArray(annotationIds));
         if (Util.stringExists(parentTaskId)) payload.put("taskId", parentTaskId);
         if (matchConfig != null) payload.put("matchConfig", matchConfig);
+        // Only multi-pipeline groups carry this, so single-pipeline payloads
+        // are unchanged; runDeferredMatch restores it on re-fire.
+        if (matchGroup) payload.put("matchGroup", true);
+        if (pinVector) payload.put("pinVector", true);
         // Carry __context in the payload so the dispatcher's
         // jobj.optString("__context", "context0") fallback at
         // IAGateway.java doesn't silently route the deferred-match
@@ -1329,9 +1873,50 @@ public class MlServiceProcessor {
     private static final class ConfigPair {
         final JSONObject mlConfig;
         final JSONObject matchConfig;
+        // all species-level _mlservice_conf entries (entry 0 == mlConfig)
+        final List<JSONObject> pipelines;
+        final boolean multiPipeline;
 
-        ConfigPair(JSONObject mlConfig, JSONObject matchConfig) {
+        ConfigPair(JSONObject mlConfig, JSONObject matchConfig, List<JSONObject> pipelines,
+            boolean multiPipeline) {
             this.mlConfig = mlConfig;
+            this.matchConfig = matchConfig;
+            this.pipelines = pipelines;
+            this.multiPipeline = multiPipeline;
+        }
+    }
+
+    /** One annotation persisted by a multi-pipeline detection. */
+    static final class DetectedAnnotation {
+        final String annotationId;
+        final String iaClass;
+        // {method, version} of the embedding stored with it
+        final String[] embeddingIdentity;
+        // the _mlservice_conf entry whose /pipeline/ call returned it
+        final JSONObject producedBy;
+
+        DetectedAnnotation(String annotationId, String iaClass, String[] embeddingIdentity,
+            JSONObject producedBy) {
+            this.annotationId = annotationId;
+            this.iaClass = iaClass;
+            this.embeddingIdentity = embeddingIdentity;
+            this.producedBy = producedBy;
+        }
+    }
+
+    /** Concatenated results of several /pipeline/ calls. */
+    static final class PipelineRun {
+        final JSONArray results = new JSONArray();
+        // producedBy.get(i) is the pipeline entry that returned results[i]
+        final List<JSONObject> producedBy = new ArrayList<JSONObject>();
+    }
+
+    /** Annotation ids that share one match config. */
+    static final class MatchGroup {
+        final JSONObject matchConfig;
+        final List<String> annotationIds = new ArrayList<String>();
+
+        MatchGroup(JSONObject matchConfig) {
             this.matchConfig = matchConfig;
         }
     }
@@ -1346,15 +1931,21 @@ public class MlServiceProcessor {
         // _save_as iaClass remap against the SAME taxonomy. String (not a JDO
         // Taxonomy) to avoid carrying a PM-bound object across transactions.
         final String effectiveTaxonomyString;
+        // all species-level pipelines; only iterated when multiPipeline
+        final List<JSONObject> pipelines;
+        final boolean multiPipeline;
         final MlServiceJobOutcome outcome;
 
         DetectionContext(String imageUri, String apiEndpoint, JSONObject mlConfig,
-            JSONObject matchConfig, String effectiveTaxonomyString) {
+            JSONObject matchConfig, String effectiveTaxonomyString, List<JSONObject> pipelines,
+            boolean multiPipeline) {
             this.imageUri = imageUri;
             this.apiEndpoint = apiEndpoint;
             this.mlConfig = mlConfig;
             this.matchConfig = matchConfig;
             this.effectiveTaxonomyString = effectiveTaxonomyString;
+            this.pipelines = pipelines;
+            this.multiPipeline = multiPipeline;
             this.outcome = null;
         }
 
@@ -1364,6 +1955,8 @@ public class MlServiceProcessor {
             this.mlConfig = null;
             this.matchConfig = null;
             this.effectiveTaxonomyString = null;
+            this.pipelines = null;
+            this.multiPipeline = false;
             this.outcome = outcome;
         }
 
@@ -1379,16 +1972,23 @@ public class MlServiceProcessor {
         final JSONObject matchConfig;
         final double[] bbox;
         final double theta;
+        final boolean multiPipeline;
+        final String taxonomyString;
+        final String iaClass;
         final MlServiceJobOutcome outcome;
 
         ExtractionContext(String imageUri, String apiEndpoint, JSONObject mlConfig,
-            JSONObject matchConfig, double[] bbox, double theta) {
+            JSONObject matchConfig, double[] bbox, double theta, boolean multiPipeline,
+            String taxonomyString, String iaClass) {
             this.imageUri = imageUri;
             this.apiEndpoint = apiEndpoint;
             this.mlConfig = mlConfig;
             this.matchConfig = matchConfig;
             this.bbox = bbox;
             this.theta = theta;
+            this.multiPipeline = multiPipeline;
+            this.taxonomyString = taxonomyString;
+            this.iaClass = iaClass;
             this.outcome = null;
         }
 
@@ -1399,6 +1999,9 @@ public class MlServiceProcessor {
             this.matchConfig = null;
             this.bbox = null;
             this.theta = 0.0d;
+            this.multiPipeline = false;
+            this.taxonomyString = null;
+            this.iaClass = null;
             this.outcome = outcome;
         }
 
@@ -1409,19 +2012,27 @@ public class MlServiceProcessor {
 
     private static final class PersistResult {
         final List<String> annotationIds;
+        // multi-pipeline detection only; empty otherwise
+        final List<DetectedAnnotation> detected;
         final MlServiceJobOutcome outcome;
 
-        private PersistResult(List<String> annotationIds, MlServiceJobOutcome outcome) {
+        private PersistResult(List<String> annotationIds, List<DetectedAnnotation> detected,
+            MlServiceJobOutcome outcome) {
             this.annotationIds = annotationIds;
+            this.detected = detected;
             this.outcome = outcome;
         }
 
         static PersistResult ok(List<String> annotationIds) {
-            return new PersistResult(annotationIds, null);
+            return new PersistResult(annotationIds, new ArrayList<DetectedAnnotation>(), null);
+        }
+
+        static PersistResult ok(List<String> annotationIds, List<DetectedAnnotation> detected) {
+            return new PersistResult(annotationIds, detected, null);
         }
 
         static PersistResult done(MlServiceJobOutcome outcome) {
-            return new PersistResult(null, outcome);
+            return new PersistResult(null, null, outcome);
         }
     }
 }

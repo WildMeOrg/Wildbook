@@ -108,8 +108,8 @@ class MlServiceProcessorGateTest {
             new StubGate(MatchVisibilityGate.GateOutcome.defer(
                 2, firstDeferred, "sibling MA non-terminal")), failingPublisher) {
             @Override boolean readSkipIdent(String taskId) { return false; }
-            @Override public MlServiceJobOutcome runMatchProspects(List<String> annotationIds,
-                String taskId, JSONObject matchConfig) {
+            @Override MlServiceJobOutcome runMatchProspects(List<String> annotationIds,
+                String taskId, JSONObject matchConfig, boolean matchGroup, boolean pinVector) {
                 matchedTaskIds.add(taskId);
                 return MlServiceJobOutcome.ok(new ArrayList<String>(annotationIds));
             }

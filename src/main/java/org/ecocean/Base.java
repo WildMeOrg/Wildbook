@@ -262,11 +262,6 @@ import org.json.JSONObject;
         return res;
     }
 
-    // this is so we can call it on Base obj, but really is only needed by [overridden by] Encounter (currently)
-    public boolean getOpensearchProcessPermissions() {
-        return false;
-    }
-
     public static Map<String, Long> getAllVersions(Shepherd myShepherd, String sql) {
         Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         Map<String, Long> rtn = new HashMap<String, Long>();
@@ -303,6 +298,7 @@ import org.json.JSONObject;
             return rtn;
         }
         rtn = opensearchDocumentAsJSONObject(myShepherd);
+        rtn.remove("viewUsers"); // index-internal ACL: never part of an API document
         rtn.put("success", true);
         rtn.put("statusCode", 200);
         return rtn;

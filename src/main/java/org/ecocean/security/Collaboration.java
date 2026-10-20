@@ -175,12 +175,12 @@ public class Collaboration implements java.io.Serializable {
     @SuppressWarnings("unchecked")
     public static List<Collaboration> persistedCollaborationsForUser(Shepherd myShepherd,
         String username) {
-        String queryString =
-            "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username +
-            "') || (username2 == '" + username + "'))";
-        Query query = myShepherd.getPM().newQuery(queryString);
+        // parameterized: this runs on every encounter/annotation/individual index write, and a
+        // username with a quote must not break the query (and empty the owner's ACL)
+        Query query = myShepherd.getPM().newQuery(Collaboration.class);
         try {
-            Collection c = (Collection)(query.execute());
+            query.setFilter("username1 == :u || username2 == :u");
+            Collection c = (Collection)query.execute(username);
             return new ArrayList<Collaboration>(c);
         } finally {
             query.closeAll();
@@ -476,6 +476,8 @@ public class Collaboration implements java.io.Serializable {
 
     public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
         if (enc != null && enc.getSubmitterID() == null) return true;
+        // location-based role (a Role named after the encounter's locationID or an ancestor)
+        if (LocationRoleAccess.requestHasLocationRole(request, enc.getLocationID())) return true;
         // System.out.println("canUserAccessEncounter(Encounter enc, HttpServletRequest request)");
         return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
     }
@@ -484,8 +486,40 @@ public class Collaboration implements java.io.Serializable {
         String owner = enc.getAssignedUsername();
 
         if (User.isUsernameAnonymous(owner)) return true; // anon-owned is "fair game" to anyone
+        if (userHasLocationRole(enc, context, username)) return true;
         // System.out.println("canUserAccessEncounter(Encounter enc, String context, String username)");
         return canCollaborate(context, username, owner);
+    }
+
+    // same rule as above, reusing the caller's Shepherd for the location-role lookup
+    public static boolean canUserAccessEncounter(Encounter enc, String username,
+        Shepherd myShepherd) {
+        if ((enc == null) || (username == null) || (myShepherd == null)) return false;
+        String owner = enc.getAssignedUsername();
+        if (User.isUsernameAnonymous(owner)) return true; // anon-owned is "fair game" to anyone
+        if (LocationRoleAccess.userHasLocationRole(username, enc.getLocationID(), myShepherd))
+            return true;
+        return canCollaborate(myShepherd.getContext(), username, owner);
+    }
+
+    // location-based role lookup on a short-lived Shepherd, closed before any collaboration
+    // lookup opens its own (see collaborationBetweenUsers)
+    private static boolean userHasLocationRole(Encounter enc, String context, String username) {
+        if ((enc == null) || (username == null)) return false;
+        if (LocationRoleAccess.roleNamesFor(enc.getLocationID()).isEmpty()) return false;
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("Collaboration.userHasLocationRole");
+        try {
+            myShepherd.beginDBTransaction();
+            return LocationRoleAccess.userHasLocationRole(username, enc.getLocationID(),
+                    myShepherd);
+        } catch (Exception ex) {
+            System.out.println("Collaboration.userHasLocationRole failed for " + username +
+                " on " + enc.getCatalogNumber() + ": " + ex);
+            return false;
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
     }
 
     public static boolean canUserViewOccurrence(Occurrence occ, User user, Shepherd myShepherd) {
