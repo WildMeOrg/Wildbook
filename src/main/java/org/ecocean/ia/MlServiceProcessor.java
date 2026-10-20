@@ -235,7 +235,8 @@ public class MlServiceProcessor {
             allIds.addAll(group.annotationIds);
             MlServiceJobOutcome outcome;
             try {
-                outcome = waitAndRunMatch(group.annotationIds, taskId, group.matchConfig, true);
+                outcome = waitAndRunMatch(group.annotationIds, taskId, group.matchConfig, true,
+                    true);
             } catch (RuntimeException ex) {
                 // e.g. a failing error-marker inside runMatchProspects' catch;
                 // never let one group stop the others from being matched.
@@ -390,7 +391,7 @@ public class MlServiceProcessor {
             matchConfig = ensureMatchConfig(ext.matchConfig, response, ext.mlConfig);
         }
         MlServiceJobOutcome matchOutcome = waitAndRunMatch(persisted.annotationIds, taskId,
-            matchConfig);
+            matchConfig, false, ext.multiPipeline);
         if (matchOutcome != null) return matchOutcome;
         return MlServiceJobOutcome.ok(persisted.annotationIds);
     }
@@ -913,7 +914,7 @@ public class MlServiceProcessor {
 
     private MlServiceJobOutcome waitAndRunMatch(List<String> annotationIds, String taskId,
         JSONObject matchConfig) {
-        return waitAndRunMatch(annotationIds, taskId, matchConfig, false);
+        return waitAndRunMatch(annotationIds, taskId, matchConfig, false, false);
     }
 
     /**
@@ -921,14 +922,17 @@ public class MlServiceProcessor {
      *        share {@code taskId} (multi-pipeline detection). A group then
      *        never writes a stale status onto the shared parent task, so it
      *        cannot overwrite a sibling group's error or mask its success.
+     * @param pinVector true when {@code matchConfig} is the one embedding space
+     *        resolveMultiPipelineMatchConfig resolved for these annotations
+     *        (multi-pipeline species): vector matching is pinned to it.
      */
     private MlServiceJobOutcome waitAndRunMatch(List<String> annotationIds, String taskId,
-        JSONObject matchConfig, boolean matchGroup) {
+        JSONObject matchConfig, boolean matchGroup, boolean pinVector) {
         // Initial invocation: attempt=1, firstDeferredAt=null (the
         // gate stamps `now` so age-out is measured from this first
         // call, not from later re-fires).
         return waitAndRunMatchInternal(annotationIds, taskId, matchConfig, 1, null,
-            matchGroup);
+            matchGroup, pinVector);
     }
 
     /**
@@ -953,7 +957,7 @@ public class MlServiceProcessor {
      */
     private MlServiceJobOutcome waitAndRunMatchInternal(List<String> annotationIds,
         String taskId, JSONObject matchConfig, int attempt, Long firstDeferredAt,
-        boolean matchGroup) {
+        boolean matchGroup, boolean pinVector) {
         if (readSkipIdent(taskId)) {
             System.out.println(
                 "NOTICE: MlServiceProcessor skipped identification for task " + taskId +
@@ -964,9 +968,9 @@ public class MlServiceProcessor {
             annotationIds, taskId, matchConfig, attempt, firstDeferredAt);
         switch (gate.kind) {
           case READY:
-            return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup);
+            return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup, pinVector);
           case DEFER:
-            enqueueDeferredMatch(annotationIds, taskId, matchConfig, gate, matchGroup);
+            enqueueDeferredMatch(annotationIds, taskId, matchConfig, gate, matchGroup, pinVector);
             return MlServiceJobOutcome.ok(annotationIds);
           case GIVE_UP:
           default:
@@ -975,7 +979,7 @@ public class MlServiceProcessor {
                 " after attempt=" + gate.attempt + " elapsed=" +
                 gate.elapsedMillis + "ms reason=" + gate.reason +
                 "; running match against current visible corpus");
-            return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup);
+            return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup, pinVector);
         }
     }
 
@@ -1006,8 +1010,10 @@ public class MlServiceProcessor {
         // Re-gate; deferred match earns the same protection as the
         // initial call (Codex round-2 Major: don't degrade back to
         // today's bug on the first deferral).
+        // payloads deferred before pinVector existed: only multi-pipeline groups set matchGroup
+        boolean matchGroup = jobData.optBoolean("matchGroup", false);
         return waitAndRunMatchInternal(annotationIds, taskId, matchConfig,
-            attempt, firstDeferredAt, jobData.optBoolean("matchGroup", false));
+            attempt, firstDeferredAt, matchGroup, jobData.optBoolean("pinVector", matchGroup));
     }
 
     /** Package-private seam so tests can substitute a Shepherd whose checked commit fails. */
@@ -1075,6 +1081,14 @@ public class MlServiceProcessor {
 
     MlServiceJobOutcome runMatchProspects(List<String> annotationIds, String taskId,
         JSONObject matchConfig, boolean matchGroup) {
+        return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup, matchGroup);
+    }
+
+    /**
+     * {@code pinVector}: see {@link #waitAndRunMatch(List, String, JSONObject, boolean, boolean)}.
+     */
+    MlServiceJobOutcome runMatchProspects(List<String> annotationIds, String taskId,
+        JSONObject matchConfig, boolean matchGroup, boolean pinVector) {
         if (annotationIds == null || annotationIds.isEmpty()) {
             if (!matchGroup) markTaskCompleted(taskId);
             return MlServiceJobOutcome.ok(new ArrayList<String>());
@@ -1113,16 +1127,9 @@ public class MlServiceProcessor {
             }
             parentId = parent.getId();
             Map<String, String> annToEnc = new HashMap<String, String>();
-            // annotations of a multi-pipeline species match only in the embedding space
-            // resolveMultiPipelineMatchConfig resolved into matchConfig (detection and extraction)
-            Set<String> pinnedAnns = new HashSet<String>();
-            IAJsonProperties iac = IAJsonProperties.iaConfig();
             for (Annotation ann : anns) {
                 Encounter enc = ann.findEncounter(shep);
                 annToEnc.put(ann.getId(), (enc == null) ? null : enc.getCatalogNumber());
-                String taxonomy = (enc == null) ? null : enc.getTaxonomyString();
-                if ((iac != null) && Util.stringExists(taxonomy) &&
-                    iac.isMultiPipeline(new Taxonomy(taxonomy))) pinnedAnns.add(ann.getId());
             }
             List<List<Annotation> > groups = groupByEncounter(anns, annToEnc);
             JSONObject inherited = matchIntakeParams(parent.getParameters());
@@ -1136,8 +1143,7 @@ public class MlServiceProcessor {
             int noWorkGroups = 0;
             for (List<Annotation> group : groups) {
                 IA.IntakeOutcome o = IA.intakeAnnotationsUnder(shep, group, parent, inherited, false,
-                    (matchConfig == null) ? new JSONObject() : matchConfig,
-                    pinnedAnns.contains(group.get(0).getId()));
+                    (matchConfig == null) ? new JSONObject() : matchConfig, pinVector);
                 if (o == null) {
                     failureCode = "MATCH_PERSIST";
                     failureMessage = "no identification run for annotations " + annotationIdList(group);
@@ -1718,7 +1724,8 @@ public class MlServiceProcessor {
      * {@code lastGateReason} (Codex round-2 #6 diagnostic).</p>
      */
     private void enqueueDeferredMatch(List<String> annotationIds, String parentTaskId,
-        JSONObject matchConfig, MatchVisibilityGate.GateOutcome gate, boolean matchGroup) {
+        JSONObject matchConfig, MatchVisibilityGate.GateOutcome gate, boolean matchGroup,
+        boolean pinVector) {
         JSONObject payload = new JSONObject();
         // Routing flags — both required for the dispatcher to land
         // the requeue back on MlServiceProcessor's deferred entry
@@ -1733,6 +1740,7 @@ public class MlServiceProcessor {
         // Only multi-pipeline groups carry this, so single-pipeline payloads
         // are unchanged; runDeferredMatch restores it on re-fire.
         if (matchGroup) payload.put("matchGroup", true);
+        if (pinVector) payload.put("pinVector", true);
         // Carry __context in the payload so the dispatcher's
         // jobj.optString("__context", "context0") fallback at
         // IAGateway.java doesn't silently route the deferred-match

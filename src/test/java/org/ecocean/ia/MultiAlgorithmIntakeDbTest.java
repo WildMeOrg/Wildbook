@@ -306,7 +306,7 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
     /**
      * A multi-pipeline species (docs/plans/2026-10-16-mlservice-multi-config.md) matches in the
      * embedding space MlServiceProcessor resolved for the annotation, which can differ from the
-     * class's configured vector option. Extraction calls runMatchProspects as no match group.
+     * class's configured vector option. Extraction pins without being a match group.
      */
     @Test void multiPipelineSpeciesMatchesInItsResolvedEmbeddingSpace() throws Exception {
         Shepherd sh = open("fixture");
@@ -315,7 +315,7 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
         List<String> ids = annotationIds(e1);
         sh.commitDBTransaction();
         sh.closeDBTransaction();
-        MlServiceJobOutcome out = processor().runMatchProspects(ids, d.getId(), petSpace(), false);
+        MlServiceJobOutcome out = processor().runMatchProspects(ids, d.getId(), petSpace(), false, true);
         assertEquals(MlServiceJobOutcome.Kind.OK, out.getKind());
 
         Shepherd check = open("check");
@@ -331,7 +331,7 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
         }
     }
 
-    @Test void singlePipelineSpeciesKeepsItsConfiguredVectorOption() throws Exception {
+    @Test void unpinnedMatchKeepsTheConfiguredVectorOption() throws Exception {
         Shepherd sh = open("fixture");
         Encounter e1 = guitarfish(sh, BODY);
         Task d = detectionTask(sh, nextImportId());
@@ -339,13 +339,13 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
         sh.commitDBTransaction();
         sh.closeDBTransaction();
         assertEquals(MlServiceJobOutcome.Kind.OK,
-            processor().runMatchProspects(ids, d.getId(), petSpace(), true).getKind());
+            processor().runMatchProspects(ids, d.getId(), petSpace(), false, false).getKind());
 
         Shepherd check = open("check");
         try {
             Task u = childrenOf(Task.load(d.getId(), check)).get(0);
             JSONObject ident = optionOf(u, true, BODY).getParameters().getJSONObject("ibeis.identification");
-            assertEquals("msv4_v3", ident.getString("version"), "only filled, never pinned");
+            assertEquals("msv4_v3", ident.getString("version"), "unpinned: only filled");
         } finally {
             check.rollbackAndClose();
         }
