@@ -70,7 +70,7 @@ class AnnotationMiewIDScoreTest {
         org.ecocean.Annotation ann = new org.ecocean.Annotation();
         // Embedding constructor auto-attaches to the annotation.
         org.json.JSONArray vec = new org.json.JSONArray();
-        for (int i = 0; i < 8; i++) vec.put(0.1d * i);
+        for (int i = 0; i < 2152; i++) vec.put(0.1d * (i % 8));
         new org.ecocean.Embedding(ann, "miewid-msv4.1", "4.1", vec);
 
         org.json.JSONObject matchingSet = new org.json.JSONObject();
@@ -118,7 +118,7 @@ class AnnotationMiewIDScoreTest {
         // rather than carrying empty term clauses.
         org.ecocean.Annotation ann = new org.ecocean.Annotation();
         org.json.JSONArray vec = new org.json.JSONArray();
-        for (int i = 0; i < 8; i++) vec.put(0.1d * i);
+        for (int i = 0; i < 2152; i++) vec.put(0.1d * (i % 8));
         new org.ecocean.Embedding(ann, null, null, vec);
 
         org.json.JSONObject matchingSet = new org.json.JSONObject();
