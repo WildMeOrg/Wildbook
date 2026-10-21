@@ -84,7 +84,6 @@ try {
   }
   if (committing) {
     myShepherd.commitDBTransaction();
-    OpenSearch.setPermissionsNeeded(true);
   }
   myShepherd.closeDBTransaction();
   %>

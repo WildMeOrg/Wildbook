@@ -35,10 +35,10 @@ import org.mockito.invocation.InvocationOnMock;
  * while the object's PersistenceManager has an active transaction and releases it when that
  * transaction completes. The objects here are transient (no PersistenceManager), so they take the
  * immediate fallback and land on the (id, class, unindex) overload -- same request, different
- * signature. The two tests at the bottom pin the parked path with a stubbed PersistenceManager.
+ * signature. The test at the bottom pins the parked path with a stubbed PersistenceManager.
  *
- * The ACL-propagation path inside Encounter.opensearchIndexPermissions() requires a live
- * Shepherd + OpenSearch and is covered by the Task 9 integration test, not here.
+ * The ACL copies the children carry are verified and repaired by the scheduled permissions
+ * audit (org.ecocean.security.PermissionsAudit), covered by its own integration test, not here.
  */
 class ChildReindexTriggerTest {
 
@@ -188,25 +188,5 @@ class ChildReindexTriggerTest {
         verify(im, never()).addIndexingQueueEntry(any(Base.class), anyBoolean());
         verify(im, never()).addIndexingQueueEntry(anyString(), any(), anyBoolean());
         assertEquals(1, parked(pm));
-    }
-
-    // The permissions pass runs in a read transaction that is ROLLED BACK at the end; parking
-    // there would drop the request. It uses the Now flavor, which enqueues immediately.
-    @Test void enqueueAclReindexNow_enqueuesImmediatelyEvenInsideATransaction() {
-        PersistenceManager pm = preparedPm();
-        Encounter enc = new Encounter();
-        enc.setSkipAutoIndexing(false);
-        enc.setCatalogNumber("enc-now");
-
-        IndexingManager im = mock(IndexingManager.class);
-        try (MockedStatic<IndexingManagerFactory> factory = mockStatic(IndexingManagerFactory.class);
-            MockedStatic<OpenSearch> os = mockNoGlobalSkip();
-            MockedStatic<JDOHelper> jdo = mockStatic(JDOHelper.class)) {
-            factory.when(IndexingManagerFactory::getIndexingManager).thenReturn(im);
-            jdo.when(() -> JDOHelper.getPersistenceManager(enc)).thenReturn(pm);
-            enc.enqueueAclReindexNow();
-        }
-        verify(im).addIndexingQueueEntry(eq("enc-now"), eq(Encounter.class), eq(false));
-        assertEquals(0, parked(pm));
     }
 }

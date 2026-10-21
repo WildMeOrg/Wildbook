@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import org.ecocean.Embedding;
 import org.ecocean.RestClient;
 import org.ecocean.Util;
 
@@ -220,6 +221,11 @@ public class MlServiceClient {
         if (emb.length() == 0)
             throw new IAException("INVALID",
                 context + " embedding array is empty", false, false);
+        // OpenSearch has a knn_vector field only for these lengths; anything else is unmatchable
+        if (!Embedding.isSupportedLength(emb.length()))
+            throw new IAException("INVALID",
+                context + " embedding length " + emb.length() + " is not a supported length " +
+                Embedding.VECTOR_FIELDS.keySet(), false, false);
         for (int j = 0; j < emb.length(); j++) {
             double v = emb.optDouble(j, Double.NaN);
             if (!isFiniteDouble(v))

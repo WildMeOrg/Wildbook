@@ -83,12 +83,47 @@ const MatchResultsBottomBar = observer(
       await store.handleMerge();
     };
 
+    const renderQueryLinks = (idPrefix) => {
+      const encId = store.encounterId || "";
+      const linkStyle = { color: themeColor.primaryColors.primary500 };
+
+      return (
+        <>
+          <a
+            id={`${idPrefix}-encounter-link`}
+            data-testid={`${idPrefix}-encounter-link`}
+            href={`/react/encounter?number=${encodeURIComponent(encId)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-decoration-none"
+            style={linkStyle}
+          >
+            <FormattedMessage id="ENCOUNTER" /> {encId.slice(0, 5)}
+          </a>
+          {store.individualId && (
+            <>
+              {" ("}
+              <a
+                id={`${idPrefix}-individual-link`}
+                data-testid={`${idPrefix}-individual-link`}
+                href={`/individuals.jsp?id=${encodeURIComponent(store.individualId)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-decoration-none"
+                style={linkStyle}
+              >
+                {store.individualDisplayName || store.individualId}
+              </a>
+              {")"}
+            </>
+          )}
+        </>
+      );
+    };
+
     const getActionContent = () => {
       switch (matchingState) {
         case "no_individuals": {
-          const encId = store.encounterId || "";
-          const shortEncId = encId.slice(0, 5);
-
           const left = (
             <div
               className="text-truncate"
@@ -97,37 +132,7 @@ const MatchResultsBottomBar = observer(
               data-testid="match-bottombar-left-no-individuals"
             >
               <FormattedMessage id="SET_MATCH_FOR" />{" "}
-              {store.individualDisplayName ? (
-                <a
-                  id="match-bottombar-individual-link"
-                  data-testid="match-bottombar-individual-link"
-                  href={`/individuals.jsp?id=${encodeURIComponent(
-                    store.individualId,
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-decoration-none"
-                  style={{
-                    color: themeColor.primaryColors.primary500,
-                  }}
-                >
-                  {store.individualDisplayName}
-                </a>
-              ) : (
-                <a
-                  id="match-bottombar-encounter-link"
-                  data-testid="match-bottombar-encounter-link"
-                  href={`/react/encounter?number=${encodeURIComponent(encId)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-decoration-none"
-                  style={{
-                    color: themeColor.primaryColors.primary500,
-                  }}
-                >
-                  {"encounter"} {shortEncId}
-                </a>
-              )}{" "}
+              {renderQueryLinks("match-bottombar")}{" "}
               <FormattedMessage id="OR_CHOOSE_FROM_RESULTS_BELOW" />
             </div>
           );
@@ -390,9 +395,6 @@ const MatchResultsBottomBar = observer(
 
         case "no_further_action_needed":
           if (store.selectedMatch.length === 0) {
-            const encId = store.encounterId || "";
-            const shortEncId = encId.slice(0, 5);
-
             return {
               left: (
                 <div
@@ -402,37 +404,7 @@ const MatchResultsBottomBar = observer(
                   data-testid="match-bottombar-left-no-action-empty-selection"
                 >
                   <FormattedMessage id="SET_MATCH_FOR" />{" "}
-                  {store.individualDisplayName ? (
-                    <a
-                      id="match-bottombar-no-action-individual-link"
-                      data-testid="match-bottombar-no-action-individual-link"
-                      href={`/individuals.jsp?id=${encodeURIComponent(
-                        store.individualId,
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-decoration-none"
-                      style={{
-                        color: themeColor.primaryColors.primary500,
-                      }}
-                    >
-                      {store.individualDisplayName}
-                    </a>
-                  ) : (
-                    <a
-                      id="match-bottombar-no-action-encounter-link"
-                      data-testid="match-bottombar-no-action-encounter-link"
-                      href={`/react/encounter?number=${encodeURIComponent(encId)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-decoration-none"
-                      style={{
-                        color: themeColor.primaryColors.primary500,
-                      }}
-                    >
-                      {"encounter"} {shortEncId}
-                    </a>
-                  )}
+                  {renderQueryLinks("match-bottombar-no-action")}
                 </div>
               ),
               right: null,

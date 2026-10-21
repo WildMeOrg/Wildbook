@@ -525,6 +525,13 @@ public class CommonConfiguration {
         return maxSize;
     }
 
+    // Caps a single chunked-upload request. Unlike maxMediaSize (a per-media-file limit the UI
+    // enforces), this bounds what the multipart parser will accept in one POST.
+    public static long getUploadChunkMaxBytes(String context) {
+        return org.ecocean.resumableupload.UploadPaths.maxUploadBytes(
+            getProperty("uploadChunkMaxMegabytes", context), 64);
+    }
+
     // Refer to PhotoUploadDevNotes.md for information/where else to change
     public static int getMaxMediaCountEncounter(String context) {
         int maxCount = 200;

@@ -43,10 +43,18 @@ jest.mock(
   "../../../pages/MatchResultsPage/components/MatchProspectTable",
   () => {
     const React = require("react");
-    function MatchProspectTable({ taskId, columns, onToggleSelected }) {
+    function MatchProspectTable({
+      taskId,
+      columns,
+      onToggleSelected,
+      thisEncounterId,
+    }) {
       return React.createElement(
         "div",
-        { "data-testid": "prospect-table-" + taskId },
+        {
+          "data-testid": "prospect-table-" + taskId,
+          "data-this-encounter-id": thisEncounterId || "",
+        },
         (columns || []).flat().map(function (col, i) {
           return React.createElement(
             "button",
@@ -238,6 +246,13 @@ describe("MatchResults component", () => {
     expect(
       await screen.findByTestId("prospect-table-task-1"),
     ).toBeInTheDocument();
+  });
+
+  test("passes the query encounter id to MatchProspectTable", async () => {
+    axios.get.mockResolvedValueOnce({ data: makeApiResponse() });
+    renderComponent();
+    const table = await screen.findByTestId("prospect-table-task-1");
+    expect(table).toHaveAttribute("data-this-encounter-id", "enc-query");
   });
 
   test("forwards the section's taskId when a prospect is toggled (issue #1744)", async () => {

@@ -527,9 +527,10 @@ public class ServletUtilities {
                 // check other cases
                 // ----------------
                 // if the current user has a location ID-specific role matching the location ID
-                // of this Encounter, they are authorized
-                if (!isOwner && enc.getLocationCode() != null &&
-                    request.isUserInRole(enc.getLocationCode())) {
+                // of this Encounter (or an ancestor of it in the locationID tree), they are
+                // authorized -- same rule as the API/React checks, see LocationRoleAccess
+                if (!isOwner && org.ecocean.security.LocationRoleAccess.requestHasLocationRole(
+                    request, enc.getLocationCode())) {
                     isOwner = true;
                 }
                 // if the current user is in a collaboration with the Encounter owner
