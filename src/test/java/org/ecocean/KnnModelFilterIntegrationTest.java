@@ -15,7 +15,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.Request;
-import org.opensearch.client.ResponseException;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.junit.jupiter.Container;
@@ -24,11 +23,10 @@ import org.testcontainers.utility.DockerImageName;
 
 /**
  * Real-OpenSearch coverage for filtering by model INSIDE the knn clause: when several models'
- * vectors share one field, all k neighbours must come from the query's model. `current` runs the
- * default engine of the image under test (default the fleet's pinned 3.1.0; run also with
- * -Dwildbook.test.opensearchImage=opensearchproject/opensearch:2.19.1). `legacy` is pinned to
- * 2.17.1, whose default engine for these methodless fields (NMSLIB) cannot filter inside knn, to
- * cover the post-filter fallback.
+ * vectors share one field, all k neighbours must come from the query's model. The image defaults
+ * to the fleet's pinned 3.1.0; run also with
+ * -Dwildbook.test.opensearchImage=opensearchproject/opensearch:2.19.1 (the oldest release whose
+ * default engine for these methodless fields, faiss, filters inside knn).
  */
 @Testcontainers class KnnModelFilterIntegrationTest {
 
@@ -38,8 +36,6 @@ import org.testcontainers.utility.DockerImageName;
 
     @Container static GenericContainer<?> current = container(System.getProperty(
         "wildbook.test.opensearchImage", "opensearchproject/opensearch:3.1.0"));
-    @Container static GenericContainer<?> legacy = container(
-        "opensearchproject/opensearch:2.17.1");
 
     private static GenericContainer<?> container(String image) {
         return new GenericContainer<>(DockerImageName.parse(image))
@@ -59,7 +55,7 @@ import org.testcontainers.utility.DockerImageName;
     private float[] query;
     private final Map<String, float[]> modelB = new HashMap<String, float[]>();
 
-    // re-point the shared client at a container (also clears the per-field engine record)
+    // point the shared client at the container, with no annotation index
     private void connect(GenericContainer<?> c) throws Exception {
         OpenSearch.initializeClient(new HttpHost(c.getHost(), c.getMappedPort(9200), "http"));
         OpenSearch.INDEX_EXISTS_CACHE.clear();
@@ -167,6 +163,25 @@ import org.testcontainers.utility.DockerImageName;
         return q;
     }
 
+    // the pre-change shape of a getMatchQuery() query: the knn clause's filter moved beside it,
+    // where it only post-filters the k neighbours already chosen
+    private static JSONObject postFiltered(JSONObject matchQuery) {
+        JSONObject copy = new JSONObject(matchQuery.toString());
+        JSONObject nestedBool = copy.getJSONObject("query").getJSONObject("bool")
+            .getJSONArray("must").getJSONObject(0).getJSONObject("nested").getJSONObject("query")
+            .getJSONObject("bool");
+        JSONObject knnField = nestedBool.getJSONArray("must").getJSONObject(0)
+            .getJSONObject("knn").getJSONObject(FIELD);
+        nestedBool.put("filter", knnField.getJSONObject("filter").getJSONObject("bool")
+            .getJSONArray("filter"));
+        knnField.remove("filter");
+        return copy;
+    }
+
+    private Map<String, Double> search(JSONObject q) throws IOException {
+        return hits(os.querySearch(INDEX, q, 0, 100));
+    }
+
     private static Map<String, Double> hits(JSONObject res) {
         Map<String, Double> out = new HashMap<String, Double>();
         JSONArray hits = res.getJSONObject("hits").getJSONArray("hits");
@@ -219,9 +234,8 @@ import org.testcontainers.utility.DockerImageName;
 
         long graphQueries = knnStat("graph_query_requests");
         long filteredQueries = knnStat("knn_query_with_filter_requests");
-        Map<String, Double> h = hits(Annotation.searchMatchQuery(os, q, 100));
+        Map<String, Double> h = search(q);
         assertAllKFromModelB(h, false);
-        assertTrue(OpenSearch.KNN_FILTER_UNSUPPORTED.isEmpty(), "no fallback on this engine");
         assertTrue(knnStat("knn_query_with_filter_requests") > filteredQueries,
             "ran as a filtered knn query");
         assertTrue(knnStat("graph_query_requests") > graphQueries,
@@ -229,17 +243,17 @@ import org.testcontainers.utility.DockerImageName;
         // this small eligible set takes the exact path by default, which keeps the dual docs
         rest("PUT", "/" + INDEX + "/_settings",
             "{\"index.knn.advanced.filtered_exact_search_threshold\": null}");
-        assertAllKFromModelB(hits(Annotation.searchMatchQuery(os, q, 100)), true);
+        assertAllKFromModelB(search(q), true);
 
         // the post-filter shape on the same data loses the B slots to model A's nearer vectors
-        Map<String, Double> post = hits(os.querySearch(INDEX, Annotation.withKnnPostFilter(q), 0, 100));
+        Map<String, Double> post = search(postFiltered(q));
         assertTrue(post.size() < Annotation.KNN_K_DISTANCE_VALUE,
             "post-filter returned " + post.size());
 
         // fewer eligible than k: all of them; none eligible: nothing
         assertEquals(new HashSet<String>(java.util.Arrays.asList("c0", "c1", "c2")),
-            hits(Annotation.searchMatchQuery(os, matchQuery("C"), 100)).keySet());
-        assertEquals(0, hits(Annotation.searchMatchQuery(os, matchQuery("Z"), 100)).size());
+            search(matchQuery("C")).keySet());
+        assertEquals(0, search(matchQuery("Z")).size());
     }
 
     @Test void luceneEngine_allNeighboursFromTheQueryModel() throws Exception {
@@ -254,51 +268,8 @@ import org.testcontainers.utility.DockerImageName;
             "\"filter\": [\"lowercase\", \"asciifolding\"]}}}")))).put("mappings",
             new JSONObject().put("properties", mapping)).toString(), 400, 200, 4);
         long filteredQueries = knnStat("knn_query_with_filter_requests");
-        assertAllKFromModelB(hits(Annotation.searchMatchQuery(os, matchQuery("B"), 100)), true);
+        assertAllKFromModelB(search(matchQuery("B")), true);
         assertTrue(knnStat("knn_query_with_filter_requests") > filteredQueries,
             "ran as a filtered knn query");
-    }
-
-    @Test void unrelatedBadRequest_isThrown_notCached() throws Exception {
-        connect(current);
-        load(null, 20, 20, 0);
-        JSONObject q = matchQuery("B");
-        // corrupt the knn filter so OpenSearch rejects the query for a different reason
-        q.getJSONObject("query").getJSONObject("bool").getJSONArray("must").getJSONObject(0)
-            .getJSONObject("nested").getJSONObject("query").getJSONObject("bool")
-            .getJSONArray("must").getJSONObject(0).getJSONObject("knn").getJSONObject(FIELD)
-            .put("filter", new JSONObject().put("bool", new JSONObject().put("filter",
-            new JSONArray().put(new JSONObject().put("no_such_query", new JSONObject())))));
-        ResponseException ex = assertThrows(ResponseException.class,
-            () -> Annotation.searchMatchQuery(os, q, 100));
-        assertEquals(400, ex.getResponse().getStatusLine().getStatusCode());
-        assertTrue(OpenSearch.KNN_FILTER_UNSUPPORTED.isEmpty());
-    }
-
-    @Test void nmslibEngine_fallsBackToPostFilter_perField() throws Exception {
-        connect(legacy);
-        load(null, 40, 10, 0);
-        JSONObject q = matchQuery("B");
-        Map<String, Double> expected = hits(os.querySearch(INDEX, Annotation.withKnnPostFilter(q),
-            0, 100));
-
-        // first search: the engine rejects the knn filter, the field is recorded, retried post-filtered
-        assertEquals(expected, hits(Annotation.searchMatchQuery(os, q, 100)));
-        assertEquals(java.util.Collections.singleton(FIELD), OpenSearch.KNN_FILTER_UNSUPPORTED);
-        // later queries on that field are built post-filtered from the start
-        JSONObject next = matchQuery("B");
-        assertNull(Annotation.withKnnPostFilter(next), "no knn filter once recorded: " + next);
-        assertEquals(expected, hits(Annotation.searchMatchQuery(os, next, 100)));
-
-        // a recreated index gets the current default engine, so the record is dropped; a search
-        // still in flight records into the retired set it started with, not the new one
-        java.util.Set<String> retired = OpenSearch.KNN_FILTER_UNSUPPORTED;
-        os.deleteIndex(INDEX);
-        assertTrue(OpenSearch.KNN_FILTER_UNSUPPORTED.isEmpty());
-        retired.add("embeddings.late");
-        assertFalse(OpenSearch.KNN_FILTER_UNSUPPORTED.contains("embeddings.late"));
-        OpenSearch.KNN_FILTER_UNSUPPORTED.add(FIELD);
-        connect(current); // and it is per cluster
-        assertTrue(OpenSearch.KNN_FILTER_UNSUPPORTED.isEmpty());
     }
 }
