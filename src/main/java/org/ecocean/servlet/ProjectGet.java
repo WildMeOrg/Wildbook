@@ -119,7 +119,7 @@ public class ProjectGet extends HttpServlet {
                 for (int i = 0; i < individualIdJSONArr.length(); i++) {
                     JSONObject individualIdObj = individualIdJSONArr.getJSONObject(i);
                     String individualId = individualIdObj.optString("indId", null);
-                    if (Util.isUUID(individualId) && Util.stringExists(projectIdPrefix)) {
+                    if (Util.stringExists(individualId) && Util.stringExists(projectIdPrefix)) {
                         JSONObject individualData = new JSONObject();
                         individualData.put("projectIdPrefix", projectIdPrefix);
                         successStatus = true;
