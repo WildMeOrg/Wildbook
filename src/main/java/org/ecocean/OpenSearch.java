@@ -57,6 +57,9 @@ public class OpenSearch {
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new ConcurrentHashMap<String, Boolean>();
     // indexes known to have every vector field of their mapping (created or upgraded by this JVM)
     private static final Set<String> VECTOR_FIELDS_READY = ConcurrentHashMap.newKeySet();
+    // annotation knn field paths ("embeddings.<field>") whose engine rejected a filter inside knn
+    // (see Annotation.searchMatchQuery)
+    static final Set<String> KNN_FILTER_UNSUPPORTED = ConcurrentHashMap.newKeySet();
     // ConcurrentHashMap: PIT_CACHE is read/mutated from concurrent request threads (SearchApi,
     // EncounterQueryProcessor, MediaResolveApi) and, once IA match consumers can run concurrently,
     // from those too. This only removes the structural-corruption hazard of an unsynchronized
@@ -211,6 +214,7 @@ public class OpenSearch {
 
         client = new OpenSearchClient(transport);
         VECTOR_FIELDS_READY.clear(); // known only for the cluster we were connected to
+        KNN_FILTER_UNSUPPORTED.clear();
     }
 
     // Stateless single-page search (no PIT, no shared static state) -- safe under concurrency.
@@ -659,6 +663,8 @@ public class OpenSearch {
         client.indices().delete(deleteIndexRequest);
         INDEX_EXISTS_CACHE.remove(indexName);
         VECTOR_FIELDS_READY.remove(indexName);
+        // a recreated annotation index gets the current default engine
+        if (indexName.equals("annotation")) KNN_FILTER_UNSUPPORTED.clear();
         System.out.println(indexName + " OpenSearch index deleted");
     }
 

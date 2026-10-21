@@ -23,6 +23,7 @@ import org.ecocean.media.FeatureType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.shepherd.core.Shepherd;
+import org.opensearch.client.ResponseException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -1235,13 +1236,6 @@ public class Annotation extends Base implements java.io.Serializable {
         if (emb == null) return null;
         // we work on a copy here so we dont modify matchingSetQuery
         JSONObject mq = new JSONObject(matchingSetQuery.toString());
-        JSONObject nested = new JSONObject(
-            "{\"nested\": {\"path\": \"embeddings\", \"query\": {\"bool\": {}}}}");
-        // Inside the nested bool, keep ONLY the knn clause in `must` so the
-        // per-hit score is exactly the OS knn similarity (no spurious
-        // +1.0-per-term-clause offset). method/methodVersion become
-        // `filter` clauses — they still constrain results but contribute
-        // 0 to score. (Empty-match-prospects C17: MiewID score parity.)
         // search the field holding vectors of the query vector's length; candidates whose
         // vectors live in another field (another model's dimension) have no value there
         String vecField = Embedding.vectorFieldName(emb.vectorLength());
@@ -1251,24 +1245,34 @@ public class Annotation extends Base implements java.io.Serializable {
                 "; cannot build match query");
             return null;
         }
-        JSONArray must = new JSONArray();
+        JSONArray modelTerms = new JSONArray();
+        if (method != null)
+            modelTerms.put(new JSONObject().put("term",
+                new JSONObject().put("embeddings.method", method)));
+        if (methodVersion != null)
+            modelTerms.put(new JSONObject().put("term",
+                new JSONObject().put("embeddings.methodVersion", methodVersion)));
         JSONObject knnField = new JSONObject();
         knnField.put("vector", new JSONArray(emb.vectorToFloatArray()));
         knnField.put("k", KNN_K_DISTANCE_VALUE);
-        must.put(new JSONObject().put("knn", new JSONObject().put("embeddings." + vecField,
-            knnField)));
-        JSONArray filter = new JSONArray();
-        if (method != null)
-            filter.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
-        if (methodVersion != null)
-            filter.put(new JSONObject("{\"term\": {\"embeddings.methodVersion\":\"" + methodVersion +
-                "\"}}"));
-        nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("must",
-            must);
-        if (filter.length() > 0) {
-            nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put(
-                "filter", filter);
-        }
+        // The model terms go INSIDE the knn clause so OpenSearch filters while it searches and
+        // all k neighbours come from this model; as a sibling filter they would apply after the k
+        // nearest were chosen, letting another model's vectors (same length, same field) take the
+        // slots and then be dropped. Inside the nested bool, `must` holds ONLY the knn clause so
+        // the per-hit score is exactly the OS knn similarity (Empty-match-prospects C17: MiewID
+        // score parity); filters contribute 0 to score either way.
+        if ((modelTerms.length() > 0) &&
+            !OpenSearch.KNN_FILTER_UNSUPPORTED.contains("embeddings." + vecField))
+            knnField.put("filter", new JSONObject().put("bool",
+                new JSONObject().put("filter", modelTerms)));
+        JSONObject nestedBool = new JSONObject().put("must", new JSONArray().put(
+            new JSONObject().put("knn", new JSONObject().put("embeddings." + vecField,
+            knnField))));
+        // the field's engine cannot filter inside knn (see searchMatchQuery): post-filter instead
+        if (!knnField.has("filter") && (modelTerms.length() > 0))
+            nestedBool.put("filter", modelTerms);
+        JSONObject nested = new JSONObject().put("nested", new JSONObject().put("path",
+            "embeddings").put("query", new JSONObject().put("bool", nestedBool)));
 
         // we put nested under its own top-level must, that way its score counts (whereas filter does not)
         JSONArray nestedMust = new JSONArray();
@@ -1300,6 +1304,82 @@ public class Annotation extends Base implements java.io.Serializable {
         return hit.optDouble("_score", 0.0d);
     }
 
+    // Runs a getMatchQuery() query. A knn field whose engine cannot filter inside knn (NMSLIB:
+    // the default for methodless fields of indexes CREATED before OpenSearch 2.19, even after an
+    // upgrade) rejects the query with HTTP 400; that field is then remembered and the query
+    // retried once with the model terms as a post-filter (the pre-2.19 behavior, which can lose
+    // recall to other models' vectors) until the index is recreated. Any other failure is thrown.
+    static JSONObject searchMatchQuery(OpenSearch os, JSONObject matchQuery, int size)
+    throws IOException {
+        try {
+            return os.querySearch("annotation", matchQuery, 0, size);
+        } catch (ResponseException ex) {
+            JSONObject postFiltered = withKnnPostFilter(matchQuery);
+            String body = null;
+            try {
+                body = org.apache.http.util.EntityUtils.toString(ex.getResponse().getEntity());
+            } catch (Exception bodyEx) {}
+            if ((postFiltered == null) || !isKnnFilterUnsupportedError(
+                ex.getResponse().getStatusLine().getStatusCode(), body)) throw ex;
+            String field = knnFieldName(matchQuery);
+            if (OpenSearch.KNN_FILTER_UNSUPPORTED.add(field))
+                System.out.println("[WARNING] searchMatchQuery: engine of " + field +
+                    " cannot filter inside knn; post-filtering by model until the annotation " +
+                    "index is recreated on OpenSearch >= 2.19");
+            return os.querySearch("annotation", postFiltered, 0, size);
+        }
+    }
+
+    // true only for OpenSearch's structured 400 whose root cause is the k-NN engine refusing a
+    // filter inside knn, e.g. "failed to create query: Engine [NMSLIB] does not support filters"
+    static boolean isKnnFilterUnsupportedError(int status, String body) {
+        if ((status != 400) || (body == null)) return false;
+        JSONArray causes;
+        try {
+            causes = new JSONObject(body).getJSONObject("error").getJSONArray("root_cause");
+        } catch (org.json.JSONException ex) {
+            return false;
+        }
+        for (int i = 0; i < causes.length(); i++) {
+            String reason = causes.getJSONObject(i).optString("reason", "");
+            if (reason.matches(".*\\bEngine \\[[A-Z_]+\\] does not support filters.*")) return true;
+        }
+        return false;
+    }
+
+    // the "embeddings.<field>" knn clause object of a getMatchQuery() query, or null
+    private static JSONObject knnClause(JSONObject matchQuery) {
+        try {
+            return matchQuery.getJSONObject("query").getJSONObject("bool").getJSONArray("must")
+                .getJSONObject(0).getJSONObject("nested").getJSONObject("query")
+                .getJSONObject("bool").getJSONArray("must").getJSONObject(0)
+                .getJSONObject("knn");
+        } catch (org.json.JSONException ex) {
+            return null;
+        }
+    }
+
+    private static String knnFieldName(JSONObject matchQuery) {
+        JSONObject knn = knnClause(matchQuery);
+        return ((knn == null) || (knn.length() != 1)) ? null : knn.keys().next();
+    }
+
+    // a copy of a getMatchQuery() query with the knn clause's filter moved out to a post-filter
+    // beside it; null if the query has no knn filter (package-visible for testing)
+    static JSONObject withKnnPostFilter(JSONObject matchQuery) {
+        JSONObject copy = new JSONObject(matchQuery.toString());
+        String field = knnFieldName(copy);
+        if (field == null) return null;
+        JSONObject knnField = knnClause(copy).getJSONObject(field);
+        JSONObject filter = knnField.optJSONObject("filter");
+        if (filter == null) return null;
+        knnField.remove("filter");
+        copy.getJSONObject("query").getJSONObject("bool").getJSONArray("must").getJSONObject(0)
+            .getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("filter",
+            filter.getJSONObject("bool").getJSONArray("filter"));
+        return copy;
+    }
+
     // finds annotations based on embedding vector matches
     // null means we didnt have an embedding to query with
     public List<Annotation> getMatches(Shepherd myShepherd, JSONObject taskParams,
@@ -1321,7 +1401,7 @@ public class Annotation extends Base implements java.io.Serializable {
             try {
                 pageSize = os.getSettings("annotation").optInt("max_result_window", 10000);
             } catch (Exception ex) {}
-            queryRes = os.querySearch("annotation", matchQuery, 0, pageSize);
+            queryRes = searchMatchQuery(os, matchQuery, pageSize);
             hitSize = queryRes.optJSONObject("hits").optJSONObject("total").optInt("value");
         } catch (Exception ex) {
             System.out.println("getMatches() exception: " + ex);
