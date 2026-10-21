@@ -400,6 +400,9 @@ public class MLService {
         if ((embs.length() < 1) || (embs.optJSONArray(0) == null))
             throw new IAException("results has no embeddings array[0]: " + res);
         JSONArray vecArr = embs.getJSONArray(0);
+        if (!Embedding.isSupportedLength(vecArr.length()))
+            throw new IAException("unsupported embedding length " + vecArr.length() +
+                    " (supported: " + Embedding.VECTOR_FIELDS.keySet() + ")");
         String[] methodValues = annotationResultIdentity(res, multiPipeline);
         Embedding emb = new Embedding(ann, methodValues[0], methodValues[1], vecArr);
         // maybe this is unwise? could 2 embeddings *from different methods* have same vectors? TODO

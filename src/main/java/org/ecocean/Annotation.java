@@ -200,12 +200,15 @@ public class Annotation extends Base implements java.io.Serializable {
         JSONObject embProps = new JSONObject();
         embProps.put("method", keywordType);
         embProps.put("methodVersion", keywordType);
-        JSONObject embVect = new JSONObject();
+        // one knn_vector field per supported vector length (a knn_vector has a fixed dimension)
         // https://docs.opensearch.org/docs/latest/vector-search/creating-vector-index/
-        embVect.put("type", "knn_vector");
-        embVect.put("dimension", Embedding.getVectorDimension());
-        embVect.put("space_type", "cosinesimil");
-        embProps.put("vector", embVect);
+        for (Map.Entry<Integer, String> vf : Embedding.VECTOR_FIELDS.entrySet()) {
+            JSONObject embVect = new JSONObject();
+            embVect.put("type", "knn_vector");
+            embVect.put("dimension", vf.getKey());
+            embVect.put("space_type", "cosinesimil");
+            embProps.put(vf.getValue(), embVect);
+        }
         embMap.put("properties", embProps);
         map.put("embeddings", embMap);
 
@@ -252,6 +255,12 @@ public class Annotation extends Base implements java.io.Serializable {
             }
         }
         this.writeAclFields(jgen, myShepherd);
+        writeEmbeddings(jgen);
+    }
+
+    // each embedding's vector goes in the knn_vector field for its length (package-visible for testing)
+    void writeEmbeddings(JsonGenerator jgen)
+    throws IOException {
         jgen.writeArrayFieldStart("embeddings");
         if (this.embeddings != null)
             for (Embedding emb : this.embeddings) {
@@ -262,9 +271,16 @@ public class Annotation extends Base implements java.io.Serializable {
                 jgen.writeNumberField("created", emb.getCreated());
 
                 float[] vecFloat = emb.vectorToFloatArray();
-                // System.out.println("[INFO] indexing emb " + emb.getId() + " vector length " + ((vecFloat == null) ? "null" : vecFloat.length));
-                if ((vecFloat != null) && (vecFloat.length > 0)) {
-                    jgen.writeFieldName("vector");
+                String vecField = (vecFloat == null) ? null : Embedding.vectorFieldName(
+                    vecFloat.length);
+                // an unsupported length would make OpenSearch reject the whole annotation doc, so
+                // index the doc without that vector (it cannot be matched until it has a field)
+                if ((vecFloat != null) && (vecFloat.length > 0) && (vecField == null))
+                    System.out.println("[WARNING] Annotation " + this.getId() + " embedding " +
+                        emb.getId() + " has unsupported vector length " + vecFloat.length +
+                        "; indexed without its vector");
+                if (vecField != null) {
+                    jgen.writeFieldName(vecField);
                     jgen.writeStartArray();
                     for (int i = 0; i < vecFloat.length; i++) {
                         jgen.writeNumber(vecFloat[i]);
@@ -1226,12 +1242,21 @@ public class Annotation extends Base implements java.io.Serializable {
         // +1.0-per-term-clause offset). method/methodVersion become
         // `filter` clauses — they still constrain results but contribute
         // 0 to score. (Empty-match-prospects C17: MiewID score parity.)
+        // search the field holding vectors of the query vector's length; candidates whose
+        // vectors live in another field (another model's dimension) have no value there
+        String vecField = Embedding.vectorFieldName(emb.vectorLength());
+        if (vecField == null) {
+            System.out.println("[WARNING] Annotation " + this.getId() + " embedding " +
+                emb.getId() + " has unsupported vector length " + emb.vectorLength() +
+                "; cannot build match query");
+            return null;
+        }
         JSONArray must = new JSONArray();
-        JSONObject knn = new JSONObject("{\"knn\": {\"embeddings.vector\": {}}}");
-        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("vector",
-            new JSONArray(emb.vectorToFloatArray()));
-        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("k", KNN_K_DISTANCE_VALUE);
-        must.put(knn);
+        JSONObject knnField = new JSONObject();
+        knnField.put("vector", new JSONArray(emb.vectorToFloatArray()));
+        knnField.put("k", KNN_K_DISTANCE_VALUE);
+        must.put(new JSONObject().put("knn", new JSONObject().put("embeddings." + vecField,
+            knnField)));
         JSONArray filter = new JSONArray();
         if (method != null)
             filter.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));

@@ -25,8 +25,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.Request;
+import org.opensearch.client.RequestOptions;
 import org.opensearch.client.Response;
 import org.opensearch.client.ResponseException;
 import org.opensearch.client.RestClient;
@@ -40,6 +42,7 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.transport.OpenSearchTransport;
 
 import java.lang.Runnable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -51,7 +54,9 @@ import java.util.concurrent.TimeUnit;
 public class OpenSearch {
     public static volatile OpenSearchClient client = null;
     public static volatile RestClient restClient = null;
-    public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
+    public static Map<String, Boolean> INDEX_EXISTS_CACHE = new ConcurrentHashMap<String, Boolean>();
+    // indexes known to have every vector field of their mapping (created or upgraded by this JVM)
+    private static final Set<String> VECTOR_FIELDS_READY = ConcurrentHashMap.newKeySet();
     // ConcurrentHashMap: PIT_CACHE is read/mutated from concurrent request threads (SearchApi,
     // EncounterQueryProcessor, MediaResolveApi) and, once IA match consumers can run concurrently,
     // from those too. This only removes the structural-corruption hazard of an unsynchronized
@@ -205,6 +210,7 @@ public class OpenSearch {
             new JacksonJsonpMapper());
 
         client = new OpenSearchClient(transport);
+        VECTOR_FIELDS_READY.clear(); // known only for the cluster we were connected to
     }
 
     // Stateless single-page search (no PIT, no shared static state) -- safe under concurrency.
@@ -587,14 +593,60 @@ public class OpenSearch {
         createMapping(indexName, mapping);
         indexOpen(indexName);
         INDEX_EXISTS_CACHE.put(indexName, true);
+        VECTOR_FIELDS_READY.add(indexName); // created with the full mapping
         System.out.println(indexName + " OpenSearch index created");
     }
 
     public void ensureIndex(String indexName, JSONObject mapping)
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
-        if (existsIndex(indexName)) return;
+        if (existsIndex(indexName)) {
+            ensureVectorFields(indexName, mapping);
+            return;
+        }
         createIndex(indexName, mapping);
+    }
+
+    // An index created before a vector length was supported lacks that length's knn_vector field,
+    // and the nested "embeddings" mapping is dynamic:false, so such vectors would be silently
+    // stored unindexed. OpenSearch allows adding fields to a live mapping (only changing an
+    // existing one is refused), so add them before this JVM writes its first doc. Idempotent, so
+    // racing writers may each PUT; READY is set only after success, and a failure propagates to the
+    // caller (the doc is not written and is retried later) rather than being cached.
+    private void ensureVectorFields(String indexName, JSONObject mapping)
+    throws IOException {
+        if (VECTOR_FIELDS_READY.contains(indexName)) return;
+        JSONObject added = vectorFieldsUpgradeMapping(mapping);
+        if (added != null) {
+            Request req = new Request("PUT", indexName + "/_mapping");
+            req.addParameter("timeout", "30s");
+            req.addParameter("cluster_manager_timeout", "30s");
+            req.setOptions(RequestOptions.DEFAULT.toBuilder().setRequestConfig(
+                RequestConfig.custom().setConnectTimeout(10000).setSocketTimeout(45000).build()));
+            req.setJsonEntity(new JSONObject().put("properties", added).toString());
+            String rtn = getRestResponse(req);
+            System.out.println("ensureVectorFields(" + indexName + "): " + added + " => " + rtn);
+        }
+        VECTOR_FIELDS_READY.add(indexName);
+    }
+
+    // The mapping-PUT properties adding mapping's nested embeddings vector fields, other than the
+    // legacy one every existing index already has (and whose params may differ across the fleet,
+    // so it is never replayed); null if there is nothing to add (e.g. indexes without embeddings).
+    static JSONObject vectorFieldsUpgradeMapping(JSONObject mapping) {
+        JSONObject embProps = (mapping == null) ? null : mapping.optJSONObject("embeddings");
+        embProps = (embProps == null) ? null : embProps.optJSONObject("properties");
+        if (embProps == null) return null;
+        JSONObject vectorFields = new JSONObject();
+        for (String field : embProps.keySet()) {
+            JSONObject def = embProps.getJSONObject(field);
+            if (!"knn_vector".equals(def.optString("type")) ||
+                Embedding.LEGACY_VECTOR_FIELD.equals(field)) continue;
+            vectorFields.put(field, def);
+        }
+        if (vectorFields.length() == 0) return null;
+        return new JSONObject().put("embeddings", new JSONObject().put("type", "nested").put(
+            "properties", vectorFields));
     }
 
     public void deleteIndex(String indexName)
@@ -606,6 +658,7 @@ public class OpenSearch {
         // DeleteIndexResponse deleteIndexResponse = client.indices().delete(deleteIndexRequest);
         client.indices().delete(deleteIndexRequest);
         INDEX_EXISTS_CACHE.remove(indexName);
+        VECTOR_FIELDS_READY.remove(indexName);
         System.out.println(indexName + " OpenSearch index deleted");
     }
 
@@ -1073,16 +1126,19 @@ public class OpenSearch {
             nestedMust.put(new JSONObject().put("term",
                 new JSONObject().put("embeddings.methodVersion", methodVersion)));
         }
-        JSONObject nestedQuery;
-        if (nestedMust.length() == 0) {
-            // Both null — wait only on the existence of any nested
-            // embedding entry. (Legacy api_endpoint-only configs that
-            // can't derive a method.)
-            nestedQuery = new JSONObject().put("match_all", new JSONObject());
-        } else {
-            nestedQuery = new JSONObject().put("bool",
-                new JSONObject().put("must", nestedMust));
+        // The same nested embedding must also carry an INDEXED vector in one of the
+        // per-length fields: metadata alone is not matchable (an unsupported-length
+        // vector is indexed without its vector). Both method and version null waits
+        // only on this. (Legacy api_endpoint-only configs that can't derive a method.)
+        JSONArray vectorExists = new JSONArray();
+        for (String field : Embedding.VECTOR_FIELDS.values()) {
+            vectorExists.put(new JSONObject().put("exists",
+                new JSONObject().put("field", "embeddings." + field)));
         }
+        nestedMust.put(new JSONObject().put("bool",
+            new JSONObject().put("should", vectorExists).put("minimum_should_match", 1)));
+        JSONObject nestedQuery = new JSONObject().put("bool",
+            new JSONObject().put("must", nestedMust));
         filterArr.put(new JSONObject().put("nested",
             new JSONObject().put("path", "embeddings").put("query", nestedQuery)));
 
