@@ -120,7 +120,11 @@ import org.testcontainers.utility.DockerImageName;
                 new JSONArray().put(emb("A", noisy(query, 0.2, rnd)))));
         }
         for (int i = 0; i < nB; i++) {
-            float[] b = noisy(query, 0.6, rnd);
+            // B vectors spread over a range of distances (identical noise levels would make the
+            // exact top-k an arbitrary pick among near-ties); the dual-model docs' B vectors are
+            // near enough to be certain B top-k hits, while their (even nearer) A vectors must not
+            // be what scores them
+            float[] b = noisy(query, (i >= nB - dual) ? 0.3 : 0.4 + 1.2 * i / nB, rnd);
             modelB.put("b" + i, b);
             JSONArray embs = new JSONArray().put(emb("B", b));
             if (i >= nB - dual) embs.put(emb("A", noisy(query, 0.2, rnd)));
@@ -142,6 +146,15 @@ import org.testcontainers.utility.DockerImageName;
         }
         rest("POST", "/" + INDEX + "/_forcemerge?max_num_segments=1", null);
         rest("POST", "/" + INDEX + "/_refresh", null);
+        // never take the small-filtered-set exact path, so filtered searches exercise the graph
+        rest("PUT", "/" + INDEX + "/_settings",
+            "{\"index.knn.advanced.filtered_exact_search_threshold\": 0}");
+    }
+
+    private long knnStat(String name) throws IOException {
+        JSONObject nodes = new JSONObject(rest("GET", "/_plugins/_knn/stats", null))
+            .getJSONObject("nodes");
+        return nodes.getJSONObject(nodes.keys().next()).getLong(name);
     }
 
     private JSONObject matchQuery(String method) {
@@ -163,23 +176,36 @@ import org.testcontainers.utility.DockerImageName;
         return out;
     }
 
-    // the exact top-k model-B ids by cosine to the query
-    private Set<String> exactTopB(int k) {
-        List<String> ids = new ArrayList<String>(modelB.keySet());
-        ids.sort((x, y) -> Double.compare(cosine(query, modelB.get(y)), cosine(query, modelB.get(x))));
-        return new HashSet<String>(ids.subList(0, Math.min(k, ids.size())));
+    private static final Set<String> DUAL = new HashSet<String>(java.util.Arrays.asList(
+        "b196", "b197", "b198", "b199"));
+
+    // the exact top-k model-B ids by cosine to the query, among `ids`
+    private Set<String> exactTopB(Set<String> ids, int k) {
+        List<String> sorted = new ArrayList<String>(ids);
+        sorted.sort((x, y) -> Double.compare(cosine(query, modelB.get(y)), cosine(query, modelB.get(x))));
+        return new HashSet<String>(sorted.subList(0, Math.min(k, sorted.size())));
     }
 
-    private void assertAllKFromModelB(Map<String, Double> h) {
+    // `exactRecall` is checked on the exact path and on lucene. On faiss's filtered GRAPH path
+    // (2.19.1, 3.1.0) recall against exact is an engine property, not Wildbook's: when every
+    // filtered-out vector is nearer the query than every eligible one (this fixture), default
+    // ef_search reaches ~0.46 at 1536-d (0.98 at ef_search 500) and parents whose filtered-out
+    // sibling vector is the nearer one (the dual docs) can be dropped. The post-filter shape
+    // returns no model-B docs at all on the same data.
+    private void assertAllKFromModelB(Map<String, Double> h, boolean exactRecall) {
         int k = Annotation.KNN_K_DISTANCE_VALUE;
         assertEquals(k, h.size(), "all k slots go to model B: " + h.keySet());
         for (String id : h.keySet()) assertTrue(id.startsWith("b"), "only model-B docs: " + id);
-        // dual-model docs (b196..b199) and every other hit are scored by their B vector
+        // every hit, dual-model docs included, is scored by its B vector
         for (Map.Entry<String, Double> e : h.entrySet()) {
             assertEquals((1 + cosine(query, modelB.get(e.getKey()))) / 2, e.getValue(), 1e-4,
                 "score of " + e.getKey());
         }
-        Set<String> exact = exactTopB(k);
+        if (!exactRecall) return;
+        for (String dual : DUAL) {
+            assertTrue(h.containsKey(dual), "dual-model doc " + dual + " is a B hit: " + h.keySet());
+        }
+        Set<String> exact = exactTopB(modelB.keySet(), k);
         int found = 0;
         for (String id : h.keySet()) if (exact.contains(id)) found++;
         assertTrue(found >= 0.9 * k, "recall@" + k + " vs exact = " + found);
@@ -191,9 +217,19 @@ import org.testcontainers.utility.DockerImageName;
         JSONObject q = matchQuery("B");
         assertTrue(q.toString().contains("\"filter\":{\"bool\""), "pre-filtered shape: " + q);
 
+        long graphQueries = knnStat("graph_query_requests");
+        long filteredQueries = knnStat("knn_query_with_filter_requests");
         Map<String, Double> h = hits(Annotation.searchMatchQuery(os, q, 100));
-        assertAllKFromModelB(h);
+        assertAllKFromModelB(h, false);
         assertTrue(OpenSearch.KNN_FILTER_UNSUPPORTED.isEmpty(), "no fallback on this engine");
+        assertTrue(knnStat("knn_query_with_filter_requests") > filteredQueries,
+            "ran as a filtered knn query");
+        assertTrue(knnStat("graph_query_requests") > graphQueries,
+            "searched the ANN graph, not the exact path");
+        // this small eligible set takes the exact path by default, which keeps the dual docs
+        rest("PUT", "/" + INDEX + "/_settings",
+            "{\"index.knn.advanced.filtered_exact_search_threshold\": null}");
+        assertAllKFromModelB(hits(Annotation.searchMatchQuery(os, q, 100)), true);
 
         // the post-filter shape on the same data loses the B slots to model A's nearer vectors
         Map<String, Double> post = hits(os.querySearch(INDEX, Annotation.withKnnPostFilter(q), 0, 100));
@@ -217,7 +253,10 @@ import org.testcontainers.utility.DockerImageName;
             "{\"wildbook_keyword_normalizer\": {\"type\": \"custom\", \"char_filter\": [], " +
             "\"filter\": [\"lowercase\", \"asciifolding\"]}}}")))).put("mappings",
             new JSONObject().put("properties", mapping)).toString(), 400, 200, 4);
-        assertAllKFromModelB(hits(Annotation.searchMatchQuery(os, matchQuery("B"), 100)));
+        long filteredQueries = knnStat("knn_query_with_filter_requests");
+        assertAllKFromModelB(hits(Annotation.searchMatchQuery(os, matchQuery("B"), 100)), true);
+        assertTrue(knnStat("knn_query_with_filter_requests") > filteredQueries,
+            "ran as a filtered knn query");
     }
 
     @Test void unrelatedBadRequest_isThrown_notCached() throws Exception {
@@ -251,9 +290,13 @@ import org.testcontainers.utility.DockerImageName;
         assertNull(Annotation.withKnnPostFilter(next), "no knn filter once recorded: " + next);
         assertEquals(expected, hits(Annotation.searchMatchQuery(os, next, 100)));
 
-        // a recreated index gets the current default engine, so the record is dropped
+        // a recreated index gets the current default engine, so the record is dropped; a search
+        // still in flight records into the retired set it started with, not the new one
+        java.util.Set<String> retired = OpenSearch.KNN_FILTER_UNSUPPORTED;
         os.deleteIndex(INDEX);
         assertTrue(OpenSearch.KNN_FILTER_UNSUPPORTED.isEmpty());
+        retired.add("embeddings.late");
+        assertFalse(OpenSearch.KNN_FILTER_UNSUPPORTED.contains("embeddings.late"));
         OpenSearch.KNN_FILTER_UNSUPPORTED.add(FIELD);
         connect(current); // and it is per cluster
         assertTrue(OpenSearch.KNN_FILTER_UNSUPPORTED.isEmpty());

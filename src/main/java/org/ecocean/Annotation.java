@@ -1311,6 +1311,7 @@ public class Annotation extends Base implements java.io.Serializable {
     // recall to other models' vectors) until the index is recreated. Any other failure is thrown.
     static JSONObject searchMatchQuery(OpenSearch os, JSONObject matchQuery, int size)
     throws IOException {
+        Set<String> unsupported = OpenSearch.KNN_FILTER_UNSUPPORTED; // the set this search belongs to
         try {
             return os.querySearch("annotation", matchQuery, 0, size);
         } catch (ResponseException ex) {
@@ -1322,7 +1323,7 @@ public class Annotation extends Base implements java.io.Serializable {
             if ((postFiltered == null) || !isKnnFilterUnsupportedError(
                 ex.getResponse().getStatusLine().getStatusCode(), body)) throw ex;
             String field = knnFieldName(matchQuery);
-            if (OpenSearch.KNN_FILTER_UNSUPPORTED.add(field))
+            if (unsupported.add(field))
                 System.out.println("[WARNING] searchMatchQuery: engine of " + field +
                     " cannot filter inside knn; post-filtering by model until the annotation " +
                     "index is recreated on OpenSearch >= 2.19");
