@@ -1235,13 +1235,6 @@ public class Annotation extends Base implements java.io.Serializable {
         if (emb == null) return null;
         // we work on a copy here so we dont modify matchingSetQuery
         JSONObject mq = new JSONObject(matchingSetQuery.toString());
-        JSONObject nested = new JSONObject(
-            "{\"nested\": {\"path\": \"embeddings\", \"query\": {\"bool\": {}}}}");
-        // Inside the nested bool, keep ONLY the knn clause in `must` so the
-        // per-hit score is exactly the OS knn similarity (no spurious
-        // +1.0-per-term-clause offset). method/methodVersion become
-        // `filter` clauses — they still constrain results but contribute
-        // 0 to score. (Empty-match-prospects C17: MiewID score parity.)
         // search the field holding vectors of the query vector's length; candidates whose
         // vectors live in another field (another model's dimension) have no value there
         String vecField = Embedding.vectorFieldName(emb.vectorLength());
@@ -1251,24 +1244,32 @@ public class Annotation extends Base implements java.io.Serializable {
                 "; cannot build match query");
             return null;
         }
-        JSONArray must = new JSONArray();
+        JSONArray modelTerms = new JSONArray();
+        if (method != null)
+            modelTerms.put(new JSONObject().put("term",
+                new JSONObject().put("embeddings.method", method)));
+        if (methodVersion != null)
+            modelTerms.put(new JSONObject().put("term",
+                new JSONObject().put("embeddings.methodVersion", methodVersion)));
         JSONObject knnField = new JSONObject();
         knnField.put("vector", new JSONArray(emb.vectorToFloatArray()));
         knnField.put("k", KNN_K_DISTANCE_VALUE);
-        must.put(new JSONObject().put("knn", new JSONObject().put("embeddings." + vecField,
-            knnField)));
-        JSONArray filter = new JSONArray();
-        if (method != null)
-            filter.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
-        if (methodVersion != null)
-            filter.put(new JSONObject("{\"term\": {\"embeddings.methodVersion\":\"" + methodVersion +
-                "\"}}"));
-        nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("must",
-            must);
-        if (filter.length() > 0) {
-            nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put(
-                "filter", filter);
-        }
+        // The model terms go INSIDE the knn clause so OpenSearch filters while it searches and
+        // all k neighbours come from this model; as a sibling filter they would apply after the k
+        // nearest were chosen, letting another model's vectors (same length, same field) take the
+        // slots and then be dropped. Inside the nested bool, `must` holds ONLY the knn clause so
+        // the per-hit score is exactly the OS knn similarity (Empty-match-prospects C17: MiewID
+        // score parity); filters contribute 0 to score either way.
+        // (Requires a knn engine that filters inside knn: faiss or lucene, i.e. an annotation index
+        // created on OpenSearch >= 2.19; NMSLIB rejects the query with "does not support filters".)
+        if (modelTerms.length() > 0)
+            knnField.put("filter", new JSONObject().put("bool",
+                new JSONObject().put("filter", modelTerms)));
+        JSONObject nestedBool = new JSONObject().put("must", new JSONArray().put(
+            new JSONObject().put("knn", new JSONObject().put("embeddings." + vecField,
+            knnField))));
+        JSONObject nested = new JSONObject().put("nested", new JSONObject().put("path",
+            "embeddings").put("query", new JSONObject().put("bool", nestedBool)));
 
         // we put nested under its own top-level must, that way its score counts (whereas filter does not)
         JSONArray nestedMust = new JSONArray();
