@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
@@ -269,7 +270,7 @@ $(".search-collapse-header a").click(function(){
 
 <p><%=encprops.getProperty("selectedReference") %></p>
 <input name="referenceImageName" type="hidden"
-       value="<%=request.getParameter("referenceImageName") %>"/>
+       value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("referenceImageName")) %>"/>
 
 <p><img width="810px" src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=thisEnc.subdir(thisEnc.getCatalogNumber()) %>/<%=mySPV.getFilename() %>"/></p>
 <table>
@@ -675,7 +676,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
 				       	  	%>
 
-				       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %></option>
+				       	  	  <option value="<%=StringEscapeUtils.escapeHtml4(CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")) %>"><%=StringEscapeUtils.escapeHtml4(CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")) %></option>
 				       	  	<%
 				       		taxNum++;
 				          }

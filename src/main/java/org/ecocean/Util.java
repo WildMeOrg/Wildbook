@@ -1082,6 +1082,26 @@ public class Util {
         return sanitizeUserInput(input);
     }
 
+    // encodes a value for use inside a quoted JavaScript string within an HTML page
+    public static String escapeJsString(String value) {
+        if (value == null) return null;
+        return org.apache.commons.lang3.StringEscapeUtils.escapeEcmaScript(value).replace("<",
+                "\\u003C");
+    }
+
+    // HTML-encodes text whose only markup is line breaks, keeping the breaks
+    public static String escapeHtmlKeepLineBreaks(String value) {
+        if (value == null) return null;
+        return org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(value).replaceAll(
+                "&lt;br\\s*/?&gt;", "<br />");
+    }
+
+    // URL-encodes a single query-string name or value; null becomes empty
+    public static String urlEncode(String value) {
+        if (value == null) return "";
+        return java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
     public static String sanitizeUserInput(String input) {
         if (input == null) return null;
         final String[] forbidden = {

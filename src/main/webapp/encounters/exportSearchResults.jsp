@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
@@ -119,22 +120,22 @@
 
 		 <ul id="tabmenu">
 
-		   <li><a href="/react/encounter-search?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
+		   <li><a href="/react/encounter-search?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("table")%>
 		   </a></li>
        <li><a
-         href="projectManagement.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("projectManagement")%>
+         href="projectManagement.jsp?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("projectManagement")%>
        </a></li>
 		   <li><a
-		     href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("matchingImages")%>
+		     href="thumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("matchingImages")%>
 		   </a></li>
 		  <li><a
-		    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("mappedResults")%>
+		    href="mappedSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=map_props.getProperty("mappedResults")%>
 		  </a></li>
 		   <li><a
-		     href="../xcalendar/calendar.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
+		     href="../xcalendar/calendar.jsp?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("resultsCalendar")%>
 		   </a></li>
 		      <li><a
-		     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("analysis")%>
+		     href="searchResultsAnalysis.jsp?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("analysis")%>
 		   </a></li>
 		    <li><a class="active"><%=map_props.getProperty("export")%>
 		   </a></li>
@@ -148,18 +149,18 @@
 
 		 <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
 
-		<p><br>Standard Format Export <a href="<%=serverUrl%>/EncounterSearchExportMetadataExcel?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+		<p><br>Standard Format Export <a href="<%=serverUrl%>/EncounterSearchExportMetadataExcel?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 
-		<p><br>Encounter Annotation Export <a href="<%=serverUrl%>/EncounterAnnotationExportExcelFile?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+		<p><br>Encounter Annotation Export <a href="<%=serverUrl%>/EncounterAnnotationExportExcelFile?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 
-		<p><%=map_props.getProperty("exportedOBIS")%>: <a href="<%=serverUrl%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a><br />
-		<%=map_props.getProperty("exportedOBISLocales")%>: <a href="<%=serverUrl%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=true"><%=map_props.getProperty("clickHere")%></a>
+		<p><%=map_props.getProperty("exportedOBIS")%>: <a href="<%=serverUrl%>/EncounterSearchExportExcelFile?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("clickHere")%></a><br />
+		<%=map_props.getProperty("exportedOBISLocales")%>: <a href="<%=serverUrl%>/EncounterSearchExportExcelFile?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>&locales=true"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 
 		<p><%=map_props.getProperty("exportedEmail")%>: <a
-		  href="<%=serverUrl%>/EncounterSearchExportEmailAddresses?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%>
+		  href="<%=serverUrl%>/EncounterSearchExportEmailAddresses?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("clickHere")%>
 		</a>
 		</p>
 
@@ -167,13 +168,13 @@
 		  <p><strong><%=map_props.getProperty("gisExportOptions")%></strong></p>
 
 		<p><%=map_props.getProperty("exportedKML")%>: <a
-		  href="<%=serverUrl%>/EncounterSearchExportKML?<%=request.getQueryString() %>"><%=map_props.getProperty("clickHere")%></a><br />
+		  href="<%=serverUrl%>/EncounterSearchExportKML?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("clickHere")%></a><br />
 		  <%=map_props.getProperty("exportedKMLTimeline")%>: <a
-		  href="<%=serverUrl%>/EncounterSearchExportKML?<%=request.getQueryString() %>&addTimeStamp=true"><%=map_props.getProperty("clickHere")%></a>
+		  href="<%=serverUrl%>/EncounterSearchExportKML?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>&addTimeStamp=true"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 
 		<p><%=map_props.getProperty("exportedShapefile")%>: <a
-		  href="<%=serverUrl%>/EncounterSearchExportShapefile?<%=request.getQueryString() %>"><%=map_props.getProperty("clickHere")%></a>
+		  href="<%=serverUrl%>/EncounterSearchExportShapefile?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 
 		<%int defaultNumSessions = 3;%>
@@ -195,7 +196,7 @@
 				</tr>
 			</table>
 
-			<p><a id="markRecaptureLink" href="<%=serverUrl%>/SimpleCMRSpecifySessions.jsp?<%=request.getQueryString()%>&numberSessions=<%=defaultNumSessions%>&encounterExport=true"><%=map_props.getProperty("clickHere")%></a></p>
+			<p><a id="markRecaptureLink" href="<%=serverUrl%>/SimpleCMRSpecifySessions.jsp?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>&numberSessions=<%=defaultNumSessions%>&encounterExport=true"><%=map_props.getProperty("clickHere")%></a></p>
 		</div>
 
 		<script>
@@ -209,7 +210,7 @@
 				if (incComments) otherArgs += "&includeQueryComments=true";
 				if (incIndID) otherArgs += "&includeIndividualID=true";
 
-				var linkDest  = '<%=serverUrl%>/SimpleCMRSpecifySessions.jsp?<%=request.getQueryString()%>'+otherArgs;
+				var linkDest  = '<%=serverUrl%>/SimpleCMRSpecifySessions.jsp?<%=Util.escapeJsString(request.getQueryString())%>'+otherArgs;
 				console.log("updateMarkRecaptureLink setting linkDest to "+linkDest);
 				$('a#markRecaptureLink').attr("href", linkDest);
 			}
@@ -234,12 +235,12 @@
 
 		      <p class="caption"><strong><%=map_props.getProperty("prettyPrintResults") %>
 		      </strong><br/>
-		        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", map_props.getProperty("location")).replaceAll("locationCodeField", map_props.getProperty("locationID")).replaceAll("verbatimEventDateField", map_props.getProperty("verbatimEventDate")).replaceAll("alternateIDField", map_props.getProperty("alternateID")).replaceAll("behaviorField", map_props.getProperty("behavior")).replaceAll("Sex", map_props.getProperty("sex")).replaceAll("nameField", map_props.getProperty("nameField")).replaceAll("selectLength", map_props.getProperty("selectLength")).replaceAll("numResights", map_props.getProperty("numResights")).replaceAll("vesselField", map_props.getProperty("vesselField"))%>
+		        <%=Util.escapeHtmlKeepLineBreaks(queryResult.getQueryPrettyPrint()).replaceAll("locationField", map_props.getProperty("location")).replaceAll("locationCodeField", map_props.getProperty("locationID")).replaceAll("verbatimEventDateField", map_props.getProperty("verbatimEventDate")).replaceAll("alternateIDField", map_props.getProperty("alternateID")).replaceAll("behaviorField", map_props.getProperty("behavior")).replaceAll("Sex", map_props.getProperty("sex")).replaceAll("nameField", map_props.getProperty("nameField")).replaceAll("selectLength", map_props.getProperty("selectLength")).replaceAll("numResights", map_props.getProperty("numResights")).replaceAll("vesselField", map_props.getProperty("vesselField"))%>
 		      </p>
 
 		      <p class="caption"><strong><%=map_props.getProperty("jdoql")%>
 		      </strong><br/>
-		        <%=queryResult.getJDOQLRepresentation()%>
+		        <%=StringEscapeUtils.escapeHtml4(queryResult.getJDOQLRepresentation())%>
 		      </p>
 
 		    </td>

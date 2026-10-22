@@ -2,6 +2,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.awt.*,java.io.*, java.net.URL, java.net.URLConnection, java.util.ArrayList" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
@@ -47,7 +48,7 @@ context=ServletUtilities.getContext(request);
 <html>
 <head>
 
-  <title>Spot Visualization for Encounter <%=num%></title>
+  <title>Spot Visualization for Encounter <%=StringEscapeUtils.escapeHtml4(num)%></title>
   <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -86,7 +87,7 @@ if (myShepherd.isEncounter(num)) {
 <td>
 <p><font size="4"><strong><%=side%>-side Spot
   Visualization for Encounter:<br /> <a
-    href="encounter.jsp?number=<%=num%>"><%=enc.getEncounterNumber()%>
+    href="encounter.jsp?number=<%=StringEscapeUtils.escapeHtml4(Util.urlEncode(num))%>"><%=enc.getEncounterNumber()%>
   </a>
 </strong></font></p>
 
@@ -150,7 +151,7 @@ if (myShepherd.isEncounter(num)) {
     System.out.println("I failed to get the image input stream while using the spotVisualizer");
     canDirectMap = false;
 	%>
-	<p>I could not connect to and find the spot image at: <%=(encounterDir.getAbsolutePath()+"/" + fileloc) %></p>
+	<p>I could not connect to and find the spot image at: <%=StringEscapeUtils.escapeHtml4(encounterDir.getAbsolutePath()+"/" + fileloc) %></p>
 
 	<%
   }
@@ -270,7 +271,7 @@ if (myShepherd.isEncounter(num)) {
 </di:img>
 
 <!-- Put the image URL in now -->
-<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=(Encounter.subdir(num)+"/"+side+"SideSpotsMapped.jpg")%>" border="0" align="left" valign="left">
+<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=StringEscapeUtils.escapeHtml4(Encounter.subdir(num)+"/"+side+"SideSpotsMapped.jpg")%>" border="0" align="left" valign="left">
 
 
 
@@ -286,12 +287,12 @@ if (myShepherd.isEncounter(num)) {
 
 
 } else {%>
-<p>There is no encounter <%=request.getParameter("number")%> in the
+<p>There is no encounter <%=StringEscapeUtils.escapeHtml4(request.getParameter("number"))%> in the
   database. Please double-check the encounter number and try again.</p>
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go
   to encounter: </strong> 
-  <input name="number" type="text" value="<%=request.getParameter("number")%>" size="20" /> 
+  <input name="number" type="text" value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("number"))%>" size="20" /> 
             <input name="Go" type="submit" value="Submit" />
 </form>
 

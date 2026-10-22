@@ -172,4 +172,22 @@ class UtilTest {
         assertArrayEquals(new String[] { "Delphinus", "capensis" },
             Util.parseGenusSpecies("\u0000Delphinus capensis"));
     }
+
+    @Test void testEscapeJsString() {
+        assertNull(Util.escapeJsString(null));
+        assertEquals("abc-123", Util.escapeJsString("abc-123"));
+        assertEquals("a\\'b\\\"c", Util.escapeJsString("a'b\"c"));
+        assertEquals("\\u003C\\/script>", Util.escapeJsString("</script>"));
+    }
+
+    @Test void testUrlEncode() {
+        assertEquals("", Util.urlEncode(null));
+        assertEquals("a+b%26c%3Dd%22", Util.urlEncode("a b&c=d\""));
+    }
+
+    @Test void testEscapeHtmlKeepLineBreaks() {
+        assertNull(Util.escapeHtmlKeepLineBreaks(null));
+        assertEquals("Sex is &quot;f&quot;.<br />Location &lt;b&gt;x&lt;/b&gt;<br /><br />",
+            Util.escapeHtmlKeepLineBreaks("Sex is \"f\".<br />Location <b>x</b><br/><br>"));
+    }
 }

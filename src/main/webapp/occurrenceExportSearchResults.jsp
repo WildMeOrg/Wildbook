@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
@@ -111,10 +112,10 @@
 
 		 <ul id="tabmenu">
 
-		   <li><a href="occurrenceSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
+		   <li><a href="occurrenceSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("table")%>
 		   </a></li>
        <li><a class="active"
-      href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("export")%>
+      href="occurrenceExportSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=occProps.getProperty("export")%>
     </a></li>
 
 		 </ul>
@@ -123,10 +124,10 @@
 
 		 <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
 
-     <p>Excel Metadata Summary <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/OccurrenceSearchExportMetadataExcel?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+     <p>Excel Metadata Summary <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/OccurrenceSearchExportMetadataExcel?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("clickHere")%></a>
  		 </p>
 
-     <p>GTM export for <a href="http://compbio.cs.uic.edu/"> Computational Population Biology </a>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/OccurrenceSearchExportGtm?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+     <p>GTM export for <a href="http://compbio.cs.uic.edu/"> Computational Population Biology </a>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/OccurrenceSearchExportGtm?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("clickHere")%></a>
  		 </p>
 
 
@@ -145,12 +146,12 @@
 
 		      <p class="caption"><strong><%=map_props.getProperty("prettyPrintResults") %>
 		      </strong><br/>
-		        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", map_props.getProperty("location")).replaceAll("locationCodeField", map_props.getProperty("locationID")).replaceAll("verbatimEventDateField", map_props.getProperty("verbatimEventDate")).replaceAll("alternateIDField", map_props.getProperty("alternateID")).replaceAll("behaviorField", map_props.getProperty("behavior")).replaceAll("Sex", map_props.getProperty("sex")).replaceAll("nameField", map_props.getProperty("nameField")).replaceAll("selectLength", map_props.getProperty("selectLength")).replaceAll("numResights", map_props.getProperty("numResights")).replaceAll("vesselField", map_props.getProperty("vesselField"))%>
+		        <%=Util.escapeHtmlKeepLineBreaks(queryResult.getQueryPrettyPrint()).replaceAll("locationField", map_props.getProperty("location")).replaceAll("locationCodeField", map_props.getProperty("locationID")).replaceAll("verbatimEventDateField", map_props.getProperty("verbatimEventDate")).replaceAll("alternateIDField", map_props.getProperty("alternateID")).replaceAll("behaviorField", map_props.getProperty("behavior")).replaceAll("Sex", map_props.getProperty("sex")).replaceAll("nameField", map_props.getProperty("nameField")).replaceAll("selectLength", map_props.getProperty("selectLength")).replaceAll("numResights", map_props.getProperty("numResights")).replaceAll("vesselField", map_props.getProperty("vesselField"))%>
 		      </p>
 
 		      <p class="caption"><strong><%=map_props.getProperty("jdoql")%>
 		      </strong><br/>
-		        <%=queryResult.getJDOQLRepresentation()%>
+		        <%=StringEscapeUtils.escapeHtml4(queryResult.getJDOQLRepresentation())%>
 		      </p>
 
 		    </td>
