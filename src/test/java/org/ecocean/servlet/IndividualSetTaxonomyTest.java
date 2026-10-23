@@ -45,6 +45,7 @@ class IndividualSetTaxonomyTest {
     private Shepherd usedShepherd;
     private boolean commitSucceeds = true;
     private int notificationsSent;
+    private String lastNotification;
 
     @BeforeEach void setUp()
     throws Exception {
@@ -91,6 +92,7 @@ class IndividualSetTaxonomyTest {
             utils.when(() -> ServletUtilities.informInterestedIndividualParties(any(), anyString(),
                 anyString(), anyString())).thenAnswer(inv -> {
                 notificationsSent++;
+                lastNotification = inv.getArgument(2);
                 return null;
             });
             collab.when(() -> Collaboration.canUserFullyEditMarkedIndividual(any(),
@@ -277,6 +279,19 @@ class IndividualSetTaxonomyTest {
             "the audit comment records both the old and the new value");
         assertEquals(1, notificationsSent, "subscribers hear about a saved change");
         verify(usedShepherd).closeDBTransaction();
+    }
+
+    // The notification email is HTML and puts this text in as is, and an encounter's genus never
+    // went through isValidTaxonomyName(), so whatever is stored there must arrive escaped.
+    @Test void notificationEscapesEncounterTaxonomy()
+    throws Exception {
+        MarkedIndividual mi = individual("Orcinus", "orca", encounter("<b>x", null),
+            encounter("<b>x", null));
+
+        post(IndividualSetTaxonomy.FROM_ENCOUNTERS, mi, true, true);
+        assertEquals(1, notificationsSent);
+        assertTrue(lastNotification.contains("&lt;b&gt;x"), lastNotification);
+        assertFalse(lastNotification.contains("<b>"), "no raw markup reaches the email");
     }
 
     // commitDBTransaction() swallows a failed commit, so the page would say "updated" and

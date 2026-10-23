@@ -164,9 +164,11 @@ public class IndividualSetTaxonomy extends HttpServlet {
                 out.println("<strong>Success:</strong> Taxonomy has been updated from " +
                     displayOld + " to " + newTaxonomy + ".");
                 // after the commit: this opens a Shepherd of its own, and would otherwise report
-                // the value we just replaced
+                // the value we just replaced. The email template is HTML and inserts this as is,
+                // and encounter-derived values never passed isValidTaxonomyName(), so escape here.
                 String message = "The taxonomy for " + indivID + " has been updated from " +
-                    displayOld + " to " + newTaxonomy + ".";
+                    StringEscapeUtils.escapeHtml4(displayOld) + " to " +
+                    StringEscapeUtils.escapeHtml4(newTaxonomy) + ".";
                 ServletUtilities.informInterestedIndividualParties(request, indivID, message,
                     context);
             } else {

@@ -1034,8 +1034,11 @@ if (sharky.getNames() != null) {
                     // only worth offering when the encounters agree on something else; the servlet
                     // checks again, since they can change while this page sits open
                     if((derivedTaxonomy != null) && !derivedTaxonomy.equals(ownTaxonomy)){
+                      // encounters that only record a genus clear the stored epithet; say so up front
+                      boolean clearsEpithet = !Util.stringExists(derivable[1]) &&
+                                              Util.stringExists(sharky.getSpecificEpithet());
                     %>
-                    <option value="<%=IndividualSetTaxonomy.FROM_ENCOUNTERS%>" data-derived="<%=StringEscapeUtils.escapeHtml4(derivedTaxonomy)%>"><%=props.getProperty("taxonomyUseFromEncounters")%> (<%=StringEscapeUtils.escapeHtml4(derivedTaxonomy)%>)</option>
+                    <option value="<%=IndividualSetTaxonomy.FROM_ENCOUNTERS%>" data-derived="<%=StringEscapeUtils.escapeHtml4(derivedTaxonomy)%>"><%=props.getProperty("taxonomyUseFromEncounters")%> (<%=StringEscapeUtils.escapeHtml4(derivedTaxonomy)%><%=clearsEpithet ? ", " + props.getProperty("taxonomySpeciesCleared") : ""%>)</option>
                     <%
                     }
                     %>

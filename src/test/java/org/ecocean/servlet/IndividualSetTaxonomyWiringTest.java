@@ -23,7 +23,7 @@ class IndividualSetTaxonomyWiringTest {
     private static final String PATH = "/IndividualSetTaxonomy";
     private static final String[] LOCALES = { "en", "de", "es", "fr", "it" };
     private static final String[] NEW_KEYS = {
-        "taxonomyFromEncounters", "taxonomyUseFromEncounters"
+        "taxonomyFromEncounters", "taxonomyUseFromEncounters", "taxonomySpeciesCleared"
     };
 
     private List<String> webXmlLines()
