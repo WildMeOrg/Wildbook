@@ -117,6 +117,22 @@ class RestServletServiceKeyTest {
         assertRefused(run(request("/rest", "/jdoql", "50%25 " + enc(enc("FROM ServiceKey")), Map.of())));
     }
 
+    @Test void nonAsciiHexEscapesAreDecodedLikeTheServlet() throws Exception {
+        // URLDecoder accepts any digit Character.digit(c, 16) accepts, e.g. fullwidth digits
+        StringBuilder escaped = new StringBuilder();
+        for (char c : "ServiceKey".toCharArray()) {
+            escaped.append('%');
+            // fullwidth forms of the two hex digits
+            String hex = String.format("%02X", (int)c);
+            for (char h : hex.toCharArray())
+                escaped.append((char)(h >= 'A' ? 0xFF21 + (h - 'A') : 0xFF10 + (h - '0')));
+        }
+        String query = escaped.toString();
+        assertEquals("ServiceKey", java.net.URLDecoder.decode(query, "UTF-8"), "the servlet decodes this form");
+        assertRefused(run(request("/rest", "/jdoql", "SELECT FROM org.ecocean.auth." + query, Map.of())));
+        assertRefused(run(request("/rest", "/jdoql", query, Map.of())));
+    }
+
     @Test void filterResultDropsServiceKeys() {
         RestServlet servlet = new RestServlet();
         Encounter enc = new Encounter();
