@@ -104,6 +104,19 @@ class RestServletServiceKeyTest {
         verify(query.resp, never()).setStatus(403);
     }
 
+    @Test void percentLiteralQueryIsAllowed() throws Exception {
+        // raw "50%25" decodes to "50%"; the literal percent is not a decode failure
+        Call literal = run(request("/rest", "/jdoql", "SELECT FROM org.ecocean.Encounter WHERE comments == '50%25'",
+            Map.of()));
+        assertTrue(literal.reachedGet, "an encoded percent literal reaches doGet");
+        verify(literal.resp, never()).setStatus(403);
+        Call twice = run(request("/rest", "/jdoql", enc(enc("comments == '50%'")), Map.of()));
+        assertTrue(twice.reachedGet, "a double-encoded percent literal reaches doGet");
+        verify(twice.resp, never()).setStatus(403);
+        // a forbidden name is still refused after the percent literal is decoded
+        assertRefused(run(request("/rest", "/jdoql", "50%25 " + enc(enc("FROM ServiceKey")), Map.of())));
+    }
+
     @Test void filterResultDropsServiceKeys() {
         RestServlet servlet = new RestServlet();
         Encounter enc = new Encounter();

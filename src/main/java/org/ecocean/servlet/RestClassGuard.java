@@ -72,9 +72,10 @@ final class RestClassGuard {
             for (String name : RESTRICTED_NAMES) if (lower.contains(name)) return true;
             String decoded;
             try {
-                decoded = URLDecoder.decode(text, "UTF-8");
+                // a percent sign that starts no escape is a literal: decode the rest and keep going
+                decoded = URLDecoder.decode(text.replaceAll("%(?![0-9A-Fa-f]{2})", "%25"), "UTF-8");
             } catch (IllegalArgumentException | UnsupportedEncodingException e) {
-                return true; // undecodable: fail closed (the servlets could not run it either)
+                return false; // cannot be decoded further; every earlier form was checked
             }
             if (decoded.equals(text)) return false;
             text = decoded;
