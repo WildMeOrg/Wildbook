@@ -12,6 +12,7 @@ import javax.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -341,7 +342,7 @@ public class UserCreate extends HttpServlet {
                         !newUser.getUsername().equals(originalUsername)) {
                         try {
                             String tmpUsrSalt = ServletUtilities.getSalt().toHex();
-                            String tmpUsr1Password = "tomcat123"; // it does not matter; this user will be gone very soon
+                            String tmpUsr1Password = unusablePassword(); // random and discarded; this user will be gone very soon
                             String tmpUsr1HashedPassword = ServletUtilities.hashAndSaltPassword(
                                 tmpUsr1Password, tmpUsrSalt);
                             tempUserWithOriginalUserName = new User(originalUsername,
@@ -389,5 +390,14 @@ public class UserCreate extends HttpServlet {
             out.println(ServletUtilities.getFooter(context));
         }
         out.close();
+    }
+
+    /** Random 64-char hex password that is never stored or shown, for temporary helper accounts. */
+    static String unusablePassword() {
+        byte[] bytes = new byte[32];
+        new SecureRandom().nextBytes(bytes);
+        StringBuilder sb = new StringBuilder(64);
+        for (byte b : bytes) sb.append(String.format("%02x", b));
+        return sb.toString();
     }
 }
