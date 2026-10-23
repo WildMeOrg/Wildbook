@@ -2,6 +2,7 @@ package org.ecocean.servlet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -12,6 +13,6 @@ class UserCreateRenameHelperTest {
         assertNotEquals(a, b, "two calls must differ");
         assertEquals(64, a.length(), "32 bytes as hex");
         assertEquals(64, b.length(), "32 bytes as hex");
-        assertNotEquals("tomcat123", a, "must not be the old literal");
+        assertTrue(a.matches("[0-9a-f]{64}"), "lowercase hex only");
     }
 }
