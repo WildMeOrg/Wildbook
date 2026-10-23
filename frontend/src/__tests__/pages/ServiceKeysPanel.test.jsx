@@ -86,7 +86,19 @@ describe("ServiceKeysPanel", () => {
   });
 
   it("entryHiddenWithoutRole", () => {
+    mockMe = { data: { username: "alice", roles: ["researcher"] } };
+    renderPage();
+    expect(screen.queryByRole("button", { name: "Manage service keys" })).not.toBeInTheDocument();
+  });
+
+  it("entryShownForOrgAdmin", () => {
     mockMe = { data: { username: "alice", roles: ["orgAdmin"] } };
+    renderPage();
+    expect(screen.getByRole("button", { name: "Manage service keys" })).toBeInTheDocument();
+  });
+
+  it("entryHiddenForOrgSuperOnly", () => {
+    mockMe = { data: { username: "alice", roles: ["orgSuper"] } };
     renderPage();
     expect(screen.queryByRole("button", { name: "Manage service keys" })).not.toBeInTheDocument();
   });
