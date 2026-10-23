@@ -50,6 +50,7 @@ public final class ServiceKeyStore {
      */
     public static ServiceKeyCredential.Issued create(Shepherd sh, Organization org, String label,
         Set<String> scopes, int days, String createdBy) {
+        // createdBy / revokedBy are user ids (36-char UUIDs), never usernames
         if (org == null || org.getId() == null) throw new ServiceKeyException(404, "organization not found");
         if (days < MIN_DAYS || days > MAX_DAYS)
             throw new ServiceKeyException(400, "days must be between " + MIN_DAYS + " and " + MAX_DAYS);
@@ -132,18 +133,35 @@ public final class ServiceKeyStore {
         return fresh(sh.getPM(), Organization.class, "id == :id", orgId);
     }
 
-    /** Management view of a key. Never carries the secret or its hash. */
-    public static JSONObject toJson(ServiceKey key) {
+    /**
+     * Management view of a key. Never carries the secret or its hash. createdBy/revokedBy are the
+     * acting admins' user ids; the *Name fields are their current usernames (null if gone).
+     */
+    public static JSONObject toJson(Shepherd sh, ServiceKey key) {
         JSONObject out = new JSONObject();
         out.put("keyId", key.getId());
-        out.put("label", key.getLabel() == null ? JSONObject.NULL : key.getLabel());
+        out.put("label", orNull(key.getLabel()));
         out.put("scopes", new JSONArray(new ArrayList<>(key.getScopeSet())));
         out.put("createdAt", key.getCreatedAt());
-        out.put("createdBy", key.getCreatedBy() == null ? JSONObject.NULL : key.getCreatedBy());
+        out.put("createdBy", orNull(key.getCreatedBy()));
+        out.put("createdByName", orNull(username(sh, key.getCreatedBy())));
         out.put("expiresAt", key.getExpiresAt());
-        out.put("revokedAt", key.getRevokedAt() == null ? JSONObject.NULL : key.getRevokedAt());
-        out.put("lastUsedAt", key.getLastUsedAt() == null ? JSONObject.NULL : key.getLastUsedAt());
+        out.put("revokedAt", orNull(key.getRevokedAt()));
+        out.put("revokedBy", orNull(key.getRevokedBy()));
+        out.put("revokedByName", orNull(username(sh, key.getRevokedBy())));
+        out.put("lastUsedAt", orNull(key.getLastUsedAt()));
         return out;
+    }
+
+    private static Object orNull(Object value) {
+        return value == null ? JSONObject.NULL : value;
+    }
+
+    /** The current username of the user with this id, or null. */
+    private static String username(Shepherd sh, String userId) {
+        if (userId == null) return null;
+        User user = sh.getUserByUUID(userId);
+        return user == null ? null : user.getUsername();
     }
 
     private static String canonicalScopes(Set<String> scopes) {

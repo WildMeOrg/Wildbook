@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -127,11 +128,12 @@ public class ServiceKeys extends ApiBase {
                 writeError(response, 403, "not allowed to manage this organization's service keys");
                 return;
             }
-            String by = user.getUsername();
+            // the acting admin's user id (fits the 36-char column whatever the username's length)
+            String by = user.getId();
             if ("GET".equals(method)) {
                 JSONArray keys = new JSONArray();
                 for (ServiceKey key : ServiceKeyStore.list(myShepherd, org.getId()))
-                    keys.put(ServiceKeyStore.toJson(key));
+                    keys.put(ServiceKeyStore.toJson(myShepherd, key));
                 writeJson(response, 200, new JSONObject().put("keys", keys));
             } else if ("POST".equals(method)) {
                 create(request, response, myShepherd, org, user);
@@ -213,10 +215,10 @@ public class ServiceKeys extends ApiBase {
             days = (int)d;
         }
         ServiceKeyCredential.Issued issued = ServiceKeyStore.create(myShepherd, org, label, scopes, days,
-            user.getUsername());
+            user.getId());
         ServiceKey key = ServiceKeyStore.get(myShepherd, org.getId(), issued.keyId);
         if (key == null) throw new IllegalStateException("created key not readable");
-        JSONObject out = ServiceKeyStore.toJson(key);
+        JSONObject out = ServiceKeyStore.toJson(myShepherd, key);
         out.put("key", issued.plaintext);
         out.put("organizationId", org.getId());
         if (!commit(myShepherd, response)) return;
@@ -247,27 +249,34 @@ public class ServiceKeys extends ApiBase {
         return null;
     }
 
-    /** No Origin (curl, server-to-server) is allowed; otherwise it must be this server's own origin. */
+    /**
+     * No Origin (curl, server-to-server) is allowed. Otherwise the Origin's host[:port] must equal the
+     * request's Host header, both lowercased with a default port (80/443) dropped. The scheme is
+     * ignored, so a TLS-terminating proxy in front of Tomcat does not turn same-site requests away.
+     * "null", an unparseable Origin, or a missing Host header is refused.
+     */
     static boolean sameOrigin(HttpServletRequest request) {
         String origin = request.getHeader("Origin");
         if (origin == null) return true;
+        String host = request.getHeader("Host");
+        if (host == null || host.trim().isEmpty()) return false;
         try {
             URI uri = new URI(origin.trim());
-            String scheme = request.getScheme();
-            if (uri.getScheme() == null || uri.getHost() == null || scheme == null) return false;
-            if (!uri.getScheme().equalsIgnoreCase(scheme)) return false;
-            if (!uri.getHost().equalsIgnoreCase(request.getServerName())) return false;
-            return effectivePort(uri.getScheme(), uri.getPort()) == effectivePort(scheme, request.getServerPort());
+            if (uri.getScheme() == null || uri.getHost() == null || uri.getRawUserInfo() != null) return false;
+            if (uri.getRawPath() != null && !uri.getRawPath().isEmpty()) return false;
+            if (uri.getRawQuery() != null || uri.getRawFragment() != null) return false;
+            String originHost = uri.getHost().toLowerCase(Locale.ROOT);
+            if (uri.getPort() > 0) originHost += ":" + uri.getPort();
+            return withoutDefaultPort(originHost).equals(withoutDefaultPort(host.trim().toLowerCase(Locale.ROOT)));
         } catch (URISyntaxException ex) {
             return false;
         }
     }
 
-    private static int effectivePort(String scheme, int port) {
-        if (port > 0) return port;
-        if ("https".equalsIgnoreCase(scheme)) return 443;
-        if ("http".equalsIgnoreCase(scheme)) return 80;
-        return -1;
+    private static String withoutDefaultPort(String hostPort) {
+        if (hostPort.endsWith(":80")) return hostPort.substring(0, hostPort.length() - 3);
+        if (hostPort.endsWith(":443")) return hostPort.substring(0, hostPort.length() - 4);
+        return hostPort;
     }
 
     private static String readBody(HttpServletRequest request) throws IOException {

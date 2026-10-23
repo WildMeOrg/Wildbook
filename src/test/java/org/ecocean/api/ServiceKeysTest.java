@@ -40,6 +40,7 @@ class ServiceKeysTest {
         String pathInfo = "/" + ORG_ID + "/service-keys";
         String authorization = basic("admin", "right");
         String origin;
+        String host = "wildbook.example";
         String body = "";
         String cookieUser;
         User user;
@@ -105,9 +106,11 @@ class ServiceKeysTest {
         when(req.getPathInfo()).thenReturn(w.pathInfo);
         when(req.getHeader("Authorization")).thenReturn(w.authorization);
         when(req.getHeader("Origin")).thenReturn(w.origin);
-        when(req.getScheme()).thenReturn("https");
-        when(req.getServerName()).thenReturn("wildbook.example");
-        when(req.getServerPort()).thenReturn(443);
+        when(req.getHeader("Host")).thenReturn(w.host);
+        // what Tomcat sees behind a TLS-terminating proxy; the Origin check must not depend on it
+        when(req.getScheme()).thenReturn("http");
+        when(req.getServerName()).thenReturn("tomcat-upstream");
+        when(req.getServerPort()).thenReturn(8080);
         when(req.getReader()).thenReturn(new BufferedReader(new StringReader(w.body)));
         if (w.cookieUser != null) {
             java.security.Principal p = () -> w.cookieUser;
@@ -124,10 +127,15 @@ class ServiceKeysTest {
                  when(m.getAllOrganizations()).thenReturn(w.allOrgs);
                  when(m.getAllOrganizationsStrict()).thenReturn(w.allOrgs);
                  when(m.commitDBTransactionWithStatus()).thenReturn(true);
+                 when(m.getUserByUUID("admin-uuid")).thenReturn(w.user);
              });
-             MockedStatic<ServiceKeyStore> store = mockStatic(ServiceKeyStore.class)) {
-            // no CALLS_REAL_METHODS: stubbing would run the real revokeAll over the stubbed list
-            store.when(() -> ServiceKeyStore.toJson(any())).thenCallRealMethod();
+             MockedStatic<ServiceKeyStore> store = mockStatic(ServiceKeyStore.class, i ->
+                 // real rendering (toJson and the private helpers a static mock would otherwise
+                 // intercept); everything else defaults. Not CALLS_REAL_METHODS: stubbing would then
+                 // run the real revokeAll over the stubbed list.
+                 i.getMethod().getName().equals("toJson")
+                     || java.lang.reflect.Modifier.isPrivate(i.getMethod().getModifiers())
+                     ? i.callRealMethod() : RETURNS_DEFAULTS.answer(i))) {
             store.when(() -> ServiceKeyStore.organization(any(), anyString()))
                 .then(i -> ORG_ID.equals(i.getArgument(1)) ? w.org : null);
             store.when(() -> ServiceKeyStore.list(any(), anyString())).thenReturn(w.keys);
@@ -237,48 +245,56 @@ class ServiceKeysTest {
         assertEquals(401, run(w).status, "service account refused even if checkPassword said yes");
     }
 
+    private static int mutate(String method, String origin, String host) throws Exception {
+        World w = admin();
+        w.method = method;
+        w.origin = origin;
+        w.host = host;
+        w.body = "{\"scopes\":[\"data:read\"]}";
+        run(w);
+        if (w.status == 403) assertNull(w.issued, "nothing created");
+        return w.status;
+    }
+
     @Test void foreignOriginMutationIs403() throws Exception {
-        World post = admin();
-        post.method = "POST";
-        post.origin = "https://evil.example";
-        post.body = "{\"scopes\":[\"data:read\"]}";
-        assertEquals(403, run(post).status, "foreign origin POST");
-        assertNull(post.issued, "nothing created");
+        assertEquals(403, mutate("POST", "https://evil.example", "wildbook.example"), "foreign origin POST");
+        assertEquals(403, mutate("DELETE", "https://evil.example", "wildbook.example"), "foreign origin DELETE");
+        assertEquals(403, mutate("DELETE", "https://wildbook.example.evil.example", "wildbook.example"),
+            "suffix trick");
+        assertEquals(403, mutate("DELETE", "https://wildbook.example:8443", "wildbook.example"), "other port");
+        assertEquals(403, mutate("POST", "https://wildbook.example", null), "Origin without a Host header");
+        assertEquals(403, mutate("POST", "not a uri at all", "wildbook.example"), "unparseable Origin");
+        assertEquals(403, mutate("POST", "https://wildbook.example/path", "wildbook.example"), "Origin with a path");
 
-        World del = admin();
-        del.method = "DELETE";
-        del.origin = "https://evil.example";
-        assertEquals(403, run(del).status, "foreign origin DELETE");
-
-        World sameOrigin = admin();
-        sameOrigin.method = "POST";
-        sameOrigin.origin = "https://wildbook.example";
-        sameOrigin.body = "{\"scopes\":[\"data:read\"]}";
-        assertEquals(201, run(sameOrigin).status, "same origin allowed");
-
-        World explicitPort = admin();
-        explicitPort.method = "DELETE";
-        explicitPort.origin = "https://wildbook.example:443";
-        assertEquals(200, run(explicitPort).status, "default port spelled out is the same origin");
-
-        World otherPort = admin();
-        otherPort.method = "DELETE";
-        otherPort.origin = "https://wildbook.example:8443";
-        assertEquals(403, run(otherPort).status, "other port is a foreign origin");
-
-        World httpScheme = admin();
-        httpScheme.method = "DELETE";
-        httpScheme.origin = "http://wildbook.example";
-        assertEquals(403, run(httpScheme).status, "other scheme is a foreign origin");
-
-        World curl = admin();
-        curl.method = "POST";
-        curl.body = "{\"scopes\":[\"data:read\"]}";
-        assertEquals(201, run(curl).status, "no Origin (curl) allowed");
+        assertEquals(201, mutate("POST", "https://wildbook.example", "wildbook.example"),
+            "same origin allowed although Tomcat sees http://tomcat-upstream:8080");
+        assertEquals(201, mutate("POST", "https://WildBook.Example", "wildbook.EXAMPLE"), "case-insensitive");
+        assertEquals(200, mutate("DELETE", "https://wildbook.example:443", "wildbook.example"),
+            "default port spelled out in Origin");
+        assertEquals(200, mutate("DELETE", "https://wildbook.example", "wildbook.example:443"),
+            "default port spelled out in Host");
+        assertEquals(201, mutate("POST", null, "wildbook.example"), "no Origin (curl) allowed");
+        assertEquals(201, mutate("POST", null, null), "no Origin and no Host allowed");
 
         World get = admin();
         get.origin = "https://evil.example";
         assertEquals(200, run(get).status, "reads are not origin-checked");
+    }
+
+    @Test void sameHostDifferentSchemeAllowed() throws Exception {
+        assertEquals(201, mutate("POST", "http://wb.example", "wb.example"), "scheme ignored");
+        assertEquals(200, mutate("DELETE", "https://wb.example", "wb.example"), "scheme ignored");
+    }
+
+    @Test void nullOriginIs403() throws Exception {
+        assertEquals(403, mutate("POST", "null", "wb.example"), "opaque origin");
+        assertEquals(403, mutate("DELETE", "null", "wb.example"), "opaque origin");
+    }
+
+    @Test void hostWithPortMatches() throws Exception {
+        assertEquals(201, mutate("POST", "https://wb.example:8443", "wb.example:8443"), "same non-default port");
+        assertEquals(403, mutate("POST", "https://wb.example:8443", "wb.example:9443"), "different port");
+        assertEquals(403, mutate("POST", "https://wb.example", "wb.example:8443"), "port only on Host");
     }
 
     @Test void createReturnsPlaintextOnce() throws Exception {
@@ -296,11 +312,13 @@ class ServiceKeysTest {
         assertEquals("ingest bot", w.createdLabel, "label passed");
         assertEquals(Set.of("data:read", "submissions:write"), w.createdScopes, "scopes passed");
         assertEquals(Integer.valueOf(30), w.createdDays, "days passed");
-        assertEquals("admin", w.createdBy, "createdBy = admin username");
+        assertEquals("admin-uuid", w.createdBy, "createdBy = the admin's user id");
+        assertEquals("admin-uuid", body.getString("createdBy"), "create response createdBy");
+        assertEquals("admin", body.getString("createdByName"), "create response createdByName");
 
         World list = admin();
         ServiceKey stored = new ServiceKey(w.issued.keyId, ORG_ID, "svc-uuid", "ingest bot", w.issued.secretHash,
-            "data:read,submissions:write", System.currentTimeMillis(), "admin", System.currentTimeMillis() + 30 * DAY);
+            "data:read,submissions:write", System.currentTimeMillis(), "admin-uuid", System.currentTimeMillis() + 30 * DAY);
         list.keys = Arrays.asList(stored);
         run(list);
         assertEquals(200, list.status, "listed");
@@ -315,6 +333,10 @@ class ServiceKeysTest {
             k.getJSONArray("scopes").toString(), "scopes");
         assertTrue(k.isNull("revokedAt"), "not revoked");
         assertTrue(k.isNull("lastUsedAt"), "never used");
+        assertEquals("admin-uuid", k.getString("createdBy"), "createdBy is the user id");
+        assertEquals("admin", k.getString("createdByName"), "createdByName resolved at read time");
+        assertTrue(k.isNull("revokedBy"), "no revoker");
+        assertTrue(k.isNull("revokedByName"), "no revoker name");
         assertFalse(k.has("key"), "no plaintext field");
     }
 
@@ -432,12 +454,13 @@ class ServiceKeysTest {
         one.pathInfo = "/" + ORG_ID + "/service-keys/key-9";
         run(one);
         assertEquals(200, one.status, "revoked");
-        assertEquals(Arrays.asList(ORG_ID, "key-9", "admin"), one.revokeArgs, "org-scoped, revokedBy = admin");
+        assertEquals(Arrays.asList(ORG_ID, "key-9", "admin-uuid"), one.revokeArgs,
+            "org-scoped, revokedBy = the admin's user id");
 
         World all = admin();
         all.method = "DELETE";
         run(all);
-        assertEquals(Arrays.asList(ORG_ID, "admin"), all.revokeArgs, "revoke all is org-scoped");
+        assertEquals(Arrays.asList(ORG_ID, "admin-uuid"), all.revokeArgs, "revoke all is org-scoped");
     }
 
     @Test void discoverySiteAdminOnly() throws Exception {
