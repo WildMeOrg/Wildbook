@@ -13,6 +13,7 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 import javax.jdo.datastore.JDOConnection;
@@ -44,9 +45,9 @@ public final class ServiceKeyStore {
     private ServiceKeyStore() {}
 
     /**
-     * Issues a new key for {@code org}, provisioning (or reusing) the organization's service user
-     * and making it a member if it is not one. Throws ServiceKeyException 400 for bad input and 409
-     * when the organization already has MAX_LIVE_KEYS live keys.
+     * Issues a new key for {@code org}, provisioning the organization's service user (as a member)
+     * on first use and reusing it after. Throws ServiceKeyException 400 for bad input, and 409 when
+     * the organization already has MAX_LIVE_KEYS live keys or its service user is no longer a member.
      */
     public static ServiceKeyCredential.Issued create(Shepherd sh, Organization org, String label,
         Set<String> scopes, int days, String createdBy) {
@@ -91,7 +92,7 @@ public final class ServiceKeyStore {
         try {
             ServiceKey key = (ServiceKey)sh.getPM().getObjectById(ServiceKey.class, keyId);
             return orgId.equals(key.getOrganizationId()) ? key : null;
-        } catch (javax.jdo.JDOObjectNotFoundException e) {
+        } catch (JDOObjectNotFoundException e) {
             return null;
         }
     }
@@ -175,27 +176,35 @@ public final class ServiceKeyStore {
         return String.join(",", ordered);
     }
 
-    /** The organization's service user, created (and made a member) if needed. Runs under the org lock. */
+    /**
+     * The organization's service user. A first-time provision creates it and makes it a member; an
+     * existing service user that is no longer a direct member is refused with 409 and left as is.
+     * Runs under the org lock.
+     */
     private static User serviceUser(Shepherd sh, Organization org) {
         PersistenceManager pm = sh.getPM();
         String orgId = org.getId();
         User svc = fresh(pm, User.class, "serviceOrganizationId == :org", orgId);
-        if (svc == null) {
-            String username = "svc-" + orgId;
-            if (sh.getUser(username) != null)
-                throw new ServiceKeyException(409, "service account username is already taken");
-            // a hashed random password nobody ever sees; checkPassword refuses service accounts anyway
-            byte[] raw = new byte[32];
-            RANDOM.nextBytes(raw);
-            String salt = ServletUtilities.getSalt().toHex();
-            String hashed = ServletUtilities.hashAndSaltPassword(
-                Base64.getUrlEncoder().withoutPadding().encodeToString(raw), salt);
-            svc = new User(username, hashed, salt);
-            svc.setServiceOrganizationId(orgId);
-            pm.makePersistent(svc);
-            System.out.println("ServiceKeyStore provisioned service user=" + svc.getId() + " org=" + orgId);
+        if (svc != null) {
+            if (!ServiceKeyAuth.directOrganizationIds(pm, svc.getId()).contains(orgId))
+                throw new ServiceKeyException(409,
+                    "service account was removed from this organization; a Wildbook administrator must restore it");
+            return svc;
         }
-        if (!org.hasMember(svc)) org.addMember(svc);
+        String username = "svc-" + orgId;
+        if (sh.getUser(username) != null)
+            throw new ServiceKeyException(409, "service account username is already taken");
+        // a hashed random password nobody ever sees; checkPassword refuses service accounts anyway
+        byte[] raw = new byte[32];
+        RANDOM.nextBytes(raw);
+        String salt = ServletUtilities.getSalt().toHex();
+        String hashed = ServletUtilities.hashAndSaltPassword(
+            Base64.getUrlEncoder().withoutPadding().encodeToString(raw), salt);
+        svc = new User(username, hashed, salt);
+        svc.setServiceOrganizationId(orgId);
+        pm.makePersistent(svc);
+        System.out.println("ServiceKeyStore provisioned service user=" + svc.getId() + " org=" + orgId);
+        org.addMember(svc);
         return svc;
     }
 
@@ -216,8 +225,15 @@ public final class ServiceKeyStore {
         try {
             query.setIgnoreCache(true);
             query.setOrdering("createdAt descending");
-            List<ServiceKey> out = new ArrayList<>((Collection<ServiceKey>)query.execute(value));
-            for (ServiceKey key : out) pm.refresh(key);
+            List<ServiceKey> out = new ArrayList<>();
+            for (ServiceKey key : (Collection<ServiceKey>)query.execute(value)) {
+                try {
+                    pm.refresh(key);
+                } catch (JDOObjectNotFoundException deleted) {
+                    continue; // removed between the query and the reload
+                }
+                out.add(key);
+            }
             return out;
         } finally { query.closeAll(); }
     }
@@ -231,7 +247,11 @@ public final class ServiceKeyStore {
             Collection<T> rows = (Collection<T>)query.execute(value);
             if (rows.size() != 1) return null;
             T obj = rows.iterator().next();
-            pm.refresh(obj);
+            try {
+                pm.refresh(obj);
+            } catch (JDOObjectNotFoundException deleted) {
+                return null; // removed between the query and the reload
+            }
             return obj;
         } finally { query.closeAll(); }
     }
