@@ -127,6 +127,27 @@ class UserEditAuthorizationDbTest {
         assertTrue(UserCreate.canEditExistingUser(sh, requester, false, t1));
     }
 
+    @Test void orgAdminCanEditSelf() {
+        assertTrue(UserCreate.canEditExistingUser(sh, requester, false, requester));
+    }
+
+    @Test void selfEditOfServiceAccountStillNeedsSiteAdmin() {
+        User svc = user("svc");
+        svc.setServiceOrganizationId(orgA.getId());
+        assertTrue(sh.commitDBTransactionWithStatus());
+        sh.beginDBTransaction();
+        join(orgA, svc);
+        assertFalse(UserCreate.canEditServiceAccount(false, svc), "service account edits need a site admin");
+        assertTrue(UserCreate.canEditServiceAccount(true, svc), "site admin allowed");
+    }
+
+    @Test void selfMatchUsesAccountIdNotUsername() {
+        User other = new User("other@example.invalid", UUID.randomUUID().toString());
+        other.setUsername(t2.getUsername());
+        assertFalse(UserCreate.canEditExistingUser(sh, other, false, t2),
+            "a different account with the same username is not the same account");
+    }
+
     @Test void orgAdminCannotEditOutsideOrg() {
         assertFalse(UserCreate.canEditExistingUser(sh, requester, false, t2));
     }

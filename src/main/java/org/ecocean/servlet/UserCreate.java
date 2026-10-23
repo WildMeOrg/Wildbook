@@ -403,13 +403,16 @@ public class UserCreate extends HttpServlet {
     };
 
     /**
-     * Site admins may edit any existing user. Others may edit a user only when that user holds no
-     * admin or organization-management role in any context and shares a direct organization with them.
+     * Site admins may edit any existing user, and anyone may edit their own account (matched by
+     * account id). Others may edit a user only when that user holds no admin or
+     * organization-management role in any context and shares a direct organization with them.
+     * Role grants, organization additions and service-account edits are checked separately.
      */
     static boolean canEditExistingUser(Shepherd sh, User requester, boolean requesterIsSiteAdmin,
         User target) {
         if (requesterIsSiteAdmin) return true;
         if (requester == null || target == null) return false;
+        if (requester.getId() != null && requester.getId().equals(target.getId())) return true;
         if (holdsPrivilegedRole(sh, target.getUsername())) return false;
         List<String> requesterOrgIds = organizationIds(sh.getAllOrganizationsForUser(requester));
         for (Organization org : sh.getAllOrganizationsForUser(target)) {
