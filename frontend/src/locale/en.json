@@ -851,6 +851,7 @@
   "API_SERVICE_KEY_REVOKE": "Revoke",
   "API_SERVICE_KEY_REVOKE_ALL": "Revoke all",
   "API_SERVICE_KEY_LIMIT": "This organization already has 2 active keys. Revoke one before creating another.",
+  "API_SERVICE_KEY_ACCOUNT_CONFLICT": "The service account for this organization needs attention. Ask a Wildbook administrator to fix or restore it.",
   "API_SERVICE_KEY_WRITE_NEEDS_ADMIN": "Submission write also requires a site administrator to grant the api-submission role to the organization's service account.",
   "API_SERVICE_KEYS_MANAGE": "Manage service keys",
   "API_SERVICE_KEYS_NONE": "No organizations are available for service keys.",
