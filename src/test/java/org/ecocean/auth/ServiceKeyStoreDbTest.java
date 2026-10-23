@@ -296,7 +296,7 @@ class ServiceKeyStoreDbTest {
         String json;
         try {
             JSONArray keys = new JSONArray();
-            for (ServiceKey k : ServiceKeyStore.list(sh, orgId)) keys.put(ServiceKeyStore.toJson(k));
+            for (ServiceKey k : ServiceKeyStore.list(sh, orgId)) keys.put(ServiceKeyStore.toJson(sh, k));
             json = keys.toString();
         } finally { sh.rollbackAndClose(); }
         assertFalse(json.contains("secretHash"), "no secretHash field: " + json);
@@ -304,8 +304,62 @@ class ServiceKeyStoreDbTest {
         assertFalse(json.contains(issued.plaintext.substring(issued.plaintext.indexOf('.') + 1)), "no secret");
         assertTrue(json.contains(issued.keyId), "key id listed");
         for (String field : new String[] { "keyId", "label", "scopes", "createdAt", "createdBy", "expiresAt",
-                "revokedAt", "lastUsedAt" }) {
+                "revokedAt", "lastUsedAt", "createdByName", "revokedBy", "revokedByName" }) {
             assertTrue(json.contains("\"" + field + "\""), "field " + field + ": " + json);
         }
+    }
+
+    @Test void longUsernameAdminCreatesAndRevokes() {
+        String orgId = newOrg();
+        String longName = "a-site-administrator-with-a-long-name-40";
+        assertEquals(40, longName.length(), "fixture username length");
+        String adminId;
+        Shepherd sh = open();
+        try {
+            User admin = new User(longName, "hash", "salt");
+            sh.getPM().makePersistent(admin);
+            adminId = admin.getId();
+            assertTrue(sh.commitDBTransactionWithStatus(), "admin committed");
+        } finally { sh.rollbackAndClose(); }
+
+        sh = open();
+        ServiceKeyCredential.Issued issued;
+        try {
+            issued = ServiceKeyStore.create(sh, sh.getOrganization(orgId), "label", READ, 30, adminId);
+            assertTrue(sh.commitDBTransactionWithStatus(), "create committed");
+        } finally { sh.rollbackAndClose(); }
+        sh = open();
+        try {
+            assertTrue(ServiceKeyStore.revoke(sh, orgId, issued.keyId, adminId), "revoked");
+            assertTrue(sh.commitDBTransactionWithStatus(), "revoke committed");
+        } finally { sh.rollbackAndClose(); }
+
+        sh = open();
+        try {
+            List<ServiceKey> keys = ServiceKeyStore.list(sh, orgId);
+            assertEquals(1, keys.size(), "one key");
+            org.json.JSONObject json = ServiceKeyStore.toJson(sh, keys.get(0));
+            assertEquals(adminId, json.getString("createdBy"), "createdBy is the user id");
+            assertEquals(longName, json.getString("createdByName"), "createdByName");
+            assertEquals(adminId, json.getString("revokedBy"), "revokedBy is the user id");
+            assertEquals(longName, json.getString("revokedByName"), "revokedByName");
+            assertFalse(json.isNull("revokedAt"), "revoked");
+        } finally { sh.rollbackAndClose(); }
+    }
+
+    @Test void deletedActorNameIsNull() {
+        String orgId = newOrg();
+        Shepherd sh = open();
+        try {
+            ServiceKeyStore.create(sh, sh.getOrganization(orgId), "label", READ, 30,
+                java.util.UUID.randomUUID().toString());
+            assertTrue(sh.commitDBTransactionWithStatus(), "create committed");
+        } finally { sh.rollbackAndClose(); }
+        sh = open();
+        try {
+            org.json.JSONObject json = ServiceKeyStore.toJson(sh, ServiceKeyStore.list(sh, orgId).get(0));
+            assertTrue(json.isNull("createdByName"), "unknown user resolves to null");
+            assertTrue(json.isNull("revokedByName"), "never revoked");
+        } finally { sh.rollbackAndClose(); }
     }
 }
