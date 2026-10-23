@@ -40,8 +40,11 @@ public class Role implements java.io.Serializable {
         return names;
     }
 
+    /** Site admins may grant any role; others may not grant admin, API or organization-management roles. */
     public static boolean canEditRole(String role, boolean siteAdmin) {
-        return siteAdmin || (!API_SUBMISSION.equals(role) && !"admin".equals(role));
+        if (siteAdmin) return true;
+        return !"admin".equals(role) && !API_SUBMISSION.equals(role) &&
+                   !Organization.ROLE_MANAGER.equals(role) && !Organization.ROLE_ADMIN.equals(role);
     }
 
     private String username;
