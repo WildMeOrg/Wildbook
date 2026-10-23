@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ecocean.security.SameOriginCheck;
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
@@ -24,9 +25,11 @@ public class UserCreate extends HttpServlet {
         super.init(config);
     }
 
+    // account edits are accepted by POST only
     public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        doPost(request, response);
+        response.setHeader("Allow", "POST");
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
     }
 
     static void clearUnownedRoles(Shepherd sh, String username) {
@@ -60,6 +63,11 @@ public class UserCreate extends HttpServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        // browser requests must come from this site; checked before any database work
+        if (!SameOriginCheck.allows(request)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
         request.setCharacterEncoding("UTF-8");
         String context = "context0";
         Shepherd myShepherd = new Shepherd(context);
