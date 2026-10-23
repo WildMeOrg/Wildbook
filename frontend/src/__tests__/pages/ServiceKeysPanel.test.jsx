@@ -1,7 +1,7 @@
 import React from "react";
 import { IntlProvider } from "react-intl";
 import messages from "../../locale/en.json";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import ApiAccessPage from "../../pages/ApiAccess/ApiAccessPage";
 
 let mockMe = { data: { username: "alice", roles: ["admin"] } };
@@ -205,6 +205,43 @@ describe("ServiceKeysPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create service key" }));
     await enterPassword();
     expect(await screen.findByText(messages.API_SERVICE_KEY_ACCOUNT_CONFLICT)).toBeInTheDocument();
+  });
+
+  it("staleListResponseIsIgnoredAfterOrgChange", async () => {
+    installFetch({
+      orgs: [
+        { id: "o1", name: "Org One" },
+        { id: "o2", name: "Org Two" },
+      ],
+    });
+    const base = fetchMock.getMockImplementation();
+    const pending = {};
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Manage service keys" }));
+    // hold both lists: o1 (initial) and o2 (after the switch)
+    pending.hold = true;
+    fetchMock.mockImplementation((url, opts) => {
+      const m = url.match(/organizations\/(o[12])\/service-keys$/);
+      if (opts.method === "GET" && m && pending.hold) {
+        return new Promise((resolve) => (pending[m[1]] = resolve));
+      }
+      return base(url, opts);
+    });
+    await enterPassword();
+    await waitFor(() => expect(pending.o1).toBeDefined());
+    await screen.findByLabelText("Organization");
+    fireEvent.change(screen.getByLabelText("Organization"), { target: { value: "o2" } });
+    await waitFor(() => expect(pending.o2).toBeDefined());
+    const keyFor = (label) => ({ ...KEY, keyId: label, label });
+    const reply = (body) => ({ ok: true, status: 200, json: () => Promise.resolve(body) });
+    pending.o2(reply({ keys: [keyFor("keyOfTwo")] }));
+    expect(await screen.findByText("keyOfTwo")).toBeInTheDocument();
+    await act(async () => {
+      pending.o1(reply({ keys: [keyFor("keyOfOne")] }));
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    expect(screen.getByText("keyOfTwo")).toBeInTheDocument();
+    expect(screen.queryByText("keyOfOne")).not.toBeInTheDocument();
   });
 
   it("shows write-needs-admin hint only with submissions:write", async () => {

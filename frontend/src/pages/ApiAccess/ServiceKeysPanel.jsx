@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import { Button, Modal, Form, Alert, Table } from "react-bootstrap";
 import {
@@ -47,6 +47,10 @@ export default function ServiceKeysPanel({ username }) {
   const daysValid =
     days !== "" && Number.isInteger(daysNum) && daysNum >= 1 && daysNum <= 365;
 
+  // Bumped on every organization change and panel close; a list response
+  // belongs to the organization only while its generation is still current.
+  const listGen = useRef(0);
+
   const errorText = (err) =>
     err.status === 409
       ? /already has \d+ active keys/.test(err.message || "")
@@ -57,6 +61,7 @@ export default function ServiceKeysPanel({ username }) {
         : t("API_SERVICE_KEY_ERROR");
 
   const closePanel = () => {
+    listGen.current += 1;
     setAuth(null);
     setOrgs([]);
     setOrgId("");
@@ -112,7 +117,9 @@ export default function ServiceKeysPanel({ username }) {
   };
 
   const refresh = async (creds, id) => {
-    setKeys(await listKeys(creds, id));
+    const gen = listGen.current;
+    const list = await listKeys(creds, id);
+    if (gen === listGen.current) setKeys(list);
   };
 
   const discover = async (creds) => {
@@ -126,6 +133,8 @@ export default function ServiceKeysPanel({ username }) {
   };
 
   const onOrgChange = async (id) => {
+    listGen.current += 1;
+    const gen = listGen.current;
     setOrgId(id);
     setCreated(null);
     setError(null);
@@ -133,7 +142,7 @@ export default function ServiceKeysPanel({ username }) {
     try {
       await refresh(auth, id);
     } catch (err) {
-      setError(errorText(err));
+      if (gen === listGen.current) setError(errorText(err));
     }
   };
 
