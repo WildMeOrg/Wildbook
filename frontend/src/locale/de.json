@@ -749,6 +749,7 @@
   "MEASUREMENTS_SAVE_ERROR": "Fehler beim Speichern der Messwerte",
   "MEASUREMENTS_SAVE_SUCCESS": "Messwerte erfolgreich gespeichert",
   "UPLOADING_IMAGE": "Bild wird hochgeladen...",
+  "LOADING_IMAGE": "Bild wird geladen...",
   "SAMPLING_PROTOCOL": "Probenahmeprotokoll",
   "ARGOS_PTT_NUMBER": "Argos PTT-Nummer",
   "GO_TO_ENCOUNTER_PAGE": "Zur Begegnungsseite gehen",
