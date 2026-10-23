@@ -104,6 +104,8 @@ public class RestServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
             return;
         }
+        // service key records are not served by the generic REST endpoints
+        if (RestClassGuard.refuse(req, resp)) return;
         super.service(req, resp);
     }
 
@@ -739,6 +741,9 @@ public class RestServlet extends HttpServlet {
         System.out.println("filterResult! thisRequest");
         System.out.println(thisRequest);
         Class cls = null;
+        // backstop: service key records are never part of a REST result
+        if (RestClassGuard.isRestricted(result)) throw new NucleusUserException(RestClassGuard.MESSAGE);
+        result = RestClassGuard.dropRestricted(result);
         Object out = result;
         if (result instanceof Collection) {
             for (Object obj : (Collection)result) {

@@ -88,6 +88,14 @@ public class LightRestServlet extends HttpServlet {
         super.init(config);
     }
 
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp)
+    throws ServletException, IOException {
+        // service key records are not served by the generic REST endpoints
+        if (RestClassGuard.refuse(req, resp)) return;
+        super.service(req, resp);
+    }
+
     /**
      * Convenience method to get the next token after a "/".
      * @param req The request
@@ -582,6 +590,9 @@ public class LightRestServlet extends HttpServlet {
         System.out.println("filterResult! thisRequest");
         System.out.println(thisRequest);
         Class cls = null;
+        // backstop: service key records are never part of a REST result
+        if (RestClassGuard.isRestricted(result)) throw new NucleusUserException(RestClassGuard.MESSAGE);
+        result = RestClassGuard.dropRestricted(result);
         Object out = result;
         if (result instanceof Collection) {
             for (Object obj : (Collection)result) {
