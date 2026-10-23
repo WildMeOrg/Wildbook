@@ -47,7 +47,7 @@ trade it for a short-lived token whenever you need one. Your organization's admi
 - A key that has been revoked or has expired can't be traded again. A token you already got from it keeps
   working until that token expires, which is at most 15 minutes.
 - If `keyExpiresAt` (a time in milliseconds since 1970) is less than 30 days away, tell the operator to ask
-  their Wildbook admin for a replacement key.
+  their organization's admin or a Wildbook admin for a replacement key.
 
 ```
 POST /api/v3/auth/token?scope=submissions:read
@@ -65,7 +65,7 @@ If the trade fails with 401, the `error` message says why:
 | Message | What it means and what to do |
 |---|---|
 | `"invalid service key"` | The key is wrong or mistyped. Ask the operator to check the configured key. |
-| `"service key expired"` | The key has run out. Ask the operator for a new key from their Wildbook admin. |
+| `"service key expired"` | The key has run out. Ask the operator for a new key from their organization's admin or a Wildbook admin. |
 | `"service key revoked"` | The key was canceled on purpose. Stop; do not look for a way around it. |
 | `"service key unavailable; contact your Wildbook administrator"` | The key's account is not usable right now. Tell the operator to contact their Wildbook administrator. |
 
