@@ -479,6 +479,98 @@ class IAIntakeCoreTest {
         });
     }
 
+    // ---- an iaClass with no identification options is not given one by matchingAlgorithms ----
+    // `"_id_conf": []` is an explicit opt-out (part classes like wild_dog+tail_*); a user's
+    // algorithm choice on New Match must not manufacture an option for it.
+
+    static JSONObject hotspotterChoice() {
+        return new JSONObject(
+            "{\"query_config_dict\":{\"sv_on\":false},\"default\":false,\"description\":\"HotSpotter pattern-matcher\"}");
+    }
+
+    static void assertOnlyIaClassRan(IA.IntakeOutcome o, String iaClass) {
+        assertFalse(o.options.isEmpty());
+        for (IA.OptionResult r : o.options) {
+            for (Annotation a : r.task.getObjectAnnotations())
+                assertEquals(iaClass, a.getIAClass(), "only " + iaClass + " gets identification options");
+        }
+    }
+
+    @Test void optedOutClassGetsNoOptionWhenTheUserPicksAnAlgorithm() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> m = new HashMap<String, List<JSONObject>>();
+        m.put("wild_dog", Arrays.asList(miewid()));
+        m.put("wild_dog+tail_general", new ArrayList<JSONObject>());   // "_id_conf": []
+        withStatics(config(m), () -> {
+            JSONObject inherited = new JSONObject().put("matchingAlgorithms",
+                new JSONArray().put(hotspotterChoice()));
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh,
+                Arrays.asList(ann("body", "wild_dog"), ann("tail", "wild_dog+tail_general")), null,
+                inherited, false);
+            assertEquals(Arrays.asList("wild_dog+tail_general"), o.skippedIaClasses);
+            assertEquals(1, o.options.size());
+            assertOnlyIaClassRan(o, "wild_dog");
+            assertEquals(1, d.published.size(), "one HotSpotter job, for the body only");
+            assertTrue(d.vectorRuns.isEmpty());
+        });
+    }
+
+    @Test void classWithNoConfigGetsNoOptionWhenTheUserPicksAnAlgorithm() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> m = new HashMap<String, List<JSONObject>>();
+        m.put("wild_dog", Arrays.asList(miewid()));   // "mystery" has no entry -> identOpts returns null
+        withStatics(config(m), () -> {
+            JSONObject inherited = new JSONObject().put("matchingAlgorithms",
+                new JSONArray().put(hotspotterChoice()));
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh,
+                Arrays.asList(ann("body", "wild_dog"), ann("b", "mystery")), null, inherited, false);
+            assertEquals(Arrays.asList("mystery"), o.skippedIaClasses);
+            assertOnlyIaClassRan(o, "wild_dog");
+            assertEquals(1, d.published.size());
+        });
+    }
+
+    @Test void soleOptedOutClassIsATerminalNoWorkRunAndDispatchesNothing() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> m = new HashMap<String, List<JSONObject>>();
+        m.put("wild_dog+tail_general", new ArrayList<JSONObject>());
+        withStatics(config(m), () -> {
+            JSONObject inherited = new JSONObject().put("matchingAlgorithms",
+                new JSONArray().put(hotspotterChoice()));
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh,
+                Arrays.asList(ann("tail", "wild_dog+tail_general")), null, inherited, false);
+            assertTrue(o.noWork);
+            assertTrue(o.options.isEmpty());
+            assertEquals("error", o.umbrella.getStoredStatus());
+            assertEquals("INVALID_MATCH_CONFIG", errorCode(o.umbrella));
+            assertTrue(d.published.isEmpty());
+            assertTrue(d.vectorRuns.isEmpty());
+        });
+    }
+
+    @Test void classWithOnlyNonDefaultOptionsStillRunsTheChosenAlgorithm() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        Map<String, List<JSONObject>> m = new HashMap<String, List<JSONObject>>();
+        m.put("wild_dog", Arrays.asList(hotspotterChoice()));   // configured, but default:false
+        withStatics(config(m), () -> {
+            JSONObject inherited = new JSONObject().put("matchingAlgorithms",
+                new JSONArray().put(hotspotterChoice()));
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh,
+                Arrays.asList(ann("body", "wild_dog")), null, inherited, false);
+            assertFalse(o.noWork, "not an opt-out: the class has options, just none default");
+            assertTrue(o.skippedIaClasses.isEmpty());
+            assertEquals(1, d.published.size());
+        });
+    }
+
     @Test void defaultFalseOptionsAreDroppedAndFastlanePublishesToTheFastQueue() throws Exception {
         RecordingDispatcher d = new RecordingDispatcher();
         IA.setDispatcherForTests(d);
@@ -831,6 +923,34 @@ class IAIntakeCoreTest {
             assertTrue(d.published.isEmpty());
         });
     }
+
+    /** No eligibility was established, so neither a user's algorithm nor a vector pin runs. */
+    @Test void identOptsThrowingSkipsTheClassDespiteAChosenAlgorithmOrAPin() throws Exception {
+        RecordingDispatcher d = new RecordingDispatcher();
+        IA.setDispatcherForTests(d);
+        Shepherd sh = shepherd(true);
+        withStatics(configThrowingFor(twoClassesTwoOptions(), "guitarfish+rostrum"), () -> {
+            JSONObject inherited = new JSONObject().put("matchingAlgorithms",
+                new JSONArray().put(hotspotterChoice()).put(miewid()));
+            IA.IntakeOutcome o = IA.intakeAnnotationsUnder(sh,
+                Arrays.asList(ann("body", "guitarfish"), ann("rostrum", "guitarfish+rostrum")), null,
+                inherited, false, miewid(), true);
+            assertEquals(Arrays.asList("guitarfish+rostrum"), o.skippedIaClasses);
+            assertOnlyIaClassRan(o, "guitarfish");
+            assertEquals(1, d.vectorRuns.size());
+            assertEquals(1, d.published.size());
+
+            RecordingDispatcher alone = new RecordingDispatcher();
+            IA.setDispatcherForTests(alone);
+            IA.IntakeOutcome o2 = IA.intakeAnnotationsUnder(sh,
+                Arrays.asList(ann("r2", "guitarfish+rostrum")), null, inherited, false, miewid(), true);
+            assertTrue(o2.noWork);
+            assertEquals("INVALID_MATCH_CONFIG", errorCode(o2.umbrella));
+            assertTrue(alone.vectorRuns.isEmpty());
+            assertTrue(alone.published.isEmpty());
+        });
+    }
+
     @Test void unusableVectorDefaultsNeverPublishTheVectorOptionToWbia() throws Exception {
         RecordingDispatcher d = new RecordingDispatcher();
         IA.setDispatcherForTests(d);
