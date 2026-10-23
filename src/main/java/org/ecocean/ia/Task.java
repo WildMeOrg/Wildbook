@@ -7,7 +7,9 @@ package org.ecocean.ia;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,6 +29,17 @@ import org.ecocean.identity.IdentityServiceLog;
 
 public class Task implements java.io.Serializable {
     public static long TIMEOUT_INACTIVE_MILLIS = 7l * 24l * 60l * 60l * 1000l;
+    // ---- issue #1787: one identifier for one identification run (spec §4.0) ----
+    /** Parameter key: the umbrella id of the identification run every task of that run carries. */
+    public static final String PARAM_RUN_ID = "identificationInvocationId";
+    /** Parameter key: marks a per-option task, or the umbrella when it is the single option. */
+    public static final String PARAM_OPTION = "identificationOption";
+    /** Parameter key: vector (ml-service) option tasks and their per-annotation leaves. */
+    public static final String PARAM_V2_MATCH = "mlServiceV2Match";
+    /** Parameter key: the bulk import that stamped this task (PR #1625). */
+    public static final String PARAM_IMPORT_TASK_ID = "importTaskId";
+    /** Stored status of a HotSpotter task whose send failed while a retry may still be scheduled (§4.4). Non-terminal. */
+    public static final String STATUS_REQUEUED = "requeued";
     private String id = null;
     private long created = -1;
     private long modified = -1;
@@ -63,6 +76,11 @@ public class Task implements java.io.Serializable {
 
     public long getCreatedLong() {
         return created;
+    }
+
+    // test fixtures only: lets a hand-built tree carry distinct creation times
+    void setCreated(long millis) {
+        created = millis;
     }
 
     public long getModifiedLong() {
@@ -242,6 +260,15 @@ public class Task implements java.io.Serializable {
     public boolean contains(MediaAsset ma) {
         if (objectMediaAssets == null) return false;
         return objectMediaAssets.contains(ma);
+    }
+
+    /** Membership by annotation id (Annotation.equals is id-based, but this never depends on it). */
+    public boolean holdsAnnotationId(String annId) {
+        if ((annId == null) || (objectAnnotations == null)) return false;
+        for (Annotation a : objectAnnotations) {
+            if ((a != null) && annId.equals(a.getId())) return true;
+        }
+        return false;
     }
 
     public List<Task> getChildren() {
@@ -565,9 +592,19 @@ public class Task implements java.io.Serializable {
      */
     public static Task getPreferredMatchResultsTaskForAnnotation(Annotation ann,
         String importTaskId, Shepherd myShepherd) {
+        return getPreferredMatchResultsTaskForAnnotation(ann, importTaskId, null, myShepherd);
+    }
+
+    /**
+     * Encounter-scoped variant (issue #1787, spec §4.3): {@code encounterAnnotationIds} is the
+     * id set of every annotation on the annotation's encounter. Non-null opts in to run
+     * selection and the structural hoist; null keeps today's behaviour.
+     */
+    public static Task getPreferredMatchResultsTaskForAnnotation(Annotation ann,
+        String importTaskId, Set<String> encounterAnnotationIds, Shepherd myShepherd) {
         List<Task> tasks = getTasksFor(ann, myShepherd, "created DESC");
 
-        return selectPreferredMatchTask(tasks, importTaskId);
+        return selectPreferredMatchTask(tasks, importTaskId, encounterAnnotationIds);
     }
 
     /**
@@ -611,27 +648,54 @@ public class Task implements java.io.Serializable {
      * <p>Returns null if no renderable or root task is usable.</p>
      */
     static Task selectPreferredMatchTask(List<Task> tasks, String importTaskId) {
-        if (Util.collectionIsEmptyOrNull(tasks)) return null;
-        // A blank importTaskId is not a usable scope; treat it as "unscoped"
-        // so a stray empty string can neither match tasks nor define a
-        // phantom import. (The real caller always passes ImportTask.getId().)
-        if ((importTaskId != null) && importTaskId.trim().isEmpty()) importTaskId = null;
+        return selectPreferredMatchTask(tasks, importTaskId, null);
+    }
 
-        // Renderability FIRST, across ALL candidates (created-DESC preserved).
-        // Codex C15 round-1 Major: check BOTH renderability tests on each
-        // candidate before moving on, so a newer v2 task without children yet
-        // (e.g. pre-PairX) wins over an older structural task.
+    /**
+     * Issue #1787 (spec §4.3). With a null {@code encounterAnnotationIds} this is exactly the
+     * two-argument behaviour above. With a set:
+     * <ol>
+     *   <li>new tree: the run's umbrella from {@link #selectRun}, scoped to the encounter;</li>
+     *   <li>new tree whose newest umbrella spans encounters: today's selection restricted to
+     *       that run's tasks (no hoist);</li>
+     *   <li>old tree: three ordered phases (renderable candidates minus orchestration nodes
+     *       under the import partition; else the newest {@code ibeis.identification} task under
+     *       the same partition; else today's root fallback, returned as is), then a structural
+     *       climb from the phase-1/2 winner with explicit stop rules.</li>
+     * </ol>
+     */
+    static Task selectPreferredMatchTask(List<Task> tasks, String importTaskId,
+        Set<String> encounterAnnotationIds) {
+        if (Util.collectionIsEmptyOrNull(tasks)) return null;
+        if ((importTaskId != null) && importTaskId.trim().isEmpty()) importTaskId = null;
+        if (encounterAnnotationIds == null) return selectLegacy(tasks, importTaskId);
+        Task run = selectRun(tasks, importTaskId, encounterAnnotationIds);
+        if (run != null) return run;
+        Task newestUmbrella = selectRun(tasks, importTaskId, null);
+        if (newestUmbrella != null) {
+            List<Task> ofRun = new ArrayList<Task>();
+            for (Task t : tasks) {
+                if (newestUmbrella.getId().equals(runIdOf(t))) ofRun.add(t);
+            }
+            return selectLegacy(ofRun, importTaskId);
+        }
+        List<Task> oldTree = new ArrayList<Task>();
+        for (Task t : tasks) {
+            if (runIdOf(t) == null) oldTree.add(t);
+        }
+        if (oldTree.isEmpty()) return selectLegacy(tasks, importTaskId);  // only foreign-stamped runs
+        return selectOldTree(oldTree, importTaskId, encounterAnnotationIds);
+    }
+
+    // Today's two-argument behaviour, verbatim (renderable phase, then root fallback).
+    private static Task selectLegacy(List<Task> tasks, String importTaskId) {
+        if (Util.collectionIsEmptyOrNull(tasks)) return null;
         List<Task> renderable = new ArrayList<Task>();
         for (Task t : tasks) {
             if (isRenderableMatchTask(t) || isV2MatchTask(t)) renderable.add(t);
         }
         if (!renderable.isEmpty()) {
             if (importTaskId == null) return renderable.get(0);
-            // Among renderable tasks: THIS import's stamped task wins; else the
-            // newest UNSTAMPED task (the v2 case — match tasks are never
-            // stamped). A task stamped with a DIFFERENT import's id is never
-            // returned (foreign-import isolation, mirrors #1624); if only
-            // foreign renderable tasks exist, fall through to the root logic.
             Task newestUnstamped = null;
             for (Task t : renderable) {  // newest-first
                 String tid = importTaskIdOf(t);
@@ -639,16 +703,16 @@ public class Task implements java.io.Serializable {
                 if ((tid == null) && (newestUnstamped == null)) newestUnstamped = t;
             }
             if (newestUnstamped != null) return newestUnstamped;
-            // else: every renderable task belongs to another import → fall through
         }
+        return rootFallback(tasks, importTaskId);
+    }
 
-        // No usable renderable task. Root fallback, preserving PR #1625's
-        // scoped/legacy partition for legacy (#1624) imports: prefer this
-        // import's tasks, then its un-stamped tasks; never another import's.
+    // PR #1625's scoped/legacy root partition, verbatim from the previous selector body.
+    private static Task rootFallback(List<Task> tasks, String importTaskId) {
         List<Task> pool = tasks;
         if (importTaskId != null) {
-            List<Task> scoped = new ArrayList<Task>();  // tasks belonging to THIS import
-            List<Task> legacy = new ArrayList<Task>();  // tasks with NO importTaskId at all
+            List<Task> scoped = new ArrayList<Task>();
+            List<Task> legacy = new ArrayList<Task>();
             for (Task t : tasks) {
                 String tid = importTaskIdOf(t);
                 if (importTaskId.equals(tid)) {
@@ -670,12 +734,193 @@ public class Task implements java.io.Serializable {
         return null;
     }
 
+    // §4.3 old tree: phases 1-3, then the climb.
+    private static Task selectOldTree(List<Task> tasks, String importTaskId,
+        Set<String> encounterAnnotationIds) {
+        List<Task> phase1 = new ArrayList<Task>();
+        for (Task t : tasks) {
+            if ((isRenderableMatchTask(t) || isV2MatchTask(t)) && !isOrchestrationNode(t))
+                phase1.add(t);
+        }
+        Task winner = newestInPartition(phase1, importTaskId);
+        if (winner == null) {
+            List<Task> phase2 = new ArrayList<Task>();
+            for (Task t : tasks) {
+                JSONObject p = t.getParameters();
+                if ((p != null) && p.has("ibeis.identification") && !isOrchestrationNode(t))
+                    phase2.add(t);
+            }
+            winner = newestInPartition(phase2, importTaskId);
+        }
+        if (winner == null) return rootFallback(tasks, importTaskId);  // phase 3: as is, never climbed
+        return hoistToRunRoot(winner, encounterAnnotationIds);
+    }
+
+    // candidates are newest-first; scoped: this import's stamp, else unstamped, never foreign
+    private static Task newestInPartition(List<Task> candidates, String importTaskId) {
+        if (candidates.isEmpty()) return null;
+        if (importTaskId == null) return candidates.get(0);
+        Task newestUnstamped = null;
+        for (Task t : candidates) {
+            String tid = importTaskIdOf(t);
+            if (importTaskId.equals(tid)) return t;
+            if ((tid == null) && (newestUnstamped == null)) newestUnstamped = t;
+        }
+        return newestUnstamped;
+    }
+
+    // detection / extraction orchestration, or a pre-fix umbrella a later handleRest loaded with media assets
+    private static boolean isOrchestrationNode(Task t) {
+        if (t.numberMediaAssets() > 0) return true;
+        JSONObject p = t.getParameters();
+        return (p != null) && (p.has("ibeis.detection") || p.has("embeddingExtraction"));
+    }
+
+    private static final int HOIST_MAX_HOPS = 20;
+
+    // §4.3 structural climb with the stop rules; falls back to the best task found so far on any throw
+    private static Task hoistToRunRoot(Task winner, Set<String> encounterAnnotationIds) {
+        Task best = winner;
+        try {
+            String winnerStamp = importTaskIdOf(winner);
+            Set<String> visited = new HashSet<String>();
+            visited.add(winner.getId());
+            Task up = winner.getParent();
+            int hops = 0;
+            while ((up != null) && (up.getId() != null) && (hops++ < HOIST_MAX_HOPS) && visited.add(up.getId())) {
+                if (up.numberAnnotations() == 0) break;                                   // roots, sub-parents
+                if (isOrchestrationNode(up)) break;                                       // detection / extraction
+                if ((up.getParent() == null) && (up.getParameters() == null)) break;       // parameterless root (createFromApi E)
+                if (!allAnnotationsIn(up, encounterAnnotationIds)) break;                 // #1744 boundary
+                String upStamp = importTaskIdOf(up);
+                if ((upStamp != null) && !upStamp.equals(winnerStamp)) break;             // #1624 boundary
+                if ((upStamp == null) && (winnerStamp != null) && !allChildrenStamped(up, winnerStamp)) break;
+                best = up;
+                up = up.getParent();
+            }
+        } catch (RuntimeException ex) {
+            System.out.println("WARNING: Task.hoistToRunRoot() stopped at " + best.getId() + " due to " + ex);
+        }
+        return best;
+    }
+
+    // unstamped bridge: every direct child carries the winner's stamp (an empty child list never bridges)
+    private static boolean allChildrenStamped(Task up, String stamp) {
+        List<Task> kids = up.getChildren();
+        if ((kids == null) || kids.isEmpty()) return false;
+        for (Task kid : kids) {
+            if (!stamp.equals(importTaskIdOf(kid))) return false;
+        }
+        return true;
+    }
+
     // The task's importTaskId parameter, or null when absent/blank.
     private static String importTaskIdOf(Task t) {
         JSONObject p = t.getParameters();
-        String tid = (p == null) ? null : p.optString("importTaskId", null);
+        String tid = (p == null) ? null : p.optString(PARAM_IMPORT_TASK_ID, null);
         if ((tid != null) && tid.trim().isEmpty()) tid = null;  // blank == un-stamped
         return tid;
+    }
+
+    // ---- issue #1787 run vocabulary ----
+
+    /** The run id a task carries, or null for a task outside any run (null task / parameters / blank). */
+    public static String runIdOf(Task t) {
+        if (t == null) return null;
+        JSONObject p = t.getParameters();
+        String rid = (p == null) ? null : p.optString(PARAM_RUN_ID, null);
+        if ((rid != null) && rid.trim().isEmpty()) rid = null;
+        return rid;
+    }
+
+    /** A task is the umbrella of a run iff its own id equals its run id (§4.0). */
+    public static boolean isUmbrella(Task t) {
+        if ((t == null) || (t.getId() == null)) return false;
+        return t.getId().equals(runIdOf(t));
+    }
+
+    /** Option tasks carry {@link #PARAM_OPTION}; leaves and fan-out children never do (§4.0). */
+    public static boolean isOptionTask(Task t) {
+        if (t == null) return false;
+        JSONObject p = t.getParameters();
+        return (p != null) && p.optBoolean(PARAM_OPTION, false);
+    }
+
+    public static boolean anyRunId(List<Task> tasks) {
+        if (tasks == null) return false;
+        for (Task t : tasks) {
+            if (runIdOf(t) != null) return true;
+        }
+        return false;
+    }
+
+    /**
+     * The keys that identify a task within its run (issue #1787): kept on the option parent
+     * when {@code IAGateway._doIdentify} clears its parameters before fanning out. Returns
+     * null when nothing applies, so a legacy parent still ends up with null parameters.
+     */
+    public static JSONObject identityParams(JSONObject params) {
+        if (params == null) return null;
+        JSONObject keep = new JSONObject();
+        for (String key : new String[] { PARAM_IMPORT_TASK_ID, PARAM_RUN_ID, PARAM_OPTION }) {
+            if (params.has(key)) keep.put(key, params.get(key));
+        }
+        return (keep.length() == 0) ? null : keep;
+    }
+
+    /** A copy of {@code params} without the option marker (fan-out children are leaves). */
+    public static JSONObject withoutOptionMarker(JSONObject params) {
+        if (params == null) return null;
+        JSONObject copy = new JSONObject(params.toString());
+        copy.remove(PARAM_OPTION);
+        return copy;
+    }
+
+    /**
+     * Spec §4.0 run selection, shared by the Match Results link and the import status.
+     * Returns the newest ELIGIBLE umbrella among the annotation's direct tasks, comparing
+     * umbrella creation times (never leaf times, so a late HotSpotter fan-out under an older
+     * run cannot outrank a newer run). Eligible: the task is an umbrella; its stamp satisfies
+     * the import rule (scoped: this import's stamp first, else unstamped, never foreign;
+     * unscoped: any); and, when {@code encounterAnnotationIds} is non-null, every annotation
+     * on it is in that set. {@code direct} may be in any order; it is sorted (stably) here.
+     */
+    public static Task selectRun(List<Task> direct, String importTaskId,
+        Set<String> encounterAnnotationIds) {
+        if (Util.collectionIsEmptyOrNull(direct)) return null;
+        if ((importTaskId != null) && importTaskId.trim().isEmpty()) importTaskId = null;
+        List<Task> sorted = new ArrayList<Task>(direct);
+        Collections.sort(sorted, new Comparator<Task>() {  // stable: equal times keep caller order
+            @Override public int compare(Task a, Task b) {
+                return Long.compare(b.getCreatedLong(), a.getCreatedLong());
+            }
+        });
+        Task newestStamped = null;
+        Task newestUnstamped = null;
+        for (Task t : sorted) {
+            if (!isUmbrella(t)) continue;
+            if (!allAnnotationsIn(t, encounterAnnotationIds)) continue;
+            if (importTaskId == null) return t;   // unscoped: newest eligible umbrella wins
+            String tid = importTaskIdOf(t);
+            if (importTaskId.equals(tid)) {
+                if (newestStamped == null) newestStamped = t;
+            } else if ((tid == null) && (newestUnstamped == null)) {
+                newestUnstamped = t;
+            }
+        }
+        if (newestStamped != null) return newestStamped;
+        return newestUnstamped;
+    }
+
+    // every annotation on the task is in the set (a null set means "no encounter check")
+    private static boolean allAnnotationsIn(Task t, Set<String> encounterAnnotationIds) {
+        if (encounterAnnotationIds == null) return true;
+        if (t.getObjectAnnotations() == null) return true;
+        for (Annotation a : t.getObjectAnnotations()) {
+            if ((a == null) || (a.getId() == null) || !encounterAnnotationIds.contains(a.getId()))
+                return false;
+        }
+        return true;
     }
 
     // A bare mlServiceV2Match=true flag isn't enough — Task(Task p)

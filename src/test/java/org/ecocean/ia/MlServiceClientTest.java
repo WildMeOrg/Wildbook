@@ -153,34 +153,60 @@ class MlServiceClientTest {
         assertTrue(ex.getMessage().contains("length 100 != expected 2152"));
     }
 
-    @Test void validatePipelineResponseAcceptsAnyLengthWhenExpectedDimZero() throws Exception {
-        // expectedDim <= 0 means "unknown, skip length check" (per design).
-        JSONObject result = validResult(100);
+    @Test void validatePipelineResponseAcceptsSupportedLengthWhenExpectedDimZero() throws Exception {
+        // expectedDim <= 0 means "no configured length" (per design); any length with an
+        // OpenSearch vector field is accepted.
+        for (int dim : new int[] { 2152, 1536 }) {
+            JSONObject r = new JSONObject().put("success", true)
+                .put("results", new JSONArray().put(validResult(dim)));
+            MlServiceClient.validatePipelineResponse(r, 0);
+        }
+    }
+
+    @Test void validatePipelineResponseRejectsUnsupportedLength() {
+        // no OpenSearch knn_vector field exists for this length, so it could never be matched;
+        // reject it terminally rather than store an unmatchable embedding
         JSONObject r = new JSONObject().put("success", true)
-            .put("results", new JSONArray().put(result));
-        MlServiceClient.validatePipelineResponse(r, 0);
+            .put("results", new JSONArray().put(validResult(100)));
+        IAException ex = assertThrows(IAException.class,
+            () -> MlServiceClient.validatePipelineResponse(r, 0));
+        assertEquals("INVALID", ex.getCode());
+        assertTrue(ex.getMessage().contains("not a supported length"), ex.getMessage());
+    }
+
+    @Test void validateExtractResponseRejectsUnsupportedLength() {
+        JSONArray emb = new JSONArray();
+        for (int i = 0; i < 512; i++) emb.put(0.5);
+        JSONObject r = new JSONObject()
+            .put("success", true)
+            .put("embedding", emb)
+            .put("embedding_model_id", "miewid")
+            .put("embedding_model_version", "4.1");
+        IAException ex = assertThrows(IAException.class,
+            () -> MlServiceClient.validateExtractResponse(r, 512));
+        assertEquals("INVALID", ex.getCode());
     }
 
     @Test void validatePipelineResponseRejectsMissingTheta() {
         // theta default-on-missing was a defect: a malformed result could be
         // persisted with a fabricated theta=0.0. Require presence.
-        JSONObject result = validResult(100);
+        JSONObject result = validResult(1536);
         result.remove("theta");
         JSONObject r = new JSONObject().put("success", true)
             .put("results", new JSONArray().put(result));
         IAException ex = assertThrows(IAException.class,
-            () -> MlServiceClient.validatePipelineResponse(r, 100));
+            () -> MlServiceClient.validatePipelineResponse(r, 1536));
         assertEquals("INVALID", ex.getCode());
         assertTrue(ex.getMessage().contains("missing theta"));
     }
 
     @Test void validatePipelineResponseRejectsNonNumericTheta() {
-        JSONObject result = validResult(100);
+        JSONObject result = validResult(1536);
         result.put("theta", "not-a-number");
         JSONObject r = new JSONObject().put("success", true)
             .put("results", new JSONArray().put(result));
         IAException ex = assertThrows(IAException.class,
-            () -> MlServiceClient.validatePipelineResponse(r, 100));
+            () -> MlServiceClient.validatePipelineResponse(r, 1536));
         assertEquals("INVALID", ex.getCode());
     }
 
@@ -189,36 +215,36 @@ class MlServiceClientTest {
         // numeric string at any embedding index returns NaN from optDouble,
         // which the validator must reject.
         JSONArray emb = new JSONArray();
-        for (int i = 0; i < 100; i++) emb.put(0.5);
+        for (int i = 0; i < 1536; i++) emb.put(0.5);
         emb.put(50, "not-a-number");
-        JSONObject result = validResult(100);
+        JSONObject result = validResult(1536);
         result.put("embedding", emb);
         JSONObject r = new JSONObject().put("success", true)
             .put("results", new JSONArray().put(result));
         assertThrows(IAException.class,
-            () -> MlServiceClient.validatePipelineResponse(r, 100));
+            () -> MlServiceClient.validatePipelineResponse(r, 1536));
     }
 
     @Test void validatePipelineResponseRejectsMissingModelId() {
-        JSONObject result = validResult(100);
+        JSONObject result = validResult(1536);
         result.remove("embedding_model_id");
         JSONObject r = new JSONObject().put("success", true)
             .put("results", new JSONArray().put(result));
         assertThrows(IAException.class,
-            () -> MlServiceClient.validatePipelineResponse(r, 100));
+            () -> MlServiceClient.validatePipelineResponse(r, 1536));
     }
 
     // --- validateExtractResponse -----------------------------------------
 
     @Test void validateExtractResponseAcceptsValid() throws Exception {
         JSONArray emb = new JSONArray();
-        for (int i = 0; i < 100; i++) emb.put(0.5);
+        for (int i = 0; i < 1536; i++) emb.put(0.5);
         JSONObject r = new JSONObject()
             .put("success", true)
             .put("embedding", emb)
             .put("embedding_model_id", "miewid")
             .put("embedding_model_version", "4.1");
-        MlServiceClient.validateExtractResponse(r, 100);
+        MlServiceClient.validateExtractResponse(r, 1536);
     }
 
     @Test void validateExtractResponseRejectsEmptyEmbedding() {

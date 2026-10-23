@@ -539,20 +539,17 @@ public class MetricsBot {
             "SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('MiewId')>-1",
             "wildbook_tasks_miewId", "Number of tasks using MiewId algorithm", context));
 
-        // ml-service v2 vector (MiewID) re-ID matches carry mlServiceV2Match=true
-        // (MlServiceProcessor.runMatchProspects); the per-annotation leaf subtasks
-        // inherit it (Embedding.findMatchProspects -> new Task(matchTask)).
-        // children==null counts those leaves (one per annotation), parallel to the
-        // hotspotter/pieTwo gauges above; the parent match task has children and is
-        // excluded, so no double counting. Edge case: an invalid/rejected match
-        // config aborts before any subtask is created, leaving the parent match
-        // task childless — that rare failure counts as one terminal leaf here.
-        // Match the quoted JSON key (like the hotspotter '"sv_on"' gauge) so we
-        // hit the key, not an incidental substring elsewhere in the params.
+        // Vector (ml-service) identification leaf tasks carry mlServiceV2Match=true on their
+        // option task and inherit it (Embedding.findMatchProspects -> new Task(option)).
+        // Since issue #1787 every entry point (bulk import, New Match, resend) marks its vector
+        // option tasks, so this counts all of them. children==null counts the leaves (one per
+        // annotation; the option task has children and is excluded). A vector option that
+        // failed before creating any leaf is childless and counts as one. Match the quoted JSON
+        // key (like the hotspotter '"sv_on"' gauge) so we hit the key, not a substring.
         addLineIfNotNull(csvLines, buildGauge(
             "SELECT count(this) FROM org.ecocean.ia.Task where children == null && parameters.indexOf('\"mlServiceV2Match\"')>-1",
             "wildbook_tasks_vectorMatch",
-            "Number of ml-service v2 vector (MiewID) re-ID leaf tasks (one per matched annotation; a rare invalid-config match failure counts as one)",
+            "Number of vector identification leaf tasks (all entry points; counts errors too)",
             context));
 
 

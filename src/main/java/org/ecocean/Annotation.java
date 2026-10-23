@@ -200,12 +200,15 @@ public class Annotation extends Base implements java.io.Serializable {
         JSONObject embProps = new JSONObject();
         embProps.put("method", keywordType);
         embProps.put("methodVersion", keywordType);
-        JSONObject embVect = new JSONObject();
+        // one knn_vector field per supported vector length (a knn_vector has a fixed dimension)
         // https://docs.opensearch.org/docs/latest/vector-search/creating-vector-index/
-        embVect.put("type", "knn_vector");
-        embVect.put("dimension", Embedding.getVectorDimension());
-        embVect.put("space_type", "cosinesimil");
-        embProps.put("vector", embVect);
+        for (Map.Entry<Integer, String> vf : Embedding.VECTOR_FIELDS.entrySet()) {
+            JSONObject embVect = new JSONObject();
+            embVect.put("type", "knn_vector");
+            embVect.put("dimension", vf.getKey());
+            embVect.put("space_type", "cosinesimil");
+            embProps.put(vf.getValue(), embVect);
+        }
         embMap.put("properties", embProps);
         map.put("embeddings", embMap);
 
@@ -252,6 +255,12 @@ public class Annotation extends Base implements java.io.Serializable {
             }
         }
         this.writeAclFields(jgen, myShepherd);
+        writeEmbeddings(jgen);
+    }
+
+    // each embedding's vector goes in the knn_vector field for its length (package-visible for testing)
+    void writeEmbeddings(JsonGenerator jgen)
+    throws IOException {
         jgen.writeArrayFieldStart("embeddings");
         if (this.embeddings != null)
             for (Embedding emb : this.embeddings) {
@@ -262,9 +271,16 @@ public class Annotation extends Base implements java.io.Serializable {
                 jgen.writeNumberField("created", emb.getCreated());
 
                 float[] vecFloat = emb.vectorToFloatArray();
-                // System.out.println("[INFO] indexing emb " + emb.getId() + " vector length " + ((vecFloat == null) ? "null" : vecFloat.length));
-                if ((vecFloat != null) && (vecFloat.length > 0)) {
-                    jgen.writeFieldName("vector");
+                String vecField = (vecFloat == null) ? null : Embedding.vectorFieldName(
+                    vecFloat.length);
+                // an unsupported length would make OpenSearch reject the whole annotation doc, so
+                // index the doc without that vector (it cannot be matched until it has a field)
+                if ((vecFloat != null) && (vecFloat.length > 0) && (vecField == null))
+                    System.out.println("[WARNING] Annotation " + this.getId() + " embedding " +
+                        emb.getId() + " has unsupported vector length " + vecFloat.length +
+                        "; indexed without its vector");
+                if (vecField != null) {
+                    jgen.writeFieldName(vecField);
                     jgen.writeStartArray();
                     for (int i = 0; i < vecFloat.length; i++) {
                         jgen.writeNumber(vecFloat[i]);
@@ -1219,31 +1235,41 @@ public class Annotation extends Base implements java.io.Serializable {
         if (emb == null) return null;
         // we work on a copy here so we dont modify matchingSetQuery
         JSONObject mq = new JSONObject(matchingSetQuery.toString());
-        JSONObject nested = new JSONObject(
-            "{\"nested\": {\"path\": \"embeddings\", \"query\": {\"bool\": {}}}}");
-        // Inside the nested bool, keep ONLY the knn clause in `must` so the
-        // per-hit score is exactly the OS knn similarity (no spurious
-        // +1.0-per-term-clause offset). method/methodVersion become
-        // `filter` clauses — they still constrain results but contribute
-        // 0 to score. (Empty-match-prospects C17: MiewID score parity.)
-        JSONArray must = new JSONArray();
-        JSONObject knn = new JSONObject("{\"knn\": {\"embeddings.vector\": {}}}");
-        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("vector",
-            new JSONArray(emb.vectorToFloatArray()));
-        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("k", KNN_K_DISTANCE_VALUE);
-        must.put(knn);
-        JSONArray filter = new JSONArray();
-        if (method != null)
-            filter.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
-        if (methodVersion != null)
-            filter.put(new JSONObject("{\"term\": {\"embeddings.methodVersion\":\"" + methodVersion +
-                "\"}}"));
-        nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("must",
-            must);
-        if (filter.length() > 0) {
-            nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put(
-                "filter", filter);
+        // search the field holding vectors of the query vector's length; candidates whose
+        // vectors live in another field (another model's dimension) have no value there
+        String vecField = Embedding.vectorFieldName(emb.vectorLength());
+        if (vecField == null) {
+            System.out.println("[WARNING] Annotation " + this.getId() + " embedding " +
+                emb.getId() + " has unsupported vector length " + emb.vectorLength() +
+                "; cannot build match query");
+            return null;
         }
+        JSONArray modelTerms = new JSONArray();
+        if (method != null)
+            modelTerms.put(new JSONObject().put("term",
+                new JSONObject().put("embeddings.method", method)));
+        if (methodVersion != null)
+            modelTerms.put(new JSONObject().put("term",
+                new JSONObject().put("embeddings.methodVersion", methodVersion)));
+        JSONObject knnField = new JSONObject();
+        knnField.put("vector", new JSONArray(emb.vectorToFloatArray()));
+        knnField.put("k", KNN_K_DISTANCE_VALUE);
+        // The model terms go INSIDE the knn clause so OpenSearch filters while it searches and
+        // all k neighbours come from this model; as a sibling filter they would apply after the k
+        // nearest were chosen, letting another model's vectors (same length, same field) take the
+        // slots and then be dropped. Inside the nested bool, `must` holds ONLY the knn clause so
+        // the per-hit score is exactly the OS knn similarity (Empty-match-prospects C17: MiewID
+        // score parity); filters contribute 0 to score either way.
+        // (Requires a knn engine that filters inside knn: faiss or lucene, i.e. an annotation index
+        // created on OpenSearch >= 2.19; NMSLIB rejects the query with "does not support filters".)
+        if (modelTerms.length() > 0)
+            knnField.put("filter", new JSONObject().put("bool",
+                new JSONObject().put("filter", modelTerms)));
+        JSONObject nestedBool = new JSONObject().put("must", new JSONArray().put(
+            new JSONObject().put("knn", new JSONObject().put("embeddings." + vecField,
+            knnField))));
+        JSONObject nested = new JSONObject().put("nested", new JSONObject().put("path",
+            "embeddings").put("query", new JSONObject().put("bool", nestedBool)));
 
         // we put nested under its own top-level must, that way its score counts (whereas filter does not)
         JSONArray nestedMust = new JSONArray();
@@ -1940,6 +1966,11 @@ public class Annotation extends Base implements java.io.Serializable {
     // and bulk-import page agree on which task they link to.
     public Task getPreferredMatchResultsTask(Shepherd myShepherd) {
         return Task.getPreferredMatchResultsTaskForAnnotation(this, myShepherd);
+    }
+
+    /** Issue #1787: scoped to the encounter's annotation ids (spec §4.3); null keeps today's behaviour. */
+    public Task getPreferredMatchResultsTask(Shepherd myShepherd, Set<String> encounterAnnotationIds) {
+        return Task.getPreferredMatchResultsTaskForAnnotation(this, null, encounterAnnotationIds, myShepherd);
     }
 
     public int detachFromTasks(Shepherd myShepherd) {

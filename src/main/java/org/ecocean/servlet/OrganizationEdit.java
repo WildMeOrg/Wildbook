@@ -271,7 +271,6 @@ public class OrganizationEdit extends HttpServlet {
         }
         if (rtn.optBoolean("success", false)) {
             myShepherd.commitDBTransaction();
-            OpenSearch.setPermissionsNeeded(true);
         } else {
             myShepherd.rollbackDBTransaction();
         }

@@ -5,6 +5,7 @@ import org.ecocean.AnnotationLite;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ContextConfiguration;
 import org.ecocean.Encounter;
+import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.ia.*;
 import org.ecocean.ia.plugin.*;
 import org.ecocean.IAJsonProperties;
@@ -818,16 +819,49 @@ public class IBEISIA {
                         anns.add(annsTemp.get(0));
                     }
                 } catch (Exception e) { e.printStackTrace(); }
-                // would this ever recurse? seems like a 600 would only happen inside sendAnnotations for missing MediaAssets.
-                System.out.println("**** attempting to make up for missing Annotation(s): " +
-                    anns.toString());
-                JSONObject srtn = null;
-                try {
-                    __sendAnnotations(anns, context, myShepherd);
-                } catch (Exception ex) {}
-                System.out.println(" returned --> " + srtn);
-                if ((srtn != null) && (srtn.getJSONObject("status") != null) &&
-                    srtn.getJSONObject("status").getBoolean("success")) tryAgain = true;    // it "worked"?
+                // issue #1787 (spec §4.2.5): pending annotations are repaired under their acmId
+                // (forced); the retry decision comes from the actual outcomes, and only when at
+                // least one annotation was newly registered here (its flag is TRUE afterwards,
+                // so a second report of the same annotation never loops back into this branch).
+                ArrayList<Annotation> legacyAnns = new ArrayList<Annotation>();
+                boolean forcedAny = false;
+                boolean forcedAllOk = true;
+                Set<String> knownAcmIds = null;
+                for (Annotation a : anns) {
+                    if (!Boolean.FALSE.equals(a.getWbiaRegistered())) {
+                        legacyAnns.add(a);
+                        continue;
+                    }
+                    forcedAny = true;
+                    try {
+                        if (knownAcmIds == null) {
+                            // WBIA just reported these ids missing: a cached id list is stale
+                            QueryCacheFactory.safeInvalidate(context, "iaAnnotationIds");
+                            knownAcmIds = new HashSet<String>(WildbookIAM.iaAnnotationIdsStrict(context));
+                        }
+                        String why = registerPendingAnnotation(getPluginInstance(context), a, knownAcmIds, myShepherd);
+                        if (why != null) {
+                            System.out.println("WARNING: iaCheckMissing() forced repair of " + a.getId() + " failed: " + why);
+                            forcedAllOk = false;
+                        }
+                    } catch (Exception ex) {
+                        System.out.println("WARNING: iaCheckMissing() forced repair of " + a.getId() + " threw " + ex);
+                        forcedAllOk = false;
+                    }
+                }
+                if (forcedAny && forcedAllOk) tryAgain = true;
+                if (!legacyAnns.isEmpty()) {
+                    // legacy branch: exactly as before (spec §3), including the never-assigned result
+                    System.out.println("**** attempting to make up for missing Annotation(s): " +
+                        legacyAnns.toString());
+                    JSONObject srtn = null;
+                    try {
+                        __sendAnnotations(legacyAnns, context, myShepherd);
+                    } catch (Exception ex) {}
+                    System.out.println(" returned --> " + srtn);
+                    if ((srtn != null) && (srtn.getJSONObject("status") != null) &&
+                        srtn.getJSONObject("status").getBoolean("success")) tryAgain = true;    // it "worked"?
+                }
             }
         }
         System.out.println("iaCheckMissing -> " + tryAgain);
@@ -871,7 +905,6 @@ public class IBEISIA {
         String jobID = "-1";
         JSONObject results = new JSONObject();
         results.put("success", false); // pessimism!
-        ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
         String taskID = "_UNKNOWN_";
         if (task != null) taskID = task.getId(); // "should never happen"
         log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"),
@@ -880,11 +913,6 @@ public class IBEISIA {
 
         Util.mark("OPTIMIZED identify process start", tt);
         try {
-            for (Annotation ann : qanns) {
-                if (validForIdentification(ann, myShepherd.getContext())) {
-                    allAnns.add(ann);
-                }
-            }
             // this voodoo via JH will insure that .acmId is on the MediaAssets which are loaded via getMatchingSet() below (for speed)
             javax.jdo.FetchGroup grp =
                 myShepherd.getPM().getPersistenceManagerFactory().getFetchGroup(MediaAsset.class,
@@ -911,13 +939,22 @@ public class IBEISIA {
             if (tanns != null && !tanns.isEmpty()) {
                 System.out.println("INFO: tanns, (matchingSet) is not null. Contains " +
                     tanns.size() + " annotations.");
-                for (Annotation ann : tanns) {
-                    allAnns.add(ann);
-                }
             }
             Util.mark("OPT bia 4", tt);
 
-            results.put("sendAnnotationsAsNeeded", sendAnnotationsAsNeeded(allAnns, myShepherd));
+            // issue #1787: pending (ml-service) annotations are registered under their acmId
+            // first; a pending query that cannot be registered throws here, which the catch
+            // below turns into success=false. The identify request is built from the pruned
+            // target list this returns. qanns is passed unfiltered on purpose.
+            JSONObject registration = new JSONObject();
+            boolean hadTargets = (tanns != null) && !tanns.isEmpty();
+            tanns = sendAnnotationsAsNeeded(qanns, tanns, myShepherd, registration);
+            results.put("sendAnnotationsAsNeeded", registration);
+            if (hadTargets && tanns.isEmpty()) {
+                // Use the common failure/logging path so this attempt remains observable.
+                throw new IllegalStateException(
+                    "all target annotations were dropped (none could be registered with WBIA)");
+            }
             Util.mark("OPT bia 4X", tt);
             if (tanns != null) {
                 System.out.println("                               ... qanns has: " + qanns.size() +
@@ -1531,6 +1568,11 @@ public class IBEISIA {
 
                     Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask,
                         false);
+                    if (childTask == null) {
+                        System.out.println("ERROR: IA.intakeAnnotations() could not persist the identification run for " + encUUID);
+                        myShepherd2.beginDBTransaction();
+                        continue;
+                    }
                     myShepherd2.storeNewTask(childTask);
                     myShepherd2.updateDBTransaction();
                     subParentTask.addChild(childTask);
@@ -3727,6 +3769,123 @@ public class IBEISIA {
         WildbookIAM plugin = getPluginInstance(context);
 
         return plugin.sendAnnotations(anns, true, myShepherd);
+    }
+
+    /** The §4.2.5 signature; delegates with no report. */
+    public static ArrayList<Annotation> sendAnnotationsAsNeeded(ArrayList<Annotation> qanns,
+        ArrayList<Annotation> tanns, Shepherd myShepherd)
+    throws IOException {
+        return sendAnnotationsAsNeeded(qanns, tanns, myShepherd, null);
+    }
+
+    /**
+     * Issue #1787 (spec §4.2.5): role-aware registration at identify time. Annotations whose
+     * WBIA registration is pending ({@code wbiaRegistered == FALSE}, set only by ml-service
+     * persistence) are registered under their acmId (forced) BEFORE the legacy non-forced flow
+     * runs for the rest, so WBIA can never mint a new uuid for them. A pending QUERY that
+     * cannot be registered fails the job (IOException -> beginIdentifyAnnotations returns
+     * success=false -> SEND_FAILED + bounded requeue); a pending TARGET that cannot be
+     * registered is dropped from the returned target list. Returns the pruned targets (null
+     * stays null). {@code report} (nullable) receives forcedRegistered / droppedTargets / legacy.
+     */
+    public static ArrayList<Annotation> sendAnnotationsAsNeeded(ArrayList<Annotation> qanns,
+        ArrayList<Annotation> tanns, Shepherd myShepherd, JSONObject report)
+    throws IOException {
+        if (report == null) report = new JSONObject();
+        String context = myShepherd.getContext();
+        WildbookIAM plugin = getPluginInstance(context);
+        ArrayList<Annotation> legacy = new ArrayList<Annotation>();
+        JSONArray forced = new JSONArray();
+        JSONArray dropped = new JSONArray();
+        Set<String> knownAcmIds = null;   // fetched once, only when a pending annotation is seen
+        if (qanns != null) {
+            for (Annotation q : qanns) {
+                if (!Boolean.FALSE.equals(q.getWbiaRegistered())) {
+                    // registered / legacy queries: today's filter, today's non-forced flow
+                    if (validForIdentification(q, context)) legacy.add(q);
+                    continue;
+                }
+                // a pending QUERY is registered under its acmId or the job fails — for ANY
+                // failure, surfaced as the IOException beginIdentifyAnnotations turns into success=false
+                String why;
+                try {
+                    if (knownAcmIds == null)
+                        knownAcmIds = new HashSet<String>(WildbookIAM.iaAnnotationIdsStrict(context));
+                    why = registerPendingAnnotation(plugin, q, knownAcmIds, myShepherd);
+                } catch (Exception ex) {
+                    throw new IOException("query annotation " + q.getId() +
+                            " could not be registered with WBIA: " + ex, ex);
+                }
+                if (why != null)
+                    throw new IOException("query annotation " + q.getId() +
+                            " could not be registered with WBIA: " + why);
+                forced.put(q.getId());
+            }
+        }
+        ArrayList<Annotation> keptTargets = null;
+        if (tanns != null) {
+            keptTargets = new ArrayList<Annotation>();
+            for (Annotation t : tanns) {
+                if (!Boolean.FALSE.equals(t.getWbiaRegistered())) {
+                    legacy.add(t);
+                    keptTargets.add(t);
+                    continue;
+                }
+                // a pending TARGET that cannot be registered — for any reason, including an
+                // id-list fetch failure — is dropped from this job; the job goes on
+                String why;
+                try {
+                    if (knownAcmIds == null)
+                        knownAcmIds = new HashSet<String>(WildbookIAM.iaAnnotationIdsStrict(context));
+                    why = registerPendingAnnotation(plugin, t, knownAcmIds, myShepherd);
+                } catch (Exception ex) {
+                    why = ex.toString();
+                }
+                if (why != null) {
+                    System.out.println("WARNING: IBEISIA.sendAnnotationsAsNeeded() dropping target " +
+                        t.getId() + " from this job: " + why);
+                    dropped.put(t.getId());
+                    continue;
+                }
+                forced.put(t.getId());
+                keptTargets.add(t);
+            }
+        }
+        report.put("forcedRegistered", forced);
+        report.put("droppedTargets", dropped);
+        report.put("legacy", sendAnnotationsAsNeeded(legacy, myShepherd));   // today's flow, unchanged
+        return keptTargets;
+    }
+
+    /**
+     * Registers one pending annotation under its acmId. Mints the media asset's acmId from its
+     * UUID when missing (the AcmIdBot convention) and the annotation's from its id, applies the shared eligibility chain, forces
+     * the image then the annotation (skipping the POSTs when WBIA already holds the acmId), and
+     * flips the flag to TRUE on the attached object. Returns null on success, else the reason.
+     */
+    static String registerPendingAnnotation(WildbookIAM plugin, Annotation ann,
+        Set<String> knownAcmIds, Shepherd myShepherd) {
+        MediaAsset ma = ann.getMediaAsset();
+
+        if ((ma != null) && !Util.stringExists(ma.getAcmId())) ma.setAcmId(ma.getUUID());
+        // a blank acmId takes the annotation id, as ml-service persistence does (and as the
+        // eligibility check's forced-id fallback assumes)
+        if (!Util.stringExists(ann.getAcmId())) ann.setAcmId(ann.getId());
+        String reason = WildbookIAM.wbiaEligibilityReason(ann);
+        if (reason != null) return reason;
+        if (!knownAcmIds.contains(ann.getAcmId())) {
+            try {
+                if (!plugin.registerImageForced(ma))
+                    return "image registration failed for media asset acmId " + ma.getAcmId();
+                if (!plugin.sendAnnotationForcedByAcmId(ann, myShepherd))
+                    return "WBIA did not confirm annotation uuid " + ann.getAcmId();
+            } catch (IOException ex) {
+                return ex.toString();
+            }
+            knownAcmIds.add(ann.getAcmId());
+        }
+        ann.setWbiaRegistered(Boolean.TRUE);
+        return null;
     }
 
     public static JSONObject sendAnnotationsAsNeeded(ArrayList<Annotation> anns,

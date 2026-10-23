@@ -753,9 +753,9 @@ public class StartupWildbook implements ServletContextListener {
      *       {@link org.ecocean.ia.plugin.WildbookIAM#registerOneByDto}.
      *   <li>Phase C: Shepherd open, re-load, persist outcome, close.
      * </ul>
-     * Ineligible annotations (missing media asset, missing acmId, fails
-     * {@code validForIdentification}) are parked at MAX_ATTEMPTS so they
-     * fall out of the polling query.
+     * Ineligible annotations (see
+     * {@link org.ecocean.ia.plugin.WildbookIAM#wbiaEligibilityReason}) are
+     * parked at MAX_ATTEMPTS so they fall out of the polling query.
      */
     private static void registerOneAnnotationWithWbia(String context, String annId) {
         // ---- Phase A: load DTO under a short transaction. ----
@@ -820,27 +820,11 @@ public class StartupWildbook implements ServletContextListener {
                 shep.commitDBTransaction();
                 return null;
             }
-            // Eligibility checks. Any failure here is permanent for this
-            // annotation under its current state, so park it.
             org.ecocean.media.MediaAsset ma = ann.getMediaAsset();
-            String reason = null;
-            if (ma == null) reason = "missing media asset";
-            else if (!Util.stringExists(ma.getAcmId())) reason = "media asset has no acmId";
-            else if (!Util.stringExists(ann.getId())) reason = "annotation has no id";
-            else if (!org.ecocean.identity.IBEISIA.validForIdentification(ann))
-                reason = "validForIdentification returned false (bbox/iaClass/etc.)";
-            // Image-side eligibility for the new Phase 0 image-registration
-            // path. Order mirrors sendMediaAssetsForceId in WildbookIAM (the
-            // isValidImageForIA + validMediaAsset pair, in that order), so
-            // the polling thread parks the same media assets the legacy
-            // batch path would skip. Phase B trusts Phase A's verdict —
-            // these are not re-checked against the DB after the Shepherd
-            // closes. (Empty-match-prospects design Track 1 C5: WBIA
-            // Phase 0 eligibility extension.)
-            else if (ma.isValidImageForIA() != null && !ma.isValidImageForIA())
-                reason = "MediaAsset.isValidImageForIA() == false (corrupt/invalid)";
-            else if (!org.ecocean.ia.plugin.WildbookIAM.validMediaAsset(ma))
-                reason = "MediaAsset failed validMediaAsset (mime/dims/url)";
+            // Issue #1787: one eligibility chain shared with the identify-time registration
+            // (WildbookIAM.wbiaEligibilityReason). Any failure is permanent for this
+            // annotation under its current state, so park it.
+            String reason = org.ecocean.ia.plugin.WildbookIAM.wbiaEligibilityReason(ann);
             if (reason != null) {
                 System.out.println("WARN: WbiaRegistrationPoll parking " + annId +
                     " (ineligible: " + reason + ")");
@@ -950,6 +934,7 @@ public class StartupWildbook implements ServletContextListener {
         // The poll loop's interrupt/null checks make subsequent work bail.
         if (submissionWorker != null) submissionWorker.close();
         shutdownWbiaRegisterExecutor();
+        OpenSearch.shutdownBackground();
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
         org.ecocean.ia.ParallelIdentify.shutdown();

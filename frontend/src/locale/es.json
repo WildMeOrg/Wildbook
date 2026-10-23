@@ -749,6 +749,7 @@
   "MEASUREMENTS_SAVE_ERROR": "Error al guardar las mediciones",
   "MEASUREMENTS_SAVE_SUCCESS": "Mediciones guardadas correctamente",
   "UPLOADING_IMAGE": "Subiendo imagen...",
+  "LOADING_IMAGE": "Cargando imagen...",
   "SAMPLING_PROTOCOL": "Protocolo de muestreo",
   "ARGOS_PTT_NUMBER": "Número PTT de ARGOS",
   "GO_TO_ENCOUNTER_PAGE": "Ir a la página del encuentro",
