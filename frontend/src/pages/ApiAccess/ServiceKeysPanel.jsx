@@ -83,8 +83,10 @@ export default function ServiceKeysPanel({ username }) {
     const creds = { username, password };
     setBusy(true);
     setPromptError(null);
+    let after = null;
     try {
-      await pending.run(creds);
+      // run() performs the mutation and returns an optional follow-up.
+      after = await pending.run(creds);
       setPassword("");
       setPending(null);
     } catch (err) {
@@ -92,8 +94,18 @@ export default function ServiceKeysPanel({ username }) {
         err.status === 401 ? t("API_SERVICE_KEY_BAD_PASSWORD") : errorText(err),
       );
       setPassword("");
-    } finally {
       setBusy(false);
+      return;
+    }
+    setBusy(false);
+    // The mutation succeeded and the prompt is closed; a failing refresh is a
+    // panel error and must never bring the prompt back (no duplicate create).
+    if (after) {
+      try {
+        await after();
+      } catch (err) {
+        setError(errorText(err));
+      }
     }
   };
 
@@ -107,7 +119,7 @@ export default function ServiceKeysPanel({ username }) {
     setAuth(creds);
     if (list.length > 0) {
       setOrgId(list[0].id);
-      await refresh(creds, list[0].id);
+      return () => refresh(creds, list[0].id);
     }
   };
 
@@ -136,7 +148,7 @@ export default function ServiceKeysPanel({ username }) {
       setCreated(res);
       setError(null);
       setLabel("");
-      await refresh(creds, orgId);
+      return () => refresh(creds, orgId);
     });
   };
 
@@ -147,7 +159,7 @@ export default function ServiceKeysPanel({ username }) {
       await revokeKey(creds, orgId, k.keyId);
       setAuth(creds);
       setError(null);
-      await refresh(creds, orgId);
+      return () => refresh(creds, orgId);
     });
   };
 
@@ -157,7 +169,7 @@ export default function ServiceKeysPanel({ username }) {
       await revokeAll(creds, orgId);
       setAuth(creds);
       setError(null);
-      await refresh(creds, orgId);
+      return () => refresh(creds, orgId);
     });
   };
 

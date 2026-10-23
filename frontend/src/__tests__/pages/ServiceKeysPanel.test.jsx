@@ -186,4 +186,36 @@ describe("ServiceKeysPanel", () => {
     fireEvent.click(screen.getByLabelText("submissions:write"));
     expect(screen.getByText(messages.API_SERVICE_KEY_WRITE_NEEDS_ADMIN)).toBeInTheDocument();
   });
+
+  it("refreshFailureAfterCreateDoesNotReprompt", async () => {
+    await openPanel();
+    const base = fetchMock.getMockImplementation();
+    fetchMock.mockImplementation((url, opts) =>
+      opts.method === "GET" && url.includes("/service-keys") && !url.endsWith("organizations")
+        ? json(500, { success: false, error: "boom" })
+        : base(url, opts),
+    );
+    fireEvent.change(screen.getByLabelText("Label"), { target: { value: "new" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create service key" }));
+    await enterPassword();
+    expect(await screen.findByText("wbsvc_k2.SECRETVALUE")).toBeInTheDocument();
+    expect(await screen.findByText(messages.API_SERVICE_KEY_ERROR)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByLabelText("Password")).not.toBeInTheDocument());
+    expect(fetchMock.mock.calls.filter(([, o]) => o.method === "POST").length).toBe(1);
+  });
+
+  it("refreshFailureAfterRevokeDoesNotReprompt", async () => {
+    await openPanel();
+    const base = fetchMock.getMockImplementation();
+    fetchMock.mockImplementation((url, opts) =>
+      opts.method === "GET" && !url.endsWith("organizations")
+        ? json(500, { success: false, error: "boom" })
+        : base(url, opts),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+    await enterPassword();
+    expect(await screen.findByText(messages.API_SERVICE_KEY_ERROR)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByLabelText("Password")).not.toBeInTheDocument());
+    expect(fetchMock.mock.calls.filter(([, o]) => o.method === "DELETE").length).toBe(1);
+  });
 });
