@@ -116,6 +116,11 @@ public class UserCreate extends HttpServlet {
                     } else {
                         newUser = new User(uuid);
                     }
+                    if (!canEditServiceAccount(request.isUserInRole("admin"), newUser)) {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                        myShepherd.rollbackDBTransaction();
+                        return;
+                    }
                     if (username != null) username = username.trim();
                     if (!usernameAvailable(myShepherd, username, uuid)) {
                         response.sendError(HttpServletResponse.SC_CONFLICT);
@@ -389,5 +394,10 @@ public class UserCreate extends HttpServlet {
             out.println(ServletUtilities.getFooter(context));
         }
         out.close();
+    }
+
+    // service accounts (per-organization API identities) may only be edited by site admins
+    static boolean canEditServiceAccount(boolean requesterIsSiteAdmin, User target) {
+        return requesterIsSiteAdmin || target == null || !target.isServiceAccount();
     }
 }

@@ -47,6 +47,11 @@ public class ShepherdRealm extends AuthorizingRealm {
             throw new UnknownAccountException("No account found for user [" + username + "]");
         } else {
             User user = myShepherd.getUser(username);
+            if (user.isServiceAccount()) {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+                throw new DisabledAccountException("Account [" + username + "] cannot log in");
+            }
             String fullName = "";
             if (user.getFullName() != null) { fullName = user.getFullName(); }
             info = new SimpleAuthenticationInfo(username, user.getPassword().toCharArray(),
