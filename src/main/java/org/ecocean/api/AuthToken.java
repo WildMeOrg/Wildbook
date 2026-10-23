@@ -46,6 +46,9 @@ public class AuthToken extends ApiBase {
         String[] cred = parseBasic(request.getHeader("Authorization"));
         if (cred == null) {
             System.out.println("AuthToken mint DENIED (no Basic credential) ip=" + clientIp);
+            // challenge only when no credential was sent at all, for clients that wait for one;
+            // other 401s carry no challenge so browsers never show a login dialog
+            if (authorization == null) response.setHeader("WWW-Authenticate", "Basic realm=\"Wildbook\"");
             writeError(response, 401, "basic credentials required");
             return;
         }
