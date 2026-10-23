@@ -126,20 +126,32 @@ class ServiceKeyStoreDbTest {
         } finally { ex.rollbackAndClose(); }
     }
 
-    @Test void removedServiceUserIsReAddedOnCreate() {
+    @Test void removedServiceAccountIsNotRestoredByCreate() {
         String orgId = newOrg();
-        create(orgId, READ, 30);
+        ServiceKeyCredential.Issued first = create(orgId, READ, 30);
         String userId = list(orgId).get(0).getServiceUserId();
         Shepherd sh = open();
         try {
             sh.getOrganization(orgId).removeMember(sh.getUserByUUID(userId));
             assertTrue(sh.commitDBTransactionWithStatus(), "removed");
         } finally { sh.rollbackAndClose(); }
-        create(orgId, READ, 30);
+        ServiceKeyException ex = createFails(orgId, READ, 30);
+        assertEquals(409, ex.status, "status");
+        assertEquals("service account was removed from this organization; a Wildbook administrator must restore it",
+            ex.getMessage(), "message");
+        assertEquals(1, list(orgId).size(), "no new key stored");
         sh = open();
         try {
-            assertTrue(sh.getOrganization(orgId).hasMember(sh.getUserByUUID(userId)), "re-added");
+            assertFalse(sh.getOrganization(orgId).hasMember(sh.getUserByUUID(userId)), "membership still absent");
         } finally { sh.rollbackAndClose(); }
+        Shepherd exchange = open();
+        try {
+            ServiceKeyException denied = assertThrows(ServiceKeyException.class,
+                () -> ServiceKeyAuth.authenticate(exchange, first.plaintext, System.currentTimeMillis()),
+                "old key must stay unusable");
+            assertEquals(401, denied.status, "exchange status");
+            assertEquals(ServiceKeyAuth.UNAVAILABLE, denied.getMessage(), "exchange message");
+        } finally { exchange.rollbackAndClose(); }
     }
 
     @Test void twoKeyCapUnderConcurrency() throws Exception {

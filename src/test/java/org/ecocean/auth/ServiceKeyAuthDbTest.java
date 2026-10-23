@@ -175,6 +175,29 @@ class ServiceKeyAuthDbTest {
         assertRejected(f[3], "service key unavailable; contact your Wildbook administrator");
     }
 
+    @Test void serviceAccountInTwoOrgsIsUnavailable() throws Exception {
+        String[] f = liveFixture();
+        String[] other = liveFixture();
+        Shepherd sh = open();
+        try {
+            sh.getOrganization(other[0]).addMember(sh.getUserByUUID(f[1]));
+            assertTrue(sh.commitDBTransactionWithStatus(), "added to a second org");
+        } finally { sh.rollbackAndClose(); }
+        assertRejected(f[3], "service key unavailable; contact your Wildbook administrator");
+        // the same holds when the extra membership is written behind DataNucleus' back
+        String[] g = liveFixture();
+        Shepherd warm = open();
+        try { ServiceKeyAuth.authenticate(warm, g[3], System.currentTimeMillis()); }
+        finally { warm.rollbackAndClose(); }
+        jdbc("INSERT INTO \"ORGANIZATION_MEMBERS\" (\"USER_ID\", \"ORGANIZATION_ID\", \"IDX\") VALUES (?, ?, 99)",
+            g[1], other[0]);
+        assertRejected(g[3], "service key unavailable; contact your Wildbook administrator");
+        // the other org's own service account is unaffected
+        Shepherd ok = open();
+        try { assertNotNull(ServiceKeyAuth.authenticate(ok, other[3], System.currentTimeMillis()), "grant"); }
+        finally { ok.rollbackAndClose(); }
+    }
+
     @Test void membershipRemovedOutsideJdoIsSeen() throws Exception {
         String[] f = liveFixture();
         // warm the level-2 cache with the membership, then remove it behind DataNucleus' back

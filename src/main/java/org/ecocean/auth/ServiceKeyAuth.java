@@ -2,12 +2,14 @@ package org.ecocean.auth;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 import javax.jdo.datastore.JDOConnection;
@@ -89,6 +91,9 @@ public final class ServiceKeyAuth {
         if (user == null || org == null) throw fail(UNAVAILABLE);
         if (!key.getOrganizationId().equals(user.getServiceOrganizationId())) throw fail(UNAVAILABLE);
         if (!org.hasMember(user)) throw fail(UNAVAILABLE);
+        // a service account belongs to its own organization only
+        if (!Collections.singleton(key.getOrganizationId()).equals(directOrganizationIds(pm, user.getId())))
+            throw fail(UNAVAILABLE);
         if (user.getUsername() == null || isPrivileged(pm, user.getUsername())) throw fail(UNAVAILABLE);
         return key;
     }
@@ -120,6 +125,26 @@ public final class ServiceKeyAuth {
         } catch (RuntimeException ignore) {}
     }
 
+    /** Ids of the organizations {@code userId} is a direct member of, read from the datastore (no cache). */
+    static Set<String> directOrganizationIds(PersistenceManager pm, String userId) {
+        Set<String> ids = new LinkedHashSet<>();
+        if (userId == null) return ids;
+        JDOConnection connection = pm.getDataStoreConnection();
+        try (PreparedStatement statement = ((Connection)connection.getNativeConnection()).prepareStatement(
+                "SELECT \"ORGANIZATION_ID\" FROM \"ORGANIZATION_MEMBERS\" WHERE \"USER_ID\" = ?")) {
+            statement.setString(1, userId);
+            statement.setQueryTimeout(10);
+            try (ResultSet rows = statement.executeQuery()) {
+                while (rows.next()) ids.add(rows.getString(1));
+            }
+        } catch (SQLException ex) {
+            throw new ServiceKeyException(503, "service key check unavailable");
+        } finally {
+            connection.close();
+        }
+        return ids;
+    }
+
     private static boolean isPrivileged(PersistenceManager pm, String username) {
         Query<?> query = pm.newQuery(Role.class,
             "username == :username && context == :context && (rolename == :a || rolename == :b || rolename == :c)");
@@ -142,7 +167,12 @@ public final class ServiceKeyAuth {
             Collection<T> rows = (Collection<T>)query.execute(value);
             if (rows.size() != 1) return null;
             T obj = rows.iterator().next();
-            pm.refresh(obj);
+            try {
+                pm.refresh(obj);
+            } catch (JDOObjectNotFoundException deleted) {
+                // removed between the query and the reload: treat it as absent
+                return null;
+            }
             return obj;
         } finally { query.closeAll(); }
     }
