@@ -111,7 +111,7 @@
 				/LightRest/** = authcBasicWildbook,roles[researcher]
 
 				# ===== v3 API Security =====
-				/api/v3/auth/token = authcBasicWildbook
+				/api/v3/auth/token = anon
 				/api/v3/submissions = submissionAuth
 				/api/v3/submissions/** = submissionAuth
 				/api/v3/can-user-access = authcBasicWildbook, roles[admin]

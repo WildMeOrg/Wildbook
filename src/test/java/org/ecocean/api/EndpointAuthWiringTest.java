@@ -75,11 +75,12 @@ class EndpointAuthWiringTest {
     }
 
     // -----------------------------------------------------------------------
-    // Assertion 3 — /api/v3/auth/token is auth-gated (not anon)
+    // Assertion 3 — /api/v3/auth/token is anon: the servlet authenticates
+    // both Basic and service-key credentials itself, never from a session
     // -----------------------------------------------------------------------
 
     @Test
-    void authToken_shiroRuleIsAuthGated() {
+    void authToken_shiroRuleIsAnon() {
         // Find the Shiro [urls] rule line for the token endpoint (non-comment)
         String ruleLine = lines.stream()
                 .filter(l -> {
@@ -92,17 +93,14 @@ class EndpointAuthWiringTest {
         assertNotNull(ruleLine,
                 "Shiro [urls] must contain a rule line for /api/v3/auth/token");
 
-        // The rule value must not be just "anon"
         String value = ruleLine.substring(ruleLine.indexOf("/api/v3/auth/token")
                 + "/api/v3/auth/token".length()).trim();
         if (value.startsWith("=")) {
             value = value.substring(1).trim();
         }
-        assertFalse("anon".equalsIgnoreCase(value.trim()),
-                "Shiro rule for /api/v3/auth/token must not be 'anon' (was: '" + value + "')");
-
-        assertTrue(ruleLine.contains("authc"),
-                "Shiro rule for /api/v3/auth/token must contain 'authc' (was: '" + ruleLine.strip() + "')");
+        assertEquals("anon", value,
+                "Shiro rule for /api/v3/auth/token must be 'anon'; the servlet authenticates itself (was: '"
+                        + value + "')");
     }
 
     // -----------------------------------------------------------------------
