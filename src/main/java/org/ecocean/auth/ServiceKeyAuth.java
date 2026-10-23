@@ -90,7 +90,6 @@ public final class ServiceKeyAuth {
         Organization org = fresh(pm, Organization.class, "id == :id", key.getOrganizationId());
         if (user == null || org == null) throw fail(UNAVAILABLE);
         if (!key.getOrganizationId().equals(user.getServiceOrganizationId())) throw fail(UNAVAILABLE);
-        if (!org.hasMember(user)) throw fail(UNAVAILABLE);
         // a service account belongs to its own organization only
         if (!Collections.singleton(key.getOrganizationId()).equals(directOrganizationIds(pm, user.getId())))
             throw fail(UNAVAILABLE);
