@@ -326,10 +326,31 @@ class EndpointAuthWiringTest {
                             + rule + "')");
         }
         assertNotNull(lines.stream().map(String::trim)
-                .filter(t -> t.equals("/api/v3/organizations/** = anon")).findFirst().orElse(null),
-                "explicit rule /api/v3/organizations/** = anon");
+                .filter(t -> t.equals("/api/v3/organizations/*/service-keys = anon")).findFirst().orElse(null),
+                "explicit rule /api/v3/organizations/*/service-keys = anon");
+        assertNotNull(lines.stream().map(String::trim)
+                .filter(t -> t.equals("/api/v3/organizations/*/service-keys/* = anon")).findFirst().orElse(null),
+                "explicit rule /api/v3/organizations/*/service-keys/* = anon");
         assertNotNull(lines.stream().map(String::trim)
                 .filter(t -> t.equals("/api/v3/service-keys/** = anon")).findFirst().orElse(null),
                 "explicit rule /api/v3/service-keys/** = anon");
+    }
+
+    @Test
+    void serviceKeys_anonRulesDoNotCoverOtherOrganizationPaths() {
+        assertNull(lines.stream().map(String::trim)
+                .filter(t -> t.startsWith("/api/v3/organizations/**")).findFirst().orElse(null),
+                "no catch-all organizations rule");
+        String[] paths = {
+            "/api/v3/organizations",
+            "/api/v3/organizations/org-1",
+            "/api/v3/organizations/org-1/members",
+            "/api/v3/organizations/org-1/service-keys/key-1/extra",
+        };
+        for (String path : paths) {
+            String rule = firstShiroRuleFor(path);
+            String value = rule == null ? null : rule.substring(rule.indexOf('=') + 1).trim();
+            assertNotEquals("anon", value, "no anon rule may match " + path + " (was: '" + rule + "')");
+        }
     }
 }
