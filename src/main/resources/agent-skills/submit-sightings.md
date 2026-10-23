@@ -41,6 +41,11 @@ assign an individual identity. Existing records are not updated.
   Record that account's expected user ID and compare it with `effectiveOwnerId`
   in the validation report before committing. Have the operator supply
   only the token through the runtime's secret mechanism; do not request their password.
+  Alternatively, the operator may configure an organization service key (`wbsvc_...`).
+  Trade it for a short-lived token with `POST /api/v3/auth/token?scope=submissions:write`
+  (or `scope=submissions:read` for status reads), sending the key as
+  `Authorization: Bearer wbsvc_...` to that endpoint only. The exchange, expiry and error
+  messages are described in the api-reference page under "Using an organization service key".
   The response's `expiresInSeconds` is authoritative. `submissions:read` permits
   status/results reads, including after write enrollment is removed.
   Removing the role blocks new writes with existing tokens and prevents unstarted
