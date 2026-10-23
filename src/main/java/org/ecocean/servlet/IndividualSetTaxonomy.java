@@ -39,13 +39,12 @@ public class IndividualSetTaxonomy extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         String context = "context0";
         context = ServletUtilities.getContext(request);
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("IndividualSetTaxonomy.class");
         // set up for response
         response.setContentType("text/html; charset=UTF-8");
         PrintWriter out = response.getWriter();
         String indivID = request.getParameter("individual");
         String requested = request.getParameter("taxonomy");
+        // checked before the Shepherd exists, so this early return has nothing to close
         if (Util.stringIsEmptyOrNull(indivID) || (requested == null)) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.println(
@@ -53,6 +52,8 @@ public class IndividualSetTaxonomy extends HttpServlet {
             out.close();
             return;
         }
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IndividualSetTaxonomy.class");
         try {
             myShepherd.beginDBTransaction();
             MarkedIndividual changeMe = myShepherd.getMarkedIndividual(indivID);
@@ -146,9 +147,8 @@ public class IndividualSetTaxonomy extends HttpServlet {
                 // there before, or the individual is left reading as a species nobody chose.
                 changeMe.setGenus(newGenus);
                 changeMe.setSpecificEpithet(newEpithet);
-                // Comments are rendered as HTML on the individual page. This one is safe to build
-                // unescaped only because everything reaching it has either passed
-                // isValidTaxonomyName() or come from the encounters -- keep those checks above.
+                // Stored as HTML like every other comment; escaping what individuals.jsp prints is
+                // left to the page rather than done here (see the review on #1739).
                 changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " +
                     (new java.util.Date()).toString() + "</em><br>Changed taxonomy from " +
                     displayOld + " to " + newTaxonomy + ".</p>");
@@ -157,8 +157,9 @@ public class IndividualSetTaxonomy extends HttpServlet {
                 le.printStackTrace();
                 myShepherd.rollbackDBTransaction();
             }
-            if (!locked) {
-                myShepherd.commitDBTransaction();
+            // commitDBTransaction() swallows a failed commit, which would report success and
+            // notify subscribers of a change that was never saved
+            if (!locked && myShepherd.commitDBTransactionWithStatus()) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.println("<strong>Success:</strong> Taxonomy has been updated from " +
                     displayOld + " to " + newTaxonomy + ".");

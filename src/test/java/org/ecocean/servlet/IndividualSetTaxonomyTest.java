@@ -43,6 +43,8 @@ class IndividualSetTaxonomyTest {
     private StringWriter responseOut;
     private IndividualSetTaxonomy servlet;
     private Shepherd usedShepherd;
+    private boolean commitSucceeds = true;
+    private int notificationsSent;
 
     @BeforeEach void setUp()
     throws Exception {
@@ -83,8 +85,14 @@ class IndividualSetTaxonomyTest {
                 (mockShepherd, ctx) -> {
             when(mockShepherd.getMarkedIndividual(anyString())).thenReturn(indiv);
             when(mockShepherd.isValidTaxonomyName(anyString())).thenReturn(validName);
+            when(mockShepherd.commitDBTransactionWithStatus()).thenReturn(commitSucceeds);
         })) {
             utils.when(() -> ServletUtilities.getContext(mockRequest)).thenReturn("context0");
+            utils.when(() -> ServletUtilities.informInterestedIndividualParties(any(), anyString(),
+                anyString(), anyString())).thenAnswer(inv -> {
+                notificationsSent++;
+                return null;
+            });
             collab.when(() -> Collaboration.canUserFullyEditMarkedIndividual(any(),
                 any())).thenReturn(canEdit);
             servlet.doPost(mockRequest, mockResponse);
@@ -167,7 +175,7 @@ class IndividualSetTaxonomyTest {
         post(IndividualSetTaxonomy.FROM_ENCOUNTERS, mi, true, true);
         verify(mockResponse).setStatus(HttpServletResponse.SC_OK);
         assertEquals("Delphinus delphis", mi.getTaxonomyString());
-        verify(usedShepherd).commitDBTransaction();
+        verify(usedShepherd).commitDBTransactionWithStatus();
     }
 
     @Test void reportsWhatDisagreeingEncountersActuallySay()
@@ -180,7 +188,7 @@ class IndividualSetTaxonomyTest {
         assertTrue(body().contains("Orcinus orca") && body().contains("Delphinus delphis"),
             "name the conflicting values, so the curator knows what to correct");
         assertEquals("Orcinus orca", mi.getTaxonomyString(), "nothing is written on a conflict");
-        verify(usedShepherd, never()).commitDBTransaction();
+        verify(usedShepherd, never()).commitDBTransactionWithStatus();
     }
 
     // "we could not derive one" must never be turned into "so store nothing".
@@ -192,7 +200,7 @@ class IndividualSetTaxonomyTest {
         post(IndividualSetTaxonomy.FROM_ENCOUNTERS, mi, true, true);
         verify(mockResponse).setStatus(HttpServletResponse.SC_BAD_REQUEST);
         assertEquals("Orcinus orca", mi.getTaxonomyString(), "an existing taxonomy is not cleared");
-        verify(usedShepherd, never()).commitDBTransaction();
+        verify(usedShepherd, never()).commitDBTransactionWithStatus();
     }
 
     // ---- refusals -----------------------------------------------------------------------------
@@ -206,7 +214,7 @@ class IndividualSetTaxonomyTest {
         assertEquals("Orcinus orca", mi.getTaxonomyString());
         assertFalse(mi.getComments().contains("Changed taxonomy"),
             "a refused request leaves no audit trail");
-        verify(usedShepherd, never()).commitDBTransaction();
+        verify(usedShepherd, never()).commitDBTransactionWithStatus();
     }
 
     // IndividualSetSex looks up the individual inside its try/catch, so an id that matches nothing
@@ -225,6 +233,8 @@ class IndividualSetTaxonomyTest {
         post(null, individual("Orcinus", "orca"), true, true);
         verify(mockResponse).setStatus(HttpServletResponse.SC_BAD_REQUEST);
         assertFalse(body().isEmpty());
+        assertNull(usedShepherd,
+            "parameters are checked before a Shepherd is opened, so none leaks");
     }
 
     @Test void refusesATaxonomyTheSiteDoesNotRecognize()
@@ -234,7 +244,7 @@ class IndividualSetTaxonomyTest {
         post("Nonsuchus fictus", mi, true, false);
         verify(mockResponse).setStatus(HttpServletResponse.SC_BAD_REQUEST);
         assertEquals("Orcinus orca", mi.getTaxonomyString());
-        verify(usedShepherd, never()).commitDBTransaction();
+        verify(usedShepherd, never()).commitDBTransactionWithStatus();
     }
 
     // individuals.jsp offers the individual's own taxonomy even when the site no longer configures
@@ -249,7 +259,7 @@ class IndividualSetTaxonomyTest {
         assertEquals("Giraffa camelopardalis rothschildi", mi.getTaxonomyString());
         assertFalse(mi.getComments().contains("Changed taxonomy"),
             "an unchanged value writes no audit comment");
-        verify(usedShepherd, never()).commitDBTransaction();
+        verify(usedShepherd, never()).commitDBTransactionWithStatus();
     }
 
     // ---- the happy path -----------------------------------------------------------------------
@@ -260,10 +270,28 @@ class IndividualSetTaxonomyTest {
 
         post("Delphinus delphis", mi, true, true);
         verify(mockResponse).setStatus(HttpServletResponse.SC_OK);
-        verify(usedShepherd).commitDBTransaction();
+        verify(usedShepherd).commitDBTransactionWithStatus();
         assertNotNull(mi.getComments());
         assertTrue(mi.getComments().contains("Orcinus orca") &&
             mi.getComments().contains("Delphinus delphis"),
             "the audit comment records both the old and the new value");
+        assertEquals(1, notificationsSent, "subscribers hear about a saved change");
+        verify(usedShepherd).closeDBTransaction();
+    }
+
+    // commitDBTransaction() swallows a failed commit, so the page would say "updated" and
+    // subscribers would be emailed about a change that never reached the database.
+    @Test void failedCommitIsNotReportedAsSuccess()
+    throws Exception {
+        commitSucceeds = false;
+        MarkedIndividual mi = individual("Orcinus", "orca");
+
+        post("Delphinus delphis", mi, true, true);
+        verify(mockResponse).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        verify(mockResponse, never()).setStatus(HttpServletResponse.SC_OK);
+        assertFalse(body().contains("has been updated"),
+            "no success message for an unsaved change");
+        assertEquals(0, notificationsSent, "no one is told about a change that was not saved");
+        verify(usedShepherd).closeDBTransaction();
     }
 }
