@@ -23,6 +23,12 @@
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
+    /* The global 16px scrollbar would cover part of the image on Android. */
+    scrollbar-width: none;
+  }
+
+  #image-modal #image-modal-body::-webkit-scrollbar {
+    display: none;
   }
 
   #image-modal #image-modal-left {
