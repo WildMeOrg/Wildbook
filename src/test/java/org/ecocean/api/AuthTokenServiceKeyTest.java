@@ -24,7 +24,7 @@ class AuthTokenServiceKeyTest {
     private static final String CREDENTIAL = "wbsvc_00000000-0000-4000-8000-000000000000.secret";
 
     private static final class Result {
-        int status; String body; JwtService jwt; boolean committed;
+        int status; String body; JwtService jwt; boolean committed; HttpServletResponse resp;
     }
 
     private static ServiceKeyAuth.Grant grant(long keyExpiresAt, String... scopes) {
@@ -45,6 +45,7 @@ class AuthTokenServiceKeyTest {
         when(jwt.signUntil(anyString(), anyString(), anyLong(), any(), anyLong())).thenReturn("key-jwt");
         Result r = new Result();
         r.jwt = jwt;
+        r.resp = resp;
         try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class,
                  (m, c) -> when(m.commitDBTransactionWithStatus()).thenReturn(true));
              MockedStatic<JwtService> js = mockStatic(JwtService.class);
@@ -152,6 +153,7 @@ class AuthTokenServiceKeyTest {
             JSONObject body = new JSONObject(r.body);
             assertFalse(body.getBoolean("success"), "error shape");
             assertEquals(message, body.getString("error"), "message passes through");
+            verify(r.resp, never()).setHeader(eq("WWW-Authenticate"), anyString());
         }
     }
 
