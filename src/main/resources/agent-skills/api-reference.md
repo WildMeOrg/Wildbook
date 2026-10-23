@@ -27,9 +27,46 @@ Send the token as a bearer header on every request:
 ```
 Authorization: Bearer <token>
 ```
+Using a service key instead of a pasted token? See "Using an organization service key" below.
 The token response includes `expiresInSeconds`. An admin user's token sees all data; a normal user's
 token is filtered to their own accessible records. The server also enforces internal access-control
 fields, which are never returned to you.
+
+## Using an organization service key
+There are two ways in. A person can paste a short-lived token, as described above. Or the operator can
+configure an **organization service key** (it starts with `wbsvc_`) in the runtime's secret store, and you
+trade it for a short-lived token whenever you need one. A Wildbook admin creates these keys in
+**API Access**, in the "service keys" section.
+
+- Send the service key **only** to `POST /api/v3/auth/token`, as `Authorization: Bearer wbsvc_<id>.<secret>`.
+  Add `?scope=submissions:read` or `?scope=submissions:write` for submissions work; leave the scope off to
+  read data. Never send the key to any other endpoint, and keep it out of URLs, files, logs and chat.
+- Use the returned `token` on your API calls. Reuse it until it is close to the end of `expiresInSeconds`,
+  or until a call returns 401, and only then trade the key again. Do not trade before every call.
+- If `keyExpiresAt` (a time in milliseconds since 1970) is less than 30 days away, tell the operator to ask
+  their Wildbook admin for a replacement key.
+
+```
+POST /api/v3/auth/token?scope=submissions:read
+Authorization: Bearer wbsvc_<id>.<secret>
+```
+```json
+{ "token": "<short-lived token>", "tokenType": "Bearer", "expiresInSeconds": 900,
+  "keyExpiresAt": 1798000000000, "scope": "submissions:read" }
+```
+A `403` means this key is not allowed that scope, or that submission writing is not turned on for the
+organization's account. Tell the operator.
+
+If the trade fails with 401, the `error` message says why:
+
+| Message | What it means and what to do |
+|---|---|
+| `"invalid service key"` | The key is wrong or mistyped. Ask the operator to check the configured key. |
+| `"service key expired"` | The key has run out. Ask the operator for a new key from their Wildbook admin. |
+| `"service key revoked"` | The key was canceled on purpose. Stop; do not look for a way around it. |
+| `"service key unavailable; contact your Wildbook administrator"` | The key's account is not usable right now. Tell the operator to contact their Wildbook administrator. |
+
+In all four cases, stop and report to the operator. Do not retry in a loop.
 
 ## Endpoints
 
