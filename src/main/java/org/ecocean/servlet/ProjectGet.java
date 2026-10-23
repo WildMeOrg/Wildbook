@@ -262,9 +262,10 @@ public class ProjectGet extends HttpServlet {
                                 ind);
                             JSONArray projectArr = new JSONArray();
                             if (projects != null) {
+                                // merge.jsp only reads project name and ID prefix; per-encounter
+                                // metadata scales with project size and stalled the merge page
                                 for (Project project : projects) {
-                                    projectArr.put(project.asJSONObjectWithEncounterMetadata(
-                                        myShepherd, request));
+                                    projectArr.put(project.asJSONObject());
                                 }
                             }
                             returnProjArr.put(projectArr);
