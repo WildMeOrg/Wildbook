@@ -49,7 +49,9 @@ export default function ServiceKeysPanel({ username }) {
 
   const errorText = (err) =>
     err.status === 409
-      ? t("API_SERVICE_KEY_LIMIT")
+      ? /already has \d+ active keys/.test(err.message || "")
+        ? t("API_SERVICE_KEY_LIMIT")
+        : t("API_SERVICE_KEY_ACCOUNT_CONFLICT")
       : err.status === 403
         ? t("API_SERVICE_KEY_FORBIDDEN")
         : t("API_SERVICE_KEY_ERROR");

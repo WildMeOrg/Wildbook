@@ -861,6 +861,7 @@
   "API_SERVICE_KEY_REVOKE": "Revocar",
   "API_SERVICE_KEY_REVOKE_ALL": "Revocar todas",
   "API_SERVICE_KEY_LIMIT": "Esta organización ya tiene 2 claves activas. Revoque una antes de crear otra.",
+  "API_SERVICE_KEY_ACCOUNT_CONFLICT": "La cuenta de servicio de esta organización requiere atención. Pida a un administrador de Wildbook que la corrija o la restablezca.",
   "API_SERVICE_KEY_WRITE_NEEDS_ADMIN": "La escritura de envíos también requiere que un administrador del sitio conceda el rol api-submission a la cuenta de servicio de la organización.",
   "API_SERVICE_KEYS_MANAGE": "Gestionar claves de servicio",
   "API_SERVICE_KEYS_NONE": "No hay organizaciones disponibles para claves de servicio.",

@@ -861,6 +861,7 @@
   "API_SERVICE_KEY_REVOKE": "Revoca",
   "API_SERVICE_KEY_REVOKE_ALL": "Revoca tutte",
   "API_SERVICE_KEY_LIMIT": "Questa organizzazione ha già 2 chiavi attive. Revocane una prima di crearne un’altra.",
+  "API_SERVICE_KEY_ACCOUNT_CONFLICT": "L’account di servizio di questa organizzazione richiede attenzione. Chiedi a un amministratore di Wildbook di correggerlo o ripristinarlo.",
   "API_SERVICE_KEY_WRITE_NEEDS_ADMIN": "La scrittura delle segnalazioni richiede anche che un amministratore del sito assegni il ruolo api-submission all’account di servizio dell’organizzazione.",
   "API_SERVICE_KEYS_MANAGE": "Gestisci le chiavi di servizio",
   "API_SERVICE_KEYS_NONE": "Nessuna organizzazione disponibile per le chiavi di servizio.",

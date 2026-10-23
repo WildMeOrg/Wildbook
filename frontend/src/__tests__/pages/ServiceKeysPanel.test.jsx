@@ -31,7 +31,11 @@ function json(status, body) {
   return Promise.resolve({ ok: status < 300, status, json: () => Promise.resolve(body) });
 }
 
-function installFetch({ orgs = [{ id: "o1", name: "Org One" }], createStatus = 201 } = {}) {
+function installFetch({
+  orgs = [{ id: "o1", name: "Org One" }],
+  createStatus = 201,
+  createError = "organization already has 2 active keys",
+} = {}) {
   keysState = [KEY];
   fetchMock = jest.fn((url, opts) => {
     const m = opts.method;
@@ -39,7 +43,7 @@ function installFetch({ orgs = [{ id: "o1", name: "Org One" }], createStatus = 2
     if (m === "GET") return json(200, { keys: keysState });
     if (m === "POST") {
       if (createStatus !== 201)
-        return json(createStatus, { success: false, error: "organization already has 2 active keys" });
+        return json(createStatus, { success: false, error: createError });
       return json(201, { ...KEY, keyId: "k2", label: "new", key: "wbsvc_k2.SECRETVALUE" });
     }
     if (m === "DELETE") {
@@ -178,6 +182,29 @@ describe("ServiceKeysPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create service key" }));
     await enterPassword();
     expect(await screen.findByText(messages.API_SERVICE_KEY_LIMIT)).toBeInTheDocument();
+  });
+
+  it("otherConflictShowsServiceAccountMessage", async () => {
+    installFetch({
+      createStatus: 409,
+      createError:
+        "service account was removed from this organization; a Wildbook administrator must restore it",
+    });
+    await openPanel();
+    fireEvent.change(screen.getByLabelText("Label"), { target: { value: "third" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create service key" }));
+    await enterPassword();
+    expect(await screen.findByText(messages.API_SERVICE_KEY_ACCOUNT_CONFLICT)).toBeInTheDocument();
+    expect(screen.queryByText(messages.API_SERVICE_KEY_LIMIT)).not.toBeInTheDocument();
+  });
+
+  it("usernameTakenConflictShowsServiceAccountMessage", async () => {
+    installFetch({ createStatus: 409, createError: "service account username is already taken" });
+    await openPanel();
+    fireEvent.change(screen.getByLabelText("Label"), { target: { value: "third" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create service key" }));
+    await enterPassword();
+    expect(await screen.findByText(messages.API_SERVICE_KEY_ACCOUNT_CONFLICT)).toBeInTheDocument();
   });
 
   it("shows write-needs-admin hint only with submissions:write", async () => {

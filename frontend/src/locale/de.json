@@ -861,6 +861,7 @@
   "API_SERVICE_KEY_REVOKE": "Widerrufen",
   "API_SERVICE_KEY_REVOKE_ALL": "Alle widerrufen",
   "API_SERVICE_KEY_LIMIT": "Diese Organisation hat bereits 2 aktive Schlüssel. Widerrufen Sie einen, bevor Sie einen neuen erstellen.",
+  "API_SERVICE_KEY_ACCOUNT_CONFLICT": "Das Dienstkonto dieser Organisation muss überprüft werden. Bitten Sie eine Wildbook-Administratorin oder einen Wildbook-Administrator, es zu beheben oder wiederherzustellen.",
   "API_SERVICE_KEY_WRITE_NEEDS_ADMIN": "Für Schreibzugriff auf Einreichungen muss zusätzlich ein Website-Administrator dem Dienstkonto der Organisation die Rolle api-submission zuweisen.",
   "API_SERVICE_KEYS_MANAGE": "Dienstschlüssel verwalten",
   "API_SERVICE_KEYS_NONE": "Für Dienstschlüssel sind keine Organisationen verfügbar.",
