@@ -55,6 +55,8 @@ public class User implements Serializable {
     private String username;
     private String password;
     private String salt;
+    // non-null marks a per-organization service account (id of the organization); never logs in
+    private String serviceOrganizationId;
     private String uuid;
 
     // String currentContext;
@@ -321,6 +323,10 @@ public class User implements Serializable {
         this.password = password;
     }
 
+    public String getServiceOrganizationId() { return serviceOrganizationId; }
+    public void setServiceOrganizationId(String id) { this.serviceOrganizationId = id; }
+    public boolean isServiceAccount() { return serviceOrganizationId != null; }
+
     public void setSalt(String salt) { this.salt = salt; }
     public String getSalt() { return salt; }
 
@@ -330,6 +336,7 @@ public class User implements Serializable {
      * this user has no stored password or the candidate is blank.
      */
     public boolean checkPassword(String clearText) {
+        if (isServiceAccount()) return false;
         if ((clearText == null) || clearText.isEmpty()) return false;
         String stored = this.getPassword();
         String salt = this.getSalt();
