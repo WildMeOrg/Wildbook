@@ -352,7 +352,9 @@ abstract class IdentificationDbTestSupport {
              });
              MockedStatic<IAQueryCache> cache = mockStatic(IAQueryCache.class);
              MockedStatic<IAGateway> gw = mockStatic(IAGateway.class, inv -> {
-                 if (inv.getMethod().getName().equals("requeueJob")) return requeue.answer(inv);
+                 // _doIdentify asks for the typed verdict: true = queued, false = budget exhausted
+                 if (inv.getMethod().getName().equals("requeueJobResult"))
+                     return requeue.answer(inv) ? IAGateway.RequeueResult.QUEUED : IAGateway.RequeueResult.RETRY_CAP;
                  return inv.callRealMethod();
              })) {
             cache.when(() -> IAQueryCache.tryTargetAnnotationsCache(anyString(), any(Annotation.class),
