@@ -2,6 +2,7 @@ import {
   annotationDisplayRect,
   computeMaxZoom,
   computeFitToAnnotation,
+  computeZoomAboutPoint,
 } from "../../utils/annotationZoom";
 
 describe("computeMaxZoom", () => {
@@ -116,5 +117,140 @@ describe("computeFitToAnnotation", () => {
     expect(
       computeFitToAnnotation({ rect: null, ...container, minZoom: 1, maxZoom: 8 }),
     ).toBeNull();
+  });
+});
+
+describe("computeZoomAboutPoint", () => {
+  // Where a point at unscaled image coordinate `u` is drawn, given the overlay's
+  // `translate(pan) scale(zoom)` about a top-left origin.
+  const screenX = (u, { pan, zoom }) => pan.x + u * zoom;
+
+  it("holds the focal point under the same screen pixel", () => {
+    const before = { pan: { x: -100, y: -50 }, zoom: 2 };
+    const focal = { x: 320, y: 240 };
+    const nextZoom = 2.5;
+
+    const pan = computeZoomAboutPoint({ ...before, nextZoom, focal });
+
+    // The image coordinate that was under the focal point before the zoom...
+    const u = (focal.x - before.pan.x) / before.zoom;
+    // ...is still drawn there after it.
+    expect(screenX(u, { pan, zoom: nextZoom })).toBeCloseTo(focal.x, 10);
+    const v = (focal.y - before.pan.y) / before.zoom;
+    expect(pan.y + v * nextZoom).toBeCloseTo(focal.y, 10);
+  });
+
+  it("works from a negative pan, which is what auto-fit produces", () => {
+    // fitToAnnotation pans the image up and to the left to centre the box, so
+    // negative pans are the normal case on the match-results page, not an edge one.
+    const before = { pan: { x: -1240.5, y: -880.25 }, zoom: 4 };
+    const focal = { x: 300, y: 200 };
+
+    const pan = computeZoomAboutPoint({ ...before, nextZoom: 5, focal });
+
+    const u = (focal.x - before.pan.x) / before.zoom;
+    expect(screenX(u, { pan, zoom: 5 })).toBeCloseTo(focal.x, 10);
+  });
+
+  it("leaves the pan alone when the focal point is the wrapper origin", () => {
+    // The old behaviour -- an unchanged pan -- is only correct for u = 0, which
+    // is exactly why every other point drifted.
+    expect(
+      computeZoomAboutPoint({
+        pan: { x: -100, y: -50 },
+        zoom: 2,
+        nextZoom: 3,
+        focal: { x: -100, y: -50 },
+      }),
+    ).toEqual({ x: -100, y: -50 });
+  });
+
+  it("is a no-op when the zoom did not actually change", () => {
+    // Zoom clamped at the ceiling: nextZoom === zoom must not nudge the image.
+    expect(
+      computeZoomAboutPoint({
+        pan: { x: -100, y: -50 },
+        zoom: 3.5,
+        nextZoom: 3.5,
+        focal: { x: 320, y: 240 },
+      }),
+    ).toEqual({ x: -100, y: -50 });
+  });
+
+  it("round-trips: zooming out about the same point undoes zooming in", () => {
+    const focal = { x: 275, y: 190 };
+    const start = { pan: { x: -60, y: -35 }, zoom: 2 };
+
+    const zoomedIn = computeZoomAboutPoint({
+      ...start,
+      nextZoom: 2.5,
+      focal,
+    });
+    const backOut = computeZoomAboutPoint({
+      pan: zoomedIn,
+      zoom: 2.5,
+      nextZoom: 2,
+      focal,
+    });
+
+    expect(backOut.x).toBeCloseTo(start.pan.x, 10);
+    expect(backOut.y).toBeCloseTo(start.pan.y, 10);
+  });
+
+  it("keeps the pan when the zoom is unusable", () => {
+    const pan = { x: -100, y: -50 };
+    const focal = { x: 10, y: 10 };
+
+    expect(computeZoomAboutPoint({ pan, zoom: 0, nextZoom: 2, focal })).toEqual(
+      pan,
+    );
+    expect(computeZoomAboutPoint({ pan, zoom: 2, nextZoom: 0, focal })).toEqual(
+      pan,
+    );
+    expect(
+      computeZoomAboutPoint({ pan, zoom: 2, nextZoom: NaN, focal }),
+    ).toEqual(pan);
+  });
+
+  it("keeps the pan when there is no focal point to anchor", () => {
+    const pan = { x: -100, y: -50 };
+
+    expect(
+      computeZoomAboutPoint({ pan, zoom: 2, nextZoom: 3, focal: null }),
+    ).toEqual(pan);
+    expect(
+      computeZoomAboutPoint({
+        pan,
+        zoom: 2,
+        nextZoom: 3,
+        focal: { x: NaN, y: 0 },
+      }),
+    ).toEqual(pan);
+  });
+
+  it("keeps the pan when the arithmetic overflows", () => {
+    // Every input is finite, but the result is not: a non-finite pan would put
+    // the image nowhere at all, so the view has to stay where it was.
+    const pan = { x: -Number.MAX_VALUE, y: -Number.MAX_VALUE };
+
+    expect(
+      computeZoomAboutPoint({
+        pan,
+        zoom: Number.MIN_VALUE,
+        nextZoom: Number.MAX_VALUE,
+        focal: { x: Number.MAX_VALUE, y: Number.MAX_VALUE },
+      }),
+    ).toEqual(pan);
+  });
+
+  it("falls back to the origin when the pan itself is unusable", () => {
+    expect(
+      computeZoomAboutPoint({
+        pan: undefined,
+        zoom: 2,
+        nextZoom: 3,
+        focal: { x: 10, y: 10 },
+      }),
+    ).toEqual({ x: 0, y: 0 });
   });
 });

@@ -11,6 +11,7 @@ import org.ecocean.media.*;
 import org.ecocean.Occurrence;
 import org.ecocean.queue.*;
 import org.ecocean.Resolver;
+import org.ecocean.RestClient;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
@@ -65,6 +66,133 @@ public class IAGateway extends HttpServlet {
         = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
     private static final java.util.concurrent.ConcurrentHashMap<String, Queue> IACALLBACK_QUEUE_CACHE
         = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
+    private static final java.util.concurrent.ConcurrentHashMap<String, Queue> FASTLANE_QUEUE_CACHE
+        = new java.util.concurrent.ConcurrentHashMap<String, Queue>();
+
+    // ---- interactive ("fastlane") lane -------------------------------------
+    // An encounter-page "New Match" is published with fastlane=true, which until
+    // now meant addToDetectionQueue(). The detection queue is deliberately
+    // SERIAL (StartupWildbook: detectionQ.consume(qh3) -> QueueUtil.background()
+    // -> ONE worker, plus a 1s delay after each run) and its handler blocks for
+    // the whole synchronous ml-service round trip, so an interactive match sat
+    // behind every queued detection. Observed 2026-09-17: ~78 re-detections
+    // stalled two encounter matches ~20 minutes. The "fast lane" was only fast
+    // because it was normally empty.
+    //
+    // SCOPE: this isolates INTERACTIVE matches -- `v2` annotation intake and
+    // legacy `identify`. ml-service jobs keep running their inline matching tail
+    // (MlServiceProcessor.processDetection -> waitAndRunMatch) on the detection
+    // lane, unchanged; separating that is a larger change and is NOT done here.
+    public static final int LANE_DETECTION = 0;
+    public static final int LANE_FASTLANE = 1;
+    public static final int LANE_IA = 2;
+
+    // Consume-return flag ONLY: set true after the fastlane consumer's consume()
+    // returns without throwing, false in its catch. It prevents publishing before
+    // startup registration. It is NOT a liveness check -- duplicate registration
+    // also returns normally, workers can stop before consume() returns, and a
+    // consumer that dies later silently strands submissions. Queue depth cannot
+    // establish health; watch the wildbook_queue_fastlane gauge.
+    private static volatile boolean fastlaneReady = false;
+
+    public static void setFastlaneReady(boolean ready) {
+        fastlaneReady = ready;
+        System.out.println("IAGateway.setFastlaneReady(" + ready + ")");
+    }
+
+    public static boolean isFastlaneReady() {
+        return fastlaneReady;
+    }
+
+    /**
+     * Which lane a job belongs on. MIRRORS processQueueMessage's dispatch order
+     * (v2 -> MLService -> mlServiceV2 -> detect -> identify), because the lane must
+     * follow what the message will actually DO, not which fields it happens to carry.
+     *
+     * Inside `v2`, ANNOTATIONS DOMINATE: IA.handleRest runs media intake and
+     * annotation intake as two INDEPENDENT if-blocks (IA.java:553 and :570), and the
+     * annotation block calls Embedding.findMatchProspects SYNCHRONOUSLY. An
+     * annotation-bearing envelope must therefore never land on the serial detection
+     * worker. The media half merely ENQUEUES separate per-asset detection messages,
+     * and those classify to LANE_DETECTION on their own.
+     */
+    public static int laneFor(JSONObject j) {
+        if (j == null) return LANE_IA;
+        if (j.optBoolean("v2", false)) { // IA.handleRest
+            JSONArray ann = j.optJSONArray("annotationIds");
+            if ((ann != null) && (ann.length() > 0))
+                return j.optBoolean("fastlane", false) ? LANE_FASTLANE : LANE_IA;
+            JSONArray media = j.optJSONArray("mediaAssetIds");
+            // handleRest:553 gates media intake on a NON-EMPTY array.
+            if ((media != null) && (media.length() > 0)) return LANE_DETECTION;
+            return LANE_IA; // no intake at all
+        }
+        if (j.optBoolean("MLService", false)) return LANE_DETECTION;
+        if (j.optBoolean("mlServiceV2", false)) return LANE_DETECTION;
+        // The dispatcher guards both of these on a non-null taskId; mirror that.
+        if ((j.optJSONObject("detect") != null) && (j.optString("taskId", null) != null))
+            return LANE_DETECTION;
+        if ((j.optJSONObject("identify") != null) && (j.optString("taskId", null) != null))
+            return j.optBoolean("fastlane", false) ? LANE_FASTLANE : LANE_IA;
+        return LANE_IA;
+    }
+
+    // Default OFF. Opt-in per install: enabling raises service concurrency, and the
+    // readiness flag above cannot prove the consumer is alive.
+    public static boolean fastlaneEnabled(String context) {
+        String v = CommonConfiguration.getProperty("iaFastlaneQueueEnabled", context);
+
+        // TRIM: java.util.Properties keeps trailing whitespace, so an unremarkable
+        // "iaFastlaneQueueEnabled = true " would otherwise leave the lane silently
+        // off and interactive matches still stuck behind detection.
+        return (v != null) && "true".equalsIgnoreCase(v.trim());
+    }
+
+    /**
+     * Publish onto the lane laneFor() selects. Single entry point, so the initial
+     * publish and every retry can never disagree about where a job belongs.
+     *
+     * Falls back to the detection queue whenever the fastlane is disabled by config
+     * or its consumer has not registered -- publishing into a queue nothing consumes
+     * is the worst outcome available.
+     */
+    public static boolean publishToLane(String context, String content)
+    throws IOException {
+        JSONObject j = null;
+
+        try {
+            j = new JSONObject(content);
+        } catch (Exception ex) {
+            // Refuse rather than publish. Every converted caller serializes a
+            // JSONObject, so this is off the normal path -- but publishing
+            // unparseable content and returning true would report a successful
+            // submission for work the consumer can only discard.
+            throw new IOException("IAGateway.publishToLane() refusing to publish unparseable content: " +
+                    ex, ex);
+        }
+        int lane = laneFor(j);
+        if ((lane == LANE_FASTLANE) && (!fastlaneEnabled(context) || !fastlaneReady)) {
+            System.out.println("IAGateway.publishToLane() fastlane unavailable (enabled=" +
+                fastlaneEnabled(context) + ", ready=" + fastlaneReady +
+                "); using detection queue");
+            lane = LANE_DETECTION;
+        }
+        switch (lane) {
+        case LANE_FASTLANE:
+            return addToFastlaneQueue(context, content);
+        case LANE_DETECTION:
+            return addToDetectionQueue(context, content);
+        default:
+            return addToQueue(context, content);
+        }
+    }
+
+    public static boolean addToFastlaneQueue(String context, String content)
+    throws IOException {
+        System.out.println("IAGateway.addToFastlaneQueue() publishing: " + content);
+        getFastlaneQueue(context).publish(content);
+        return true;
+    }
 
     private static Queue cachedQueue(
         java.util.concurrent.ConcurrentHashMap<String, Queue> cache,
@@ -173,37 +301,19 @@ public class IAGateway extends HttpServlet {
                 } else {
                     j.put("taskId", taskId);
                 }
-                Task task = Task.load(taskId, myShepherd);
-                if (task == null) task = new Task(taskId);
-                JSONObject tparams = j.optJSONObject("taskParameters"); // optional
-                if (tparams == null) tparams = new JSONObject(); // but we want it, to set user:
-                User tuser = AccessControl.getUser(request, myShepherd);
-                if (tuser == null) { // "anonymous" but we want to make sure we zero these out to prevent them from being passed in
-                    tparams.remove("userId");
-                    tparams.remove("username");
-                } else {
-                    tparams.put("userId", tuser.getUUID());
-                    tparams.put("username", tuser.getUsername());
-                }
+                Task task = resolveGatewayRoot(Task.load(taskId, myShepherd), taskId, j, res);
+                taskId = task.getId();
+                JSONObject tparams = gatewayTaskParams(j, AccessControl.getUser(request, myShepherd));
                 task.setParameters(tparams);
                 myShepherd.storeNewTask(task);
                 myShepherd.updateDBTransaction(); // hack
                 // myShepherd.closeDBTransaction();
 
-                boolean ok = false;
-                if (j.optJSONArray("annotationIds") != null) {
-                    // if this is just a single Encounter call, put it in the fast/detection lane to unblock small batch users
-                    if (j.optBoolean("fastlane", false)) {
-                        task.setQueueResumeMessage(j.toString());
-                        ok = addToDetectionQueue(context, j.toString());
-                    } else {
-                        task.setQueueResumeMessage(j.toString());
-                        ok = addToQueue(context, j.toString());
-                    }
-                } else {
-                    task.setQueueResumeMessage(j.toString());
-                    ok = addToDetectionQueue(context, j.toString());
-                }
+                // One classifier for every lane decision (see laneFor): previously this
+                // branched on the mere PRESENCE of an annotationIds array -- including an
+                // empty one -- and sent fastlane work to the SERIAL detection queue.
+                task.setQueueResumeMessage(j.toString());
+                boolean ok = publishToLane(context, j.toString());
                 if (ok) {
                     System.out.println("INFO: taskId=" + taskId + " enqueued successfully");
                     res.remove("error");
@@ -330,6 +440,52 @@ public class IAGateway extends HttpServlet {
     }
 
     // we pass 'res' in but also it is the return value
+    /**
+     * Issue #1787 (spec §4.0): the root a /ia request runs under. The parameters below are
+     * written onto this task and committed BEFORE the job is queued, so a supplied id that
+     * names a task of an identification run (or, for a request that is not a legacy identify
+     * job, any task holding annotations) is replaced by a fresh root here — and the fresh id is written into the queued payload and the response,
+     * so the client polls the run it asked for. A media-asset-only root is reused as before.
+     */
+    static Task resolveGatewayRoot(Task loaded, String taskId, JSONObject j, JSONObject res) {
+        // a legacy identify request ({identify:{annotationIds}}) names its own identification
+        // task, which holds the query annotation: reuse it unless it belongs to a run
+        boolean identifyJob = (j != null) && (j.optJSONObject("identify") != null);
+        boolean replace = (loaded != null) && ((Task.runIdOf(loaded) != null) ||
+            (!identifyJob && org.ecocean.ia.IA.mustReplaceRequestRoot(loaded)));
+        if (replace) {
+            Task fresh = new Task();
+            System.out.println("WARN: IAGateway /ia: supplied taskId " + taskId +
+                " belongs to identification run " + Task.runIdOf(loaded) +
+                " or holds annotations; using fresh root " + fresh.getId());
+            j.put("taskId", fresh.getId());
+            res.put("taskId", fresh.getId());
+            return fresh;
+        }
+        if (loaded == null) return new Task(taskId);
+        return loaded;
+    }
+
+    /**
+     * The parameters the /ia enqueue branch writes onto its root: the request's optional
+     * taskParameters with the user stamped (or zeroed for anonymous requests), minus the keys
+     * that belong to an identification run (issue #1787 §4.0): a client-supplied run id or
+     * option marker on the root would make handleRest replace it again and disconnect the
+     * response's taskId from the run.
+     */
+    static JSONObject gatewayTaskParams(JSONObject j, User tuser) {
+        JSONObject tparams = j.optJSONObject("taskParameters"); // optional
+        if (tparams == null) tparams = new JSONObject(); // but we want it, to set user:
+        if (tuser == null) { // "anonymous" but we want to make sure we zero these out to prevent them from being passed in
+            tparams.remove("userId");
+            tparams.remove("username");
+        } else {
+            tparams.put("userId", tuser.getUUID());
+            tparams.put("username", tuser.getUsername());
+        }
+        return org.ecocean.ia.IA.scrubRunParams(tparams);
+    }
+
     public static JSONObject _doIdentify(JSONObject jin, JSONObject res, Shepherd myShepherd,
         String context, String baseUrl, boolean fastlane)
     throws ServletException, IOException {
@@ -403,10 +559,15 @@ public class IAGateway extends HttpServlet {
         List<Task> subTasks = new ArrayList<Task>();
         if (anns.size() > 1) { // need to create child Tasks
             JSONObject params = parentTask.getParameters();
-            parentTask.setParameters((String)null); // reset this, kids inherit params
+            // issue #1787 (spec §4.0): the cleared parent keeps importTaskId, its run id and its
+            // option marker so the option task survives the fan-out; ibeis.identification is
+            // still dropped, so the parent's renderability is unchanged. Children get the full
+            // copy minus the option marker: they are leaves, not options.
+            parentTask.setParameters(Task.identityParams(params));
+            JSONObject childParams = Task.withoutOptionMarker(params);
             for (int i = 0; i < anns.size(); i++) {
                 Task newTask = new Task(parentTask);
-                newTask.setParameters(params);
+                newTask.setParameters(childParams);
                 newTask.addObject(anns.get(i));
                 myShepherd.storeNewTask(newTask);
                 myShepherd.beginDBTransaction();
@@ -415,6 +576,9 @@ public class IAGateway extends HttpServlet {
             myShepherd.storeNewTask(parentTask);
             myShepherd.beginDBTransaction();
         } else { // we just use the existing "parent" task
+            // issue #1787: a replaced (fresh) root holds nothing; attach the query annotation so
+            // task lookups by annotation and the import status find this run
+            if ((anns.size() > 0) && !parentTask.contains(anns.get(0))) parentTask.addObject(anns.get(0));
             subTasks.add(parentTask);
         }
         for (int i = 0; i < anns.size(); i++) {
@@ -441,9 +605,23 @@ public class IAGateway extends HttpServlet {
                 jobj.put("__queueActualRetries", jin.optInt("__queueActualRetries", 0));
                 jobj.put("__queueRetries", jin.optInt("__queueRetries", 0));
                 jobj.put("__queueStart", jin.optLong("__queueStart", System.currentTimeMillis()));
+                // Carry the lane with the retry. Without this the child job loses
+                // `fastlane` and an interactive match silently demotes to the bulk IA
+                // queue on its first retry. requeueJob's DELAYED publish path is kept
+                // as-is -- only the payload gains the flag.
+                if (fastlane) jobj.put("fastlane", true);
                 System.out.println("_doIdentify() requeueing from jin=" + jin);
                 System.out.println("_doIdentify() requeueing as jobj=" + jobj);
-                requeueJob(jobj, true);
+                boolean requeued = requeueJob(jobj, true);
+                if (!requeued) {
+                    // retry budget / two-day window exhausted: the only terminal commit on this
+                    // path (spec §4.4). While a retry is queued the task stays "requeued".
+                    subTask.setStatus("error");
+                    subTask.setStatusDetailsAddError("SEND_FAILED",
+                        "identification could not be sent and the retry budget is exhausted: " + ex.toString());
+                    subTask.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                    myShepherd.updateDBTransaction();
+                }
             }
             taskRes.put("subTaskId", subTask.getId());
             taskRes.put("subTaskIndex", i);
@@ -508,15 +686,16 @@ public class IAGateway extends HttpServlet {
                 String errorMsg = sent.optString("error", "(unknown error)");
                 System.out.println("beginIdentifyAnnotations() was unsuccessful due to " +
                     errorMsg + "; hopefully we requeue");
-                // sendIdentify failed before WBIA accepted the job; surface this as an
-                // error rather than "completed" so the import page doesn't falsely
-                // report the task as done. (Mirrors the sibling error path ~30 lines
-                // below that already sets status="error" on a different failure mode.)
+                // sendIdentify failed before WBIA accepted the job; never leave the task
+                // "completed" so the import page doesn't falsely report it as done. The
+                // terminal error is now written by _doIdentify when the requeue is refused.
                 if (task != null) {
-                    task.setStatus("error");
+                    // issue #1787 (spec §4.4): non-terminal while _doIdentify may still schedule a
+                    // retry. An explicit stored status, because a null status would make
+                    // Task.getStatus derive "error" from the HTTP-error log this failure leaves.
+                    task.setStatus(Task.STATUS_REQUEUED);
                     task.setStatusDetailsAddError("SEND_FAILED",
-                        "beginIdentifyAnnotations() failed: " + errorMsg);
-                    task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                        "beginIdentifyAnnotations() failed: " + errorMsg + "; retry pending");
                     myShepherd.updateDBTransaction();
                 }
                 throw new IOException("beginIdentifyAnnotations() failed due to " + errorMsg);
@@ -666,6 +845,11 @@ public class IAGateway extends HttpServlet {
         return cachedQueue(IACALLBACK_QUEUE_CACHE, context, "IACallback");
     }
 
+    public static Queue getFastlaneQueue(String context)
+    throws IOException {
+        return cachedQueue(FASTLANE_QUEUE_CACHE, context, "iafastlane");
+    }
+
     public static void processQueueMessage(String message) {
 // System.out.println("DEBUG: IAGateway.processQueueMessage -> " + message);
         if (message == null) return;
@@ -732,17 +916,18 @@ public class IAGateway extends HttpServlet {
                 System.out.println(
                     "ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " +
                     ex.toString());
-                if (ex.toString().contains("HTTP error code : 500")) {
+                int statusCode = RestClient.parseErrorCode(ex.toString());
+                if (statusCode == 500) {
                     requeueIncrement = true;
                     requeue = true;
                 }
                 // error - don't requeue
-                else if (ex.toString().contains("HTTP error code : 502")) {
+                else if (statusCode == 502) {
                     requeueIncrement = true;
                     requeue = true;
                 }
                 // error - don't requeue
-                else if (ex.toString().contains("HTTP error code : 608")) {
+                else if (statusCode == 608) {
                     requeue = false;
                 } else {
                     requeueIncrement = true;
@@ -786,14 +971,14 @@ public class IAGateway extends HttpServlet {
                 System.out.println(
                     "ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " +
                     ex.toString());
-                if (ex.toString().contains("HTTP error code : 500")) requeueIncrement = false;
+                if (RestClient.parseErrorCode(ex.toString()) == 500) requeueIncrement = false;
                 myShepherd.rollbackDBTransaction();
                 requeue = false;
             } catch (Exception ex) {
                 System.out.println(
                     "ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " +
                     ex.toString());
-                if (ex.toString().contains("HTTP error code : 500")) {
+                if (RestClient.parseErrorCode(ex.toString()) == 500) {
                     requeueIncrement = true;
                     requeue = true;
                 } else if (ex.toString().contains("Empty target annotation list")) {
@@ -863,9 +1048,9 @@ public class IAGateway extends HttpServlet {
         // previous code's "logged before sleeping" timing for any
         // operators tailing for this string.
         System.out.println("requeueJob(): backgrounding taskId=" + taskId);
-        scheduleRequeuePublish(jobj, context, taskId, initialDelayMillis);
-
-        return true;
+        // false when the executor rejected the schedule (webapp undeploy): the retry is
+        // permanently lost and the caller must not believe it was requeued
+        return scheduleRequeuePublish(jobj, context, taskId, initialDelayMillis);
     }
 
     // Schedules a single attempt to publish jobj onto the appropriate
@@ -873,24 +1058,33 @@ public class IAGateway extends HttpServlet {
     // with a 30s backoff — preserving the original code's "retry
     // forever on addToQueue/addToDetectionQueue failure" semantics
     // without an unbounded busy loop on a dedicated thread.
-    private static void scheduleRequeuePublish(final JSONObject jobj, final String context,
+    private static boolean scheduleRequeuePublish(final JSONObject jobj, final String context,
+        final String taskId, long delayMillis) {
+        try {
+            scheduleRequeuePublishUnguarded(jobj, context, taskId, delayMillis);
+            return true;
+        } catch (java.util.concurrent.RejectedExecutionException rex) {
+            // REQUEUE_EXEC was shut down (webapp undeploy/reload). The job was never written to
+            // the persistent spool, so this retry is genuinely lost — say so loudly rather than
+            // letting the exception propagate into whatever thread asked for the requeue.
+            System.out.println("ERROR: scheduleRequeuePublish() rejected (executor shut down?); " +
+                "requeue LOST for taskId=" + taskId + ": " + rex.toString());
+            return false;
+        }
+    }
+
+    private static void scheduleRequeuePublishUnguarded(final JSONObject jobj, final String context,
         final String taskId, long delayMillis) {
         REQUEUE_EXEC.schedule(new Runnable() {
             public void run() {
                 try {
-                    if (jobj.optJSONObject("detect") != null ||
-                        jobj.optBoolean("fastlane", false) ||
-                        jobj.optBoolean("MLService", false) ||
-                        jobj.optBoolean("mlServiceV2", false)) {
-                        // mlServiceV2 retries must land on the
-                        // detection queue, not the generic IA queue.
-                        // Without this, a retryable ml-service failure
-                        // would never be re-dispatched to
-                        // MlServiceProcessor.
-                        addToDetectionQueue(context, jobj.toString());
-                    } else {
-                        addToQueue(context, jobj.toString());
-                    }
+                    // Same classifier as the initial publish. The old condition sent
+                    // ANY fastlane payload back to the detection queue, so a single
+                    // retry silently undid the lane separation. laneFor still keeps
+                    // detect/MLService/mlServiceV2 on the detection queue, which
+                    // retryable ml-service failures depend on to reach
+                    // MlServiceProcessor.
+                    publishToLane(context, jobj.toString());
                 } catch (Throwable t) {
                     System.out.println(
                         ".....requeueJob() looping: failed to requeue addTo_Queue() taskId=" +
@@ -1005,7 +1199,12 @@ public class IAGateway extends HttpServlet {
         qjob.put("__baseUrl", baseUrl);
         qjob.put("__handleBulkImport", System.currentTimeMillis());
         task.setQueueResumeMessage(qjob.toString());
-        boolean ok = addToDetectionQueue(context, qjob.toString());
+        // Classified like everything else. The clone above preserves arbitrary request
+        // fields, so an import carrying annotationIds + fastlane would otherwise bypass
+        // the classifier and land on the serial detection queue. A normal import (media
+        // ids, no annotations) still classifies LANE_DETECTION; an EMPTY, annotation-free
+        // import now goes to the IA queue, where it performs no intake either way.
+        boolean ok = publishToLane(context, qjob.toString());
         if (ok) okCount++;
         res.put("queuedCount", okCount);
         res.remove("error");

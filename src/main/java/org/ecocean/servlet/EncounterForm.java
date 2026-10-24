@@ -398,12 +398,13 @@ public class EncounterForm extends HttpServlet {
             try {
                 // now we have to break apart genus species
                 if (formValues.get("genusSpecies") != null) {
-                    StringTokenizer tokenizer = new StringTokenizer(formValues.get(
-                        "genusSpecies").toString(), " ");
-                    if (tokenizer.countTokens() >= 2) {
-                        genus = tokenizer.nextToken();
-                        specificEpithet = tokenizer.nextToken().replaceAll(",", "").replaceAll("_",
-                            " ");
+                    // everything after the genus stays in the specific epithet, so a
+                    // trinomial keeps its subspecies (e.g. "Delphinus capensis tropicalis")
+                    String[] gs = Util.parseGenusSpecies(formValues.get(
+                        "genusSpecies").toString());
+                    if (gs != null) {
+                        genus = gs[0];
+                        specificEpithet = gs[1];
                     }
                     // handle malformed Genus Species formats
                     else {
@@ -929,7 +930,6 @@ public class EncounterForm extends HttpServlet {
                         enc + " bc no ia config was found.");
                     e.printStackTrace();
                 }
-                OpenSearch.setPermissionsNeeded(myShepherd, true);
                 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
                 ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
             }

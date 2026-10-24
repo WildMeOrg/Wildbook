@@ -26,6 +26,11 @@ all-pairs comparison gets slow well before that).
 1. Search `POST /api/v3/search/annotation` for the scope, paging with `from`/`size`
    (`from + size <= 10,000`). Keep each photo's marking-pattern vector, `encounterId`, `viewpoint`,
    and `methodVersion`.
+   *Checking a short list of photos against a whole catalog instead?* Don't page the catalog — send
+   each photo's vector as a nearest-neighbour (`knn`) query and let Wildbook return its closest
+   matches. See *Nearest-neighbour search* in **api-reference**, which also covers the traps: the
+   `nested` wrapper those queries need, and the fact that similarity values are not returned, so you
+   compute them yourself from the vectors.
 2. Resolve the annotation IDs with `POST /api/v3/media/resolve` (<=100 per call) to attach
    `individualId` and the croppable image.
 3. Group strictly by `viewpoint` + `methodVersion` — never compare across them.
