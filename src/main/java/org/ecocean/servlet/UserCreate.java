@@ -341,7 +341,7 @@ public class UserCreate extends HttpServlet {
                         !newUser.getUsername().equals(originalUsername)) {
                         try {
                             String tmpUsrSalt = ServletUtilities.getSalt().toHex();
-                            String tmpUsr1Password = "tomcat123"; // it does not matter; this user will be gone very soon
+                            String tmpUsr1Password = Util.generateUUID(); // random and discarded; this user will be gone very soon
                             String tmpUsr1HashedPassword = ServletUtilities.hashAndSaltPassword(
                                 tmpUsr1Password, tmpUsrSalt);
                             tempUserWithOriginalUserName = new User(originalUsername,
