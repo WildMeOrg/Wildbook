@@ -272,6 +272,7 @@ class MlServiceClientTest {
         IAException out = MlServiceClient.classifyHttpFailure(ex, "http://ml/x");
         assertEquals("TIMEOUT", out.getCode());
         assertTrue(out.shouldRequeue());
+        assertFalse(out.shouldIncrement());
     }
 
     @Test void classifyConnectionRefused() {
@@ -296,6 +297,7 @@ class MlServiceClientTest {
         IAException out = MlServiceClient.classifyHttpFailure(ex, "http://ml/x");
         assertEquals("NETWORK", out.getCode());
         assertTrue(out.shouldRequeue());
+        assertTrue(out.shouldIncrement());
     }
 
     @Test void classify429RateLimit() {
@@ -311,6 +313,7 @@ class MlServiceClientTest {
         IAException out = MlServiceClient.classifyHttpFailure(ex, "http://ml/x");
         assertEquals("SERVER_ERROR", out.getCode());
         assertTrue(out.shouldRequeue());
+        assertTrue(out.shouldIncrement());
     }
 
     @Test void classify400ClientErrorNotRetryable() {
@@ -318,6 +321,7 @@ class MlServiceClientTest {
         IAException out = MlServiceClient.classifyHttpFailure(ex, "http://ml/x");
         assertEquals("CLIENT_ERROR", out.getCode());
         assertFalse(out.shouldRequeue());
+        assertFalse(out.shouldIncrement());
     }
 
     @Test void classifyUnrecognizedNotRetryable() {
@@ -325,6 +329,25 @@ class MlServiceClientTest {
         IAException out = MlServiceClient.classifyHttpFailure(ex, "http://ml/x");
         assertFalse(out.shouldRequeue(),
             "Unknown failures must not retry-loop");
+        assertFalse(out.shouldIncrement());
+    }
+
+    @Test void classify502ColonSpellingStillIncrementsUnlikeLegacyClient() {
+        IAException out = MlServiceClient.classifyHttpFailure(
+            new IOException("HTTP error code : 502"), "http://ml/x");
+        assertEquals("NETWORK", out.getCode());
+        assertTrue(out.shouldRequeue());
+        assertTrue(out.shouldIncrement());
+    }
+
+    @Test void classifyNonstandardStatusAndNullMessageKeepUnrecognizedPolicy() {
+        for (String message : new String[] { "HTTP error code = 608", null }) {
+            IAException out = MlServiceClient.classifyHttpFailure(new IOException(message),
+                "http://ml/x");
+            assertEquals("NETWORK", out.getCode());
+            assertFalse(out.shouldRequeue());
+            assertFalse(out.shouldIncrement());
+        }
     }
 
     @Test void classifyConnectionReset() {
@@ -353,5 +376,6 @@ class MlServiceClientTest {
         IAException out = MlServiceClient.classifyHttpFailure(ex, "http://ml/x");
         assertEquals("INVALID", out.getCode());
         assertFalse(out.shouldRequeue());
+        assertFalse(out.shouldIncrement());
     }
 }

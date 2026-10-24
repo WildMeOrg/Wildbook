@@ -450,14 +450,15 @@ public class MLService {
             ex.printStackTrace();
             String msg = ex.getMessage();
             if (msg == null) msg = ""; // safety against NPE
+            int statusCode = RestClient.parseErrorCode(msg);
             if (msg.contains("Connection refused")) {
                 throw new IAException("Connection refused", true, true);
             } else if (msg.contains("Read timed out")) {
                 throw new IAException("time out", true); // no increment
-            } else if (msg.contains("HTTP error code : 500")) {
+            } else if (statusCode == 500) {
                 throw new IAException("500 error", true, true);
-            } else if (msg.contains("HTTP error code : 502")) {
-                throw new IAException("502 error", true); // we requeue, but dont increment this?
+            } else if (statusCode == 502) {
+                throw new IAException("502 error", true); // requeue without increment
             }
             // default behavior is to retry, but with increment
             throw new IAException("unhandled exception [will requeue, incremented] on POST: " + ex,

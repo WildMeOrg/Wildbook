@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -44,11 +42,6 @@ public class MlServiceClient {
 
     public static final int DEFAULT_CONNECT_TIMEOUT_MS = 30_000;
     public static final int DEFAULT_READ_TIMEOUT_MS = 120_000;
-
-    // Matches "HTTP error code = 502" or "HTTP error code : 502", capturing
-    // the status code as group 1.
-    private static final Pattern HTTP_CODE_PATTERN =
-        Pattern.compile("HTTP error code\\s*[=:]\\s*(\\d{3})");
 
     private final int connectTimeoutMs;
     private final int readTimeoutMs;
@@ -287,14 +280,8 @@ public class MlServiceClient {
             return new IAException("INVALID",
                 "ml-service returned non-JSON 200 on " + url + ": " + msg, false, false);
         }
-        Matcher m = HTTP_CODE_PATTERN.matcher(msg);
-        if (m.find()) {
-            int statusCode;
-            try {
-                statusCode = Integer.parseInt(m.group(1));
-            } catch (NumberFormatException nfe) {
-                statusCode = 0;
-            }
+        int statusCode = RestClient.parseErrorCode(msg);
+        if (statusCode != -1) {
             // 408 (Request Timeout) — typically emitted by a proxy/LB in front
             // of ml-service; treat like a normal timeout (retry, no increment).
             if (statusCode == 408) {

@@ -11,6 +11,7 @@ import org.ecocean.media.*;
 import org.ecocean.Occurrence;
 import org.ecocean.queue.*;
 import org.ecocean.Resolver;
+import org.ecocean.RestClient;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
@@ -915,17 +916,18 @@ public class IAGateway extends HttpServlet {
                 System.out.println(
                     "ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " +
                     ex.toString());
-                if (ex.toString().contains("HTTP error code : 500")) {
+                int statusCode = RestClient.parseErrorCode(ex.toString());
+                if (statusCode == 500) {
                     requeueIncrement = true;
                     requeue = true;
                 }
                 // error - don't requeue
-                else if (ex.toString().contains("HTTP error code : 502")) {
+                else if (statusCode == 502) {
                     requeueIncrement = true;
                     requeue = true;
                 }
                 // error - don't requeue
-                else if (ex.toString().contains("HTTP error code : 608")) {
+                else if (statusCode == 608) {
                     requeue = false;
                 } else {
                     requeueIncrement = true;
@@ -969,14 +971,14 @@ public class IAGateway extends HttpServlet {
                 System.out.println(
                     "ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " +
                     ex.toString());
-                if (ex.toString().contains("HTTP error code : 500")) requeueIncrement = false;
+                if (RestClient.parseErrorCode(ex.toString()) == 500) requeueIncrement = false;
                 myShepherd.rollbackDBTransaction();
                 requeue = false;
             } catch (Exception ex) {
                 System.out.println(
                     "ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " +
                     ex.toString());
-                if (ex.toString().contains("HTTP error code : 500")) {
+                if (RestClient.parseErrorCode(ex.toString()) == 500) {
                     requeueIncrement = true;
                     requeue = true;
                 } else if (ex.toString().contains("Empty target annotation list")) {
