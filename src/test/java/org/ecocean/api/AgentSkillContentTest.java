@@ -147,6 +147,26 @@ class AgentSkillContentTest {
         assertNoLeak(md);
     }
 
+    @Test void serviceKeyFlowDocumented() {
+        String api = load("/agent-skills/api-reference.md");
+        for (String needle : new String[] {
+                "wbsvc_", "POST /api/v3/auth/token", "keyExpiresAt", "expiresInSeconds",
+                "\"invalid service key\"", "\"service key expired\"", "\"service key revoked\"",
+                "\"service key unavailable; contact your Wildbook administrator\"" })
+            assertTrue(api.contains(needle), "api-reference must contain " + needle);
+        String submit = load("/agent-skills/submit-sightings.md");
+        assertTrue(submit.contains("wbsvc_"), "submit-sightings must mention service keys");
+        assertTrue(submit.contains("scope=submissions:write"), "submit-sightings must show the write scope");
+        assertTrue(load("/agent-skills/index.md").contains("service key"),
+            "index must point to service keys");
+        assertNoLeak(api);
+        assertNoLeak(submit);
+        int start = api.indexOf("## Using an organization service key");
+        assertTrue(start >= 0, "api-reference must have the service key section");
+        int end = api.indexOf("\n## ", start + 5);
+        assertNoJargon(end < 0 ? api.substring(start) : api.substring(start, end));
+    }
+
     @Test void catalog_files_and_index_do_not_drift() {
         // (a) every mapped name resolves to a non-empty resource whose frontmatter name == the key
         for (Map.Entry<String, String> e : AgentSkill.SKILL_RESOURCES.entrySet()) {
