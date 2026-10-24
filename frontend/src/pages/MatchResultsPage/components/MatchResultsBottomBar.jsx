@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import { Spinner } from "react-bootstrap";
@@ -6,6 +6,7 @@ import MainButton from "../../../components/MainButton";
 import CreateNewIndividualModal from "./CreateNewIndividualModal";
 import NewIndividualCreatedModal from "./NewIndividualCreatedModal";
 import MatchConfirmedModal from "./MatchConfirmedModal";
+import "../styles.css";
 
 const styles = {
   bottomBar: (themeColor) => ({
@@ -15,11 +16,9 @@ const styles = {
     top: "50px",
     background: themeColor.primaryColors.primary50,
     borderTop: "1px solid #dee2e6",
-    padding: "10px 24px",
     display: "flex",
     gap: "24px",
     zIndex: 20,
-    height: "60px",
   }),
   bottomText: {
     fontSize: "1.2rem",
@@ -34,17 +33,39 @@ const styles = {
 
 const MatchResultsBottomBar = observer(
   ({ store, themeColor, identificationRemarks }) => {
+    const barRef = useRef(null);
+    const [barHeight, setBarHeight] = useState(60);
+
+    // Selection, translations and viewport changes can all change the bar height.
+    useLayoutEffect(() => {
+      const bar = barRef.current;
+      const measure = () => setBarHeight(bar.getBoundingClientRect().height);
+      measure();
+      if (typeof ResizeObserver === "undefined") {
+        window.addEventListener("resize", measure);
+        return () => window.removeEventListener("resize", measure);
+      }
+      const observer = new ResizeObserver(measure);
+      observer.observe(bar);
+      return () => observer.disconnect();
+    }, []);
+
     const matchingState = store.matchingState;
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showMatchConfirmedModal, setShowMatchConfirmedModal] =
       useState(false);
     const [matchConfirmedData, setMatchConfirmedData] = useState(null);
+    const [createdEncounterId, setCreatedEncounterId] = useState(null);
 
     const handleCreateNewIndividual = async (selectedRemark) => {
       const result = await store.handleCreateNewIndividual(selectedRemark);
 
       if (result?.ok) {
+        // The store resets the selection on success, which can move
+        // store.encounterId back to the default section; show the
+        // encounter that was actually acted on (issue #1744).
+        setCreatedEncounterId(result.encounterId || store.encounterId);
         setShowCreateModal(false);
         setShowSuccessModal(true);
       }
@@ -78,12 +99,47 @@ const MatchResultsBottomBar = observer(
       await store.handleMerge();
     };
 
+    const renderQueryLinks = (idPrefix) => {
+      const encId = store.encounterId || "";
+      const linkStyle = { color: themeColor.primaryColors.primary500 };
+
+      return (
+        <>
+          <a
+            id={`${idPrefix}-encounter-link`}
+            data-testid={`${idPrefix}-encounter-link`}
+            href={`/react/encounter?number=${encodeURIComponent(encId)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-decoration-none"
+            style={linkStyle}
+          >
+            <FormattedMessage id="ENCOUNTER" /> {encId.slice(0, 5)}
+          </a>
+          {store.individualId && (
+            <>
+              {" ("}
+              <a
+                id={`${idPrefix}-individual-link`}
+                data-testid={`${idPrefix}-individual-link`}
+                href={`/individuals.jsp?id=${encodeURIComponent(store.individualId)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-decoration-none"
+                style={linkStyle}
+              >
+                {store.individualDisplayName || store.individualId}
+              </a>
+              {")"}
+            </>
+          )}
+        </>
+      );
+    };
+
     const getActionContent = () => {
       switch (matchingState) {
         case "no_individuals": {
-          const encId = store.encounterId || "";
-          const shortEncId = encId.slice(0, 5);
-
           const left = (
             <div
               className="text-truncate"
@@ -92,37 +148,7 @@ const MatchResultsBottomBar = observer(
               data-testid="match-bottombar-left-no-individuals"
             >
               <FormattedMessage id="SET_MATCH_FOR" />{" "}
-              {store.individualDisplayName ? (
-                <a
-                  id="match-bottombar-individual-link"
-                  data-testid="match-bottombar-individual-link"
-                  href={`/individuals.jsp?id=${encodeURIComponent(
-                    store.individualId,
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-decoration-none"
-                  style={{
-                    color: themeColor.primaryColors.primary500,
-                  }}
-                >
-                  {store.individualDisplayName}
-                </a>
-              ) : (
-                <a
-                  id="match-bottombar-encounter-link"
-                  data-testid="match-bottombar-encounter-link"
-                  href={`/react/encounter?number=${encodeURIComponent(encId)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-decoration-none"
-                  style={{
-                    color: themeColor.primaryColors.primary500,
-                  }}
-                >
-                  {"encounter"} {shortEncId}
-                </a>
-              )}{" "}
+              {renderQueryLinks("match-bottombar")}{" "}
               <FormattedMessage id="OR_CHOOSE_FROM_RESULTS_BELOW" />
             </div>
           );
@@ -341,6 +367,27 @@ const MatchResultsBottomBar = observer(
           };
         }
 
+        case "multiple_query_encounters":
+          return {
+            left: (
+              <div
+                className="alert alert-danger mb-0"
+                style={{
+                  whiteSpace: "nowrap",
+                  height: "40px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "0 12px",
+                }}
+                id="match-bottombar-multiple-query-encounters"
+                data-testid="match-bottombar-multiple-query-encounters"
+              >
+                <FormattedMessage id="CANNOT_MATCH_ACROSS_QUERY_ENCOUNTERS" />
+              </div>
+            ),
+            right: null,
+          };
+
         case "too_many_individuals":
           return {
             left: (
@@ -364,9 +411,6 @@ const MatchResultsBottomBar = observer(
 
         case "no_further_action_needed":
           if (store.selectedMatch.length === 0) {
-            const encId = store.encounterId || "";
-            const shortEncId = encId.slice(0, 5);
-
             return {
               left: (
                 <div
@@ -376,37 +420,7 @@ const MatchResultsBottomBar = observer(
                   data-testid="match-bottombar-left-no-action-empty-selection"
                 >
                   <FormattedMessage id="SET_MATCH_FOR" />{" "}
-                  {store.individualDisplayName ? (
-                    <a
-                      id="match-bottombar-no-action-individual-link"
-                      data-testid="match-bottombar-no-action-individual-link"
-                      href={`/individuals.jsp?id=${encodeURIComponent(
-                        store.individualId,
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-decoration-none"
-                      style={{
-                        color: themeColor.primaryColors.primary500,
-                      }}
-                    >
-                      {store.individualDisplayName}
-                    </a>
-                  ) : (
-                    <a
-                      id="match-bottombar-no-action-encounter-link"
-                      data-testid="match-bottombar-no-action-encounter-link"
-                      href={`/react/encounter?number=${encodeURIComponent(encId)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-decoration-none"
-                      style={{
-                        color: themeColor.primaryColors.primary500,
-                      }}
-                    >
-                      {"encounter"} {shortEncId}
-                    </a>
-                  )}
+                  {renderQueryLinks("match-bottombar-no-action")}
                 </div>
               ),
               right: null,
@@ -437,13 +451,14 @@ const MatchResultsBottomBar = observer(
     return (
       <>
         <div
+          ref={barRef}
+          className="match-action-bar"
           style={styles.bottomBar(themeColor)}
           id="match-results-bottom-bar"
           data-testid="match-results-bottom-bar"
         >
           <div
-            className="d-flex align-items-center w-100"
-            style={{ marginLeft: 20, marginRight: 20 }}
+            className="match-action-bar-inner d-flex align-items-center w-100"
             id="match-results-bottom-bar-inner"
             data-testid="match-results-bottom-bar-inner"
           >
@@ -461,7 +476,7 @@ const MatchResultsBottomBar = observer(
             </div>
 
             <div
-              className="ms-auto d-flex align-items-center flex-nowrap"
+              className="match-action-bar-buttons ms-auto d-flex align-items-center"
               style={{ gap: 12 }}
               id="match-results-bottom-bar-right"
               data-testid="match-results-bottom-bar-right"
@@ -484,6 +499,12 @@ const MatchResultsBottomBar = observer(
           </div>
         </div>
 
+        <div
+          aria-hidden="true"
+          style={{ height: barHeight + 10 }}
+          data-testid="match-results-bottom-bar-spacer"
+        />
+
         <CreateNewIndividualModal
           show={showCreateModal}
           onHide={() => setShowCreateModal(false)}
@@ -503,7 +524,7 @@ const MatchResultsBottomBar = observer(
             setShowSuccessModal(false);
             window.location.reload();
           }}
-          encounterId={store.encounterId}
+          encounterId={createdEncounterId ?? store.encounterId}
           individualName={store.newIndividualName}
           themeColor={themeColor}
         />

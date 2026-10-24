@@ -834,9 +834,8 @@ public class AcmIdBot {
                         tally.skippedNoAsset++;
                         continue;
                     }
-                    // context-aware on purpose: the no-context overload skips the
-                    // validIAClassForIdentification check, so using it would let the sweep
-                    // register annotations identify then rejects
+                    // same eligibility check identify applies, so the sweep never registers
+                    // annotations identify would reject
                     if (!IBEISIA.validForIdentification(ann, context)) {
                         tally.skippedInvalid++;
                         continue;

@@ -12,6 +12,7 @@ import ExitFullScreenIcon from "../icons/ExitFullScreenIcon";
 import EncounterIcon from "../../../components/icons/EncounterIcon";
 import EmptyMatchPlaceholder from "./EmptyMatchPlaceholder";
 import { client } from "../../../api/client";
+import "../styles.css";
 
 const styles = {
   matchRow: (selected, themeColor) => ({
@@ -79,22 +80,6 @@ const styles = {
     fontSize: "1rem",
     zIndex: 10,
   }),
-  toolsBarLeft: {
-    position: "absolute",
-    top: "0",
-    left: "-40px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-  },
-  toolsBarRight: {
-    position: "absolute",
-    top: "0",
-    right: "-40px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-  },
   iconButton: {
     width: "32px",
     height: "32px",
@@ -174,10 +159,12 @@ const styles = {
 
 const MatchProspectTable = ({
   sectionId,
+  taskId,
   numCandidates,
   date,
   selectedMatch,
   onToggleSelected,
+  thisEncounterId,
   thisEncounterImageUrl,
   thisEncounterAnnotations,
   thisEncounterImageAsset,
@@ -381,6 +368,25 @@ const MatchProspectTable = ({
 
   const isError = taskStatusOverall === "error";
 
+  // Label linking back to the query annotation's encounter; falls back to
+  // plain text when the match result carried no encounter id.
+  const renderThisEncounterLabel = (labelLinkId) =>
+    thisEncounterId ? (
+      <a
+        href={`/react/encounter?number=${encodeURIComponent(thisEncounterId)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-decoration-underline"
+        style={{ color: "inherit" }}
+        id={labelLinkId}
+        data-testid={labelLinkId}
+      >
+        <FormattedMessage id="THIS_ENCOUNTER" />
+      </a>
+    ) : (
+      <FormattedMessage id="THIS_ENCOUNTER" />
+    );
+
   return (
     <div
       className="mb-4"
@@ -463,7 +469,13 @@ const MatchProspectTable = ({
                     const canOpenIndividual = Boolean(candidateIndividualId);
 
                     const rowKey = `${candidate.annotation?.id ?? candidate.annotation?.encounter?.id ?? "no-annot"}-${candidate.displayIndex ?? "no-idx"}`;
-                    const isRowSelected = isSelected(rowKey);
+                    // Issue #1744: qualify the selection key by task so the
+                    // same prospect at the same rank in two sections (an
+                    // image-wide umbrella task with one child per
+                    // annotation) cannot collide and read as selected in
+                    // both.
+                    const selectionKey = `${taskId ?? sectionId}-${rowKey}`;
+                    const isRowSelected = isSelected(selectionKey);
                     const isRowPreviewed = rowKey === previewedRow?._rowKey;
                     const isRowHovered = rowKey === hoveredRow;
 
@@ -573,7 +585,7 @@ const MatchProspectTable = ({
                             onChange={(e) =>
                               onToggleSelected(
                                 e.target.checked,
-                                rowKey,
+                                selectionKey,
                                 candidateEncounterId,
                                 candidateIndividualId,
                                 candidateIndividualDisplayName,
@@ -680,7 +692,9 @@ const MatchProspectTable = ({
               style={styles.cornerLabel(themeColor)}
               data-testid={`match-prospect-left-label-${sectionId}`}
             >
-              <FormattedMessage id="THIS_ENCOUNTER" />
+              {renderThisEncounterLabel(
+                `match-prospect-left-label-link-${sectionId}`,
+              )}
             </div>
             <div
               style={styles.imageContainer}
@@ -703,7 +717,7 @@ const MatchProspectTable = ({
           </div>
 
           <div
-            style={styles.toolsBarLeft}
+            className="match-image-tools match-image-tools-left"
             data-testid={`match-prospect-left-toolbar-${sectionId}`}
           >
             <div
@@ -786,7 +800,7 @@ const MatchProspectTable = ({
           </div>
 
           <div
-            style={styles.toolsBarRight}
+            className="match-image-tools match-image-tools-right"
             data-testid={`match-prospect-right-toolbar-${sectionId}`}
           >
             <div
@@ -950,7 +964,9 @@ const MatchProspectTable = ({
                     style={styles.fullscreenLabel}
                     data-testid={`match-prospect-fullscreen-left-label-${sectionId}`}
                   >
-                    <FormattedMessage id="THIS_ENCOUNTER" />
+                    {renderThisEncounterLabel(
+                      `match-prospect-fullscreen-left-label-link-${sectionId}`,
+                    )}
                   </div>
 
                   <div
