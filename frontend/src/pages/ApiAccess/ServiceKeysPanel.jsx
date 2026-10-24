@@ -16,7 +16,8 @@ const DEFAULT_DAYS = 90;
 // hint; the server makes the real decision on every call.
 export function canManageServiceKeys(me) {
   const roles = me?.data?.roles || me?.roles;
-  return Array.isArray(roles) && roles.includes("admin");
+  // orgAdmin only manages keys for their own organizations; orgSuper never does.
+  return Array.isArray(roles) && (roles.includes("admin") || roles.includes("orgAdmin"));
 }
 
 const fmt = (ms) => (ms ? new Date(ms).toLocaleString() : "-");
