@@ -141,6 +141,8 @@
   "TOTAL_ITEMS": "Posten insgesamt",
   "PER_PAGE": "Pro Seite",
   "PAGE": "Seite",
+  "RESULTS_WINDOW_CAPPED": "Nur die ersten {limit} von {total} Ergebnissen können durchsucht werden. Grenzen Sie Ihre Suche ein, um den Rest zu sehen.",
+  "SEARCH_RESULTS_ERROR": "Suche fehlgeschlagen. Bitte versuchen Sie es erneut oder passen Sie Ihre Filter an.",
   "GO_TO": "Gehe zu",
   "GO": "Gehe",
   "ENCOUNTER_SEARCH_RESULTS": "Ergebnisse der Begegnungssuche",
