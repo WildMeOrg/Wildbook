@@ -43,6 +43,8 @@ trade it for a short-lived token whenever you need one. A Wildbook admin creates
   read data. Never send the key to any other endpoint, and keep it out of URLs, files, logs and chat.
 - Use the returned `token` on your API calls. Reuse it until it is close to the end of `expiresInSeconds`,
   or until a call returns 401, and only then trade the key again. Do not trade before every call.
+- A key that has been revoked or has expired can't be traded again. A token you already got from it keeps
+  working until that token expires, which is at most 15 minutes.
 - If `keyExpiresAt` (a time in milliseconds since 1970) is less than 30 days away, tell the operator to ask
   their Wildbook admin for a replacement key.
 

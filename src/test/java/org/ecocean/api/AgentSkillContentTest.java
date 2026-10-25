@@ -164,6 +164,9 @@ class AgentSkillContentTest {
         int start = api.indexOf("## Using an organization service key");
         assertTrue(start >= 0, "api-reference must have the service key section");
         int end = api.indexOf("\n## ", start + 5);
+        String section = end < 0 ? api.substring(start) : api.substring(start, end);
+        assertTrue(section.contains("15 minutes"),
+            "service key section must say issued tokens keep working until they expire (at most 15 minutes)");
         assertNoJargon(end < 0 ? api.substring(start) : api.substring(start, end));
     }
 

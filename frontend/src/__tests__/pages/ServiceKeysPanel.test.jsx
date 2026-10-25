@@ -167,12 +167,21 @@ describe("ServiceKeysPanel", () => {
     await openPanel();
     window.confirm = jest.fn(() => false);
     fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
-    expect(window.confirm).toHaveBeenCalled();
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("within 15 minutes"));
     expect(screen.queryByLabelText("Password")).not.toBeInTheDocument();
     window.confirm = jest.fn(() => true);
     fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
     await enterPassword();
     expect(await screen.findByText("Revoked")).toBeInTheDocument();
+  });
+
+  it("revokeWarningsSayFifteenMinutesInEveryLocale", () => {
+    for (const lang of ["en", "de", "es", "fr", "it"]) {
+      const m = require(`../../locale/${lang}.json`);
+      for (const id of ["API_SERVICE_KEY_CONFIRM_REVOKE", "API_SERVICE_KEY_CONFIRM_REVOKE_ALL"]) {
+        expect(m[id]).toMatch(/15/);
+      }
+    }
   });
 
   it("limitErrorShown", async () => {
