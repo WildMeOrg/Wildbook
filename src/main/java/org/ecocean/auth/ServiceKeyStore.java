@@ -51,7 +51,7 @@ public final class ServiceKeyStore {
     /**
      * Issues a new key for {@code org}, provisioning the organization's service user (as a member)
      * on first use and reusing it after. Throws ServiceKeyException 400 for bad input, and 409 when
-     * the organization already has MAX_LIVE_KEYS live keys or its service user is no longer a member.
+     * the organization already has MAX_LIVE_KEYS live keys or its service user is not eligible for keys.
      */
     public static ServiceKeyCredential.Issued create(Shepherd sh, Organization org, String label,
         Set<String> scopes, int days, String createdBy) {
@@ -187,8 +187,8 @@ public final class ServiceKeyStore {
 
     /**
      * The organization's service user. A first-time provision creates it and makes it a member; an
-     * existing service user that is no longer a direct member is refused with 409 and left as is.
-     * Runs under the org lock.
+     * existing service user that is no longer a direct member, or that fails the exchange's eligibility
+     * check, is refused with 409 and left as is. Runs under the org lock.
      */
     private static User serviceUser(Shepherd sh, Organization org) {
         PersistenceManager pm = sh.getPM();
@@ -198,6 +198,9 @@ public final class ServiceKeyStore {
             if (!ServiceKeyAuth.directOrganizationIds(pm, svc.getId()).contains(orgId))
                 throw new ServiceKeyException(409,
                     "service account was removed from this organization; a Wildbook administrator must restore it");
+            if (!ServiceKeyAuth.isEligible(pm, svc, orgId))
+                throw new ServiceKeyException(409,
+                    "service account is not eligible for keys; a Wildbook administrator must fix it");
             return svc;
         }
         String username = availableUsername(sh, orgId);

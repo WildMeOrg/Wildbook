@@ -204,6 +204,41 @@ class ServiceKeyStoreDbTest {
         } finally { exchange.rollbackAndClose(); }
     }
 
+    private static final String NOT_ELIGIBLE =
+        "service account is not eligible for keys; a Wildbook administrator must fix it";
+
+    @Test void serviceAccountInASecondOrganizationIsRefused() {
+        String orgId = newOrg();
+        String otherId = newOrg();
+        create(orgId, READ, 30);
+        String userId = list(orgId).get(0).getServiceUserId();
+        Shepherd sh = open();
+        try {
+            sh.getOrganization(otherId).addMember(sh.getUserByUUID(userId));
+            assertTrue(sh.commitDBTransactionWithStatus(), "added to a second org");
+        } finally { sh.rollbackAndClose(); }
+        ServiceKeyException ex = createFails(orgId, READ, 30);
+        assertEquals(409, ex.status, "status");
+        assertEquals(NOT_ELIGIBLE, ex.getMessage(), "message");
+        assertEquals(1, list(orgId).size(), "no new key stored");
+    }
+
+    @Test void privilegedServiceAccountIsRefused() {
+        String orgId = newOrg();
+        create(orgId, READ, 30);
+        Shepherd sh = open();
+        try {
+            org.ecocean.Role role = new org.ecocean.Role(serviceUsername(orgId), Organization.ROLE_ADMIN);
+            role.setContext("context0");
+            sh.getPM().makePersistent(role);
+            assertTrue(sh.commitDBTransactionWithStatus(), "orgAdmin granted");
+        } finally { sh.rollbackAndClose(); }
+        ServiceKeyException ex = createFails(orgId, READ, 30);
+        assertEquals(409, ex.status, "status");
+        assertEquals(NOT_ELIGIBLE, ex.getMessage(), "message");
+        assertEquals(1, list(orgId).size(), "no new key stored");
+    }
+
     @Test void twoKeyCapUnderConcurrency() throws Exception {
         String orgId = newOrg();
         create(orgId, READ, 30);

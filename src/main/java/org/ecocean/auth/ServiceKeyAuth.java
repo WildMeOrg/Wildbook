@@ -89,12 +89,21 @@ public final class ServiceKeyAuth {
         User user = fresh(pm, User.class, "uuid == :id", key.getServiceUserId());
         Organization org = fresh(pm, Organization.class, "id == :id", key.getOrganizationId());
         if (user == null || org == null) throw fail(UNAVAILABLE);
-        if (!key.getOrganizationId().equals(user.getServiceOrganizationId())) throw fail(UNAVAILABLE);
-        // a service account belongs to its own organization only
-        if (!Collections.singleton(key.getOrganizationId()).equals(directOrganizationIds(pm, user.getId())))
-            throw fail(UNAVAILABLE);
-        if (user.getUsername() == null || isPrivileged(pm, user.getUsername())) throw fail(UNAVAILABLE);
+        if (!isEligible(pm, user, key.getOrganizationId())) throw fail(UNAVAILABLE);
         return key;
+    }
+
+    /**
+     * Whether {@code user} may hold keys of {@code orgId}: it is that organization's service account,
+     * a direct member of that organization and no other, and holds no admin or organization-management
+     * role. Memberships and roles are read fresh from the datastore.
+     */
+    static boolean isEligible(PersistenceManager pm, User user, String orgId) {
+        if (user == null || orgId == null) return false;
+        if (!orgId.equals(user.getServiceOrganizationId())) return false;
+        // a service account belongs to its own organization only
+        if (!Collections.singleton(orgId).equals(directOrganizationIds(pm, user.getId()))) return false;
+        return user.getUsername() != null && !isPrivileged(pm, user.getUsername());
     }
 
     /**
