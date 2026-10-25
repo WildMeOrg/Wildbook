@@ -110,7 +110,8 @@ class ServiceKeyStoreDbTest {
         try {
             User svc = sh.getUserByUUID(keys.get(0).getServiceUserId());
             assertNotNull(svc, "service user exists");
-            assertEquals("svc-" + orgId, svc.getUsername(), "username");
+            assertTrue(svc.getUsername().matches("svc-" + java.util.regex.Pattern.quote(orgId) + "-[0-9a-f]{8}"),
+                "username svc-<orgId>-<8 hex>: " + svc.getUsername());
             assertEquals(orgId, svc.getServiceOrganizationId(), "bound to the org");
             assertTrue(svc.isServiceAccount(), "service account");
             assertNull(svc.getEmailAddress(), "no email");
@@ -124,6 +125,55 @@ class ServiceKeyStoreDbTest {
         try {
             assertNotNull(ServiceKeyAuth.authenticate(ex, first.plaintext, System.currentTimeMillis()), "grant");
         } finally { ex.rollbackAndClose(); }
+    }
+
+    private static void newUser(String username) {
+        Shepherd sh = open();
+        try {
+            sh.getPM().makePersistent(new User(username, "hash", "salt"));
+            assertTrue(sh.commitDBTransactionWithStatus(), "user committed");
+        } finally { sh.rollbackAndClose(); }
+    }
+
+    private static String serviceUsername(String orgId) {
+        Shepherd sh = open();
+        try {
+            return sh.getUserByUUID(list(orgId).get(0).getServiceUserId()).getUsername();
+        } finally { sh.rollbackAndClose(); }
+    }
+
+    @Test void userNamedAfterTheOrganizationDoesNotBlockCreate() {
+        String orgId = newOrg();
+        newUser("svc-" + orgId);
+        assertNotNull(create(orgId, READ, 30), "key created");
+        assertTrue(serviceUsername(orgId).startsWith("svc-" + orgId + "-"), "service account has its own name");
+    }
+
+    @Test void usernameCollisionRetriesWithANewSuffix() {
+        String orgId = newOrg();
+        newUser("svc-" + orgId + "-aaaaaaaa");
+        java.util.Iterator<String> suffixes = List.of("aaaaaaaa", "bbbbbbbb").iterator();
+        java.util.function.Supplier<String> original = ServiceKeyStore.usernameSuffix;
+        ServiceKeyStore.usernameSuffix = suffixes::next;
+        try {
+            assertNotNull(create(orgId, READ, 30), "key created");
+        } finally { ServiceKeyStore.usernameSuffix = original; }
+        assertEquals("svc-" + orgId + "-bbbbbbbb", serviceUsername(orgId), "second suffix used");
+    }
+
+    @Test void usernameCollisionGivesUpAfterThreeTries() {
+        String orgId = newOrg();
+        newUser("svc-" + orgId + "-aaaaaaaa");
+        java.util.concurrent.atomic.AtomicInteger tries = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.function.Supplier<String> original = ServiceKeyStore.usernameSuffix;
+        ServiceKeyStore.usernameSuffix = () -> { tries.incrementAndGet(); return "aaaaaaaa"; };
+        try {
+            ServiceKeyException ex = createFails(orgId, READ, 30);
+            assertEquals(409, ex.status, "status");
+            assertEquals("service account username is already taken", ex.getMessage(), "message");
+        } finally { ServiceKeyStore.usernameSuffix = original; }
+        assertEquals(3, tries.get(), "three tries");
+        assertTrue(list(orgId).isEmpty(), "nothing stored");
     }
 
     @Test void removedServiceAccountIsNotRestoredByCreate() {

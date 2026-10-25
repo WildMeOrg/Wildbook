@@ -13,6 +13,7 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
@@ -41,6 +42,9 @@ public final class ServiceKeyStore {
 
     private static final long DAY_MILLIS = 24L * 3600L * 1000L;
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final int USERNAME_TRIES = 3;
+    /** The random part of a service account username; package-visible so tests can force collisions. */
+    static Supplier<String> usernameSuffix = ServiceKeyStore::randomSuffix;
 
     private ServiceKeyStore() {}
 
@@ -196,9 +200,7 @@ public final class ServiceKeyStore {
                     "service account was removed from this organization; a Wildbook administrator must restore it");
             return svc;
         }
-        String username = "svc-" + orgId;
-        if (sh.getUser(username) != null)
-            throw new ServiceKeyException(409, "service account username is already taken");
+        String username = availableUsername(sh, orgId);
         // a hashed random password nobody ever sees; checkPassword refuses service accounts anyway
         byte[] raw = new byte[32];
         RANDOM.nextBytes(raw);
@@ -211,6 +213,23 @@ public final class ServiceKeyStore {
         System.out.println("ServiceKeyStore provisioned service user=" + svc.getId() + " org=" + orgId);
         org.addMember(svc);
         return svc;
+    }
+
+    /** svc-<orgId>-<8 random hex>, retried on a taken name; 409 after USERNAME_TRIES taken names. */
+    private static String availableUsername(Shepherd sh, String orgId) {
+        for (int i = 0; i < USERNAME_TRIES; i++) {
+            String username = "svc-" + orgId + "-" + usernameSuffix.get();
+            if (sh.getUser(username) == null) return username;
+        }
+        throw new ServiceKeyException(409, "service account username is already taken");
+    }
+
+    private static String randomSuffix() {
+        byte[] raw = new byte[4];
+        RANDOM.nextBytes(raw);
+        StringBuilder sb = new StringBuilder(8);
+        for (byte b : raw) sb.append(String.format("%02x", b & 0xff));
+        return sb.toString();
     }
 
     private static long countLive(PersistenceManager pm, String orgId, long now) {
