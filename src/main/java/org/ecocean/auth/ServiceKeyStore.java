@@ -114,8 +114,13 @@ public final class ServiceKeyStore {
         return true;
     }
 
-    /** Revokes every unrevoked key of the organization; returns how many it revoked. */
+    /**
+     * Revokes every unrevoked key of the organization; returns how many it revoked. Takes the
+     * organization lock first, so a create still in flight commits before the keys are read and is revoked too.
+     */
     public static int revokeAll(Shepherd sh, String orgId, String by) {
+        if (orgId == null) return 0;
+        lock(sh, "servicekey:" + orgId);
         long now = System.currentTimeMillis();
         int n = 0;
         for (ServiceKey key : list(sh, orgId)) {

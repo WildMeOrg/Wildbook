@@ -197,6 +197,44 @@ class ServiceKeyStoreDbTest {
         assertEquals(2, list(orgId).size(), "exactly two keys");
     }
 
+    @Test void revokeAllWaitsForAnInFlightCreate() throws Exception {
+        String orgId = newOrg();
+        CountDownLatch created = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        // A creates a key and holds its transaction open
+        CompletableFuture<String> a = CompletableFuture.supplyAsync(() -> {
+            Shepherd sh = open();
+            try {
+                ServiceKeyCredential.Issued issued = ServiceKeyStore.create(sh, sh.getOrganization(orgId), "a",
+                    READ, 30, "site-admin");
+                created.countDown();
+                release.await(30, TimeUnit.SECONDS);
+                assertTrue(sh.commitDBTransactionWithStatus(), "A committed");
+                return issued.keyId;
+            } catch (InterruptedException e) {
+                throw new IllegalStateException(e);
+            } finally { created.countDown(); sh.rollbackAndClose(); }
+        });
+        assertTrue(created.await(30, TimeUnit.SECONDS), "A created its key");
+        // B revokes everything and must wait on the organization lock while A is open
+        CompletableFuture<Integer> b = CompletableFuture.supplyAsync(() -> {
+            Shepherd sh = open();
+            try {
+                int n = ServiceKeyStore.revokeAll(sh, orgId, "site-admin");
+                assertTrue(sh.commitDBTransactionWithStatus(), "B committed");
+                return n;
+            } finally { sh.rollbackAndClose(); }
+        });
+        Thread.sleep(1000);
+        assertFalse(b.isDone(), "B is blocked behind A's lock");
+        release.countDown();
+        String keyId = a.get(30, TimeUnit.SECONDS);
+        assertEquals(Integer.valueOf(1), b.get(30, TimeUnit.SECONDS), "B revoked A's key");
+        ServiceKey key = listed(orgId, keyId);
+        assertTrue(key.isRevoked(), "the key created before the revoke committed is revoked");
+        assertFalse(key.isLive(System.currentTimeMillis()), "no live key");
+    }
+
     @Test void expiredOrRevokedKeysFreeASlot() throws Exception {
         String orgId = newOrg();
         ServiceKeyCredential.Issued one = create(orgId, READ, 30);
