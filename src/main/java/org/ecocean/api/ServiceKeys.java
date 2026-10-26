@@ -3,6 +3,7 @@ package org.ecocean.api;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -61,11 +62,14 @@ public class ServiceKeys extends ApiBase {
     }
 
     /**
-     * Whether {@code basicUser} may manage {@code org}'s service keys. PR-B: site admins only.
-     * Task D.1 widens this; keep all key-management authorization here.
+     * Whether {@code basicUser} may manage {@code org}'s service keys: site admins, and orgAdmin
+     * holders for organizations they are a direct member of. Deliberately not
+     * {@code Organization.canManage}, which also admits orgSuper, and not parent organizations:
+     * keep all key-management authorization here.
      */
     protected boolean canManage(Shepherd sh, User basicUser, Organization org) {
-        return basicUser.isAdmin(sh);
+        if (basicUser.isAdmin(sh)) return true;
+        return basicUser.hasRoleByName(Organization.ROLE_MANAGER, sh) && org.hasMember(basicUser);
     }
 
     private void handle(String method, HttpServletRequest request, HttpServletResponse response)
@@ -107,7 +111,10 @@ public class ServiceKeys extends ApiBase {
             }
             if (route.discovery) {
                 JSONArray orgs = new JSONArray();
-                for (Organization org : myShepherd.getAllOrganizationsStrict()) {
+                // site admins see every organization; everyone else only their direct ones
+                List<Organization> candidates = user.isAdmin(myShepherd)
+                    ? myShepherd.getAllOrganizationsStrict() : myShepherd.getAllOrganizationsForUser(user);
+                for (Organization org : candidates) {
                     if (!canManage(myShepherd, user, org)) continue;
                     orgs.put(new JSONObject().put("id", org.getId())
                         .put("name", org.getName() == null ? JSONObject.NULL : org.getName()));

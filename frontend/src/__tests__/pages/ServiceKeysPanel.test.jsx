@@ -86,9 +86,38 @@ describe("ServiceKeysPanel", () => {
   });
 
   it("entryHiddenWithoutRole", () => {
-    mockMe = { data: { username: "alice", roles: ["orgAdmin"] } };
+    mockMe = { data: { username: "alice", roles: ["researcher"] } };
     renderPage();
     expect(screen.queryByRole("button", { name: "Manage service keys" })).not.toBeInTheDocument();
+  });
+
+  it("entryShownForOrgAdmin", () => {
+    mockMe = { data: { username: "alice", roles: ["orgAdmin"] } };
+    renderPage();
+    expect(screen.getByRole("button", { name: "Manage service keys" })).toBeInTheDocument();
+  });
+
+  it("entryHiddenForOrgSuperOnly", () => {
+    mockMe = { data: { username: "alice", roles: ["orgSuper"] } };
+    renderPage();
+    expect(screen.queryByRole("button", { name: "Manage service keys" })).not.toBeInTheDocument();
+  });
+
+  it("listShowsCreatorAndLastUse", async () => {
+    const usedAt = Date.UTC(2026, 9, 1, 12, 0, 0);
+    keysState = [
+      { ...KEY, createdByName: "carol", lastUsedAt: usedAt },
+      { ...KEY, keyId: "k3", label: "unused", createdByName: null, lastUsedAt: null },
+    ];
+    await openPanel();
+    expect(screen.getByRole("columnheader", { name: "Created by" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Last used" })).toBeInTheDocument();
+    const used = screen.getByText("ingest").closest("tr");
+    expect(used).toHaveTextContent("carol");
+    expect(used).toHaveTextContent(new Date(usedAt).toLocaleString());
+    const unused = screen.getByText("unused").closest("tr");
+    expect(unused).toHaveTextContent("\u2014");
+    expect(unused).toHaveTextContent("Never");
   });
 
   it("entryFlow", async () => {
