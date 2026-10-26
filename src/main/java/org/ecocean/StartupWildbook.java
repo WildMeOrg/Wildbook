@@ -169,6 +169,7 @@ public class StartupWildbook implements ServletContextListener {
             return;
         }
         Setting.initialize(context);
+        OrganizationMembershipSchema.check(context); // logs an ERROR if the membership migration was skipped
         // Eagerly build the shared OpenSearch REST client BEFORE any consumer threads start, so no
         // match thread ever hits the (now double-checked, synchronized) cold init concurrently.
         // Constructing the client does not contact OpenSearch, so this is safe here.
