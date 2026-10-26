@@ -179,6 +179,25 @@ class UserEditAuthorizationDbTest {
         assertTrue(UserCreate.canEditExistingUser(sh, requester, false, requester));
     }
 
+    // the role replacement UserCreate.doPost runs when a non-admin saves their own account
+    @Test void selfSaveKeepsSiteAdminManagedRoles() {
+        role(requester, Organization.ROLE_ADMIN, "context0");
+        role(requester, "researcher", "context0");
+        assertTrue(sh.commitDBTransactionWithStatus());
+        sh.beginDBTransaction();
+        java.util.List<Role> preexisting = sh.getAllRolesForUser(requester.getUsername());
+        assertEquals(3, preexisting.size());
+        UserCreate.preserveSiteAdminManagedRoles(preexisting, requester.getUsername(), false);
+        sh.getPM().deletePersistentAll(preexisting);
+        assertTrue(sh.commitDBTransactionWithStatus());
+        sh.beginDBTransaction();
+        java.util.List<String> kept = new java.util.ArrayList<String>();
+        for (Role r : sh.getAllRolesForUser(requester.getUsername())) kept.add(r.getRolename());
+        assertTrue(kept.contains(Organization.ROLE_MANAGER), "orgAdmin kept");
+        assertTrue(kept.contains(Organization.ROLE_ADMIN), "orgSuper kept");
+        assertFalse(kept.contains("researcher"), "roles a non-admin may grant are replaced from the form");
+    }
+
     @Test void missingRequesterIsRefusedUnlessSiteAdmin() {
         assertFalse(UserCreate.canEditExistingUser(sh, null, false, t1));
         assertFalse(UserCreate.canAddOrganizations(sh, null, false, Collections.singletonList(orgA)));

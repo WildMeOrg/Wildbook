@@ -49,7 +49,14 @@ public class UserCreate extends HttpServlet {
         } finally { query.closeAll(); }
     }
 
-    static void preserveSubmissionRole(List<Role> rolesToReplace, String username, boolean siteAdmin) {
+    /**
+     * Removes from rolesToReplace every role the editor may not grant (Role.canEditRole), so those
+     * grants are kept rather than deleted and rebuilt from the form, and points each kept grant at
+     * username. Non-admin edits, self-edits included, keep admin, orgAdmin, orgSuper and
+     * api-submission as they are; site admins replace every role.
+     */
+    static void preserveSiteAdminManagedRoles(List<Role> rolesToReplace, String username,
+        boolean siteAdmin) {
         rolesToReplace.removeIf(role -> {
             if (Role.canEditRole(role.getRolename(), siteAdmin)) return false;
             role.setUsername(username);
@@ -242,8 +249,9 @@ public class UserCreate extends HttpServlet {
                         // get existing roles for this existing user
                         preexistingRoles = originalUsername == null ? new ArrayList<Role>()
                             : myShepherd.getAllRolesForUser(originalUsername);
-                        // Keep administrator-managed enrollment on unrelated non-admin edits.
-                        preserveSubmissionRole(preexistingRoles, newUser.getUsername(), request.isUserInRole("admin"));
+                        // roles only a site admin may grant are kept on non-admin edits
+                        preserveSiteAdminManagedRoles(preexistingRoles, newUser.getUsername(),
+                            request.isUserInRole("admin"));
                         myShepherd.getPM().deletePersistentAll(preexistingRoles);
                     }
                     // start role processing
