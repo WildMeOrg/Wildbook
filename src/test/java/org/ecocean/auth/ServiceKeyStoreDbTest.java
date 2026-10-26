@@ -70,10 +70,16 @@ class ServiceKeyStoreDbTest {
     }
 
     private static ServiceKeyException createFails(String orgId, Set<String> scopes, int days) {
+        return createFails(orgId, scopes, days, ServiceKeyStore::randomSuffix);
+    }
+
+    private static ServiceKeyException createFails(String orgId, Set<String> scopes, int days,
+        java.util.function.Supplier<String> suffixes) {
         Shepherd sh = open();
         try {
             return assertThrows(ServiceKeyException.class, () -> ServiceKeyStore.create(sh,
-                sh.getOrganization(orgId), "label", scopes, days, "site-admin"), "create must be refused");
+                sh.getOrganization(orgId), "label", scopes, days, "site-admin", suffixes),
+                "create must be refused");
         } finally { sh.rollbackAndClose(); }
     }
 
@@ -153,11 +159,12 @@ class ServiceKeyStoreDbTest {
         String orgId = newOrg();
         newUser("svc-" + orgId + "-aaaaaaaa");
         java.util.Iterator<String> suffixes = List.of("aaaaaaaa", "bbbbbbbb").iterator();
-        java.util.function.Supplier<String> original = ServiceKeyStore.usernameSuffix;
-        ServiceKeyStore.usernameSuffix = suffixes::next;
+        Shepherd sh = open();
         try {
-            assertNotNull(create(orgId, READ, 30), "key created");
-        } finally { ServiceKeyStore.usernameSuffix = original; }
+            assertNotNull(ServiceKeyStore.create(sh, sh.getOrganization(orgId), "label", READ, 30,
+                "site-admin", suffixes::next), "key created");
+            assertTrue(sh.commitDBTransactionWithStatus(), "create committed");
+        } finally { sh.rollbackAndClose(); }
         assertEquals("svc-" + orgId + "-bbbbbbbb", serviceUsername(orgId), "second suffix used");
     }
 
@@ -165,13 +172,10 @@ class ServiceKeyStoreDbTest {
         String orgId = newOrg();
         newUser("svc-" + orgId + "-aaaaaaaa");
         java.util.concurrent.atomic.AtomicInteger tries = new java.util.concurrent.atomic.AtomicInteger();
-        java.util.function.Supplier<String> original = ServiceKeyStore.usernameSuffix;
-        ServiceKeyStore.usernameSuffix = () -> { tries.incrementAndGet(); return "aaaaaaaa"; };
-        try {
-            ServiceKeyException ex = createFails(orgId, READ, 30);
-            assertEquals(409, ex.status, "status");
-            assertEquals("service account username is already taken", ex.getMessage(), "message");
-        } finally { ServiceKeyStore.usernameSuffix = original; }
+        ServiceKeyException ex = createFails(orgId, READ, 30,
+            () -> { tries.incrementAndGet(); return "aaaaaaaa"; });
+        assertEquals(409, ex.status, "status");
+        assertEquals("service account username is already taken", ex.getMessage(), "message");
         assertEquals(3, tries.get(), "three tries");
         assertTrue(list(orgId).isEmpty(), "nothing stored");
     }
@@ -187,7 +191,7 @@ class ServiceKeyStoreDbTest {
         } finally { sh.rollbackAndClose(); }
         ServiceKeyException ex = createFails(orgId, READ, 30);
         assertEquals(409, ex.status, "status");
-        assertEquals("service account was removed from this organization; a Wildbook administrator must restore it",
+        assertEquals("service account is not eligible for keys; a Wildbook administrator must fix it",
             ex.getMessage(), "message");
         assertEquals(1, list(orgId).size(), "no new key stored");
         sh = open();

@@ -43,8 +43,6 @@ public final class ServiceKeyStore {
     private static final long DAY_MILLIS = 24L * 3600L * 1000L;
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final int USERNAME_TRIES = 3;
-    /** The random part of a service account username; package-visible so tests can force collisions. */
-    static Supplier<String> usernameSuffix = ServiceKeyStore::randomSuffix;
 
     private ServiceKeyStore() {}
 
@@ -55,6 +53,12 @@ public final class ServiceKeyStore {
      */
     public static ServiceKeyCredential.Issued create(Shepherd sh, Organization org, String label,
         Set<String> scopes, int days, String createdBy) {
+        return create(sh, org, label, scopes, days, createdBy, ServiceKeyStore::randomSuffix);
+    }
+
+    /** As above, drawing the random part of a new service account username from {@code suffixes}. */
+    static ServiceKeyCredential.Issued create(Shepherd sh, Organization org, String label,
+        Set<String> scopes, int days, String createdBy, Supplier<String> suffixes) {
         // createdBy / revokedBy are user ids (36-char UUIDs), never usernames
         if (org == null || org.getId() == null) throw new ServiceKeyException(404, "organization not found");
         if (days < MIN_DAYS || days > MAX_DAYS)
@@ -75,7 +79,7 @@ public final class ServiceKeyStore {
             throw new ServiceKeyException(409, "organization already has " + MAX_LIVE_KEYS + " active keys");
 
         pm.refresh(org);
-        User svc = serviceUser(sh, org);
+        User svc = serviceUser(sh, org, suffixes);
         ServiceKeyCredential.Issued issued = ServiceKeyCredential.issue();
         ServiceKey key = new ServiceKey(issued.keyId, orgId, svc.getId(), label, issued.secretHash, scopeList,
             now, createdBy, now + days * DAY_MILLIS);
@@ -187,23 +191,20 @@ public final class ServiceKeyStore {
 
     /**
      * The organization's service user. A first-time provision creates it and makes it a member; an
-     * existing service user that is no longer a direct member, or that fails the exchange's eligibility
-     * check, is refused with 409 and left as is. Runs under the org lock.
+     * existing service user that fails the exchange's eligibility check (including one removed from
+     * the organization) is refused with 409 and left as is. Runs under the org lock.
      */
-    private static User serviceUser(Shepherd sh, Organization org) {
+    private static User serviceUser(Shepherd sh, Organization org, Supplier<String> suffixes) {
         PersistenceManager pm = sh.getPM();
         String orgId = org.getId();
         User svc = fresh(pm, User.class, "serviceOrganizationId == :org", orgId);
         if (svc != null) {
-            if (!ServiceKeyAuth.directOrganizationIds(pm, svc.getId()).contains(orgId))
-                throw new ServiceKeyException(409,
-                    "service account was removed from this organization; a Wildbook administrator must restore it");
             if (!ServiceKeyAuth.isEligible(pm, svc, orgId))
                 throw new ServiceKeyException(409,
                     "service account is not eligible for keys; a Wildbook administrator must fix it");
             return svc;
         }
-        String username = availableUsername(sh, orgId);
+        String username = availableUsername(sh, orgId, suffixes);
         // a hashed random password nobody ever sees; checkPassword refuses service accounts anyway
         byte[] raw = new byte[32];
         RANDOM.nextBytes(raw);
@@ -219,15 +220,15 @@ public final class ServiceKeyStore {
     }
 
     /** svc-<orgId>-<8 random hex>, retried on a taken name; 409 after USERNAME_TRIES taken names. */
-    private static String availableUsername(Shepherd sh, String orgId) {
+    private static String availableUsername(Shepherd sh, String orgId, Supplier<String> suffixes) {
         for (int i = 0; i < USERNAME_TRIES; i++) {
-            String username = "svc-" + orgId + "-" + usernameSuffix.get();
+            String username = "svc-" + orgId + "-" + suffixes.get();
             if (sh.getUser(username) == null) return username;
         }
         throw new ServiceKeyException(409, "service account username is already taken");
     }
 
-    private static String randomSuffix() {
+    static String randomSuffix() {
         byte[] raw = new byte[4];
         RANDOM.nextBytes(raw);
         StringBuilder sb = new StringBuilder(8);

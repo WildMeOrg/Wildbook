@@ -197,7 +197,7 @@ describe("ServiceKeysPanel", () => {
     installFetch({
       createStatus: 409,
       createError:
-        "service account was removed from this organization; a Wildbook administrator must restore it",
+        "service account is not eligible for keys; a Wildbook administrator must fix it",
     });
     await openPanel();
     fireEvent.change(screen.getByLabelText("Label"), { target: { value: "third" } });
