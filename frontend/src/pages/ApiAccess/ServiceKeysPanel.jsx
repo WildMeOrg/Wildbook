@@ -268,6 +268,8 @@ export default function ServiceKeysPanel({ username }) {
                     <th>{t("API_SERVICE_KEY_LABEL")}</th>
                     <th>{t("API_SERVICE_KEY_SCOPES")}</th>
                     <th>{t("API_SERVICE_KEY_EXPIRES")}</th>
+                    <th>{t("API_SERVICE_KEY_CREATED_BY")}</th>
+                    <th>{t("API_SERVICE_KEY_LAST_USED")}</th>
                     <th>{t("API_SERVICE_KEY_STATUS")}</th>
                     <th />
                   </tr>
@@ -278,6 +280,12 @@ export default function ServiceKeysPanel({ username }) {
                       <td>{k.label}</td>
                       <td>{(k.scopes || []).join(", ")}</td>
                       <td>{fmt(k.expiresAt)}</td>
+                      <td>{k.createdByName || "\u2014"}</td>
+                      <td>
+                        {k.lastUsedAt
+                          ? fmt(k.lastUsedAt)
+                          : t("API_SERVICE_KEY_NEVER_USED")}
+                      </td>
                       <td>{status(k)}</td>
                       <td>
                         {isLive(k) && (
