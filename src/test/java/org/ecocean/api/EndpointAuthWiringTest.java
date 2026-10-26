@@ -75,11 +75,12 @@ class EndpointAuthWiringTest {
     }
 
     // -----------------------------------------------------------------------
-    // Assertion 3 — /api/v3/auth/token is auth-gated (not anon)
+    // Assertion 3 — /api/v3/auth/token is anon: the servlet authenticates
+    // both Basic and service-key credentials itself, never from a session
     // -----------------------------------------------------------------------
 
     @Test
-    void authToken_shiroRuleIsAuthGated() {
+    void authToken_shiroRuleIsAnon() {
         // Find the Shiro [urls] rule line for the token endpoint (non-comment)
         String ruleLine = lines.stream()
                 .filter(l -> {
@@ -92,17 +93,14 @@ class EndpointAuthWiringTest {
         assertNotNull(ruleLine,
                 "Shiro [urls] must contain a rule line for /api/v3/auth/token");
 
-        // The rule value must not be just "anon"
         String value = ruleLine.substring(ruleLine.indexOf("/api/v3/auth/token")
                 + "/api/v3/auth/token".length()).trim();
         if (value.startsWith("=")) {
             value = value.substring(1).trim();
         }
-        assertFalse("anon".equalsIgnoreCase(value.trim()),
-                "Shiro rule for /api/v3/auth/token must not be 'anon' (was: '" + value + "')");
-
-        assertTrue(ruleLine.contains("authc"),
-                "Shiro rule for /api/v3/auth/token must contain 'authc' (was: '" + ruleLine.strip() + "')");
+        assertEquals("anon", value,
+                "Shiro rule for /api/v3/auth/token must be 'anon'; the servlet authenticates itself (was: '"
+                        + value + "')");
     }
 
     // -----------------------------------------------------------------------
@@ -264,5 +262,95 @@ class EndpointAuthWiringTest {
         if (value.startsWith("=")) value = value.substring(1).trim();
         assertEquals("anon", value,
                 "the agent-skill doc must be anon (a how-to-auth doc can't require auth); was: '" + value + "'");
+    }
+    // -----------------------------------------------------------------------
+    // Assertions — service key management (ServiceKeys) wiring
+    // -----------------------------------------------------------------------
+
+    /** The servlet-name of the servlet-mapping that holds {@code <url-pattern>pattern</url-pattern>}, or null. */
+    private static String servletNameForPattern(String pattern) {
+        int at = lineIndexOf("<url-pattern>" + pattern + "</url-pattern>");
+        if (at < 0) return null;
+        for (int i = at; i >= 0; i--) {
+            String t = lines.get(i).trim();
+            if (t.startsWith("<servlet-name>"))
+                return t.substring("<servlet-name>".length(), t.indexOf("</servlet-name>"));
+            if (t.startsWith("<servlet-mapping>")) return null;
+        }
+        return null;
+    }
+
+    /** The first non-comment Shiro [urls] rule whose pattern matches {@code path} (first match wins). */
+    private static String firstShiroRuleFor(String path) {
+        org.apache.shiro.util.AntPathMatcher matcher = new org.apache.shiro.util.AntPathMatcher();
+        boolean inUrls = false;
+        for (String line : lines) {
+            String t = line.trim();
+            if (t.equals("[urls]")) { inUrls = true; continue; }
+            if (!inUrls) continue;
+            if (t.startsWith("</param-value>") || (t.startsWith("[") && !t.equals("[urls]"))) break;
+            if (t.isEmpty() || t.startsWith("#") || !t.contains("=")) continue;
+            String pattern = t.substring(0, t.indexOf('=')).trim();
+            if (matcher.matches(pattern, path)) return t;
+        }
+        return null;
+    }
+
+    @Test
+    void serviceKeys_servletIsRegisteredForBothPatterns() {
+        assertTrue(fullText().contains("<servlet-class>org.ecocean.api.ServiceKeys</servlet-class>"),
+                "web.xml must register the ServiceKeys servlet");
+        int cls = lineIndexOf("<servlet-class>org.ecocean.api.ServiceKeys</servlet-class>");
+        String name = lines.get(cls - 1).trim();
+        assertTrue(name.startsWith("<servlet-name>"), "servlet-name precedes the class (was: " + name + ")");
+        name = name.substring("<servlet-name>".length(), name.indexOf("</servlet-name>"));
+        assertEquals(name, servletNameForPattern("/api/v3/organizations/*"),
+                "/api/v3/organizations/* must map to the ServiceKeys servlet");
+        assertEquals(name, servletNameForPattern("/api/v3/service-keys/*"),
+                "/api/v3/service-keys/* must map to the ServiceKeys servlet");
+    }
+
+    @Test
+    void serviceKeys_shiroRulesAreAnonAndMatchFirst() {
+        String[] paths = {
+            "/api/v3/organizations/org-1/service-keys",
+            "/api/v3/organizations/org-1/service-keys/key-1",
+            "/api/v3/service-keys/organizations",
+        };
+        for (String path : paths) {
+            String rule = firstShiroRuleFor(path);
+            assertNotNull(rule, "a Shiro rule must cover " + path);
+            String value = rule.substring(rule.indexOf('=') + 1).trim();
+            assertEquals("anon", value,
+                    "the first Shiro rule matching " + path + " must be anon; the servlet authenticates itself (was: '"
+                            + rule + "')");
+        }
+        assertNotNull(lines.stream().map(String::trim)
+                .filter(t -> t.equals("/api/v3/organizations/*/service-keys = anon")).findFirst().orElse(null),
+                "explicit rule /api/v3/organizations/*/service-keys = anon");
+        assertNotNull(lines.stream().map(String::trim)
+                .filter(t -> t.equals("/api/v3/organizations/*/service-keys/* = anon")).findFirst().orElse(null),
+                "explicit rule /api/v3/organizations/*/service-keys/* = anon");
+        assertNotNull(lines.stream().map(String::trim)
+                .filter(t -> t.equals("/api/v3/service-keys/** = anon")).findFirst().orElse(null),
+                "explicit rule /api/v3/service-keys/** = anon");
+    }
+
+    @Test
+    void serviceKeys_anonRulesDoNotCoverOtherOrganizationPaths() {
+        assertNull(lines.stream().map(String::trim)
+                .filter(t -> t.startsWith("/api/v3/organizations/**")).findFirst().orElse(null),
+                "no catch-all organizations rule");
+        String[] paths = {
+            "/api/v3/organizations",
+            "/api/v3/organizations/org-1",
+            "/api/v3/organizations/org-1/members",
+            "/api/v3/organizations/org-1/service-keys/key-1/extra",
+        };
+        for (String path : paths) {
+            String rule = firstShiroRuleFor(path);
+            String value = rule == null ? null : rule.substring(rule.indexOf('=') + 1).trim();
+            assertNotEquals("anon", value, "no anon rule may match " + path + " (was: '" + rule + "')");
+        }
     }
 }

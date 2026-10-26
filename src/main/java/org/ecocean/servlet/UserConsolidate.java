@@ -1138,6 +1138,11 @@ public class UserConsolidate extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+        if (!request.isUserInRole("admin")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().println("{\"success\":false,\"error\":\"forbidden\"}");
+            return;
+        }
         response.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = null;
         try {
