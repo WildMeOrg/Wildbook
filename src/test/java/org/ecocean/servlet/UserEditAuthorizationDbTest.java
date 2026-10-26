@@ -164,6 +164,21 @@ class UserEditAuthorizationDbTest {
         assertFalse(UserCreate.canEditExistingUser(sh, requester, false, t1));
     }
 
+    @Test void orgAdminCannotEditApiSubmissionHolder() {
+        role(t1, Role.API_SUBMISSION, "context0");
+        assertTrue(sh.commitDBTransactionWithStatus());
+        sh.beginDBTransaction();
+        assertFalse(UserCreate.canEditExistingUser(sh, requester, false, t1),
+            "a holder of a site-admin-managed role is edited by site admins only");
+    }
+
+    @Test void orgAdminHoldingApiSubmissionCanEditSelf() {
+        role(requester, Role.API_SUBMISSION, "context0");
+        assertTrue(sh.commitDBTransactionWithStatus());
+        sh.beginDBTransaction();
+        assertTrue(UserCreate.canEditExistingUser(sh, requester, false, requester));
+    }
+
     @Test void missingRequesterIsRefusedUnlessSiteAdmin() {
         assertFalse(UserCreate.canEditExistingUser(sh, null, false, t1));
         assertFalse(UserCreate.canAddOrganizations(sh, null, false, Collections.singletonList(orgA)));

@@ -406,14 +406,11 @@ public class UserCreate extends HttpServlet {
         return requesterIsSiteAdmin || target == null || !target.isServiceAccount();
     }
 
-    private static final String[] PRIVILEGED_ROLES = {
-        "admin", Organization.ROLE_MANAGER, Organization.ROLE_ADMIN
-    };
-
     /**
      * Site admins may edit any existing user, and anyone may edit their own account (matched by
-     * account id). Others may edit a user only when that user holds no admin or
-     * organization-management role in any context and shares a direct organization with them.
+     * account id). Others may edit a user only when that user holds no site-admin-managed role
+     * (any role Role.canEditRole refuses to non-admins) in any context and shares a direct
+     * organization with them.
      * Role grants, organization additions and service-account edits are checked separately.
      */
     static boolean canEditExistingUser(Shepherd sh, User requester, boolean requesterIsSiteAdmin,
@@ -441,17 +438,20 @@ public class UserCreate extends HttpServlet {
         return true;
     }
 
-    // persisted grants in every context, read fresh from the datastore
+    /**
+     * True when the user holds, in any context, a role that only site admins may grant
+     * (Role.canEditRole(rolename, false) is false). Grants are read fresh from the datastore.
+     */
     private static boolean holdsPrivilegedRole(Shepherd sh, String username) {
         if (username == null || username.isBlank()) return false;
-        javax.jdo.Query<?> query = sh.getPM().newQuery(Role.class,
-            "username == :username && (rolename == :a || rolename == :b || rolename == :c)");
+        javax.jdo.Query<?> query = sh.getPM().newQuery(Role.class, "username == :username");
         try {
             query.setIgnoreCache(true);
-            query.setResult("count(this)");
-            Object n = query.executeWithArray(username, PRIVILEGED_ROLES[0], PRIVILEGED_ROLES[1],
-                PRIVILEGED_ROLES[2]);
-            return ((Number)n).longValue() > 0;
+            query.setResult("rolename");
+            for (Object rolename : (java.util.Collection<?>)query.execute(username)) {
+                if (rolename != null && !Role.canEditRole(rolename.toString(), false)) return true;
+            }
+            return false;
         } finally { query.closeAll(); }
     }
 
