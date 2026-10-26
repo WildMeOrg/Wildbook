@@ -225,4 +225,40 @@ class JwtServiceTest {
         assertThrows(JwtException.class, () -> svc.verify(rs384Token),
             "RS384-signed token must be rejected when verifier is pinned to RS256");
     }
+
+    // ------------------------------------------------------------------ //
+    // signUntil: a token never outlives the credential it was minted from //
+    // ------------------------------------------------------------------ //
+
+    @Test void signedExpNeverPassesKeyExpiry() throws Exception {
+        JwtService svc = serviceWithFreshKeys();
+        long notAfter = System.currentTimeMillis() + 2_000L;
+        Thread.sleep(50L);
+        String token = svc.signUntil("uuid-svc", "context0", 900_000L, null, notAfter);
+        Claims c = svc.verify(token).getPayload();
+        assertTrue(c.getExpiration().getTime() <= notAfter,
+            "exp " + c.getExpiration().getTime() + " must not pass notAfter " + notAfter);
+        assertNull(c.get("submissionScope"), "data token carries no submission scope");
+    }
+
+    @Test void signUntilSubmissionScopeIsValidatedAndVerifiable() throws Exception {
+        JwtService svc = serviceWithFreshKeys();
+        long notAfter = System.currentTimeMillis() + 60_000L;
+        String token = svc.signUntil("uuid-svc", "context0", 900_000L,
+            org.ecocean.api.submission.SubmissionPolicy.WRITE, notAfter);
+        Claims c = svc.verifySubmission(token).getPayload();
+        assertEquals(org.ecocean.api.submission.SubmissionPolicy.WRITE,
+            c.get("submissionScope", String.class), "submission scope claim");
+        assertTrue(c.getExpiration().getTime() <= notAfter, "exp clamped to notAfter");
+        assertThrows(IllegalArgumentException.class,
+            () -> svc.signUntil("u", "context0", 60_000L, "admin", notAfter), "unknown scope rejected");
+    }
+
+    @Test void signUntilUsesTtlWhenShorterThanNotAfter() throws Exception {
+        JwtService svc = serviceWithFreshKeys();
+        long before = System.currentTimeMillis();
+        String token = svc.signUntil("u", "context0", 60_000L, null, Long.MAX_VALUE);
+        long exp = svc.verify(token).getPayload().getExpiration().getTime();
+        assertTrue(exp <= before + 61_000L && exp >= before + 59_000L, "exp follows ttl: " + exp);
+    }
 }

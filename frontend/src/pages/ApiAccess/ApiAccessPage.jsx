@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Button, Modal, Form, Alert } from "react-bootstrap";
 import useGetMe from "../../models/auth/users/useGetMe";
 import useMintToken from "../../models/auth/useMintToken";
+import ServiceKeysPanel, { canManageServiceKeys } from "./ServiceKeysPanel";
 
 const SKILL_URL = "/api/v3/agent-skill";
 
@@ -112,6 +113,8 @@ export default function ApiAccessPage() {
           </div>
         </div>
       )}
+
+      {canManageServiceKeys(me) && <ServiceKeysPanel username={username} />}
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Form onSubmit={submit}>

@@ -111,7 +111,11 @@
 				/LightRest/** = authcBasicWildbook,roles[researcher]
 
 				# ===== v3 API Security =====
-				/api/v3/auth/token = authcBasicWildbook
+				/api/v3/auth/token = anon
+				# service key management: the servlet checks a fresh Basic credential itself
+				/api/v3/organizations/*/service-keys = anon
+				/api/v3/organizations/*/service-keys/* = anon
+				/api/v3/service-keys/** = anon
 				/api/v3/submissions = submissionAuth
 				/api/v3/submissions/** = submissionAuth
 				/api/v3/can-user-access = authcBasicWildbook, roles[admin]
@@ -569,6 +573,17 @@
 	<servlet-mapping>
 		<servlet-name>AuthToken</servlet-name>
 		<url-pattern>/api/v3/auth/token</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ServiceKeys</servlet-name>
+		<servlet-class>org.ecocean.api.ServiceKeys</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ServiceKeys</servlet-name>
+		<url-pattern>/api/v3/organizations/*</url-pattern>
+		<url-pattern>/api/v3/service-keys/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
