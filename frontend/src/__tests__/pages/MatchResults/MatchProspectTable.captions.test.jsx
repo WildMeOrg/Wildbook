@@ -146,7 +146,7 @@ describe("MatchProspectTable image captions (issue #1733)", () => {
     expect(strip).toHaveStyle({ pointerEvents: "none" });
     // only the dots are hidden from assistive technology; the spaces are not
     expect(strip.textContent).toBe(
-      "2026-10-18 08:05 · GoPro_0193.JPG · Ningaloo Reef",
+      "2026-10-18 08:05· GoPro_0193.JPG· Ningaloo Reef",
     );
     strip
       .querySelectorAll('[aria-hidden="true"]')

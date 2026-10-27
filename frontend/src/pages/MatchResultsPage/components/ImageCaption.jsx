@@ -38,6 +38,13 @@ const styles = {
     borderRadius: "10px",
     padding: "1px 8px",
   },
+  group: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    minWidth: 0,
+    maxWidth: "100%",
+  },
   separator: { opacity: 0.6 },
 };
 
@@ -59,10 +66,10 @@ const ImageCaption = ({ date, filename, locationId, testId }) => {
   return (
     <div style={styles.strip} data-testid={testId}>
       {parts.map((part, i) => (
-        <React.Fragment key={part.key}>
+        // a value and the dot before it wrap together, so no line ends on a dot
+        <span key={part.key} style={styles.group}>
           {i > 0 && (
             <>
-              {" "}
               <span style={styles.separator} aria-hidden="true">
                 ·
               </span>{" "}
@@ -75,7 +82,7 @@ const ImageCaption = ({ date, filename, locationId, testId }) => {
           >
             {part.value}
           </span>
-        </React.Fragment>
+        </span>
       ))}
     </div>
   );
