@@ -55,6 +55,8 @@ public class User implements Serializable {
     private String username;
     private String password;
     private String salt;
+    // non-null marks a per-organization service account (id of the organization); never logs in
+    private String serviceOrganizationId;
     private String uuid;
 
     // String currentContext;
@@ -66,7 +68,8 @@ public class User implements Serializable {
     // standard preference keys
     private static final String PROJECT_CONTEXT = "projectContext";
 
-    private List<Organization> organizations = null;
+    // owns the ORGANIZATION_MEMBERS rows: one per (organization, user), no position
+    private Set<Organization> organizations = null;
 
     private boolean acceptedUserAgreement = false;
 
@@ -321,6 +324,10 @@ public class User implements Serializable {
         this.password = password;
     }
 
+    public String getServiceOrganizationId() { return serviceOrganizationId; }
+    public void setServiceOrganizationId(String id) { this.serviceOrganizationId = id; }
+    public boolean isServiceAccount() { return serviceOrganizationId != null; }
+
     public void setSalt(String salt) { this.salt = salt; }
     public String getSalt() { return salt; }
 
@@ -330,6 +337,7 @@ public class User implements Serializable {
      * this user has no stored password or the candidate is blank.
      */
     public boolean checkPassword(String clearText) {
+        if (isServiceAccount()) return false;
         if ((clearText == null) || clearText.isEmpty()) return false;
         String stored = this.getPassword();
         String salt = this.getSalt();
@@ -449,36 +457,63 @@ public class User implements Serializable {
         return rtn;
     }
 
+    private static final Comparator<Organization> ORGANIZATION_ORDER = Comparator.comparing(
+        Organization::getName,
+        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)).thenComparing(Organization::getId,
+        Comparator.nullsLast(Comparator.naturalOrder()));
+
+    // a sorted copy; change membership with addOrganization()/removeOrganization(), not through this list
     public List<Organization> getOrganizations() {
-        return organizations;
+        if (organizations == null) return null;
+        List<Organization> sorted = new ArrayList<Organization>(organizations);
+        sorted.sort(ORGANIZATION_ORDER);
+        return sorted;
     }
 
     // Use this method to find out what organization-wide nameKey a user would want, to use to generate new individual names.
+    // Memberships have no order, so when several of the user's organizations have a key the oldest organization wins.
     public String getIndividualNameKey() {
-        for (Organization org : organizations) {
+        if (organizations == null) return null;
+        List<Organization> orgs = new ArrayList<Organization>(organizations);
+        orgs.sort(Comparator.comparingLong(Organization::getCreated).thenComparing(
+            Organization::getId, Comparator.nullsLast(Comparator.naturalOrder())));
+        for (Organization org : orgs) {
             if (Util.stringExists(org.getIndividualNameKey())) return org.getIndividualNameKey();
         }
         return null;
     }
 
     public void setOrganizations(List<Organization> orgs) {
-        organizations = orgs;
+        if (organizations != null) {
+            for (Organization old : new ArrayList<Organization>(organizations)) {
+                if ((orgs == null) || !orgs.contains(old)) old.unlinkMember(this);
+            }
+        }
+        organizations = (orgs == null) ? null : new HashSet<Organization>(orgs);
         this.organizationsReciprocate(orgs);
     }
 
     public void addOrganization(Organization org) {
         if (org == null) return;
-        if (organizations == null) organizations = new ArrayList<Organization>();
-        if (!organizations.contains(org)) organizations.add(org);
+        this.linkOrganization(org);
         this.organizationsReciprocate(org);
     }
 
     public void removeOrganization(Organization org) {
         if ((org == null) || (organizations == null)) return;
-        if (org.getMembers() == null) return;
-        org.getMembers().remove(this);
+        org.unlinkMember(this);
         org.updateModified();
         organizations.remove(org);
+    }
+
+    // the membership write itself (this side owns the rows); Organization calls these for its half
+    void linkOrganization(Organization org) {
+        if (organizations == null) organizations = new HashSet<Organization>();
+        organizations.add(org);
+    }
+
+    void unlinkOrganization(Organization org) {
+        if (organizations != null) organizations.remove(org);
     }
 
     // see also isMemberOfDeep()
@@ -497,8 +532,7 @@ public class User implements Serializable {
     private void organizationsReciprocate(List<Organization> orgs) {
         if (orgs == null) return;
         for (Organization org : orgs) {
-            if ((org.getMembers() != null) && !org.getMembers().contains(this))
-                org.getMembers().add(this);
+            if (org != null) org.linkMember(this);
         }
     }
 
@@ -543,9 +577,9 @@ public class User implements Serializable {
         jobj.put("affiliation", this.getAffiliation());
         jobj.put("lastLogin", Long.toString(this.getLastLogin()));
         jobj.put("username", this.getUsername());
-        if (includeOrganizations) {
+        if (includeOrganizations && (organizations != null)) {
             Vector<String> orgIDs = new Vector<String>();
-            for (Organization org : this.organizations) {
+            for (Organization org : this.getOrganizations()) {
                 orgIDs.add(org.toJSONObject(false).toString());
             }
             jobj.put("organizations", orgIDs.toArray());

@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import javax.jdo.Query;
 import org.json.JSONObject;
 import org.postgresql.jdbc.PgArray;
@@ -194,9 +195,21 @@ public class Embedding implements java.io.Serializable {
     }
  */
 
-    // TODO: (1) configurable?  (2) exceptions when vector length differs?
-    public static int getVectorDimension() {
-        return 2152;
+    // A knn_vector field has one fixed dimension, so each supported vector length gets its own
+    // field under the nested "embeddings" mapping. 2152 (MiewID, EfficientNet backbone) keeps the
+    // original field name so indexes created before this table need no reindex; 1536 is MiewID on a
+    // DINOv3 backbone. Adding a length = one entry here (OpenSearch.ensureIndex adds the field).
+    public static final String LEGACY_VECTOR_FIELD = "vector";
+    public static final Map<Integer, String> VECTOR_FIELDS = Map.of(2152, LEGACY_VECTOR_FIELD,
+        1536, "vector_1536");
+
+    // the nested-field name holding vectors of this length; null if the length is unsupported
+    public static String vectorFieldName(int dimension) {
+        return VECTOR_FIELDS.get(dimension);
+    }
+
+    public static boolean isSupportedLength(int dimension) {
+        return VECTOR_FIELDS.containsKey(dimension);
     }
 
     // compare vectors of two Embeddings

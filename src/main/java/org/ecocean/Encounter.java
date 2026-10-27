@@ -1246,7 +1246,13 @@ public class Encounter extends Base implements java.io.Serializable {
     public void enqueueAclReindex() {
         if (this.getSkipAutoIndexing() || OpenSearch.skipAutoIndexing()) return;
         try {
-            IndexingManagerFactory.getIndexingManager().addIndexingQueueEntry(this, false);
+            // Deferred: while this object's PersistenceManager has an active transaction the
+            // request is PARKED and released when that transaction completes (committed -> queued,
+            // rolled back -> dropped). Enqueuing from inside the transaction is what let the
+            // indexing job load and index pre-commit state. A transient object, or a caller that
+            // has already committed, falls through to an immediate enqueue.
+            IndexingManager.addPendingEntry(javax.jdo.JDOHelper.getPersistenceManager(this), this,
+                false);
         } catch (Exception ex) {
             System.out.println("Encounter.enqueueAclReindex failed for " + this.getId() + ": " + ex);
         }

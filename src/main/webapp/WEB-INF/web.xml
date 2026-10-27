@@ -111,7 +111,11 @@
 				/LightRest/** = authcBasicWildbook,roles[researcher]
 
 				# ===== v3 API Security =====
-				/api/v3/auth/token = authcBasicWildbook
+				/api/v3/auth/token = anon
+				# service key management: the servlet checks a fresh Basic credential itself
+				/api/v3/organizations/*/service-keys = anon
+				/api/v3/organizations/*/service-keys/* = anon
+				/api/v3/service-keys/** = anon
 				/api/v3/submissions = submissionAuth
 				/api/v3/submissions/** = submissionAuth
 				/api/v3/can-user-access = authcBasicWildbook, roles[admin]
@@ -149,10 +153,7 @@
 
 				# ===== Import Operations =====
 				/import/** = authc, roles[researcher]
-				/ImportSRGD = authc, roles[admin]
-				/ImportAccess = authc, roles[admin]
 				/StandardImport = authc, roles[admin]
-				/FixStandardImport = authc, roles[admin]
 				/ImportTaskDetection = authc, roles[admin]
 				/imports.jsp = authc
 				/DeleteImportTask = authc, roles[researcher]
@@ -178,7 +179,6 @@
 				/KinalyzerExport = authc, roles[researcher]
 				/ExportWekaPredictorARFF = authc, roles[admin]
 				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
-				/EncounterSearchExportCOCO = authc, roles[researcher]
 
 				# ===== Search =====
 				/encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
@@ -212,6 +212,7 @@
 				/IndividualRemoveDataFile = authc, roles[researcher]
 				/IndividualAddComment = authc, roles[researcher]
 				/IndividualSetSex = authc, roles[researcher]
+				/IndividualSetTaxonomy = authc, roles[researcher]
 				/IndividualSetYearOfBirth = authc, roles[researcher]
 				/IndividualSetYearOfDeath = authc, roles[researcher]
 				/IndividualCreateForProject = authc, roles[researcher]
@@ -338,6 +339,7 @@
 				/UserCreate = authc, roles[orgAdmin]
 				/UserCheck = authc
 				/UserDelete = authc, roles[admin]
+				/UserConsolidate = authc, roles[admin]
 				/UserResetAcceptedUserAgreement = authc, roles[admin]
 				#/UpdateEmailAddress = authc, roles[admin]
 				#/RemoveEmailAddress = authc, roles[admin]
@@ -571,6 +573,17 @@
 	<servlet-mapping>
 		<servlet-name>AuthToken</servlet-name>
 		<url-pattern>/api/v3/auth/token</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ServiceKeys</servlet-name>
+		<servlet-class>org.ecocean.api.ServiceKeys</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ServiceKeys</servlet-name>
+		<url-pattern>/api/v3/organizations/*</url-pattern>
+		<url-pattern>/api/v3/service-keys/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
@@ -981,6 +994,14 @@
 	<servlet-mapping>
 		<servlet-name>IndividualSetSex</servlet-name>
 		<url-pattern>/IndividualSetSex</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>IndividualSetTaxonomy</servlet-name>
+		<servlet-class>org.ecocean.servlet.IndividualSetTaxonomy</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>IndividualSetTaxonomy</servlet-name>
+		<url-pattern>/IndividualSetTaxonomy</url-pattern>
 	</servlet-mapping>
 	<servlet>
 		<servlet-name>IndividualRemoveDataFile</servlet-name>
@@ -1488,30 +1509,6 @@
 	</servlet-mapping>
 
 	<servlet>
-		<servlet-name>ImportSRGD</servlet-name>
-		<servlet-class>org.ecocean.servlet.importer.ImportSRGD</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>ImportSRGD</servlet-name>
-		<url-pattern>/ImportSRGD</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>ImportIA</servlet-name>
-		<servlet-class>org.ecocean.servlet.importer.ImportIA</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>ImportIA</servlet-name>
-		<url-pattern>/ImportIA</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>ImportAccess</servlet-name>
-		<servlet-class>org.ecocean.servlet.importer.ImportAccess</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>ImportAccess</servlet-name>
-		<url-pattern>/ImportAccess</url-pattern>
-	</servlet-mapping>
-	<servlet>
 		<servlet-name>StandardImport</servlet-name>
 		<servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
 	</servlet>
@@ -1522,22 +1519,6 @@
 	<servlet-mapping>
 		<servlet-name>StandardImport</servlet-name>
 		<url-pattern>/import/standard-upload</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>UpdateStandard</servlet-name>
-		<servlet-class>org.ecocean.servlet.importer.UpdateStandard</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>UpdateStandard</servlet-name>
-		<url-pattern>/UpdateStandard</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>FixStandardImport</servlet-name>
-		<servlet-class>org.ecocean.servlet.importer.FixStandardImport</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>FixStandardImport</servlet-name>
-		<url-pattern>/FixStandardImport</url-pattern>
 	</servlet-mapping>
 	<servlet>
 		<servlet-name>ResumableUpload</servlet-name>
@@ -1777,14 +1758,6 @@
 	<servlet-mapping>
 		<servlet-name>EncounterAnnotationExportExcelFile</servlet-name>
 		<url-pattern>/EncounterAnnotationExportExcelFile</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>EncounterSearchExportCOCO</servlet-name>
-		<servlet-class>org.ecocean.servlet.export.EncounterSearchExportCOCO</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>EncounterSearchExportCOCO</servlet-name>
-		<url-pattern>/EncounterSearchExportCOCO</url-pattern>
 	</servlet-mapping>
 	<servlet>
 		<servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>

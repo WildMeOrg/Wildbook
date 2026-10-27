@@ -622,6 +622,25 @@ public class IA {
                     " for iaClass " + iaClass + "; skipping that class");
                 opts = null;
             }
+            // No identification options means this iaClass cannot be identified. Empty is an
+            // explicit opt-out: IA.json declares the class with `"_id_conf": []`, which
+            // getIdentConfig returns as-is rather than falling back to `_default`. Null means
+            // neither the class nor the taxonomy's `_default` yielded any config at all (or
+            // identOpts threw, above).
+            //
+            // Bail here, BEFORE the default=false filter and the matchingAlgorithms swap below.
+            // The swap replaces the opts list wholesale without consulting this iaClass, so it
+            // would otherwise manufacture an option for a class that declined one. Part classes
+            // are the common case: a `wild_dog+tail_*` annotation rides along with the body
+            // annotation detected beside it on the same image, and would get its own doomed
+            // identification option whenever the user picked an algorithm. Checking before the
+            // filter keeps a class whose options are all default=false eligible for the swap. A
+            // class that legitimately inherits a populated `_default._id_conf` has non-empty
+            // opts here and is unaffected.
+            if ((opts == null) || (opts.size() < 1)) {
+                outcome.skippedIaClasses.add(iaClass);
+                continue;
+            }
             // drop default=false options (a matchingAlgorithms parameter may re-add them below)
             if (opts != null) {
                 Iterator<JSONObject> itr = opts.iterator();
