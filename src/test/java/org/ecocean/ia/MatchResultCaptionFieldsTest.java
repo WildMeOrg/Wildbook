@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -170,6 +172,40 @@ class MatchResultCaptionFieldsTest {
         assertTrue(hasLocation(details(mine, mrv)));
     }
 
+    @Test void allowedAnswerIsReusedForTheSameOwnerAndLocation() {
+        Encounter first = mockEnc("colleague", "loc");
+        when(first.canUserView(viewer, shepherd)).thenReturn(true);
+        Encounter second = mockEnc("colleague", "loc");
+        MatchResultViewer mrv = new MatchResultViewer(viewer, shepherd);
+        assertTrue(hasLocation(details(first, mrv)));
+        assertTrue(hasLocation(details(second, mrv)));
+        verify(second, never()).canUserView(any(), any());
+    }
+
+    @Test void differentOwnersAtTheSameLocationAreCheckedSeparately() {
+        Encounter allowed = mockEnc("colleague", "loc");
+        when(allowed.canUserView(viewer, shepherd)).thenReturn(true);
+        Encounter denied = mockEnc("stranger", "loc");
+        MatchResultViewer mrv = new MatchResultViewer(viewer, shepherd);
+        assertTrue(hasLocation(details(allowed, mrv)));
+        assertFalse(hasLocation(details(denied, mrv)));
+        verify(denied, times(1)).canUserView(viewer, shepherd);
+    }
+
+    @Test void publicOrOwnedAnswersDoNotLeakIntoTheCache() {
+        // same key as the denied encounter; the cheap grants must not be memoized for the key
+        Encounter pub = mockEnc("stranger", "loc");
+        when(pub.isPubliclyReadable()).thenReturn(true);
+        Encounter owned = mockEnc("stranger", "loc");
+        when(owned.isUserOwner(viewer)).thenReturn(true);
+        Encounter denied = mockEnc("stranger", "loc");
+        MatchResultViewer mrv = new MatchResultViewer(viewer, shepherd);
+        assertTrue(hasLocation(details(pub, mrv)));
+        assertTrue(hasLocation(details(owned, mrv)));
+        assertFalse(hasLocation(details(denied, mrv)));
+        verify(denied, times(1)).canUserView(viewer, shepherd);
+    }
+
     @Test void nullLocationAndLiteralNullStringAreDifferentKeys() {
         Encounter noLoc = mockEnc("stranger", null);
         Encounter nullNamed = mockEnc("stranger", "null");
@@ -182,6 +218,56 @@ class MatchResultCaptionFieldsTest {
         mrv = new MatchResultViewer(viewer, shepherd);
         assertTrue(hasLocation(details(nullNamed, mrv)));
         assertFalse(hasLocation(details(noLoc, mrv)));
+    }
+
+    private MatchResult matchResult(Encounter queryEnc, Encounter candEnc) throws Exception {
+        List<Annotation> cands = new ArrayList<Annotation>();
+        cands.add(mockAnn(candEnc, "c.jpg"));
+        Task task = mock(Task.class);
+        when(task.countObjectAnnotations()).thenReturn(1);
+        ArrayList<Annotation> queryList = new ArrayList<Annotation>();
+        queryList.add(mockAnn(queryEnc, "q.jpg"));
+        when(task.getObjectAnnotations()).thenReturn(queryList);
+        return new MatchResult(task, cands, cands.size(), shepherd);
+    }
+
+    @Test void deniedQueryEncounterOmitsItsLocation() throws Exception {
+        Encounter queryEnc = mockEnc("stranger", "loc-query");
+        Encounter cand = mockEnc("stranger", "loc-cand");
+        JSONObject json = matchResult(queryEnc, cand).jsonForApiGet(-1, null, shepherd,
+            new MatchResultViewer(viewer, shepherd));
+        JSONObject q = json.getJSONObject("queryAnnotation");
+        assertFalse(q.getJSONObject("encounter").has("locationId"));
+        assertEquals("q.jpg", q.getJSONObject("asset").getString("filename"));
+        assertFalse(json.toString().contains("loc-query"));
+    }
+
+    @Test void viewerSurvivesTaskRecursion() throws Exception {
+        Encounter queryEnc = mockEnc("colleague", "loc-query");
+        Encounter cand = mockEnc("colleague", "loc-cand");
+        when(queryEnc.canUserView(viewer, shepherd)).thenReturn(true);
+        when(cand.canUserView(viewer, shepherd)).thenReturn(true);
+        MatchResult mr = matchResult(queryEnc, cand);
+
+        Task child = spy(new Task("child"));
+        doReturn(mr).when(child).getLatestMatchResult(any());
+        doReturn(null).when(child).getIdentificationMethodInfo();
+        doReturn("completed").when(child).getStatus(any());
+        doReturn("completed").when(child).getOverallStatus(any());
+        Task root = spy(new Task("root"));
+        doReturn(null).when(root).getLatestMatchResult(any());
+        doReturn(null).when(root).getIdentificationMethodInfo();
+        List<Task> kids = new ArrayList<Task>();
+        kids.add(child);
+        root.setChildren(kids);
+
+        JSONObject withViewer = root.matchResultsJson(-1, null, shepherd,
+            new MatchResultViewer(viewer, shepherd));
+        String s = withViewer.getJSONArray("children").getJSONObject(0).toString();
+        assertTrue(s.contains("loc-query"), "child query location reaches the viewer");
+        assertTrue(s.contains("loc-cand"), "child candidate location reaches the viewer");
+        // the old overload has no viewer and so never shows a location
+        assertFalse(root.matchResultsJson(-1, null, shepherd).toString().contains("loc-"));
     }
 
     @Test void viewerReachesQueryAndEveryProspect() throws Exception {
