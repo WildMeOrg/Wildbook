@@ -50,6 +50,7 @@ jest.mock(
       thisEncounterId,
       thisEncounterDate,
       thisEncounterLocationId,
+      thisEncounterImageAsset,
     }) {
       return React.createElement(
         "div",
@@ -58,6 +59,8 @@ jest.mock(
           "data-this-encounter-id": thisEncounterId || "",
           "data-this-encounter-date": thisEncounterDate || "",
           "data-this-encounter-location": thisEncounterLocationId || "",
+          "data-this-encounter-filename":
+            (thisEncounterImageAsset && thisEncounterImageAsset.filename) || "",
         },
         (columns || []).flat().map(function (col, i) {
           return React.createElement(
@@ -193,7 +196,7 @@ const makeApiResponse = () => ({
         width: 0.3,
         height: 0.4,
         theta: 0,
-        asset: { url: "http://img.test/query.jpg" },
+        asset: { url: "http://img.test/query.jpg", filename: "query.jpg" },
         encounter: {
           id: "enc-query",
           locationId: "loc-1",
@@ -272,6 +275,55 @@ describe("MatchResults component", () => {
       "2024-05-30 09:15",
     );
     expect(table).toHaveAttribute("data-this-encounter-location", "loc-1");
+    expect(table).toHaveAttribute("data-this-encounter-filename", "query.jpg");
+  });
+
+  test("each section gets its own query caption data, in both view modes (issue #1733)", async () => {
+    const section = (id, date, filename, locationId) => {
+      const root = makeApiResponse().matchResultsRoot;
+      root.id = id;
+      root.matchResults.queryAnnotation.encounter = {
+        id: "enc-" + id,
+        date,
+        ...(locationId ? { locationId } : {}),
+      };
+      root.matchResults.queryAnnotation.asset = {
+        url: "http://img.test/" + filename,
+        filename,
+      };
+      return root;
+    };
+    axios.get.mockResolvedValue({
+      data: {
+        matchResultsRoot: {
+          id: "umbrella",
+          status: "completed",
+          statusOverall: "completed",
+          dateCreated: "2024-06-01",
+          children: [
+            section("task-A", "2024-01-02 03:04", "a.jpg", "loc-A"),
+            section("task-B", "2023", "b.jpg", null),
+          ],
+        },
+      },
+    });
+    renderComponent("/match-results?taskId=umbrella");
+
+    const check = async () => {
+      const a = await screen.findByTestId("prospect-table-task-A");
+      const b = await screen.findByTestId("prospect-table-task-B");
+      expect(a).toHaveAttribute("data-this-encounter-date", "2024-01-02 03:04");
+      expect(a).toHaveAttribute("data-this-encounter-filename", "a.jpg");
+      expect(a).toHaveAttribute("data-this-encounter-location", "loc-A");
+      expect(b).toHaveAttribute("data-this-encounter-date", "2023");
+      expect(b).toHaveAttribute("data-this-encounter-filename", "b.jpg");
+      expect(b).toHaveAttribute("data-this-encounter-location", "");
+    };
+    await check();
+    fireEvent.click(screen.getByTestId("match-results-viewmode-image"));
+    await check();
+    fireEvent.click(screen.getByTestId("match-results-viewmode-individual"));
+    await check();
   });
 
   test("forwards the section's taskId when a prospect is toggled (issue #1744)", async () => {

@@ -140,6 +140,56 @@ describe("MatchProspectTable image captions (issue #1733)", () => {
     ).not.toBeInTheDocument();
   });
 
+  test("values are separated, truncated with a full-text tooltip, and let drags through", () => {
+    renderTable();
+    const strip = screen.getByTestId("match-prospect-left-caption-s1");
+    expect(strip).toHaveStyle({ pointerEvents: "none" });
+    expect(strip.textContent).toBe(
+      "2026-10-18 08:05 · GoPro_0193.JPG · Ningaloo Reef",
+    );
+    const filename = screen.getByTestId(
+      "match-prospect-left-caption-s1-filename",
+    );
+    expect(filename).toHaveAttribute("title", "GoPro_0193.JPG");
+    expect(filename).toHaveStyle({
+      whiteSpace: "nowrap",
+      textOverflow: "ellipsis",
+    });
+  });
+
+  const rerenderTable = (rerender, props) =>
+    rerender(
+      <IntlProvider locale="en" messages={{}} onError={() => {}}>
+        <MatchProspectTable
+          sectionId="s1"
+          themeColor={themeColor}
+          thisEncounterImageUrl="http://img.test/query.jpg"
+          thisEncounterImageAsset={{ url: "http://img.test/query.jpg" }}
+          {...props}
+        />
+      </IntlProvider>,
+    );
+
+  test("captions follow refreshed data: new query metadata, a removed candidate, no candidates", () => {
+    const { rerender } = renderTable();
+    fireEvent.click(screen.getByTestId("match-prospect-row-s1-ann-2-2"));
+    expect(text("match-prospect-right-caption-s1-filename")).toBe("IMG_9.jpg");
+
+    // refresh: previewed candidate 2 is gone, the query encounter's date changed
+    rerenderTable(rerender, {
+      thisEncounterDate: "2026-10-19",
+      columns: [[candidate(3, { date: "2018", filename: "third.jpg" })]],
+    });
+    expect(text("match-prospect-left-caption-s1-date")).toBe("2026-10-19");
+    expect(text("match-prospect-right-caption-s1-filename")).toBe("third.jpg");
+    expect(text("match-prospect-right-caption-s1-date")).toBe("2018");
+
+    rerenderTable(rerender, { columns: [] });
+    expect(
+      screen.queryByTestId("match-prospect-right-caption-s1"),
+    ).not.toBeInTheDocument();
+  });
+
   test("no caption when there is nothing to show", () => {
     renderTable({
       thisEncounterImageAsset: { url: "http://img.test/query.jpg" },
