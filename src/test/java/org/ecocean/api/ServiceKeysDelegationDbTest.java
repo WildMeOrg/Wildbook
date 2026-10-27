@@ -4,9 +4,6 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Properties;
@@ -43,7 +40,6 @@ class ServiceKeysDelegationDbTest {
     @Container static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine");
 
     private static final String PW = "correct horse";
-    private static boolean membershipKeyFixed = false;
 
     private Shepherd sh;
     private String suffix;
@@ -76,7 +72,6 @@ class ServiceKeysDelegationDbTest {
         sh.getPM().makePersistent(orgC);
         sh.getPM().makePersistent(parent);
         assertTrue(sh.commitDBTransactionWithStatus(), "fixture rows committed");
-        fixMembershipKey();
         sh.beginDBTransaction();
         parent.addChild(orgC);
         assertTrue(sh.commitDBTransactionWithStatus(), "child committed");
@@ -99,20 +94,6 @@ class ServiceKeysDelegationDbTest {
             sh.rollbackAndClose();
         } finally {
             TestPMFUtil.closePMF("context0");
-        }
-    }
-
-    /** Same re-keying workaround as UserEditAuthorizationDbTest. */
-    private static synchronized void fixMembershipKey() {
-        if (membershipKeyFixed) return;
-        try (Connection c = DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(),
-                postgres.getPassword());
-            Statement st = c.createStatement()) {
-            st.execute("ALTER TABLE \"ORGANIZATION_MEMBERS\" DROP CONSTRAINT \"ORGANIZATION_MEMBERS_PK\"");
-            st.execute("ALTER TABLE \"ORGANIZATION_MEMBERS\" ADD PRIMARY KEY (\"USER_ID\", \"IDX\")");
-            membershipKeyFixed = true;
-        } catch (java.sql.SQLException e) {
-            throw new IllegalStateException("could not re-key ORGANIZATION_MEMBERS", e);
         }
     }
 
