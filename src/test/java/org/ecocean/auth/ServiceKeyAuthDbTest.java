@@ -189,7 +189,7 @@ class ServiceKeyAuthDbTest {
         Shepherd warm = open();
         try { ServiceKeyAuth.authenticate(warm, g[3], System.currentTimeMillis()); }
         finally { warm.rollbackAndClose(); }
-        jdbc("INSERT INTO \"ORGANIZATION_MEMBERS\" (\"USER_ID\", \"ORGANIZATION_ID\", \"IDX\") VALUES (?, ?, 99)",
+        jdbc("INSERT INTO \"ORGANIZATION_MEMBERS\" (\"USER_ID\", \"ORGANIZATION_ID\") VALUES (?, ?)",
             g[1], other[0]);
         assertRejected(g[3], "service key unavailable; contact your Wildbook administrator");
         // the other org's own service account is unaffected

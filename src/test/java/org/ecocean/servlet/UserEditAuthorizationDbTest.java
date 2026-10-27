@@ -1,8 +1,5 @@
 package org.ecocean.servlet;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
@@ -27,8 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 class UserEditAuthorizationDbTest {
     @Container static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine");
-
-    private static boolean membershipKeyFixed = false;
 
     private Shepherd sh;
     private String suffix;
@@ -57,7 +52,6 @@ class UserEditAuthorizationDbTest {
         sh.getPM().makePersistent(orgA);
         sh.getPM().makePersistent(orgB);
         assertTrue(sh.commitDBTransactionWithStatus(), "fixture rows committed");
-        fixMembershipKey();
         sh.beginDBTransaction();
         join(orgA, requester);
         join(orgA, t1);
@@ -86,24 +80,6 @@ class UserEditAuthorizationDbTest {
         u.setUsername(username + suffix);
         sh.getPM().makePersistent(u);
         return u;
-    }
-
-    /**
-     * Schema auto-creation keys ORGANIZATION_MEMBERS on (ORGANIZATION_ID, IDX), but IDX is the
-     * position in the owning User.organizations list, so a second member of one organization
-     * collides. Key it on the owning side, as the list mapping implies.
-     */
-    private static synchronized void fixMembershipKey() {
-        if (membershipKeyFixed) return;
-        try (Connection c = DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(),
-                postgres.getPassword());
-            Statement st = c.createStatement()) {
-            st.execute("ALTER TABLE \"ORGANIZATION_MEMBERS\" DROP CONSTRAINT \"ORGANIZATION_MEMBERS_PK\"");
-            st.execute("ALTER TABLE \"ORGANIZATION_MEMBERS\" ADD PRIMARY KEY (\"USER_ID\", \"IDX\")");
-            membershipKeyFixed = true;
-        } catch (java.sql.SQLException e) {
-            throw new IllegalStateException("could not re-key ORGANIZATION_MEMBERS", e);
-        }
     }
 
     // one membership per transaction, as UserCreate adds them
