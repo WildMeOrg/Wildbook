@@ -245,6 +245,7 @@ export default class MatchResultsStore {
           queryIndividualId: first.queryIndividualId ?? null,
           queryIndividualDisplayName: first.queryIndividualDisplayName ?? null,
           encounterLocationId: first.encounterLocationId ?? null,
+          queryEncounterDate: first.queryEncounterDate ?? null,
           emptyStateType: first.emptyStateType ?? null,
           errors: first.errors ?? null,
         },

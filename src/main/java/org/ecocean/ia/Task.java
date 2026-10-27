@@ -1259,6 +1259,12 @@ public class Task implements java.io.Serializable {
     }
 
     public JSONObject matchResultsJson(int cutoff, Set<String> projectIds, Shepherd myShepherd) {
+        return matchResultsJson(cutoff, projectIds, myShepherd, null);
+    }
+
+    // viewer (one per request, shared down the tree) gates which encounter locationIds are shown
+    public JSONObject matchResultsJson(int cutoff, Set<String> projectIds, Shepherd myShepherd,
+        MatchResultViewer viewer) {
         JSONObject rtn = new JSONObject();
 
         rtn.put("id", getId());
@@ -1309,13 +1315,14 @@ public class Task implements java.io.Serializable {
             }
         }
         if (mr != null)
-            rtn.put("matchResults", mr.jsonForApiGet(cutoff, projectIds, myShepherd));
+            rtn.put("matchResults", mr.jsonForApiGet(cutoff, projectIds, myShepherd, viewer));
         // now we recurse thru children if applicable
         if (hasChildren()) {
             JSONArray charr = new JSONArray();
             for (Task child : children) {
                 // TODO decide if we need to process child????
-                JSONObject childJson = child.matchResultsJson(cutoff, projectIds, myShepherd);
+                JSONObject childJson = child.matchResultsJson(cutoff, projectIds, myShepherd,
+                    viewer);
                 // we have to bubble this up all the way to the toplevel  :/
                 if (childJson.optBoolean("_commitShepherd", false))
                     rtn.put("_commitShepherd", true);
