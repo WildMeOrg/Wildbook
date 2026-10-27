@@ -222,6 +222,12 @@ public class IAGateway extends HttpServlet {
     // classloader reachable via pending Runnables' anonymous-inner-
     // class refs, causing a classloader leak across reloads (Codex
     // review Major on Phase A).
+    //
+    // Tomcat only calls destroy() on a servlet it has instantiated, and the ml-service
+    // processors reach the static requeue API without ever hitting /ia, so web.xml declares
+    // this servlet <load-on-startup>. That eager init is what makes this hook -- and the
+    // flush below -- run on every undeploy rather than only after some /ia traffic
+    // (IAGatewayDeploymentDescriptorTest pins it).
     @Override
     public void destroy() {
         try {
