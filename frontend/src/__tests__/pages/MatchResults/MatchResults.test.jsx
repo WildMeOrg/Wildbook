@@ -48,12 +48,16 @@ jest.mock(
       columns,
       onToggleSelected,
       thisEncounterId,
+      thisEncounterDate,
+      thisEncounterLocationId,
     }) {
       return React.createElement(
         "div",
         {
           "data-testid": "prospect-table-" + taskId,
           "data-this-encounter-id": thisEncounterId || "",
+          "data-this-encounter-date": thisEncounterDate || "",
+          "data-this-encounter-location": thisEncounterLocationId || "",
         },
         (columns || []).flat().map(function (col, i) {
           return React.createElement(
@@ -190,7 +194,11 @@ const makeApiResponse = () => ({
         height: 0.4,
         theta: 0,
         asset: { url: "http://img.test/query.jpg" },
-        encounter: { id: "enc-query", locationId: "loc-1" },
+        encounter: {
+          id: "enc-query",
+          locationId: "loc-1",
+          date: "2024-05-30 09:15",
+        },
         individual: { id: "ind-query", displayName: "Luna" },
       },
       prospects: {
@@ -253,6 +261,17 @@ describe("MatchResults component", () => {
     renderComponent();
     const table = await screen.findByTestId("prospect-table-task-1");
     expect(table).toHaveAttribute("data-this-encounter-id", "enc-query");
+  });
+
+  test("passes the query encounter date and location to MatchProspectTable (issue #1733)", async () => {
+    axios.get.mockResolvedValueOnce({ data: makeApiResponse() });
+    renderComponent();
+    const table = await screen.findByTestId("prospect-table-task-1");
+    expect(table).toHaveAttribute(
+      "data-this-encounter-date",
+      "2024-05-30 09:15",
+    );
+    expect(table).toHaveAttribute("data-this-encounter-location", "loc-1");
   });
 
   test("forwards the section's taskId when a prospect is toggled (issue #1744)", async () => {
