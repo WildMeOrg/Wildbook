@@ -88,7 +88,7 @@ class IAGatewayDoIdentifyTest {
     // _doIdentify needs are answered here, everything else runs real. (MockedStatic.when(...)
     // on a CALLS_REAL_METHODS mock would execute the real method while defining the stub —
     // waitForIAPriming can block for minutes and requeueJob(null, …) would throw.)
-    private static void withIdentifyStubs(JSONObject sendResult, boolean requeueResult, Task task,
+    private static void withIdentifyStubs(JSONObject sendResult, IAGateway.RequeueResult requeueResult, Task task,
         List<String> events, Body body)
     throws Exception {
         try (MockedStatic<IBEISIA> ibeis = mockStatic(IBEISIA.class, inv -> {
@@ -101,7 +101,7 @@ class IAGatewayDoIdentifyTest {
              });
              MockedStatic<IAQueryCache> cache = mockStatic(IAQueryCache.class);
              MockedStatic<IAGateway> gw = mockStatic(IAGateway.class, inv -> {
-                 if (inv.getMethod().getName().equals("requeueJob")) {
+                 if (inv.getMethod().getName().equals("requeueJobResult")) {
                      events.add("requeue:" + task.getStoredStatus());
                      return requeueResult;
                  }
@@ -118,6 +118,50 @@ class IAGatewayDoIdentifyTest {
             if (events.get(i).startsWith(prefix)) return i;
         }
         return -1;
+    }
+
+    private static String lastErrorMessage(Task t) {
+        JSONObject sd = t.getStatusDetails();
+        JSONArray errs = (sd == null) ? null : sd.optJSONArray("errors");
+        if ((errs == null) || (errs.length() == 0)) return null;
+        return errs.getJSONObject(errs.length() - 1).optString("message", null);
+    }
+
+    // #1728: the identification send has no reconciler, so every unqueued retry is terminal;
+    // the details say why it was not requeued
+    private static Task failedSendWith(IAGateway.RequeueResult rq) throws Exception {
+        Task t = new Task("T-" + rq);
+        Annotation a = ann("A-" + rq);
+        Map<String, Object> byId = new HashMap<String, Object>();
+        byId.put(t.getId(), t);
+        byId.put(a.getId(), a);
+        Shepherd sh = shepherdWith(byId);
+        List<String> events = new ArrayList<String>();
+        recordCommits(sh, t, events);
+        JSONObject res = new JSONObject().put("taskId", t.getId());
+        withIdentifyStubs(sendResult(false), rq, t, events, () ->
+            IAGateway._doIdentify(jin(a.getId()), res, sh, "context0", "http://wb", false));
+        return t;
+    }
+
+    @Test void exhaustedRetryBudgetSaysSo() throws Exception {
+        for (IAGateway.RequeueResult rq : new IAGateway.RequeueResult[] {
+                IAGateway.RequeueResult.RETRY_CAP, IAGateway.RequeueResult.TIME_CAP }) {
+            Task t = failedSendWith(rq);
+            assertEquals("error", t.getStoredStatus(), rq.toString());
+            assertEquals("SEND_FAILED", lastErrorCode(t), rq.toString());
+            assertTrue(lastErrorMessage(t).contains("retry budget is exhausted"), lastErrorMessage(t));
+        }
+    }
+
+    @Test void retryLostAtShutdownIsTerminalAndSaysWhy() throws Exception {
+        Task t = failedSendWith(IAGateway.RequeueResult.EXECUTOR_REJECTED);
+        assertEquals("error", t.getStoredStatus(), "no identification reconciler would ever resend it");
+        assertTrue(t.statusInEndState());
+        assertNotNull(t.getCompletionDateInMilliseconds());
+        assertEquals("SEND_FAILED", lastErrorCode(t));
+        assertFalse(lastErrorMessage(t).contains("retry budget"), lastErrorMessage(t));
+        assertTrue(lastErrorMessage(t).contains("could not be requeued"), lastErrorMessage(t));
     }
 
     private static String lastErrorCode(Task t) {
@@ -137,7 +181,7 @@ class IAGatewayDoIdentifyTest {
         List<String> events = new ArrayList<String>();
         recordCommits(sh, t, events);
         JSONObject res = new JSONObject().put("taskId", "T1");
-        withIdentifyStubs(sendResult(false), true, t, events, () -> {
+        withIdentifyStubs(sendResult(false), IAGateway.RequeueResult.QUEUED, t, events, () -> {
             JSONObject out = IAGateway._doIdentify(jin("A1"), res, sh, "context0", "http://wb", false);
             assertTrue(out.getBoolean("success"));
             assertEquals(Task.STATUS_REQUEUED, t.getStoredStatus());
@@ -164,7 +208,7 @@ class IAGatewayDoIdentifyTest {
         List<String> events = new ArrayList<String>();
         recordCommits(sh, t, events);
         JSONObject res = new JSONObject().put("taskId", "T2");
-        withIdentifyStubs(sendResult(false), false, t, events, () -> {
+        withIdentifyStubs(sendResult(false), IAGateway.RequeueResult.RETRY_CAP, t, events, () -> {
             IAGateway._doIdentify(jin("A2"), res, sh, "context0", "http://wb", false);
             assertEquals("error", t.getStoredStatus());
             assertTrue(t.statusInEndState());
@@ -197,7 +241,7 @@ class IAGatewayDoIdentifyTest {
         byId.put("B3", b);
         Shepherd sh = shepherdWith(byId);
         JSONObject res = new JSONObject().put("taskId", "T3");
-        withIdentifyStubs(sendResult(true), true, parent, new ArrayList<String>(), () -> {
+        withIdentifyStubs(sendResult(true), IAGateway.RequeueResult.QUEUED, parent, new ArrayList<String>(), () -> {
             IAGateway._doIdentify(jin("A3", "B3"), res, sh, "context0", "http://wb", false);
             JSONObject kept = parent.getParameters();
             assertEquals(3, kept.length(), "exactly importTaskId, run id and option marker survive the reset");
@@ -228,7 +272,7 @@ class IAGatewayDoIdentifyTest {
         byId.put("A4", a);
         byId.put("B4", b);
         Shepherd sh = shepherdWith(byId);
-        withIdentifyStubs(sendResult(true), true, parent, new ArrayList<String>(), () -> {
+        withIdentifyStubs(sendResult(true), IAGateway.RequeueResult.QUEUED, parent, new ArrayList<String>(), () -> {
             IAGateway._doIdentify(jin("A4", "B4"), new JSONObject().put("taskId", "T4"), sh, "context0", "http://wb", false);
             assertNull(parent.getParameters());
             assertTrue(parent.getChildren().get(0).getParameters().has("ibeis.identification"));
@@ -246,7 +290,7 @@ class IAGatewayDoIdentifyTest {
         byId.put("T5", t);
         byId.put("A5", a);
         Shepherd sh = shepherdWith(byId);
-        withIdentifyStubs(sendResult(true), true, t, new ArrayList<String>(), () -> {
+        withIdentifyStubs(sendResult(true), IAGateway.RequeueResult.QUEUED, t, new ArrayList<String>(), () -> {
             JSONObject out = IAGateway._doIdentify(jin("A5"), new JSONObject().put("taskId", "T5"), sh, "context0", "http://wb", false);
             assertTrue(out.getBoolean("success"));
             assertFalse(t.hasChildren());
@@ -265,7 +309,7 @@ class IAGatewayDoIdentifyTest {
         byId.put("T6", t);
         byId.put("A6", a);
         Shepherd sh = shepherdWith(byId);
-        withIdentifyStubs(sendResult(true), true, t, new ArrayList<String>(), () -> {
+        withIdentifyStubs(sendResult(true), IAGateway.RequeueResult.QUEUED, t, new ArrayList<String>(), () -> {
             JSONObject out = IAGateway._doIdentify(jin("A6"), new JSONObject().put("taskId", "T6"), sh, "context0", "http://wb", false);
             assertTrue(out.getBoolean("success"));
             assertFalse(t.hasChildren());
@@ -283,7 +327,7 @@ class IAGatewayDoIdentifyTest {
         byId.put("T7", t);
         byId.put("A7", a);
         Shepherd sh = shepherdWith(byId);
-        withIdentifyStubs(sendResult(true), true, t, new ArrayList<String>(), () -> {
+        withIdentifyStubs(sendResult(true), IAGateway.RequeueResult.QUEUED, t, new ArrayList<String>(), () -> {
             IAGateway._doIdentify(jin("A7"), new JSONObject().put("taskId", "T7"), sh, "context0", "http://wb", false);
             assertEquals(1, t.getObjectAnnotations().size());
         });
@@ -294,7 +338,7 @@ class IAGatewayDoIdentifyTest {
         Map<String, Object> byId = new HashMap<String, Object>();
         byId.put("T8", t);
         Shepherd sh = shepherdWith(byId);
-        withIdentifyStubs(sendResult(true), true, t, new ArrayList<String>(), () -> {
+        withIdentifyStubs(sendResult(true), IAGateway.RequeueResult.QUEUED, t, new ArrayList<String>(), () -> {
             IAGateway._doIdentify(jin("missing"), new JSONObject().put("taskId", "T8"), sh, "context0", "http://wb", false);
             assertFalse(t.hasObjectAnnotations());
         });

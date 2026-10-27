@@ -1888,6 +1888,11 @@
 	<servlet>
 		<servlet-name>IAGateway</servlet-name>
 		<servlet-class>org.ecocean.servlet.IAGateway</servlet-class>
+		<!-- Eager init so destroy(), which stops the static requeue executor and flushes
+		     pending requeues to the spool, runs on every undeploy. The ml-service processors
+		     requeue through IAGateway's static API without any /ia request, and Tomcat skips
+		     destroy() on a servlet it never instantiated. -->
+		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>IAGateway</servlet-name>

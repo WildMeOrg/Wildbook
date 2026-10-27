@@ -222,10 +222,28 @@ public class IAGateway extends HttpServlet {
     // classloader reachable via pending Runnables' anonymous-inner-
     // class refs, causing a classloader leak across reloads (Codex
     // review Major on Phase A).
+    //
+    // Tomcat only calls destroy() on a servlet it has instantiated, and the ml-service
+    // processors reach the static requeue API without ever hitting /ia, so web.xml declares
+    // this servlet <load-on-startup>. That eager init is what makes this hook -- and the
+    // flush below -- run on every undeploy rather than only after some /ia traffic
+    // (IAGatewayDeploymentDescriptorTest pins it).
     @Override
     public void destroy() {
         try {
             REQUEUE_EXEC.shutdownNow();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        // shutdownNow() cancels delayed publish runnables whose payloads were already reported
+        // as queued (requeueJob returned QUEUED). Flush them to the persistent spool NOW — a
+        // plain file write, safe mid-shutdown — so they survive the redeploy instead of being
+        // silently lost.
+        try {
+            int flushed = flushPendingRequeues();
+            if (flushed > 0)
+                System.out.println("IAGateway.destroy() flushed " + flushed +
+                    " pending requeue(s) to the spool");
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -612,13 +630,17 @@ public class IAGateway extends HttpServlet {
                 if (fastlane) jobj.put("fastlane", true);
                 System.out.println("_doIdentify() requeueing from jin=" + jin);
                 System.out.println("_doIdentify() requeueing as jobj=" + jobj);
-                boolean requeued = requeueJob(jobj, true);
-                if (!requeued) {
-                    // retry budget / two-day window exhausted: the only terminal commit on this
-                    // path (spec §4.4). While a retry is queued the task stays "requeued".
+                RequeueResult requeued = requeueJobResult(jobj, true);
+                if (requeued != RequeueResult.QUEUED) {
+                    // the only terminal commit on this path (spec §4.4); while a retry is queued
+                    // the task stays "requeued". EXECUTOR_REJECTED is terminal here too: unlike
+                    // ml-service assets, no reconciler ever resends an identification.
                     subTask.setStatus("error");
-                    subTask.setStatusDetailsAddError("SEND_FAILED",
-                        "identification could not be sent and the retry budget is exhausted: " + ex.toString());
+                    subTask.setStatusDetailsAddError("SEND_FAILED", requeued.isPolicyExhausted()
+                        ? "identification could not be sent and the retry budget is exhausted (" +
+                        requeued + "): " + ex.toString()
+                        : "identification could not be sent and could not be requeued " +
+                        "(webapp shutting down and the spool write failed): " + ex.toString());
                     subTask.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
                     myShepherd.updateDBTransaction();
                 }
@@ -995,7 +1017,33 @@ public class IAGateway extends HttpServlet {
         if (requeue) requeueJob(jobj, requeueIncrement);
     }
 
+    /**
+     * Typed verdict from {@link #requeueJobResult}. The distinction matters to callers deciding
+     * what to do with the underlying work item: {@code RETRY_CAP}/{@code TIME_CAP} are PERMANENT
+     * policy exhaustion (the job will never run again — mark the work terminal), while
+     * {@code EXECUTOR_REJECTED} means the requeue executor is gone (webapp undeploy in flight) and
+     * the direct spool write failed too — the job is lost from memory. A caller whose work item a
+     * reconciler recovers after redeploy (ml-service detection/extraction assets) leaves it in
+     * that recoverable state, NOT terminal; a caller with no reconciler (the identification send
+     * in {@code _doIdentify}) marks it terminal, since nothing would ever resend it.
+     */
+    public enum RequeueResult {
+        QUEUED, RETRY_CAP, TIME_CAP, EXECUTOR_REJECTED;
+        public boolean isPolicyExhausted() {
+            return this == RETRY_CAP || this == TIME_CAP;
+        }
+    }
+
     public static boolean requeueJob(JSONObject jobj, final boolean increment) {
+        return requeueJobResult(jobj, increment) == RequeueResult.QUEUED;
+    }
+
+    public static RequeueResult requeueJobResult(JSONObject jobj, final boolean increment) {
+        // NOTE: only PENALIZED retries (increment=true) grow the __queueRetries counter, so a
+        // purely non-incrementing chain (e.g. timeouts passing shouldIncrement()=false) is
+        // bounded by the wall-clock MAX_TIME_MILLIS cap, not MAX_RETRIES. Once the counter HAS
+        // accrued MAX_RETRIES penalized retries, though, the job is refused regardless of the
+        // current failure's increment flag — 30 penalized failures mark the job sick for good.
         int MAX_RETRIES = 30;
         long MAX_TIME_MILLIS = 2 * 24 * 60 * 60 * 1000;
         String context = jobj.optString("__context", "context0");
@@ -1006,11 +1054,17 @@ public class IAGateway extends HttpServlet {
 
         if (retries < 0) retries = 0;
         long elapsed = System.currentTimeMillis() - queueStart;
-        if (elapsed > MAX_TIME_MILLIS) retries = MAX_RETRIES + 1; // waiting around too long
-        if (retries > MAX_RETRIES) {
+        if (elapsed > MAX_TIME_MILLIS) { // waiting around too long
             System.out.println("requeueJob(): completely failed taskId=" + taskId + " after " +
-                MAX_RETRIES + " retries (or max time) in queue; giving up");
-            return false;
+                elapsed + "ms (max time) in queue; giving up");
+            return RequeueResult.TIME_CAP;
+        }
+        // >= so exactly MAX_RETRIES retries run: `retries` counts retries already scheduled, and
+        // the old `>` boundary scheduled a 31st retry before rejecting the 32nd call
+        if (retries >= MAX_RETRIES) {
+            System.out.println("requeueJob(): completely failed taskId=" + taskId + " after " +
+                MAX_RETRIES + " retries in queue; giving up");
+            return RequeueResult.RETRY_CAP;
         }
         System.out.println("requeueJob(): attempting to requeue taskId=" + taskId + " for retry " +
             retries + " out of " + MAX_RETRIES + " (actualRetries=" + actualRetries + "; start=" +
@@ -1048,9 +1102,10 @@ public class IAGateway extends HttpServlet {
         // previous code's "logged before sleeping" timing for any
         // operators tailing for this string.
         System.out.println("requeueJob(): backgrounding taskId=" + taskId);
-        // false when the executor rejected the schedule (webapp undeploy): the retry is
-        // permanently lost and the caller must not believe it was requeued
-        return scheduleRequeuePublish(jobj, context, taskId, initialDelayMillis);
+        // EXECUTOR_REJECTED when the schedule was refused (webapp undeploy): the retry is lost
+        // from memory and the caller must not believe it was requeued
+        return scheduleRequeuePublish(jobj, context, taskId, initialDelayMillis)
+                   ? RequeueResult.QUEUED : RequeueResult.EXECUTOR_REJECTED;
     }
 
     // Schedules a single attempt to publish jobj onto the appropriate
@@ -1058,46 +1113,140 @@ public class IAGateway extends HttpServlet {
     // with a 30s backoff — preserving the original code's "retry
     // forever on addToQueue/addToDetectionQueue failure" semantics
     // without an unbounded busy loop on a dedicated thread.
-    private static boolean scheduleRequeuePublish(final JSONObject jobj, final String context,
-        final String taskId, long delayMillis) {
+    // A payload whose delayed publish has been accepted but not yet written to the persistent
+    // spool. Tracked so a shutdown can flush it durably instead of losing it with the cancelled
+    // runnable. Exactly-once publish is enforced by publishPending(): the `published` flag makes
+    // re-publish a no-op and the `inFlight` CAS stops concurrent attempts; the entry leaves the
+    // set only AFTER a successful spool write, so a publisher interrupted mid-write leaves the
+    // payload visible to the shutdown flush.
+    private static final class PendingRequeue {
+        final JSONObject jobj;
+        final String context;
+        final String taskId;
+        final java.util.concurrent.atomic.AtomicBoolean inFlight =
+            new java.util.concurrent.atomic.AtomicBoolean(false);
+        volatile boolean published = false;
+        PendingRequeue(JSONObject jobj, String context, String taskId) {
+            this.jobj = jobj;
+            this.context = context;
+            this.taskId = taskId;
+        }
+    }
+    private static final java.util.Set<PendingRequeue> PENDING_REQUEUES =
+        java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    // The single publish path shared by the delayed runnable, the shutdown flush, and the
+    // schedule-rejection fallback. Returns true iff THIS call performed the durable spool write.
+    // Idempotent: an already-published or currently-in-flight entry is left alone. On write
+    // failure the entry STAYS in PENDING_REQUEUES so another actor can still recover it.
+    private static boolean publishPending(PendingRequeue pr) {
+        if (pr.published || !pr.inFlight.compareAndSet(false, true)) return false;
         try {
-            scheduleRequeuePublishUnguarded(jobj, context, taskId, delayMillis);
+            // recheck under the guard: another actor may have published between the read above
+            // and the CAS, and released inFlight since
+            if (pr.published) return false;
+            // the same classifier as the initial publish (a plain spool-file write NOW). The old
+            // condition sent ANY fastlane payload back to the detection queue, so a single retry
+            // silently undid the lane separation. laneFor still keeps detect/MLService/mlServiceV2
+            // on the detection queue, which retryable ml-service failures depend on to reach
+            // MlServiceProcessor.
+            publishToLane(pr.context, pr.jobj.toString());
+            pr.published = true;
+            PENDING_REQUEUES.remove(pr);
             return true;
-        } catch (java.util.concurrent.RejectedExecutionException rex) {
-            // REQUEUE_EXEC was shut down (webapp undeploy/reload). The job was never written to
-            // the persistent spool, so this retry is genuinely lost — say so loudly rather than
-            // letting the exception propagate into whatever thread asked for the requeue.
-            System.out.println("ERROR: scheduleRequeuePublish() rejected (executor shut down?); " +
-                "requeue LOST for taskId=" + taskId + ": " + rex.toString());
+        } catch (Throwable t) {
+            System.out.println(
+                ".....requeueJob() looping: failed to requeue addTo_Queue() taskId=" +
+                pr.taskId + " due to " + t.toString());
+            t.printStackTrace();
             return false;
+        } finally {
+            pr.inFlight.set(false);
         }
     }
 
-    private static void scheduleRequeuePublishUnguarded(final JSONObject jobj, final String context,
-        final String taskId, long delayMillis) {
-        REQUEUE_EXEC.schedule(new Runnable() {
-            public void run() {
+    // "Last actor" publish: used where NOTHING later is guaranteed to retry (the shutdown flush,
+    // and the schedule-rejection fallback once the executor is gone). Waits briefly for any
+    // concurrent in-flight publisher to settle, then makes its own bounded write attempts.
+    //
+    // Verdict semantics at the deadline: if an owner is STILL in flight (a spool write blocking
+    // >2s during shutdown), we return pessimistic-false by design. The alternatives are both
+    // worse: waiting unboundedly lets a hung disk hang destroy(); reporting optimistic-true
+    // while the owner then fails re-opens the lost-payload hole. A false verdict makes callers
+    // err toward DUPLICATE work (recoverable state / run-match-now, both idempotent-tolerant) —
+    // never toward loss — and physical writes stay CAS+published-gated, so a duplicate verdict
+    // can never become a duplicate spool file.
+    private static boolean publishPendingFinal(PendingRequeue pr) {
+        long deadline = System.currentTimeMillis() + 2000;
+        int writeAttempts = 0;
+
+        while ((System.currentTimeMillis() < deadline) && (writeAttempts < 3)) {
+            if (pr.published) return true;
+            if (pr.inFlight.get()) { // let the current owner finish (it may succeed or fail)
                 try {
-                    // Same classifier as the initial publish. The old condition sent
-                    // ANY fastlane payload back to the detection queue, so a single
-                    // retry silently undid the lane separation. laneFor still keeps
-                    // detect/MLService/mlServiceV2 on the detection queue, which
-                    // retryable ml-service failures depend on to reach
-                    // MlServiceProcessor.
-                    publishToLane(context, jobj.toString());
-                } catch (Throwable t) {
-                    System.out.println(
-                        ".....requeueJob() looping: failed to requeue addTo_Queue() taskId=" +
-                        taskId + " due to " + t.toString());
-                    t.printStackTrace();
-                    // Indefinite retry on publish failure, 30s backoff.
-                    // Catching Throwable (not Exception) ensures even
-                    // unexpected Errors during publish don't kill the
-                    // executor worker silently.
-                    scheduleRequeuePublish(jobj, context, taskId, 30000L);
+                    Thread.sleep(10);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
                 }
+                continue;
             }
-        }, delayMillis, java.util.concurrent.TimeUnit.MILLISECONDS);
+            writeAttempts++;
+            if (publishPending(pr)) return true;
+        }
+        return pr.published;
+    }
+
+    // Durably publish every payload still awaiting its (now cancelled) delayed runnable.
+    // Package-private for tests. Returns how many this call left published (by itself or a
+    // concurrent owner it waited out).
+    static int flushPendingRequeues() {
+        int flushed = 0;
+        for (PendingRequeue pr : PENDING_REQUEUES) {
+            if (pr.published) continue;
+            if (publishPendingFinal(pr)) flushed++;
+            else
+                System.out.println("ERROR: flushPendingRequeues() could not publish taskId=" +
+                    pr.taskId + "; requeue LOST (spool write failing at shutdown)");
+        }
+        return flushed;
+    }
+
+    private static boolean scheduleRequeuePublish(final JSONObject jobj, final String context,
+        final String taskId, long delayMillis) {
+        PendingRequeue pending = new PendingRequeue(jobj, context, taskId);
+        PENDING_REQUEUES.add(pending);
+        return schedulePending(pending, delayMillis);
+    }
+
+    // Schedule the delayed publish of an EXISTING pending entry; on executor rejection (webapp
+    // undeploy) skip the backoff — it only exists to throttle retries, moot when this JVM is
+    // exiting — and write the job durably to the spool right now (a plain file write, safe
+    // mid-shutdown; consumed after the redeploy).
+    private static boolean schedulePending(final PendingRequeue pending, long delayMillis) {
+        try {
+            REQUEUE_EXEC.schedule(new Runnable() {
+                public void run() {
+                    if (publishPending(pending) || pending.published) return;
+                    // publish failed (entry still recoverable in the set): indefinite retry
+                    // with a 30s backoff on the SAME entry — never a duplicate.
+                    schedulePending(pending, 30000L);
+                }
+            }, delayMillis, java.util.concurrent.TimeUnit.MILLISECONDS);
+            return true;
+        } catch (java.util.concurrent.RejectedExecutionException rex) {
+            // The executor is gone (undeploy), so no later actor is guaranteed: settle any
+            // concurrent publisher (e.g. the shutdown flush, which may yet fail) and make our
+            // own final write attempts. Only a genuine spool-write failure gets reported lost.
+            if (publishPendingFinal(pending)) {
+                System.out.println("schedulePending(): executor rejected (shutdown?); " +
+                    "published taskId=" + pending.taskId + " directly to the spool");
+                return true;
+            }
+            System.out.println("ERROR: schedulePending() rejected AND direct spool publish " +
+                "failed; requeue LOST for taskId=" + pending.taskId + ": " + rex.toString());
+            return false;
+        }
     }
 
     public static void processCallbackQueueMessage(String message) {

@@ -209,12 +209,9 @@ public class MlServiceProcessor {
     }
 
     /** Requeue a retryable /pipeline/ failure, else fail the detection. */
-    private MlServiceJobOutcome detectionCallFailed(JSONObject jobData, String maId,
+    MlServiceJobOutcome detectionCallFailed(JSONObject jobData, String maId,
         String taskId, IAException ex) {
-        if (ex.shouldRequeue()) {
-            IAGateway.requeueJob(jobData, ex.shouldIncrement());
-            return MlServiceJobOutcome.requeue();
-        }
+        if (ex.shouldRequeue()) return handleRetryableDetectionFailure(jobData, maId, taskId, ex);
         markDetectionFailure(maId, taskId, ex.getCode(), ex.getMessage());
         return mapNonRetryableError(ex);
     }
@@ -369,8 +366,7 @@ public class MlServiceProcessor {
                 ext.mlConfig);
         } catch (IAException ex) {
             if (ex.shouldRequeue()) {
-                IAGateway.requeueJob(jobData, ex.shouldIncrement());
-                return MlServiceJobOutcome.requeue();
+                return handleRetryableExtractionFailure(jobData, taskId, ex);
             }
             markTaskError(taskId, ex.getCode(), ex.getMessage());
             return mapNonRetryableError(ex);
@@ -970,8 +966,17 @@ public class MlServiceProcessor {
           case READY:
             return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup, pinVector);
           case DEFER:
-            enqueueDeferredMatch(annotationIds, taskId, matchConfig, gate, matchGroup, pinVector);
-            return MlServiceJobOutcome.ok(annotationIds);
+            if (enqueueDeferredMatch(annotationIds, taskId, matchConfig, gate, matchGroup, pinVector))
+                return MlServiceJobOutcome.ok(annotationIds);
+            // The deferred re-fire was NOT queued (requeue executor gone / publish failed).
+            // There is no passive backstop here: the parent task was already marked completed
+            // before the gate ran, so the inactivity watchdog ignores it, and a REQUEUE outcome
+            // is inert for deferred payloads. Run the match NOW against the currently visible
+            // corpus — same tradeoff as the gate's GIVE_UP arm (partial results are better than
+            // silently never creating a match task).
+            System.out.println("WARN: MlServiceProcessor deferred-match enqueue failed for task " +
+                taskId + "; running match against current visible corpus instead of dropping it");
+            return runMatchProspects(annotationIds, taskId, matchConfig, matchGroup, pinVector);
           case GIVE_UP:
           default:
             System.out.println(
@@ -1283,6 +1288,58 @@ public class MlServiceProcessor {
         }
     }
 
+    // Package-private seam so tests can stub the requeue verdict without the static IAGateway
+    // machinery (mirrors the readSkipIdent test seam).
+    IAGateway.RequeueResult requeueJob(JSONObject jobData, boolean increment) {
+        return IAGateway.requeueJobResult(jobData, increment);
+    }
+
+    /**
+     * Handle a retryable failure from the detection HTTP call. Requeues while the retry budget
+     * allows. On PERMANENT policy exhaustion (retry cap / max queue time), land the MediaAsset +
+     * task terminal instead of stranding the asset in {@code processing-mlservice} forever —
+     * before this, exhaustion silently dropped the job and the asset stayed non-terminal,
+     * pinning bulk imports below 100% with nothing left to ever complete it. The {@code error}
+     * detection status counts as detection-complete in {@code ImportTask.iaSummaryJson}.
+     *
+     * <p>EXECUTOR_REJECTED (webapp undeploy in flight) is deliberately NOT terminal: the asset
+     * stays {@code processing-mlservice}, which is exactly the state the startup
+     * stale-mlservice reconciler recovers after redeploy.</p>
+     */
+    MlServiceJobOutcome handleRetryableDetectionFailure(JSONObject jobData, String maId,
+        String taskId, IAException ex) {
+        IAGateway.RequeueResult rq = requeueJob(jobData, ex.shouldIncrement());
+
+        if (rq == IAGateway.RequeueResult.QUEUED) return MlServiceJobOutcome.requeue();
+        if (!rq.isPolicyExhausted()) {
+            System.out.println("WARN: MlServiceProcessor detection retry for ma " + maId +
+                " (task " + taskId + ") not requeued (" + rq +
+                "); leaving asset recoverable for the startup reconciler");
+            return MlServiceJobOutcome.requeue();
+        }
+        String message = "retries exhausted (" + rq + "): " + ex.getMessage();
+        markDetectionFailure(maId, taskId, "RETRIES_EXHAUSTED", message);
+        return MlServiceJobOutcome.networkError("RETRIES_EXHAUSTED", message);
+    }
+
+    /** Extraction twin of {@link #handleRetryableDetectionFailure}: terminal task error on
+     * policy exhaustion instead of a silently dropped job; EXECUTOR_REJECTED stays
+     * non-terminal (the task's inactivity watchdog is the backstop). */
+    MlServiceJobOutcome handleRetryableExtractionFailure(JSONObject jobData, String taskId,
+        IAException ex) {
+        IAGateway.RequeueResult rq = requeueJob(jobData, ex.shouldIncrement());
+
+        if (rq == IAGateway.RequeueResult.QUEUED) return MlServiceJobOutcome.requeue();
+        if (!rq.isPolicyExhausted()) {
+            System.out.println("WARN: MlServiceProcessor extraction retry for task " + taskId +
+                " not requeued (" + rq + "); leaving task to the inactivity watchdog");
+            return MlServiceJobOutcome.requeue();
+        }
+        String message = "retries exhausted (" + rq + "): " + ex.getMessage();
+        markTaskError(taskId, "RETRIES_EXHAUSTED", message);
+        return MlServiceJobOutcome.networkError("RETRIES_EXHAUSTED", message);
+    }
+
     static MlServiceJobOutcome mapNonRetryableError(IAException ex) {
         String code = ex == null ? null : ex.getCode();
         String message = ex == null ? null : ex.getMessage();
@@ -1568,7 +1625,8 @@ public class MlServiceProcessor {
         return iac.convertIAClassForTaxonomy(rawIaClass, taxy);
     }
 
-    private void markTaskError(String taskId, String code, String message) {
+    // package-private (was private) so tests can override to observe terminal writes
+    void markTaskError(String taskId, String code, String message) {
         Shepherd shep = new Shepherd(context);
         shep.setAction(ACTION_PREFIX + "markTaskError");
         try {
@@ -1599,7 +1657,8 @@ public class MlServiceProcessor {
      * DB unavailable), the original failure outcome is preserved and
      * a WARN is logged — do NOT shadow the upstream error.</p>
      */
-    private void markDetectionFailure(String maId, String taskId, String code, String message) {
+    // package-private (was private) so tests can override to observe terminal writes
+    void markDetectionFailure(String maId, String taskId, String code, String message) {
         // Whole-helper try so that nothing in here can shadow the upstream
         // failure outcome — Shepherd construction, setAction, the
         // transaction body, AND the final rollbackAndClose are all guarded.
@@ -1723,7 +1782,8 @@ public class MlServiceProcessor {
      * DEFER, preserved across re-fires for elapsed-time age-out),
      * {@code lastGateReason} (Codex round-2 #6 diagnostic).</p>
      */
-    private void enqueueDeferredMatch(List<String> annotationIds, String parentTaskId,
+    // returns true iff the deferred payload was actually queued for re-fire
+    private boolean enqueueDeferredMatch(List<String> annotationIds, String parentTaskId,
         JSONObject matchConfig, MatchVisibilityGate.GateOutcome gate, boolean matchGroup,
         boolean pinVector) {
         JSONObject payload = new JSONObject();
@@ -1753,12 +1813,13 @@ public class MlServiceProcessor {
         payload.put("firstDeferredAt", gate.firstDeferredAt);
         if (gate.reason != null) payload.put("lastGateReason", gate.reason);
         try {
-            deferredPublisher.publish(payload);
+            return deferredPublisher.publish(payload);
         } catch (Exception ex) {
             // requeueJob doesn't throw declared exceptions, but a future
             // publisher impl might. Don't let publish-failure leak past
             // the orchestrator.
             System.out.println("MlServiceProcessor.enqueueDeferredMatch failed: " + ex);
+            return false;
         }
     }
 
