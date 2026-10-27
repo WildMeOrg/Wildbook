@@ -246,8 +246,14 @@ public class IndexingManager {
 
         ShepherdIndexingWork(String objectID) {
             shepherd = new Shepherd("context0");
-            shepherd.setAction("IndexingManager_" + objectID);
-            shepherd.beginDBTransaction();
+            try {
+                shepherd.setAction("IndexingManager_" + objectID);
+                shepherd.beginDBTransaction();
+            } catch (RuntimeException ex) {
+                // Construction failed before IndexingJob could take ownership and close us.
+                shepherd.rollbackAndClose();
+                throw ex;
+            }
             try {
                 PersistenceManager pm = shepherd.getPM();
                 if (pm != null) pm.setProperty(L2_RETRIEVE_MODE_PROPERTY, "bypass");

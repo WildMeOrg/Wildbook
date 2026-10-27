@@ -2,30 +2,67 @@ package org.ecocean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.jdo.JDOObjectNotFoundException;
+import javax.jdo.JDODataStoreException;
+import javax.jdo.PersistenceManager;
+import javax.jdo.PersistenceManagerFactory;
+import javax.jdo.Transaction;
 
+import org.ecocean.shepherd.core.ShepherdPMF;
+import org.ecocean.shepherd.utils.ShepherdState;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 
 /**
  * IndexingManagerRequeueTest marks "the job finished" by hand. This test proves the job itself
  * does so on every outcome: it runs a real IndexingJob on the test thread with its datastore and
  * index access replaced by a fake IndexingWork, then asserts on what the scheduler and the public
- * queue saw. No Shepherd, no datastore, no OpenSearch.
+ * queue saw. The construction-failure test exercises a Shepherd with a mocked PersistenceManager
+ * factory. No datastore or OpenSearch is needed.
  */
 class IndexingJobWiringTest {
+    @Test void failedBegin_closesTheAllocatedPersistenceManager_andPreservesTheFailure() {
+        Map<String, String> statesBefore = new HashMap<>(ShepherdState.getAllShepherdStates());
+        PersistenceManagerFactory pmf = mock(PersistenceManagerFactory.class);
+        PersistenceManager pm = mock(PersistenceManager.class);
+        Transaction tx = mock(Transaction.class);
+        when(pmf.getPersistenceManager()).thenReturn(pm);
+        when(pm.currentTransaction()).thenReturn(tx);
+        when(pm.getPersistenceManagerFactory()).thenReturn(pmf);
+        JDODataStoreException failure = new JDODataStoreException("begin failed");
+        doThrow(failure).when(tx).begin();
+
+        try (MockedStatic<ShepherdPMF> factory = mockStatic(ShepherdPMF.class)) {
+            factory.when(() -> ShepherdPMF.getPMF("context0", null)).thenReturn(pmf);
+
+            assertSame(failure, assertThrows(JDODataStoreException.class,
+                () -> new IndexingManager.ShepherdIndexingWork("enc-begin-failed")));
+            verify(pm).close();
+            assertEquals(statesBefore, ShepherdState.getAllShepherdStates(),
+                "failed construction must not leave a Shepherd diagnostic entry");
+        }
+    }
+
     /** Scripted stand-in for "open a Shepherd, load by id, index, close". */
     private static final class FakeWork implements IndexingManager.IndexingWork {
         Base toLoad;                         // null => throw JDOObjectNotFoundException from load()
