@@ -13,10 +13,6 @@ export default function FilterIcon({
       }}
       className={className}
       onClick={onClick}
-      aria-label="Zoom In"
-      role="button"
-      tabIndex={0}
-      onKeyDown={() => {}}
     >
       <svg
         width="19"

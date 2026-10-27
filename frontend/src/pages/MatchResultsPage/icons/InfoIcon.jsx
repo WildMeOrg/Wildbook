@@ -13,7 +13,7 @@ export default function InfoIcon({
       }}
       className={className}
       onClick={onClick}
-      aria-label="Zoom In"
+      aria-label="Match Page Instructions"
       role="button"
       tabIndex={0}
       onKeyDown={() => {}}
