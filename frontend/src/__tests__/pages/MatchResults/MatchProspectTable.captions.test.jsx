@@ -140,21 +140,26 @@ describe("MatchProspectTable image captions (issue #1733)", () => {
     ).not.toBeInTheDocument();
   });
 
-  test("values are separated, truncated with a full-text tooltip, and let drags through", () => {
+  test("values are separated, wrap to two lines at most, and let drags through", () => {
     renderTable();
     const strip = screen.getByTestId("match-prospect-left-caption-s1");
     expect(strip).toHaveStyle({ pointerEvents: "none" });
+    // only the dots are hidden from assistive technology; the spaces are not
     expect(strip.textContent).toBe(
       "2026-10-18 08:05 · GoPro_0193.JPG · Ningaloo Reef",
     );
+    strip
+      .querySelectorAll('[aria-hidden="true"]')
+      .forEach((dot) => expect(dot.textContent).toBe("·"));
     const filename = screen.getByTestId(
       "match-prospect-left-caption-s1-filename",
     );
     expect(filename).toHaveAttribute("title", "GoPro_0193.JPG");
-    expect(filename).toHaveStyle({
-      whiteSpace: "nowrap",
-      textOverflow: "ellipsis",
-    });
+    expect(filename).toHaveStyle({ overflowWrap: "anywhere" });
+    // nothing inside the caption takes pointer events back
+    strip
+      .querySelectorAll("span")
+      .forEach((el) => expect(el.style.pointerEvents).toBe(""));
   });
 
   const rerenderTable = (rerender, props) =>

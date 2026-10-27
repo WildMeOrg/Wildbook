@@ -1,14 +1,14 @@
 import React from "react";
 
+// at most two lines per value; long filenames and location IDs break anywhere
 const field = {
   minWidth: 0,
   maxWidth: "100%",
   overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
-  // the strip lets drags and wheel zoom through to the image; the values
-  // themselves stay hoverable so a truncated one shows in full as a tooltip
-  pointerEvents: "auto",
+  overflowWrap: "anywhere",
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 2,
 };
 
 const styles = {
@@ -27,6 +27,7 @@ const styles = {
     color: "#fff",
     fontSize: "13px",
     lineHeight: 1.3,
+    // drags and wheel zoom pass through to the image underneath
     pointerEvents: "none",
   },
   date: { ...field, fontWeight: 600 },
@@ -42,8 +43,8 @@ const styles = {
 
 // Issue #1733: encounter date, image filename and (when the server sent it,
 // i.e. the viewer may see that encounter) location ID along the bottom of a
-// match image. Each value stays on one line, truncated with its full text as
-// a tooltip. Renders nothing when all three are missing.
+// match image. Each value wraps to at most two lines; title keeps the full
+// value for assistive technology. Renders nothing when all three are missing.
 const ImageCaption = ({ date, filename, locationId, testId }) => {
   const parts = [
     date && { key: "date", style: styles.date, value: date },
@@ -60,9 +61,12 @@ const ImageCaption = ({ date, filename, locationId, testId }) => {
       {parts.map((part, i) => (
         <React.Fragment key={part.key}>
           {i > 0 && (
-            <span style={styles.separator} aria-hidden="true">
-              {" · "}
-            </span>
+            <>
+              {" "}
+              <span style={styles.separator} aria-hidden="true">
+                ·
+              </span>{" "}
+            </>
           )}
           <span
             style={part.style}
