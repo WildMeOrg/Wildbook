@@ -1,14 +1,12 @@
 package org.ecocean.export;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.ecocean.*;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.HiddenEncReporter;
 import org.ecocean.servlet.export.ExportColumn;
+import org.ecocean.servlet.export.ExportFileFormat;
+import org.ecocean.servlet.export.ExportRowWriter;
+import org.ecocean.servlet.export.ExportValues;
 import org.ecocean.servlet.export.MultiValueExportColumn;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
@@ -30,7 +28,18 @@ public class EncounterAnnotationExportFile {
     private static final String REFERENCE_KEYWORD = "Reference";
     private static final int ROW_LIMIT = 100000;
 
+    /**
+     * Format used when a caller does not name one.
+     *
+     * Deliberately CSV: other callers embed this export under a fixed name - the bulk-export ZIP
+     * writes it as "metadata.csv" - and must keep getting CSV. It is the download endpoint that
+     * defaults to .xlsx, because that is the one feeding WildEx; see
+     * {@code EncounterAnnotationExportExcelFile.DEFAULT_FORMAT}.
+     */
+    public static final ExportFileFormat DEFAULT_FORMAT = ExportFileFormat.CSV;
+
     private final String name;
+    private final ExportFileFormat format;
     private final HttpServletRequest request;
     private final Shepherd myShepherd;
 
@@ -43,41 +52,73 @@ public class EncounterAnnotationExportFile {
     private List<String> measurementColTitles = new ArrayList<String>();
 
     public EncounterAnnotationExportFile(HttpServletRequest request, Shepherd myShepherd) {
+        this(request, myShepherd, DEFAULT_FORMAT);
+    }
+
+    public EncounterAnnotationExportFile(HttpServletRequest request, Shepherd myShepherd,
+        ExportFileFormat format) {
         this.request = request;
         this.myShepherd = myShepherd;
+        this.format = (format != null) ? format : DEFAULT_FORMAT;
 
         DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
         DateTime timeNow = new DateTime();
         String formattedDate = fmt.print(timeNow);
 
         // set up the files
-        this.name = "AnnotnExp_" + formattedDate + ".csv";
+        this.name = "AnnotnExp_" + formattedDate + this.format.getExtension();
     }
 
     public String getName() { return name; }
+    public ExportFileFormat getFormat() { return format; }
+
+    public String getContentType() { return format.getContentType(); }
+
     public HiddenEncReporter writeToStream(OutputStream fileOut)
     throws NoSuchMethodException, ClassNotFoundException, InvocationTargetException,
         IllegalAccessException, IOException {
-        try (OutputStreamWriter streamWriter = new OutputStreamWriter(fileOut);
-        CSVPrinter sheet = new CSVPrinter(streamWriter, CSVFormat.EXCEL)) {
-            return writeToStream(sheet);
+        try (ExportRowWriter rowWriter = format.newWriter(fileOut)) {
+            try {
+                return writeToStream(rowWriter);
+            } catch (RuntimeException | Error | NoSuchMethodException | ClassNotFoundException |
+                InvocationTargetException | IllegalAccessException | IOException e) {
+                // Do not let close() emit a complete-looking file built from a partial run.
+                rowWriter.abort();
+                throw e;
+            }
         }
     }
 
-    private HiddenEncReporter writeToStream(CSVPrinter sheet)
+    /**
+     * Builds every row once and hands it to the supplied sink. Both the CSV and XLSX outputs run
+     * through this single method, so their contents cannot drift apart.
+     */
+    private HiddenEncReporter writeToStream(ExportRowWriter sheet)
     throws NoSuchMethodException, ClassNotFoundException, InvocationTargetException,
         IllegalAccessException, IOException {
         String context = ServletUtilities.getContext(request);
         EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request,
             "year descending, month descending, day descending");
         Vector rEncounters = queryResult.getResult();
-        int numMatchingEncounters = rEncounters.size();
 
         // Security: categorize hidden encounters with the initializer
         HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
 
+        // Both passes below - the column-count pass and the row pass - work from this visible-only
+        // list. Sizing columns from the unfiltered results would let the shape of the export (how
+        // many mediaAsset/keyword/name/submitter/socialUnit columns it has) expose maxima taken
+        // from encounters the requesting user is not permitted to see.
+        Vector<Encounter> visibleEncounters = new Vector<Encounter>();
+
+        for (int i = 0; i < rEncounters.size() && i < ROW_LIMIT; i++) {
+            Encounter enc = (Encounter)rEncounters.get(i);
+            if (hiddenData.contains(enc)) continue;
+            visibleEncounters.add(enc);
+        }
+        int numMatchingEncounters = visibleEncounters.size();
+
         // so we know how many MA columns we need
-        setMediaAssetCounts(rEncounters, myShepherd);
+        setMediaAssetCounts(visibleEncounters, myShepherd);
 
         // so we know how many name columns we need
 
@@ -247,20 +288,21 @@ public class EncounterAnnotationExportFile {
             }
         }
         // end sorting
+        String[] headerRow = new String[columns.size()];
         for (ExportColumn exportCol : columns) {
-            exportCol.writeHeaderLabel(sheet);
+            headerRow[exportCol.colNum] = exportCol.getHeaderLabel();
         }
-        sheet.printRecord();
+        ExportValues.normalizeInPlace(headerRow);
+        sheet.writeRow(headerRow);
 
-        // CSV export =========================================================
+        // row export =========================================================
         int row = 0;
         int numColumns = columns.size();
         for (int i = 0; i < numMatchingEncounters && i < ROW_LIMIT; i++) {
             // get the Encounter and check if user
             // has permission otherwise hide the encounter
 
-            Encounter enc = (Encounter)rEncounters.get(i);
-            if (hiddenData.contains(enc)) continue;
+            Encounter enc = visibleEncounters.get(i);
             row++;
 
             // Initialize row array - each column writes to its own index
@@ -273,7 +315,8 @@ public class EncounterAnnotationExportFile {
             MultiValue names = (ind != null) ? ind.getNames() : null;
             List<String> sortedNameKeys = (names != null) ? names.getSortedKeys() : null;
             ArrayList<MediaAsset> masDuplicates = enc.getMedia();
-            ArrayList<MediaAsset> mas = new ArrayList<>(new HashSet<MediaAsset>(masDuplicates)); // remove Media Asset duplicates
+            ArrayList<MediaAsset> mas = new ArrayList<>(new LinkedHashSet<MediaAsset>(
+                masDuplicates));                                                                       // remove Media Asset duplicates, preserving order so mediaAsset0 is stable across requests
             List<User> submitters = enc.getSubmitters();
             List<SocialUnit> socialUnits = (ind !=
                 null) ? myShepherd.getAllSocialUnitsForMarkedIndividual(ind) : null;
@@ -391,13 +434,15 @@ public class EncounterAnnotationExportFile {
                     System.out.println("EncounterAnnotationExportFile: no object found for class " +
                         exportCol.getDeclaringClass());
             }
+            // Normalize once, here, so the CSV and XLSX sinks receive byte-identical arrays.
+            ExportValues.normalizeInPlace(rowData);
             // Write the complete row at once
-            sheet.printRecord((Object[])rowData);
+            sheet.writeRow(rowData);
         } // end for loop iterating encounters
 
         // Note: Don't close fileOut - let the caller manage stream lifecycle
 
-        // end CSV export and business logic ===============================================
+        // end row export and business logic ===============================================
         System.out.println("Done with EncounterAnnotationExportFile. We hid " + hiddenData.size() +
             " encounters.");
 
@@ -432,7 +477,8 @@ public class EncounterAnnotationExportFile {
             if (enc.getMeasurements().size() > maxNumMeasurements)
                 maxNumMeasurements = enc.getMeasurements().size();
             ArrayList<MediaAsset> masDuplicates = enc.getMedia();
-            ArrayList<MediaAsset> mas = new ArrayList<>(new HashSet<MediaAsset>(masDuplicates)); // remove Media Asset duplicates
+            ArrayList<MediaAsset> mas = new ArrayList<>(new LinkedHashSet<MediaAsset>(
+                masDuplicates));                                                                       // remove Media Asset duplicates, preserving order so mediaAsset0 is stable across requests
             int numMedia = mas.size();
             if (numMedia > maxNumMedia) maxNumMedia = numMedia;
             for (MediaAsset ma : mas) {
