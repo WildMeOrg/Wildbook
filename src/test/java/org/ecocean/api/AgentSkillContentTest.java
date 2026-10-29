@@ -147,6 +147,15 @@ class AgentSkillContentTest {
         assertNoLeak(md);
     }
 
+    @Test void apiReferenceDocumentsEveryVectorField() {
+        String md = load("/agent-skills/api-reference.md");
+        for (String field : org.ecocean.Embedding.VECTOR_FIELDS.values())
+            assertTrue(md.contains("embeddings." + field),
+                "api-reference must document the kNN vector field embeddings." + field);
+        assertTrue(md.contains("encounterDateMillis"),
+            "api-reference must document the denormalized sighting date on annotations");
+    }
+
     @Test void serviceKeyFlowDocumented() {
         String api = load("/agent-skills/api-reference.md");
         for (String needle : new String[] {
