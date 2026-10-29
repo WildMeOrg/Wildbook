@@ -116,6 +116,18 @@ class AuthTokenServiceKeyTest {
         assertEquals(400, bogus.status, bogus.body);
     }
 
+    @Test void explicitDataReadScopeMintsDataJwt() throws Exception {
+        long keyExpiresAt = System.currentTimeMillis() + 3_600_000L;
+        Result r = post("data:read", grant(keyExpiresAt, "data:read"));
+        assertEquals(200, r.status, r.body);
+        assertEquals("data:read", new JSONObject(r.body).getString("scope"), "scope echoed");
+        verify(r.jwt).signUntil(eq("svc-user-id"), eq("context0"), anyLong(), isNull(), eq(keyExpiresAt));
+
+        Result denied = post("data:read", grant(keyExpiresAt, SubmissionPolicy.WRITE));
+        assertEquals(403, denied.status, denied.body);
+        verify(denied.jwt, never()).signUntil(anyString(), anyString(), anyLong(), any(), anyLong());
+    }
+
     @Test void writeImpliesSubmissionRead() throws Exception {
         long keyExpiresAt = System.currentTimeMillis() + 3_600_000L;
         Result r = post(SubmissionPolicy.READ, grant(keyExpiresAt, SubmissionPolicy.WRITE));

@@ -39,8 +39,8 @@ trade it for a short-lived token whenever you need one. Your organization's admi
 **API Access**, in the "Organization service keys" section.
 
 - Send the service key **only** to `POST /api/v3/auth/token`, as `Authorization: Bearer wbsvc_<id>.<secret>`.
-  Add `?scope=submissions:read` or `?scope=submissions:write` for submissions work; leave the scope off to
-  read data. Never send the key to any other endpoint, and keep it out of URLs, files, logs and chat.
+  Add `?scope=submissions:read` or `?scope=submissions:write` for submissions work; leave the scope off
+  (or send `?scope=data:read`) to read data. A token carries one scope, so trade separately for each. Never send the key to any other endpoint, and keep it out of URLs, files, logs and chat.
 - Use the returned `token` on your API calls. Reuse it until it is close to the end of `expiresInSeconds`,
   or until a call returns 401, and only then trade the key again. Do not trade before every call.
   If a token you just traded is refused with 401 on an API call, stop and report to the operator.
