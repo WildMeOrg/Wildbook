@@ -114,7 +114,7 @@ silent empty result):
 `{"hits":{"hits":[{"_source":…}]}}` shape, and the hit total lives only in the `X-Wildbook-Total-Hits`
 header, never in the body.
 
-**Nearest-neighbour (`knn`) search on `annotation`.** A `knn` clause against `embeddings.vector` is
+**Nearest-neighbour (`knn`) search on `annotation`.** A `knn` clause against an embedding vector field is
 accepted, so you can ask "which catalog photos look most like this one?" directly instead of paging
 the catalog and comparing every pair yourself. `embeddings` is a **nested** field, so the `knn` must
 sit inside a `nested` query:
@@ -124,9 +124,21 @@ sit inside a `nested` query:
         "must":   [ { "knn": { "embeddings.vector": { "vector": [ /* the query photo's stored vector */ ], "k": 200 } } } ],
         "filter": [ { "term": { "embeddings.methodVersion": "<version>" } } ] } } } } ],
     "filter": [ { "term": { "matchAgainst": true } } ] } },
-  "_source": { "excludes": ["embeddings.vector"] } }
+  "_source": { "excludes": ["embeddings.vector", "embeddings.vector_1536"] } }
 ```
-Four things to know before relying on it:
+Five things to know before relying on it:
+
+- **Query the vector field that matches the model's length.** Each embedding stores its numbers in
+  exactly one field, chosen by vector length: `embeddings.vector` holds 2152-number vectors (the
+  EfficientNet MiewID models, e.g. `msv4.1`, `msv5`) and `embeddings.vector_1536` holds 1536-number
+  vectors (the DINOv3 model, `msv5-dinov3`). Read the query photo's vector from whichever of the two
+  its embedding carries, send the `knn` against that same field, and filter on the same
+  `methodVersion`. A vector sent against the other field fails the whole request (currently a `500`
+  with `"error": "query failed"`, the same response as other query failures). Before retrying a
+  failed `knn`, check that the vector's length matches the field (2152 for `embeddings.vector`, 1536
+  for `embeddings.vector_1536`); if it does not, fix the field instead of retrying.
+  Vectors from different models are not comparable even when their lengths agree, so never mix
+  `methodVersion`s in one similarity calculation.
 
 - **The `nested` wrapper is mandatory and its absence fails silently.** A plain
   `{"term": {"embeddings.methodVersion": "…"}}` in the outer query matches **zero** documents and
@@ -138,8 +150,8 @@ Four things to know before relying on it:
   the *order* of `hits`, never as a number. If you need an actual similarity value — to threshold on,
   to report, or to compare across queries — fetch the candidates' vectors and compute it yourself.
   MiewID vectors are L2-normalised, so cosine similarity is just the dot product.
-- **Exclude `embeddings.vector` from `_source` whenever you do not need the numbers.** Serialising
-  2152 floats per annotation dominates the response: a kNN that answers in seconds without the
+- **Exclude `embeddings.vector` and `embeddings.vector_1536` from `_source` whenever you do not need
+  the numbers.** Serialising thousands of floats per embedding dominates the response: a kNN that answers in seconds without the
   vectors can take a minute with them. When you do need vectors, fetch them in batches by id
   (`{"terms": {"id": [...]}}`, ~40 per call) rather than one at a time — per-request overhead, not
   payload size, is the cost that matters.
@@ -193,12 +205,14 @@ Key indices and fields:
   stamp — see *Knowing when a record changed* below), ...
 - **individual** — `id`, `displayName`, `names`/`nameMap`, `sex`, `taxonomy`, `timeOfBirth`/`timeOfDeath`.
 - **annotation** — `id`, `encounterId`, `viewpoint`, `iaClass`, `matchAgainst`, `mediaAssetId`, and
-  `embeddings` (a **nested** field holding `method`, `methodVersion`, and the MiewID `vector`;
+  `embeddings` (a **nested** field with one entry per model, each holding `method`, `methodVersion`,
+  and the MiewID vector in either `vector` (2152 numbers) or `vector_1536` (1536 numbers, DINOv3);
   querying any of them requires a `nested` wrapper — see *Nearest-neighbour search* above, and note
-  that forgetting it returns zero hits rather than an error). The annotation document
-  carries **no sighting date** — to analyse by time, collect the `encounterId`s and look them up in the
-  encounter index (a `terms` query) to read `date`/`dateMillis`. MiewID `vector`s are **L2-normalised**
-  (unit length), so cosine similarity between two of them is just their dot product.
+  that forgetting it returns zero hits rather than an error). The parent sighting's date is copied
+  onto the annotation as `encounterDateMillis` (epoch milliseconds; absent when the sighting has no
+  date), so time-based analyses need no second lookup; for the full `date` string, look the
+  `encounterId`s up in the encounter index (a `terms` query). Indexed vectors in both fields are
+  **L2-normalised** (unit length), so cosine similarity between two of them is just their dot product.
 
 Access-control fields exist server-side but are **never** returned.
 
