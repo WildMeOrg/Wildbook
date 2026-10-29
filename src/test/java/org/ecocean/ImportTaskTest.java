@@ -14,6 +14,9 @@ import java.util.List;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 /*
    import static org.mockito.Mockito.doNothing;
    import static org.mockito.Mockito.doThrow;
@@ -88,6 +91,98 @@ class ImportTaskTest {
         assertEquals(sum.optInt("numberMediaAssets"), 1);
         assertEquals(sum.optInt("detectionNumberComplete"), 1);
         assertEquals(sum.optInt("detectionNumberError"), 0);
+    }
+
+    // builds a started, non-legacy task over the given assets
+    private ImportTask summaryTask(MediaAsset... assets) {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        List<MediaAsset> mas = new ArrayList<MediaAsset>();
+        for (MediaAsset ma : assets) mas.add(ma);
+        when(itask.getMediaAssets()).thenReturn(mas);
+        when(itask.getIATask()).thenReturn(mock(Task.class));
+        when(itask.iaTaskStarted()).thenReturn(true);
+        return itask;
+    }
+
+    private MediaAsset asset(String detectionStatus, Boolean validForIA) {
+        MediaAsset ma = mock(MediaAsset.class);
+
+        when(ma.getDetectionStatus()).thenReturn(detectionStatus);
+        when(ma.isValidImageForIA()).thenReturn(validForIA);
+        return ma;
+    }
+
+    // validateSourceImage() decodes the whole image and the GET never persists it;
+    // a terminal asset's validity cannot change detection progress, so skip it.
+    // this is what made an 8000-encounter import's status GET never return.
+    @Test void testIaSummary_terminalUnknownValidityNotDecoded() {
+        MediaAsset ma = asset("complete", null);
+        JSONObject sum = summaryTask(ma).iaSummaryJson(mock(Shepherd.class));
+
+        verify(ma, never()).validateSourceImage();
+        assertEquals(0, sum.optInt("numberMediaAssetValidIA"));
+        assertEquals(1, sum.optInt("numberMediaAssetValidIAUnknown"));
+        assertEquals("complete", sum.optString("detectionStatus"));
+    }
+
+    // still in flight with unknown validity: validate (as before), and a valid
+    // result keeps detection "sent" even when identification was skipped
+    @Test void testIaSummary_inFlightUnknownValidityIsValidated() {
+        MediaAsset ma = mock(MediaAsset.class);
+
+        when(ma.getDetectionStatus()).thenReturn(null);
+        when(ma.isValidImageForIA()).thenReturn(null, true);
+        ImportTask itask = summaryTask(ma);
+        when(itask.iaTaskRequestedIdentification()).thenReturn(false);
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        verify(ma, times(1)).validateSourceImage();
+        assertEquals(1, sum.optInt("numberMediaAssetValidIA"));
+        assertEquals("sent", sum.optString("detectionStatus"));
+        assertFalse(sum.optBoolean("pipelineComplete", false));
+    }
+
+    // non-LOCAL stores leave the flag null after validation; unknown must not be
+    // treated as ineligible, or detection would report complete too early
+    @Test void testIaSummary_inFlightStillUnknownIsOutstanding() {
+        MediaAsset ma = asset(null, null);
+        JSONObject sum = summaryTask(ma).iaSummaryJson(mock(Shepherd.class));
+
+        assertEquals(1, sum.optInt("numberMediaAssetValidIAUnknown"));
+        assertEquals("sent", sum.optString("detectionStatus"));
+    }
+
+    // never sent because the image is invalid: must not strand the import
+    @Test void testIaSummary_invalidNeverSentDoesNotStrand() {
+        JSONObject sum = summaryTask(asset("complete", true),
+            asset(null, false)).iaSummaryJson(mock(Shepherd.class));
+
+        assertEquals("complete", sum.optString("detectionStatus"));
+        assertEquals(1, sum.optInt("numberMediaAssetValidIA"));
+    }
+
+    // old totals comparison (terminal >= valid) let a terminal ineligible asset
+    // mask a valid one still in flight
+    @Test void testIaSummary_terminalIneligibleDoesNotMaskInFlight() {
+        JSONObject sum = summaryTask(asset("error", false),
+            asset(null, true)).iaSummaryJson(mock(Shepherd.class));
+
+        assertEquals(1, sum.optInt("detectionNumberComplete"));
+        assertEquals("sent", sum.optString("detectionStatus"));
+    }
+
+    @Test void testGetMediaAssetsDedupesKeepingOrder() {
+        MediaAsset ma1 = mock(MediaAsset.class);
+        MediaAsset ma2 = mock(MediaAsset.class);
+        Encounter enc1 = mock(Encounter.class);
+        Encounter enc2 = mock(Encounter.class);
+
+        when(enc1.getMedia()).thenReturn(new ArrayList<MediaAsset>(List.of(ma1, ma2)));
+        when(enc2.getMedia()).thenReturn(new ArrayList<MediaAsset>(List.of(ma2, ma1)));
+        ImportTask itask = new ImportTask();
+        itask.setEncounters(new ArrayList<Encounter>(List.of(enc1, enc2)));
+        assertEquals(List.of(ma1, ma2), itask.getMediaAssets());
     }
 
     // pending-species is a taxonomy-pending terminal status set by
