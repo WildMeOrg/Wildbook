@@ -27,7 +27,10 @@
       {"name": "Australia", "id": "Australia", "locationID":[
         {"name": "New South Wales", "id": "New South Wales", "locationID":[
           {"name": "Port Stephens", "id": "Port Stephens", "locationID":[]}
-        ]}
+        ]},
+        {"name":"Western Australia", "id":"Western Australia", "locationID":[
+            {"name":"Bremer Bay", "id":"Bremer Bay", "locationID":[]}
+          ] }
       ]},
       {"name": "Atlantic Ocean (North)", "locationID": [
         {"name":"Azores", "id":"5", "locationID":[] },
@@ -422,9 +425,6 @@
             {"name": "Praslin", "id": "Praslin", "locationID":[]},
             {"name": "Silhouette", "id": "Silhouette", "locationID":[]}
           ]},
-          {"name":"Western Australia", "id":"Western Australia", "locationID":[
-            {"name":"Bremer Bay", "id":"Bremer Bay", "locationID":[]}
-          ] },
           {"name":"Yemen", "id":"Yemen", "locationID":[
             {"name":"Gulf of Aden", "id":"Gulf of Aden", "locationID":[]}
           ]
