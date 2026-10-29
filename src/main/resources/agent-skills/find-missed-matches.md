@@ -29,7 +29,7 @@ all-pairs comparison gets slow well before that).
    *Checking a short list of photos against a whole catalog instead?* Don't page the catalog — send
    each photo's vector as a nearest-neighbour (`knn`) query and let Wildbook return its closest
    matches. See *Nearest-neighbour search* in **api-reference**, which also covers the traps: the
-   `nested` wrapper those queries need, and the fact that similarity values are not returned, so you
+   `nested` wrapper those queries need, which vector field each model's vectors live in, and the fact that similarity values are not returned, so you
    compute them yourself from the vectors.
 2. Resolve the annotation IDs with `POST /api/v3/media/resolve` (<=100 per call) to attach
    `individualId` and the croppable image.
