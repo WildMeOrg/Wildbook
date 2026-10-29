@@ -947,9 +947,9 @@ public class IBEISIA {
             // below turns into success=false. The identify request is built from the pruned
             // target list this returns. qanns is passed unfiltered on purpose.
             JSONObject registration = new JSONObject();
+            results.put("sendAnnotationsAsNeeded", registration);
             boolean hadTargets = (tanns != null) && !tanns.isEmpty();
             tanns = sendAnnotationsAsNeeded(qanns, tanns, myShepherd, registration);
-            results.put("sendAnnotationsAsNeeded", registration);
             if (hadTargets && tanns.isEmpty()) {
                 // Use the common failure/logging path so this attempt remains observable.
                 throw new IllegalStateException(
@@ -3853,7 +3853,12 @@ public class IBEISIA {
         }
         report.put("forcedRegistered", forced);
         report.put("droppedTargets", dropped);
-        report.put("legacy", sendAnnotationsAsNeeded(legacy, myShepherd));   // today's flow, unchanged
+        JSONObject legacyRtn = sendAnnotationsAsNeeded(legacy, myShepherd);
+        report.put("legacy", legacyRtn);
+        if ((legacyRtn != null) && !legacyRtn.isNull("sendAnnotMAException")) {
+            throw new IOException("legacy WBIA registration failed: " +
+                legacyRtn.optString("sendAnnotMAException"));
+        }
         return keptTargets;
     }
 
