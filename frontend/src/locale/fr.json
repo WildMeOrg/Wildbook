@@ -472,6 +472,7 @@
   "HAS_ACM_ID": "A un acmID",
   "TOTAL_ANNOTATIONS": "Annotations totales",
   "VALID_FOR_IMAGE_ANALYSIS": "Valide pour analyse d’images",
+  "VALID_FOR_IMAGE_ANALYSIS_UNCHECKED": "{count} non vérifiées",
   "TOTAL_MARKED_INDIVIDUALS": "Total d’individus marqués",
   "IMAGES_UPLOADED_TITLE": "Images téléchargées : {count}",
   "FILE_UPLOADED_SUCCESSFULLY": "Fichier téléchargé avec succès",
