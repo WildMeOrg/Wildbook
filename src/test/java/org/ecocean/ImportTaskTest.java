@@ -135,22 +135,48 @@ class ImportTaskTest {
         when(ma.getDetectionStatus()).thenReturn(null);
         when(ma.isValidImageForIA()).thenReturn(null, true);
         ImportTask itask = summaryTask(ma);
-        when(itask.iaTaskRequestedIdentification()).thenReturn(false);
+        when(itask.skippedIdentification()).thenReturn(true);
         JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
         verify(ma, times(1)).validateSourceImage();
         assertEquals(1, sum.optInt("numberMediaAssetValidIA"));
         assertEquals("sent", sum.optString("detectionStatus"));
+        assertEquals("skipped", sum.optString("identificationStatus"));
         assertFalse(sum.optBoolean("pipelineComplete", false));
+        assertEquals(0.0, sum.optDouble("detectionPercent"), 0.0001);
+    }
+
+    // in flight, validation says invalid: not outstanding, so detection completes
+    @Test void testIaSummary_inFlightValidatedInvalidNotOutstanding() {
+        MediaAsset ma = mock(MediaAsset.class);
+
+        when(ma.getDetectionStatus()).thenReturn(null);
+        when(ma.isValidImageForIA()).thenReturn(null, false);
+        JSONObject sum = summaryTask(ma).iaSummaryJson(mock(Shepherd.class));
+        assertEquals(0, sum.optInt("numberMediaAssetValidIAUnknown"));
+        assertEquals("complete", sum.optString("detectionStatus"));
+        assertEquals(1.0, sum.optDouble("detectionPercent"), 0.0001);
+    }
+
+    @Test void testIaSummary_noAssets() {
+        ImportTask itask = summaryTask();
+
+        when(itask.getMediaAssets()).thenReturn(null);
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals(0, sum.optInt("numberMediaAssets"));
+        assertEquals("complete", sum.optString("detectionStatus"));
     }
 
     // non-LOCAL stores leave the flag null after validation; unknown must not be
     // treated as ineligible, or detection would report complete too early
     @Test void testIaSummary_inFlightStillUnknownIsOutstanding() {
         MediaAsset ma = asset(null, null);
-        JSONObject sum = summaryTask(ma).iaSummaryJson(mock(Shepherd.class));
+        ImportTask itask = summaryTask(ma);
 
+        when(itask.skippedIdentification()).thenReturn(true);
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
         assertEquals(1, sum.optInt("numberMediaAssetValidIAUnknown"));
         assertEquals("sent", sum.optString("detectionStatus"));
+        assertFalse(sum.optBoolean("pipelineComplete", false));
     }
 
     // never sent because the image is invalid: must not strand the import
