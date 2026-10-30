@@ -156,6 +156,16 @@ class AgentSkillContentTest {
             "api-reference must document the denormalized sighting date on annotations");
     }
 
+    @Test void apiReferenceKnnExampleFiltersModelInsideKnn() {
+        String md = load("/agent-skills/api-reference.md");
+        // the model term must sit in the knn clause's own filter (applied during the search), not
+        // beside the knn where it would only drop hits after the k nearest were chosen
+        assertTrue(java.util.regex.Pattern.compile(
+            "\"k\": \\d+,\\s*\"filter\": \\{ \"term\": \\{ \"embeddings\\.methodVersion\"")
+            .matcher(md).find(),
+            "kNN example must filter methodVersion inside the knn clause");
+    }
+
     @Test void serviceKeyFlowDocumented() {
         String api = load("/agent-skills/api-reference.md");
         for (String needle : new String[] {

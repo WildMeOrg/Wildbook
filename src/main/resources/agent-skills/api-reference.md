@@ -121,8 +121,9 @@ sit inside a `nested` query:
 ```json
 { "query": { "bool": {
     "must": [ { "nested": { "path": "embeddings", "query": { "bool": {
-        "must":   [ { "knn": { "embeddings.vector": { "vector": [ /* the query photo's stored vector */ ], "k": 200 } } } ],
-        "filter": [ { "term": { "embeddings.methodVersion": "<version>" } } ] } } } } ],
+        "must": [ { "knn": { "embeddings.vector": {
+            "vector": [ /* the query photo's stored vector */ ], "k": 200,
+            "filter": { "term": { "embeddings.methodVersion": "<version>" } } } } } ] } } } } ],
     "filter": [ { "term": { "matchAgainst": true } } ] } },
   "_source": { "excludes": ["embeddings.vector", "embeddings.vector_1536"] } }
 ```
@@ -133,7 +134,7 @@ Five things to know before relying on it:
   EfficientNet MiewID models, e.g. `msv4.1`, `msv5`) and `embeddings.vector_1536` holds 1536-number
   vectors (the DINOv3 model, `msv5-dinov3`). Read the query photo's vector from whichever of the two
   its embedding carries, send the `knn` against that same field, and filter on the same
-  `methodVersion`. A vector sent against the other field fails the whole request (currently a `500`
+  `methodVersion` inside the `knn` clause's own `filter` (see the last point below). A vector sent against the other field fails the whole request (currently a `500`
   with `"error": "query failed"`, the same response as other query failures). Before retrying a
   failed `knn`, check that the vector's length matches the field (2152 for `embeddings.vector`, 1536
   for `embeddings.vector_1536`); if it does not, fix the field instead of retrying.
@@ -155,10 +156,19 @@ Five things to know before relying on it:
   vectors can take a minute with them. When you do need vectors, fetch them in batches by id
   (`{"terms": {"id": [...]}}`, ~40 per call) rather than one at a time — per-request overhead, not
   payload size, is the cost that matters.
-- **Outer filters apply after the kNN, not during it.** `k` is how many neighbours the vector search
-  returns; anything in the outer `bool.filter` then removes hits from that set. Ask for a `k`
-  comfortably larger than the number of results you need, or a restrictive filter can leave you with
-  very few hits, or none.
+- **Only the `knn` clause's own `filter` applies during the search; every other filter applies
+  after it.** `k` is how many neighbours the vector search returns. A condition inside the `knn`
+  clause's `filter` narrows the candidates *before* those `k` are chosen, so put the
+  `embeddings.methodVersion` term there, as in the example: two models with the same vector length
+  share one field, and with the term anywhere else (including beside the `knn` in the nested
+  `bool`) the other model's vectors can take the `k` slots and then be thrown away, leaving few or
+  no hits. Only `embeddings.*` conditions can go inside the `knn` filter. Annotation-level
+  conditions (`matchAgainst`, taxonomy, viewpoint, and so on) must stay in the outer
+  `bool.filter`, and so does the permission filter Wildbook adds for a non-admin key, which keeps
+  only annotations you may see. All of these remove hits from the `k` already chosen, so ask for a
+  `k` comfortably larger than the number of results you need. If most of the catalog is not
+  visible to you, even a large `k` can come back with very few hits, or none, so an empty result
+  does not by itself show that no similar photo exists among the ones you can see.
 
 Be considerate with volume. An instance whose vector index has no approximate-search structure
 answers every kNN with an exact scan of all stored vectors — seconds of CPU per query, and
