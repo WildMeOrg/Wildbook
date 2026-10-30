@@ -120,10 +120,10 @@ the catalog and comparing every pair yourself. `embeddings` is a **nested** fiel
 sit inside a `nested` query:
 ```json
 { "query": { "bool": {
-    "must": [ { "nested": { "path": "embeddings", "query": { "bool": {
-        "must": [ { "knn": { "embeddings.vector": {
+    "must": [ { "nested": { "path": "embeddings", "query": {
+        "knn": { "embeddings.vector": {
             "vector": [ /* the query photo's stored vector */ ], "k": 200,
-            "filter": { "term": { "embeddings.methodVersion": "<version>" } } } } } ] } } } } ],
+            "filter": { "term": { "embeddings.methodVersion": "<version>" } } } } } } } ],
     "filter": [ { "term": { "matchAgainst": true } } ] } },
   "_source": { "excludes": ["embeddings.vector", "embeddings.vector_1536"] } }
 ```
@@ -156,19 +156,13 @@ Five things to know before relying on it:
   vectors can take a minute with them. When you do need vectors, fetch them in batches by id
   (`{"terms": {"id": [...]}}`, ~40 per call) rather than one at a time — per-request overhead, not
   payload size, is the cost that matters.
-- **Only the `knn` clause's own `filter` applies during the search; every other filter applies
-  after it.** `k` is how many neighbours the vector search returns. A condition inside the `knn`
-  clause's `filter` narrows the candidates *before* those `k` are chosen, so put the
-  `embeddings.methodVersion` term there, as in the example: two models with the same vector length
-  share one field, and with the term anywhere else (including beside the `knn` in the nested
-  `bool`) the other model's vectors can take the `k` slots and then be thrown away, leaving few or
-  no hits. Only `embeddings.*` conditions can go inside the `knn` filter. Annotation-level
-  conditions (`matchAgainst`, taxonomy, viewpoint, and so on) must stay in the outer
-  `bool.filter`, and so does the permission filter Wildbook adds for a non-admin key, which keeps
-  only annotations you may see. All of these remove hits from the `k` already chosen, so ask for a
-  `k` comfortably larger than the number of results you need. If most of the catalog is not
-  visible to you, even a large `k` can come back with very few hits, or none, so an empty result
-  does not by itself show that no similar photo exists among the ones you can see.
+- **Put `methodVersion` inside the `knn` clause's `filter`, as in the example.** That filter applies
+  while the `k` nearest are chosen, so another model's vectors (same length, same field) cannot take
+  the slots. Anywhere else, including beside the `knn`, it only removes hits afterwards and can leave
+  few or none. In this example `matchAgainst` stays in the outer `bool.filter`, and Wildbook adds its
+  permission filter for a non-admin key outside the `knn` too, so both remove hits from the `k`
+  already chosen. Ask for a `k` comfortably larger than the number of results you need. An empty
+  result does not prove that no similar photo you can see exists.
 
 Be considerate with volume. An instance whose vector index has no approximate-search structure
 answers every kNN with an exact scan of all stored vectors — seconds of CPU per query, and
