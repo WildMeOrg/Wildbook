@@ -156,6 +156,23 @@ class AgentSkillContentTest {
             "api-reference must document the denormalized sighting date on annotations");
     }
 
+    @Test void apiReferenceKnnExampleFiltersModelInsideKnn() {
+        String md = load("/agent-skills/api-reference.md");
+        // the model term must sit in the knn clause's own filter (applied during the search), not
+        // beside the knn where it would only drop hits after the k nearest were chosen
+        int start = md.indexOf("```json", md.indexOf("**Nearest-neighbour (`knn`) search"));
+        assertTrue(start >= 0, "api-reference must have a kNN example");
+        start += "```json".length();
+        String example = md.substring(start, md.indexOf("```", start))
+            .replaceAll("/\\*.*?\\*/", "0.1"); // the vector placeholder is a comment
+        org.json.JSONObject knn = new org.json.JSONObject(example).getJSONObject("query")
+            .getJSONObject("bool").getJSONArray("must").getJSONObject(0)
+            .getJSONObject("nested").getJSONObject("query").getJSONObject("knn")
+            .getJSONObject("embeddings.vector");
+        assertTrue(knn.getJSONObject("filter").toString().contains("embeddings.methodVersion"),
+            "kNN example must filter methodVersion inside the knn clause");
+    }
+
     @Test void serviceKeyFlowDocumented() {
         String api = load("/agent-skills/api-reference.md");
         for (String needle : new String[] {
