@@ -876,5 +876,16 @@
   "API_SERVICE_KEY_STATUS": "Status",
   "API_SERVICE_KEY_STATUS_ACTIVE": "Active",
   "API_SERVICE_KEY_STATUS_REVOKED": "Revoked",
-  "API_SERVICE_KEY_STATUS_EXPIRED": "Expired"
+  "API_SERVICE_KEY_STATUS_EXPIRED": "Expired",
+  "MOBILE_PACK_TITLE": "Publish a mobile site pack",
+  "MOBILE_PACK_NAME": "Pack name",
+  "MOBILE_PACK_PIPELINE": "Species and body region",
+  "MOBILE_PACK_SELECT": "Select a configured mobile detector",
+  "MOBILE_PACK_ID": "Existing pack ID (leave blank for a new pack)",
+  "MOBILE_PACK_PUBLIC_CONFIRM": "I am authorized to publish these identities and photos publicly, including any private or unapproved records in this search.",
+  "MOBILE_PACK_PUBLISH": "Publish Pack",
+  "MOBILE_PACK_ERROR": "Publication or status lookup failed. Check configuration and try again.",
+  "MOBILE_PACK_READY": "Pack ready. Code:",
+  "MOBILE_PACK_QR": "Pack QR code",
+  "MOBILE_PACK_SKIPPED": "Skipped records without a known identity or compatible embedding: {count}"
 }

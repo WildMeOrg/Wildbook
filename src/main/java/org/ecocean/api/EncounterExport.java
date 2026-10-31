@@ -84,7 +84,7 @@ public class EncounterExport extends ApiBase {
      * This handles both the old direct foreign key and new join table relationships
      * in a single efficient query.
      */
-    private static Map<String, MarkedIndividual> buildEncounterIndividualMap(Shepherd myShepherd,
+    public static Map<String, MarkedIndividual> buildEncounterIndividualMap(Shepherd myShepherd,
         List<Encounter> encounters)
     throws Exception {
         Map<String, MarkedIndividual> map = new HashMap<>();

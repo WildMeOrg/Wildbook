@@ -66,6 +66,32 @@ class OpenSearchDocValuesSnapshotTest {
         assertTrue(deletes.get(0).contains("audit-pit-next"));
     }
 
+    @Test void queryScanKeepsFilterAndSourceWithoutMutatingSavedQuery() throws Exception {
+        OpenSearch os = spy(new OpenSearch());
+        List<JSONObject> searches = new ArrayList<>();
+        doAnswer(inv -> {
+            Request request = inv.getArgument(0);
+            if ("DELETE".equals(request.getMethod())) return "{}";
+            if (request.getEndpoint().endsWith("point_in_time"))
+                return new JSONObject().put("pit_id", "pack-pit").put("_shards", shards(0)).toString();
+            searches.add(new JSONObject(EntityUtils.toString(request.getEntity())));
+            return new JSONObject().put("_shards", shards(0)).put("hits",
+                new JSONObject().put("hits", new JSONArray())).toString();
+        }).when(os).getRestResponse(any(Request.class));
+        JSONObject saved = new JSONObject().put("query", new JSONObject().put("term",
+            new JSONObject().put("species", "horse"))).put("from", 100).put("search_after", new JSONArray().put("old"));
+        try (OpenSearch.DocValuesSnapshot view = os.openDocValuesSnapshot(INDICES, "5m")) {
+            view.scanQuery("encounter", saved, new ArrayList<>(), 500, true, hits -> {});
+        }
+        JSONObject body = searches.get(0);
+        assertTrue(body.getBoolean("_source"));
+        assertFalse(body.has("from"));
+        assertFalse(body.has("search_after"));
+        assertEquals("horse", body.getJSONObject("query").getJSONObject("bool").getJSONArray("filter")
+            .getJSONObject(1).getJSONObject("term").getString("species"));
+        assertEquals(100, saved.getInt("from"));
+    }
+
     @Test void failedOrMalformedPageClosesThePitWithoutReopeningIt() throws Exception {
         for (String failure : Arrays.asList("expired", "partial", "missing-sort")) {
             OpenSearch os = spy(new OpenSearch());

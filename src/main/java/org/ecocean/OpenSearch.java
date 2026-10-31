@@ -1333,13 +1333,26 @@ public class OpenSearch {
         public void scan(String index, java.util.List<String> fields, int pageSize,
             DocValuesPageConsumer consumer)
         throws IOException {
+            scanQuery(index, new JSONObject().put("query", new JSONObject().put("term",
+                new JSONObject().put("_index", index))), fields, pageSize, false, consumer);
+        }
+
+        /** Scan a server-sanitized search with an isolated PIT and fail-closed pagination. */
+        public void scanQuery(String index, JSONObject sanitized, java.util.List<String> fields,
+            int pageSize, boolean includeSource, DocValuesPageConsumer consumer)
+        throws IOException {
             if ((pitId == null) || !indices.contains(index))
                 throw new IOException("index is outside the audit snapshot: " + index);
-            JSONObject body = new JSONObject().put("_source", false)
+            JSONObject body = new JSONObject(sanitized.toString()).put("_source", includeSource)
                 .put("docvalue_fields", new JSONArray(fields)).put("seq_no_primary_term", true)
                 .put("size", pageSize).put("track_total_hits", false)
-                .put("query", new JSONObject().put("term", new JSONObject().put("_index", index)))
                 .put("sort", new JSONArray().put(new JSONObject().put("id", "asc")));
+            body.remove("from");
+            body.remove("search_after");
+            // A snapshot may span multiple indices; this scan must stay within the selected one.
+            body.put("query", new JSONObject().put("bool", new JSONObject().put("filter", new JSONArray()
+                .put(new JSONObject().put("term", new JSONObject().put("_index", index)))
+                .put(body.optJSONObject("query") == null ? new JSONObject().put("match_all", new JSONObject()) : body.getJSONObject("query")))));
             JSONArray after = null;
             while (true) {
                 if (Thread.currentThread().isInterrupted())
