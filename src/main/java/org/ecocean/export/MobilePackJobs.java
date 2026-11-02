@@ -46,7 +46,7 @@ public final class MobilePackJobs {
             int[] bbox = annotation.getBbox();
             this.box = bbox == null ? null : bbox.clone();
             // Stored boxes are upright-frame pixels on EXIF-rotated assets; theta describes a rotated box.
-            this.rotationInfo = annotation.getMediaAsset().getRotationInfo();
+            this.rotationInfo = asset.getRotationInfo();
             this.theta = annotation.getTheta();
         }
     }

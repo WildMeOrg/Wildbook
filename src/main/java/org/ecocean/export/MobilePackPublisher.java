@@ -50,6 +50,9 @@ public final class MobilePackPublisher {
         if (status == 400)
             throw new IllegalArgumentException(
                 "The pack registry rejected the release metadata; check the IA.json mobile profile");
+        if (status == 422)
+            throw new IllegalArgumentException(
+                "The pack registry reports the uploaded archive or the released embedding model is missing; retry the export");
         throw new IOException("Pack registry returned HTTP " + status);
     }
 

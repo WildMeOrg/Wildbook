@@ -52,6 +52,10 @@ class MobilePackPublisherTest {
         assertTrue(invalid instanceof IllegalArgumentException, invalid.toString());
         assertTrue(invalid.getMessage().startsWith("The pack registry rejected the release metadata"), invalid.getMessage());
 
+        Exception missing = publishAgainst(422);
+        assertTrue(missing instanceof IllegalArgumentException, missing.toString());
+        assertTrue(missing.getMessage().startsWith("The pack registry reports the uploaded archive or the released embedding model is missing"), missing.getMessage());
+
         Exception failure = publishAgainst(500);
         assertTrue(failure instanceof IOException, failure.toString());
         assertEquals("Pack registry returned HTTP 500", failure.getMessage());
