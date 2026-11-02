@@ -16,10 +16,20 @@ public final class MobilePackPublisher {
         .followRedirects(HttpClient.Redirect.NEVER).build();
 
     public MobilePackPublisher(String context) {
-        base = CommonConfiguration.getProperty("mobilePackServiceUrl", context);
-        MobilePackConfiguration.https(base);
-        token = CommonConfiguration.getApiAccessProperty("mobilePackPublisherToken", context);
+        this(validated(CommonConfiguration.getProperty("mobilePackServiceUrl", context)),
+            CommonConfiguration.getApiAccessProperty("mobilePackPublisherToken", context));
+    }
+
+    /** Package-private: takes the base as given so tests can point at an in-process server. */
+    MobilePackPublisher(String base, String token) {
         if (token == null || token.isBlank()) throw new IllegalArgumentException("Publisher token is not configured");
+        this.base = base;
+        this.token = token;
+    }
+
+    private static String validated(String base) {
+        MobilePackConfiguration.https(base);
+        return base;
     }
 
     private JSONObject post(String path, JSONObject body) throws Exception {
@@ -28,9 +38,19 @@ public final class MobilePackPublisher {
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(body.toString())).build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() < 200 || response.statusCode() >= 300)
-            throw new IOException("Pack registry returned HTTP " + response.statusCode());
-        return new JSONObject(response.body());
+        int status = response.statusCode();
+        if (status >= 200 && status < 300) return new JSONObject(response.body());
+        // Registry outcomes an administrator can act on are surfaced verbatim in the job status.
+        if (status == 409)
+            throw new IllegalArgumentException(
+                "The pack registry reports a newer release for this pack; review the current publication before exporting again");
+        if (status == 403)
+            throw new IllegalArgumentException(
+                "The pack registry rejected the publisher token or instance URL; check mobilePackPublisherToken and mobilePackInstanceUrl");
+        if (status == 400)
+            throw new IllegalArgumentException(
+                "The pack registry rejected the release metadata; check the IA.json mobile profile");
+        throw new IOException("Pack registry returned HTTP " + status);
     }
 
     public JSONObject publish(JSONObject descriptor, Path archive) throws Exception {

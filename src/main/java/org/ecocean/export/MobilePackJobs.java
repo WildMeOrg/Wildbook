@@ -5,11 +5,12 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.security.MessageDigest;
 import java.util.*;
 import java.util.List;
 import javax.imageio.ImageIO;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.ecocean.*;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.api.EncounterExport;
 import org.ecocean.queue.Queue;
 import org.ecocean.queue.QueueMessageHandler;
@@ -37,10 +38,12 @@ public final class MobilePackJobs {
         final int[] box;
         final String rotationInfo;
         final double theta;
-        PhotoTask(Annotation annotation, Path output) {
-            if (annotation.getMediaAsset() == null || annotation.getMediaAsset().localPath() == null)
+        PhotoTask(Annotation annotation, Path output) throws Exception {
+            MediaAsset asset = annotation.getMediaAsset();
+            if (asset != null && asset.localPath() == null) asset.cacheLocal(); // remote asset stores
+            if (asset == null || asset.localPath() == null)
                 throw new IllegalArgumentException("Reference photos must be available locally for export");
-            this.source = annotation.getMediaAsset().localPath();
+            this.source = asset.localPath();
             this.output = output;
             int[] bbox = annotation.getBbox();
             this.box = bbox == null ? null : bbox.clone();
@@ -68,13 +71,18 @@ public final class MobilePackJobs {
         // FileQueue is at-most-once. Surface interrupted work instead of leaving a permanent spinner.
         try (java.util.stream.Stream<Path> jobs = Files.list(root(context))) {
             for (Path path : (Iterable<Path>)jobs.filter(file -> file.getFileName().toString().matches("[a-f0-9-]{36}\\.json"))::iterator) {
-                JSONObject pending = new JSONObject(Files.readString(path));
-                String id = pending.getString("jobId");
-                if ("queued".equals(pending.optString("status"))) {
-                    queue.publish(id);
-                } else if (java.util.Arrays.asList("building", "publishing").contains(pending.optString("status"))) {
-                    pending.put("status", "failed").put("message", "Server restarted during export; start a new export to retry");
-                    save(context, id, pending);
+                try {
+                    JSONObject pending = new JSONObject(Files.readString(path));
+                    String id = pending.getString("jobId");
+                    if ("queued".equals(pending.optString("status"))) {
+                        queue.publish(id);
+                    } else if (java.util.Arrays.asList("building", "publishing").contains(pending.optString("status"))) {
+                        pending.put("status", "failed").put("message", "Server restarted during export; start a new export to retry");
+                        save(context, id, pending);
+                    }
+                } catch (Exception ex) {
+                    // One unreadable job file must not keep every other export from starting.
+                    System.err.println("Mobile pack job file skipped during startup: " + path.getFileName() + " " + ex);
                 }
             }
         }
@@ -115,8 +123,9 @@ public final class MobilePackJobs {
     private static void run(String context, String id) throws IOException {
         JSONObject job = read(context, id);
         if (java.util.Arrays.asList("ready", "failed").contains(job.optString("status"))) return;
-        Path work = Files.createTempDirectory(root(context), "build-");
+        Path work = null;
         try {
+            work = Files.createTempDirectory(root(context), "build-");
             job.put("status", "building"); save(context, id, job);
             build(context, job, work);
             job.put("status", "ready");
@@ -124,13 +133,22 @@ public final class MobilePackJobs {
             // No artifact URLs, tokens, or sensitive search filters in public status/errors.
             job.put("status", "failed").put("message", ex instanceof IllegalArgumentException ?
                 ex.getMessage() : "Pack export failed; check server configuration and retry the export");
-            System.err.println("Mobile pack job " + id + " failed: " + ex.getClass().getSimpleName());
+            System.err.println("Mobile pack job " + id + " failed: " + ex);
         } finally {
-            save(context, id, job);
-            try (java.util.stream.Stream<Path> files = Files.walk(work)) {
-                for (Path file : (Iterable<Path>)files.sorted(Comparator.reverseOrder())::iterator)
-                    Files.deleteIfExists(file);
+            try {
+                save(context, id, job);
+            } finally {
+                if (work != null) removeTree(work);
             }
+        }
+    }
+
+    private static void removeTree(Path work) {
+        try (java.util.stream.Stream<Path> files = Files.walk(work)) {
+            for (Path file : (Iterable<Path>)files.sorted(Comparator.reverseOrder())::iterator)
+                Files.deleteIfExists(file);
+        } catch (IOException ex) {
+            System.err.println("Mobile pack build directory could not be removed: " + work + " " + ex);
         }
     }
 
@@ -149,6 +167,7 @@ public final class MobilePackJobs {
                 throw new IllegalArgumentException("An Encounter Search is required");
             JSONObject sanitized = OpenSearch.querySanitize(OpenSearch.queryScrubStored(stored), owner, shepherd);
             List<Encounter> encounters = new ArrayList<>();
+            int[] stale = {0};
             OpenSearch search = new OpenSearch();
             try (OpenSearch.DocValuesSnapshot snapshot = search.openDocValuesSnapshot(List.of("encounter"), "5m")) {
                 snapshot.scanQuery("encounter", sanitized, Collections.emptyList(), 500, true, hits -> {
@@ -156,11 +175,12 @@ public final class MobilePackJobs {
                         JSONObject hit = hits.getJSONObject(n);
                         if (!Encounter.opensearchAccess(hit.getJSONObject("_source"), owner, shepherd)) continue;
                         Encounter encounter = shepherd.getEncounter(hit.getString("_id"));
-                        if (encounter == null) throw new IOException("Encounter changed during export");
+                        // The index can lag deletions; a vanished record is counted, not fatal.
+                        if (encounter == null) { stale[0]++; continue; }
                         if (!owner.isAdmin(shepherd) && !encounter.canUserAccess(owner, shepherd)) continue;
                         encounters.add(encounter); encounterIds.add(encounter.getCatalogNumber());
                         if (encounters.size() > MAX_ENCOUNTERS)
-                            throw new IOException("Narrow the search to at most " + MAX_ENCOUNTERS + " encounters");
+                            throw new IllegalArgumentException("Narrow the search to at most " + MAX_ENCOUNTERS + " encounters");
                     }
                 });
             }
@@ -206,8 +226,11 @@ public final class MobilePackJobs {
                 }
             }
             individuals = new ArrayList<>(groups.values());
-            job.put("skippedCount", skipped);
+            job.put("skippedCount", skipped + stale[0]);
         } finally { shepherd.rollbackAndClose(); }
+        // Fail before decoding or uploading anything if the released model is not where the profile says.
+        JSONObject released = profile.model();
+        MobilePackArtifacts.preflight(released.getString("downloadUrl"), released.getLong("sizeBytes"));
         // Image decoding never holds a database connection or persistent objects.
         for (PhotoTask photo : photos) referencePhoto(photo);
         JSONObject detector = profile.detector();
@@ -238,10 +261,7 @@ public final class MobilePackJobs {
     }
 
     public static String scopedIdentity(String instance, String source) throws Exception {
-        byte[] bytes = MessageDigest.getInstance("SHA-256").digest((instance + "\n" + source).getBytes(StandardCharsets.UTF_8));
-        StringBuilder id = new StringBuilder("wb-");
-        for (byte value : bytes) id.append(String.format("%02x", value & 255));
-        return id.toString();
+        return "wb-" + DigestUtils.sha256Hex(instance + "\n" + source);
     }
 
     private static void referencePhoto(PhotoTask photo) throws Exception {

@@ -3,22 +3,38 @@ package org.ecocean.export;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.nio.file.*;
-import java.security.MessageDigest;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONObject;
 
 /** Content-addressed cache for administrator-configured, immutable artifacts. */
 public final class MobilePackArtifacts {
     private MobilePackArtifacts() {}
     public static String sha256(Path path) throws Exception {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
         try (InputStream in = Files.newInputStream(path)) {
-            byte[] buffer = new byte[65536];
-            int n;
-            while ((n = in.read(buffer)) != -1) digest.update(buffer, 0, n);
+            return DigestUtils.sha256Hex(in);
         }
-        StringBuilder value = new StringBuilder();
-        for (byte b : digest.digest()) value.append(String.format("%02x", b & 255));
-        return value.toString();
+    }
+
+    /** HEAD an administrator-released artifact and require the configured length before any expensive work. */
+    public static void preflight(String url, long sizeBytes) {
+        MobilePackConfiguration.https(url);
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection)java.net.URI.create(url).toURL().openConnection();
+            connection.setRequestMethod("HEAD");
+            connection.setInstanceFollowRedirects(false);
+            connection.setConnectTimeout(15000);
+            connection.setReadTimeout(15000);
+            if (connection.getResponseCode() != 200 || connection.getContentLengthLong() != sizeBytes)
+                throw new IllegalArgumentException(
+                    "Embedding model is not available at its download URL with the configured size");
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(
+                "Embedding model is not available at its download URL with the configured size (" +
+                ex.getClass().getSimpleName() + ")");
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
     }
 
     public static Path fetch(Path cache, String url, String hash, long maxBytes) throws Exception {
