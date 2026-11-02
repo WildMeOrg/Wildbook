@@ -122,6 +122,7 @@
 				/api/v3/bulk-import = authc
 				/api/v3/bulk-import/** = authc
 
+				/api/v3/mobile-packs = authc, roles[admin]
 				/api/v3/bulk-export = authc, roles[researcher]
 				/api/v3/bulk-export/** = authc, roles[researcher]
 				/api/v3/match-inspection/** = authc
@@ -613,6 +614,15 @@
 		<servlet-name>AgentSkill</servlet-name>
 		<url-pattern>/api/v3/agent-skill</url-pattern>
 		<url-pattern>/api/v3/agent-skill/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>MobilePackExport</servlet-name>
+		<servlet-class>org.ecocean.api.MobilePackExport</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>MobilePackExport</servlet-name>
+		<url-pattern>/api/v3/mobile-packs</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
