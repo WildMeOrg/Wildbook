@@ -388,7 +388,18 @@ const BulkImportTask = observer(() => {
                   id: "VALID_FOR_IMAGE_ANALYSIS",
                   defaultMessage: "Valid for Image Analysis",
                 }),
-                value: task?.iaSummary?.numberMediaAssetValidIA || 0,
+                // images whose detection already finished are not re-checked
+                // on every poll, so their validity can be unknown; show that
+                // separately rather than counting it as valid or invalid
+                value: task?.iaSummary?.numberMediaAssetValidIAUnknown
+                  ? `${task?.iaSummary?.numberMediaAssetValidIA || 0} (${intl.formatMessage(
+                      {
+                        id: "VALID_FOR_IMAGE_ANALYSIS_UNCHECKED",
+                        defaultMessage: "{count} unchecked",
+                      },
+                      { count: task.iaSummary.numberMediaAssetValidIAUnknown },
+                    )})`
+                  : task?.iaSummary?.numberMediaAssetValidIA || 0,
               },
               {
                 label: intl.formatMessage({

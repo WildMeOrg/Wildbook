@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -185,11 +186,16 @@ public class ImportTask implements java.io.Serializable {
     public List<MediaAsset> getMediaAssets() {
         if (encounters == null) return null;
         List<MediaAsset> mas = new ArrayList<MediaAsset>();
+        // dont want duplicates. identity (not equals) is "same asset" here because the
+        // encounters are attached to one PersistenceManager, which hands back one instance
+        // per row; a set keeps this O(n) instead of O(n^2) list.contains() on big imports
+        Set<MediaAsset> seen = Collections.newSetFromMap(new IdentityHashMap<MediaAsset,
+            Boolean>());
         for (Encounter enc : encounters) {
             ArrayList<MediaAsset> encMAs = enc.getMedia();
             if (Util.collectionSize(encMAs) > 0)
                 for (MediaAsset ma : encMAs) {
-                    if (!mas.contains(ma)) mas.add(ma); // dont want duplicates
+                    if (seen.add(ma)) mas.add(ma);
                 }
         }
         return mas;
@@ -818,28 +824,22 @@ public class ImportTask implements java.io.Serializable {
         int numDetectionError = 0;
         int numAcmId = 0;
         int numAllowedIA = 0;
+        int numValidIAUnknown = 0;
+        // assets that may still be detected: not in a terminal detection state and not
+        // known to be invalid for IA. detection is complete when this reaches zero.
+        int numDetectionOutstanding = 0;
         int numAssets = 0;
         int numAnnotations = 0;
         boolean pipelineStarted = false;
         Map<String, Integer> statsMA = this.statsMediaAssets();
         JSONObject statsAnn = this.statsAnnotations(myShepherd);
+        List<MediaAsset> mas = this.getMediaAssets();
 
-        if (this.getMediaAssets() != null)
-            numAssets = this.getMediaAssets().size();
-        for (MediaAsset ma : this.getMediaAssets()) {
+        if (mas == null) mas = new ArrayList<MediaAsset>();
+        numAssets = mas.size();
+        for (MediaAsset ma : mas) {
             numAnnotations += ma.numAnnotations();
             if (ma.getAcmId() != null) numAcmId++;
-            // check if we can get validity off the image before the expensive check of hitting the AssetStore
-            if (ma.isValidImageForIA() != null) {
-                if (ma.isValidImageForIA().booleanValue()) numAllowedIA++;
-            } else if (ma.validateSourceImage()) {
-                numAllowedIA++;
-            }
-/*
-                if ((ma.isValidImageForIA() == null) || !ma.isValidImageForIA().booleanValue()) {
-                    invalidMediaAssets.add(asset);
-                }
- */
             // Terminal detection statuses include the completion states
             // (complete, complete-mlservice, pending — needs user review)
             // plus the failure/blocked terminal states (pending-species —
@@ -849,14 +849,30 @@ public class ImportTask implements java.io.Serializable {
             // retryable errors never reports 100% detection complete and
             // the frontend polls forever.
             String ds = ma.getDetectionStatus();
-            if (IBEISIA.STATUS_COMPLETE.equals(ds) ||
+            boolean terminal = IBEISIA.STATUS_COMPLETE.equals(ds) ||
                 IBEISIA.STATUS_COMPLETE_MLSERVICE.equals(ds) ||
                 IBEISIA.STATUS_PENDING.equals(ds) ||
                 IBEISIA.STATUS_PENDING_SPECIES.equals(ds) ||
-                IBEISIA.STATUS_ERROR.equals(ds)) {
+                IBEISIA.STATUS_ERROR.equals(ds);
+            if (terminal) {
                 numDetectionComplete++;
                 if (IBEISIA.STATUS_ERROR.equals(ds)) numDetectionError++;
             }
+            // validateSourceImage() fully decodes the image file, and this GET never
+            // persists the result, so only pay for it while the answer can still affect
+            // detection progress. once an asset is terminal its validity is moot here.
+            Boolean valid = ma.isValidImageForIA();
+            if ((valid == null) && !terminal) {
+                ma.validateSourceImage();
+                valid = ma.isValidImageForIA(); // still null for non-LOCAL stores
+            }
+            if (valid == null) {
+                numValidIAUnknown++;
+            } else if (valid.booleanValue()) {
+                numAllowedIA++;
+            }
+            // unknown validity counts as outstanding so it can't fake completion
+            if (!terminal && !Boolean.FALSE.equals(valid)) numDetectionOutstanding++;
         }
         JSONObject pj = new JSONObject();
         pj.put("statsMediaAssets", statsMA);
@@ -865,6 +881,7 @@ public class ImportTask implements java.io.Serializable {
         pj.put("numberAnnotations", numAnnotations);
         pj.put("numberMediaAssetACMIds", numAcmId);
         pj.put("numberMediaAssetValidIA", numAllowedIA);
+        pj.put("numberMediaAssetValidIAUnknown", numValidIAUnknown);
         pj.put("detectionNumberComplete", numDetectionComplete);
         // Backend signal for "detection finished, but some assets errored".
         // Aggregate detectionStatus stays "complete" (so frontend polling
@@ -874,9 +891,10 @@ public class ImportTask implements java.io.Serializable {
         // non-legacy flavor
         if ((this.getIATask() != null) && this.iaTaskStarted()) {
             pipelineStarted = true;
-            // `>=` rather than `==` so non-IA-eligible MAs that land in a
-            // terminal detection state don't strand the import at "sent".
-            if (numDetectionComplete >= numAllowedIA) {
+            // decided per asset rather than comparing totals, so non-IA-eligible MAs
+            // don't strand the import at "sent" and terminal ineligible MAs can't pad
+            // the count past eligible MAs that are still in flight.
+            if (numDetectionOutstanding == 0) {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
