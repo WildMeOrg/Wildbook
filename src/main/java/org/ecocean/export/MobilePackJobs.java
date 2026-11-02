@@ -38,10 +38,7 @@ public final class MobilePackJobs {
         final double theta;
         PhotoTask(Annotation annotation, Path output) throws Exception {
             MediaAsset asset = annotation.getMediaAsset();
-            if (asset != null && asset.localPath() == null) asset.cacheLocal(); // remote asset stores
-            if (asset == null || asset.localPath() == null)
-                throw new IllegalArgumentException("Reference photos must be available locally for export");
-            this.source = asset.localPath();
+            this.source = localFile(asset);
             this.output = output;
             int[] bbox = annotation.getBbox();
             this.box = bbox == null ? null : bbox.clone();
@@ -49,6 +46,19 @@ public final class MobilePackJobs {
             this.rotationInfo = asset.getRotationInfo();
             this.theta = annotation.getTheta();
         }
+    }
+
+    /** The asset's bytes on local disk, fetched through the asset store when localPath() names a file not present yet. */
+    static Path localFile(MediaAsset asset) throws Exception {
+        if (asset == null) throw new IllegalArgumentException("Reference photos must be available locally for export");
+        Path local = asset.localPath();
+        if (local == null || !Files.isRegularFile(local)) {
+            asset.cacheLocal(); // URL-backed stores name a /tmp file before it has been fetched
+            local = asset.localPath();
+        }
+        if (local == null || !Files.isRegularFile(local))
+            throw new IllegalArgumentException("Reference photos must be available locally for export");
+        return local;
     }
 
     public static Path root(String context) throws IOException {
