@@ -14,6 +14,8 @@ mobilePackWorkDir=/data/private/mobile-pack-jobs
 
 The work directory MUST be outside all served web roots and restricted to the Tomcat account. It contains owner-scoped job state, temporary photos and ZIPs, and the verified artifact cache. Provide adequate disk capacity. Normal builds remove temporary assets; inspect/remove abandoned `build-*` directories after process crashes, while no export is running. Job JSON records remain for audit/status; apply an operational retention policy.
 
+Run the publisher on exactly one Wildbook node per database. Job records and the `mobile-packs-<context>` file queue are both node-local, so a second node cannot read jobs accepted by the first; multi-node deployments must keep `mobilePackWorkDir` and the queue directory on the node that serves the export dialog.
+
 In the private data-directory `apiAccessKeys.properties` override:
 
 ```properties
@@ -21,6 +23,10 @@ mobilePackPublisherToken=<instance-specific-secret>
 ```
 
 The Azure registry must register the corresponding token hash and exactly matching `mobilePackInstanceUrl`. No Azure SDK or storage account keys are required in Wildbook.
+
+## Deploy the descriptor changes
+
+The Maven WAR excludes `WEB-INF/web.xml` (`packagingExcludes` in `pom.xml`), so the Shiro rule `/api/v3/mobile-packs = authc, roles[admin]` and the `MobilePackExport` servlet mapping do not ship with the build. Roll both out through the installation descriptor process before enabling publication; a WAR-only deployment leaves the endpoint unregistered.
 
 ## Configure IA.json
 
@@ -86,27 +92,27 @@ The model release owner must validate ONNX runtime compatibility, stretch-resize
 ## Workflow
 
 1. Search for one species and open Export.
-2. Choose a configured species/body region and a display name. Leave pack ID blank for a new code; retain the returned ID when publishing updates to the same site.
+2. Choose a configured species/body region and a display name. The dialog sends the profile's taxonomy with the feature class, and the worker refuses a search whose species differs from that selection. Leave pack ID blank for a new code; retain the returned ID when publishing updates to the same site.
 3. Confirm public release and publish. The API queues a supervised background export and the dialog polls owner-only status.
 4. The worker reloads the user and sanitized saved search, scans an isolated OpenSearch snapshot, reuses existing join-table-aware individual mapping, and selects cached embeddings by explicit method/version.
-5. Unidentified records or annotations without compatible embeddings are skipped and counted. Other feature classes are intentionally excluded. No ML inference is triggered. Maximum scope: 1,000 encounters and 5,000 embedding vectors; narrow larger searches.
-6. The ZIP contains raw float32 little-endian embeddings, a contiguous individual index, up to two resized reference JPEGs per individual, the detector, and configuration. Reference assets must be locally available images no larger than 40 megapixels. Public individual IDs are stable SHA-256-derived source-scoped identifiers. Private query/user details and EXIF are not included.
-7. The exporter rechecks publication privileges, uploads directly with a scoped SAS, and finalizes the release. The dialog shows the code, URL and QR.
+5. Unidentified records, annotations without compatible embeddings, and index hits whose encounter no longer exists are skipped and counted. Other feature classes are intentionally excluded. No ML inference is triggered. Maximum scope: 1,000 encounters and 5,000 embedding vectors; narrow larger searches.
+6. The ZIP contains raw float32 little-endian embeddings, a contiguous individual index, up to two resized reference JPEGs per individual, the detector, and configuration. Reference assets are read through the asset store (remote stores are cached locally first) and must decode to no more than 40 megapixels; crops are taken in the EXIF-upright frame and honour rotated boxes (theta). Public individual IDs are stable SHA-256-derived source-scoped identifiers. Private query/user details and EXIF are not included.
+7. The exporter checks that the released embedding model is reachable at its download URL with the configured size, rechecks publication privileges, uploads directly with a scoped SAS, and finalizes the release. A registry conflict (a newer release became current), a rejected token/instance URL, or rejected metadata is reported verbatim in the job status. The dialog shows the code, URL and QR.
 
-Search membership is captured during the background run, not when the button was clicked. Mixed species fail. Existing missing-embedding workflows can be used before exporting again. The skipped count combines missing known identities and missing compatible annotation embeddings; it is not a count of all excluded search hits.
+Search membership is captured during the background run, not when the button was clicked. Mixed species fail. Existing missing-embedding workflows can be used before exporting again. The skipped count combines missing known identities, missing compatible annotation embeddings, and index hits whose encounter has since been removed; it is not a count of all excluded search hits.
 
 The file queue is at-most-once. Startup republishes queued jobs and marks previously building/publishing jobs failed with a retry instruction. A new export gets a new immutable version; a lost completion acknowledgement may already have published the previous release, so inspect the code before retrying. Competing exports can return a conflict instead of overwriting a newer release.
 
 ## API
 
-- `GET /api/v3/mobile-packs`: administrator capability and configured feature-class choices.
-- `POST /api/v3/mobile-packs`: `{searchQueryId, featureClass, displayName, confirmPublic:true, packId?}`; requires session auth, administrator role, and `X-Requested-With: XMLHttpRequest`. Returns 202 with job and pack IDs.
+- `GET /api/v3/mobile-packs`: administrator capability and configured profiles (`taxonomy`, `featureClass`, `label`).
+- `POST /api/v3/mobile-packs`: `{searchQueryId, taxonomy, featureClass, displayName, confirmPublic:true, packId?}`; requires session auth, administrator role, and `X-Requested-With: XMLHttpRequest`. Returns 202 with job and pack IDs.
 - `GET /api/v3/mobile-packs?jobId=...`: job-owner-only status; no ZIP or filesystem paths are returned.
 
 Reuses `QueueUtil`, `OpenSearch.DocValuesSnapshot`, `EncounterExport.buildEncounterIndividualMap`, and `Annotation.getEmbeddingByMethod`. ml-service is unchanged.
 
 ## Validation
 
-Run targeted Maven tests for MobilePackArchiveTest, IAJsonPropertiesTest, OpenSearchDocValuesSnapshotTest and OpenSearchPaginationTest, plus the frontend MobilePackExport tests. Database, live storage, deployed permissions, and physical-device inference need integration acceptance before enabling publication in production.
+Run targeted Maven tests for MobilePackArchiveTest, MobilePackConfigurationTest, MobilePackPublisherTest, ReferenceCropTest, IAJsonPropertiesTest, OpenSearchDocValuesSnapshotTest and OpenSearchPaginationTest, plus the frontend MobilePackExport tests. Database, live storage, deployed permissions, and physical-device inference need integration acceptance before enabling publication in production.
 
 The administrator’s confirmation authorizes public publication of the selected data, including records that were private or unapproved in Wildbook. Review the search before publishing. V1 caps each export at 1,000 encounters and 5,000 embeddings, and decodes reference images after closing the database transaction. Missing reference media fails the export rather than silently changing the selected gallery.
