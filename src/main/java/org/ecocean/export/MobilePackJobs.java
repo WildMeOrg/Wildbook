@@ -35,6 +35,8 @@ public final class MobilePackJobs {
     private static final class PhotoTask {
         final Path source, output;
         final int[] box;
+        final String rotationInfo;
+        final double theta;
         PhotoTask(Annotation annotation, Path output) {
             if (annotation.getMediaAsset() == null || annotation.getMediaAsset().localPath() == null)
                 throw new IllegalArgumentException("Reference photos must be available locally for export");
@@ -42,6 +44,9 @@ public final class MobilePackJobs {
             this.output = output;
             int[] bbox = annotation.getBbox();
             this.box = bbox == null ? null : bbox.clone();
+            // Stored boxes are upright-frame pixels on EXIF-rotated assets; theta describes a rotated box.
+            this.rotationInfo = annotation.getMediaAsset().getRotationInfo();
+            this.theta = annotation.getTheta();
         }
     }
 
@@ -254,19 +259,8 @@ public final class MobilePackJobs {
             } finally { reader.dispose(); }
         }
         if (image == null) throw new IllegalArgumentException("Reference photo is not a supported image");
-        int[] box = photo.box;
-        if (box != null && box.length == 4) {
-            int x = Math.max(0, box[0]), y = Math.max(0, box[1]);
-            int width = Math.min(box[2], image.getWidth() - x), height = Math.min(box[3], image.getHeight() - y);
-            if (width <= 0 || height <= 0) throw new IllegalArgumentException("Invalid reference crop");
-            image = image.getSubimage(x, y, width, height);
-        }
-        double scale = Math.min(1.0, 640.0 / Math.max(image.getWidth(), image.getHeight()));
-        BufferedImage thumbnail = new BufferedImage(Math.max(1, (int)(image.getWidth() * scale)),
-            Math.max(1, (int)(image.getHeight() * scale)), BufferedImage.TYPE_INT_RGB);
-        Graphics2D graphics = thumbnail.createGraphics();
-        try { graphics.drawImage(image, 0, 0, thumbnail.getWidth(), thumbnail.getHeight(), null); }
-        finally { graphics.dispose(); }
+        BufferedImage thumbnail = ReferenceCrop.fit(
+            ReferenceCrop.crop(image, photo.rotationInfo, photo.box, photo.theta), 640);
         if (!ImageIO.write(thumbnail, "jpg", photo.output.toFile())) throw new IOException("Could not encode reference photo");
     }
 }

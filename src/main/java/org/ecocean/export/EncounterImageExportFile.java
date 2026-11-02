@@ -68,16 +68,13 @@ public class EncounterImageExportFile {
                         displayName, e.getID(), annotatationIdx++));
                     outputStream.putNextEntry(croppedImageEntry);
                     BufferedImage originalImage = ImageIO.read(imageUrl.toURL());
-                    BufferedImage croppedImage;
                     int[] bbox = a.getBbox();
-                    if (bbox == null || bbox.length < 4 || bbox[2] == 0 || bbox[3] == 0) {
-                        croppedImage = originalImage;
-                    } else {
-                        croppedImage = originalImage.getSubimage(bbox[0], bbox[1], bbox[2],
-                            bbox[3]);
-                        System.out.printf("  Cropped to [%d,%d,%d,%d] %n", bbox[0], bbox[1],
-                            bbox[2], bbox[3]);
-                    }
+                    // Boxes are upright-frame pixels on EXIF-rotated assets and may carry a theta.
+                    BufferedImage croppedImage = ReferenceCrop.crop(originalImage,
+                        ma.getRotationInfo(), bbox, a.getTheta());
+                    if (bbox != null && bbox.length == 4)
+                        System.out.printf("  Cropped to [%d,%d,%d,%d] theta=%.4f%n", bbox[0], bbox[1],
+                            bbox[2], bbox[3], a.getTheta());
                     ImageIO.write(croppedImage, "jpg", outputStream);
                     outputStream.closeEntry();
                 } catch (Exception ex) {
