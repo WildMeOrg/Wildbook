@@ -219,7 +219,6 @@ public class BaseObject extends ApiBase {
             System.out.println("BaseObject.processPost() success (200) creating " + obj +
                 " from payload " + payload);
             if (encounterForIA != null) { // encounter-specific needs
-                OpenSearch.setPermissionsNeeded(myShepherd, true);
                 myShepherd.commitDBTransaction();
                 MediaAsset.updateStandardChildrenBackground(context, maIds);
                 encounterForIA.sendToIA(myShepherd);

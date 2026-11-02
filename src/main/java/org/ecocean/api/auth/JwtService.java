@@ -17,9 +17,10 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Util;
 
 /**
- * Issues and verifies short-lived RS256 JWTs that carry ONLY identity
- * (subject = user UUID, context). No admin/role claims — the consumer
- * resolves privileges fresh. Wildbook holds the private (signing) key;
+ * Issues and verifies short-lived RS256 JWTs carrying identity
+ * (subject = user UUID, context), and an optional explicitly issued submission
+ * capability. No admin/role claims — the consumer resolves privileges fresh.
+ * Wildbook holds the private (signing) key;
  * the external scoped-access kernel holds the public key.
  *
  * Keys are RSA, supplied as Base64 of the encoded key bytes (private = PKCS8,
@@ -97,25 +98,57 @@ public class JwtService {
     }
 
     public String sign(String userUuid, String context, long ttlMillis) {
+        return signUntil(userUuid, context, ttlMillis, null, Long.MAX_VALUE);
+    }
+
+    /** Explicitly requested submission capability; existing issuance stays identity-only. */
+    public String signSubmission(String userUuid, String context, long ttlMillis, String scope) {
+        requireSubmissionScope(scope);
+        return signUntil(userUuid, context, ttlMillis, scope, Long.MAX_VALUE);
+    }
+
+    /**
+     * Signs a token that never outlives {@code notAfterMillis} (epoch ms): exp = min(now + ttl, notAfter).
+     * A null scope yields an identity-only (data) token; a non-null scope must be a submission scope.
+     */
+    public String signUntil(String userUuid, String context, long ttlMillis, String scope,
+        long notAfterMillis) {
+        if (scope != null) requireSubmissionScope(scope);
         if (!isEnabled()) throw new IllegalStateException("JwtService not enabled (no private key)");
         long now = System.currentTimeMillis();
+        long exp = Math.min(now + ttlMillis, notAfterMillis);
         io.jsonwebtoken.JwtBuilder b = Jwts.builder()
             .issuer(issuer)
-            .audience().add(audience).and()
+            .audience().add(scope == null ? audience : audience + "/submissions").and()
             .subject(userUuid)
             .claim("context", context)
             .id(Util.generateUUID())
             .issuedAt(new Date(now))
-            .expiration(new Date(now + ttlMillis));
+            .expiration(new Date(exp));
+        if (scope != null) b.claim("submissionScope", scope);
         if (Util.stringExists(keyId)) b.header().keyId(keyId).and(); // 'kid' for rotation
         return b.signWith(privateKey, Jwts.SIG.RS256).compact();
     }
 
+    private static void requireSubmissionScope(String scope) {
+        if (!org.ecocean.api.submission.SubmissionPolicy.READ.equals(scope)
+            && !org.ecocean.api.submission.SubmissionPolicy.WRITE.equals(scope))
+            throw new IllegalArgumentException("Invalid submission scope");
+    }
+
     public Jws<Claims> verify(String token) {
+        return verify(token, audience);
+    }
+
+    public Jws<Claims> verifySubmission(String token) {
+        return verify(token, audience + "/submissions");
+    }
+
+    private Jws<Claims> verify(String token, String expectedAudience) {
         if (publicKey == null) throw new IllegalStateException("JwtService cannot verify (no public key)");
         Jws<Claims> jws = Jwts.parser()
             .requireIssuer(issuer)
-            .requireAudience(audience)
+            .requireAudience(expectedAudience)
             .verifyWith(publicKey)
             .build()
             .parseSignedClaims(token);

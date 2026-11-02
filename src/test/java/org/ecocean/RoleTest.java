@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -19,10 +20,13 @@ class RoleTest {
             Role.SYSTEM_ROLES, "UserConsolidate walks this order to rank two users");
     }
 
-    @Test void systemRoleNamesHoldsExactlyTheSameNames() {
-        assertEquals(new LinkedHashSet<String>(Role.SYSTEM_ROLES), Role.SYSTEM_ROLE_NAMES);
+    @Test void systemRoleNamesAlsoReserveExplicitCapabilities() {
+        LinkedHashSet<String> expected = new LinkedHashSet<String>(Role.SYSTEM_ROLES);
+        expected.add(Role.API_SUBMISSION);
+        assertEquals(expected, Role.SYSTEM_ROLE_NAMES);
+        org.junit.jupiter.api.Assertions.assertFalse(Role.SYSTEM_ROLES.contains(Role.API_SUBMISSION));
         assertTrue(Role.SYSTEM_ROLE_NAMES.contains("orgAdmin"));
-        assertEquals(Role.SYSTEM_ROLES.size(), Role.SYSTEM_ROLE_NAMES.size(), "no duplicates");
+        assertEquals(Role.SYSTEM_ROLES.size() + 1, Role.SYSTEM_ROLE_NAMES.size(), "no duplicates");
     }
 
     @Test void systemRolesAreImmutable() {
@@ -35,5 +39,12 @@ class RoleTest {
         Role role = new Role("tomcat", "admin");
 
         assertEquals("context0", role.getContext(), "ShepherdRealm relies on this default");
+    }
+
+    @Test void orgAdminAndOrgSuperGrantsNeedSiteAdmin() {
+        assertFalse(Role.canEditRole(Organization.ROLE_MANAGER, false));
+        assertFalse(Role.canEditRole(Organization.ROLE_ADMIN, false));
+        assertTrue(Role.canEditRole(Organization.ROLE_MANAGER, true));
+        assertTrue(Role.canEditRole("researcher", false));
     }
 }

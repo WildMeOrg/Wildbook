@@ -84,6 +84,35 @@ class OpenSearchAnnotationMatchableQueryTest {
         assertEquals("acmId", exists.getString("field"));
     }
 
+    // the nested must holds the method/version term clauses plus one bool clause
+    // requiring an indexed vector; these split the two apart
+    private static java.util.List<JSONObject> terms(JSONArray must) {
+        java.util.List<JSONObject> out = new java.util.ArrayList<>();
+        for (int i = 0; i < must.length(); i++) {
+            JSONObject term = must.getJSONObject(i).optJSONObject("term");
+            if (term != null) out.add(term);
+        }
+        return out;
+    }
+
+    private static void assertRequiresIndexedVector(JSONArray must) {
+        JSONObject vectorClause = null;
+        for (int i = 0; i < must.length(); i++) {
+            if (must.getJSONObject(i).has("bool")) vectorClause = must.getJSONObject(i);
+        }
+        assertNotNull(vectorClause, "nested must should require an indexed vector: " + must);
+        JSONObject bool = vectorClause.getJSONObject("bool");
+        assertEquals(1, bool.getInt("minimum_should_match"));
+        java.util.Set<String> fields = new java.util.HashSet<>();
+        JSONArray should = bool.getJSONArray("should");
+        for (int i = 0; i < should.length(); i++) {
+            fields.add(should.getJSONObject(i).getJSONObject("exists").getString("field"));
+        }
+        java.util.Set<String> expected = new java.util.HashSet<>();
+        for (String f : Embedding.VECTOR_FIELDS.values()) expected.add("embeddings." + f);
+        assertEquals(expected, fields);
+    }
+
     @Test void nestedClauseTargetsEmbeddingsPath_withMethodAndVersion() {
         JSONObject q = OpenSearch.buildAnnotationMatchableQuery(
             ids("ann-1"), "miewid-msv4.1", "4.1");
@@ -92,12 +121,12 @@ class OpenSearchAnnotationMatchableQueryTest {
         assertEquals("embeddings", nested.getString("path"));
         JSONArray must = nested.getJSONObject("query")
             .getJSONObject("bool").getJSONArray("must");
-        assertEquals(2, must.length());
+        assertEquals(3, must.length());
+        assertRequiresIndexedVector(must);
         // Method term
         JSONObject methodTerm = null;
         JSONObject versionTerm = null;
-        for (int i = 0; i < must.length(); i++) {
-            JSONObject term = must.getJSONObject(i).getJSONObject("term");
+        for (JSONObject term : terms(must)) {
             if (term.has("embeddings.method")) methodTerm = term;
             if (term.has("embeddings.methodVersion")) versionTerm = term;
         }
@@ -115,8 +144,9 @@ class OpenSearchAnnotationMatchableQueryTest {
         JSONArray must = nested.getJSONObject("query")
             .getJSONObject("bool").getJSONArray("must");
         // Only method term should be present.
-        assertEquals(1, must.length());
-        JSONObject term = must.getJSONObject(0).getJSONObject("term");
+        assertEquals(1, terms(must).size());
+        assertRequiresIndexedVector(must);
+        JSONObject term = terms(must).get(0);
         assertTrue(term.has("embeddings.method"));
         assertFalse(term.has("embeddings.methodVersion"));
     }
@@ -128,25 +158,27 @@ class OpenSearchAnnotationMatchableQueryTest {
             .getJSONObject("nested");
         JSONArray must = nested.getJSONObject("query")
             .getJSONObject("bool").getJSONArray("must");
-        assertEquals(1, must.length());
-        JSONObject term = must.getJSONObject(0).getJSONObject("term");
+        assertEquals(1, terms(must).size());
+        assertRequiresIndexedVector(must);
+        JSONObject term = terms(must).get(0);
         assertTrue(term.has("embeddings.methodVersion"));
         assertFalse(term.has("embeddings.method"));
     }
 
-    @Test void nestedClauseFallsBackToMatchAll_whenBothNull() {
+    @Test void nestedClauseRequiresOnlyIndexedVector_whenBothNull() {
         // Legacy api_endpoint-only config: neither method nor version is
         // available, but the gate still wants to confirm SOME nested
-        // embedding exists. Both must be `null` (not blank string) — the
-        // helper matches Annotation.getMatchQuery's strict-when-non-null
-        // semantics.
+        // embedding with an indexed vector exists. Both must be `null` (not
+        // blank string) — the helper matches Annotation.getMatchQuery's
+        // strict-when-non-null semantics.
         JSONObject q = OpenSearch.buildAnnotationMatchableQuery(
             ids("ann-1"), null, null);
         JSONObject nested = findFilterClause(filterArr(q), "nested")
             .getJSONObject("nested");
-        JSONObject inner = nested.getJSONObject("query");
-        assertTrue(inner.has("match_all"),
-            "expected match_all when method+version both null: " + nested);
+        JSONArray must = nested.getJSONObject("query")
+            .getJSONObject("bool").getJSONArray("must");
+        assertEquals(0, terms(must).size(), "no metadata terms when both null: " + must);
+        assertRequiresIndexedVector(must);
     }
 
     @Test void nestedClauseDoesStrictMatchOnBlankString_notOmit() {
@@ -161,10 +193,9 @@ class OpenSearchAnnotationMatchableQueryTest {
         JSONArray must = nested.getJSONObject("query")
             .getJSONObject("bool").getJSONArray("must");
         // Both terms present — version term is the blank-string strict.
-        assertEquals(2, must.length());
+        assertEquals(2, terms(must).size());
         JSONObject versionTerm = null;
-        for (int i = 0; i < must.length(); i++) {
-            JSONObject term = must.getJSONObject(i).getJSONObject("term");
+        for (JSONObject term : terms(must)) {
             if (term.has("embeddings.methodVersion")) versionTerm = term;
         }
         assertNotNull(versionTerm);

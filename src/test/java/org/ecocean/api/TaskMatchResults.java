@@ -34,7 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
@@ -167,6 +169,36 @@ class TaskMatchResults {
                 JSONObject jout = new JSONObject(responseOut.toString());
                 verify(mockResponse).setStatus(200);
                 assertTrue(jout.getBoolean("success"));
+            }
+        }
+    }
+
+    // issue #1733: the endpoint hands the signed-in user to the serializer, which decides
+    // per encounter whether to include its locationId
+    @Test void apiGetPassesTheViewer()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        Task task = mock(Task.class);
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/tasks/ok-id/match-results");
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getTask(any(String.class))).thenReturn(task);
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doGet(mockRequest, mockResponse);
+                org.mockito.ArgumentCaptor<org.ecocean.ia.MatchResultViewer> captor =
+                    org.mockito.ArgumentCaptor.forClass(org.ecocean.ia.MatchResultViewer.class);
+                verify(task).matchResultsJson(anyInt(), isNull(), any(Shepherd.class),
+                    captor.capture());
+                // the captured viewer is this user: it sees the location of an encounter they own
+                org.ecocean.Encounter owned = mock(org.ecocean.Encounter.class);
+                when(owned.isUserOwner(user)).thenReturn(true);
+                assertTrue(captor.getValue().canSeeLocation(owned));
+                org.ecocean.Encounter other = mock(org.ecocean.Encounter.class);
+                assertFalse(captor.getValue().canSeeLocation(other));
             }
         }
     }
