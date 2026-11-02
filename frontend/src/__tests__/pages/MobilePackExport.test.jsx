@@ -8,7 +8,7 @@ const renderExport = () => render(<IntlProvider locale="en" messages={messages}>
   <MobilePackExport searchQueryId="saved-search" />
 </IntlProvider>);
 const response = (body, ok = true) => Promise.resolve({ ok, json: async () => body });
-const configuration = { enabled: true, profiles: [{ featureClass: "horse+face", label: "Horse faces" }] };
+const configuration = { enabled: true, profiles: [{ taxonomy: "Equus caballus", featureClass: "horse+face", label: "Equus caballus — horse+face" }] };
 
 afterEach(() => { cleanup(); jest.restoreAllMocks(); });
 
@@ -27,7 +27,7 @@ it("requires an explicit public-release acknowledgement and sends the saved sear
   expect(button.disabled).toBe(true);
   const inputs = screen.getAllByRole("textbox");
   fireEvent.change(inputs[0], { target: { value: "Example horses" } });
-  fireEvent.change(screen.getByRole("combobox"), { target: { value: "horse+face" } });
+  fireEvent.change(screen.getByRole("combobox"), { target: { value: "0" } });
   expect(button.disabled).toBe(true);
   fireEvent.click(screen.getByRole("checkbox"));
   fireEvent.click(button);
@@ -35,7 +35,7 @@ it("requires an explicit public-release acknowledgement and sends the saved sear
   const [, options] = global.fetch.mock.calls[1];
   expect(options.headers["X-Requested-With"]).toBe("XMLHttpRequest");
   expect(JSON.parse(options.body)).toEqual({ searchQueryId: "saved-search", displayName: "Example horses",
-    featureClass: "horse+face", confirmPublic: true });
+    taxonomy: "Equus caballus", featureClass: "horse+face", confirmPublic: true });
 });
 
 it("contains a rejected configuration request", async () => {

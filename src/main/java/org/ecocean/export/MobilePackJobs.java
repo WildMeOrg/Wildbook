@@ -193,6 +193,10 @@ public final class MobilePackJobs {
                 if (!taxonomy.equals(encounter.getTaxonomyString()))
                     throw new IllegalArgumentException("Choose a search containing one species");
             }
+            // The dialog shows "taxonomy — feature class"; the worker must not silently use another species profile.
+            String selected = job.optString("taxonomy", null);
+            if (selected == null || !selected.equals(taxonomy))
+                throw new IllegalArgumentException("The search species does not match the selected mobile pipeline");
             profile = IAJsonProperties.iaConfig().getMobilePackConfiguration(first.getTaxonomy(shepherd), job.getString("featureClass"));
             Map<String, MarkedIndividual> identities = EncounterExport.buildEncounterIndividualMap(shepherd, encounters);
             Map<String, MobilePackArchive.Individual> groups = new LinkedHashMap<>();

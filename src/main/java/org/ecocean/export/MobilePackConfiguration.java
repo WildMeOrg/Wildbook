@@ -24,18 +24,18 @@ public final class MobilePackConfiguration {
         required(model, "method");
         required(model, "methodVersion");
         if (!model.getString("version").matches("v?[0-9]+\\.[0-9]+(?:\\.[0-9]+)?") ||
-            !"onnx".equals(model.getString("format")) || model.getInt("embeddingDim") != 2152)
+            !"onnx".equals(model.getString("format")) || number(model, "embeddingDim", true) != 2152)
             throw new IllegalArgumentException("Unsupported mobile embedding model");
         JSONArray size = model.getJSONArray("inputSize");
-        if (size.length() != 2 || size.getInt(0) != 440 || size.getInt(1) != 440)
+        if (size.length() != 2 || number(size, 0, true) != 440 || number(size, 1, true) != 440)
             throw new IllegalArgumentException("Mobile MiewID requires 440 x 440 input");
         JSONObject norm = model.getJSONObject("normalize");
         for (String key : new String[] {"mean", "std"}) {
             JSONArray values = norm.getJSONArray(key);
             if (values.length() != 3) throw new IllegalArgumentException("Invalid normalization");
             for (int i = 0; i < 3; i++) {
-                double n = values.getDouble(i);
-                if (!Double.isFinite(n) || ("std".equals(key) && n <= 0))
+                double n = number(values, i, false);
+                if ("std".equals(key) && n <= 0)
                     throw new IllegalArgumentException("Invalid normalization");
             }
         }
@@ -50,7 +50,7 @@ public final class MobilePackConfiguration {
     public static void artifact(JSONObject artifact) {
         https(artifact.getString("downloadUrl"));
         hash(artifact.getString("sha256"));
-        if (artifact.getLong("sizeBytes") <= 0)
+        if (number(artifact, "sizeBytes", true) <= 0)
             throw new IllegalArgumentException("Artifact size must be positive");
     }
 
@@ -65,6 +65,24 @@ public final class MobilePackConfiguration {
     public static void hash(String hash) {
         if (!hash.matches("[a-f0-9]{64}"))
             throw new IllegalArgumentException("Expected lowercase SHA-256");
+    }
+
+    // org.json coerces "100" and true through getLong/getDouble; the registry and the phone do not.
+    private static double number(JSONObject value, String key, boolean integral) {
+        return finite(value.opt(key), key, integral);
+    }
+
+    private static double number(JSONArray values, int index, boolean integral) {
+        return finite(values.opt(index), "element " + index, integral);
+    }
+
+    private static double finite(Object raw, String label, boolean integral) {
+        if (!(raw instanceof Number))
+            throw new IllegalArgumentException("Expected a JSON number for " + label);
+        double n = ((Number)raw).doubleValue();
+        if (!Double.isFinite(n) || (integral && n != Math.rint(n)))
+            throw new IllegalArgumentException("Expected a finite JSON " + (integral ? "integer" : "number") + " for " + label);
+        return n;
     }
 
     private static void required(JSONObject value, String key) {

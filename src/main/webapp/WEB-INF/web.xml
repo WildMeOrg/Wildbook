@@ -617,13 +617,13 @@
 	</servlet-mapping>
 
 	<servlet>
-        <servlet-name>MobilePackExport</servlet-name>
-        <servlet-class>org.ecocean.api.MobilePackExport</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>MobilePackExport</servlet-name>
-        <url-pattern>/api/v3/mobile-packs</url-pattern>
-    </servlet-mapping>
+		<servlet-name>MobilePackExport</servlet-name>
+		<servlet-class>org.ecocean.api.MobilePackExport</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>MobilePackExport</servlet-name>
+		<url-pattern>/api/v3/mobile-packs</url-pattern>
+	</servlet-mapping>
 
 	<servlet>
 		<servlet-name>BulkExport</servlet-name>

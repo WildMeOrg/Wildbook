@@ -6,7 +6,7 @@ export default function MobilePackExport({ searchQueryId }) {
   const intl = useIntl();
   const [configuration, setConfiguration] = useState(null);
   const [displayName, setDisplayName] = useState("");
-  const [featureClass, setFeatureClass] = useState("");
+  const [profileIndex, setProfileIndex] = useState("");
   const [packId, setPackId] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [job, setJob] = useState(null);
@@ -40,12 +40,14 @@ export default function MobilePackExport({ searchQueryId }) {
   }, [job?.jobId, job?.status]);
   if (!configuration?.enabled || !configuration.profiles?.length) return null;
   const publishing = job && !["ready", "failed"].includes(job.status);
+  // The selected profile is sent as taxonomy + feature class so the worker can refuse a mismatched search.
+  const profile = profileIndex === "" ? null : configuration.profiles[Number(profileIndex)];
   const publish = async () => {
     setBusy(true); setError(false);
     try {
       const response = await fetch("/api/v3/mobile-packs", {
         method: "POST", headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
-        body: JSON.stringify({ searchQueryId, displayName, featureClass, confirmPublic: confirmed,
+        body: JSON.stringify({ searchQueryId, displayName, taxonomy: profile.taxonomy, featureClass: profile.featureClass, confirmPublic: confirmed,
           ...(packId.trim() ? { packId: packId.trim() } : {}) }),
       });
       if (!response.ok) throw new Error("publication failed");
@@ -61,9 +63,9 @@ export default function MobilePackExport({ searchQueryId }) {
       <Form.Control value={displayName} maxLength={200} onChange={(event) => setDisplayName(event.target.value)} disabled={busy || publishing} />
     </Form.Group>
     <Form.Group className="mb-2"><Form.Label><FormattedMessage id="MOBILE_PACK_PIPELINE" /></Form.Label>
-      <Form.Select value={featureClass} onChange={(event) => setFeatureClass(event.target.value)} disabled={busy || publishing}>
+      <Form.Select value={profileIndex} onChange={(event) => setProfileIndex(event.target.value)} disabled={busy || publishing}>
         <option value="">{intl.formatMessage({ id: "MOBILE_PACK_SELECT" })}</option>
-        {configuration.profiles.map((profile) => <option key={profile.label} value={profile.featureClass}>{profile.label}</option>)}
+        {configuration.profiles.map((choice, index) => <option key={choice.label} value={index}>{choice.label}</option>)}
       </Form.Select>
     </Form.Group>
     <Form.Group className="mb-2"><Form.Label><FormattedMessage id="MOBILE_PACK_ID" /></Form.Label>
@@ -71,7 +73,7 @@ export default function MobilePackExport({ searchQueryId }) {
     </Form.Group>
     <Form.Check className="mb-3" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)}
       label={intl.formatMessage({ id: "MOBILE_PACK_PUBLIC_CONFIRM" })} disabled={busy || publishing} />
-    <Button onClick={publish} disabled={busy || publishing || !confirmed || !displayName.trim() || !featureClass}>
+    <Button onClick={publish} disabled={busy || publishing || !confirmed || !displayName.trim() || !profile}>
       {(busy || publishing) && <Spinner size="sm" className="me-2" />}
       <FormattedMessage id="MOBILE_PACK_PUBLISH" />
     </Button>
