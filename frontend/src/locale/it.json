@@ -141,6 +141,8 @@
   "TOTAL_ITEMS": "Totale Articoli",
   "PER_PAGE": "Per Pagina",
   "PAGE": "Pagina",
+  "RESULTS_WINDOW_CAPPED": "È possibile sfogliare solo i primi {limit} risultati su {total}. Restringi la ricerca per vedere il resto.",
+  "SEARCH_RESULTS_ERROR": "Ricerca non riuscita. Riprova o modifica i filtri.",
   "GO_TO": "Vai a",
   "GO": "Vai",
   "ENCOUNTER_SEARCH_RESULTS": "Risultati della Ricerca di Incontri",
