@@ -430,6 +430,16 @@ describe("Encounter page – polling behavior", () => {
 
   test("polling is scheduled when an asset has a non-terminal detectionStatus", async () => {
     setUrl("E-POLL-3");
+    // The polling effect arms off store.encounterData (see the awaitingAssetSignature dep
+    // added in 868e438afb). This suite stubs mobx's observer, so mutating the store double
+    // never re-renders and the effect would never see the fetched data -- preset the store
+    // so the awaiting asset is visible on the first render.
+    global.__MOCK_STORE_PRESET__ = {
+      encounterData: {
+        id: "E-POLL-3",
+        mediaAssets: [{ id: "m1", detectionStatus: "running" }],
+      },
+    };
     axios.get
       .mockResolvedValueOnce({
         data: { id: "E-POLL-3", mediaAssets: [{ detectionStatus: "running" }] },
@@ -505,6 +515,16 @@ describe("Encounter page – polling behavior", () => {
 
   test("polling stops once all assets reach a terminal status", async () => {
     setUrl("E-POLL-4");
+    // The polling effect arms off store.encounterData (see the awaitingAssetSignature dep
+    // added in 868e438afb). This suite stubs mobx's observer, so mutating the store double
+    // never re-renders and the effect would never see the fetched data -- preset the store
+    // so the awaiting asset is visible on the first render.
+    global.__MOCK_STORE_PRESET__ = {
+      encounterData: {
+        id: "E-POLL-4",
+        mediaAssets: [{ id: "m1", detectionStatus: "running" }],
+      },
+    };
     axios.get
       .mockResolvedValueOnce({
         data: { id: "E-POLL-4", mediaAssets: [{ detectionStatus: "running" }] },
@@ -533,6 +553,16 @@ describe("Encounter page – polling behavior", () => {
 
   test("initial fetch calls setEncounterData, poll tick calls setMediaAssets", async () => {
     setUrl("E-POLL-6");
+    // The polling effect arms off store.encounterData (see the awaitingAssetSignature dep
+    // added in 868e438afb). This suite stubs mobx's observer, so mutating the store double
+    // never re-renders and the effect would never see the fetched data -- preset the store
+    // so the awaiting asset is visible on the first render.
+    global.__MOCK_STORE_PRESET__ = {
+      encounterData: {
+        id: "E-POLL-6",
+        mediaAssets: [{ id: "m1", detectionStatus: "running" }],
+      },
+    };
     const secondMediaAssets = [{ detectionStatus: "complete" }];
     axios.get
       .mockResolvedValueOnce({

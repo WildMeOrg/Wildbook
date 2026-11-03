@@ -12,7 +12,16 @@ jest.mock("react-intl", () => {
     useIntl: () => {
       const messages = require("../locale/en.json");
       return {
-        formatMessage: ({ id }) => messages[id] || id,
+        // Substitute simple {placeholder} arguments. Dropping `values` made any message
+        // with an argument render its raw ICU pattern, so tests could not assert the copy
+        // a user actually sees (e.g. "PDF not available for locale de.").
+        formatMessage: ({ id, defaultMessage }, values) => {
+          const message = messages[id] ?? defaultMessage ?? id;
+          if (!values) return message;
+          return String(message).replace(/\{(\w+)\}/g, (match, key) =>
+            key in values ? String(values[key]) : match,
+          );
+        },
       };
     },
     FormattedMessage: jest.fn().mockImplementation(({ id }) => id),

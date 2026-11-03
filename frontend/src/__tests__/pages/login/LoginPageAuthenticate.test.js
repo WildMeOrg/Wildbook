@@ -34,6 +34,9 @@ test("calls authenticate function on submit", () => {
     target: { value: "password123" },
   });
 
+  // Sign In stays disabled until the terms checkbox is ticked
+  fireEvent.click(screen.getByRole("checkbox"));
+
   fireEvent.click(screen.getByRole("button", { name: /Sign In/i }));
 
   expect(mockAuthenticate).toHaveBeenCalledWith("testuser", "password123");
