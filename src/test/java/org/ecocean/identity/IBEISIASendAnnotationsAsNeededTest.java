@@ -53,6 +53,8 @@ class IBEISIASendAnnotationsAsNeededTest {
         final List<String> sentAnns = new ArrayList<String>();   // non-forced sendAnnotations
         final List<String> sentAssets = new ArrayList<String>(); // non-forced sendMediaAssets
         final Set<String> failAcmIds = new HashSet<String>();    // forced annotation POSTs that fail
+        IOException sendMediaAssetsException = null;
+        IOException sendAnnotationsException = null;
 
         FakePlugin() { super("context0"); }
 
@@ -66,12 +68,16 @@ class IBEISIASendAnnotationsAsNeededTest {
             return annOk && !failAcmIds.contains(ann.getAcmId());
         }
 
-        @Override public JSONObject sendAnnotations(ArrayList<Annotation> anns, boolean checkFirst, Shepherd sh) {
+        @Override public JSONObject sendAnnotations(ArrayList<Annotation> anns, boolean checkFirst, Shepherd sh)
+        throws IOException {
+            if (sendAnnotationsException != null) throw sendAnnotationsException;
             for (Annotation a : anns) sentAnns.add(a.getId());
             return new JSONObject();
         }
 
-        @Override public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst) {
+        @Override public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst)
+        throws IOException {
+            if (sendMediaAssetsException != null) throw sendMediaAssetsException;
             for (MediaAsset m : mas) sentAssets.add(m.getAcmId());
             return new JSONObject();
         }
@@ -478,6 +484,65 @@ class IBEISIASendAnnotationsAsNeededTest {
             assertEquals(1, plugin.annCalls.size());
             assertFalse(IBEISIA.iaCheckMissing(missing(ACM_Q), "context0", sh), "now-TRUE annotation takes the legacy branch");
             assertEquals(1, plugin.annCalls.size(), "no new forced call");
+        });
+    }
+
+    @Test void legacySendMediaAssetsExceptionThrowsAndPreservesReport() throws Exception {
+        FakePlugin plugin = new FakePlugin();
+        plugin.legacyKnown = Arrays.asList(ACM_N);
+        plugin.sendMediaAssetsException = new IOException("image POST 502");
+        Annotation q = ann("q", ACM_Q, null, asset(MA_UUID));
+        Shepherd sh = shepherd();
+        withPlugin(plugin, new ArrayList<String>(), null, () -> {
+            JSONObject report = new JSONObject();
+            IOException ex = assertThrows(IOException.class, () -> IBEISIA.sendAnnotationsAsNeeded(
+                new ArrayList<Annotation>(Arrays.asList(q)), new ArrayList<Annotation>(), sh, report));
+            assertTrue(ex.getMessage().contains("image POST 502"));
+            assertTrue(plugin.sentAnns.isEmpty(), "sendAnnotations must not run after sendMediaAssets throws");
+            JSONObject legacy = report.getJSONObject("legacy");
+            assertEquals(1, legacy.getInt("numAnnotsToSend"));
+            assertEquals(1, legacy.getInt("numAssetsToSend"));
+            assertTrue(legacy.getString("sendAnnotMAException").contains("image POST 502"));
+        });
+    }
+
+    @Test void legacySendAnnotationsExceptionThrowsAndPreservesMediaAssetResult() throws Exception {
+        FakePlugin plugin = new FakePlugin();
+        plugin.legacyKnown = Arrays.asList(ACM_N);
+        plugin.sendAnnotationsException = new IOException("annot POST 502");
+        Annotation q = ann("q", ACM_Q, Boolean.TRUE, asset(MA_UUID));
+        Shepherd sh = shepherd();
+        withPlugin(plugin, new ArrayList<String>(), null, () -> {
+            JSONObject report = new JSONObject();
+            IOException ex = assertThrows(IOException.class, () -> IBEISIA.sendAnnotationsAsNeeded(
+                new ArrayList<Annotation>(Arrays.asList(q)), new ArrayList<Annotation>(), sh, report));
+            assertTrue(ex.getMessage().contains("annot POST 502"));
+            assertEquals(Arrays.asList(MA_UUID), plugin.sentAssets);
+            JSONObject legacy = report.getJSONObject("legacy");
+            assertTrue(legacy.has("sendMediaAssets"), "sendMediaAssets result is preserved when sendAnnotations throws");
+            assertTrue(legacy.getString("sendAnnotMAException").contains("annot POST 502"));
+        });
+    }
+
+    @Test void legacySendFailureAbortsBeginIdentifyWithoutCallingSendIdentify() throws Exception {
+        FakePlugin plugin = new FakePlugin();
+        plugin.legacyKnown = Arrays.asList(ACM_N);
+        plugin.sendAnnotationsException = new IOException("WBIA timeout");
+        Annotation q = ann("q", ACM_Q, null, asset(MA_UUID));
+        Annotation t = ann("t", ACM_N, Boolean.TRUE, asset(MA_UUID));
+        Shepherd sh = mock(Shepherd.class);
+        when(sh.getContext()).thenReturn("context0");
+        when(sh.getPM()).thenReturn(mock(PersistenceManager.class, Mockito.RETURNS_DEEP_STUBS));
+        withPlugin(plugin, new ArrayList<String>(), null, () -> {
+            JSONObject res = IBEISIA.beginIdentifyAnnotations(
+                new ArrayList<Annotation>(Arrays.asList(q)),
+                new ArrayList<Annotation>(Arrays.asList(t)),
+                null, null, sh, null, "http://x", false);
+            assertFalse(res.getBoolean("success"));
+            assertTrue(res.getString("error").contains("WBIA timeout"));
+            assertTrue(IDENTIFY_CALLS.isEmpty(), "sendIdentify must not run when legacy registration throws");
+            JSONObject legacy = res.getJSONObject("sendAnnotationsAsNeeded").getJSONObject("legacy");
+            assertTrue(legacy.getString("sendAnnotMAException").contains("WBIA timeout"));
         });
     }
 }
