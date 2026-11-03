@@ -7,6 +7,19 @@ import { Alert, Button } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import MainButton from "../../components/MainButton";
 
+export function isNewIndividualName(inputValue, selectedOptions, options) {
+  const name = inputValue.trim().toLowerCase();
+  return (
+    Boolean(name) &&
+    ![...selectedOptions, ...options].some((option) =>
+      [option.value, option.label, ...(option.names || [])].some(
+        (candidate) =>
+          candidate != null && String(candidate).toLowerCase() === name,
+      ),
+    )
+  );
+}
+
 export const IdentifySectionEdit = observer(({ store }) => {
   const [suggestedId, setSuggestedId] = useState(null);
 
@@ -87,11 +100,13 @@ export const IdentifySectionEdit = observer(({ store }) => {
         value={store.getFieldValue("identify", "individualId") ?? ""}
         onChange={(v) => store.setFieldValue("identify", "individualId", v)}
         options={store.individualOptions}
+        isValidNewOption={isNewIndividualName}
         loadOptions={async (q) => {
           const resp = await store.searchIndividualsByNameAndId(q);
           const options = (resp.data.hits || []).map((it) => ({
             value: String(it.id),
             label: it.displayName,
+            names: it.names || [],
           }));
           store.setIndividualOptions(options);
           return options;

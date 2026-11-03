@@ -52,7 +52,10 @@ jest.mock("react-bootstrap", () => ({
   Alert: (p) => <div role="alert">{p.children}</div>,
 }));
 
-import { IdentifySectionEdit } from "../../../pages/Encounter/IdentifySectionEdit";
+import {
+  IdentifySectionEdit,
+  isNewIndividualName,
+} from "../../../pages/Encounter/IdentifySectionEdit";
 
 const makeStore = (overrides = {}) => ({
   identificationRemarksOptions: ["auto", "manual"],
@@ -155,7 +158,7 @@ describe("IdentifySectionEdit", () => {
     store.searchIndividualsByNameAndId.mockResolvedValueOnce({
       data: {
         hits: [
-          { id: 5, displayName: "Ind5" },
+          { id: 5, displayName: "Ind5", names: ["Ind5", "Old5"] },
           { id: 6, displayName: "Ind6" },
         ],
       },
@@ -168,12 +171,12 @@ describe("IdentifySectionEdit", () => {
 
     expect(store.searchIndividualsByNameAndId).toHaveBeenCalledWith("in");
     expect(store.setIndividualOptions).toHaveBeenCalledWith([
-      { value: "5", label: "Ind5" },
-      { value: "6", label: "Ind6" },
+      { value: "5", label: "Ind5", names: ["Ind5", "Old5"] },
+      { value: "6", label: "Ind6", names: [] },
     ]);
     expect(res).toEqual([
-      { value: "5", label: "Ind5" },
-      { value: "6", label: "Ind6" },
+      { value: "5", label: "Ind5", names: ["Ind5", "Old5"] },
+      { value: "6", label: "Ind6", names: [] },
     ]);
   });
 
@@ -274,5 +277,47 @@ describe("IdentifySectionEdit", () => {
 
     render(<IdentifySectionEdit store={store} />);
     expect(screen.getByRole("alert")).toHaveTextContent("e1;e2");
+  });
+});
+
+describe("individual creation respects existing names", () => {
+  const existing = [
+    {
+      value: "uuid-213",
+      label: "00000213",
+      names: ["00000213", "00000001", "Old-ID"],
+    },
+  ];
+
+  test.each(["00000001", "00000213", "uuid-213", " old-id ", "", "   "])(
+    "does not offer Create for %p",
+    (input) => {
+      expect(isNewIndividualName(input, [], existing)).toBe(false);
+    },
+  );
+
+  test.each(["00000002", "0000", "Old"])(
+    "allows a new or partial name %p",
+    (input) => {
+      expect(isNewIndividualName(input, [], existing)).toBe(true);
+    },
+  );
+
+  test("also checks selected aliases and tolerates missing names", () => {
+    expect(isNewIndividualName("00000001", existing, [])).toBe(false);
+    expect(
+      isNewIndividualName("current", [{ value: "id", label: "current" }], []),
+    ).toBe(false);
+    expect(
+      isNewIndividualName("new", [], [{ value: "id", label: "current" }]),
+    ).toBe(true);
+  });
+
+  test("applies alias validation to individual but not sighting input", () => {
+    render(<IdentifySectionEdit store={makeStore()} />);
+    expect(global.__SEARCH_PROPS__.INDIVIDUAL_ID.isValidNewOption).toBe(
+      isNewIndividualName,
+    );
+    expect(global.__SEARCH_PROPS__.SIGHTING_ID.isValidNewOption).toBeUndefined();
   });
 });
