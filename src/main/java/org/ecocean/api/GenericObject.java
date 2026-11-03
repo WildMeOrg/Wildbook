@@ -122,7 +122,8 @@ public class GenericObject extends ApiBase {
                             } catch (NumberFormatException ex) {}
                             rtn.put("prospectsSize", prospectsSize);
                             JSONObject mrJson = task.matchResultsJson(prospectsSize, projectIds,
-                                myShepherd);
+                                myShepherd,
+                                new org.ecocean.ia.MatchResultViewer(currentUser, myShepherd));
                             rtn.put("projectIds", projectIds);
                             rtn.put("matchResultsRoot", mrJson);
                             rtn.put("success", true);

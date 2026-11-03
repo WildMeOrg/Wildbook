@@ -30,6 +30,7 @@ class AuthTokenSubmissionScopeTest {
         when(pm.newQuery(eq(org.ecocean.Role.class), anyString())).thenReturn(query);
         JwtService jwt = mock(JwtService.class); when(jwt.isEnabled()).thenReturn(true);
         when(jwt.signSubmission(anyString(), anyString(), anyLong(), anyString())).thenReturn("submission-token");
+        when(jwt.sign(anyString(), anyString(), anyLong())).thenReturn("data-token");
         try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (m,c) -> { when(m.getUser("pilot")).thenReturn(user); when(m.getUserByUUID("pilot-id")).thenReturn(user); when(m.getPM()).thenReturn(pm); when(m.getContext()).thenReturn("context0"); });
              MockedStatic<CommonConfiguration> config = mockStatic(CommonConfiguration.class);
              MockedStatic<JwtService> js = mockStatic(JwtService.class)) {
@@ -38,7 +39,11 @@ class AuthTokenSubmissionScopeTest {
             js.when(() -> JwtService.fromConfig("context0")).thenReturn(jwt);
             new AuthToken().doPost(request, response);
             verify(response).setStatus(expected);
-            if (expected == 200) {
+            if (expected == 200 && "data:read".equals(scope)) {
+                verify(jwt).sign(eq("pilot-id"), eq("context0"), anyLong());
+                verify(jwt, never()).signSubmission(anyString(), anyString(), anyLong(), anyString());
+                assertTrue(output.toString().contains("data-token"));
+            } else if (expected == 200) {
                 verify(jwt).signSubmission(eq("pilot-id"), eq("context0"), anyLong(), eq(scope));
                 assertTrue(output.toString().contains("submission-token"));
             } else verify(jwt, never()).signSubmission(anyString(), anyString(), anyLong(), anyString());
@@ -51,4 +56,5 @@ class AuthTokenSubmissionScopeTest {
     @Test void enrolledUserExplicitlyOptsIntoWriteScope() throws Exception { request(SubmissionPolicy.WRITE, true, true, 200); }
     @Test void readScopeCanBeRenewedAfterAdmissionShutdown() throws Exception { request(SubmissionPolicy.READ, false, false, 200); }
     @Test void unsupportedScopeIsRejected() throws Exception { request("admin", true, true, 400); }
+    @Test void explicitDataReadScopeMintsDataToken() throws Exception { request("data:read", false, false, 200); }
 }

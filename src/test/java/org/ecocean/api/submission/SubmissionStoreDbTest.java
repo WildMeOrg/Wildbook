@@ -429,21 +429,27 @@ class SubmissionStoreDbTest {
         assertEquals(409, assertThrows(SubmissionException.class, () -> enqueue(jobs, owner, ready, "stale")).status);
     }
 
-    @Test void realAdapterImportsTwoImagesWithDurableSourceRowMapping(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
-        String owner = UUID.randomUUID().toString(); JSONObject ready = readyJob(owner); String id = ready.getString("id");
-        java.util.function.Supplier<Shepherd> supplier = () -> new Shepherd("context0", properties) {
+    @org.junit.jupiter.api.io.TempDir static java.nio.file.Path assetRoot;
+    private static boolean assetStoreSaved;
+    private static volatile String hiddenOccurrence; // simulates a sighting inserted after every existence check
+    private static Shepherd realShepherd() {
+        return new Shepherd("context0", properties) {
             @Override public boolean isValidTaxonomyName(String value) { return true; }
+            @Override public org.ecocean.Occurrence getOccurrence(String id) { return id.equals(hiddenOccurrence) ? null : super.getOccurrence(id); }
         };
-        SubmissionStore intake = new SubmissionStore(supplier); SubmissionJobs jobs = new SubmissionJobs(supplier);
-        java.nio.file.Path staged = java.nio.file.Files.createDirectory(root.resolve("staged"));
-        java.nio.file.Path assets = java.nio.file.Files.createDirectory(root.resolve("assets"));
-        SubmissionFiles storage = new SubmissionFiles(staged);
-        Shepherd sh = supplier.get();
-        try {
-            sh.beginDBTransaction();
-            sh.getPM().makePersistent(new org.ecocean.media.LocalAssetStore("pilot", assets, "http://localhost/assets", true));
-            assertTrue(sh.commitDBTransactionWithStatus());
-        } finally { sh.rollbackAndClose(); }
+    }
+    /** Uploads one photo per row, validates, and runs a valid draft through the real importer; returns the validation report. */
+    private JSONObject realImport(String owner, String id, java.nio.file.Path root, java.util.List<JSONObject> extraFields, Runnable beforeExecute) throws Exception {
+        if (!assetStoreSaved) {
+            Shepherd sh = realShepherd();
+            try {
+                sh.beginDBTransaction();
+                sh.getPM().makePersistent(new org.ecocean.media.LocalAssetStore("pilot", java.nio.file.Files.createDirectories(assetRoot.resolve("assets")), "http://localhost/assets", true));
+                assertTrue(sh.commitDBTransactionWithStatus()); assetStoreSaved = true;
+            } finally { sh.rollbackAndClose(); }
+        }
+        SubmissionStore intake = new SubmissionStore(SubmissionStoreDbTest::realShepherd); SubmissionJobs jobs = new SubmissionJobs(SubmissionStoreDbTest::realShepherd);
+        SubmissionFiles storage = new SubmissionFiles(java.nio.file.Files.createDirectory(root.resolve("staged")));
         try (org.mockito.MockedStatic<org.ecocean.LocationID> locations = org.mockito.Mockito.mockStatic(org.ecocean.LocationID.class);
              org.mockito.MockedStatic<SubmissionPolicy> policy = org.mockito.Mockito.mockStatic(SubmissionPolicy.class, org.mockito.Mockito.CALLS_REAL_METHODS)) {
             locations.when(org.ecocean.LocationID::getLocationIDStructure).thenReturn(new JSONObject("{\"locationID\":[{\"id\":\"reef\"}]}"));
@@ -451,40 +457,168 @@ class SubmissionStoreDbTest {
             policy.when(() -> SubmissionPolicy.commitEnabled("context0")).thenReturn(true);
             policy.when(() -> SubmissionPolicy.enrolled("context0", owner)).thenReturn(true);
             JSONArray rows = new JSONArray(); long revision = 0;
-            for (int n = 0; n < 2; n++) {
+            for (int n = 0; n < extraFields.size(); n++) {
                 String name = "photo-" + n + ".png";
                 intake.upload("context0", owner, id, false, revision++, storage,
                     limit -> storage.write(name, new java.io.ByteArrayInputStream(SubmissionFilesTest.png()), limit));
-                rows.put(new JSONObject().put("clientRowId", "source-" + n).put("fields", new JSONObject()
-                    .put("Encounter.genus", "Manta").put("Encounter.specificEpithet", "birostris")
-                    .put("Encounter.year", 2024 + n).put("Encounter.locationID", "reef").put("Encounter.mediaAsset0", name)));
+                JSONObject fields = new JSONObject().put("Encounter.genus", "Manta").put("Encounter.specificEpithet", "birostris")
+                    .put("Encounter.year", 2024).put("Encounter.locationID", "reef").put("Encounter.mediaAsset0", name);
+                for (String key : extraFields.get(n).keySet()) fields.put(key, extraFields.get(n).get(key));
+                rows.put(new JSONObject().put("clientRowId", "source-" + n).put("fields", fields));
             }
             intake.replaceRows("context0", owner, id, false, revision++, new JSONObject().put("rows", rows));
             JSONObject report = intake.validate("context0", owner, id, false, revision, storage);
-            assertTrue(report.getBoolean("valid"), report.toString());
+            if (!report.getBoolean("valid")) return report;
             jobs.enqueue("context0", owner, id, false, revision, "commit", new JSONObject().put("validationId", report.getString("id")));
+            beforeExecute.run();
             assertEquals(id, jobs.claimNext("context0"));
             jobs.execute("context0", id, (draft, transaction) -> {
                 try { return new SubmissionImporter().execute(draft, draft.getJobId(), transaction, storage); }
                 catch (Exception ex) { ex.printStackTrace(); throw ex; }
             });
-            assertEquals("imported", intake.get("context0", owner, id, false, false).getString("state"));
             TestPMFUtil.closePMF("context0");
-            JSONObject result = jobs.results("context0", owner, id, false, 0, 100);
-            assertEquals(2, result.getJSONArray("rows").length());
-            sh = supplier.get();
-            try {
-                sh.beginDBTransaction();
-                for (int n = 0; n < 2; n++) {
-                    JSONObject row = result.getJSONArray("rows").getJSONObject(n);
-                    assertEquals("source-" + n, row.getString("clientRowId"));
-                    org.ecocean.Encounter encounter = sh.getEncounter(row.getJSONArray("encounterIds").getString(0));
-                    assertEquals(2024 + n, encounter.getYear());
-                    assertEquals(1, row.getJSONArray("mediaAssetIds").length());
-                    assertEquals(encounter.getOccurrenceID(), row.getJSONArray("occurrenceIds").getString(0));
-                }
-            } finally { sh.rollbackAndClose(); }
+            return report;
         } finally { org.ecocean.media.AssetStore.init(java.util.Collections.emptyList()); }
+    }
+    private void saveOccurrence(String id) {
+        Shepherd sh = new Shepherd("context0", properties);
+        try {
+            sh.beginDBTransaction(); org.ecocean.Occurrence occ = new org.ecocean.Occurrence(id); occ.setSkipAutoIndexing(true);
+            sh.getPM().makePersistent(occ); assertTrue(sh.commitDBTransactionWithStatus());
+        } finally { sh.rollbackAndClose(); }
+    }
+    private long mediaAssetCount() {
+        Shepherd sh = new Shepherd("context0", properties);
+        try {
+            sh.beginDBTransaction(); javax.jdo.Query<?> query = sh.getPM().newQuery(org.ecocean.media.MediaAsset.class);
+            try { query.setResult("count(this)"); return ((Number)query.execute()).longValue(); }
+            finally { query.closeAll(); }
+        } finally { sh.rollbackAndClose(); }
+    }
+    private java.util.List<org.ecocean.Encounter> occurrenceEncounters(Shepherd sh, String id) {
+        org.ecocean.Occurrence occ = sh.getOccurrence(id); assertNotNull(occ, id);
+        return occ.getEncounters() == null ? java.util.Collections.emptyList() : occ.getEncounters();
+    }
+
+    @Test void realAdapterImportsTwoImagesWithDurableSourceRowMapping(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id");
+        realImport(owner, id, root, java.util.Arrays.asList(new JSONObject().put("Encounter.year", 2024), new JSONObject().put("Encounter.year", 2025)), () -> {});
+        assertEquals("imported", store.get("context0", owner, id, false, false).getString("state"));
+        JSONObject result = new SubmissionJobs(SubmissionStoreDbTest::realShepherd).results("context0", owner, id, false, 0, 100);
+        assertEquals(2, result.getJSONArray("rows").length());
+        Shepherd sh = realShepherd();
+        try {
+            sh.beginDBTransaction();
+            for (int n = 0; n < 2; n++) {
+                JSONObject row = result.getJSONArray("rows").getJSONObject(n);
+                assertEquals("source-" + n, row.getString("clientRowId"));
+                org.ecocean.Encounter encounter = sh.getEncounter(row.getJSONArray("encounterIds").getString(0));
+                assertEquals(2024 + n, encounter.getYear());
+                assertEquals(1, row.getJSONArray("mediaAssetIds").length());
+                assertEquals(encounter.getOccurrenceID(), row.getJSONArray("occurrenceIds").getString(0));
+            }
+        } finally { sh.rollbackAndClose(); }
+    }
+
+    @Test void rowsSharingASightingIdBecomeOneNewSighting(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id"), herd = "herd-" + UUID.randomUUID();
+        // the first row's coordinates win even though -1.0 is the legacy "unset" marker
+        realImport(owner, id, root, java.util.Arrays.asList(
+            new JSONObject().put("Encounter.sightingID", herd).put("Encounter.decimalLatitude", -1.0).put("Encounter.decimalLongitude", 30.5),
+            new JSONObject().put("Encounter.sightingID", herd).put("Encounter.decimalLatitude", -16.25).put("Encounter.decimalLongitude", -56.62)
+                .put("Encounter.behavior", "feeding"),
+            new JSONObject().put("Encounter.sightingID", herd).put("Encounter.behavior", "resting"),
+            new JSONObject().put("Encounter.decimalLatitude", -17.5).put("Encounter.decimalLongitude", -57.5)), () -> {});
+        assertEquals("imported", store.get("context0", owner, id, false, false).getString("state"));
+        JSONArray rows = new SubmissionJobs(SubmissionStoreDbTest::realShepherd).results("context0", owner, id, false, 0, 100).getJSONArray("rows");
+        java.util.Set<String> encounters = new java.util.HashSet<>();
+        for (int n = 0; n < 3; n++) {
+            assertEquals(herd, rows.getJSONObject(n).getJSONArray("occurrenceIds").getString(0));
+            encounters.add(rows.getJSONObject(n).getJSONArray("encounterIds").getString(0));
+        }
+        assertEquals(3, encounters.size());
+        String solo = rows.getJSONObject(3).getJSONArray("occurrenceIds").getString(0);
+        assertNotEquals(herd, solo);
+        Shepherd sh = realShepherd();
+        try {
+            sh.beginDBTransaction();
+            java.util.Set<String> grouped = new java.util.HashSet<>();
+            for (org.ecocean.Encounter enc : occurrenceEncounters(sh, herd)) grouped.add(enc.getId());
+            assertEquals(encounters, grouped);
+            assertEquals(-1.0, sh.getOccurrence(herd).getDecimalLatitude());
+            assertEquals(30.5, sh.getOccurrence(herd).getDecimalLongitude());
+            assertEquals("resting", sh.getOccurrence(herd).getGroupBehavior()); // last row with a behavior
+            assertEquals(-17.5, sh.getOccurrence(solo).getDecimalLatitude()); // a one-row sighting gets its row's coordinates
+            assertEquals(1, occurrenceEncounters(sh, solo).size());
+        } finally { sh.rollbackAndClose(); }
+    }
+
+    @Test void existingSightingIdIsRejectedAtValidation(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id"), taken = "taken-" + UUID.randomUUID();
+        saveOccurrence(taken);
+        JSONObject report = realImport(owner, id, root, java.util.Arrays.asList(new JSONObject().put("Encounter.sightingID", taken)), () -> fail("must not commit"));
+        assertFalse(report.getBoolean("valid"));
+        assertEquals("SIGHTING_EXISTS", report.getJSONArray("errors").getJSONObject(0).getString("code"), report.toString());
+    }
+
+    @Test void sightingCreatedAfterValidationFailsTheImportWithoutJoiningIt(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id"), herd = "race-" + UUID.randomUUID();
+        realImport(owner, id, root, java.util.Arrays.asList(new JSONObject().put("Encounter.sightingID", herd),
+            new JSONObject().put("Encounter.sightingID", herd)), () -> saveOccurrence(herd));
+        JSONObject status = store.get("context0", owner, id, false, false);
+        assertEquals("failed", status.getString("state"), status.toString());
+        assertEquals("VALIDATION_STALE", status.getJSONArray("errors").getJSONObject(0).getString("code"));
+        assertTrue(status.getJSONArray("errors").getJSONObject(0).getString("message").contains("new submission"));
+        Shepherd sh = realShepherd();
+        try { sh.beginDBTransaction(); assertTrue(occurrenceEncounters(sh, herd).isEmpty()); }
+        finally { sh.rollbackAndClose(); }
+    }
+
+    @Test void sightingInsertedAfterTheImporterCheckRollsBackEverything(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id"), herd = "late-" + UUID.randomUUID();
+        long mediaBefore = mediaAssetCount();
+        // every queued index entry goes through the factory; the importer's direct bulk index runs in a
+        // background thread (invisible to thread-local mocks), so watch the call that starts that thread
+        try (org.mockito.MockedStatic<org.ecocean.IndexingManagerFactory> factory = org.mockito.Mockito.mockStatic(org.ecocean.IndexingManagerFactory.class);
+             org.mockito.MockedStatic<org.ecocean.api.bulk.BulkImportUtil> bulk = org.mockito.Mockito.mockStatic(org.ecocean.api.bulk.BulkImportUtil.class, org.mockito.Mockito.CALLS_REAL_METHODS);
+             org.mockito.MockedStatic<org.ecocean.media.MediaAsset> background = org.mockito.Mockito.mockStatic(org.ecocean.media.MediaAsset.class, org.mockito.Mockito.CALLS_REAL_METHODS)) {
+            realImport(owner, id, root, java.util.Arrays.asList(new JSONObject().put("Encounter.sightingID", herd),
+                new JSONObject().put("Encounter.sightingID", herd)), () -> { saveOccurrence(herd); hiddenOccurrence = herd; });
+            factory.verifyNoInteractions();
+            bulk.verify(() -> org.ecocean.api.bulk.BulkImportUtil.bulkOpensearchIndex(org.mockito.ArgumentMatchers.any()), org.mockito.Mockito.never());
+            background.verify(() -> org.ecocean.media.MediaAsset.updateStandardChildrenBackground(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.any()), org.mockito.Mockito.never());
+        } finally { hiddenOccurrence = null; }
+        assertEquals("needs_reconciliation", store.get("context0", owner, id, false, false).getString("state"));
+        assertEquals(mediaBefore, mediaAssetCount()); // copied photos rolled back with the encounters
+        Shepherd sh = new Shepherd("context0", properties);
+        try {
+            sh.beginDBTransaction();
+            assertTrue(occurrenceEncounters(sh, herd).isEmpty());
+            javax.jdo.Query<?> query = sh.getPM().newQuery(org.ecocean.Encounter.class, "submitterID == :name");
+            try { assertTrue(((java.util.List<?>)query.execute("pilot-" + owner)).isEmpty()); }
+            finally { query.closeAll(); }
+        } finally { sh.rollbackAndClose(); }
+    }
+
+    @Test void newOccurrencesOnlyImporterRefusesAnExistingSighting() throws Exception {
+        String ownerId = UUID.randomUUID().toString(), ownerName = "guard-" + ownerId, taken = "guard-" + UUID.randomUUID();
+        saveOccurrence(taken);
+        Shepherd sh = new Shepherd("context0", properties);
+        try {
+            sh.beginDBTransaction();
+            org.ecocean.User user = new org.ecocean.User(ownerName, ownerId); user.setUsername(ownerName); sh.getPM().makePersistent(user);
+            java.util.Map<String, Object> row = new java.util.HashMap<>();
+            row.put("Encounter.year", new org.ecocean.api.bulk.BulkValidator("Encounter.year", 2026, sh));
+            row.put("Encounter.submitterID", new org.ecocean.api.bulk.BulkValidator("Encounter.submitterID", ownerName, sh));
+            row.put("Encounter.sightingID", new org.ecocean.api.bulk.BulkValidator("Encounter.sightingID", taken, sh));
+            org.ecocean.api.bulk.BulkImporter importer = new org.ecocean.api.bulk.BulkImporter("reserved", java.util.Arrays.asList(row), null, user, sh)
+                .deferSideEffects((index, encounter) -> {}).newOccurrencesOnly();
+            assertThrows(javax.servlet.ServletException.class, importer::createImport);
+        } finally { sh.rollbackAndClose(); }
+        sh = new Shepherd("context0", properties);
+        try { sh.beginDBTransaction(); assertTrue(occurrenceEncounters(sh, taken).isEmpty()); }
+        finally { sh.rollbackAndClose(); }
     }
 
     @Test void cleanupKeepsProtectedAndBusyFilesAndRemovesOnlyOldUnreferencedOrTerminalFiles(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {

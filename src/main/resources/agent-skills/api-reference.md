@@ -20,16 +20,57 @@ draft/upload/validate/commit lifecycle; the read-only token described here canno
   HTTPS. It expires after a fixed lifetime that is **configured per Wildbook instance** (commonly
   several hours) — do **not** assume any particular duration. The token-mint response's
   `expiresInSeconds` is the authoritative lifetime; rely on it (this matters for long, unattended
-  runs). When the token expires, ask the user to paste a fresh one.
+  runs). When the token expires, ask the user to paste a fresh one, unless you are using a service key (see below).
 
 ## Authentication
 Send the token as a bearer header on every request:
 ```
 Authorization: Bearer <token>
 ```
+Using a service key instead of a pasted token? See "Using an organization service key" below.
 The token response includes `expiresInSeconds`. An admin user's token sees all data; a normal user's
 token is filtered to their own accessible records. The server also enforces internal access-control
 fields, which are never returned to you.
+
+## Using an organization service key
+There are two ways in. A person can paste a short-lived token, as described above. Or the operator can
+configure an **organization service key** (it starts with `wbsvc_`) in the runtime's secret store, and you
+trade it for a short-lived token whenever you need one. Your organization's admin or a Wildbook admin creates these keys in
+**API Access**, in the "Organization service keys" section.
+
+- Send the service key **only** to `POST /api/v3/auth/token`, as `Authorization: Bearer wbsvc_<id>.<secret>`.
+  Add `?scope=submissions:read` or `?scope=submissions:write` for submissions work; leave the scope off
+  (or send `?scope=data:read`) to read data. A token carries one scope, so trade separately for each. Never send the key to any other endpoint, and keep it out of URLs, files, logs and chat.
+- Use the returned `token` on your API calls. Reuse it until it is close to the end of `expiresInSeconds`,
+  or until a call returns 401, and only then trade the key again. Do not trade before every call.
+  If a token you just traded is refused with 401 on an API call, stop and report to the operator.
+- A key that has been revoked or has expired can't be traded again. A token you already got from it keeps
+  working until that token expires, which is at most 15 minutes.
+- If `keyExpiresAt` (a time in milliseconds since 1970) is less than 30 days away, tell the operator to ask
+  their organization's admin or a Wildbook admin for a replacement key.
+
+```
+POST /api/v3/auth/token?scope=submissions:read
+Authorization: Bearer wbsvc_<id>.<secret>
+```
+```json
+{ "token": "<short-lived token>", "tokenType": "Bearer", "expiresInSeconds": 900,
+  "keyExpiresAt": 1798000000000, "scope": "submissions:read" }
+```
+A `403` means this key is not allowed that scope, or that submission writing is not turned on for the
+organization's account. Tell the operator.
+
+If the trade fails with 401, the `error` message says why:
+
+| Message | What it means and what to do |
+|---|---|
+| `"invalid service key"` | The key is wrong or mistyped. Ask the operator to check the configured key. |
+| `"service key expired"` | The key has run out. Ask the operator for a new key from their organization's admin or a Wildbook admin. |
+| `"service key revoked"` | The key was canceled on purpose. Stop; do not look for a way around it. |
+| `"service key unavailable; contact your Wildbook administrator"` | The key's account is not usable right now. Tell the operator to contact their Wildbook administrator. |
+
+In all four cases, stop and report to the operator. Do not retry in a loop. Any other failure when
+trading the key (400, 500, 503) is the same: stop and report, and do not retry in a loop.
 
 ## Endpoints
 
@@ -73,6 +114,61 @@ silent empty result):
 `{"hits":{"hits":[{"_source":…}]}}` shape, and the hit total lives only in the `X-Wildbook-Total-Hits`
 header, never in the body.
 
+**Nearest-neighbour (`knn`) search on `annotation`.** A `knn` clause against an embedding vector field is
+accepted, so you can ask "which catalog photos look most like this one?" directly instead of paging
+the catalog and comparing every pair yourself. `embeddings` is a **nested** field, so the `knn` must
+sit inside a `nested` query:
+```json
+{ "query": { "bool": {
+    "must": [ { "nested": { "path": "embeddings", "query": {
+        "knn": { "embeddings.vector": {
+            "vector": [ /* the query photo's stored vector */ ], "k": 200,
+            "filter": { "term": { "embeddings.methodVersion": "<version>" } } } } } } } ],
+    "filter": [ { "term": { "matchAgainst": true } } ] } },
+  "_source": { "excludes": ["embeddings.vector", "embeddings.vector_1536"] } }
+```
+Five things to know before relying on it:
+
+- **Query the vector field that matches the model's length.** Each embedding stores its numbers in
+  exactly one field, chosen by vector length: `embeddings.vector` holds 2152-number vectors (the
+  EfficientNet MiewID models, e.g. `msv4.1`, `msv5`) and `embeddings.vector_1536` holds 1536-number
+  vectors (the DINOv3 model, `msv5-dinov3`). Read the query photo's vector from whichever of the two
+  its embedding carries, send the `knn` against that same field, and filter on the same
+  `methodVersion` inside the `knn` clause's own `filter` (see the last point below). A vector sent against the other field fails the whole request (currently a `500`
+  with `"error": "query failed"`, the same response as other query failures). Before retrying a
+  failed `knn`, check that the vector's length matches the field (2152 for `embeddings.vector`, 1536
+  for `embeddings.vector_1536`); if it does not, fix the field instead of retrying.
+  Vectors from different models are not comparable even when their lengths agree, so never mix
+  `methodVersion`s in one similarity calculation.
+
+- **The `nested` wrapper is mandatory and its absence fails silently.** A plain
+  `{"term": {"embeddings.methodVersion": "…"}}` in the outer query matches **zero** documents and
+  still returns `200 OK` — it reads as "no annotations use that model version" rather than as a
+  mistake. Wrap every `embeddings.*` condition in `{"nested": {"path": "embeddings", …}}`. Sanity-check
+  any new embeddings query by confirming that a bare `exists` on the same field returns a plausible
+  count.
+- **There is no `_score`.** The flat envelope carries document fields only, so ranking reaches you as
+  the *order* of `hits`, never as a number. If you need an actual similarity value — to threshold on,
+  to report, or to compare across queries — fetch the candidates' vectors and compute it yourself.
+  MiewID vectors are L2-normalised, so cosine similarity is just the dot product.
+- **Exclude `embeddings.vector` and `embeddings.vector_1536` from `_source` whenever you do not need
+  the numbers.** Serialising thousands of floats per embedding dominates the response: a kNN that answers in seconds without the
+  vectors can take a minute with them. When you do need vectors, fetch them in batches by id
+  (`{"terms": {"id": [...]}}`, ~40 per call) rather than one at a time — per-request overhead, not
+  payload size, is the cost that matters.
+- **Put `methodVersion` inside the `knn` clause's `filter`, as in the example.** That filter applies
+  while the `k` nearest are chosen, so another model's vectors (same length, same field) cannot take
+  the slots. Anywhere else, including beside the `knn`, it only removes hits afterwards and can leave
+  few or none. In this example `matchAgainst` stays in the outer `bool.filter`, and Wildbook adds its
+  permission filter for a non-admin key outside the `knn` too, so both remove hits from the `k`
+  already chosen. Ask for a `k` comfortably larger than the number of results you need. An empty
+  result does not prove that no similar photo you can see exists.
+
+Be considerate with volume. An instance whose vector index has no approximate-search structure
+answers every kNN with an exact scan of all stored vectors — seconds of CPU per query, and
+substantially slower while that instance is busy ingesting. A few hundred queries is reasonable; a
+sweep of many thousands is not, and belongs in a Wildbook-side identification run instead.
+
 ### Media resolve — `POST /api/v3/media/resolve`
 Resolve up to 100 annotation IDs you are allowed to see into displayable image references:
 ```json
@@ -109,15 +205,65 @@ for an encounter's complete photo list.
 ## OpenSearch schema (token-exposed fields)
 Key indices and fields:
 - **encounter** — `id`, `taxonomy`, `locationId`/`locationName`, `date`/`dateMillis`, `individualId`,
-  `sex`, `lifeStage`, `livingStatus`, `country`, `behavior`, ...
+  `sex`, `lifeStage`, `livingStatus`, `country`, `behavior`, `version` (last recorded edit
+  stamp — see *Knowing when a record changed* below), ...
 - **individual** — `id`, `displayName`, `names`/`nameMap`, `sex`, `taxonomy`, `timeOfBirth`/`timeOfDeath`.
 - **annotation** — `id`, `encounterId`, `viewpoint`, `iaClass`, `matchAgainst`, `mediaAssetId`, and
-  `embeddings` (nested: `method`, `methodVersion`, and the MiewID `vector`). The annotation document
-  carries **no sighting date** — to analyse by time, collect the `encounterId`s and look them up in the
-  encounter index (a `terms` query) to read `date`/`dateMillis`. MiewID `vector`s are **L2-normalised**
-  (unit length), so cosine similarity between two of them is just their dot product.
+  `embeddings` (a **nested** field with one entry per model, each holding `method`, `methodVersion`,
+  and the MiewID vector in either `vector` (2152 numbers) or `vector_1536` (1536 numbers, DINOv3);
+  querying any of them requires a `nested` wrapper — see *Nearest-neighbour search* above, and note
+  that forgetting it returns zero hits rather than an error). The parent sighting's date is copied
+  onto the annotation as `encounterDateMillis` (epoch milliseconds; absent when the sighting has no
+  date), so time-based analyses need no second lookup; for the full `date` string, look the
+  `encounterId`s up in the encounter index (a `terms` query). Indexed vectors in both fields are
+  **L2-normalised** (unit length), so cosine similarity between two of them is just their dot product.
 
 Access-control fields exist server-side but are **never** returned.
+
+### Knowing when a record changed
+
+Every stamped `encounter` document carries `version`: the encounter's **last recorded edit stamp**
+(the record's `modified` time) as milliseconds since the Unix epoch, for example `1790863407000`.
+The API returns the stamp in no other form, so convert `version` yourself for display, as you would
+any epoch-millis value derived from the server's clock, and compare it as a number.
+
+`version` is a **best-effort polling aid, not a guaranteed change feed**: independent pages, tied
+versions, delayed indexing and one-second stamps can all cause a missed update, so use overlap and
+periodic full reconciliation. A sync built on it looks like this:
+
+1. Take a full baseline first (see *Paging and limits* for the ceiling and how to split a large
+   catalogue).
+2. On each poll, sweep a `range` on `version` from `highWaterMark - overlapMillis` — choose the
+   overlap to cover your install's indexing delays; no finite overlap guarantees completeness —
+   oldest first with `?sort=version&sortOrder=asc`, paging with `?from=`/`?size=` until `from` is at
+   or past `X-Wildbook-Total-Hits`:
+
+   ```json
+   { "query": { "range": { "version": { "gt": 1790863407000 } } } }
+   ```
+
+3. Upsert each hit by `id`, even when its `version` is unchanged. Only once the sweep is complete,
+   move the mark to the larger of the old mark and the largest `version` you saw (an overlap-only
+   sweep must never move it backwards).
+4. Re-baseline periodically (nightly or weekly, as your use demands).
+
+If a sweep would exceed the result-window ceiling, add an upper bound (`lte`) and advance in
+slices; if a single `version` holds more records than the window (several imported records can
+share one stamp), partition that slice by another field such as `locationId`.
+
+Things to know:
+
+- **`indexTimestamp` is not an edit time.** It records when the search index last wrote the
+  document, and it moves for reasons that are not edits (a refresh of access lists, a reindex).
+  Ignore it.
+- The stamp is refreshed by the encounter PATCH API (which the Wildbook web UI uses), by match
+  confirmation, and by creation through bulk import — but not by every path: some legacy servlets
+  and internal operations (an individual merge re-pointing encounters, for one) save without
+  re-stamping, and photo or annotation changes do not consistently refresh it. That is another
+  reason to re-baseline.
+- A record with no usable stamp has `version: 0`; treat zero as "unknown", not "old".
+- `individual` and `annotation` documents carry a `version` of their own — a millisecond-based
+  change marker (for annotations it is nudged forward if the clock has not moved).
 
 ## Paging and limits
 
@@ -125,11 +271,11 @@ Search results come back a page at a time. Pass `?from=` and `?size=` on the req
 set across calls: `from=0&size=200`, then `from=200&size=200`, and so on. The total number of
 matches is in the `X-Wildbook-Total-Hits` response header — read it first.
 
-There is a hard ceiling: `from + size` must stay at or below **10,000** (OpenSearch's
-`max_result_window`). The API does not offer `scroll` or `search_after`, so a result set larger than
-10,000 cannot be fully walked — narrow your search (species, site, date range) instead. Pages are
-fetched independently, so a result set that changes while you page can shift slightly at page
-boundaries.
+There is a hard ceiling: `from + size` must stay at or below the index's `max_result_window`,
+reported in the `X-Wildbook-Max-Result-Window` response header (**10,000** by default). The API
+does not offer `scroll` or `search_after`, so a result set larger than that cannot be fully walked —
+narrow your search (species, site, date range) instead. Pages are fetched independently, so a
+result set that changes while you page can shift slightly at page boundaries.
 
 To turn annotation IDs into a catalog-animal label and a croppable image, call
 `POST /api/v3/media/resolve` with up to **100** annotation IDs per call; it returns `individualId`,

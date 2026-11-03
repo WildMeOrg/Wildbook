@@ -69,6 +69,31 @@ class IdentificationTest {
         }
     }
 
+    // Characterization test for the IA.json contract IA.intakeCore's opt-out guard relies on
+    // (behaviour tests: IAIntakeCoreTest). This locks in existing IAJsonProperties behavior (it
+    // passes without the guard change): an explicit
+    // `"_id_conf": []` is an opt-out and must NOT inherit `_default`, while a class that is not
+    // declared at all must inherit it. If that ever flipped, the guard would start skipping
+    // classes that should be matched.
+    @Test void emptyIdentConfigOptsOutWhileUndeclaredClassInheritsDefault()
+    throws Exception {
+        IAJsonProperties conf = new IAJsonProperties();
+
+        conf.setJson(new JSONObject("{\"Lycaon\": {\"pictus\": {"
+            + "\"_default\": {\"_id_conf\": [{\"description\": \"MiewID\", \"default\": true}]},"
+            + "\"wild_dog\": {\"_id_conf\": [{\"description\": \"MiewID\", \"default\": true}]},"
+            + "\"wild_dog+tail_general\": {\"_id_conf\": [], \"_save_keyword\": \"TailGeneral\"}"
+            + "}}}"));
+        Taxonomy taxy = new Taxonomy("Lycaon pictus");
+
+        assertEquals("explicit [] must stay empty, not fall back to _default",
+            0, conf.identOpts(taxy, "wild_dog+tail_general").size());
+        assertEquals("a declared class keeps its own options",
+            1, conf.identOpts(taxy, "wild_dog").size());
+        assertEquals("an undeclared class must inherit _default and stay matchable",
+            1, conf.identOpts(taxy, "wild_dog+scar").size());
+    }
+
     @Test void miscMethodTest() {
         String[] mv = MLService.getMethodValues(null);
 
