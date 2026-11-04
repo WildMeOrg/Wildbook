@@ -185,12 +185,32 @@ class OpenSearchPaginationTest {
         assertTrue(all.isEmpty(), "no GET and no PUT below the default window");
     }
 
+    @Test void ensureMaxResultWindow_decidesFromTheLiveSettingNotTheCache() throws Exception {
+        List<Request> puts = new ArrayList<Request>();
+        String[] stored = { "14875" };
+        OpenSearch os = spy(new OpenSearch());
+        doAnswer(inv -> {
+            Request request = inv.getArgument(0);
+            if ("PUT".equals(request.getMethod())) {
+                puts.add(request);
+                return "{\"acknowledged\":true}";
+            }
+            return settingsJson("individual", stored[0]);
+        }).when(os).getRestResponse(any(Request.class));
+        assertEquals(14875, os.getMaxResultWindow("individual")); // primes the 60 s cache
+        stored[0] = "660000"; // an operator raised it by hand since
+        os.ensureMaxResultWindow("individual", 544735);
+        assertTrue(puts.isEmpty(), "a stale cached value must not justify lowering the live setting");
+    }
+
     @Test void ensureMaxResultWindow_refreshesTheCachedWindowRightAway() throws Exception {
         String[] stored = { "14875" };
         OpenSearch os = spy(new OpenSearch());
         doAnswer(inv -> {
             Request request = inv.getArgument(0);
             if ("PUT".equals(request.getMethod())) {
+                assertEquals("annotation/_settings", request.getEndpoint());
+                assertTrue(request.getParameters().isEmpty());
                 stored[0] = Integer.toString(windowIn(request));
                 return "{\"acknowledged\":true}";
             }

@@ -1215,7 +1215,9 @@ public class OpenSearch {
      * Grow-only: raise index.max_result_window to targetMaxResultWindow() when that exceeds the
      * value stored on the index. The stored value is read fresh and strictly (never the 60 s cache
      * or the tolerant default), and any read failure skips the update, so a transient error can
-     * never lower a window, e.g. one an operator raised by hand.
+     * never lower a window, e.g. one an operator raised by hand. Grow-only assumes serialized
+     * settings writers: the GET and the PUT are not atomic, so a concurrent manual increase can
+     * be overwritten and is not automatically restored.
      */
     void ensureMaxResultWindow(String indexName, long indexedDocCount)
     throws IOException {
@@ -1266,7 +1268,9 @@ public class OpenSearch {
     throws IOException {
         if (settings == null) throw new IOException("null data passed");
         // no preserve_existing: that flag leaves an already-stored setting untouched, which made
-        // every max_result_window raise after the first one a silent no-op
+        // every max_result_window raise after the first one a silent no-op. The other caller is
+        // createIndex(), whose wildbook_keyword_normalizer definition is authoritative, so an
+        // index template that pre-populated that key is overwritten by design.
         Request settingsRequest = new Request("PUT", indexName + "/_settings");
         settingsRequest.setJsonEntity(settings.toString());
         String rtn = getRestResponse(settingsRequest);
