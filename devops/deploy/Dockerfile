@@ -10,7 +10,9 @@ ENV DB_CONNECTION_URL=${WILDBOOK_DB_CONNECTION_URL}
 ENV ADMIN_EMAIL=${EDM_AUTHENTICATIONS_USERNAME__DEFAULT}
 ENV ADMIN_PASSWORD=${EDM_AUTHENTICATIONS_PASSWORD__DEFAULT}
 ENV SERVER_URL=${SERVER_URL}
-ENV JAVA_OPTS="-Djava.awt.headless=true -Xms4096m -Xmx4096m"
+# exit (after writing a heap dump) on OutOfMemoryError rather than limp on half-dead; see
+# docker-compose.yml
+ENV JAVA_OPTS="-Djava.awt.headless=true -Xms4096m -Xmx4096m -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError"
 
 # Copy configuration files into the image
 COPY .dockerfiles/docker-entrypoint.sh /docker-entrypoint.sh

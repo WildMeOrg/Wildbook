@@ -2,7 +2,6 @@ package org.ecocean.queue;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Util;
 
@@ -28,8 +27,9 @@ public class FileQueue extends Queue {
     // resetting requireAtomicClaim while earlier workers are still live. Two levels: `consuming`
     // stops a repeat call on the SAME instance; CONSUMING_DIRS stops a SECOND FileQueue instance
     // (getBest() makes a new one per call) from consuming the SAME directory concurrently. Released
-    // only in QueueUtil.cleanup(), after all consumer executors are confirmed terminated, so an
-    // in-place redeploy can consume again without ever overlapping a live consumer.
+    // only in QueueUtil.cleanup(), after all consumer executors are confirmed terminated, so a later
+    // start in the SAME classloader never overlaps a live consumer. (A Tomcat redeploy gets a fresh
+    // classloader and fresh statics: if cleanup reported surviving workers, restart the JVM.)
     private static final java.util.Set<String> CONSUMING_DIRS =
         java.util.concurrent.ConcurrentHashMap.newKeySet();
     private boolean consuming = false;
@@ -82,6 +82,14 @@ public class FileQueue extends Queue {
         System.out.println("[INFO] FileQueue.init(" + context + ") complete");
     }
 
+    // TEST-ONLY seam: point the static base dir at an isolated temp dir so tests do not
+    // permanently claim the production spool location for the whole JVM (pass null to restore
+    // the lazy property-based init). Package-private on purpose; production code must go
+    // through init()/setQueueDir().
+    static synchronized void overrideQueueBaseDirForTesting(File dir) {
+        queueBaseDir = dir;
+    }
+
     public static synchronized File setQueueDir(String context)
     throws IOException {
         if (queueBaseDir != null) return queueBaseDir; // hey we have one already!
@@ -103,18 +111,47 @@ public class FileQueue extends Queue {
             throw new IOException("FileQueue.publish() failed, queueDir is not set");
         String qid = Util.generateUUID();
         File tmpFile = new File(queueDir, "addToQueue-" + qid + ".tmp"); // write to tmp file first so it doesnt (yet) get picked up by queue til done
-        PrintWriter qout = new PrintWriter(tmpFile);
-        qout.print(msg);
-        qout.close();
-        tmpFile.renameTo(new File(queueDir, qid));
+        // Files.write/Files.move throw on failure. The previous PrintWriter+renameTo version
+        // swallowed write errors and ignored the rename result, so a failed publish logged
+        // success while the job silently never entered the queue.
+        Files.write(tmpFile.toPath(),
+            msg.getBytes(java.nio.charset.Charset.defaultCharset()));
+        try {
+            Files.move(tmpFile.toPath(), new File(queueDir, qid).toPath());
+        } catch (IOException ex) {
+            tmpFile.delete(); // best-effort: don't leave orphaned .tmp litter
+            throw ex;
+        }
         System.out.println("INFO: FileQueue.publish() added " + queueDir + " -> " + qid);
+    }
+
+    /** Checked, atomic publication for callers that persist a separate handoff intent. */
+    public void publishChecked(String msg) throws IOException {
+        if (queueDir == null) throw new IOException("Queue directory unavailable");
+        java.nio.file.Path temporary = Files.createTempFile(queueDir.toPath(), "addToQueue-", ".tmp");
+        try {
+            byte[] bytes = msg.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            try (java.nio.channels.FileChannel channel = java.nio.channels.FileChannel.open(temporary,
+                    java.nio.file.StandardOpenOption.WRITE)) {
+                java.nio.ByteBuffer buffer = java.nio.ByteBuffer.wrap(bytes);
+                while (buffer.hasRemaining()) channel.write(buffer);
+                channel.force(true);
+            }
+            Files.move(temporary, queueDir.toPath().resolve(Util.generateUUID()), java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+            try (java.nio.channels.FileChannel directory = java.nio.channels.FileChannel.open(queueDir.toPath(), java.nio.file.StandardOpenOption.READ)) {
+                directory.force(true);
+            }
+        } finally { Files.deleteIfExists(temporary); }
     }
 
     public void consume(final QueueMessageHandler msgHandler)
     throws IOException {
-        if (!markConsuming()) return;
-        this.messageHandler = msgHandler;
-        QueueUtil.background(this);
+        // reserve + register as one step against QueueUtil.cleanup(), which releases the reservations
+        synchronized (QueueUtil.lifecycleLock()) {
+            if (!markConsuming()) return;
+            this.messageHandler = msgHandler;
+            QueueUtil.background(this);
+        }
     }
 
     // Authoritative concurrency gate: this is the ONLY place worker count is enforced, so no caller
@@ -123,18 +160,21 @@ public class FileQueue extends Queue {
     // when the effective count is >1 do we require atomic claims in getNext().
     public void consume(final QueueMessageHandler msgHandler, int workers)
     throws IOException {
-        if (!markConsuming()) return;
-        this.messageHandler = msgHandler;
-        boolean atomicOk = supportsAtomicMove(queueDir);
-        int eff = QueueUtil.effectiveWorkers(workers, atomicOk);
-        if (eff < workers) {
-            String why = atomicOk ? "exceeds max (8)"
-                : "queue filesystem does not support atomic moves";
-            System.out.println("WARNING: " + this.toString() + " requested " + workers +
-                " consumer(s) but " + why + "; running " + eff);
+        // reserve + register as one step against QueueUtil.cleanup(), which releases the reservations
+        synchronized (QueueUtil.lifecycleLock()) {
+            if (!markConsuming()) return;
+            this.messageHandler = msgHandler;
+            boolean atomicOk = supportsAtomicMove(queueDir);
+            int eff = QueueUtil.effectiveWorkers(workers, atomicOk);
+            if (eff < workers) {
+                String why = atomicOk ? "exceeds max (8)"
+                    : "queue filesystem does not support atomic moves";
+                System.out.println("WARNING: " + this.toString() + " requested " + workers +
+                    " consumer(s) but " + why + "; running " + eff);
+            }
+            this.requireAtomicClaim = (eff > 1);
+            QueueUtil.backgroundWithWorkers(this, eff);
         }
-        this.requireAtomicClaim = (eff > 1);
-        QueueUtil.backgroundWithWorkers(this, eff);
     }
 
     public File getQueueDir() {
@@ -229,7 +269,7 @@ public class FileQueue extends Queue {
             return null;
         }
         if (this.isConsumerShutdownMessage(fcontents))
-            throw new IOException("SHUTDOWN message received");
+            throw new QueueStopException(this.toString() + " SHUTDOWN message received");
         return fcontents;
     }
 
@@ -261,7 +301,7 @@ public class FileQueue extends Queue {
 // System.out.println("queueDir file=" + f);
             // this always wins... so we can just grind everything to a halt
             if (isStopFile(f))
-                throw new IOException(this.toString() + " FileQueue STOP FILE found");
+                throw new QueueStopException(this.toString() + " FileQueue STOP FILE found");
             if (f.isDirectory() || !Util.isUUID(f.getName())) continue; // ignore!
             BasicFileAttributes attr = null;
             try {
@@ -293,8 +333,8 @@ public class FileQueue extends Queue {
     }
 
     // Called by QueueUtil.cleanup() ONLY after all consumer executors are shut down and awaited, so
-    // no worker is live. Lets an in-place redeploy (contextDestroyed -> contextInitialized in the
-    // same JVM) consume these directories again.
+    // no worker is live. Lets a later start in the same classloader consume these directories
+    // again (a Tomcat redeploy has its own classloader, so these guards do not span it).
     static void releaseAllConsumeGuards() {
         CONSUMING_DIRS.clear();
     }

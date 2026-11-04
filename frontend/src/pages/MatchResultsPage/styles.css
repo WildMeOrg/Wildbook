@@ -1,0 +1,77 @@
+.match-image-tools {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.match-image-tools-left {
+  left: -28px;
+}
+
+.match-image-tools-right {
+  right: -28px;
+}
+
+.match-action-bar {
+  min-height: 60px;
+  padding: 10px 24px;
+}
+
+.match-action-bar-inner {
+  margin: 0 20px;
+}
+
+/* Bootstrap containers have too little outer gutter for external tools here. */
+@media (max-width: 1199.98px) {
+  .match-image-tools {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 8px 0;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .match-action-bar {
+    padding: 8px 12px;
+  }
+
+  .match-action-bar-inner {
+    margin: 0;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  #match-results-bottom-bar-left {
+    flex-basis: 100%;
+    margin-right: 0 !important;
+  }
+
+  #match-results-bottom-bar-left,
+  #match-results-bottom-bar-left > div {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    height: auto !important;
+  }
+
+  .match-action-bar-buttons {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .match-action-bar-buttons button {
+    flex: 1 1 auto;
+    max-width: 100%;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  .match-action-bar-buttons button a {
+    min-width: 0;
+  }
+}
