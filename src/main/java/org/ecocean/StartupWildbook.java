@@ -169,6 +169,7 @@ public class StartupWildbook implements ServletContextListener {
             return;
         }
         Setting.initialize(context);
+        OrganizationMembershipSchema.check(context); // logs an ERROR if the membership migration was skipped
         // Eagerly build the shared OpenSearch REST client BEFORE any consumer threads start, so no
         // match thread ever hits the (now double-checked, synchronized) cold init concurrently.
         // Constructing the client does not contact OpenSearch, so this is safe here.
@@ -349,6 +350,15 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException ex) {
             System.out.println("+ ERROR: acmid queue startup exception: " + ex.toString());
         }
+        // Interactive ("fastlane") match lane. Deliberately OUTSIDE the all-queues-required
+        // check below: it is optional, and failing to start it must degrade to the previous
+        // behaviour (fastlane work published to the detection queue) rather than abort IA.
+        Queue fastlaneQ = null;
+        try {
+            fastlaneQ = QueueUtil.getBest(context, "iafastlane");
+        } catch (IOException ex) {
+            System.out.println("+ ERROR: iafastlane queue startup exception: " + ex.toString());
+        }
         if ((queue == null) || (queueCallback == null) || (detectionQ == null) || (acmidQ == null)) {
             System.out.println("+ WARNING: IA queue service(s) NOT started");
             return;
@@ -394,6 +404,40 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException iox) {
             System.out.println("+ StartupWildbook.startIAQueues() detectionQ.consume() FAILED on " +
                 detectionQ.toString() + ": " + iox.toString());
+        }
+        // Interactive match lane. CONCURRENT, unlike detection: its work is OpenSearch kNN
+        // rather than a blocking ml-service round trip. Consumers start regardless of
+        // iaFastlaneQueueEnabled so that an install which later disables the flag still
+        // drains whatever it already published. FileQueue.consume(handler,int) remains the
+        // authoritative gate -- it probes for atomic moves and clamps to 1 when unsupported.
+        if (fastlaneQ == null) {
+            System.out.println(
+                "+ WARNING: iafastlane queue unavailable; interactive matches stay on the detection queue");
+            org.ecocean.servlet.IAGateway.setFastlaneReady(false);
+        } else {
+            int fastWorkers = 2;
+            String fastCfg = CommonConfiguration.getProperty("iaFastlaneConsumerThreads", context);
+            if ((fastCfg != null) && (fastCfg.trim().length() > 0)) {
+                try { fastWorkers = Integer.parseInt(fastCfg.trim()); } catch (
+                    NumberFormatException nfe) {
+                    System.out.println("+ WARNING: iaFastlaneConsumerThreads not an int ('" +
+                        fastCfg + "'); using 2");
+                }
+            }
+            try {
+                fastlaneQ.consume(new IAMessageHandler(), fastWorkers);
+                // Consume-return flag only -- see IAGateway.setFastlaneReady. This does NOT
+                // prove the workers are alive, only that registration did not throw.
+                org.ecocean.servlet.IAGateway.setFastlaneReady(true);
+                System.out.println(
+                    "+ StartupWildbook.startIAQueues() fastlaneQ.consume() started on " +
+                    fastlaneQ.toString() + " (requested " + fastWorkers + " worker(s))");
+            } catch (IOException iox) {
+                org.ecocean.servlet.IAGateway.setFastlaneReady(false);
+                System.out.println(
+                    "+ StartupWildbook.startIAQueues() fastlaneQ.consume() FAILED on " +
+                    fastlaneQ.toString() + ": " + iox.toString());
+            }
         }
         //ACM ID queue handler
         AcmIdMessageHandler qh4 = new AcmIdMessageHandler();
@@ -710,9 +754,9 @@ public class StartupWildbook implements ServletContextListener {
      *       {@link org.ecocean.ia.plugin.WildbookIAM#registerOneByDto}.
      *   <li>Phase C: Shepherd open, re-load, persist outcome, close.
      * </ul>
-     * Ineligible annotations (missing media asset, missing acmId, fails
-     * {@code validForIdentification}) are parked at MAX_ATTEMPTS so they
-     * fall out of the polling query.
+     * Ineligible annotations (see
+     * {@link org.ecocean.ia.plugin.WildbookIAM#wbiaEligibilityReason}) are
+     * parked at MAX_ATTEMPTS so they fall out of the polling query.
      */
     private static void registerOneAnnotationWithWbia(String context, String annId) {
         // ---- Phase A: load DTO under a short transaction. ----
@@ -777,27 +821,11 @@ public class StartupWildbook implements ServletContextListener {
                 shep.commitDBTransaction();
                 return null;
             }
-            // Eligibility checks. Any failure here is permanent for this
-            // annotation under its current state, so park it.
             org.ecocean.media.MediaAsset ma = ann.getMediaAsset();
-            String reason = null;
-            if (ma == null) reason = "missing media asset";
-            else if (!Util.stringExists(ma.getAcmId())) reason = "media asset has no acmId";
-            else if (!Util.stringExists(ann.getId())) reason = "annotation has no id";
-            else if (!org.ecocean.identity.IBEISIA.validForIdentification(ann))
-                reason = "validForIdentification returned false (bbox/iaClass/etc.)";
-            // Image-side eligibility for the new Phase 0 image-registration
-            // path. Order mirrors sendMediaAssetsForceId in WildbookIAM (the
-            // isValidImageForIA + validMediaAsset pair, in that order), so
-            // the polling thread parks the same media assets the legacy
-            // batch path would skip. Phase B trusts Phase A's verdict —
-            // these are not re-checked against the DB after the Shepherd
-            // closes. (Empty-match-prospects design Track 1 C5: WBIA
-            // Phase 0 eligibility extension.)
-            else if (ma.isValidImageForIA() != null && !ma.isValidImageForIA())
-                reason = "MediaAsset.isValidImageForIA() == false (corrupt/invalid)";
-            else if (!org.ecocean.ia.plugin.WildbookIAM.validMediaAsset(ma))
-                reason = "MediaAsset failed validMediaAsset (mime/dims/url)";
+            // Issue #1787: one eligibility chain shared with the identify-time registration
+            // (WildbookIAM.wbiaEligibilityReason). Any failure is permanent for this
+            // annotation under its current state, so park it.
+            String reason = org.ecocean.ia.plugin.WildbookIAM.wbiaEligibilityReason(ann);
             if (reason != null) {
                 System.out.println("WARN: WbiaRegistrationPoll parking " + annId +
                     " (ineligible: " + reason + ")");
@@ -907,6 +935,7 @@ public class StartupWildbook implements ServletContextListener {
         // The poll loop's interrupt/null checks make subsequent work bail.
         if (submissionWorker != null) submissionWorker.close();
         shutdownWbiaRegisterExecutor();
+        OpenSearch.shutdownBackground();
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
         org.ecocean.ia.ParallelIdentify.shutdown();

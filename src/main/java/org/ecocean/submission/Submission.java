@@ -82,6 +82,11 @@ public class Submission {
     public String getPhase() { return phase; }
     public long getWorkStartedAt() { return workStartedAt; }
     public String getErrorCode() { return errorCode; }
+    public String getErrorMessage() {
+        if ("VALIDATION_STALE".equals(errorCode))
+            return "Approved rows were no longer valid at import, for example a sighting ID created in the meantime. Nothing was imported; validate the rows in a new submission.";
+        return "Submission requires operator inspection";
+    }
     public void queue(String job, String key, String hash, String accepted) {
         jobId = job; commitKeyHash = key; commitHash = hash; acceptedJson = accepted; state = "queued";
     }
@@ -113,7 +118,7 @@ public class Submission {
             .put("derivatives", new JSONObject().put("state", derivatives))
             .put("detection", aiPhase())
             .put("identification", aiPhase());
-        if (!originalCreate && errorCode != null) result.put("errors", new JSONArray().put(new JSONObject().put("code", errorCode).put("message", "Submission requires operator inspection")));
+        if (!originalCreate && errorCode != null) result.put("errors", new JSONArray().put(new JSONObject().put("code", errorCode).put("message", getErrorMessage())));
         return result;
     }
     public String effectiveState() {

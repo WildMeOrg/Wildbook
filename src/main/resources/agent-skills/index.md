@@ -9,7 +9,8 @@ exactly what to do; you review and make the final decisions in Wildbook.
 Most tools here need a short-lived access token from Wildbook. In Wildbook, open your account menu
 and choose **API Access → Read data** to create one, then paste **only that token** to your assistant — never
 your username or password. The token has an expiration date that may vary by Wildbook; create a
-fresh one when it stops working. Full technical detail is in the **api-reference** page (fetch
+fresh one when it stops working. If your organization has been given a **service key** instead, your assistant can use it to get
+these tokens itself; the api-reference page explains how. Full technical detail is in the **api-reference** page (fetch
 `/api/v3/agent-skill/api-reference`). The import-prep tools below are the exception — they need no
 token, because they only prepare files you upload yourself. Direct API submission is a separate,
 limited pilot: a site administrator must assign your account the **api-submission** role.

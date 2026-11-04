@@ -22,6 +22,11 @@ public interface DeferredMatchPublisher {
      * {@code deferredMatch: true}) and gate metadata (
      * {@code attempt}, {@code firstDeferredAt},
      * {@code lastGateReason}) into the payload before calling.
+     *
+     * @return true iff the payload was actually queued for re-fire;
+     *         false means the deferred match is LOST (e.g. the requeue
+     *         executor was shut down mid-undeploy) and the caller must
+     *         not report success for it.
      */
-    void publish(JSONObject payload);
+    boolean publish(JSONObject payload);
 }

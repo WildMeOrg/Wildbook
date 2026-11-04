@@ -91,7 +91,6 @@ public class EncounterSetLocationID extends HttpServlet {
                 out.println("{\"success\":false,\"error\":\"access denied\"}");
                 return;
             }
-            changeMe.setOpensearchProcessPermissions(true);
             setDateLastModified(changeMe);
             try {
                 oldCode = changeMe.getLocationCode();
