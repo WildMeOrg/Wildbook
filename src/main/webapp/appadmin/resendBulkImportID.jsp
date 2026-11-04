@@ -142,6 +142,13 @@ try {
                             + matchMeAnns.size() + " annots for Encounter " + queryEnc.getCatalogNumber());
 
                         Task childTask = IA.intakeAnnotations(myShepherd, matchMeAnns, subParentTask, false);
+                        if (childTask == null) {
+                            // the run could not be persisted: skip this encounter instead of failing the whole resend
+                            System.out.println("BulkImport:" + importIdTask + " WARNING: could not start identification for Encounter "
+                                + queryEnc.getCatalogNumber() + "; skipping it");
+                            myShepherd.beginDBTransaction();
+                            continue;
+                        }
                         myShepherd.storeNewTask(childTask);
                         myShepherd.updateDBTransaction();
                         subParentTask.addChild(childTask);

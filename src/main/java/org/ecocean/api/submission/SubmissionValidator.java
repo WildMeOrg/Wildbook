@@ -16,7 +16,10 @@ public class SubmissionValidator {
         "Encounter.year", "Encounter.month", "Encounter.day", "Encounter.hour", "Encounter.minutes",
         "Encounter.locationID", "Encounter.decimalLatitude", "Encounter.decimalLongitude",
         "Encounter.sex", "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.behavior",
-        "Encounter.verbatimLocality", "Encounter.researcherComments");
+        "Encounter.verbatimLocality", "Encounter.researcherComments", "Encounter.sightingID");
+    static final String SIGHTING_ID = "Encounter.sightingID";
+    // becomes an Occurrence primary key used in page links and URLs, so keep it to URL-safe identifier characters
+    static final java.util.regex.Pattern SIGHTING_ID_FORMAT = java.util.regex.Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,99}");
     public static boolean supported(String field) {
         return FIELDS.contains(field) || field.matches("Encounter\\.mediaAsset(?:[0-9]|[1-9][0-9]|1[0-9]{2})");
     }
@@ -44,6 +47,7 @@ public class SubmissionValidator {
         }
         if (rows.length() == 0) issue(errors, null, -1, null, "REQUIRED_VALUE", "At least one row required");
         Set<String> allMedia = new HashSet<>();
+        Map<String, Boolean> sightingExists = new HashMap<>();
         for (int i = 0; i < rows.length(); i++) {
             JSONObject row = rows.getJSONObject(i), fields = row.getJSONObject("fields"); String source = row.getString("clientRowId");
             JSONObject copied = new JSONObject(fields.toString()), values = new JSONObject();
@@ -60,6 +64,16 @@ public class SubmissionValidator {
                 }
             }
             // No explicit encounter IDs are accepted: the importer creates one encounter per row.
+            // Rows sharing a sighting ID become one new sighting; an existing sighting is never joined.
+            if (fields.has(SIGHTING_ID)) {
+                Object raw = fields.get(SIGHTING_ID);
+                if (!(raw instanceof String) || !SIGHTING_ID_FORMAT.matcher((String)raw).matches()) {
+                    issue(errors, source, i, SIGHTING_ID, "INVALID_VALUE", "INVALID", "Use 1 to 100 letters, digits, '.', '_' or '-', starting with a letter or digit");
+                    copied.remove(SIGHTING_ID);
+                } else if (sightingExists.computeIfAbsent((String)raw, id -> sh.getOccurrence(id) != null)) {
+                    issue(errors, source, i, SIGHTING_ID, "SIGHTING_EXISTS", "A sighting with this ID already exists; this API only creates new sightings");
+                }
+            }
             if (media.isEmpty()) issue(errors, source, i, "Encounter.mediaAsset0", "REQUIRED_VALUE", "At least one image required");
             if (media.size() > config.getInt("maxMediaPerEncounter")) issue(errors, source, i, null, "LIMIT_EXCEEDED", "Too many images for one encounter");
             boolean locationRejected = !(fields.opt("Encounter.locationID") instanceof String) || !configuredLocation(config.getJSONObject("locations"), fields.optString("Encounter.locationID", null));

@@ -439,8 +439,6 @@
         <join/>
       </field>
 
-      <field name="opensearchProcessPermissions" persistence-modifier="none" />
-
       <field name="acousticTag" persistence-modifier="persistent"></field>
 
       <field name="satelliteTag" persistence-modifier="persistent"></field>
@@ -800,6 +798,8 @@
       <field name="fullName">
         <column name="FULLNAME"/>
       </field>
+
+      <field name="serviceOrganizationId" unique="true"><column name="SERVICEORGANIZATIONID" length="36" allows-null="true"/></field>
 
 	  <field name="uuid" primary-key="true">
         <column name="UUID"/>

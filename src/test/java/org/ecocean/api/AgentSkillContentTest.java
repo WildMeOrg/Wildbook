@@ -147,6 +147,55 @@ class AgentSkillContentTest {
         assertNoLeak(md);
     }
 
+    @Test void apiReferenceDocumentsEveryVectorField() {
+        String md = load("/agent-skills/api-reference.md");
+        for (String field : org.ecocean.Embedding.VECTOR_FIELDS.values())
+            assertTrue(md.contains("embeddings." + field),
+                "api-reference must document the kNN vector field embeddings." + field);
+        assertTrue(md.contains("encounterDateMillis"),
+            "api-reference must document the denormalized sighting date on annotations");
+    }
+
+    @Test void apiReferenceKnnExampleFiltersModelInsideKnn() {
+        String md = load("/agent-skills/api-reference.md");
+        // the model term must sit in the knn clause's own filter (applied during the search), not
+        // beside the knn where it would only drop hits after the k nearest were chosen
+        int start = md.indexOf("```json", md.indexOf("**Nearest-neighbour (`knn`) search"));
+        assertTrue(start >= 0, "api-reference must have a kNN example");
+        start += "```json".length();
+        String example = md.substring(start, md.indexOf("```", start))
+            .replaceAll("/\\*.*?\\*/", "0.1"); // the vector placeholder is a comment
+        org.json.JSONObject knn = new org.json.JSONObject(example).getJSONObject("query")
+            .getJSONObject("bool").getJSONArray("must").getJSONObject(0)
+            .getJSONObject("nested").getJSONObject("query").getJSONObject("knn")
+            .getJSONObject("embeddings.vector");
+        assertTrue(knn.getJSONObject("filter").toString().contains("embeddings.methodVersion"),
+            "kNN example must filter methodVersion inside the knn clause");
+    }
+
+    @Test void serviceKeyFlowDocumented() {
+        String api = load("/agent-skills/api-reference.md");
+        for (String needle : new String[] {
+                "wbsvc_", "POST /api/v3/auth/token", "keyExpiresAt", "expiresInSeconds",
+                "\"invalid service key\"", "\"service key expired\"", "\"service key revoked\"",
+                "\"service key unavailable; contact your Wildbook administrator\"" })
+            assertTrue(api.contains(needle), "api-reference must contain " + needle);
+        String submit = load("/agent-skills/submit-sightings.md");
+        assertTrue(submit.contains("wbsvc_"), "submit-sightings must mention service keys");
+        assertTrue(submit.contains("scope=submissions:write"), "submit-sightings must show the write scope");
+        assertTrue(load("/agent-skills/index.md").contains("service key"),
+            "index must point to service keys");
+        assertNoLeak(api);
+        assertNoLeak(submit);
+        int start = api.indexOf("## Using an organization service key");
+        assertTrue(start >= 0, "api-reference must have the service key section");
+        int end = api.indexOf("\n## ", start + 5);
+        String section = end < 0 ? api.substring(start) : api.substring(start, end);
+        assertTrue(section.contains("15 minutes"),
+            "service key section must say issued tokens keep working until they expire (at most 15 minutes)");
+        assertNoJargon(end < 0 ? api.substring(start) : api.substring(start, end));
+    }
+
     @Test void catalog_files_and_index_do_not_drift() {
         // (a) every mapped name resolves to a non-empty resource whose frontmatter name == the key
         for (Map.Entry<String, String> e : AgentSkill.SKILL_RESOURCES.entrySet()) {
