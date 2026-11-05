@@ -115,6 +115,10 @@ public class BulkValidator {
         }
     };
 
+    // Keyword.readableName is persisted without an explicit column length, so it is
+    // created as VARCHAR(255) (column READABLENAME). Longer values fail on persist (#1842).
+    public static final int MAX_KEYWORD_LENGTH = 255;
+
     private String fieldName = null;
     private Object value = null;
     private int indexInt = -3;
@@ -254,6 +258,15 @@ public class BulkValidator {
             if (fieldName.matches(rawToRegex(ifn))) return ifn;
         }
         return null;
+    }
+
+    private static void validateKeywordLength(String keyword, String fieldName)
+    throws BulkValidatorException {
+        if (keyword.length() > MAX_KEYWORD_LENGTH)
+            throw new BulkValidatorException("keyword must be " + MAX_KEYWORD_LENGTH +
+                    " characters or fewer (has " + keyword.length() + ")",
+                    ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
     }
 
     public static Object validateValue(String fieldName, Object value, Shepherd myShepherd)
@@ -473,6 +486,19 @@ public class BulkValidator {
                 return tryDouble(value);
             }
         // now we validate, um, weird ones
+        if (fieldName.matches("^Encounter\\.keyword\\d+$")) {
+            if (value == null) return null;
+            validateKeywordLength(value.toString(), fieldName);
+            return value.toString();
+        }
+        if (fieldName.matches("^Encounter\\.mediaAsset\\d+\\.keywords$")) {
+            if (value == null) return null;
+            // multiple keywords are delimited by underscore (see BulkImporter)
+            for (String keyword : value.toString().split("_")) {
+                validateKeywordLength(keyword, fieldName);
+            }
+            return value.toString();
+        }
         int offset = BulkImportUtil.findMeasurementOffset(fieldName);
         if (offset >= 0) return tryDouble(value);
         offset = BulkImportUtil.findMeasurementSamplingProtocolOffset(fieldName);
