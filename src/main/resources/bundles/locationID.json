@@ -423,7 +423,10 @@
 					{"name": "SM-09", "id": "SM-09"},
 					{"name": "SM-PG", "id": "SM-PG"}
 				  ]},
-				  {"name": "Washington", "id": "Washington", "locationID":[] }
+				  {"name": "Washington", "id": "Washington", "locationID":[] },
+				{"name": "Wyoming", "id": "Wyoming", "locationID":[
+					{"name": "Yellowstone National Park", "id": "Yellowstone National Park", "locationID":[]}
+				]}
 			] }
 		] },
 		{ "name": "Central America", "id": "Central America", "locationID":[
