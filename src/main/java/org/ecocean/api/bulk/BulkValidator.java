@@ -261,7 +261,7 @@ public class BulkValidator {
     }
 
     private static void validateKeywordLength(String keyword, String fieldName)
-            throws BulkValidatorException {
+    throws BulkValidatorException {
         if (keyword.length() > MAX_KEYWORD_LENGTH)
             throw new BulkValidatorException("keyword must be " + MAX_KEYWORD_LENGTH +
                     " characters or fewer (has " + keyword.length() + ")",
@@ -270,7 +270,7 @@ public class BulkValidator {
     }
 
     public static Object validateValue(String fieldName, Object value, Shepherd myShepherd)
-            throws BulkValidatorException {
+    throws BulkValidatorException {
         if (!isValidFieldName(fieldName))
             throw new BulkValidatorException("invalid fieldName: " + fieldName,
                     ApiException.ERROR_RETURN_CODE_INVALID,
@@ -530,7 +530,7 @@ public class BulkValidator {
     }
 
     private static Long tryLong(Object value)
-            throws BulkValidatorException {
+    throws BulkValidatorException {
         if (value == null) return null;
         if (value instanceof Long) return (Long)value;
         try {
