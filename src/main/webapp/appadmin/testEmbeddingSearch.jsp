@@ -46,6 +46,10 @@ for (String methodVersion : methodVersions) {
 
     //List<Annotation> matches = ann.getMatches(myShepherd, null, false, null, null); 
     List<Annotation> matches = ann.getMatches(myShepherd, null, false, "miewID", methodVersion);
+    if (matches == null) {
+        out.println("<p>no embedding to match with</p>");
+        continue;
+    }
     for (Annotation mann : matches) {
             out.println("<p>" + annInfo(mann, myShepherd) + "</p>");
     }

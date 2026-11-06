@@ -198,6 +198,7 @@ public class ParallelIdentify {
             if (matchMeAnns.isEmpty()) { ws.commitDBTransaction(); return null; }
 
             Task childTask = IA.intakeAnnotations(ws, matchMeAnns, subParentTask, false);
+            if (childTask == null) throw new IllegalStateException("IA.intakeAnnotations() could not persist the identification run for " + encId);
             ws.storeNewTask(childTask);
             ws.updateDBTransaction();
             subParentTask.addChild(childTask);

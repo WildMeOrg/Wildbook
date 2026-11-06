@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE jdo PUBLIC "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN" "http://java.sun.com/dtd/jdo_2_0.dtd">
+<jdo>
+  <package name="org.ecocean.submission">
+    <class name="Submission" identity-type="application" table="SUBMISSION">
+      <version strategy="version-number" column="LOCK_VERSION"/>
+      <field name="id" primary-key="true"><column length="36" allows-null="false"/></field>
+      <field name="context"><column length="128" allows-null="false"/></field>
+      <field name="ownerId"><column length="36" allows-null="false"/></field>
+      <field name="createKeyHash" unique="true"><column length="64" allows-null="false"/></field>
+      <field name="createHash"><column length="64" allows-null="false"/></field>
+      <field name="createJson"><column jdbc-type="LONGVARCHAR" allows-null="false"/></field>
+      <field name="rowsJson"><column jdbc-type="LONGVARCHAR" allows-null="false"/></field>
+      <field name="filesJson"><column jdbc-type="LONGVARCHAR" allows-null="false"/></field>
+      <field name="validationJson"><column jdbc-type="LONGVARCHAR"/></field>
+      <field name="jobId"><column length="36"/></field>
+      <field name="commitKeyHash"><column length="64"/></field>
+      <field name="commitHash"><column length="64"/></field>
+      <field name="acceptedJson"><column jdbc-type="LONGVARCHAR"/></field>
+      <field name="resultJson"><column jdbc-type="LONGVARCHAR"/></field>
+      <field name="derivatives"><column length="32"/></field>
+      <field name="phase"><column length="32"/></field>
+      <field name="aiState"><column name="AI_STATE" length="32"/></field>
+      <field name="aiStartedAt"><column name="AI_STARTED_AT" allows-null="true"/></field>
+      <field name="errorCode"><column length="64"/></field>
+      <field name="workStartedAt"/>
+      <field name="derivativesStartedAt"/>
+      <field name="completedAt"/>
+      <field name="state"><column length="32" allows-null="false"/></field>
+      <field name="revision"/>
+      <field name="createdAt"/>
+      <field name="expiresAt"/>
+      <index name="SUBMISSION_CONTEXT_STATE_IDX"><field name="context"/><field name="state"/></index>
+      <index name="SUBMISSION_OWNER_STATE_IDX"><field name="context"/><field name="ownerId"/><field name="state"/></index>
+      <index name="SUBMISSION_JOB_IDX"><field name="jobId"/></index>
+    </class>
+  </package>
+</jdo>

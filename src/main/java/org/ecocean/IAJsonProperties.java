@@ -39,8 +39,17 @@ public class IAJsonProperties extends JsonProperties {
         super("IA.json");
     }
 
+    private static volatile IAJsonProperties testOverride = null;
+
+    /** Test seam (issue #1787 datastore tests): a fixture instance returned by iaConfig() until cleared with null. */
+    static void overrideForTests(IAJsonProperties override) {
+        testOverride = override;
+    }
+
     // hackey constructor so we don't need to catch an exception every time we use these. Is there a better way?
     public static IAJsonProperties iaConfig() {
+        IAJsonProperties override = testOverride;
+        if (override != null) return override;
         try {
             return new IAJsonProperties();
         } catch (Exception e) {
@@ -306,6 +315,75 @@ public class IAJsonProperties extends JsonProperties {
         JSONArray arr = (JSONArray) raw;
         if (arr.length() == 0) return null;
         return arr;
+    }
+
+    // ------------------------------------------------------------------
+    // Multiple ml-service pipelines per species
+    // (docs/plans/2026-10-16-mlservice-multi-config.md). A species is
+    // multi-pipeline when its active species-level `_mlservice_conf` has
+    // two or more entries. Single-entry species keep the pre-existing
+    // behavior everywhere; every per-iaClass rule below is gated on this.
+    // ------------------------------------------------------------------
+
+    public boolean isMultiPipeline(Taxonomy taxy) {
+        JSONArray arr = getActiveMlServiceConfigs(taxy);
+        return (arr != null) && (arr.length() > 1);
+    }
+
+    /**
+     * The `<species>.<iaClass>._mlservice_conf` array, or null if absent or
+     * empty. No `_default` fallback; the caller decides what a missing
+     * class-level entry means.
+     */
+    public JSONArray getMlServiceConfigsForIAClass(Taxonomy taxy, String iaClass) {
+        if ((taxy == null) || !Util.stringExists(iaClass)) return null;
+        Object raw = this.get(identKey(taxy, iaClass) + "._mlservice_conf");
+        if (!(raw instanceof JSONArray)) return null;
+        JSONArray arr = (JSONArray) raw;
+        if (arr.length() == 0) return null;
+        return arr;
+    }
+
+    /**
+     * A copy of the first `default: true` entry with `pipeline_root ==
+     * "vector"` under `<species>.<iaClass>._id_conf`, or null. Unlike
+     * {@link #getIdentConfig(Taxonomy, String)} this does NOT fall back to
+     * `_default` when the class has no `_id_conf`.
+     */
+    public JSONObject getDefaultVectorIdentConfig(Taxonomy taxy, String iaClass) {
+        if ((taxy == null) || !Util.stringExists(iaClass)) return null;
+        Object raw = this.get(identConfigKey(taxy, iaClass));
+        if (!(raw instanceof JSONArray)) return null;
+        JSONArray idConf = (JSONArray) raw;
+        for (int i = 0; i < idConf.length(); i++) {
+            JSONObject entry = idConf.optJSONObject(i);
+            if (entry == null) continue;
+            if (entry.optBoolean("default", false) &&
+                "vector".equals(entry.optString("pipeline_root", null))) {
+                return new JSONObject(entry.toString());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The single ml-service config used to extract an embedding for an
+     * existing annotation of this iaClass. Single-pipeline species: the
+     * species entry [0], as before. Multi-pipeline species: the class-level
+     * entry [0] if present, else the species entry [0]. Null when the
+     * species is not routed to ml-service.
+     */
+    public JSONObject selectExtractionConfig(Taxonomy taxy, String iaClass) {
+        JSONArray species = getActiveMlServiceConfigs(taxy);
+        if (species == null) return null;
+        if (species.length() == 1) return species.optJSONObject(0);
+        JSONArray classConfs = getMlServiceConfigsForIAClass(taxy, iaClass);
+        if ((classConfs != null) && (classConfs.optJSONObject(0) != null))
+            return classConfs.optJSONObject(0);
+        System.out.println("[WARN] IAJsonProperties.selectExtractionConfig: multi-pipeline " +
+            "taxonomy " + taxy + " has no _mlservice_conf for iaClass " + iaClass +
+            "; using the first species entry");
+        return species.optJSONObject(0);
     }
 
     /**
