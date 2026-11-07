@@ -710,12 +710,14 @@ public class StartupWildbook implements ServletContextListener {
             // topTask so the helper creates a root task internally. The
             // reconciler doesn't need an aggregator parent.
             //
-            // The helper internally calls storeNewTask, which commits the
-            // surrounding transaction. So when we get here, either:
+            // The helper commits the child Task with status before it
+            // publishes (IA.enqueueMlServiceJob). So when we get here, either:
             //   - enqueue succeeded: the child Task + queue file are durable;
-            //   - enqueue failed: the child Task IS still persisted (orphan,
-            //     unreachable without a queued job) but the asset remains
-            //     in processing-mlservice for next-startup retry.
+            //   - the queue write failed: the child Task IS still persisted
+            //     (orphan, unreachable without a queued job) but the asset
+            //     remains in processing-mlservice for next-startup retry;
+            //   - the persist or commit failed: nothing was published and
+            //     the asset remains in processing-mlservice as well.
             boolean enqueued = org.ecocean.ia.IA.enqueueOneAssetForMlService(
                 shep, ma, taxy, /* topTask */ null, context, /* baseUrl */ null);
             if (!enqueued) {

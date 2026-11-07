@@ -265,17 +265,18 @@ public class IA {
      * return to decide whether to commit accompanying state changes; the
      * normal intake path tolerates the swallowed-failure behavior.</p>
      *
-     * <p><b>Task persistence note:</b> {@link Shepherd#storeNewTask}
-     * internally commits/reopens the transaction, so the child Task row
-     * is persisted before this method enqueues. On enqueue failure the
-     * child Task remains in the DB as an orphan — there is no queued
-     * job that will ever drive it. The orphan IS still discoverable
-     * via {@link org.ecocean.media.MediaAsset#getRootIATasks} (since
-     * the task references the MediaAsset through objectMediaAssets),
-     * so it may surface in operator-facing task listings until cleaned
-     * up by an out-of-band path. Callers that need cleanup should
-     * delete the orphan explicitly; the default posture here is to
-     * accept it since FileQueue write failures are rare.</p>
+     * <p><b>Task persistence note:</b> the child Task (with the job as its
+     * resume message) is persisted through {@link #enqueueMlServiceJob},
+     * which commits with status BEFORE the job is published; a child whose
+     * persist or commit fails is neither published nor left behind. On a
+     * queue write failure the committed child remains in the DB as an
+     * orphan — there is no queued job that will ever drive it. The orphan
+     * IS still discoverable via
+     * {@link org.ecocean.media.MediaAsset#getRootIATasks} (since the task
+     * references the MediaAsset through objectMediaAssets), so it may
+     * surface in operator-facing task listings until cleaned up by an
+     * out-of-band path; the default posture is to accept it since
+     * FileQueue write failures are rare.</p>
      *
      * <p>If {@code topTask} is null a fresh root task is created inside
      * this method. This matches the reconciler's use case where there is
@@ -296,7 +297,6 @@ public class IA {
         // flag, so MlServiceProcessor.runMatchProspects strips it back off
         // (mirror of IBEISIA's params.remove("ibeis.detection")).
         childTask.addParameter("ibeis.detection", true);
-        myShepherd.storeNewTask(childTask);
 
         // Best-effort encounterId via existing annotations on the MA.
         String encounterId = null;
@@ -322,11 +322,44 @@ public class IA {
             qjob.put("encounterId", encounterId);
         }
 
+        return enqueueMlServiceJob(myShepherd, childTask, qjob, context);
+    }
+
+    /**
+     * Bulk-import boxes PR A (spec 4.4): persist a job's Task with a checked commit, THEN publish
+     * the job. The job is stored on the task as its resume message first, so a startup replay can
+     * republish it. Returns true iff the queue write succeeded; a persist exception or a false
+     * commit returns false without publishing (the transaction is reopened either way).
+     */
+    public static boolean enqueueMlServiceJob(Shepherd myShepherd, Task child, JSONObject qjob,
+        String context) {
+        child.setQueueResumeMessage(qjob.toString());
+        try {
+            myShepherd.getPM().makePersistent(child);
+        } catch (Exception ex) {
+            System.out.println("ERROR: IA.enqueueMlServiceJob() could not persist task " +
+                child.getId() + ": " + ex);
+            myShepherd.rollbackDBTransaction();
+            myShepherd.beginDBTransaction();
+            return false;
+        }
+        if (!myShepherd.commitDBTransactionWithStatus()) {
+            System.out.println("ERROR: IA.enqueueMlServiceJob() commit failed for task " +
+                child.getId() + "; job not published");
+            myShepherd.beginDBTransaction();
+            return false;
+        }
+        myShepherd.beginDBTransaction();
+        return publishMlServiceJob(context, qjob);
+    }
+
+    /** Publish an ml-service job on the detection queue; an IOException logs and returns false. */
+    public static boolean publishMlServiceJob(String context, JSONObject qjob) {
         try {
             return org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
         } catch (java.io.IOException iox) {
-            System.out.println("ERROR: IA.enqueueOneAssetForMlService() " +
-                "addToDetectionQueue threw on ma " + ma.getId() + ": " + iox);
+            System.out.println("ERROR: IA.publishMlServiceJob() addToDetectionQueue threw for task " +
+                qjob.optString("taskId", null) + ": " + iox);
             return false;
         }
     }
