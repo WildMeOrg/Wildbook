@@ -1382,13 +1382,10 @@ public class IAGateway extends HttpServlet {
             if ((boxIds != null) && !boxIds.isEmpty()) {
                 errorChild = new Task(root);
                 for (String id : boxIds) {
-                    try {
-                        Annotation ann = IA.strictAnnotation(myShepherd, id);
-                        if (ann != null) errorChild.addObject(ann);
-                    } catch (Exception lookup) {
-                        System.out.println("ERROR: IAGateway.recoverHandoffFailure() could not load box " +
-                            id + " for import " + importTaskId + ": " + lookup);
-                    }
+                    // a genuinely missing box is skipped; a datastore failure propagates to the
+                    // catch below, so no holder that omits an existing box is ever committed
+                    Annotation ann = IA.strictAnnotation(myShepherd, id);
+                    if (ann != null) errorChild.addObject(ann);
                 }
                 IA.markTaskError(errorChild, code, message);
             }

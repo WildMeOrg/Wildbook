@@ -10,7 +10,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -445,7 +447,27 @@ class ImportedBoxIntakeDbTest extends IdentificationDbTestSupport {
         }
     }
 
-    @Test void datastoreLookupFailureIsNotMistakenForDeletion() throws Exception {
+    /** A staged intake whose annotation lookup throws for the first id on the first {@code failures} attempts. */
+    static final class LookupFailure {
+        final Shepherd real;
+        final Shepherd sh;
+        final AtomicInteger thrown = new AtomicInteger();
+        LookupFailure(String failingId, int failures) throws Exception {
+            real = open("intake");
+            sh = spy(real);
+            PersistenceManager pm = spy(real.getPM());
+            when(sh.getPM()).thenReturn(pm);
+            doAnswer(inv -> {
+                if (failingId.equals(inv.getArgument(1)) && thrown.get() < failures) {
+                    thrown.incrementAndGet();
+                    throw new javax.jdo.JDODataStoreException("datastore down");
+                }
+                return inv.callRealMethod();
+            }).when(pm).getObjectById(eq(Annotation.class), any());
+        }
+    }
+
+    @Test void transientLookupFailureRecoversWithEveryBoxHeld() throws Exception {
         Shepherd fixture = open("fixture");
         String importId = nextImportId();
         Encounter a = boxedEncounter(fixture, ML_GENUS, ML_SPECIES, importId, 1);
@@ -455,23 +477,16 @@ class ImportedBoxIntakeDbTest extends IdentificationDbTestSupport {
         fixture.commitDBTransaction();
         fixture.closeDBTransaction();
 
-        Shepherd real = open("intake");
-        Shepherd sh = spy(real);
-        PersistenceManager pm = spy(real.getPM());
-        when(sh.getPM()).thenReturn(pm);
-        doAnswer(inv -> {
-            if (ids.get(0).equals(inv.getArgument(1))) throw new javax.jdo.JDODataStoreException("datastore down");
-            return inv.callRealMethod();
-        }).when(pm).getObjectById(eq(Annotation.class), any());
+        LookupFailure lf = new LookupFailure(ids.get(0), 1);   // fails once (staging), loads on the recovery reload
         List<JSONObject> jobs = new ArrayList<JSONObject>();
         try (MockedStatic<IAGateway> gateway = mockStatic(IAGateway.class, CALLS_REAL_METHODS)) {
             gateway.when(() -> IAGateway.addToDetectionQueue(eq(CTX), anyString())).thenAnswer(call -> {
                 jobs.add(new JSONObject(call.getArgument(1, String.class))); return true; });
-            Task root = Task.load(req.getId(), sh);
-            assertEquals(0, IA.intakeImportedBoxes(sh, ids, root, CTX, BASE));
-            sh.commitDBTransaction();
+            Task root = Task.load(req.getId(), lf.sh);
+            assertEquals(0, IA.intakeImportedBoxes(lf.sh, ids, root, CTX, BASE));
+            lf.sh.commitDBTransaction();
         } finally {
-            real.rollbackAndClose();
+            lf.real.rollbackAndClose();
         }
         assertEquals(0, jobs.size(), "a datastore failure never publishes half an import");
         Shepherd check = open("check");
@@ -480,10 +495,69 @@ class ImportedBoxIntakeDbTest extends IdentificationDbTestSupport {
             assertEquals("error", reqTask.getStoredStatus());
             assertEquals("EXTRACTION_PERSIST", MultiAlgorithmIntakeDbTest.errorCode(reqTask));
             Task errorChild = onlyChild(reqTask);
-            assertTrue(errorChild.holdsAnnotationId(ids.get(1)), "the box that still loads is held");
+            for (String id : ids) assertTrue(errorChild.holdsAnnotationId(id), "every box is held: " + id);
         } finally {
             check.rollbackAndClose();
         }
+    }
+
+    @Test void persistentLookupFailureCommitsNoPartialHolder() throws Exception {
+        Shepherd fixture = open("fixture");
+        String importId = nextImportId();
+        Encounter a = boxedEncounter(fixture, ML_GENUS, ML_SPECIES, importId, 1);
+        Encounter b = boxedEncounter(fixture, ML_GENUS, ML_SPECIES, importId, 1);
+        Task req = requestTask(fixture, importId, false);
+        List<String> ids = annotationIds(a, b);
+        fixture.commitDBTransaction();
+        fixture.closeDBTransaction();
+
+        LookupFailure lf = new LookupFailure(ids.get(0), Integer.MAX_VALUE);   // the datastore stays down
+        try (MockedStatic<IAGateway> gateway = mockStatic(IAGateway.class, CALLS_REAL_METHODS)) {
+            Task root = Task.load(req.getId(), lf.sh);
+            assertEquals(0, IA.intakeImportedBoxes(lf.sh, ids, root, CTX, BASE));
+            lf.sh.commitDBTransaction();
+            gateway.verify(() -> IAGateway.addToDetectionQueue(anyString(), anyString()), never());
+        } finally {
+            lf.real.rollbackAndClose();
+        }
+        assertTrue(lf.thrown.get() >= 2, "staging and the recovery reload both hit the failure");
+        Shepherd check = open("check");
+        try {
+            Task reqTask = Task.load(req.getId(), check);
+            assertNull(reqTask.getStoredStatus(), "the failed recovery was rolled back: no error mark");
+            assertTrue((reqTask.getChildren() == null) || reqTask.getChildren().isEmpty(),
+                "no holder that omits an existing box was committed");
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
+    @Test void deadRestartAttemptsNoRecoveryWrites() throws Exception {
+        Shepherd fixture = open("fixture");
+        String importId = nextImportId();
+        Encounter a = boxedEncounter(fixture, ML_GENUS, ML_SPECIES, importId, 1);
+        Task req = requestTask(fixture, importId, false);
+        List<String> ids = annotationIds(a);
+        fixture.commitDBTransaction();
+        fixture.closeDBTransaction();
+
+        Shepherd real = open("intake");
+        Shepherd sh = spy(real);
+        PersistenceManager pm = spy(real.getPM());
+        when(sh.getPM()).thenReturn(pm);
+        AtomicInteger persists = new AtomicInteger();
+        doAnswer(inv -> {
+            if (persists.incrementAndGet() == 1) throw new RuntimeException("datastore gone");
+            return inv.callRealMethod();
+        }).when(pm).makePersistent(any());
+        doNothing().when(sh).beginDBTransaction();   // the restart after the rollback does nothing
+        try {
+            Task root = Task.load(req.getId(), sh);
+            assertEquals(0, IA.intakeImportedBoxes(sh, ids, root, CTX, BASE));
+        } finally {
+            real.rollbackAndClose();
+        }
+        assertEquals(1, persists.get(), "no recovery write was attempted on a dead transaction");
     }
 
     @Test void wbiaPublicationFailureIsHandledByTheExistingIntakeRecovery() throws Exception {

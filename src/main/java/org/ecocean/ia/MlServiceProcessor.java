@@ -1248,7 +1248,7 @@ public class MlServiceProcessor {
                     // bulk-import boxes (spec 4.4): the extraction child completes only once its
                     // run durably exists; this is the one finalization point on the happy path
                     markTaskCompleted(parent);
-                    settleHeldAsset(shep, parent);
+                    ImportedBoxes.settleHeldAsset(shep, parent);
                     if (shep.commitDBTransactionWithStatus()) {
                         result = MlServiceJobOutcome.ok(annotationIds);
                     } else {
@@ -1689,12 +1689,6 @@ public class MlServiceProcessor {
         return (e == null) ? null : new String[] { e.getMethod(), e.getMethodVersion() };
     }
 
-    // bulk-import boxes (spec 4.4): a terminal write on an imported child also settles its asset
-    private static void settleHeldAsset(Shepherd shep, Task task) {
-        List<MediaAsset> held = (task == null) ? null : task.getObjectMediaAssets();
-        if ((held != null) && !held.isEmpty()) ImportedBoxes.settle(shep, held.get(0), null);
-    }
-
     // bulk-import boxes (spec 4.4): an invalid imported box is an error that settles its asset
     private void markExtractionError(Shepherd shep, Task task, boolean imported, String code,
         String message) {
@@ -1865,7 +1859,7 @@ public class MlServiceProcessor {
             }
             if (!Task.isImportedBoxTask(task)) return null;
             markTaskCompleted(task);
-            settleHeldAsset(shep, task);
+            ImportedBoxes.settleHeldAsset(shep, task);
             if (shep.commitDBTransactionWithStatus()) return null;
             String message = "could not complete skipped imported-box task " + taskId + ": commit failed";
             System.out.println("ERROR: MlServiceProcessor.completeImportedChildIfSkipped() " + message);
@@ -1915,9 +1909,7 @@ public class MlServiceProcessor {
 
     private void markTaskError(Task task, String code, String message) {
         if (task == null) return;
-        task.setStatus(IBEISIA.STATUS_ERROR);
-        task.setStatusDetailsAddError(code == null ? "UNKNOWN" : code, message);
-        task.setCompletionDateInMilliseconds();
+        IA.markTaskError(task, code == null ? "UNKNOWN" : code, message);
     }
 
     private void markTaskCompleted(Task task) {

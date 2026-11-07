@@ -65,11 +65,16 @@ public final class ImportedBoxes {
             " complete: every imported box on it is extracted or errored");
     }
 
+    /** Settle the asset an imported-box child holds (if any); every terminal write calls this. */
+    public static void settleHeldAsset(Shepherd shep, Task child) {
+        List<MediaAsset> held = (child == null) ? null : child.getObjectMediaAssets();
+        if ((held != null) && !held.isEmpty()) settle(shep, held.get(0), null);
+    }
+
     /** Terminal error on an imported-box child, then settle the asset it holds (if any). */
     public static void failChild(Shepherd shep, Task child, String code, String message) {
         if (child == null) return;
         IA.markTaskError(child, code, message);
-        List<MediaAsset> held = child.getObjectMediaAssets();
-        if ((held != null) && !held.isEmpty()) settle(shep, held.get(0), null);
+        settleHeldAsset(shep, child);
     }
 }

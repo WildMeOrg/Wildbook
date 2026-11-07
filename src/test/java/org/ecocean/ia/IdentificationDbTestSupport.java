@@ -115,6 +115,9 @@ abstract class IdentificationDbTestSupport {
         props.setProperty("datanucleus.ConnectionDriverName", postgres.getDriverClassName());
         props.setProperty("datanucleus.ConnectionURL", postgres.getJdbcUrl());
         props.setProperty("datanucleus.schema.autoCreateTables", "true");
+        // as production (bundles/jdoconfig.properties): a rollback restores field values, which is
+        // what the hand-off recovery tests must survive
+        props.setProperty("datanucleus.RestoreValues", "true");
         TestPMFUtil.closePMF(CTX);
         noIndexing = mockStatic(IndexingManagerFactory.class);
         noIndexing.when(IndexingManagerFactory::getIndexingManager).thenReturn(Mockito.mock(IndexingManager.class));

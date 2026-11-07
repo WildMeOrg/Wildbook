@@ -83,6 +83,7 @@ class HandoffRecoveryDbTest extends IdentificationDbTestSupport {
     @Test void rolledBackCommitLeavesTheImportLinkedToAnErrorTreeHoldingEveryBox() throws Exception {
         Setup s = boxedImport();
         Shepherd real = open("handoff");
+        assertTrue(real.getPM().getPersistenceManagerFactory().getRestoreValues(), "production's RestoreValues=true is in force for this rollback");
         Shepherd sh = spy(real);
         AtomicInteger commits = new AtomicInteger();
         doAnswer(inv -> {

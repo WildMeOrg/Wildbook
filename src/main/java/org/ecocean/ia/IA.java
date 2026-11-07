@@ -1008,21 +1008,28 @@ public class IA {
         }
     }
 
-    // recovery helper: holds every box that still loads; a lookup failure is logged, not fatal
-    private static Task errorChildHolding(Shepherd myShepherd, Task parent, List<String> annIds,
-        String code, String message) {
+    // an error task holding the given (already loaded) annotations
+    private static Task errorChildHolding(Task parent, List<Annotation> anns, String code,
+        String message) {
         Task t = new Task(parent);
-        for (String id : annIds) {
-            try {
-                Annotation a = strictAnnotation(myShepherd, id);
-                if (a != null) t.addObject(a);
-            } catch (Exception lookup) {
-                System.out.println("ERROR: IA.errorChildHolding() could not load annotation " + id +
-                    ": " + lookup);
-            }
-        }
+        for (Annotation a : anns) if (a != null) t.addObject(a);
         markTaskError(t, code, message);
         return t;
+    }
+
+    /**
+     * Recovery helper: reloads by id and holds every box that still exists. A genuinely missing
+     * annotation is skipped; a datastore failure PROPAGATES, so the caller's recovery fails
+     * instead of committing a holder that omits an existing box.
+     */
+    private static Task errorChildReloading(Shepherd myShepherd, Task parent, List<String> annIds,
+        String code, String message) {
+        List<Annotation> anns = new ArrayList<Annotation>();
+        for (String id : annIds) {
+            Annotation a = strictAnnotation(myShepherd, id);
+            if (a != null) anns.add(a);
+        }
+        return errorChildHolding(parent, anns, code, message);
     }
 
     /**
@@ -1040,7 +1047,7 @@ public class IA {
         boolean skipIdent = IBEISIA.taskParametersSkipIdent(root);
         List<StagedBox> staged = new ArrayList<StagedBox>();
         Map<String, Task> speciesTasks = new LinkedHashMap<String, Task>();
-        Map<String, List<String>> wbiaSpecies = new LinkedHashMap<String, List<String>>();
+        Map<String, List<Annotation>> wbiaSpecies = new LinkedHashMap<String, List<Annotation>>();
         boolean committed = false;
         String stagingFailure = null;
         try {
@@ -1051,7 +1058,7 @@ public class IA {
             IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
             Map<String, Taxonomy> taxonomies = new LinkedHashMap<String, Taxonomy>();
             Map<String, List<Annotation>> bySpecies = new LinkedHashMap<String, List<Annotation>>();
-            List<String> noTaxonomy = new ArrayList<String>();
+            List<Annotation> noTaxonomy = new ArrayList<Annotation>();
             for (String id : inputIds) {
                 Annotation ann = strictAnnotation(myShepherd, id);   // a datastore failure propagates
                 if (ann == null) {
@@ -1062,7 +1069,7 @@ public class IA {
                 MediaAsset ma = ann.getMediaAsset();
                 Taxonomy taxy = ann.getTaxonomy(myShepherd);
                 if ((ma == null) || (taxy == null) || !Util.stringExists(taxy.getScientificName())) {
-                    noTaxonomy.add(id);
+                    noTaxonomy.add(ann);
                     continue;
                 }
                 root.addObject(ma);   // dedupes; the root lists every asset it handed to IA
@@ -1072,7 +1079,7 @@ public class IA {
                 bySpecies.get(key).add(ann);
             }
             if (!noTaxonomy.isEmpty()) {
-                Task t = errorChildHolding(myShepherd, root, noTaxonomy, "NO_TAXONOMY",
+                Task t = errorChildHolding(root, noTaxonomy, "NO_TAXONOMY",
                     "imported box has no media asset or no taxonomy");
                 myShepherd.getPM().makePersistent(t);
             }
@@ -1111,9 +1118,7 @@ public class IA {
                         myShepherd.getPM().makePersistent(child);
                     }
                 } else {
-                    List<String> ids = new ArrayList<String>();
-                    for (Annotation ann : e.getValue()) ids.add(ann.getId());
-                    wbiaSpecies.put(e.getKey(), ids);
+                    wbiaSpecies.put(e.getKey(), new ArrayList<Annotation>(e.getValue()));
                 }
                 myShepherd.getPM().makePersistent(speciesTask);
             }
@@ -1133,7 +1138,11 @@ public class IA {
             try {
                 myShepherd.rollbackDBTransaction();
                 myShepherd.beginDBTransaction();
-                Task t = errorChildHolding(myShepherd, root, inputIds, "EXTRACTION_PERSIST",
+                if (!myShepherd.isDBTransactionActive())
+                    throw new IllegalStateException("transaction not active after restart");
+                // reload every box: a lookup failure here fails the recovery (below) rather than
+                // committing a holder that omits an existing box
+                Task t = errorChildReloading(myShepherd, root, inputIds, "EXTRACTION_PERSIST",
                     stagingFailure);
                 markTaskError(root, "EXTRACTION_PERSIST", stagingFailure);
                 myShepherd.getPM().makePersistent(t);
@@ -1144,7 +1153,11 @@ public class IA {
                 myShepherd.beginDBTransaction();
             } catch (Exception ex2) {
                 System.out.println("ERROR: IA.intakeImportedBoxes() recovery failed for " + root +
-                    ": " + ex2);
+                    "; its boxes are left pending: " + ex2);
+                try {
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.beginDBTransaction();
+                } catch (Exception ignore) {}
             }
             return 0;
         }
@@ -1164,17 +1177,19 @@ public class IA {
                     "could not publish the extraction job");
             }
         }
-        for (Map.Entry<String, List<String>> e : wbiaSpecies.entrySet()) {
+        for (Map.Entry<String, List<Annotation>> e : wbiaSpecies.entrySet()) {
             if (skipIdent) continue;
             Task speciesTask = speciesTasks.get(e.getKey());
+            List<String> ids = new ArrayList<String>();
+            for (Annotation ann : e.getValue()) ids.add(ann.getId());
             try {
-                matchProspectsRunner.run(context, e.getValue(), speciesTask.getId());
+                matchProspectsRunner.run(context, ids, speciesTask.getId());
                 started++;
             } catch (Exception ex) {
                 System.out.println("ERROR: IA.intakeImportedBoxes() identification dispatch threw " +
                     "for species " + e.getKey() + ": " + ex);
-                Task t = errorChildHolding(myShepherd, speciesTask, e.getValue(), "MATCH_DISPATCH",
-                    ex.toString());
+                // the species' annotations are already loaded: no reload, nothing to omit
+                Task t = errorChildHolding(speciesTask, e.getValue(), "MATCH_DISPATCH", ex.toString());
                 myShepherd.getPM().makePersistent(t);
             }
         }
