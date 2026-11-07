@@ -572,7 +572,8 @@ public class IA {
         if (Embedding.isVectorConfig(opt)) params.put(Task.PARAM_V2_MATCH, true);
     }
 
-    private static void markTaskError(Task t, String code, String message) {
+    // also used by IAGateway's bulk-import hand-off recovery (spec 4.4)
+    public static void markTaskError(Task t, String code, String message) {
         t.setStatus("error");
         t.setStatusDetailsAddError(code, message);
         t.setCompletionDateInMilliseconds();

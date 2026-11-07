@@ -2,6 +2,7 @@ package org.ecocean.servlet;
 
 import org.ecocean.AccessControl;
 import org.ecocean.Annotation;
+import org.ecocean.Encounter;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.MLService;
@@ -1311,6 +1312,110 @@ public class IAGateway extends HttpServlet {
         return rtn;
     }
 
+    /**
+     * Bulk-import boxes (spec 4.4): the one place that decides what an import hands to IA. An
+     * import stamped {@code annotationsImported} never detects: its imported-box annotations go
+     * out as {@code annotationIds} in extraction mode. Every other import sends its media asset
+     * ids exactly as before. Shared with the submissions API's prepare (PR E).
+     */
+    public static JSONObject buildImportEnvelope(ImportTask itask) {
+        JSONObject env = new JSONObject();
+
+        if ((itask != null) && itask.annotationsImported()) {
+            env.put("annotationIds", new JSONArray(importedBoxAnnotationIds(itask)));
+            env.put("annotationMode", ANNOTATION_MODE_EXTRACT);
+            return env;
+        }
+        JSONArray maIds = new JSONArray();
+        if ((itask != null) && (itask.getMediaAssets() != null)) {
+            for (MediaAsset asset : itask.getMediaAssets()) {
+                maIds.put(asset.getId());
+            }
+        }
+        env.put("mediaAssetIds", maIds);
+        return env;
+    }
+
+    // every annotation of the import's encounters that carries THIS import's provenance marker
+    static List<String> importedBoxAnnotationIds(ImportTask itask) {
+        List<String> ids = new ArrayList<String>();
+
+        if ((itask == null) || (itask.getEncounters() == null)) return ids;
+        String importId = itask.getId();
+        for (Encounter enc : itask.getEncounters()) {
+            if ((enc == null) || (enc.getAnnotations() == null)) continue;
+            for (Annotation ann : enc.getAnnotations()) {
+                if ((ann == null) || !ann.isImportedBox()) continue;
+                if ((importId == null) || !importId.equals(ann.importedBoxImportTaskId())) continue;
+                if (!ids.contains(ann.getId())) ids.add(ann.getId());
+            }
+        }
+        return ids;
+    }
+
+    /**
+     * The hand-off could not be committed or published. In a fresh transaction: the root goes to
+     * error, a boxed import gets one error child holding every box (so no box is left task-less
+     * and pending), the ImportTask logs it, and the recovery commit is checked. Returns false,
+     * after logging, when even that could not be persisted; the caller reports failure either way.
+     */
+    static boolean recoverHandoffFailure(Shepherd myShepherd, ImportTask itask, Task root,
+        List<String> boxIds, String code, String message) {
+        try {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.beginDBTransaction();
+            IA.markTaskError(root, code, message);
+            Task errorChild = null;
+            if ((boxIds != null) && !boxIds.isEmpty()) {
+                errorChild = new Task(root);
+                for (String id : boxIds) {
+                    Annotation ann = myShepherd.getAnnotation(id);
+                    if (ann != null) errorChild.addObject(ann);
+                }
+                IA.markTaskError(errorChild, code, message);
+            }
+            itask.addLog("IA hand-off failed (" + code + "): " + message);
+            myShepherd.getPM().makePersistent(root);
+            if (errorChild != null) myShepherd.getPM().makePersistent(errorChild);
+            myShepherd.getPM().makePersistent(itask);
+            boolean ok = myShepherd.commitDBTransactionWithStatus();
+            myShepherd.beginDBTransaction();
+            if (!ok)
+                System.out.println(
+                    "ERROR: IAGateway.recoverHandoffFailure() could not persist the failure for import " +
+                    itask.getId() + ": commit failed");
+            return ok;
+        } catch (Exception ex) {
+            System.out.println(
+                "ERROR: IAGateway.recoverHandoffFailure() could not persist the failure for import " +
+                ((itask == null) ? null : itask.getId()) + ": " + ex);
+            try {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.beginDBTransaction();
+            } catch (Exception ignore) {}
+            return false;
+        }
+    }
+
+    private static List<String> stringList(JSONArray arr) {
+        List<String> out = new ArrayList<String>();
+
+        if (arr == null) return out;
+        for (int i = 0; i < arr.length(); i++) {
+            String v = arr.optString(i, null);
+            if (v != null) out.add(v);
+        }
+        return out;
+    }
+
+    /**
+     * Bulk-import hand-off. Builds the root and child tasks and the queue message exactly as
+     * before, then (bulk-import boxes PR A, spec 4.4) persists them with ONE checked commit before
+     * publishing, and reports {@code success:false} instead of an unconditional true when the
+     * commit or the publish fails or throws. An import stamped annotationsImported publishes the
+     * extraction-mode envelope from {@link #buildImportEnvelope}; one whose boxes all failed
+     * import has nothing to hand off and completes its root immediately.
+     */
     public static JSONObject handleBulkImport(JSONObject jin, JSONObject res, Shepherd myShepherd,
         String context, String baseUrl)
     throws ServletException, IOException {
@@ -1322,48 +1427,93 @@ public class IAGateway extends HttpServlet {
         String importTaskId = null;
         if (taskParameters != null) importTaskId = taskParameters.optString("importTaskId", null);
         ImportTask itask = null;
-        Task parentTask = null;
-        String resTaskId = null;
         if (importTaskId != null) itask = myShepherd.getImportTask(importTaskId);
-        if (itask != null) {
-            parentTask = new Task(); // root task to hold all others, to connect to ImportTask
-            parentTask.setParameters(taskParameters);
-            myShepherd.storeNewTask(parentTask);
-            itask.setIATask(parentTask);
-            resTaskId = parentTask.getId();
-            itask.addLog("handleBulkImport() initiated IA Task " + resTaskId);
-            System.out.println("IAGateway.handleBulkImport() created parentTask " + parentTask +
-                " to link to " + itask);
+        if (itask == null) {
+            res.put("success", false);
+            res.put("error", "no ImportTask " + importTaskId);
+            return res;
         }
-        int okCount = 0;
-        JSONArray maIds = new JSONArray();
-        for (MediaAsset asset : itask.getMediaAssets()) {
-            maIds.put(asset.getId());
-        }
+        Task parentTask = new Task(); // root task to hold all others, to connect to ImportTask
+        parentTask.setParameters(taskParameters);
+        itask.setIATask(parentTask);
+        String resTaskId = parentTask.getId();
+        itask.addLog("handleBulkImport() initiated IA Task " + resTaskId);
+        System.out.println("IAGateway.handleBulkImport() created parentTask " + parentTask +
+            " to link to " + itask);
         Task task = new Task();
         task.setParameters(taskParameters);
-        myShepherd.storeNewTask(task);
-        if (parentTask != null) parentTask.addChild(task);
-        if (resTaskId == null) resTaskId = task.getId();
-        myShepherd.commitDBTransaction();
-        // System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and queued " + task);
+        parentTask.addChild(task);
+
+        JSONObject env = buildImportEnvelope(itask);
+        boolean boxed = env.has("annotationMode");
         JSONObject qjob = new JSONObject(jin.toString()); // clone it to start with so we get all same content
         qjob.remove("bulkImport"); // ... but then lose this
         qjob.put("taskId", task.getId());
-        qjob.put("mediaAssetIds", maIds);
         qjob.put("v2", true);
         qjob.put("__context", context);
         qjob.put("__baseUrl", baseUrl);
         qjob.put("__handleBulkImport", System.currentTimeMillis());
+        if (boxed) {
+            // a boxed import never detects: the routing keys are replaced explicitly
+            qjob.remove("mediaAssetIds");
+            qjob.put("annotationIds", env.getJSONArray("annotationIds"));
+            qjob.put("annotationMode", env.getString("annotationMode"));
+        } else {
+            qjob.put("mediaAssetIds", env.getJSONArray("mediaAssetIds"));
+        }
         task.setQueueResumeMessage(qjob.toString());
+        List<String> boxIds = boxed ? stringList(env.getJSONArray("annotationIds")) : new ArrayList<String>();
+        boolean publish = true;
+        if (boxed && boxIds.isEmpty()) {
+            parentTask.setStatus("completed");
+            parentTask.setCompletionDateInMilliseconds();
+            itask.addLog("no imported boxes survived import; nothing to hand off");
+            publish = false;
+        }
+
+        // ONE persist boundary: tree, envelope and resume message, committed with status
+        String code = null;
+        String detail = null;
+        try {
+            myShepherd.getPM().makePersistent(parentTask);
+            myShepherd.getPM().makePersistent(task);
+            myShepherd.getPM().makePersistent(itask);
+            if (myShepherd.commitDBTransactionWithStatus()) {
+                myShepherd.beginDBTransaction();
+            } else {
+                code = "HANDOFF_COMMIT";
+                detail = "commit failed";
+            }
+        } catch (Exception ex) {
+            code = "HANDOFF_COMMIT";
+            detail = ex.toString();
+        }
         // Classified like everything else. The clone above preserves arbitrary request
         // fields, so an import carrying annotationIds + fastlane would otherwise bypass
         // the classifier and land on the serial detection queue. A normal import (media
         // ids, no annotations) still classifies LANE_DETECTION; an EMPTY, annotation-free
         // import now goes to the IA queue, where it performs no intake either way.
-        boolean ok = publishToLane(context, qjob.toString());
-        if (ok) okCount++;
-        res.put("queuedCount", okCount);
+        if ((code == null) && publish) {
+            try {
+                if (!publishToLane(context, qjob.toString())) {
+                    code = "HANDOFF_PUBLISH";
+                    detail = "publishToLane returned false";
+                }
+            } catch (Exception ex) {
+                code = "HANDOFF_PUBLISH";
+                detail = ex.toString();
+            }
+        }
+        if (code != null) {
+            System.out.println("ERROR: IAGateway.handleBulkImport() " + code + " for import " +
+                importTaskId + ": " + detail);
+            recoverHandoffFailure(myShepherd, itask, parentTask, boxIds, code, detail);
+            res.put("success", false);
+            res.put("error", code);
+            res.put("resTaskId", resTaskId);
+            return res;
+        }
+        res.put("queuedCount", publish ? 1 : 0);
         res.remove("error");
         res.put("success", true);
         res.put("resTaskId", resTaskId);

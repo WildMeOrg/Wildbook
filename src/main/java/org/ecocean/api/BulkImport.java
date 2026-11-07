@@ -857,6 +857,8 @@ public class BulkImport extends ApiBase {
             JSONObject rtn = IAGateway.handleBulkImport(data, res, myShepherd, context,
                 IA.getBaseURL(context));
             Util.mark("[INFO] > > > > > > rtn => " + rtn);
+            if (!rtn.optBoolean("success", false))
+                itask.addLog("IA hand-off failed: " + rtn.optString("error", "unknown"));
             myShepherd.commitDBTransaction();
         } catch (Exception ex) {
             System.out.println("[ERROR] BulkImport.initiateIA(" + importId + ") failed with " + ex);
