@@ -104,6 +104,9 @@ public class IAGateway extends HttpServlet {
         return fastlaneReady;
     }
 
+    /** Envelope {@code annotationMode} value for bulk-import boxes (spec 4.4): extract embeddings, then identify. */
+    public static final String ANNOTATION_MODE_EXTRACT = "extract-then-identify";
+
     /**
      * Which lane a job belongs on. MIRRORS processQueueMessage's dispatch order
      * (v2 -> MLService -> mlServiceV2 -> detect -> identify), because the lane must
@@ -119,6 +122,11 @@ public class IAGateway extends HttpServlet {
     public static int laneFor(JSONObject j) {
         if (j == null) return LANE_IA;
         if (j.optBoolean("v2", false)) { // IA.handleRest
+            // Bulk-import boxes (spec 4.4): an extract-then-identify envelope only ENQUEUES one
+            // ml-service extraction job per box and intakes nothing synchronously, so it belongs
+            // on the detection lane like the media half, whatever the fastlane flag says.
+            if (ANNOTATION_MODE_EXTRACT.equals(j.optString("annotationMode", null)))
+                return LANE_DETECTION;
             JSONArray ann = j.optJSONArray("annotationIds");
             if ((ann != null) && (ann.length() > 0))
                 return j.optBoolean("fastlane", false) ? LANE_FASTLANE : LANE_IA;
