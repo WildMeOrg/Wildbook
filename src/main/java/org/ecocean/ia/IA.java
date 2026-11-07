@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -945,6 +946,222 @@ public class IA {
         return root;
     }
 
+    /**
+     * Bulk-import boxes (spec 4.4): the permitted envelope shapes. Null means accepted: media ids
+     * without a mode (detection, today), annotation ids without a mode (identification, today, with
+     * or without media ids), or annotation ids in extraction mode with no media ids. Anything else
+     * is a reason string for the root's error.
+     */
+    static String envelopeRejection(JSONObject jin) {
+        if (jin == null) return null;
+        String mode = jin.optString("annotationMode", null);
+        if (mode == null) return null;
+        JSONArray ann = jin.optJSONArray("annotationIds");
+        JSONArray media = jin.optJSONArray("mediaAssetIds");
+        if (!org.ecocean.servlet.IAGateway.ANNOTATION_MODE_EXTRACT.equals(mode))
+            return "unknown annotationMode: " + mode;
+        if ((ann == null) || (ann.length() == 0)) return "annotationMode without annotationIds";
+        if ((media != null) && (media.length() > 0)) return "extraction mode with mediaAssetIds";
+        return null;
+    }
+
+    /** Seam for the WBIA-only branch of {@link #intakeImportedBoxes}; tests substitute it. */
+    interface MatchProspectsRunner {
+        MlServiceJobOutcome run(String context, List<String> annotationIds, String parentTaskId);
+    }
+
+    private static final MatchProspectsRunner REAL_MATCH_RUNNER = new MatchProspectsRunner() {
+        @Override public MlServiceJobOutcome run(String context, List<String> annotationIds,
+            String parentTaskId) {
+            return new MlServiceProcessor(context).runMatchProspects(annotationIds, parentTaskId,
+                null);
+        }
+    };
+    private static volatile MatchProspectsRunner matchProspectsRunner = REAL_MATCH_RUNNER;
+
+    /** Test hook; null restores the real runner. */
+    static void setMatchProspectsRunnerForTests(MatchProspectsRunner r) {
+        matchProspectsRunner = (r == null) ? REAL_MATCH_RUNNER : r;
+    }
+
+    // staged per-box extraction child plus its job, published only after the single commit
+    private static final class StagedBox {
+        final Task child;
+        final JSONObject job;
+        StagedBox(Task child, JSONObject job) {
+            this.child = child;
+            this.job = job;
+        }
+    }
+
+    private static Task errorChildHolding(Shepherd myShepherd, Task parent, List<String> annIds,
+        String code, String message) {
+        Task t = new Task(parent);
+        for (String id : annIds) {
+            Annotation a = myShepherd.getAnnotation(id);
+            if (a != null) t.addObject(a);
+        }
+        markTaskError(t, code, message);
+        return t;
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.4): one species task per species under {@code root}; on a species
+     * with an ml-service extractor one child per box holding the box and its asset, with one
+     * {@code mlServiceV2 / annotationId} job each, all persisted with ONE checked commit before
+     * any job is published; on other species the boxes go to the existing identification path
+     * ({@code MlServiceProcessor.runMatchProspects}) unless identification is skipped. Every
+     * failure ends in a terminal error task that holds the boxes concerned, so no box is left
+     * task-less and pending. Returns the number of jobs published plus WBIA species dispatched.
+     */
+    static int intakeImportedBoxes(Shepherd myShepherd, List<String> inputIds, Task root,
+        String context, String baseUrl) {
+        if ((inputIds == null) || inputIds.isEmpty() || (root == null)) return 0;
+        if (!Util.stringExists(baseUrl)) baseUrl = getBaseURL(context);
+        boolean skipIdent = IBEISIA.taskParametersSkipIdent(root);
+        IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+        List<StagedBox> staged = new ArrayList<StagedBox>();
+        Map<String, Task> speciesTasks = new LinkedHashMap<String, Task>();
+        Map<String, List<String>> wbiaSpecies = new LinkedHashMap<String, List<String>>();
+        boolean committed = false;
+        String stagingFailure = null;
+        try {
+            Map<String, Taxonomy> taxonomies = new LinkedHashMap<String, Taxonomy>();
+            Map<String, List<Annotation>> bySpecies = new LinkedHashMap<String, List<Annotation>>();
+            List<String> noTaxonomy = new ArrayList<String>();
+            for (String id : inputIds) {
+                Annotation ann = myShepherd.getAnnotation(id);
+                if (ann == null) {
+                    System.out.println("WARN: IA.intakeImportedBoxes() annotation " + id +
+                        " no longer exists; skipped");
+                    continue;
+                }
+                MediaAsset ma = ann.getMediaAsset();
+                Taxonomy taxy = ann.getTaxonomy(myShepherd);
+                if ((ma == null) || (taxy == null) || !Util.stringExists(taxy.getScientificName())) {
+                    noTaxonomy.add(id);
+                    continue;
+                }
+                root.addObject(ma);   // dedupes; the root lists every asset it handed to IA
+                String key = taxy.getScientificName();
+                taxonomies.put(key, taxy);
+                if (!bySpecies.containsKey(key)) bySpecies.put(key, new ArrayList<Annotation>());
+                bySpecies.get(key).add(ann);
+            }
+            if (!noTaxonomy.isEmpty()) {
+                Task t = errorChildHolding(myShepherd, root, noTaxonomy, "NO_TAXONOMY",
+                    "imported box has no media asset or no taxonomy");
+                myShepherd.getPM().makePersistent(t);
+            }
+            for (Map.Entry<String, List<Annotation>> e : bySpecies.entrySet()) {
+                Taxonomy taxy = taxonomies.get(e.getKey());
+                Task speciesTask = new Task();
+                if (root.getParameters() != null)
+                    speciesTask.setParameters(scrubRunParams(root.getParameters()));
+                List<MediaAsset> assets = new ArrayList<MediaAsset>();
+                for (Annotation ann : e.getValue()) {
+                    if (!assets.contains(ann.getMediaAsset())) assets.add(ann.getMediaAsset());
+                }
+                speciesTask.setObjectMediaAssets(assets);
+                linkUnderRoot(speciesTask, root);
+                speciesTasks.put(e.getKey(), speciesTask);
+                boolean mlService = (iaConfig != null) &&
+                    (iaConfig.getActiveMlServiceConfigs(taxy) != null);
+                if (mlService) {
+                    for (Annotation ann : e.getValue()) {
+                        Task child = new Task(speciesTask);
+                        child.addObject(ann);
+                        child.addObject(ann.getMediaAsset());
+                        child.addParameter(Task.PARAM_EMBEDDING_EXTRACTION, true);
+                        child.addParameter(Task.PARAM_IMPORTED_BOX, true);
+                        child.setStatus("initiated");
+                        ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING_MLSERVICE);
+                        JSONObject job = new JSONObject();
+                        job.put("mlServiceV2", true);
+                        job.put("annotationId", ann.getId());
+                        job.put("taxonomyString", taxy.getScientificName());
+                        job.put("taskId", child.getId());
+                        job.put("__context", context);
+                        job.put("__baseUrl", baseUrl);
+                        child.setQueueResumeMessage(job.toString());
+                        staged.add(new StagedBox(child, job));
+                        myShepherd.getPM().makePersistent(child);
+                    }
+                } else {
+                    List<String> ids = new ArrayList<String>();
+                    for (Annotation ann : e.getValue()) ids.add(ann.getId());
+                    wbiaSpecies.put(e.getKey(), ids);
+                }
+                myShepherd.getPM().makePersistent(speciesTask);
+            }
+            myShepherd.getPM().makePersistent(root);
+            committed = myShepherd.commitDBTransactionWithStatus();
+            if (!committed) stagingFailure = "commit failed";
+            else myShepherd.beginDBTransaction();
+        } catch (Exception ex) {
+            stagingFailure = ex.toString();
+            ex.printStackTrace();
+        }
+        if (stagingFailure != null) {
+            // nothing of the above is durable: one error task holding every box, so the import
+            // can finish and the operator sees it
+            System.out.println("ERROR: IA.intakeImportedBoxes() staging failed for " + root +
+                ": " + stagingFailure);
+            try {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.beginDBTransaction();
+                Task t = errorChildHolding(myShepherd, root, inputIds, "EXTRACTION_PERSIST",
+                    stagingFailure);
+                markTaskError(root, "EXTRACTION_PERSIST", stagingFailure);
+                myShepherd.getPM().makePersistent(t);
+                myShepherd.getPM().makePersistent(root);
+                if (!myShepherd.commitDBTransactionWithStatus())
+                    System.out.println("ERROR: IA.intakeImportedBoxes() could not persist the " +
+                        "EXTRACTION_PERSIST error for " + root);
+                myShepherd.beginDBTransaction();
+            } catch (Exception ex2) {
+                System.out.println("ERROR: IA.intakeImportedBoxes() recovery failed for " + root +
+                    ": " + ex2);
+            }
+            return 0;
+        }
+        // everything is durable; publish, isolating each item
+        int started = 0;
+        for (StagedBox sb : staged) {
+            boolean ok = false;
+            try {
+                ok = publishMlServiceJob(context, sb.job);
+            } catch (Exception ex) {
+                ok = false;
+            }
+            if (ok) {
+                started++;
+            } else {
+                ImportedBoxes.failChild(myShepherd, sb.child, "ENQUEUE",
+                    "could not publish the extraction job");
+            }
+        }
+        for (Map.Entry<String, List<String>> e : wbiaSpecies.entrySet()) {
+            if (skipIdent) continue;
+            Task speciesTask = speciesTasks.get(e.getKey());
+            try {
+                matchProspectsRunner.run(context, e.getValue(), speciesTask.getId());
+                started++;
+            } catch (Exception ex) {
+                System.out.println("ERROR: IA.intakeImportedBoxes() identification dispatch threw " +
+                    "for species " + e.getKey() + ": " + ex);
+                Task t = errorChildHolding(myShepherd, speciesTask, e.getValue(), "MATCH_DISPATCH",
+                    ex.toString());
+                myShepherd.getPM().makePersistent(t);
+            }
+        }
+        if (!myShepherd.commitDBTransactionWithStatus())
+            System.out.println("ERROR: IA.intakeImportedBoxes() could not persist the publish " +
+                "outcomes for " + root);
+        myShepherd.beginDBTransaction();
+        return started;
+    }
+
     // possibly (should?) have .taskId, and *definitely* should have .__context and .__baseUrl
     // note: this is processed *from the queue* and as such does not have "output"
     public static void handleRest(JSONObject jin) {
@@ -964,6 +1181,17 @@ public class IA {
             String taskId = jin.optString("taskId", Util.generateUUID());
             Task topTask = resolveRequestRoot(Task.load(taskId, myShepherd), taskId, fastlane);
             myShepherd.storeNewTask(topTask);
+            // bulk-import boxes (spec 4.4): the envelope shape is validated BEFORE any intake, so a
+            // malformed one can never half-run (detection published, extraction refused)
+            String rejection = envelopeRejection(jin);
+            if (rejection != null) {
+                System.out.println("ERROR: IA.handleRest() rejected envelope for task " + taskId +
+                    ": " + rejection);
+                markTaskError(topTask, "INVALID_ENVELOPE", rejection);
+                myShepherd.commitDBTransaction();
+                return;
+            }
+            String annotationMode = jin.optString("annotationMode", null);
             JSONObject opt = jin.optJSONObject("opt"); // should use this to decide how to branch differently than "default"
             JSONArray mlist = jin.optJSONArray("mediaAssetIds");
             if ((mlist != null) && (mlist.length() > 0)) {
@@ -983,7 +1211,20 @@ public class IA {
                 linkUnderRoot(mtask, topTask);
             }
             JSONArray alist = jin.optJSONArray("annotationIds");
-            if ((alist != null) && (alist.length() > 0)) {
+            if ((alist != null) && (alist.length() > 0) &&
+                org.ecocean.servlet.IAGateway.ANNOTATION_MODE_EXTRACT.equals(annotationMode)) {
+                // bulk-import boxes: extract embeddings per box, then identify (spec 4.4). The ids
+                // go straight to the intake, which loads them tolerantly and owns its recovery.
+                List<String> ids = new ArrayList<String>();
+                for (int i = 0; i < alist.length(); i++) {
+                    String aid = alist.optString(i, null);
+                    if (aid != null) ids.add(aid);
+                }
+                int started = intakeImportedBoxes(myShepherd, ids, topTask, context,
+                    jin.optString("__baseUrl", null));
+                System.out.println("INFO: IA.handleRest() imported-box intake started " + started +
+                    " jobs/runs for " + topTask);
+            } else if ((alist != null) && (alist.length() > 0)) {
                 List<Annotation> anns = new ArrayList<Annotation>();
                 for (int i = 0; i < alist.length(); i++) {
                     String aid = alist.optString(i, null);
