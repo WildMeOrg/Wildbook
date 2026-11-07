@@ -994,12 +994,32 @@ public class IA {
         }
     }
 
+    /**
+     * A strict annotation lookup: null only for a genuinely missing annotation; a datastore
+     * failure propagates (Shepherd.getAnnotation swallows every exception, which would make an
+     * outage look like a deletion).
+     */
+    public static Annotation strictAnnotation(Shepherd shep, String id) {
+        if (id == null) return null;
+        try {
+            return (Annotation)shep.getPM().getObjectById(Annotation.class, id);
+        } catch (javax.jdo.JDOObjectNotFoundException notFound) {
+            return null;
+        }
+    }
+
+    // recovery helper: holds every box that still loads; a lookup failure is logged, not fatal
     private static Task errorChildHolding(Shepherd myShepherd, Task parent, List<String> annIds,
         String code, String message) {
         Task t = new Task(parent);
         for (String id : annIds) {
-            Annotation a = myShepherd.getAnnotation(id);
-            if (a != null) t.addObject(a);
+            try {
+                Annotation a = strictAnnotation(myShepherd, id);
+                if (a != null) t.addObject(a);
+            } catch (Exception lookup) {
+                System.out.println("ERROR: IA.errorChildHolding() could not load annotation " + id +
+                    ": " + lookup);
+            }
         }
         markTaskError(t, code, message);
         return t;
@@ -1017,20 +1037,23 @@ public class IA {
     static int intakeImportedBoxes(Shepherd myShepherd, List<String> inputIds, Task root,
         String context, String baseUrl) {
         if ((inputIds == null) || inputIds.isEmpty() || (root == null)) return 0;
-        if (!Util.stringExists(baseUrl)) baseUrl = getBaseURL(context);
         boolean skipIdent = IBEISIA.taskParametersSkipIdent(root);
-        IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
         List<StagedBox> staged = new ArrayList<StagedBox>();
         Map<String, Task> speciesTasks = new LinkedHashMap<String, Task>();
         Map<String, List<String>> wbiaSpecies = new LinkedHashMap<String, List<String>>();
         boolean committed = false;
         String stagingFailure = null;
         try {
+            // everything fallible, including configuration and base-URL resolution, is inside
+            // the staging try so that no failure can escape to handleRest's catch before the
+            // boxes are covered by an error task
+            if (!Util.stringExists(baseUrl)) baseUrl = getBaseURL(context);
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
             Map<String, Taxonomy> taxonomies = new LinkedHashMap<String, Taxonomy>();
             Map<String, List<Annotation>> bySpecies = new LinkedHashMap<String, List<Annotation>>();
             List<String> noTaxonomy = new ArrayList<String>();
             for (String id : inputIds) {
-                Annotation ann = myShepherd.getAnnotation(id);
+                Annotation ann = strictAnnotation(myShepherd, id);   // a datastore failure propagates
                 if (ann == null) {
                     System.out.println("WARN: IA.intakeImportedBoxes() annotation " + id +
                         " no longer exists; skipped");
@@ -1188,7 +1211,9 @@ public class IA {
                 System.out.println("ERROR: IA.handleRest() rejected envelope for task " + taskId +
                     ": " + rejection);
                 markTaskError(topTask, "INVALID_ENVELOPE", rejection);
-                myShepherd.commitDBTransaction();
+                if (!myShepherd.commitDBTransactionWithStatus())
+                    System.out.println("ERROR: IA.handleRest() could not persist the INVALID_ENVELOPE " +
+                        "mark on task " + taskId);
                 return;
             }
             String annotationMode = jin.optString("annotationMode", null);

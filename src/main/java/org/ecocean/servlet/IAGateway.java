@@ -1354,23 +1354,41 @@ public class IAGateway extends HttpServlet {
     }
 
     /**
-     * The hand-off could not be committed or published. In a fresh transaction: the root goes to
-     * error, a boxed import gets one error child holding every box (so no box is left task-less
-     * and pending), the ImportTask logs it, and the recovery commit is checked. Returns false,
-     * after logging, when even that could not be persisted; the caller reports failure either way.
+     * The hand-off could not be committed or published. After a rollback nothing from the failed
+     * attempt can be trusted (production runs RestoreValues), so everything is reloaded by id: the
+     * ImportTask, the root (re-created with its id and parameters when the commit never happened),
+     * and the link between them. A boxed import gets one error child holding every box that still
+     * loads, so no box is left task-less and pending; the ImportTask logs it; the recovery commit
+     * is checked. Returns false, after logging, when even that could not be persisted; the caller
+     * reports failure either way.
      */
-    static boolean recoverHandoffFailure(Shepherd myShepherd, ImportTask itask, Task root,
-        List<String> boxIds, String code, String message) {
+    static boolean recoverHandoffFailure(Shepherd myShepherd, String importTaskId, String rootId,
+        JSONObject rootParameters, List<String> boxIds, String code, String message) {
         try {
             myShepherd.rollbackDBTransaction();
             myShepherd.beginDBTransaction();
+            if (!myShepherd.isDBTransactionActive())
+                throw new IllegalStateException("transaction not active after restart");
+            ImportTask itask = myShepherd.getImportTask(importTaskId);
+            if (itask == null) throw new IllegalStateException("ImportTask " + importTaskId + " not found");
+            Task root = Task.load(rootId, myShepherd);
+            if (root == null) {   // the commit failed: the root was never persisted
+                root = new Task(rootId);
+                root.setParameters(rootParameters);
+            }
+            itask.setIATask(root);
             IA.markTaskError(root, code, message);
             Task errorChild = null;
             if ((boxIds != null) && !boxIds.isEmpty()) {
                 errorChild = new Task(root);
                 for (String id : boxIds) {
-                    Annotation ann = myShepherd.getAnnotation(id);
-                    if (ann != null) errorChild.addObject(ann);
+                    try {
+                        Annotation ann = IA.strictAnnotation(myShepherd, id);
+                        if (ann != null) errorChild.addObject(ann);
+                    } catch (Exception lookup) {
+                        System.out.println("ERROR: IAGateway.recoverHandoffFailure() could not load box " +
+                            id + " for import " + importTaskId + ": " + lookup);
+                    }
                 }
                 IA.markTaskError(errorChild, code, message);
             }
@@ -1383,29 +1401,18 @@ public class IAGateway extends HttpServlet {
             if (!ok)
                 System.out.println(
                     "ERROR: IAGateway.recoverHandoffFailure() could not persist the failure for import " +
-                    itask.getId() + ": commit failed");
+                    importTaskId + ": commit failed");
             return ok;
         } catch (Exception ex) {
             System.out.println(
                 "ERROR: IAGateway.recoverHandoffFailure() could not persist the failure for import " +
-                ((itask == null) ? null : itask.getId()) + ": " + ex);
+                importTaskId + ": " + ex);
             try {
                 myShepherd.rollbackDBTransaction();
                 myShepherd.beginDBTransaction();
             } catch (Exception ignore) {}
             return false;
         }
-    }
-
-    private static List<String> stringList(JSONArray arr) {
-        List<String> out = new ArrayList<String>();
-
-        if (arr == null) return out;
-        for (int i = 0; i < arr.length(); i++) {
-            String v = arr.optString(i, null);
-            if (v != null) out.add(v);
-        }
-        return out;
     }
 
     /**
@@ -1462,7 +1469,7 @@ public class IAGateway extends HttpServlet {
             qjob.put("mediaAssetIds", env.getJSONArray("mediaAssetIds"));
         }
         task.setQueueResumeMessage(qjob.toString());
-        List<String> boxIds = boxed ? stringList(env.getJSONArray("annotationIds")) : new ArrayList<String>();
+        List<String> boxIds = boxed ? Util.jsonArrayToStringList(env.getJSONArray("annotationIds")) : new ArrayList<String>();
         boolean publish = true;
         if (boxed && boxIds.isEmpty()) {
             parentTask.setStatus("completed");
@@ -1507,7 +1514,8 @@ public class IAGateway extends HttpServlet {
         if (code != null) {
             System.out.println("ERROR: IAGateway.handleBulkImport() " + code + " for import " +
                 importTaskId + ": " + detail);
-            recoverHandoffFailure(myShepherd, itask, parentTask, boxIds, code, detail);
+            recoverHandoffFailure(myShepherd, importTaskId, parentTask.getId(), taskParameters, boxIds,
+                code, detail);
             res.put("success", false);
             res.put("error", code);
             res.put("resTaskId", resTaskId);

@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -100,6 +101,7 @@ class IAGatewayImportEnvelopeTest {
         Harness(ImportTask itask, Boolean... commitResults) {
             when(sh.getPM()).thenReturn(pm);
             when(sh.getImportTask("job")).thenReturn(itask);
+            when(sh.isDBTransactionActive()).thenReturn(true);
             when(pm.makePersistent(any())).thenAnswer(inv -> inv.getArgument(0));
             if (commitResults.length == 1) when(sh.commitDBTransactionWithStatus()).thenReturn(commitResults[0]);
             else when(sh.commitDBTransactionWithStatus()).thenReturn(commitResults[0], Arrays.copyOfRange(commitResults, 1, commitResults.length));
@@ -149,7 +151,7 @@ class IAGatewayImportEnvelopeTest {
             assertEquals(CTX, msg.getString("__context"));
             ArgumentCaptor<Task> root = ArgumentCaptor.forClass(Task.class);
             ImportTask itask = h.sh.getImportTask("job");
-            verify(itask).setIATask(root.capture());
+            verify(itask, atLeastOnce()).setIATask(root.capture());
             Task child = root.getValue().getChildren().get(0);
             assertEquals(child.getId(), msg.getString("taskId"));
             assertEquals(h.published.get(), child.getQueueResumeMessage());
@@ -191,7 +193,7 @@ class IAGatewayImportEnvelopeTest {
             assertEquals(IAGateway.ANNOTATION_MODE_EXTRACT, msg.getString("annotationMode"));
             assertEquals(IAGateway.LANE_DETECTION, IAGateway.laneFor(msg));
             ArgumentCaptor<Task> root = ArgumentCaptor.forClass(Task.class);
-            verify(h.sh.getImportTask("job")).setIATask(root.capture());
+            verify(h.sh.getImportTask("job"), atLeastOnce()).setIATask(root.capture());
             assertEquals(msg.getString("taskId"), root.getValue().getChildren().get(0).getId());
         }
     }
@@ -205,7 +207,7 @@ class IAGatewayImportEnvelopeTest {
             gateway.verify(() -> IAGateway.addToDetectionQueue(anyString(), anyString()), never());
             ArgumentCaptor<Task> root = ArgumentCaptor.forClass(Task.class);
             ImportTask itask = h.sh.getImportTask("job");
-            verify(itask).setIATask(root.capture());
+            verify(itask, atLeastOnce()).setIATask(root.capture());
             assertEquals("completed", root.getValue().getStoredStatus());
             verify(itask).addLog(contains("no imported boxes survived"));
             verify(h.sh, times(1)).commitDBTransactionWithStatus();
@@ -240,7 +242,7 @@ class IAGatewayImportEnvelopeTest {
     @Test void failedPublishMarksRootErrorWithAnErrorChildHoldingTheBoxes() throws Exception {
         Annotation a = marked("A", "job");
         Harness h = new Harness(boxedTask(encounterWith(a)), true);
-        when(h.sh.getAnnotation("A")).thenReturn(a);
+        when(h.pm.getObjectById(Annotation.class, "A")).thenReturn(a);
         try (MockedStatic<IAGateway> gateway = mockStatic(IAGateway.class, CALLS_REAL_METHODS)) {
             gateway.when(() -> IAGateway.addToDetectionQueue(eq(CTX), anyString())).thenReturn(false);
             JSONObject res = IAGateway.handleBulkImport(data(), new JSONObject(), h.sh, CTX, BASE);
@@ -248,7 +250,7 @@ class IAGatewayImportEnvelopeTest {
             assertEquals("HANDOFF_PUBLISH", res.getString("error"));
             ArgumentCaptor<Task> root = ArgumentCaptor.forClass(Task.class);
             ImportTask itask = h.sh.getImportTask("job");
-            verify(itask).setIATask(root.capture());
+            verify(itask, atLeastOnce()).setIATask(root.capture());
             assertEquals("error", root.getValue().getStoredStatus());
             List<Task> kids = root.getValue().getChildren();
             Task errorChild = kids.get(kids.size() - 1);
@@ -263,14 +265,14 @@ class IAGatewayImportEnvelopeTest {
     @Test void throwingPublishIsRecovered() throws Exception {
         Annotation a = marked("A", "job");
         Harness h = new Harness(boxedTask(encounterWith(a)), true);
-        when(h.sh.getAnnotation("A")).thenReturn(a);
+        when(h.pm.getObjectById(Annotation.class, "A")).thenReturn(a);
         try (MockedStatic<IAGateway> gateway = mockStatic(IAGateway.class, CALLS_REAL_METHODS)) {
             gateway.when(() -> IAGateway.addToDetectionQueue(eq(CTX), anyString())).thenThrow(new IOException("disk"));
             JSONObject res = IAGateway.handleBulkImport(data(), new JSONObject(), h.sh, CTX, BASE);
             assertFalse(res.getBoolean("success"));
             assertEquals("HANDOFF_PUBLISH", res.getString("error"));
             ArgumentCaptor<Task> root = ArgumentCaptor.forClass(Task.class);
-            verify(h.sh.getImportTask("job")).setIATask(root.capture());
+            verify(h.sh.getImportTask("job"), atLeastOnce()).setIATask(root.capture());
             assertEquals("error", root.getValue().getStoredStatus());
             List<Task> kids = root.getValue().getChildren();
             assertEquals("A", kids.get(kids.size() - 1).getObjectAnnotations().get(0).getId());

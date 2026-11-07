@@ -445,6 +445,47 @@ class ImportedBoxIntakeDbTest extends IdentificationDbTestSupport {
         }
     }
 
+    @Test void datastoreLookupFailureIsNotMistakenForDeletion() throws Exception {
+        Shepherd fixture = open("fixture");
+        String importId = nextImportId();
+        Encounter a = boxedEncounter(fixture, ML_GENUS, ML_SPECIES, importId, 1);
+        Encounter b = boxedEncounter(fixture, ML_GENUS, ML_SPECIES, importId, 1);
+        Task req = requestTask(fixture, importId, false);
+        List<String> ids = annotationIds(a, b);
+        fixture.commitDBTransaction();
+        fixture.closeDBTransaction();
+
+        Shepherd real = open("intake");
+        Shepherd sh = spy(real);
+        PersistenceManager pm = spy(real.getPM());
+        when(sh.getPM()).thenReturn(pm);
+        doAnswer(inv -> {
+            if (ids.get(0).equals(inv.getArgument(1))) throw new javax.jdo.JDODataStoreException("datastore down");
+            return inv.callRealMethod();
+        }).when(pm).getObjectById(eq(Annotation.class), any());
+        List<JSONObject> jobs = new ArrayList<JSONObject>();
+        try (MockedStatic<IAGateway> gateway = mockStatic(IAGateway.class, CALLS_REAL_METHODS)) {
+            gateway.when(() -> IAGateway.addToDetectionQueue(eq(CTX), anyString())).thenAnswer(call -> {
+                jobs.add(new JSONObject(call.getArgument(1, String.class))); return true; });
+            Task root = Task.load(req.getId(), sh);
+            assertEquals(0, IA.intakeImportedBoxes(sh, ids, root, CTX, BASE));
+            sh.commitDBTransaction();
+        } finally {
+            real.rollbackAndClose();
+        }
+        assertEquals(0, jobs.size(), "a datastore failure never publishes half an import");
+        Shepherd check = open("check");
+        try {
+            Task reqTask = Task.load(req.getId(), check);
+            assertEquals("error", reqTask.getStoredStatus());
+            assertEquals("EXTRACTION_PERSIST", MultiAlgorithmIntakeDbTest.errorCode(reqTask));
+            Task errorChild = onlyChild(reqTask);
+            assertTrue(errorChild.holdsAnnotationId(ids.get(1)), "the box that still loads is held");
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
     @Test void wbiaPublicationFailureIsHandledByTheExistingIntakeRecovery() throws Exception {
         Shepherd sh = open("fixture");
         String importId = nextImportId();

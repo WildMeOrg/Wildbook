@@ -535,8 +535,7 @@ public class MlServiceProcessor {
                 }
                 if (ann.getEmbeddingByMethod(extractMv[0], extractMv[1]) != null) {
                     if (imported) {
-                        task.setStatus("processing");
-                        ImportedBoxes.settle(shep, ma, ann.getId());
+                        finishExtractionTask(shep, task, ann);
                         shep.commitDBTransaction();
                         return ExtractionContext.existing(mlConfig, configs.matchConfig, true,
                             effectiveTaxonomy, ann.getIAClass(), extractMv);
@@ -547,8 +546,7 @@ public class MlServiceProcessor {
                 }
             } else if (hasEmbeddingForMatchConfig(ann, configs.matchConfig)) {
                 if (imported) {
-                    task.setStatus("processing");
-                    ImportedBoxes.settle(shep, ma, ann.getId());
+                    finishExtractionTask(shep, task, ann);
                     shep.commitDBTransaction();
                     return ExtractionContext.existing(mlConfig, configs.matchConfig, false,
                         effectiveTaxonomy, ann.getIAClass(),
@@ -942,6 +940,15 @@ public class MlServiceProcessor {
             shep.commitDBTransaction();
             return PersistResult.ok(annotationIds);
         } catch (Exception ex) {
+            // Release this transaction's locks (the flushed task row among them) before
+            // markTaskError opens a second Shepherd on the same task; swallow the rollback
+            // exception so it cannot shadow the original failure.
+            try {
+                shep.rollbackDBTransaction();
+            } catch (Exception rbEx) {
+                System.out.println("[WARN] MlServiceProcessor.persistExtraction rollback before " +
+                    "cleanup failed: " + rbEx);
+            }
             markTaskError(taskId, "PERSIST", "extraction persist failed: " + ex.getMessage());
             return PersistResult.done(MlServiceJobOutcome.persistError("PERSIST",
                 ex.getMessage()));
@@ -1227,7 +1234,9 @@ public class MlServiceProcessor {
             }
             if (failureCode == null) {
                 if (noWorkGroups == groups.size()) {
-                    markTaskError(parent, "INVALID_MATCH_CONFIG", "no default identification options");
+                    if (Task.isImportedBoxTask(parent))
+                        ImportedBoxes.failChild(shep, parent, "INVALID_MATCH_CONFIG", "no default identification options");
+                    else markTaskError(parent, "INVALID_MATCH_CONFIG", "no default identification options");
                     if (shep.commitDBTransactionWithStatus()) {
                         result = MlServiceJobOutcome.validationError("INVALID_MATCH_CONFIG",
                             "no default identification options");
@@ -1239,6 +1248,7 @@ public class MlServiceProcessor {
                     // bulk-import boxes (spec 4.4): the extraction child completes only once its
                     // run durably exists; this is the one finalization point on the happy path
                     markTaskCompleted(parent);
+                    settleHeldAsset(shep, parent);
                     if (shep.commitDBTransactionWithStatus()) {
                         result = MlServiceJobOutcome.ok(annotationIds);
                     } else {
@@ -1336,7 +1346,8 @@ public class MlServiceProcessor {
                 shep.getPM().makePersistent(failed);
                 marked.add(failed.getId());
             }
-            markTaskError(parent, code, message);
+            if (Task.isImportedBoxTask(parent)) ImportedBoxes.failChild(shep, parent, code, message);
+            else markTaskError(parent, code, message);
             if (!shep.commitDBTransactionWithStatus()) {
                 System.out.println("ERROR: MlServiceProcessor.runMatchProspects() recovery commit failed; " +
                     "tasks left pending: " + marked + "; parent " + parentTaskId + "; " + message);
@@ -1678,6 +1689,12 @@ public class MlServiceProcessor {
         return (e == null) ? null : new String[] { e.getMethod(), e.getMethodVersion() };
     }
 
+    // bulk-import boxes (spec 4.4): a terminal write on an imported child also settles its asset
+    private static void settleHeldAsset(Shepherd shep, Task task) {
+        List<MediaAsset> held = (task == null) ? null : task.getObjectMediaAssets();
+        if ((held != null) && !held.isEmpty()) ImportedBoxes.settle(shep, held.get(0), null);
+    }
+
     // bulk-import boxes (spec 4.4): an invalid imported box is an error that settles its asset
     private void markExtractionError(Shepherd shep, Task task, boolean imported, String code,
         String message) {
@@ -1848,6 +1865,7 @@ public class MlServiceProcessor {
             }
             if (!Task.isImportedBoxTask(task)) return null;
             markTaskCompleted(task);
+            settleHeldAsset(shep, task);
             if (shep.commitDBTransactionWithStatus()) return null;
             String message = "could not complete skipped imported-box task " + taskId + ": commit failed";
             System.out.println("ERROR: MlServiceProcessor.completeImportedChildIfSkipped() " + message);

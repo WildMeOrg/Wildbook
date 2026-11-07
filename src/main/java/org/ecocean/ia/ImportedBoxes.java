@@ -56,12 +56,9 @@ public final class ImportedBoxes {
         if (IBEISIA.STATUS_COMPLETE.equals(ma.getDetectionStatus())) return;
         // Task.getTasksFor queries with ignoreCache=true, and DataNucleus then refreshes the result
         // objects from the datastore: an unflushed status write on a sibling's task (the error
-        // mark made a moment ago in this transaction) would be overwritten. Flush first.
-        try {
-            shep.getPM().flush();
-        } catch (Exception ex) {
-            System.out.println("WARN: ImportedBoxes.settle() flush failed before the sibling query: " + ex);
-        }
+        // mark made a moment ago in this transaction) would be overwritten. Flush first; a flush
+        // failure propagates, because querying after it would re-expose that refresh.
+        shep.getPM().flush();
         if (!allSettled(ma.getAnnotations(), doneAnnId, ann -> Task.getTasksFor(ann, shep))) return;
         ma.setDetectionStatus(IBEISIA.STATUS_COMPLETE);
         System.out.println("INFO: ImportedBoxes.settle() asset " + ma.getId() +
