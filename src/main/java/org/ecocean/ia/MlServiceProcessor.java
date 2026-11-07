@@ -958,7 +958,8 @@ public class MlServiceProcessor {
             System.out.println(
                 "NOTICE: MlServiceProcessor skipped identification for task " + taskId +
                 " (skipIdent=true); annotationIds=" + annotationIds);
-            return MlServiceJobOutcome.ok(annotationIds);
+            MlServiceJobOutcome done = completeImportedChildIfSkipped(taskId);
+            return (done != null) ? done : MlServiceJobOutcome.ok(annotationIds);
         }
         MatchVisibilityGate.GateOutcome gate = visibilityGate.gateForBatch(
             annotationIds, taskId, matchConfig, attempt, firstDeferredAt);
@@ -1002,7 +1003,8 @@ public class MlServiceProcessor {
             System.out.println(
                 "NOTICE: MlServiceProcessor.runDeferredMatch skipped identification for task " +
                 taskId + " (skipIdent=true); annotationIds=" + annotationIds);
-            return MlServiceJobOutcome.ok(annotationIds);
+            MlServiceJobOutcome done = completeImportedChildIfSkipped(taskId);
+            return (done != null) ? done : MlServiceJobOutcome.ok(annotationIds);
         }
         JSONObject matchConfig = jobData.optJSONObject("matchConfig");
         if (matchConfig == null) matchConfig = inferMatchConfig(annotationIds);
@@ -1030,12 +1032,11 @@ public class MlServiceProcessor {
 
     /** Spec §4.1 step 3: D's parameters minus the keys a run sets for itself. Pure. */
     static JSONObject matchIntakeParams(JSONObject parentParams) {
-        JSONObject p = (parentParams == null) ? new JSONObject() : new JSONObject(parentParams.toString());
+        JSONObject p = IA.scrubRunParams(parentParams);   // the run keys, on a copy; null-safe
         p.remove("ibeis.detection");          // detection gauges must not count match tasks
-        p.remove(Task.PARAM_RUN_ID);
-        p.remove(Task.PARAM_V2_MATCH);
-        p.remove(Task.PARAM_OPTION);
-        p.remove("ibeis.identification");
+        // bulk-import boxes (spec 4.4): orchestration markers never reach a run
+        p.remove(Task.PARAM_EMBEDDING_EXTRACTION);
+        p.remove(Task.PARAM_IMPORTED_BOX);
         return p;
     }
 
@@ -1121,8 +1122,17 @@ public class MlServiceProcessor {
                 // sibling group's error.
                 if (matchGroup) return MlServiceJobOutcome.stale("annotations missing");
                 Task task = Task.load(taskId, shep);
-                markTaskDroppedStale(shep, task, "annotations missing");
-                shep.commitDBTransaction();
+                if (Task.isImportedBoxTask(task)) {
+                    // bulk-import boxes (spec 4.4): never dropped-stale, which the import summary
+                    // would not count as terminal; error, and settle the asset the child holds
+                    ImportedBoxes.failChild(shep, task, "STALE", "annotations missing");
+                    if (!shep.commitDBTransactionWithStatus())
+                        System.out.println("ERROR: MlServiceProcessor.runMatchProspects() could not " +
+                            "commit the STALE mark on imported-box task " + taskId);
+                } else {
+                    markTaskDroppedStale(shep, task, "annotations missing");
+                    shep.commitDBTransaction();
+                }
                 return MlServiceJobOutcome.stale("annotations missing");
             }
             Task parent = Task.load(taskId, shep);
@@ -1182,6 +1192,16 @@ public class MlServiceProcessor {
                     } else {
                         failureCode = "MATCH_PERSIST";
                         failureMessage = "could not commit the INVALID_MATCH_CONFIG mark on " + parentId;
+                    }
+                } else if (Task.isImportedBoxTask(parent)) {
+                    // bulk-import boxes (spec 4.4): the extraction child completes only once its
+                    // run durably exists; this is the one finalization point on the happy path
+                    markTaskCompleted(parent);
+                    if (shep.commitDBTransactionWithStatus()) {
+                        result = MlServiceJobOutcome.ok(annotationIds);
+                    } else {
+                        failureCode = "MATCH_PERSIST";
+                        failureMessage = "could not commit completion of imported-box task " + parentId;
                     }
                 } else {
                     result = MlServiceJobOutcome.ok(annotationIds);
@@ -1715,6 +1735,45 @@ public class MlServiceProcessor {
      * not call this directly; gate from
      * {@link #waitAndRunMatchInternal}.</p>
      */
+    /**
+     * Bulk-import boxes (spec 4.4): the skip guard's finalization for an imported-box child, as
+     * one checked operation. A strict lookup distinguishes a missing task (nothing needed) from a
+     * datastore failure (reported). Returns null when nothing was needed or the completion
+     * committed; otherwise a persistError outcome, never a silent OK.
+     */
+    MlServiceJobOutcome completeImportedChildIfSkipped(String taskId) {
+        if (!Util.stringExists(taskId)) return null;
+        Shepherd shep = null;
+        try {
+            shep = new Shepherd(context);
+            shep.setAction(ACTION_PREFIX + "completeImportedChildIfSkipped");
+            shep.beginDBTransaction();
+            Task task;
+            try {
+                task = (Task)shep.getPM().getObjectById(
+                    shep.getPM().newObjectIdInstance(Task.class, taskId), true);
+            } catch (javax.jdo.JDOObjectNotFoundException notFound) {
+                return null;
+            }
+            if (!Task.isImportedBoxTask(task)) return null;
+            markTaskCompleted(task);
+            if (shep.commitDBTransactionWithStatus()) return null;
+            String message = "could not complete skipped imported-box task " + taskId + ": commit failed";
+            System.out.println("ERROR: MlServiceProcessor.completeImportedChildIfSkipped() " + message);
+            return MlServiceJobOutcome.persistError("PERSIST", message);
+        } catch (Exception ex) {
+            String message = "could not complete skipped imported-box task " + taskId + ": " + ex;
+            System.out.println("ERROR: MlServiceProcessor.completeImportedChildIfSkipped() " + message);
+            return MlServiceJobOutcome.persistError("PERSIST", message);
+        } finally {
+            if (shep != null) {
+                try {
+                    shep.rollbackAndClose();
+                } catch (Exception ignore) {}
+            }
+        }
+    }
+
     boolean readSkipIdent(String taskId) {
         if (!Util.stringExists(taskId)) return false;
         Shepherd shep = null;
