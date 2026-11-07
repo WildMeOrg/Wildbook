@@ -215,6 +215,14 @@ public class StartupWildbook implements ServletContextListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        // Bulk-import boxes (spec 4.4): the same at-most-once gap for imported-box extraction
+        // children; republish the stale ones' queue messages once at startup.
+        try {
+            org.ecocean.ia.ImportedBoxReplay.replay(context,
+                System.currentTimeMillis() - STALE_MLSERVICE_THRESHOLD_MS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         // initialize the MarkedIndividual names cache
         // moved initNamesCache here
         Shepherd myShepherd = new Shepherd(context);

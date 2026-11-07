@@ -87,6 +87,11 @@ public class Task implements java.io.Serializable {
         created = millis;
     }
 
+    // test fixtures only: ages a task past the stale-replay threshold (bulk-import boxes PR A)
+    void setModifiedForTests(long millis) {
+        modified = millis;
+    }
+
     public long getModifiedLong() {
         return modified;
     }
