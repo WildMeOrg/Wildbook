@@ -302,4 +302,40 @@ class ImportTaskTest {
         assertEquals(sum.optInt("detectionNumberError"), 1);
         assertEquals(sum.optString("detectionStatus"), "complete");
     }
+    // ---- bulk-import boxes PR A, task 2: annotationsImported flag ----
+
+    @Test void annotationsImportedSkipsDetectionButNotIdentification() {
+        ImportTask t = new ImportTask();
+        t.setPassedParameters(new JSONObject().put(ImportTask.PARAM_ANNOTATIONS_IMPORTED, true));
+        Task ia = new Task();
+        ia.setParameters(new JSONObject().put("skipIdent", false));
+        t.setIATask(ia);
+        assertTrue(t.annotationsImported());
+        assertTrue(t.skippedDetection());
+        assertFalse(t.skippedIdentification());
+    }
+
+    @Test void annotationsImportedWithSkipIdentSkipsIdentification() { // (regression)
+        ImportTask t = new ImportTask();
+        t.setPassedParameters(new JSONObject().put(ImportTask.PARAM_ANNOTATIONS_IMPORTED, true)
+            .put("skipDetection", true));
+        Task ia = new Task();
+        ia.setParameters(new JSONObject().put("skipIdent", true));
+        t.setIATask(ia);
+        assertTrue(t.skippedDetection());
+        assertTrue(t.skippedIdentification());
+    }
+
+    @Test void plainSkipDetectionStillImpliesSkippedIdentification() { // (regression)
+        ImportTask t = new ImportTask();
+        t.setPassedParameters(new JSONObject().put("skipDetection", true));
+        assertTrue(t.skippedDetection());
+        assertTrue(t.skippedIdentification());
+    }
+
+    @Test void nullPassedParametersMeanNothingImported() {
+        ImportTask t = new ImportTask();
+        assertFalse(t.annotationsImported());
+        assertFalse(t.skippedDetection());
+    }
 }
