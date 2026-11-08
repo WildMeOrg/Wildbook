@@ -317,6 +317,31 @@ class ImportedBoxIntakeDbTest extends IdentificationDbTestSupport {
         }
     }
 
+    @Test void classLevelVectorSpeciesWithIdentificationStillDispatchesMatchingAndGetsNoHolder() throws Exception {
+        // the supported fallback (staging run 2): matching extracts missing embeddings inline
+        List<List<String>> runs = new ArrayList<List<String>>();
+        IA.setMatchProspectsRunnerForTests((context, annIds, parentId) -> { runs.add(new ArrayList<String>(annIds)); return null; });
+        Shepherd sh = open("fixture");
+        String importId = nextImportId();
+        Encounter e1 = boxedEncounter(sh, CLASSVEC_GENUS, CLASSVEC_SPECIES, importId, 2);
+        Task req = requestTask(sh, importId, false);
+        List<String> ids = annotationIds(e1);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+
+        assertEquals(0, handleRestCapturing(envelope(req.getId(), ids, IAGateway.ANNOTATION_MODE_EXTRACT)).size(), "no extraction job without species routing");
+        assertEquals(1, runs.size(), "matching dispatched once for the species");
+        assertEquals(new java.util.HashSet<String>(ids), new java.util.HashSet<String>(runs.get(0)));
+        Shepherd check = open("check");
+        try {
+            Task species = onlyChild(Task.load(req.getId(), check));
+            if (species.getChildren() != null)
+                for (Task c : species.getChildren()) assertFalse("NO_EXTRACTION_CONFIG".equals(errorCode(c)), "no holder when identification runs");
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
     @Test void classLevelVectorSpeciesWithoutRoutingRecordsAnErrorWhenIdentificationIsSkipped() throws Exception {
         Shepherd sh = open("fixture");
         String importId = nextImportId();
@@ -334,6 +359,8 @@ class ImportedBoxIntakeDbTest extends IdentificationDbTestSupport {
             assertEquals("error", held.getStoredStatus());
             assertEquals("NO_EXTRACTION_CONFIG", errorCode(held));
             for (String id : ids) assertTrue(held.holdsAnnotationId(id), "the holder holds box " + id);
+            assertFalse(held.getParameters().has(Task.PARAM_IMPORTED_BOX), "not an extraction child: startup replay ignores it");
+            assertNull(held.getQueueResumeMessage(), "nothing to replay");
         } finally {
             check.rollbackAndClose();
         }
