@@ -504,3 +504,12 @@ repeated-slot test reuses the excluded slot's box). Clean full build: 226 classe
 
 Verdict: converged; round-2 gaps resolved; no Critical, Major or Minor findings. Two recorded
 deviations stand (inspect keeps its reader; the missing-class message names .iaClass).
+
+## Staging fix review (2026-11-08, PR A commit a0108162a)
+
+Flakebook staging found import-only boxes dropped silently when a species lacks species-level
+ml-service routing. Fix: a terminal holder (NO_EXTRACTION_CONFIG error for vector-configured
+classes, else completed). Codex: converged; keep the shared species-level routing rule; one Minor
+(identification-enabled regression test), applied. Follow-up recorded: MlServiceClient sends only
+extract_model_id while older matching reads model_id; installs with model_id-only entries fail v2
+extraction with 422 (pre-existing; separate fix).
