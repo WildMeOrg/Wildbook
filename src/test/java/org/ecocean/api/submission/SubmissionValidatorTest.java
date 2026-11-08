@@ -83,4 +83,102 @@ class SubmissionValidatorTest {
             assertFalse(SubmissionValidator.supported("Sighting.sightingID"));
         }
     }
+
+    // ---- bulk-import boxes PR E (spec 4.9) ----
+    static final String DETECT = "{\"processing\":{\"mode\":\"detect-and-identify\"}}";
+    static final String IMPORT_ONLY = "{\"processing\":{\"mode\":\"import-only\"}}";
+
+    /** Manta birostris with a matchable class (body) and a non-matchable one (fin, default false). */
+    static IAJsonProperties boxFixture() {
+        JSONObject json = new JSONObject().put("Manta", new JSONObject().put("birostris", new JSONObject()
+            .put("body", new JSONObject().put("_id_conf", new JSONArray().put(new JSONObject().put("default", true))))
+            .put("fin", new JSONObject().put("_id_conf", new JSONArray().put(new JSONObject().put("default", false))))));
+        IAJsonProperties iac = IAJsonProperties.iaConfig();
+        assertNotNull(iac);
+        iac.setJson(json);
+        return iac;
+    }
+
+    interface Body { void run(Shepherd sh, SubmissionFiles storage, JSONObject image) throws Exception; }
+
+    /** A mocked Shepherd, the reef location, the box fixture installed, one staged 2x2 "one.png". */
+    void withBoxHarness(Body body) throws Exception {
+        try (MockedStatic<CommonConfiguration> config = mockStatic(CommonConfiguration.class);
+             MockedStatic<LocationID> location = mockStatic(LocationID.class)) {
+            location.when(LocationID::getLocationIDStructure).thenReturn(new JSONObject("{\"locationID\":[{\"id\":\"reef\"}]}"));
+            location.when(() -> LocationID.isValidLocationID("reef")).thenReturn(true);
+            TestIAJsonPropertiesUtil.override(boxFixture());
+            try {
+                Shepherd sh = mock(Shepherd.class); when(sh.isValidTaxonomyName(anyString())).thenReturn(true);
+                SubmissionFiles storage = new SubmissionFiles(root);
+                JSONObject image = storage.write("one.png", new java.io.ByteArrayInputStream(SubmissionFilesTest.png()), 10000);
+                body.run(sh, storage, image);
+            } finally {
+                TestIAJsonPropertiesUtil.override(null);
+            }
+        }
+    }
+
+    static JSONObject boxRow(String id, Object... kv) {
+        JSONObject fields = new JSONObject().put("Encounter.genus", "Manta").put("Encounter.specificEpithet", "birostris")
+            .put("Encounter.year", 2025).put("Encounter.locationID", "reef");
+        for (int i = 0; i < kv.length; i += 2) fields.put((String)kv[i], kv[i + 1]);
+        return new JSONObject().put("clientRowId", id).put("fields", fields);
+    }
+
+    static Submission boxDraft(String createJson, JSONArray files, JSONObject... rows) {
+        Submission draft = new Submission("id", "context0", "owner", "hash", "hash", createJson, 0, Long.MAX_VALUE);
+        draft.setFiles(files.toString());
+        draft.replaceRows(new JSONArray(java.util.Arrays.asList(rows)).toString());
+        return draft;
+    }
+
+    static java.util.List<JSONObject> issues(JSONObject report) {
+        java.util.List<JSONObject> out = new java.util.ArrayList<>();
+        for (Object o : report.getJSONArray("errors")) out.add((JSONObject)o);
+        return out;
+    }
+
+    static JSONObject issueOn(JSONObject report, String field) {
+        for (JSONObject i : issues(report)) if (field.equals(i.optString("field", null))) return i;
+        return null;
+    }
+
+    @Test void boxFieldsAndQualityAreSupportedAndSuffixKeysAreNotPhotos() throws Exception {
+        for (String suffix : org.ecocean.api.bulk.BulkValidator.BOX_SUFFIXES) assertTrue(SubmissionValidator.supported("Encounter.mediaAsset0." + suffix), suffix);
+        assertTrue(SubmissionValidator.supported("Encounter.mediaAsset199.theta"));
+        assertTrue(SubmissionValidator.supported("Encounter.quality7"));
+        assertFalse(SubmissionValidator.supported("Encounter.mediaAsset200.bbox"));
+        assertFalse(SubmissionValidator.supported("Encounter.mediaAsset0.keywords"));
+        assertFalse(SubmissionValidator.supported("Encounter.quality200"));
+        withBoxHarness((sh, storage, image) -> {
+            JSONObject report = new SubmissionValidator().validate(boxDraft(DETECT, new JSONArray().put(image),
+                boxRow("r", "Encounter.mediaAsset0", "one.png", "Encounter.mediaAsset0.bbox", "0,0,1,1", "Encounter.mediaAsset0.iaClass", "body", "Encounter.quality0", "0.5")), sh, storage);
+            assertTrue(report.getBoolean("valid"), report.toString());
+            assertEquals("0,0,1,1", report.getJSONArray("normalizedRows").getJSONObject(0).getJSONObject("fields").getString("Encounter.mediaAsset0.bbox"));
+        });
+    }
+
+    @Test void unsupportedHugeSlotIndexIsRejectedWithoutTouchingTheSlotHelper() throws Exception {   // (regression)
+        withBoxHarness((sh, storage, image) -> {
+            JSONObject report = new SubmissionValidator().validate(boxDraft(DETECT, new JSONArray().put(image),
+                boxRow("r", "Encounter.mediaAsset0", "one.png", "Encounter.mediaAsset1000000000", "x")), sh, storage);
+            assertEquals(1, issues(report).size(), report.toString());
+            assertEquals("UNSUPPORTED_FIELD", issues(report).get(0).getString("code"));
+            assertEquals("Encounter.mediaAsset1000000000", issues(report).get(0).getString("field"));
+        });
+    }
+
+    @Test void skipFlagFollowsTheProcessingMode() throws Exception {
+        withBoxHarness((sh, storage, image) -> {
+            JSONObject rejected = new SubmissionValidator().validate(boxDraft(DETECT, new JSONArray().put(image),
+                boxRow("r", "Encounter.mediaAsset0", "one.png", "Encounter.mediaAsset0.bbox", "0,0,1,1", "Encounter.mediaAsset0.iaClass", "fin")), sh, storage);
+            JSONObject issue = issueOn(rejected, "Encounter.mediaAsset0.iaClass");
+            assertNotNull(issue, "fin has no default option: rejected when identification is requested: " + rejected);
+            assertEquals("INVALID_VALUE", issue.getString("code"));
+            JSONObject accepted = new SubmissionValidator().validate(boxDraft(IMPORT_ONLY, new JSONArray().put(image),
+                boxRow("r", "Encounter.mediaAsset0", "one.png", "Encounter.mediaAsset0.bbox", "0,0,1,1", "Encounter.mediaAsset0.iaClass", "fin")), sh, storage);
+            assertTrue(accepted.getBoolean("valid"), "import-only accepts any stored class: " + accepted);
+        });
+    }
 }

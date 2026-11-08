@@ -56,6 +56,11 @@ class SubmissionsTest {
         new Submissions().service(request, response(out));
         JSONObject capabilities = new JSONObject(out.toString());
         assertEquals(200, capabilities.getJSONObject("limits").getInt("maxRows"));
+        // bulk-import boxes PR E (spec 4.9): the per-photo capability signal
+        JSONObject rowFields = capabilities.getJSONObject("rowFields");
+        assertEquals(org.ecocean.api.bulk.BulkValidator.BOX_SUFFIXES, rowFields.getJSONArray("perMedia").toList());
+        assertTrue(rowFields.getJSONArray("supported").toList().contains("Encounter.quality#"));
+        assertEquals("Encounter.quality0 through Encounter.quality199", rowFields.getString("indexedQuality"));
         java.nio.file.Files.writeString(java.nio.file.Path.of("target/submissions-capabilities.json"), out.toString());
         }
     }

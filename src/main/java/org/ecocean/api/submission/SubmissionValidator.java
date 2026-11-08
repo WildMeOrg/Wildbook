@@ -20,8 +20,13 @@ public class SubmissionValidator {
     static final String SIGHTING_ID = "Encounter.sightingID";
     // becomes an Occurrence primary key used in page links and URLs, so keep it to URL-safe identifier characters
     static final java.util.regex.Pattern SIGHTING_ID_FORMAT = java.util.regex.Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,99}");
+    static final String SLOT = "(?:[0-9]|[1-9][0-9]|1[0-9]{2})"; // slots 0-199
+    // bulk-import boxes (spec 4.9): the five per-photo box columns and the detector score
+    static final String BOX_SUFFIX = "(?:" + String.join("|", BulkValidator.BOX_SUFFIXES) + ")";
     public static boolean supported(String field) {
-        return FIELDS.contains(field) || field.matches("Encounter\\.mediaAsset(?:[0-9]|[1-9][0-9]|1[0-9]{2})");
+        return FIELDS.contains(field) || field.matches("Encounter\\.mediaAsset" + SLOT)
+            || field.matches("Encounter\\.mediaAsset" + SLOT + "\\." + BOX_SUFFIX)
+            || field.matches("Encounter\\.quality" + SLOT);
     }
     public static JSONObject configuration(String context) {
         return new JSONObject().put("validatorVersion", 1).put("locations", LocationID.getLocationIDStructure())
@@ -39,10 +44,10 @@ public class SubmissionValidator {
         JSONObject config = configuration(draft.getContext());
         JSONArray rows = new JSONArray(draft.getRowsJson()), files = new JSONArray(draft.getFilesJson());
         JSONArray errors = new JSONArray(), normalized = new JSONArray();
-        Set<String> present = new HashSet<>();
+        Map<String, int[]> present = new HashMap<>(); // filename -> header width/height (bulk-import boxes: box bounds)
         for (int i = 0; i < files.length(); i++) {
             JSONObject file = files.getJSONObject(i);
-            try { storage.verify(file); present.add(file.getString("name")); }
+            try { present.put(file.getString("name"), storage.verify(file)); }
             catch (Exception ex) { issue(errors, null, -1, null, "INVALID_MEDIA", "Staged image unavailable or invalid: " + file.getString("name")); }
         }
         if (rows.length() == 0) issue(errors, null, -1, null, "REQUIRED_VALUE", "At least one row required");
@@ -54,13 +59,17 @@ public class SubmissionValidator {
             Set<String> media = new HashSet<>();
             for (String field : fields.keySet()) {
                 if (!supported(field)) { issue(errors, source, i, field, "UNSUPPORTED_FIELD", "Field is not supported by this pilot"); copied.remove(field); }
-                if (supported(field) && field.startsWith("Encounter.mediaAsset")) {
-                    Object raw = fields.get(field);
-                    if (!(raw instanceof String) || !present.contains(raw)) issue(errors, source, i, field, "MISSING_MEDIA", "Reference must exactly match a completed image filename");
-                    else {
-                        if (!media.add((String)raw)) issue(errors, source, i, field, "DUPLICATE_MEDIA", "Image is repeated in this row");
-                        if (!allMedia.add((String)raw)) issue(errors, source, i, field, "DUPLICATE_MEDIA", "Use each image in one row only");
-                    }
+            }
+            // bulk-import boxes (spec 4.9): photos are the bare numbered slots of the SUPPORTED fields (a
+            // .bbox or .iaClass key is never a filename, and an unsupported huge index never reaches the
+            // slot helper, which grows a list to the index)
+            for (String field : BulkImportUtil.findIndexedFieldNames(copied.keySet(), "Encounter.mediaAsset")) {
+                if (field == null) continue;
+                Object raw = fields.get(field);
+                if (!(raw instanceof String) || !present.containsKey(raw)) issue(errors, source, i, field, "MISSING_MEDIA", "Reference must exactly match a completed image filename");
+                else {
+                    if (!media.add((String)raw)) issue(errors, source, i, field, "DUPLICATE_MEDIA", "Image is repeated in this row");
+                    if (!allMedia.add((String)raw)) issue(errors, source, i, field, "DUPLICATE_MEDIA", "Use each image in one row only");
                 }
             }
             // No explicit encounter IDs are accepted: the importer creates one encounter per row.
@@ -80,7 +89,8 @@ public class SubmissionValidator {
             if (locationRejected) issue(errors, source, i, "Encounter.locationID", "INVALID_LOCATION", "A configured location ID is required");
             // captured before legacy validation so every date it judges future is also after this date
             java.time.LocalDate today = clock.instant().atOffset(Util.LATEST_CIVIL_OFFSET).toLocalDate();
-            Map<String, Object> checked = BulkImportUtil.validateRow(copied, sh);
+            // the shared row rules; import-only skips identification, which widens the accepted box classes (decision 3)
+            Map<String, Object> checked = BulkImportUtil.validateRow(copied, sh, !draft.requestsIdentification());
             for (Map.Entry<String, Object> entry : checked.entrySet()) {
                 if (entry.getValue() instanceof BulkValidator) {
                     Object value = ((BulkValidator)entry.getValue()).getValue();
