@@ -187,4 +187,19 @@ describe("BulkImportStore with box columns", () => {
     );
     expect(errors[0]?.[`${A0}.bbox`]).toBeUndefined();
   });
+
+  test("resetSpreadsheet clears the spreadsheet and keeps images", () => {
+    const store = boxedStore([{ [A0]: "a.jpg" }]);
+    store._uploadedImages = ["a.jpg"];
+    store.setSpreadsheetUploadProgress(100);
+    store.setSpreadsheetFileName("f.csv");
+    store.resetSpreadsheet();
+    expect(store.spreadsheetData).toEqual([]);
+    expect(store.rawData).toEqual([]);
+    expect(store.rawColumns).toEqual([]);
+    expect(store.columnsDef).toEqual([]);
+    expect(store.spreadsheetFileName).toBe("");
+    expect(store.spreadsheetUploadProgress).toBe(0);
+    expect(store.uploadedImages).toEqual(["a.jpg"]);
+  });
 });

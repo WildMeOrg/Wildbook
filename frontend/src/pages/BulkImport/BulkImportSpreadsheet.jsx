@@ -7,6 +7,7 @@ import ThemeContext from "../../ThemeColorProvider";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { specifiedColumns, removedColumns } from "./BulkImportConstants";
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
+import { hasBoxColumns, isPhotoSlotColumn } from "./bulkImportSlots";
 
 export const BulkImportSpreadsheet = observer(({ store }) => {
   const theme = useContext(ThemeContext);
@@ -78,10 +79,9 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
         const rowKeys = Object.keys(allJsonData[0] || {});
         store.setRawColumns(rowKeys);
-        const mediaAssetsCols = rowKeys.filter(
-          (k) =>
-            k.startsWith("Encounter.mediaAsset") && k.split(".").length === 2,
-        );
+        // a sheet with box columns keeps every numbered photo slot (no merge, spec 4.6)
+        const boxed = hasBoxColumns(rowKeys, store.indexableFields);
+        const mediaAssetsCols = boxed ? [] : rowKeys.filter(isPhotoSlotColumn);
 
         const remaining = rowKeys
           .filter((k) => !specifiedColumns.includes(k))
@@ -420,16 +420,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           <div
             id="close-button"
             onClick={() => {
-              store.setSpreadsheetUploadProgress(0);
-              store.setSpreadsheetFileName("");
-              store.setSpreadsheetData([]);
-              store.setRawData([]);
-              store.setRawColumns([]);
-              store.setColumnsDef([]);
-              store.setWorksheetInfo(0, [], 0, 0, "");
-              store.setValidationErrors({});
-              store.setValidationWarnings({});
-              store.clearSubmissionErrors();
+              store.resetSpreadsheet();
             }}
             className="position-absolute bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm border"
             style={{

@@ -646,6 +646,24 @@ export class BulkImportStore {
     this._indexableFields = fields || [];
   }
 
+  get indexableFields() {
+    return this._indexableFields;
+  }
+
+  // what the spreadsheet step's close button clears; uploaded images are kept
+  resetSpreadsheet() {
+    this.setSpreadsheetUploadProgress(0);
+    this.setSpreadsheetFileName("");
+    this.setSpreadsheetData([]);
+    this.setRawData([]);
+    this.setRawColumns([]);
+    this.setColumnsDef([]);
+    this.setWorksheetInfo(0, [], 0, 0, "");
+    this.setValidationErrors({});
+    this.setValidationWarnings({});
+    this.clearSubmissionErrors();
+  }
+
   setSpreadsheetData(data) {
     const filtered = data.filter((row) =>
       Object.values(row).some((val) => String(val ?? "").trim() !== ""),

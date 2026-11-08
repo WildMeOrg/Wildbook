@@ -37,6 +37,10 @@ const mockStore = {
   mergeValidationError: jest.fn(),
   mergeValidationWarning: jest.fn(),
   validateMediaAssetColumnsOnly: jest.fn(() => ({ errors: {}, warnings: {} })),
+  photoColumns: ["Encounter.mediaAsset0"],
+  isBoxedSheet: false,
+  setValidViewpoints: jest.fn(),
+  setMatchableClasses: jest.fn(),
   getOptionsForSelectCell: jest.fn(() => [
     { value: "OptionA", label: "OptionA" },
     { value: "OptionB", label: "OptionB" },
@@ -147,5 +151,66 @@ describe("EditableDataTable", () => {
     };
     renderWithProviders(<DataTable store={emptyStore} />);
     expect(screen.getByText("#")).toBeInTheDocument();
+  });
+
+  describe("boxed sheet", () => {
+    const A0 = "Encounter.mediaAsset0";
+    const A2 = "Encounter.mediaAsset2";
+    const boxedStore = {
+      ...mockStore,
+      isBoxedSheet: true,
+      columnsDef: ["name", A0, `${A0}.bbox`, `${A0}.keywords`, A2],
+      photoColumns: [A0, A2],
+      spreadsheetData: [
+        {
+          name: "Alice",
+          [A0]: "a.jpg",
+          [`${A0}.bbox`]: "1,2,3",
+          [`${A0}.keywords`]: "kw",
+          [A2]: "c.jpg",
+        },
+      ],
+      validationErrors: {
+        0: {
+          [`${A0}.bbox`]: "BULKIMPORT_ERROR_INVALID_BBOX",
+          [A2]: "MISSINGc.jpg",
+        },
+      },
+      validationWarnings: {
+        0: {
+          name: {
+            id: "BULKIMPORT_WARNING_IACLASS_NOT_MATCHABLE",
+            values: { allowed: "x" },
+          },
+        },
+      },
+    };
+
+    test("photo and per-photo cells are read-only, others editable", () => {
+      renderWithProviders(<DataTable store={boxedStore} />);
+      ["a.jpg", "1,2,3", "kw", "c.jpg"].forEach((v) =>
+        expect(screen.getByDisplayValue(v)).toHaveAttribute("readonly"),
+      );
+      expect(screen.getByDisplayValue("Alice")).not.toHaveAttribute("readonly");
+    });
+
+    test("read-only cells still show their errors, on every photo slot", () => {
+      renderWithProviders(<DataTable store={boxedStore} />);
+      ["1,2,3", "c.jpg"].forEach((v) =>
+        expect(
+          screen
+            .getByDisplayValue(v)
+            .parentElement.querySelector(".invalid-feedback"),
+        ).not.toBeNull(),
+      );
+    });
+
+    test("a warning with values renders", () => {
+      renderWithProviders(<DataTable store={boxedStore} />);
+      const warning = screen
+        .getByDisplayValue("Alice")
+        .parentElement.querySelector(".text-warning");
+      expect(warning.textContent).not.toBe("");
+    });
   });
 });
