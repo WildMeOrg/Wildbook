@@ -34,6 +34,7 @@ describe("BulkImportContinueModal", () => {
       setActiveStep: jest.fn(),
       fetchAndApplyUploaded: jest.fn(),
       resetToDefaults: jest.fn(),
+      resetSpreadsheet: jest.fn(),
     };
     setRenderModeMock = jest.fn();
   });
@@ -84,5 +85,47 @@ describe("BulkImportContinueModal", () => {
     expect(storeMock.resetToDefaults).toHaveBeenCalled();
     expect(localStorage.removeItem).toHaveBeenCalledWith("BulkImportStore");
     expect(window.location.reload).toHaveBeenCalled();
+  });
+
+  describe("boxed draft saved before photo slots were kept", () => {
+    const A0 = "Encounter.mediaAsset0";
+    const A2 = "Encounter.mediaAsset2";
+    const legacy = {
+      ...draftData,
+      columnsDef: [A0, `${A0}.bbox`],
+      rawColumns: [A0, A2, `${A0}.bbox`],
+      spreadsheetData: [{ [A0]: "a.jpg, c.jpg" }],
+      rawData: [{ [A0]: "a.jpg", [A2]: "c.jpg" }],
+    };
+    const edited = {
+      ...legacy,
+      rawData: [{ [A0]: "a.jpg, c.jpg", [A2]: "c.jpg" }],
+    };
+    const REUPLOAD = /must be uploaded again/;
+
+    [
+      ["untouched", legacy],
+      ["edited", edited],
+    ].forEach(([name, draft]) => {
+      test(`${name}: asks for a re-upload and drops the saved spreadsheet`, () => {
+        Storage.prototype.getItem.mockReturnValue(JSON.stringify(draft));
+        renderModal();
+        expect(screen.getByText(REUPLOAD)).toBeInTheDocument();
+        fireEvent.click(screen.getByText("Resume"));
+        expect(storeMock.hydrate).toHaveBeenCalledWith(draft);
+        expect(storeMock.resetSpreadsheet).toHaveBeenCalledTimes(1);
+        expect(storeMock.hydrate.mock.invocationCallOrder[0]).toBeLessThan(
+          storeMock.resetSpreadsheet.mock.invocationCallOrder[0],
+        );
+      });
+    });
+
+    test("an ordinary draft resumes as before", () => {
+      renderModal();
+      expect(screen.queryByText(REUPLOAD)).not.toBeInTheDocument();
+      fireEvent.click(screen.getByText("Resume"));
+      expect(storeMock.hydrate).toHaveBeenCalled();
+      expect(storeMock.resetSpreadsheet).not.toHaveBeenCalled();
+    });
   });
 });
