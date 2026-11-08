@@ -901,21 +901,53 @@ class SubmissionStoreDbTest {
     }
 
     @Test void bothStatusEndpointsReportTheSameBoxedPhases() {
-        java.util.Map<String, java.util.function.Consumer<org.ecocean.submission.Submission>> cases = new java.util.LinkedHashMap<>();
-        cases.put("pending", d -> {});
-        cases.put("dispatched", d -> d.aiState("dispatched"));
-        cases.put("failed-handoff", d -> d.aiState("failed"));
-        cases.put("unknown-handoff", d -> d.aiState("unknown"));
-        java.util.Map<String, String> codes = java.util.Map.of("pending", "BOXES_EXTRACTED_ONLY", "dispatched", "BOXES_EXTRACTED_ONLY",
-            "failed-handoff", "AI_HANDOFF_FAILED", "unknown-handoff", "AI_HANDOFF_UNKNOWN");
-        for (java.util.Map.Entry<String, java.util.function.Consumer<org.ecocean.submission.Submission>> c : cases.entrySet()) {
-            String id = boxedImportedForAi("import-only"); mutate(id, c.getValue());
-            JSONObject get = store.get("context0", "admin", id, true, false);
-            JSONObject results = new SubmissionJobs(() -> new Shepherd("context0", properties)).results("context0", "admin", id, true, 0, 100);
-            for (String phase : new String[]{"detection", "identification"})
-                assertEquals(SubmissionJson.canonical(get.getJSONObject(phase)), SubmissionJson.canonical(results.getJSONObject(phase)), c.getKey() + " " + phase);
-            assertEquals(codes.get(c.getKey()), get.getJSONObject("identification").getString("code"), c.getKey());
-            assertEquals("BOXES_SUPPLIED", get.getJSONObject("detection").getString("code"), c.getKey());
+        String[] states = {"pending", "dispatched", "failed-handoff", "unknown-handoff", "failed-import", "uncertain-import"};
+        for (String mode : new String[]{"import-only", "detect-and-identify"}) {
+            boolean importOnly = "import-only".equals(mode);
+            for (String state : states) {
+                String id;
+                if (state.endsWith("-import")) {
+                    String owner = UUID.randomUUID().toString(); JSONObject ready = readyJob(owner, createMode(mode), boxedRows());
+                    enqueue(new SubmissionJobs(() -> new Shepherd("context0", properties)), owner, ready, "boxed-" + state);
+                    id = ready.getString("id");
+                    boolean uncertain = state.startsWith("uncertain");
+                    mutate(id, d -> d.fail(uncertain ? "COMMIT_OUTCOME_UNCERTAIN" : "IMPORT_FAILED", uncertain));
+                } else {
+                    id = boxedImportedForAi(mode);
+                    if (state.equals("dispatched")) mutate(id, d -> d.aiState("dispatched"));
+                    if (state.equals("failed-handoff")) mutate(id, d -> d.aiState("failed"));
+                    if (state.equals("unknown-handoff")) mutate(id, d -> d.aiState("unknown"));
+                }
+                String label = mode + "/" + state;
+                JSONObject get = store.get("context0", "admin", id, true, false);
+                JSONObject results = new SubmissionJobs(() -> new Shepherd("context0", properties)).results("context0", "admin", id, true, 0, 100);
+                for (String phase : new String[]{"detection", "identification"})
+                    assertEquals(SubmissionJson.canonical(get.getJSONObject(phase)), SubmissionJson.canonical(results.getJSONObject(phase)), label + " " + phase);
+                JSONObject detection = get.getJSONObject("detection"), identification = get.getJSONObject("identification");
+                assertEquals("skipped", detection.getString("state"), label);
+                assertEquals("BOXES_SUPPLIED", detection.getString("code"), label);
+                assertEquals("Boxes were supplied; detection is not run on these photos", detection.getString("message"), label);
+                switch (state) {
+                    case "pending": case "dispatched":
+                        assertEquals(state, identification.getString("state"), label);
+                        assertEquals(importOnly ? "BOXES_EXTRACTED_ONLY" : null, identification.optString("code", null), label);
+                        assertEquals(importOnly
+                            ? "Extraction-only workflow handoff for the supplied boxes; identification is not run (import-only); dispatched does not mean completed. See import task for progress."
+                            : "Extraction and identification workflow handoff; dispatched does not mean completed. See import task for progress and match candidates.",
+                            identification.getString("message"), label);
+                        break;
+                    case "failed-handoff": case "unknown-handoff":
+                        String s2 = state.startsWith("failed") ? "failed" : "unknown";
+                        assertEquals(s2, identification.getString("state"), label);
+                        assertEquals(s2.equals("failed") ? "AI_HANDOFF_FAILED" : "AI_HANDOFF_UNKNOWN", identification.getString("code"), label);
+                        assertEquals("AI handoff requires operator inspection; never automatically resubmitted. Imported records remain available.", identification.getString("message"), label);
+                        break;
+                    default:
+                        assertEquals("not_started", identification.getString("state"), label);
+                        assertEquals(state.startsWith("failed") ? "IMPORT_FAILED" : "IMPORT_OUTCOME_UNCERTAIN", identification.getString("code"), label);
+                        assertEquals("Detection and identification were not started because record import failed or requires reconciliation. Inspect the import outcome first.", identification.getString("message"), label);
+                }
+            }
         }
     }
 }

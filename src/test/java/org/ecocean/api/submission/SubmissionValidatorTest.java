@@ -421,7 +421,8 @@ class SubmissionValidatorTest {
         withBoxHarness((sh, storage, image) -> {
             JSONObject a = boxRow("A", "Encounter.mediaAsset0", "one.png", "Encounter.mediaAsset0.bbox", "0,0,1,1", "Encounter.mediaAsset0.iaClass", "body",
                 "Encounter.mediaAsset1", "one.png", "Encounter.mediaAsset1.bbox", "1,1,1,1", "Encounter.mediaAsset1.iaClass", "body");
-            JSONObject report = validateRows(sh, storage, new JSONArray().put(image), DETECT, a, boxed("B", "one.png", "1,0,1,1"));
+            // B repeats the box of A's excluded second slot: that slot must not take part in duplicate-box comparison
+            JSONObject report = validateRows(sh, storage, new JSONArray().put(image), DETECT, a, boxed("B", "one.png", "1,1,1,1"));
             assertOnlyIssue(report, "A", "Encounter.mediaAsset1", "DUPLICATE_MEDIA", "Image is repeated in this row");
         });
     }
