@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
@@ -512,16 +513,20 @@ public class IAJsonProperties extends JsonProperties {
         return new JSONObject(jobj, JSONObject.getNames(jobj));
     }
 
+    // a sibling key under the species node that names an IA class (not config, not the common
+    // name, not the match_trivial flag, and not a subspecies child; issue #1298 for the latter:
+    // a species node marks its subspecies via a "_subspecies" list of child key names so they
+    // are excluded from the Manual Annotation dropdown)
+    private boolean isClassKey(String key, JSONObject underTaxy) {
+        if (key.startsWith("_")) return false;
+        if (key.equals("common_name")) return false;
+        if (key.equals("match_trivial")) return false;
+        if (isSubspeciesKey(key, underTaxy)) return false;
+        return true;
+    }
+
     private boolean isUserSelectableIAClass(Taxonomy taxy, String key, JSONObject underTaxy) {
-        if (key.startsWith("_")) { return false; } else if (key.equals("common_name")) {
-            return false;
-        } else if (key.equals("match_trivial")) {
-            return false;
-        } else if (isSubspeciesKey(key, underTaxy)) {
-            // issue #1298: subspecies are taxonomic children, not matchable IA
-            // classes, but they sit as sibling keys under the species node. A
-            // species node marks its subspecies via a "_subspecies" list of child
-            // key names so they are excluded from the Manual Annotation dropdown.
+        if (!isClassKey(key, underTaxy)) {
             return false;
         } else if (underTaxy.get(key) instanceof String &&
             ((String)underTaxy.get(key)).startsWith("@")) {
@@ -559,6 +564,64 @@ public class IAJsonProperties extends JsonProperties {
             String key = keys.next();
             if (isUserSelectableIAClass(taxy, key, underTaxy)) {
                 result.add(key); // iaClasses are keys, not values, in this format
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.1 / 4.6): the classes an annotation of this species can be STORED
+     * under: the user-selectable keys (what the manual-annotation page offers) plus every
+     * {@code _save_as} target, class-level and {@code _default}, links followed; these are the two
+     * lookups {@link #convertIAClassForTaxonomy} makes, read directly because that method logs
+     * four lines per call. Sorted, no duplicates; empty for a null taxonomy or one without IA.
+     */
+    public List<String> getCanonicalIAClasses(Taxonomy taxy) {
+        Set<String> result = new TreeSet<String>();
+
+        if ((taxy == null) || !hasIA(taxy)) return new ArrayList<String>(result);
+        result.addAll(getValidIAClassesIgnoreRedirects(taxy));
+        String taxKey = taxonomyKey(taxy);
+        JSONObject underTaxy = (JSONObject)get(taxKey);
+        Iterator<String> keys = underTaxy.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            if (!isClassKey(key, underTaxy)) continue;
+            String target = saveAsTarget(get(taxKey + "." + key));
+            if (target != null) result.add(target);
+        }
+        if (underTaxy.has("_default")) {
+            String target = saveAsTarget(get(taxKey + "._default"));
+            if (target != null) result.add(target);
+        }
+        return new ArrayList<String>(result);
+    }
+
+    // the _save_as target of a (link-resolved) class or _default config object, or null
+    private static String saveAsTarget(Object classConf) {
+        if (!(classConf instanceof JSONObject)) return null;
+        String target = ((JSONObject)classConf).optString("_save_as", null);
+        return Util.stringExists(target) ? target : null;
+    }
+
+    /**
+     * Bulk-import boxes (decision 3): the canonical classes that identification will actually
+     * run on, i.e. those with at least one identification option whose {@code default} is not
+     * false (intake's rule; {@link #getIdentConfig} falls back to {@code _default._id_conf}, so a
+     * stored class with no key of its own is matchable through that fallback). Same ordering and
+     * empties as {@link #getCanonicalIAClasses}.
+     */
+    public List<String> getMatchableIAClasses(Taxonomy taxy) {
+        List<String> result = new ArrayList<String>();
+
+        for (String cls : getCanonicalIAClasses(taxy)) {
+            List<JSONObject> opts = identOpts(taxy, cls);
+            if (opts == null) continue;
+            for (JSONObject opt : opts) {
+                if (opt.optBoolean("default", true)) {
+                    result.add(cls);
+                    break;
+                }
             }
         }
         return result;
