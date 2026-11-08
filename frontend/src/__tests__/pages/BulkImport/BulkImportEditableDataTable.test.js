@@ -36,7 +36,7 @@ const mockStore = {
   setLabeledKeywordAllowedPairs: jest.fn(),
   mergeValidationError: jest.fn(),
   mergeValidationWarning: jest.fn(),
-  validateMediaAsset0ColumnOnly: jest.fn(() => ({ errors: {}, warnings: {} })),
+  validateMediaAssetColumnsOnly: jest.fn(() => ({ errors: {}, warnings: {} })),
   getOptionsForSelectCell: jest.fn(() => [
     { value: "OptionA", label: "OptionA" },
     { value: "OptionB", label: "OptionB" },

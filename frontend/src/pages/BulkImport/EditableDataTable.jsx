@@ -244,7 +244,7 @@ export const DataTable = observer(({ store }) => {
   const validateMediaAssets = useRef(
     throttle(() => {
       const col = "Encounter.mediaAsset0";
-      const { errors } = store.validateMediaAsset0ColumnOnly();
+      const { errors } = store.validateMediaAssetColumnsOnly();
 
       const currentErrors = store.validationErrors || {};
 
