@@ -364,11 +364,11 @@ public class BulkImport extends ApiBase {
                                 rowFieldName + "]: " + fieldObj);
                     }
                 }
-                if (rowValid) {
-                    numRowsValid++;
-                    // case where we simply didnt have the column for submitter, we add it now
-                    if (!hasSubmitter) rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
-                }
+                if (rowValid) numRowsValid++;
+                // case where we simply didnt have the column for submitter, we add it now; for an
+                // invalid row too (bulk-import boxes): such rows reach the importer only under
+                // tolerance, where processRow threw "no value for Encounter.submitterID" without it
+                if (!hasSubmitter) rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
             }
             rtn.put("numberRows", validatedRows.size());
             rtn.put("annotationsImported", boxedImport);

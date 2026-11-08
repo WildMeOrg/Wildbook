@@ -146,20 +146,50 @@ class BulkBoxImportApiTest {
 
     /** fieldNames + array rows; the three BASE columns are appended to every row. */
     static JSONObject payload(String[] fields, Object[]... rows) {
+        String[] names = Arrays.copyOf(fields, fields.length + BASE.length);
+        System.arraycopy(BASE, 0, names, fields.length, BASE.length);
+        Object[][] full = new Object[rows.length][];
+        for (int i = 0; i < rows.length; i++) {
+            full[i] = Arrays.copyOf(rows[i], rows[i].length + BASE_VALUES.length);
+            System.arraycopy(BASE_VALUES, 0, full[i], rows[i].length, BASE_VALUES.length);
+        }
+        return payloadRaw(names, full);
+    }
+
+    /** fieldNames + array rows exactly as given (null cells become JSON null). */
+    static JSONObject payloadRaw(String[] fields, Object[]... rows) {
         JSONObject p = new JSONObject().put("bulkImportId", BULK_ID).put("tolerance", new JSONObject()).put("verbose", true);
         JSONArray names = new JSONArray();
         for (String f : fields) names.put(f);
-        for (String f : BASE) names.put(f);
         p.put("fieldNames", names);
         JSONArray rs = new JSONArray();
         for (Object[] row : rows) {
             JSONArray r = new JSONArray();
             for (Object v : row) r.put(v == null ? JSONObject.NULL : v);
-            for (Object v : BASE_VALUES) r.put(v);
             rs.put(r);
         }
         p.put("rows", rs);
         return p;
+    }
+
+    /** The held task's encounter holding an annotation on the asset created for {@code filename}. */
+    Encounter encounterWith(String filename) {
+        MediaAsset ma = assets.get(filename);
+        for (Encounter enc : held.getEncounters()) {
+            if (enc.getAnnotations() == null) continue;
+            for (Annotation a : enc.getAnnotations()) if (a.getMediaAsset() == ma) return enc;
+        }
+        return null;
+    }
+
+    static List<String> boxIds(Encounter enc) {
+        List<String> ids = new ArrayList<String>();
+        if (enc.getAnnotations() != null) for (Annotation a : enc.getAnnotations()) if (a.isImportedBox()) ids.add(a.getId());
+        return ids;
+    }
+
+    List<Object> envelopeIds() {
+        return IAGateway.buildImportEnvelope(held).getJSONArray("annotationIds").toList();
     }
 
     static JSONObject tolerant(JSONObject p) {
@@ -356,6 +386,8 @@ class BulkBoxImportApiTest {
                 assertEquals(1, handoffs.size(), label);
                 assertEquals(skipDetection || skipIdentification, handoffs.get(0).getJSONObject("taskParameters").getBoolean("skipIdent"), label);
                 assertEquals("extract-then-identify", IAGateway.buildImportEnvelope(held).getString("annotationMode"), label);
+                assertEquals(boxIds(encounterWith("a.jpg")), envelopeIds(), label);
+                assertEquals(1, envelopeIds().size(), label);
             }
         }
     }
@@ -377,6 +409,91 @@ class BulkBoxImportApiTest {
         JSONObject env = IAGateway.buildImportEnvelope(held);
         assertEquals("extract-then-identify", env.getString("annotationMode"));
         assertEquals(0, env.getJSONArray("annotationIds").length());
+    }
+
+    @Test void corruptBoxedPhotoIsReportedAndItsBoxDroppedInATolerantImport() throws Exception {
+        corrupt.add("trunc.png");
+        JSONObject res = post(tolerant(payload(BOXED, new Object[] { "trunc.png", "0,0,100,100", "body" }, new Object[] { "a.jpg", "1,1,5,5", "body" })));
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        boolean reported = false;
+        for (Object o : res.getJSONArray("errors").toList()) {
+            Map<?, ?> e = (Map<?, ?>)o;
+            if ("trunc.png".equals(e.get("filename")) && Boolean.TRUE.equals(e.get("mediaAssetError"))) reported = true;
+        }
+        assertTrue(reported, res.toString());
+        assertEquals(2, held.getEncounters().size());
+        Encounter good = encounterWith("a.jpg");
+        assertNotNull(good);
+        assertEquals(1, boxIds(good).size());
+        for (Encounter enc : held.getEncounters()) if (enc != good) assertTrue((enc.getAnnotations() == null) || enc.getAnnotations().isEmpty(), "the corrupt photo's slot and its box were skipped");
+        assertEquals(boxIds(good), envelopeIds());
+        assertEquals(1, handoffs.size());
+    }
+
+    @Test void tolerantImportKeepsTheValidBoxedFileWhenAnotherBoxedFileIsBadMime() throws Exception {
+        JSONObject res = post(tolerant(payload(BOXED, new Object[] { "image-invalid-mime-type.jpg", "1,1,5,5", "body" }, new Object[] { "a.jpg", "1,1,5,5", "body" })));
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        assertEquals(1, res.getJSONArray("errors").length(), res.toString());
+        JSONObject e = error(res, 0, "Encounter.mediaAsset0");
+        assertNotNull(e, res.toString());
+        assertTrue(e.getString("details").contains("is not a valid file"));
+        Encounter good = encounterWith("a.jpg");
+        assertNotNull(good, "the valid boxed file was created and imported");
+        assertEquals(boxIds(good), envelopeIds());
+        assertEquals(1, envelopeIds().size());
+        assertEquals(1, handoffs.size());
+    }
+
+    @Test void tolerantImportNeverCreatesAClasslessBox() throws Exception {
+        String[] fields = { "Encounter.mediaAsset0", "Encounter.mediaAsset0.bbox", "Encounter.mediaAsset0.iaClass", "Encounter.genus", "Encounter.specificEpithet", "Encounter.year" };
+        JSONObject res = post(tolerant(payloadRaw(fields,
+            new Object[] { "a.jpg", "1,1,5,5", null, "Genus", "species", 2020 },      // class missing
+            new Object[] { "b.jpg", "1,1,5,5", "fin", "Genus", "species", 2020 },     // class rejected (identification on)
+            new Object[] { "c.jpg", "1,1,5,5", "body", "Genus", "nope", 2020 },       // taxonomy rejected
+            new Object[] { "e.jpg", "1,1,5,5", "body", "Genus", null, 2020 },         // epithet missing
+            new Object[] { "f.jpg", "1,1,5,5", "body", null, "species", 2020 },       // genus missing
+            new Object[] { "d.jpg", "1,1,5,5", "body", "Genus", "species", 2020 })));  // valid
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        assertEquals("REQUIRED_VALUE", error(res, 0, "Encounter.mediaAsset0.iaClass").getString("type"));
+        assertEquals("INVALID_VALUE", error(res, 1, "Encounter.mediaAsset0.iaClass").getString("type"));
+        assertNotNull(error(res, 2, "Encounter.genus"));
+        assertNotNull(error(res, 2, "Encounter.specificEpithet"));
+        assertEquals("REQUIRED_VALUE", error(res, 3, "Encounter.specificEpithet").getString("type"));
+        assertEquals("REQUIRED_VALUE", error(res, 4, "Encounter.genus").getString("type"));
+        assertEquals(6, held.getEncounters().size());
+        for (String rejected : new String[] { "a.jpg", "b.jpg", "c.jpg", "e.jpg", "f.jpg" }) {
+            Encounter enc = encounterWith(rejected);
+            assertNotNull(enc, rejected);
+            assertEquals(1, enc.getAnnotations().size(), rejected);
+            assertFalse(enc.getAnnotations().get(0).isImportedBox(), rejected + " must not become a classless box");
+            assertNull(enc.getAnnotations().get(0).getIAClass(), rejected);
+        }
+        assertEquals(boxIds(encounterWith("d.jpg")), envelopeIds());
+        assertEquals(1, envelopeIds().size());
+        assertTrue(stamped(held));
+    }
+
+    @Test void tolerantImportDoesNotLendAReusedEncountersTaxonomyToARejectedRow() throws Exception {
+        String x = "00000000-0000-4000-8000-00000000000a", y = "00000000-0000-4000-8000-00000000000b";
+        String[] fields = { "Encounter.id", "Encounter.mediaAsset0", "Encounter.mediaAsset0.bbox", "Encounter.mediaAsset0.iaClass", "Encounter.genus", "Encounter.specificEpithet", "Encounter.year" };
+        JSONObject res = post(tolerant(payloadRaw(fields,
+            new Object[] { x, "a.jpg", null, null, "Genus", "species", 2020 },
+            new Object[] { x, "b.jpg", "1,1,5,5", "body", null, null, 2020 },
+            new Object[] { y, "c.jpg", "1,1,5,5", "body", "Genus", "species", 2020 })));
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        assertEquals("REQUIRED_VALUE", error(res, 1, "Encounter.genus").getString("type"));
+        assertEquals("REQUIRED_VALUE", error(res, 1, "Encounter.specificEpithet").getString("type"));
+        assertEquals(2, held.getEncounters().size());
+        Encounter shared = encounterWith("a.jpg");
+        assertNotNull(shared);
+        assertEquals(x, shared.getId());
+        assertEquals("Genus", shared.getGenus());
+        assertEquals("species", shared.getSpecificEpithet());
+        assertEquals(2, shared.getAnnotations().size());
+        for (Annotation a : shared.getAnnotations()) assertFalse(a.isImportedBox(), "row B's box must not borrow row A's taxonomy");
+        assertEquals(boxIds(encounterWith("c.jpg")), envelopeIds());
+        assertEquals(1, envelopeIds().size());
+        assertTrue(stamped(held));
     }
 
     @Test void unboxedImportKeepsTodaysSkipDetectionBehavior() throws Exception {   // (regression)
