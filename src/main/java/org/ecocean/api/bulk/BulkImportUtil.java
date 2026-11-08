@@ -275,7 +275,7 @@ public class BulkImportUtil {
     }
 
     // sets a validation exception unless the field already holds one
-    private static void putIfClean(Map<String, Object> map, String fieldName,
+    public static void putIfClean(Map<String, Object> map, String fieldName,
         BulkValidatorException ex) {
         if (isException(map, fieldName)) return;
         map.put(fieldName, ex);
