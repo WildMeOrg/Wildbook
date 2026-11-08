@@ -17,6 +17,8 @@ import java.util.Set;
 import org.ecocean.api.ApiException;
 import org.ecocean.Base;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.IAJsonProperties;
+import org.ecocean.Taxonomy;
 import org.ecocean.OpenSearch;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
@@ -31,6 +33,13 @@ public class BulkImportUtil {
 
     public static Map<String, Object> validateRow(Set<String> fieldNames, JSONArray rowValues,
         Shepherd myShepherd) {
+        return validateRow(fieldNames, rowValues, myShepherd, false);
+    }
+
+    // bulk-import boxes (decision 3): identificationSkipped widens the accepted box classes from
+    // the species' matchable list to every stored class
+    public static Map<String, Object> validateRow(Set<String> fieldNames, JSONArray rowValues,
+        Shepherd myShepherd, boolean identificationSkipped) {
         if ((fieldNames == null) || (rowValues == null)) return new HashMap<String, Object>();
         JSONObject row = new JSONObject();
         int i = 0;
@@ -42,10 +51,15 @@ public class BulkImportUtil {
             }
             i++;
         }
-        return validateRow(row, myShepherd);
+        return validateRow(row, myShepherd, identificationSkipped);
     }
 
     public static Map<String, Object> validateRow(JSONObject row, Shepherd myShepherd) {
+        return validateRow(row, myShepherd, false);
+    }
+
+    public static Map<String, Object> validateRow(JSONObject row, Shepherd myShepherd,
+        boolean identificationSkipped) {
         Map<String, Object> rtn = new HashMap<String, Object>();
 
         if (row == null) return rtn;
@@ -162,7 +176,109 @@ public class BulkImportUtil {
                     ApiException.ERROR_RETURN_CODE_REQUIRED));
         }
 
+        // bulk-import boxes (spec 4.2 row layer): per-slot pairing, class, duplicate photos
+        checkBoxSlots(rtn, fieldNames, identificationSkipped);
+
         return rtn;
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.2, decisions 2 and 3), per photo slot N of this row: (1) any of
+     * .iaClass/.viewpoint/.theta/.bboxSource without a .bbox is REQUIRED on .bbox; (2) a .bbox on
+     * a slot with no photo (absent or blank cell) is INVALID on .bbox; (3) a .bbox without a
+     * .iaClass is REQUIRED on .iaClass; (4) when the taxonomy validated, a class outside the
+     * species' matchable list (every stored class when identification is skipped) is INVALID on
+     * .iaClass, naming the accepted classes; (5) the same photo in two slots of the row, when
+     * either slot is boxed, is INVALID_DUPLICATE on the later slot. An exception already on a
+     * field is never overwritten.
+     */
+    private static void checkBoxSlots(Map<String, Object> rtn, Set<String> fieldNames,
+        boolean identificationSkipped) {
+        List<String> bareSlots = findIndexedFieldNames(fieldNames, "Encounter.mediaAsset");
+        int numSlots = bareSlots.size();
+        for (String suffix : BulkValidator.BOX_SUFFIXES) {
+            numSlots = Math.max(numSlots,
+                findIndexedFieldNames(fieldNames, "Encounter.mediaAsset." + suffix).size());
+        }
+        if (numSlots == 0) return;
+        // the accepted classes, only when the row's taxonomy validated (rule 4)
+        List<String> allowed = null;
+        String sciName = null;
+        Object taxG = getValue(rtn, "Encounter.genus");
+        Object taxS = getValue(rtn, "Encounter.specificEpithet");
+        if ((taxG != null) && (taxS != null)) {
+            sciName = Util.taxonomyString(taxG.toString(), taxS.toString());
+            Taxonomy taxy = new Taxonomy(sciName);
+            IAJsonProperties iac = IAJsonProperties.iaConfig();
+            allowed = identificationSkipped ? iac.getCanonicalIAClasses(taxy) :
+                iac.getMatchableIAClasses(taxy);
+        }
+        Map<String, Integer> firstSlotOfPhoto = new HashMap<String, Integer>();
+        boolean[] boxed = new boolean[numSlots];
+        for (int n = 0; n < numSlots; n++) {
+            String prefix = "Encounter.mediaAsset" + n;
+            String bboxName = prefix + ".bbox";
+            String classNm = prefix + ".iaClass";
+            String bareName = (n < bareSlots.size()) ? bareSlots.get(n) : null;
+            String photo = null;
+            if (bareName != null) {
+                Object bare = getValue(rtn, bareName);
+                if ((bare != null) && !bare.toString().trim().isEmpty()) photo = bare.toString();
+            }
+            Object bbox = getValue(rtn, bboxName);
+            if (bbox == null) {
+                for (String suffix : BulkValidator.BOX_SUFFIXES) {
+                    if (suffix.equals("bbox")) continue;
+                    if (getValue(rtn, prefix + "." + suffix) != null) {
+                        putIfClean(rtn, bboxName,
+                            new BulkValidatorException("box columns need a box in " + bboxName,
+                            ApiException.ERROR_RETURN_CODE_REQUIRED,
+                            BulkValidatorException.TYPE_REQUIRED_VALUE, bboxName));
+                        break;
+                    }
+                }
+            } else {
+                boxed[n] = true;
+                if (photo == null) {
+                    putIfClean(rtn, bboxName,
+                        new BulkValidatorException("box without a photo in this slot",
+                        ApiException.ERROR_RETURN_CODE_INVALID,
+                        BulkValidatorException.TYPE_INVALID_VALUE, bboxName));
+                }
+                Object cls = getValue(rtn, classNm);
+                if (cls == null) {
+                    putIfClean(rtn, classNm,
+                        new BulkValidatorException("a box needs an iaClass",
+                        ApiException.ERROR_RETURN_CODE_REQUIRED,
+                        BulkValidatorException.TYPE_REQUIRED_VALUE, classNm));
+                } else if ((allowed != null) && !allowed.contains(cls.toString())) {
+                    String msg = allowed.isEmpty() ? ("no matchable classes for " + sciName) :
+                        ("valid classes for " + sciName + ": " + String.join(", ", allowed));
+                    putIfClean(rtn, classNm,
+                        new BulkValidatorException("invalid iaClass '" + cls + "'; " + msg,
+                        ApiException.ERROR_RETURN_CODE_INVALID,
+                        BulkValidatorException.TYPE_INVALID_VALUE, classNm));
+                }
+            }
+            if (photo == null) continue;
+            Integer first = firstSlotOfPhoto.get(photo);
+            if (first == null) {
+                firstSlotOfPhoto.put(photo, n);
+            } else if (boxed[first] || boxed[n]) {
+                putIfClean(rtn, bareName,
+                    new BulkValidatorException("photo " + photo + " is already in slot " + first +
+                    " of this row; a second animal on the same photo needs its own row",
+                    ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_INVALID_DUPLICATE, bareName));
+            }
+        }
+    }
+
+    // sets a validation exception unless the field already holds one
+    private static void putIfClean(Map<String, Object> map, String fieldName,
+        BulkValidatorException ex) {
+        if (isException(map, fieldName)) return;
+        map.put(fieldName, ex);
     }
 
     private static void checkYMD(Map<String, Object> map, String ykey, String mkey, String dkey) {
