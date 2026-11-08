@@ -579,14 +579,16 @@ public class IAJsonProperties extends JsonProperties {
     public List<String> getCanonicalIAClasses(Taxonomy taxy) {
         Set<String> result = new TreeSet<String>();
 
-        if ((taxy == null) || !hasIA(taxy)) return new ArrayList<String>(result);
-        result.addAll(getValidIAClassesIgnoreRedirects(taxy));
+        if ((taxy == null) || (taxy.getScientificName() == null)) return new ArrayList<String>(result);
         String taxKey = taxonomyKey(taxy);
-        JSONObject underTaxy = (JSONObject)get(taxKey);
+        Object node = opt(taxKey); // quiet: an unknown species is a normal answer, not an error to log
+        if (!(node instanceof JSONObject)) return new ArrayList<String>(result);
+        JSONObject underTaxy = (JSONObject)node;
         Iterator<String> keys = underTaxy.keys();
         while (keys.hasNext()) {
             String key = keys.next();
             if (!isClassKey(key, underTaxy)) continue;
+            if (isUserSelectableIAClass(taxy, key, underTaxy)) result.add(key);
             String target = saveAsTarget(taxKey + "." + key);
             if (target != null) result.add(target);
         }

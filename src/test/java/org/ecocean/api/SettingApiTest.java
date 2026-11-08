@@ -244,10 +244,14 @@ class SettingApiTest {
                     // kinda meek test of results, but a decent start?
                     assertTrue(jout.has("users")); // only shown to logged in user
                     assertEquals(jout.keySet().size(), 54);
-                    // bulk-import boxes (spec 4.6): the capability signal
+                    // bulk-import boxes (spec 4.6): the capability signal is the complete sorted
+                    // indexable list, and the matchable map covers exactly the species the
+                    // existing per-taxonomy class map covers (this harness configures no species)
+                    assertEquals(org.ecocean.Util.asSortedList(org.ecocean.api.bulk.BulkValidator.FIELD_NAMES_INDEXABLE),
+                        jout.getJSONArray("bulkImportIndexableFields").toList());
                     assertTrue(jout.getJSONArray("bulkImportIndexableFields").toList().contains("Encounter.mediaAsset#.bbox"));
-                    assertTrue(jout.getJSONArray("bulkImportIndexableFields").toList().contains("Encounter.mediaAsset#.keywords"));
-                    assertTrue(jout.getJSONObject("bulkImportMatchableClasses") != null);
+                    assertEquals(jout.getJSONObject("iaClassesForTaxonomy").keySet(),
+                        jout.getJSONObject("bulkImportMatchableClasses").keySet());
                 }
             }
         }

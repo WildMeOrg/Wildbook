@@ -161,7 +161,7 @@ public class BulkImport extends ApiBase {
             if (currentUser == null) {
                 response.setStatus(401);
                 response.setHeader("Content-Type", "application/json");
-                response.getWriter().write("{\"success\": false}");
+                response.getWriter().write(rtn.toString()); // success:false, annotationsImported:false
                 return;
             }
             JSONObject payload = ServletUtilities.jsonFromHttpServletRequest(request);
@@ -319,7 +319,6 @@ public class BulkImport extends ApiBase {
             boxedImport = checkBoxedFiles(validatedRows, files, dataWarnings, fileValid, fileDims);
             for (int rowNum = 0; rowNum < validatedRows.size(); rowNum++) {
                 boolean rowValid = true;
-                boolean hasSubmitter = false;
                 Map<String, Object> rowResult = validatedRows.get(rowNum);
                 // a rejected submitter keeps its error; only a missing column gets the default
                 boolean hasSubmitterColumn = rowResult.containsKey(submitterIDFieldName);
@@ -334,7 +333,6 @@ public class BulkImport extends ApiBase {
                                 rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
                                 bv = defaultSubmitterIDBV;
                             }
-                            hasSubmitter = true;
                         }
                         validFields.add(bv);
                     } else if (fieldObj instanceof BulkValidatorException) {
@@ -371,8 +369,7 @@ public class BulkImport extends ApiBase {
                 // case where we simply didnt have the column for submitter, we add it now; for an
                 // invalid row too (bulk-import boxes): such rows reach the importer only under
                 // tolerance, where processRow threw "no value for Encounter.submitterID" without it
-                if (!hasSubmitter && !hasSubmitterColumn)
-                    rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
+                if (!hasSubmitterColumn) rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
             }
             rtn.put("numberRows", validatedRows.size());
             rtn.put("annotationsImported", boxedImport);

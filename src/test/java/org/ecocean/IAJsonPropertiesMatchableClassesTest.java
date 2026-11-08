@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -93,13 +94,36 @@ class IAJsonPropertiesMatchableClassesTest {
         assertEquals(List.of("body", "shape", "shape2"), iac.getMatchableIAClasses(B));   // both through the linked _default._id_conf
     }
 
-    @Test void optionalLookupsAreQuietAndFollowLinks() {
+    @Test void optionalLookupsAreQuietAndFollowLinks() throws Exception {
         IAJsonProperties iac = fixture();
-        assertEquals("shape2", iac.opt("Genus.other.flipper._save_as"));
-        assertEquals("body", iac.opt("Genus.species.dorsal._save_as"));   // dorsal -> animal -> body
-        assertNull(iac.opt("Genus.species.body._save_as"));
-        assertNull(iac.opt("Genus.species.nope._id_conf"));
-        assertNull(iac.opt("Nope.nope"));
+        String out = capturingStdout(() -> {
+            assertEquals("shape2", iac.opt("Genus.other.flipper._save_as"));
+            assertEquals("body", iac.opt("Genus.species.dorsal._save_as"));   // dorsal -> animal -> body
+            assertNull(iac.opt("Genus.species.body._save_as"));
+            assertNull(iac.opt("Genus.species.nope._id_conf"));
+            assertNull(iac.opt("Nope.nope"));
+            // the two list methods, on every fixture species and on an unknown one
+            for (Taxonomy t : new Taxonomy[] { A, B, C, D, new Taxonomy("No such") }) {
+                iac.getCanonicalIAClasses(t);
+                iac.getMatchableIAClasses(t);
+            }
+        });
+        assertFalse(out.contains("hit an exception"), "no JsonProperties.get stack trace: " + out);
+        assertFalse(out.contains("Exception"), out);
+    }
+
+    interface Body { void run() throws Exception; }
+
+    static String capturingStdout(Body body) throws Exception {
+        java.io.PrintStream old = System.out;
+        java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
+        System.setOut(new java.io.PrintStream(buf, true, "UTF-8"));
+        try {
+            body.run();
+        } finally {
+            System.setOut(old);
+        }
+        return buf.toString("UTF-8");
     }
 
     @Test void explicitClassSurvivesADefaultSaveAs() {

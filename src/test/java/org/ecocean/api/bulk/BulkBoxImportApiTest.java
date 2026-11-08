@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.Annotation;
+import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.Encounter;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.ImageFixtures;
@@ -90,6 +91,11 @@ class BulkBoxImportApiTest {
     Set<String> corrupt = new HashSet<String>();   // go through the real makeMediaAsset (real decoder)
     Set<String> failing = new HashSet<String>();   // creation fails for an unrelated reason
     final List<String> created = new ArrayList<String>();   // every filename makeMediaAsset was asked for
+    final List<String> fastValidated = new ArrayList<String>();   // every file given to Util.fastFileValidation
+    final List<String> dimensionsRead = new ArrayList<String>();  // every file given to Util.fastImageDimensions
+    boolean anonymous = false;                 // the request carries no user: 401
+    boolean captureImporter = false;           // replace BulkImporter with a mock and keep the rows it was given
+    List<Map<String, Object> > importerRows;   // what the (mocked) importer received
     int nextAssetId = 100;
 
     @BeforeAll static void fixtures() throws Exception {
@@ -120,6 +126,11 @@ class BulkBoxImportApiTest {
         corrupt.clear();
         failing.clear();
         created.clear();
+        fastValidated.clear();
+        dimensionsRead.clear();
+        anonymous = false;
+        captureImporter = false;
+        importerRows = null;
         JSONObject json = new JSONObject().put("Genus", new JSONObject().put("species", new JSONObject()
             .put("body", idConf(true)).put("fin", idConf(false))));
         IAJsonProperties iac = IAJsonProperties.iaConfig();
@@ -202,8 +213,21 @@ class BulkBoxImportApiTest {
     JSONObject post(JSONObject payload) throws Exception {
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload.toString())));
+        // registered before the static mocks and closed after them (Mockito resolves mocks in LIFO order)
+        MockedConstruction<org.ecocean.api.bulk.BulkImporter> importer = captureImporter ?
+            mockConstruction(org.ecocean.api.bulk.BulkImporter.class, (mock, ctx) -> {
+                importerRows = (List<Map<String, Object> >)ctx.arguments().get(1);
+            }) : null;
+        try {
+            return postWithMocks(payload);
+        } finally {
+            if (importer != null) importer.close();
+        }
+    }
+
+    private JSONObject postWithMocks(JSONObject payload) throws Exception {
         try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (mock, ctx) -> {
-                 when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+                 when(mock.getUser(any(HttpServletRequest.class))).thenReturn(anonymous ? null : user);
                  when(mock.getUser(any(String.class))).thenAnswer(inv -> "nobody".equals(inv.getArgument(0)) ? null : user);
                  when(mock.getUserByUUID(any(String.class))).thenReturn(user);
                  when(mock.isValidTaxonomyName(any(String.class))).thenAnswer(inv -> !"Genus nope".equals(inv.getArgument(0)));
@@ -219,7 +243,10 @@ class BulkBoxImportApiTest {
              MockedStatic<IAGateway> gateway = mockStatic(IAGateway.class, CALLS_REAL_METHODS);
              MockedStatic<IA> ia = mockStatic(IA.class);
              MockedStatic<MediaAsset> media = mockStatic(MediaAsset.class, CALLS_REAL_METHODS);   // a full static mock would also stub the enhancer's dnGet* accessors
-             MockedStatic<AssetStore> stores = mockStatic(AssetStore.class, CALLS_REAL_METHODS)) {
+             MockedStatic<AssetStore> stores = mockStatic(AssetStore.class, CALLS_REAL_METHODS);
+             MockedStatic<org.ecocean.Util> util = mockStatic(org.ecocean.Util.class, CALLS_REAL_METHODS)) {
+            util.when(() -> org.ecocean.Util.fastFileValidation(any(File.class))).thenAnswer(inv -> { fastValidated.add(((File)inv.getArgument(0)).getName()); return inv.callRealMethod(); });
+            util.when(() -> org.ecocean.Util.fastImageDimensions(any(File.class))).thenAnswer(inv -> { dimensionsRead.add(((File)inv.getArgument(0)).getName()); return inv.callRealMethod(); });
             files.when(() -> UploadedFiles.getUploadDir(any(HttpServletRequest.class), any(String.class))).thenReturn(uploadDir.toFile());
             files.when(() -> UploadedFiles.makeMediaAsset(any(String.class), any(File.class), any(Shepherd.class))).thenAnswer(inv -> {
                 File f = inv.getArgument(1);
@@ -565,6 +592,34 @@ class BulkBoxImportApiTest {
         assertEquals(boxIds(encounterWith("c.jpg")), envelopeIds());
         assertEquals(1, envelopeIds().size());
         assertTrue(stamped(held));
+    }
+
+    @Test void anonymousRequestGetsA401WithTheFlag() throws Exception {
+        anonymous = true;
+        JSONObject res = post(payload(BOXED, new Object[] { "a.jpg", "1,1,5,5", "body" }));
+        assertFalse(res.getBoolean("success"));
+        assertFalse(res.getBoolean("annotationsImported"));
+        assertTrue(handoffs.isEmpty());
+    }
+
+    @Test void tolerantImportHandsTheImporterTheRejectedSubmitterNotTheDefault() throws Exception {
+        captureImporter = true;
+        String[] fields = { "Encounter.mediaAsset0", "Encounter.submitterID" };
+        post(tolerant(payload(fields, new Object[] { "a.jpg", "nobody" }, new Object[] { "b.jpg", null })));
+        assertNotNull(importerRows, "the importer was constructed with the validated rows");
+        assertEquals(2, importerRows.size());
+        assertTrue(importerRows.get(0).get("Encounter.submitterID") instanceof BulkValidatorException, "a rejected submitter stays an error");
+        Object second = importerRows.get(1).get("Encounter.submitterID");
+        assertTrue(second instanceof org.ecocean.api.bulk.BulkValidator, "an empty cell gets the default as before");
+        assertEquals("fake-username", ((org.ecocean.api.bulk.BulkValidator)second).getValue());
+    }
+
+    @Test void eachBoxedFileIsCheckedOnceAndTheFileLoopReusesIt() throws Exception {
+        JSONObject res = post(payload(BOXED, new Object[] { "a.jpg", "1,1,5,5", "body" }, new Object[] { "a.jpg", "20,20,5,5", "body" }, new Object[] { "b.jpg", "1,1,5,5", "body" }));
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        assertEquals(List.of("a.jpg", "b.jpg"), fastValidated, "once per boxed file, and the real-import file loop reused the cache");
+        assertEquals(List.of("a.jpg", "b.jpg"), dimensionsRead);
+        assertEquals(3, envelopeIds().size(), "two boxes on a.jpg and one on b.jpg");
     }
 
     @Test void unboxedImportKeepsTodaysSkipDetectionBehavior() throws Exception {   // (regression)
