@@ -68,6 +68,8 @@ Send `Authorization: Bearer <submissions-token>` on every submissions request.
 Fetch `GET /api/v3/submissions/capabilities`. Read `contractVersion`,
 `admissionEnabled`, `stagingAvailable`, `commitEnabled`, `processingModes`,
 `rowFields`, `limits`, `maxFiles`, `maxImagePixels`, and `uploadMediaTypes`.
+Before sending your own detector's boxes, check that `rowFields.perMedia` lists
+`bbox` and `iaClass`; if it is absent, this installation does not accept boxes.
 Do not proceed to writes when admission or staging is unavailable. Commit can be
 disabled while drafting remains available. Supported modes are `detect-and-identify` (the default for new submissions) and
 `import-only` (explicitly skips detection and identification). Read capabilities
@@ -129,6 +131,13 @@ Create body (the names are illustrative):
 `source.name` is required, 1–128 characters; `source.batchId` is optional, 1–256.
 `processing` may be omitted and defaults to detect-and-identify on this version.
 To skip detection and matching, explicitly send `"processing":{"mode":"import-only"}`.
+
+A submission whose rows carry boxes (`Encounter.mediaAsset{N}.bbox`) never runs
+detection: the supplied boxes are extracted and, in `detect-and-identify`, matched;
+in `import-only` they are extracted for later matching but not identified. Photos in
+that submission without a box are imported untouched and are not detected either. If
+the person also wants detection on un-boxed photos, send those in a separate
+submission without box columns.
 The mode is fixed at creation, and this API has no "start AI later" or AI retry
 operation for an existing submission. Retry with the saved original create body and
 key; do not change mode or make another batch to force matching.
@@ -194,13 +203,23 @@ Supported fields for this pilot are exactly:
 | `Encounter.researcherComments` | string | Optional free text preserving relevant observation context. |
 | `Encounter.sightingID` | string | Optional. The source's sighting, occurrence or group ID; rows that share it become one new sighting. 1–100 letters, digits, `.`, `_` or `-`, starting with a letter or digit. See "Grouping rows into one sighting". |
 | `Encounter.mediaAsset0` … `Encounter.mediaAsset199` | string | Exact completed upload filename. Start at 0 and use successive slots for photographs of this encounter. At least one image is required per row. |
+| `Encounter.mediaAsset{N}.bbox` | string | Optional. One animal's box on the photo in slot N: `"x,y,width,height"`, whole pixels of the uploaded image as stored (no EXIF rotation), origin top-left; x,y at least 0, width,height at least 1, and inside the image. |
+| `Encounter.mediaAsset{N}.iaClass` | string | Required with a box. One of the species' matchable classes (`bulkImportMatchableClasses` in `/api/v3/site-settings`); in `import-only`, any class the species stores. |
+| `Encounter.mediaAsset{N}.viewpoint` | string | Optional, with a box. A known viewpoint such as `left`, `right`, `front`. |
+| `Encounter.mediaAsset{N}.theta` | number | Optional, with a box. Rotation in radians, clockwise as displayed, between -6.2832 and 6.2832; bounds are checked on the un-rotated box. |
+| `Encounter.mediaAsset{N}.bboxSource` | string | Optional, with a box, 1–128 characters: the detector or person that drew it. |
+| `Encounter.quality{N}` | number | Optional. The detector's score for the photo or box in slot N. |
 
 Send year/month/day/hour/minutes as JSON integers such as `2025`, not floating-point
 or decimal strings such as `2025.0` or `"2025.0"`; integer-field parsing can reject
 decimal representations even when numerically equivalent.
 
-Each image must be used in only one row and only one slot. All photos for the same
-new encounter belong in that one row. Do not create duplicate rows for its photos.
+Each image must be used in only one slot of a row. Without boxes, each image also
+belongs to only one row: all photos for the same new encounter belong in that one
+row; do not create duplicate rows for its photos. With boxes, one photo showing
+several animals is sent once per animal: one row per animal, each naming the same
+photo with that animal's own box. Every use of that photo must then carry a box,
+and two rows may not carry the identical box.
 The per-encounter image limit from capabilities can be lower than 200.
 
 Do not send legacy fields such as `Encounter.submitterID`, `Encounter.id`,
@@ -341,6 +360,12 @@ why the value was rejected:
 | `OUT_OF_RANGE` | A number outside the allowed range, or a day that does not exist in that month. |
 | `FUTURE_DATE` | The date is later than today everywhere on Earth. The issue names the part (year, month or day) that is too late. |
 | `NOT_CONFIGURED` | Not one of this installation's configured values. The message names the value and, for short lists, the allowed values. |
+| `INVALID_BOX` | The box is not four whole numbers `x,y,width,height` with x,y at least 0 and width,height at least 1. |
+| `MISSING_CLASS` | A box was supplied without its `iaClass`. |
+| `UNKNOWN_CLASS` | The class cannot be matched for this species; the message lists the accepted classes. |
+| `INVALID_VIEWPOINT` | Not a known viewpoint. |
+| `INVALID_THETA` | Theta is not a finite number of radians within ±6.2832. |
+| `BOX_OUT_OF_BOUNDS` | The box reaches past the uploaded image's width or height. |
 | `INVALID` | Another rejection; read the message. |
 
 New reasons may be added later; treat an unrecognized or absent `reason` like
@@ -366,7 +391,10 @@ Concrete failure examples and corrections (assume other fields are valid):
 | lifeStage `"juvenile"` when absent from configured lifeStage values; likewise an unconfigured livingStatus | `INVALID_VALUE` (`NOT_CONFIGURED`) on the corresponding field | Map only to a semantically correct configured value; otherwise ask or omit an unknown optional value. |
 | mediaAsset0 `"Photo.JPG"` when the completed upload is `"photo.jpg"` | `MISSING_MEDIA` (and possibly `REQUIRED_VALUE`) | Match the exact manifest filename and ensure its upload completed. |
 | no image reference | `REQUIRED_VALUE` on `Encounter.mediaAsset0` | Upload and reference at least one authorized photo. |
-| same image in two slots or rows | `DUPLICATE_MEDIA` | Put each uploaded image in exactly one slot in one row. |
+| same image in two slots of a row, or in two rows without boxes | `DUPLICATE_MEDIA` | Put each image in one slot; without boxes, in one row. |
+| one photo boxed on one row and used without a box on another | `DUPLICATE_MEDIA` on the un-boxed use | Box every animal on that photo, or move the un-boxed use to a separate submission without boxes. |
+| the identical box twice on one photo | `DUPLICATE_BOX` on the later row's `.bbox` | Keep one row per animal; remove the duplicate. |
+| `Encounter.mediaAsset0.iaClass` without a `.bbox`, or a box without a class | `INVALID_VALUE` (`REQUIRES_FIELD` or `MISSING_CLASS`) | Send the box and its class together. |
 | too many images in one row | `LIMIT_EXCEEDED` | Respect maxMediaPerEncounter; do not split one observation into fabricated encounters to bypass it. |
 | `Encounter.submitterID`, `Encounter.otherCatalogNumbers`, or another unsupported field | `UNSUPPORTED_FIELD` | Use the supported contract; the authenticated account determines ownership. |
 | `Encounter.sightingID` already used by a sighting in this Wildbook | `SIGHTING_EXISTS` on `Encounter.sightingID` | Ask the person. Existing sightings cannot be added to through this API; do not invent a different ID. |
@@ -437,8 +465,11 @@ objects. `indexing.state: "unknown"` means indexing was dispatched but completio
 is not acknowledged; it is not proof that search is current. `indexing.state: "failed"`
 requires operator inspection. Derivatives may be `pending`, `running`, `complete`,
 or `unknown`; an unknown derivative outcome also requires operator inspection.
-Detection and identification are `skipped` for explicit import-only. For the default
-`detect-and-identify`, these two phase objects describe the same workflow handoff:
+Detection and identification are `skipped` for explicit import-only. For a submission
+with boxes, detection is `skipped` with code `BOXES_SUPPLIED`; its boxes are handed off
+for extraction, so `identification` carries the handoff state below (with code
+`BOXES_EXTRACTED_ONLY` in import-only, where the boxes are extracted but not matched).
+For the default `detect-and-identify`, these two phase objects describe the same workflow handoff:
 
 | AI phase state | Meaning and action |
 |---|---|
