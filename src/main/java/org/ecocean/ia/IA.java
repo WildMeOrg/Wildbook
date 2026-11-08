@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.Map;
 import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
@@ -1178,7 +1180,39 @@ public class IA {
             }
         }
         for (Map.Entry<String, List<Annotation>> e : wbiaSpecies.entrySet()) {
-            if (skipIdent) continue;
+            if (skipIdent) {
+                // staging 2026-11-08: never drop these boxes silently. A class configured for vector
+                // matching on a species without species-level ml-service routing is a configuration
+                // gap the operator must see; a species with no vector pipeline has nothing to extract.
+                Task speciesTask = speciesTasks.get(e.getKey());
+                IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+                Taxonomy taxy = new Taxonomy(e.getKey());
+                Set<String> vectorClasses = new TreeSet<String>();
+                for (Annotation ann : e.getValue()) {
+                    if ((iaConfig != null) && (iaConfig.getDefaultVectorIdentConfig(taxy, ann.getIAClass()) != null))
+                        vectorClasses.add(ann.getIAClass());
+                }
+                Task held;
+                if (!vectorClasses.isEmpty()) {
+                    held = errorChildHolding(speciesTask, e.getValue(), "NO_EXTRACTION_CONFIG",
+                        "class " + String.join(", ", vectorClasses) + " of " + e.getKey() +
+                        " is configured for vector matching, but the species has no ml-service " +
+                        "routing (IA.json needs <species>._default._id_conf with a default " +
+                        "pipeline_root \"vector\" entry and <species>._mlservice_conf); the boxes " +
+                        "were imported without embeddings");
+                } else {
+                    held = new Task(speciesTask);
+                    for (Annotation ann : e.getValue()) held.addObject(ann);
+                    held.addParameter("note", "identification skipped and the species has no " +
+                        "ml-service extraction: nothing to extract");
+                    held.setStatus("completed");
+                }
+                System.out.println("INFO: IA.intakeImportedBoxes() " + held.getStoredStatus() +
+                    " holder " + held.getId() + " for " + e.getValue().size() + " box(es) of " +
+                    e.getKey() + " (identification skipped, no ml-service routing)");
+                myShepherd.getPM().makePersistent(held);
+                continue;
+            }
             Task speciesTask = speciesTasks.get(e.getKey());
             List<String> ids = new ArrayList<String>();
             for (Annotation ann : e.getValue()) ids.add(ann.getId());
