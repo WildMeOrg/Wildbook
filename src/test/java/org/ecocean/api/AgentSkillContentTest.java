@@ -362,11 +362,14 @@ class AgentSkillContentTest {
         assertTrue(send.contains("ascending order") && send.contains("from slot 0") && send.contains("no empty photo cell")
             && send.contains("exact slot number"), "the page rules: ascending columns, no gaps, exact slots");
         assertFalse(send.contains("preview"), "a preview showing the columns must not lift the page rules");
-        assertTrue(send.contains("only where the species is set up"), "import-only preparation is conditional");
+        assertTrue(send.contains("only where an extractor is configured"), "import-only preparation depends on an extractor");
         String after = section(md, "### 7. After sending");
         assertTrue(after.contains("BOXES_SUPPLIED") && after.contains("BOXES_EXTRACTED_ONLY"));
-        assertTrue(after.contains("`pending`, `dispatching` or `dispatched`") && after.contains("does not by itself prove"),
+        assertTrue(after.contains("`pending`, `dispatching` or `dispatched`") && after.contains("by itself"),
             "BOXES_EXTRACTED_ONLY is qualified by state");
+        assertTrue(after.contains("`pending` is waiting for the hand-off") && after.contains("`dispatched` is handed off"),
+            "pending is not described as sent");
+        assertTrue(after.contains("vector matching configured"), "NO_EXTRACTION_CONFIG is about vector matching without extractor routing");
         assertTrue(after.contains("NO_EXTRACTION_CONFIG") && after.contains("Do not send"), "a config error is not a reason to re-import");
         String cautions = section(md, "## Cautions");
         assertTrue(cautions.contains("separate batch without box") && cautions.contains("imported untouched"),

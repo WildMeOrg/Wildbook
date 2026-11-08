@@ -43,8 +43,8 @@ From `/api/v3/site-settings`:
 - `bulkImportMatchableClasses`: for the species (key = scientific name with spaces, for example
   `Giraffa giraffa giraffa`) the animal type labels Wildbook can match, for example
   `["giraffe_whole"]`. Use only these in `.iaClass`. (An import-only batch would also accept
-  other labels the species stores, but those boxes could never be matched later, so this workflow
-  deliberately sticks to the matchable ones.)
+  other labels the species stores, but those boxes cannot be matched with the site's current
+  setup, so this workflow deliberately sticks to the matchable ones.)
 - `annotationViewpoint`: the allowed viewpoint values, for example `left`, `right`, `front`,
   `back`, `frontleft`. Viewpoint is optional.
 
@@ -141,7 +141,8 @@ Example row for the direct route:
   into several submissions, keeping every row of one photo in the same submission. The box
   fields ride in the same row objects. Choose `detect-and-identify` to have the boxes matched,
   or `import-only` to store them and prepare them for later matching without matching now (the
-  preparing happens only where the species is set up for matching on this site; see step 7).
+  preparing happens only where an extractor is configured for the species on this site; a
+  species matched another way simply stores the boxes; see step 7).
   Validation rejects a box outside its photo (`BOX_OUT_OF_BOUNDS`), a missing or unmatchable
   label (`MISSING_CLASS`, `UNKNOWN_CLASS`), a photo boxed on one row but not another
   (`DUPLICATE_MEDIA`) and the identical box twice (`DUPLICATE_BOX`); fix the rows and validate
@@ -161,14 +162,16 @@ On the submission status (`GET /api/v3/submissions/{id}`), detection reads `skip
 `BOXES_SUPPLIED`: expected, Wildbook used the supplied boxes. `identification` carries the
 hand-off state described in `submit-sightings` (`pending`, `dispatching`, `dispatched`, or a
 failure with its own code). For `import-only`, a `pending`, `dispatching` or `dispatched` hand-off
-also carries code `BOXES_EXTRACTED_ONLY`: the boxes were sent to be prepared for later matching,
-which does not by itself prove the preparation finished.
+also carries code `BOXES_EXTRACTED_ONLY`, naming the requested workflow: boxes prepared for later
+matching, no matching now. Read the state for where it is: `pending` is waiting for the hand-off,
+`dispatching` is the hand-off in progress, `dispatched` is handed off. None of them by itself
+proves the preparation finished; the import task shows actual progress.
 
 If the linked import task shows the error `NO_EXTRACTION_CONFIG`, the records and boxes were
-imported, but this site has matching configured for that animal type label without the
-species-level routing that prepares boxes, so the boxes were not prepared. Give the operator the
+imported, but this site has vector matching configured for that animal type label without the
+species-level extractor routing that prepares boxes, so the boxes were not prepared. Give the operator the
 import task link and the error's own message so they can fix the site configuration. Do not send
-the photos again. (A species with no matching set up at all has nothing to prepare; its boxes are
+the photos again. (A species matched only another way, or not at all, has nothing to prepare; its boxes are
 simply stored.)
 
 ## How to report results
@@ -177,8 +180,9 @@ boxes in 263 rows; 31 boxes below your 0.5 confidence floor were left out; 12 ph
 and are not included." Never say anything was imported while you have only prepared rows. After a
 direct submission, report the records as imported only once its status reads `imported`. Report
 matching separately, from the processing mode and the `identification` state and code: for
-example "matching was handed off and is running", "import-only: boxes stored, no matching", or
-"the hand-off failed; the operator needs to look". Give the person the import task link to review
+example "matching is waiting to be handed off", "matching was handed off; follow progress on
+the import task", "import-only: boxes stored, no matching", or "the hand-off failed; the operator
+needs to look". Give the person the import task link to review
 matches. If anything was rejected, list the rows and the plain reason.
 
 ## Cautions
