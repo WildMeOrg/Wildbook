@@ -51,12 +51,17 @@ class ImportedBoxIntakeDbTest extends IdentificationDbTestSupport {
     private static final String BASE = "https://base.test";
     private static final String ML_GENUS = "Pseudobatos", ML_SPECIES = "lentiginosus";
     private static final String WBIA_GENUS = "Rhina", WBIA_SPECIES = "ancylostoma";
+    // the flakebook staging shape (2026-11-08): a class-level default vector entry, no _default routing
+    private static final String CLASSVEC_GENUS = "Glaucostegus", CLASSVEC_SPECIES = "typus";
 
     static JSONObject iaJson() {
         JSONObject json = MultiAlgorithmIntakeDbTest.iaJson();
         JSONObject lent = json.getJSONObject(ML_GENUS).getJSONObject(ML_SPECIES);
         lent.put("_default", new JSONObject().put("_id_conf", MultiPipelineIAJson.idConf("msv4_v3", "MiewID")));
         lent.put("_mlservice_conf", new JSONArray().put(MultiPipelineIAJson.bodyPipeline()));
+        json.put(CLASSVEC_GENUS, new JSONObject().put(CLASSVEC_SPECIES, new JSONObject()
+            .put(BODY, new JSONObject().put("_id_conf", new JSONArray().put(new JSONObject()
+                .put("default", true).put("pipeline_root", "vector").put("method", "miewid").put("version", "msv4.1"))))));
         return json;
     }
 
@@ -290,7 +295,7 @@ class ImportedBoxIntakeDbTest extends IdentificationDbTestSupport {
         }
     }
 
-    @Test void wbiaOnlySpeciesWithSkipIdentDoesNothing() throws Exception {
+    @Test void wbiaOnlySpeciesWithSkipIdentRecordsACompletedHolder() throws Exception {
         Shepherd sh = open("fixture");
         String importId = nextImportId();
         Encounter e1 = boxedEncounter(sh, WBIA_GENUS, WBIA_SPECIES, importId, 1);
@@ -304,7 +309,31 @@ class ImportedBoxIntakeDbTest extends IdentificationDbTestSupport {
         Shepherd check = open("check");
         try {
             Task species = onlyChild(Task.load(req.getId(), check));
-            assertTrue((species.getChildren() == null) || species.getChildren().isEmpty());
+            Task held = onlyChild(species);   // never a silent drop (staging 2026-11-08)
+            assertEquals("completed", held.getStoredStatus());
+            for (String id : ids) assertTrue(held.holdsAnnotationId(id));
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
+    @Test void classLevelVectorSpeciesWithoutRoutingRecordsAnErrorWhenIdentificationIsSkipped() throws Exception {
+        Shepherd sh = open("fixture");
+        String importId = nextImportId();
+        Encounter e1 = boxedEncounter(sh, CLASSVEC_GENUS, CLASSVEC_SPECIES, importId, 2);
+        Task req = requestTask(sh, importId, true);
+        List<String> ids = annotationIds(e1);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+
+        assertEquals(0, handleRestCapturing(envelope(req.getId(), ids, IAGateway.ANNOTATION_MODE_EXTRACT)).size());
+        assertEquals(0, dispatcher.published.size());
+        Shepherd check = open("check");
+        try {
+            Task held = onlyChild(onlyChild(Task.load(req.getId(), check)));
+            assertEquals("error", held.getStoredStatus());
+            assertEquals("NO_EXTRACTION_CONFIG", errorCode(held));
+            for (String id : ids) assertTrue(held.holdsAnnotationId(id), "the holder holds box " + id);
         } finally {
             check.rollbackAndClose();
         }
