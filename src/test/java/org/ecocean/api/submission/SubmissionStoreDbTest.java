@@ -848,4 +848,52 @@ class SubmissionStoreDbTest {
             assertEquals("complete", loadTask(plainJob).getStatus()); // (regression)
         } finally { org.ecocean.TestIAJsonPropertiesUtil.override(null); }
     }
+
+    @Test void realPrepareOnABoxedImportSendsTheExtractionEnvelope(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        installBoxFixture();
+        try (org.mockito.MockedStatic<org.ecocean.ia.IA> ia = org.mockito.Mockito.mockStatic(org.ecocean.ia.IA.class)) {
+            ia.when(() -> org.ecocean.ia.IA.getBaseURL("context0")).thenReturn("https://example.test");
+            int n = 0;
+            for (String mode : new String[]{"import-only", "detect-and-identify"}) {
+                JSONObject run = boxedRealImport(mode, "body", java.nio.file.Files.createDirectory(root.resolve("prep" + (n++))));
+                String id = run.getString("id"), jobId = run.getString("jobId");
+                mutate(id, d -> d.derivatives("complete")); // dispatch requires complete derivatives; realImport leaves them pending
+                String boxId;
+                Shepherd look = realShepherd();
+                try {
+                    look.beginDBTransaction(); boxId = null;
+                    for (org.ecocean.Encounter enc : look.getImportTask(jobId).getEncounters())
+                        for (org.ecocean.Annotation a : enc.getAnnotations()) if (a.isImportedBox()) boxId = a.getId();
+                } finally { look.rollbackAndClose(); }
+                assertNotNull(boxId, mode);
+                String expectedBox = boxId;
+                java.util.concurrent.atomic.AtomicInteger publishes = new java.util.concurrent.atomic.AtomicInteger();
+                SubmissionProcessing processing = new SubmissionProcessing(SubmissionStoreDbTest::realShepherd);
+                processing.dispatch("context0", id, processing::prepare, (ctx, msg) -> {
+                    publishes.incrementAndGet();
+                    JSONObject message = new JSONObject(msg);
+                    assertEquals("extract-then-identify", message.getString("annotationMode"), mode);
+                    assertEquals(java.util.List.of(expectedBox), message.getJSONArray("annotationIds").toList(), mode);
+                    assertFalse(message.has("mediaAssetIds"), mode);
+                    assertEquals("import-only".equals(mode), message.getJSONObject("taskParameters").getBoolean("skipIdent"), mode);
+                    Shepherd sh = realShepherd();
+                    try {
+                        sh.beginDBTransaction(); org.ecocean.servlet.importer.ImportTask task = sh.getImportTask(jobId);
+                        assertNotNull(task.getIATask(), "the IA root is committed before publication");
+                        assertEquals("import-only".equals(mode), task.skippedIdentification(), mode);
+                    } finally { sh.rollbackAndClose(); }
+                });
+                assertEquals(1, publishes.get(), mode);
+                TestPMFUtil.closePMF("context0");
+                Shepherd sh = realShepherd();
+                try {
+                    sh.beginDBTransaction();
+                    assertEquals("import-only".equals(mode), sh.getImportTask(jobId).skippedIdentification(), mode + " after reload");
+                } finally { sh.rollbackAndClose(); }
+                assertEquals("dispatched", identificationState(id), mode);
+                assertEquals("dispatched", new SubmissionJobs(SubmissionStoreDbTest::realShepherd).results("context0", run.getString("owner"), id, false, 0, 100)
+                    .getJSONObject("identification").getString("state"), mode);
+            }
+        } finally { org.ecocean.TestIAJsonPropertiesUtil.override(null); }
+    }
 }

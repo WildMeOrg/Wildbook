@@ -46,9 +46,13 @@ class SubmissionProcessingTest {
         Submission draft = draft("detect-and-identify"); Shepherd sh = mock(Shepherd.class);
         javax.jdo.PersistenceManager pm = mock(javax.jdo.PersistenceManager.class); when(sh.getPM()).thenReturn(pm);
         ImportTask imported = mock(ImportTask.class); when(sh.getImportTask("job")).thenReturn(imported);
+        // the message's media ids now come from the ImportTask through the shared envelope (bulk-import boxes PR E)
+        org.ecocean.media.MediaAsset a = mock(org.ecocean.media.MediaAsset.class), b = mock(org.ecocean.media.MediaAsset.class);
+        when(a.getId()).thenReturn("42"); when(b.getId()).thenReturn("43"); when(imported.getMediaAssets()).thenReturn(java.util.Arrays.asList(a, b));
         try (MockedStatic<IA> ia = mockStatic(IA.class)) {
             ia.when(() -> IA.getBaseURL("context0")).thenReturn("https://example.test");
             JSONObject message = new SubmissionProcessing(() -> sh).prepare(draft, sh);
+            assertFalse(message.has("annotationMode"));
             assertEquals("context0", message.getString("__context")); assertEquals("https://example.test", message.getString("__baseUrl"));
             assertTrue(message.getBoolean("v2")); assertEquals("[\"42\",\"43\"]", message.getJSONArray("mediaAssetIds").toString());
             assertEquals("job", message.getJSONObject("taskParameters").getString("importTaskId"));
@@ -162,5 +166,52 @@ class SubmissionProcessingTest {
         assertFalse(SubmissionJobs.hasBoxes(new JSONArray().put(empty)));
         assertTrue(SubmissionJobs.hasBoxes(new JSONArray().put(empty).put(boxed)));
         assertFalse(SubmissionJobs.hasBoxes(new JSONArray().put(new JSONObject().put("fields", new JSONObject().put("Encounter.year", 2020)))));
+    }
+
+    // ---- Task 4: the hand-off through the shared envelope ----
+    static ImportTask boxedImportTask() {
+        ImportTask task = mock(ImportTask.class);
+        when(task.getId()).thenReturn("job"); when(task.annotationsImported()).thenReturn(true);
+        org.ecocean.Annotation ann = mock(org.ecocean.Annotation.class);
+        when(ann.isImportedBox()).thenReturn(true); when(ann.importedBoxImportTaskId()).thenReturn("job"); when(ann.getId()).thenReturn("ann-1");
+        org.ecocean.Encounter enc = mock(org.ecocean.Encounter.class);
+        when(enc.getAnnotations()).thenReturn(new java.util.ArrayList<>(java.util.List.of(ann)));
+        when(task.getEncounters()).thenReturn(new java.util.ArrayList<>(java.util.List.of(enc)));
+        return task;
+    }
+
+    @Test void prepareUsesTheSharedEnvelopeForABoxedDraft() throws Exception {
+        for (String mode : new String[]{"import-only", "detect-and-identify"}) {
+            Submission draft = boxedDraft(mode); Shepherd sh = mock(Shepherd.class);
+            when(sh.getPM()).thenReturn(mock(javax.jdo.PersistenceManager.class));
+            ImportTask task = boxedImportTask(); when(sh.getImportTask("job")).thenReturn(task);
+            try (MockedStatic<IA> ia = mockStatic(IA.class)) {
+                ia.when(() -> IA.getBaseURL("context0")).thenReturn("https://example.test");
+                JSONObject message = new SubmissionProcessing(() -> sh).prepare(draft, sh);
+                assertEquals("extract-then-identify", message.getString("annotationMode"), mode);
+                assertEquals("[\"ann-1\"]", message.getJSONArray("annotationIds").toString(), mode);
+                assertFalse(message.has("mediaAssetIds"), mode);
+                assertEquals("import-only".equals(mode), message.getJSONObject("taskParameters").getBoolean("skipIdent"), mode);
+            }
+        }
+    }
+
+    @Test void boxedMessageMatchesTheLegacyBulkImportContract() throws Exception {
+        Shepherd sh = mock(Shepherd.class); javax.jdo.PersistenceManager pm = mock(javax.jdo.PersistenceManager.class); when(sh.getPM()).thenReturn(pm);
+        ImportTask task = boxedImportTask(); when(sh.getImportTask("job")).thenReturn(task);
+        try (MockedStatic<IA> ia = mockStatic(IA.class);
+             MockedStatic<org.ecocean.servlet.IAGateway> gateway = mockStatic(org.ecocean.servlet.IAGateway.class, CALLS_REAL_METHODS)) {
+            ia.when(() -> IA.getBaseURL("context0")).thenReturn("https://example.test");
+            JSONObject actual = new SubmissionProcessing(() -> sh).prepare(boxedDraft("detect-and-identify"), sh);
+            java.util.concurrent.atomic.AtomicReference<JSONObject> legacy = new java.util.concurrent.atomic.AtomicReference<>();
+            gateway.when(() -> org.ecocean.servlet.IAGateway.addToDetectionQueue(eq("context0"), anyString())).thenAnswer(call -> { legacy.set(new JSONObject(call.getArgument(1, String.class))); return true; });
+            when(sh.commitDBTransactionWithStatus()).thenReturn(true);
+            when(sh.isDBTransactionActive()).thenReturn(true);
+            JSONObject data = new JSONObject().put("taskParameters", new JSONObject().put("importTaskId", "job").put("skipIdent", false)).put("bulkImport", new JSONObject());
+            org.ecocean.servlet.IAGateway.handleBulkImport(data, new JSONObject(), sh, "context0", "https://example.test");
+            assertNotNull(legacy.get(), "the bulk-import hand-off published its message");
+            for (String volatileKey : new String[]{"taskId", "__handleBulkImport"}) { actual.remove(volatileKey); legacy.get().remove(volatileKey); }
+            assertEquals(SubmissionJson.canonical(legacy.get()), SubmissionJson.canonical(actual));
+        }
     }
 }
