@@ -42,7 +42,9 @@ An older site would reject the box columns, or ignore them and run its own detec
 From `/api/v3/site-settings`:
 - `bulkImportMatchableClasses`: for the species (key = scientific name with spaces, for example
   `Giraffa giraffa giraffa`) the animal type labels Wildbook can match, for example
-  `["giraffe_whole"]`. These are the only values to put in `.iaClass`.
+  `["giraffe_whole"]`. Use only these in `.iaClass`. (An import-only batch would also accept
+  other labels the species stores, but those boxes could never be matched later, so this workflow
+  deliberately sticks to the matchable ones.)
 - `annotationViewpoint`: the allowed viewpoint values, for example `left`, `right`, `front`,
   `back`, `frontleft`. Viewpoint is optional.
 
@@ -73,8 +75,12 @@ right and bottom edge in pixels:
 |---|---|---|---|---|
 | COCO `bbox: [x, y, w, h]` (pixels) | x | y | x + w | y + h |
 | YOLO `class cx cy w h` (fractions of the photo) | (cx − w/2) × W | (cy − h/2) × H | (cx + w/2) × W | (cy + h/2) × H |
-| Pascal VOC `xmin ymin xmax ymax` (pixels) | xmin | ymin | xmax | ymax |
-| CSV | confirm with the person which of the above its columns follow | | | |
+| Pascal VOC `xmin ymin xmax ymax`, zero-based edges | xmin | ymin | xmax | ymax |
+| Pascal VOC `xmin ymin xmax ymax`, one-based and inclusive (the original VOC convention) | xmin − 1 | ymin − 1 | xmax | ymax |
+| CSV | confirm with the person which of the above its columns follow, including the same zero-based or one-based question | | | |
+
+Settle the convention before converting: where the origin is, and whether the far edge is
+included. A one-based inclusive box `1,1,1,1` is one pixel, `0,0,1,1` in Wildbook's terms.
 
 Then round outward and keep the box inside the photo: left and top are rounded down, right and
 bottom are rounded up, all four are clamped to `0…W` and `0…H`, and `width = right − left`,
@@ -97,7 +103,8 @@ A box covering the whole photo is fine (pre-cropped frames often have one).
   - `Encounter.mediaAsset{N}.bbox`: `"x,y,width,height"`.
   - `Encounter.mediaAsset{N}.iaClass`: the animal type label (required with a box).
   - `Encounter.mediaAsset{N}.viewpoint`: optional, one of `annotationViewpoint`.
-  - `Encounter.mediaAsset{N}.bboxSource`: the detector name and version, at most 128 characters.
+  - `Encounter.mediaAsset{N}.bboxSource`: the detector name and version, at most 128 characters
+    after leading and trailing spaces are trimmed.
   - `Encounter.quality{N}`: the detector's score for that box, same N as its photo; any finite
     number.
   - `Encounter.mediaAsset{N}.theta`: leave it out unless the detector reports rotated boxes and
@@ -133,44 +140,54 @@ Example row for the direct route:
   validation, fixes, commit and status. Send at most 200 rows per submission; split larger sets
   into several submissions, keeping every row of one photo in the same submission. The box
   fields ride in the same row objects. Choose `detect-and-identify` to have the boxes matched,
-  or `import-only` to store them and prepare them for later matching without matching now.
+  or `import-only` to store them and prepare them for later matching without matching now (the
+  preparing happens only where the species is set up for matching on this site; see step 7).
   Validation rejects a box outside its photo (`BOX_OUT_OF_BOUNDS`), a missing or unmatchable
   label (`MISSING_CLASS`, `UNKNOWN_CLASS`), a photo boxed on one row but not another
   (`DUPLICATE_MEDIA`) and the identical box twice (`DUPLICATE_BOX`); fix the rows and validate
   again.
-- **Spreadsheet route:** use the same column names on the Bulk Import page. Until this
-  Wildbook's Bulk Import page shows box columns in its own preview, put each row's photos in
-  slots starting at 0 with no empty photo cell before the row's last photo: the current page
-  renumbers a row's photos in order, which would attach a box to the wrong photo if slots had
-  gaps. Once any column ends in `.bbox`, every row of that sheet, boxed or not, reads keywords
-  and `Encounter.quality{N}` by the exact slot number, so keep those numbers aligned with their
-  photos. If the page's validation preview does not show the box columns, use the direct route
-  instead.
+- **Spreadsheet route:** use the same column names on the Bulk Import page, with three rules,
+  because the page collects a row's photos in the order their columns appear and numbers them
+  again from 0: put the photo columns in ascending order (`Encounter.mediaAsset0`, then
+  `Encounter.mediaAsset1`, …), fill every row's photos from slot 0 with no empty photo cell
+  before its last photo, and keep each box, label and score on the same number as its photo.
+  Breaking any of these can put a box on the wrong photo, and a box that still fits the other
+  photo would not be caught. Also, once any column ends in `.bbox`, every row of that sheet, boxed
+  or not, reads keywords and `Encounter.quality{N}` by the exact slot number. When in doubt, use
+  the direct route.
 
 ### 7. After sending
 On the submission status (`GET /api/v3/submissions/{id}`), detection reads `skipped` with code
-`BOXES_SUPPLIED`: expected, Wildbook used the supplied boxes. Identification follows the normal
-hand-off states; for `import-only` it carries code `BOXES_EXTRACTED_ONLY`. If the linked import
-task shows the error `NO_EXTRACTION_CONFIG`, the records and boxes were imported but the boxes
-could not be prepared for matching because the species is not set up for it on this site: give
-the operator the import task link and that message to fix the site configuration. Do not send
-the photos again.
+`BOXES_SUPPLIED`: expected, Wildbook used the supplied boxes. `identification` carries the
+hand-off state described in `submit-sightings` (`pending`, `dispatching`, `dispatched`, or a
+failure with its own code). For `import-only`, a `pending`, `dispatching` or `dispatched` hand-off
+also carries code `BOXES_EXTRACTED_ONLY`: the boxes were sent to be prepared for later matching,
+which does not by itself prove the preparation finished.
+
+If the linked import task shows the error `NO_EXTRACTION_CONFIG`, the records and boxes were
+imported, but this site has matching configured for that animal type label without the
+species-level routing that prepares boxes, so the boxes were not prepared. Give the operator the
+import task link and the error's own message so they can fix the site configuration. Do not send
+the photos again. (A species with no matching set up at all has nothing to prepare; its boxes are
+simply stored.)
 
 ## How to report results
 Speak plainly. Before anything is sent, say what is ready, for example: "214 photos, 263 animal
 boxes in 263 rows; 31 boxes below your 0.5 confidence floor were left out; 12 photos had no box
 and are not included." Never say anything was imported while you have only prepared rows. After a
-direct submission, report it as imported only once its status reads `imported`, and say
-separately that matching is still running in Wildbook; give the person the import task link to
-review matches. If anything was rejected, list the rows and the plain reason.
+direct submission, report the records as imported only once its status reads `imported`. Report
+matching separately, from the processing mode and the `identification` state and code: for
+example "matching was handed off and is running", "import-only: boxes stored, no matching", or
+"the hand-off failed; the operator needs to look". Give the person the import task link to review
+matches. If anything was rejected, list the rows and the plain reason.
 
 ## Cautions
 - Boxes are measured on the photo exactly as stored; a photo the detector saw rotated, resized or
   letterboxed needs its boxes converted first.
 - A photo either has a box on every row it appears in or appears on only one row with no box.
 - Wildbook never runs its own detector on any photo in a batch that has boxes: photos without a
-  box in that batch stay plain photos. For detection on those, send a separate batch without box
-  columns.
+  box in that batch are imported untouched, as plain photos. For detection on those, send a
+  separate batch without box columns.
 - One box per photo per row; a second animal on the same photo is another row.
 - Many frames of the same animal multiply the matching work; two frames of one animal in
   different rows of the same batch will show each other as matches, which is expected.

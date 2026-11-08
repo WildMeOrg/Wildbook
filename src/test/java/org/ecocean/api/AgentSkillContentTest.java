@@ -334,17 +334,20 @@ class AgentSkillContentTest {
         String step5 = section(load("/agent-skills/import-your-own-detections.md"), "### 5. Build the rows");
         java.util.regex.Matcher json = java.util.regex.Pattern.compile("```json\\s*\\n(.*?)\\n```", java.util.regex.Pattern.DOTALL).matcher(step5);
         assertTrue(json.find(), "a row example");
-        org.json.JSONArray rows = org.ecocean.api.submission.SubmissionJson.rows(new org.json.JSONObject(json.group(1)));
+        org.json.JSONArray rows = new org.json.JSONArray();
+        do {
+            org.json.JSONArray more = org.ecocean.api.submission.SubmissionJson.rows(new org.json.JSONObject(json.group(1)));
+            for (int i = 0; i < more.length(); i++) rows.put(more.get(i));
+        } while (json.find());
         assertTrue(rows.length() >= 1);
         for (int i = 0; i < rows.length(); i++) {
             org.json.JSONObject f = rows.getJSONObject(i).getJSONObject("fields");
             for (String field : f.keySet()) assertTrue(org.ecocean.api.submission.SubmissionValidator.supported(field), field);
             for (String required : new String[] { "Encounter.genus", "Encounter.specificEpithet", "Encounter.year", "Encounter.locationID", "Encounter.mediaAsset0" })
                 assertTrue(f.has(required), "example row needs " + required);
-            int[] box = org.ecocean.api.bulk.BulkValidator.parseBbox(f.getString("Encounter.mediaAsset0.bbox"), "Encounter.mediaAsset0.bbox");
-            assertEquals(4, box.length);
+            org.ecocean.api.bulk.BulkValidator.parseBbox(f.getString("Encounter.mediaAsset0.bbox"), "Encounter.mediaAsset0.bbox");
             assertTrue(f.has("Encounter.mediaAsset0.iaClass"), "a box needs its label");
-            assertTrue(f.has("Encounter.quality0"), "the score sits on the photo's own slot number");
+            assertTrue(Double.isFinite(f.getDouble("Encounter.quality0")), "the score is a finite number on the photo's own slot number");
             assertTrue(org.ecocean.Annotation.isValidViewpoint(f.getString("Encounter.mediaAsset0.viewpoint")));
         }
         assertTrue(step5.contains("Every row that names that photo must carry a box"));
@@ -356,14 +359,26 @@ class AgentSkillContentTest {
         String send = section(md, "### 6. Send them");
         assertTrue(send.contains("200 rows"));
         assertTrue(send.contains("import-only") && send.contains("prepare them for later matching"), "import-only still extracts");
-        assertTrue(send.contains("slots starting at 0") && send.contains("exact slot number"), "the pre-PR-C page rules");
+        assertTrue(send.contains("ascending order") && send.contains("from slot 0") && send.contains("no empty photo cell")
+            && send.contains("exact slot number"), "the page rules: ascending columns, no gaps, exact slots");
+        assertFalse(send.contains("preview"), "a preview showing the columns must not lift the page rules");
+        assertTrue(send.contains("only where the species is set up"), "import-only preparation is conditional");
         String after = section(md, "### 7. After sending");
         assertTrue(after.contains("BOXES_SUPPLIED") && after.contains("BOXES_EXTRACTED_ONLY"));
+        assertTrue(after.contains("`pending`, `dispatching` or `dispatched`") && after.contains("does not by itself prove"),
+            "BOXES_EXTRACTED_ONLY is qualified by state");
         assertTrue(after.contains("NO_EXTRACTION_CONFIG") && after.contains("Do not send"), "a config error is not a reason to re-import");
         String cautions = section(md, "## Cautions");
-        assertTrue(cautions.contains("separate batch without box"), "decision 8: detection needs a separate batch");
+        assertTrue(cautions.contains("separate batch without box") && cautions.contains("imported untouched"),
+            "decision 8: unboxed photos are untouched; detection needs a separate batch");
         assertTrue(cautions.contains("stored"), "the stored pixel grid");
         String report = section(md, "## How to report results");
         assertTrue(report.contains("Never say anything was imported") && report.contains("`imported`"));
+        assertTrue(report.contains("Report\nmatching separately") || report.contains("Report matching separately"),
+            "record creation and matching are reported separately");
+        String photos = section(md, "### 3. Check every photo before converting");
+        assertTrue(photos.contains("exactly as stored") && photos.contains("does not apply the EXIF orientation tag"), "stored grid, no transpose");
+        String convert = section(md, "### 4. Convert every box to `x,y,width,height`");
+        assertTrue(convert.contains("one-based and inclusive") && convert.contains("xmin − 1"), "VOC convention");
     }
 }
