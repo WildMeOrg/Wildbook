@@ -53,9 +53,11 @@ class IAJsonPropertiesMatchableClassesTest {
                 .put("other", new JSONObject()
                     .put("_default", "@Genus.shared._default")
                     .put("body", idConf(opt(true, null)))
-                    .put("animal", new JSONObject().put("_save_as", "body")))
+                    .put("animal", new JSONObject().put("_save_as", "body"))
+                    .put("flipper", new JSONObject().put("_save_as", "@Genus.shared.alias")))   // a link in the _save_as leaf itself
                 .put("shared", new JSONObject()
-                    .put("_default", idConf(opt(true, null)).put("_save_as", "shape")))
+                    .put("_default", idConf(opt(true, null)).put("_save_as", "shape"))
+                    .put("alias", "shape2"))
                 .put("empty", new JSONObject()
                     .put("body", idConf())
                     .put("fin", idConf(opt(null, "HotSpotter")))
@@ -86,8 +88,18 @@ class IAJsonPropertiesMatchableClassesTest {
 
     @Test void defaultSaveAsThroughALinkAddsItsTargetWithoutRemovingExplicitClasses() {
         IAJsonProperties iac = fixture();
-        assertEquals(List.of("body", "shape"), iac.getCanonicalIAClasses(B));
-        assertEquals(List.of("body", "shape"), iac.getMatchableIAClasses(B));   // shape through the linked _default._id_conf
+        // shape through the linked _default, shape2 through a link in flipper's _save_as leaf
+        assertEquals(List.of("body", "shape", "shape2"), iac.getCanonicalIAClasses(B));
+        assertEquals(List.of("body", "shape", "shape2"), iac.getMatchableIAClasses(B));   // both through the linked _default._id_conf
+    }
+
+    @Test void optionalLookupsAreQuietAndFollowLinks() {
+        IAJsonProperties iac = fixture();
+        assertEquals("shape2", iac.opt("Genus.other.flipper._save_as"));
+        assertEquals("body", iac.opt("Genus.species.dorsal._save_as"));   // dorsal -> animal -> body
+        assertNull(iac.opt("Genus.species.body._save_as"));
+        assertNull(iac.opt("Genus.species.nope._id_conf"));
+        assertNull(iac.opt("Nope.nope"));
     }
 
     @Test void explicitClassSurvivesADefaultSaveAs() {

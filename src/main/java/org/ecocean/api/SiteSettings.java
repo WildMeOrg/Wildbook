@@ -164,10 +164,8 @@ public class SiteSettings extends ApiBase {
             // bulk-import boxes (spec 4.6): the capability signal; a site whose indexable fields
             // lack the box columns does not accept boxes
             settings.put("bulkImportMatchableClasses", bulkImportMatchable);
-            List<String> bulkImportIndexable = new ArrayList<String>(
-                BulkValidator.FIELD_NAMES_INDEXABLE);
-            Collections.sort(bulkImportIndexable);
-            settings.put("bulkImportIndexableFields", bulkImportIndexable);
+            settings.put("bulkImportIndexableFields",
+                Util.asSortedList(BulkValidator.FIELD_NAMES_INDEXABLE));
 
             List<String> behavs = myShepherd.getAllBehaviors();
             behavs.remove(null);

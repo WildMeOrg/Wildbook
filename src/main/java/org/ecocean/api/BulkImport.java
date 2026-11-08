@@ -138,6 +138,7 @@ public class BulkImport extends ApiBase {
         JSONObject rtn = new JSONObject();
 
         rtn.put("success", false);
+        rtn.put("annotationsImported", false); // bulk-import boxes: on every response, even early 400s
         boolean validateOnly = false;
         boolean skipDetection = false;
         boolean skipIdentification = false;
@@ -320,6 +321,8 @@ public class BulkImport extends ApiBase {
                 boolean rowValid = true;
                 boolean hasSubmitter = false;
                 Map<String, Object> rowResult = validatedRows.get(rowNum);
+                // a rejected submitter keeps its error; only a missing column gets the default
+                boolean hasSubmitterColumn = rowResult.containsKey(submitterIDFieldName);
                 for (String rowFieldName : rowResult.keySet()) {
                     Object fieldObj = rowResult.get(rowFieldName);
                     if (fieldObj instanceof BulkValidator) {
@@ -368,7 +371,8 @@ public class BulkImport extends ApiBase {
                 // case where we simply didnt have the column for submitter, we add it now; for an
                 // invalid row too (bulk-import boxes): such rows reach the importer only under
                 // tolerance, where processRow threw "no value for Encounter.submitterID" without it
-                if (!hasSubmitter) rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
+                if (!hasSubmitter && !hasSubmitterColumn)
+                    rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
             }
             rtn.put("numberRows", validatedRows.size());
             rtn.put("annotationsImported", boxedImport);
@@ -746,22 +750,34 @@ public class BulkImport extends ApiBase {
     }
 
     /**
-     * Bulk-import boxes (spec 4.2 import layer), both modes. For every file referenced by a boxed
-     * slot: fastFileValidation and a header-only dimension read (once per file, cached in the two
-     * maps for the later file loop), every box within the image (long arithmetic, the edge equal
-     * to the image size allowed), no identical box (x,y,width,height,theta) twice on one file, and
-     * no row naming that file without a box. Findings are written into the row maps under the
-     * slot's field so the aggregation reports them with rowNumber. Un-boxed photos of a boxed
-     * import get one UNBOXED_PHOTOS warning. Returns the boxed-import predicate: any row holds a
-     * validated non-empty .bbox value.
+     * Bulk-import boxes (spec 4.2 import layer), both modes. The boxed-import predicate is read
+     * first, over every validated .bbox value, independent of whether the photo was uploaded.
+     * Then, for every file referenced by a boxed slot: rows naming that file without a box get
+     * their error (independent of the file's readability); fastFileValidation and a header-only
+     * dimension read run once per file (cached in the two maps; a file failing either is marked
+     * invalid for the later file loop so it is never created); every box must lie within the
+     * image (long arithmetic, the edge equal to the image size allowed) and no identical box
+     * (x,y,width,height,theta; -0.0 counts as 0.0) may appear twice on one file. Filenames are
+     * matched exactly as uploaded (only a blank cell counts as empty). Findings are written into
+     * the row maps under the slot's field so the aggregation reports them with rowNumber. Un-boxed
+     * photos of a boxed import get one UNBOXED_PHOTOS warning. Returns the predicate.
      */
     private boolean checkBoxedFiles(List<Map<String, Object> > validatedRows, List<File> files,
         JSONArray dataWarnings, Map<String, Boolean> fileValid, Map<String, int[]> fileDims) {
+        boolean anyBox = false;
+        for (Map<String, Object> row : validatedRows) {
+            for (String name : BulkImportUtil.findIndexedFieldNames(row.keySet(),
+                "Encounter.mediaAsset.bbox")) {
+                if (name == null) continue;
+                Object bv = row.get(name);
+                if ((bv instanceof BulkValidator) && !((BulkValidator)bv).valueIsNull()) anyBox = true;
+            }
+        }
+        if (!anyBox) return false;
         Map<String, File> fileByName = new HashMap<String, File>();
         for (File f : files) fileByName.put(f.getName(), f);
         Map<String, List<SlotRef> > boxedRefs = new LinkedHashMap<String, List<SlotRef> >();
         Map<String, List<SlotRef> > plainRefs = new LinkedHashMap<String, List<SlotRef> >();
-        boolean anyBox = false;
         for (int r = 0; r < validatedRows.size(); r++) {
             Map<String, Object> row = validatedRows.get(r);
             List<String> bare = BulkImportUtil.findIndexedFieldNames(row.keySet(),
@@ -771,15 +787,14 @@ public class BulkImport extends ApiBase {
                 if (bareName == null) continue;
                 Object bareObj = row.get(bareName);
                 if (!(bareObj instanceof BulkValidator)) continue; // already an error (e.g. no such file)
-                String filename = ((BulkValidator)bareObj).getValueStringTrimmedNonEmpty();
-                if (filename == null) continue;
+                String filename = ((BulkValidator)bareObj).getValueString();
+                if ((filename == null) || filename.trim().isEmpty()) continue;
                 SlotRef ref = new SlotRef();
                 ref.row = r;
                 ref.bareField = bareName;
                 ref.bboxField = "Encounter.mediaAsset" + n + ".bbox";
                 Object bboxObj = row.get(ref.bboxField);
                 if ((bboxObj instanceof BulkValidator) && !((BulkValidator)bboxObj).valueIsNull()) {
-                    anyBox = true;
                     try {
                         ref.box = BulkValidator.parseBbox(((BulkValidator)bboxObj).getValueString(),
                             ref.bboxField);   // canonical already, cannot fail
@@ -791,6 +806,7 @@ public class BulkImport extends ApiBase {
                     ref.theta = ((thetaObj instanceof BulkValidator) &&
                         !((BulkValidator)thetaObj).valueIsNull()) ?
                         ((BulkValidator)thetaObj).getValueDouble() : 0.0;
+                    if (ref.theta == 0.0) ref.theta = 0.0; // -0.0 and 0.0 are the same box
                     if (!boxedRefs.containsKey(filename))
                         boxedRefs.put(filename, new ArrayList<SlotRef>());
                     boxedRefs.get(filename).add(ref);
@@ -801,10 +817,19 @@ public class BulkImport extends ApiBase {
                 }
             }
         }
-        if (!anyBox) return false;
         for (Map.Entry<String, List<SlotRef> > e : boxedRefs.entrySet()) {
             String filename = e.getKey();
             List<SlotRef> refs = e.getValue();
+            List<SlotRef> plain = plainRefs.get(filename);
+            if (plain != null) {
+                for (SlotRef ref : plain) {
+                    BulkImportUtil.putIfClean(validatedRows.get(ref.row), ref.bareField,
+                        new BulkValidatorException("photo " + filename + " has a box on row " +
+                        refs.get(0).row + " but none here",
+                        ApiException.ERROR_RETURN_CODE_INVALID,
+                        BulkValidatorException.TYPE_INVALID_VALUE, ref.bareField));
+                }
+            }
             File file = fileByName.get(filename);
             if (file == null) continue; // reported by the rows loop already
             if (!fileValid.containsKey(filename))
@@ -817,7 +842,10 @@ public class BulkImport extends ApiBase {
                 if (!fileDims.containsKey(filename))
                     fileDims.put(filename, Util.fastImageDimensions(file));
                 dims = fileDims.get(filename);
-                if (dims == null) problem = filename + ": image size could not be read";
+                if (dims == null) {
+                    problem = filename + ": image size could not be read";
+                    fileValid.put(filename, Boolean.FALSE); // never created by the later file loop
+                }
             }
             if (problem != null) {
                 for (SlotRef ref : refs) {
@@ -843,16 +871,6 @@ public class BulkImport extends ApiBase {
                         new BulkValidatorException("box " + canonical + " on " + filename +
                         " duplicates an earlier row", ApiException.ERROR_RETURN_CODE_INVALID,
                         BulkValidatorException.TYPE_INVALID_DUPLICATE, ref.bboxField));
-                }
-            }
-            List<SlotRef> plain = plainRefs.get(filename);
-            if (plain != null) {
-                for (SlotRef ref : plain) {
-                    BulkImportUtil.putIfClean(validatedRows.get(ref.row), ref.bareField,
-                        new BulkValidatorException("photo " + filename + " has a box on row " +
-                        refs.get(0).row + " but none here",
-                        ApiException.ERROR_RETURN_CODE_INVALID,
-                        BulkValidatorException.TYPE_INVALID_VALUE, ref.bareField));
                 }
             }
         }

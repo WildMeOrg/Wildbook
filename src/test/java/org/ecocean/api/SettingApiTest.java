@@ -244,6 +244,10 @@ class SettingApiTest {
                     // kinda meek test of results, but a decent start?
                     assertTrue(jout.has("users")); // only shown to logged in user
                     assertEquals(jout.keySet().size(), 54);
+                    // bulk-import boxes (spec 4.6): the capability signal
+                    assertTrue(jout.getJSONArray("bulkImportIndexableFields").toList().contains("Encounter.mediaAsset#.bbox"));
+                    assertTrue(jout.getJSONArray("bulkImportIndexableFields").toList().contains("Encounter.mediaAsset#.keywords"));
+                    assertTrue(jout.getJSONObject("bulkImportMatchableClasses") != null);
                 }
             }
         }
@@ -268,6 +272,8 @@ class SettingApiTest {
                     // kinda meek test of results, but a decent start?
                     assertFalse(jout.has("users")); // only shown to logged in user
                     assertEquals(jout.keySet().size(), 52);
+                    assertTrue(jout.has("bulkImportIndexableFields"));
+                    assertTrue(jout.has("bulkImportMatchableClasses"));
                 }
             }
         }

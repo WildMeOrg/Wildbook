@@ -292,9 +292,22 @@ class BulkImporterBoxedRowsTest {
     }
 
     @Test void toleratedUnknownColumnsDoNotBreakModeDetection() throws Exception {
-        Encounter enc = run(boxedRow("Encounter.bogus", "x")).getEncounters().get(0);
-        assertEquals(1, enc.getAnnotations().size());
-        assertTrue(enc.getAnnotations().get(0).isImportedBox());
+        BulkImporter imp = run(boxedRow("Encounter.bogus", "x"), gappedRow());
+        Encounter boxed = encounterWith(imp, maMap.get("p.jpg"));
+        assertEquals(1, boxed.getAnnotations().size());
+        assertTrue(boxed.getAnnotations().get(0).isImportedBox());
+        // exact-slot mode is on: the gapped row's slot-2 metadata lands on slot 2
+        Encounter gapped = encounterWith(imp, maMap.get("r.jpg"));
+        assertEquals(0.5, annotationOn(gapped, maMap.get("r.jpg")).getQuality());
+    }
+
+    @Test void metadataWithoutABboxColumnDoesNotSwitchToExactSlotMode() throws Exception {
+        // a tolerant import whose sheet has .iaClass but no .bbox column: validation rejects the
+        // class (REQUIRED on .iaClass) without fabricating a .bbox key, so the import stays positional
+        BulkImporter imp = run(row("Encounter.mediaAsset0", "p.jpg", "Encounter.mediaAsset0.iaClass", "body"), gappedRow());
+        Encounter gapped = encounterWith(imp, maMap.get("r.jpg"));
+        assertEquals(0.1, annotationOn(gapped, maMap.get("r.jpg")).getQuality(), "positional: the second occupied slot reads index 1");
+        assertFalse(annotationOn(encounterWith(imp, maMap.get("p.jpg")), maMap.get("p.jpg")).isImportedBox());
     }
 
     @Test void boxedSlotWhoseAssetFailedIsSkippedWithItsBox() throws Exception {

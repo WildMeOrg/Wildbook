@@ -587,21 +587,33 @@ public class IAJsonProperties extends JsonProperties {
         while (keys.hasNext()) {
             String key = keys.next();
             if (!isClassKey(key, underTaxy)) continue;
-            String target = saveAsTarget(get(taxKey + "." + key));
+            String target = saveAsTarget(taxKey + "." + key);
             if (target != null) result.add(target);
         }
-        if (underTaxy.has("_default")) {
-            String target = saveAsTarget(get(taxKey + "._default"));
-            if (target != null) result.add(target);
-        }
+        String target = saveAsTarget(taxKey + "._default");
+        if (target != null) result.add(target);
         return new ArrayList<String>(result);
     }
 
-    // the _save_as target of a (link-resolved) class or _default config object, or null
-    private static String saveAsTarget(Object classConf) {
-        if (!(classConf instanceof JSONObject)) return null;
-        String target = ((JSONObject)classConf).optString("_save_as", null);
-        return Util.stringExists(target) ? target : null;
+    // the resolved _save_as target under a class or _default path (links followed at every
+    // level, the leaf included), or null when absent; quiet, as the value is optional
+    private String saveAsTarget(String path) {
+        Object target = opt(path + "._save_as");
+        return ((target instanceof String) && Util.stringExists((String)target)) ? (String)target : null;
+    }
+
+    // getIdentConfig's lookup and _default fallback, quietly (no stack trace when a class has no
+    // options of its own, which is normal): does the class have an option whose default is not false?
+    private boolean hasDefaultIdentOption(Taxonomy taxy, String iaClass) {
+        Object conf = opt(identConfigKey(taxy, iaClass));
+        if (!(conf instanceof JSONArray)) conf = opt(identConfigKey(taxy, "_default"));
+        if (!(conf instanceof JSONArray)) return false;
+        JSONArray opts = (JSONArray)conf;
+        for (int i = 0; i < opts.length(); i++) {
+            JSONObject opt = opts.optJSONObject(i);
+            if ((opt != null) && opt.optBoolean("default", true)) return true;
+        }
+        return false;
     }
 
     /**
@@ -615,14 +627,7 @@ public class IAJsonProperties extends JsonProperties {
         List<String> result = new ArrayList<String>();
 
         for (String cls : getCanonicalIAClasses(taxy)) {
-            List<JSONObject> opts = identOpts(taxy, cls);
-            if (opts == null) continue;
-            for (JSONObject opt : opts) {
-                if (opt.optBoolean("default", true)) {
-                    result.add(cls);
-                    break;
-                }
-            }
+            if (hasDefaultIdentOption(taxy, cls)) result.add(cls);
         }
         return result;
     }

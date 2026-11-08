@@ -89,6 +89,7 @@ class BulkBoxImportApiTest {
     final List<JSONObject> handoffs = new ArrayList<JSONObject>();
     Set<String> corrupt = new HashSet<String>();   // go through the real makeMediaAsset (real decoder)
     Set<String> failing = new HashSet<String>();   // creation fails for an unrelated reason
+    final List<String> created = new ArrayList<String>();   // every filename makeMediaAsset was asked for
     int nextAssetId = 100;
 
     @BeforeAll static void fixtures() throws Exception {
@@ -98,6 +99,7 @@ class BulkBoxImportApiTest {
         File png = ImageFixtures.write(img, "png", uploadDir.resolve("whole.png").toFile(), false);
         ImageFixtures.truncate(png, uploadDir.resolve("trunc.png").toFile(), 0.6);
         ImageFixtures.jpegMagic(uploadDir.resolve("magic.jpg").toFile());
+        ImageFixtures.write(ImageFixtures.noise(50, 50, 7), "png", uploadDir.resolve(" small.png").toFile(), false);   // a leading space in the name
         Files.copy(new File("src/test/bulk-images/image-invalid-mime-type.jpg").toPath(),
             uploadDir.resolve("image-invalid-mime-type.jpg"));
     }
@@ -117,6 +119,7 @@ class BulkBoxImportApiTest {
         handoffs.clear();
         corrupt.clear();
         failing.clear();
+        created.clear();
         JSONObject json = new JSONObject().put("Genus", new JSONObject().put("species", new JSONObject()
             .put("body", idConf(true)).put("fin", idConf(false))));
         IAJsonProperties iac = IAJsonProperties.iaConfig();
@@ -201,7 +204,7 @@ class BulkBoxImportApiTest {
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload.toString())));
         try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (mock, ctx) -> {
                  when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-                 when(mock.getUser(any(String.class))).thenReturn(user);
+                 when(mock.getUser(any(String.class))).thenAnswer(inv -> "nobody".equals(inv.getArgument(0)) ? null : user);
                  when(mock.getUserByUUID(any(String.class))).thenReturn(user);
                  when(mock.isValidTaxonomyName(any(String.class))).thenAnswer(inv -> !"Genus nope".equals(inv.getArgument(0)));
                  when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
@@ -220,6 +223,7 @@ class BulkBoxImportApiTest {
             files.when(() -> UploadedFiles.getUploadDir(any(HttpServletRequest.class), any(String.class))).thenReturn(uploadDir.toFile());
             files.when(() -> UploadedFiles.makeMediaAsset(any(String.class), any(File.class), any(Shepherd.class))).thenAnswer(inv -> {
                 File f = inv.getArgument(1);
+                created.add(f.getName());
                 if (corrupt.contains(f.getName())) return inv.callRealMethod();
                 if (failing.contains(f.getName()))
                     throw new ApiException(f.getName() + " creation failed", new JSONObject().put("code", ApiException.ERROR_RETURN_CODE_INVALID).put("filename", f.getName()));
@@ -442,6 +446,73 @@ class BulkBoxImportApiTest {
         assertEquals(boxIds(good), envelopeIds());
         assertEquals(1, envelopeIds().size());
         assertEquals(1, handoffs.size());
+        assertEquals(List.of("a.jpg"), created, "creation is never attempted for the rejected file");
+    }
+
+    @Test void boxedImportStaysBoxedWhenItsOnlyBoxedFileIsMissing() throws Exception {
+        JSONObject res = post(tolerant(payload(BOXED, new Object[] { "missing.jpg", "1,1,5,5", "body" }, new Object[] { "b.jpg", null, null })));
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        assertNotNull(error(res, 0, "Encounter.mediaAsset0"), "the missing file is reported as before");
+        assertTrue(res.getBoolean("annotationsImported"), "the predicate reads the validated .bbox values, not the surviving files");
+        assertTrue(stamped(held));
+        assertEquals(1, handoffs.size(), "b.jpg survives, so the hand-off runs; it must not detect");
+        JSONObject env = IAGateway.buildImportEnvelope(held);
+        assertEquals("extract-then-identify", env.getString("annotationMode"));
+        assertEquals(0, env.getJSONArray("annotationIds").length());
+    }
+
+    @Test void filenamesAreMatchedExactlyAsUploaded() throws Exception {
+        // " small.png" (leading space) is 50x50; a trimmed lookup would miss it and skip the bounds check
+        JSONObject res = post(payload(BOXED, new Object[] { " small.png", "0,0,100,100", "body" }).put("validateOnly", true));
+        JSONObject e = error(res, 0, "Encounter.mediaAsset0.bbox");
+        assertNotNull(e, res.toString());
+        assertTrue(e.getString("details").contains("exceeds image 50x50"), e.toString());
+    }
+
+    @Test void unreadableHeaderFileIsNeverCreatedInATolerantImport() throws Exception {
+        JSONObject res = post(tolerant(payload(BOXED, new Object[] { "magic.jpg", "1,1,5,5", "body" }, new Object[] { "a.jpg", "1,1,5,5", "body" })));
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        assertNotNull(error(res, 0, "Encounter.mediaAsset0"));
+        assertEquals(List.of("a.jpg"), created);
+        assertEquals(boxIds(encounterWith("a.jpg")), envelopeIds());
+    }
+
+    @Test void crossRowErrorIsReportedEvenWhenTheBoxedFileIsBadMime() throws Exception {
+        JSONObject res = post(payload(BOXED, new Object[] { "image-invalid-mime-type.jpg", "1,1,5,5", "body" }, new Object[] { "image-invalid-mime-type.jpg", null, null }).put("validateOnly", true));
+        assertNotNull(error(res, 0, "Encounter.mediaAsset0"), res.toString());
+        JSONObject e = error(res, 1, "Encounter.mediaAsset0");
+        assertNotNull(e, res.toString());
+        assertTrue(e.getString("details").contains("has a box on row 0 but none here"), e.toString());
+    }
+
+    @Test void negativeZeroThetaDuplicatesZeroTheta() throws Exception {
+        String[] fields = { "Encounter.mediaAsset0", "Encounter.mediaAsset0.bbox", "Encounter.mediaAsset0.iaClass", "Encounter.mediaAsset0.theta" };
+        JSONObject res = post(payload(fields, new Object[] { "a.jpg", "1,1,5,5", "body", "0" }, new Object[] { "a.jpg", "1,1,5,5", "body", "-0.0" }).put("validateOnly", true));
+        JSONObject e = error(res, 1, "Encounter.mediaAsset0.bbox");
+        assertNotNull(e, res.toString());
+        assertEquals("INVALID_DUPLICATE", e.getString("type"));
+    }
+
+    @Test void boundsUseLongArithmetic() throws Exception {
+        JSONObject res = post(payload(BOXED, new Object[] { "a.jpg", "2147483647,0,2147483647,1", "body" }).put("validateOnly", true));
+        JSONObject e = error(res, 0, "Encounter.mediaAsset0.bbox");
+        assertNotNull(e, "an int sum would wrap negative and pass: " + res);
+        assertTrue(e.getString("details").contains("exceeds image 200x150"));
+    }
+
+    @Test void explicitlyInvalidSubmitterKeepsItsErrorAndEarlyResponsesCarryTheFlag() throws Exception {
+        String[] fields = { "Encounter.mediaAsset0", "Encounter.submitterID" };
+        JSONObject res = post(payload(fields, new Object[] { "a.jpg", "nobody" }));
+        assertEquals(400, res.getInt("statusCode"), res.toString());
+        JSONObject e = error(res, 0, "Encounter.submitterID");
+        assertNotNull(e, "a rejected submitter is not replaced by the default: " + res);
+        assertFalse(res.getBoolean("annotationsImported"));
+        setUp();
+        JSONObject dup = payload(new String[] { "Encounter.mediaAsset0", "Encounter.mediaAsset0" }, new Object[] { "a.jpg", "a.jpg" });
+        res = post(dup);
+        assertEquals(400, res.getInt("statusCode"), res.toString());
+        assertTrue(res.has("annotationsImported"), "present on the early duplicate-column 400 too");
+        assertFalse(res.getBoolean("annotationsImported"));
     }
 
     @Test void tolerantImportNeverCreatesAClasslessBox() throws Exception {

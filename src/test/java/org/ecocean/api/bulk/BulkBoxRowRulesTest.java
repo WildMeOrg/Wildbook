@@ -1,6 +1,7 @@
 package org.ecocean.api.bulk;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -70,16 +71,42 @@ class BulkBoxRowRulesTest {
     }
 
     @Test void boxWithoutClassIsRequired() {
+        // no iaClass column at all: the error goes on the column the sheet has
         Map<String, Object> m = validate(row("Encounter.mediaAsset0", "a.jpg", "Encounter.mediaAsset0.bbox", "1,1,5,5"));
+        assertEquals(BulkValidatorException.TYPE_REQUIRED_VALUE, errorType(m, "Encounter.mediaAsset0.bbox"));
+        assertFalse(m.containsKey("Encounter.mediaAsset0.iaClass"), "no fabricated key for a column the sheet lacks");
+        // an empty iaClass cell: the error goes on that column
+        m = validate(row("Encounter.mediaAsset0", "a.jpg", "Encounter.mediaAsset0.bbox", "1,1,5,5", "Encounter.mediaAsset0.iaClass", JSONObject.NULL));
         assertEquals(BulkValidatorException.TYPE_REQUIRED_VALUE, errorType(m, "Encounter.mediaAsset0.iaClass"));
         assertNull(errorType(m, "Encounter.mediaAsset0.bbox"));
     }
 
-    @Test void classWithoutBoxIsRequired() {
+    @Test void classWithoutBoxIsRequiredOnTheColumnThatIsThere() {
         Map<String, Object> m = validate(row("Encounter.mediaAsset0", "a.jpg", "Encounter.mediaAsset0.iaClass", "body"));
-        assertEquals(BulkValidatorException.TYPE_REQUIRED_VALUE, errorType(m, "Encounter.mediaAsset0.bbox"));
+        assertEquals(BulkValidatorException.TYPE_REQUIRED_VALUE, errorType(m, "Encounter.mediaAsset0.iaClass"));
+        assertFalse(m.containsKey("Encounter.mediaAsset0.bbox"), "no fabricated .bbox key: it would switch the importer to exact-slot mode");
         m = validate(row("Encounter.mediaAsset0", "a.jpg", "Encounter.mediaAsset0.theta", "0.5"));
-        assertEquals(BulkValidatorException.TYPE_REQUIRED_VALUE, errorType(m, "Encounter.mediaAsset0.bbox"));
+        assertEquals(BulkValidatorException.TYPE_REQUIRED_VALUE, errorType(m, "Encounter.mediaAsset0.theta"));
+        assertFalse(m.containsKey("Encounter.mediaAsset0.bbox"));
+        // an empty .bbox cell next to a class: the error goes on the class, the empty bbox stays a value
+        m = validate(row("Encounter.mediaAsset0", "a.jpg", "Encounter.mediaAsset0.bbox", JSONObject.NULL, "Encounter.mediaAsset0.iaClass", "body"));
+        assertEquals(BulkValidatorException.TYPE_REQUIRED_VALUE, errorType(m, "Encounter.mediaAsset0.iaClass"));
+        assertTrue(m.get("Encounter.mediaAsset0.bbox") instanceof BulkValidator);
+    }
+
+    @Test void rejectedBoxValueIsNotPiledOnByThePairingRules() {
+        Map<String, Object> m = validate(row("Encounter.mediaAsset0", "a.jpg", "Encounter.mediaAsset0.bbox", "not-a-box", "Encounter.mediaAsset0.iaClass", "body"));
+        assertEquals(BulkValidatorException.TYPE_INVALID_VALUE, errorType(m, "Encounter.mediaAsset0.bbox"));
+        assertTrue(m.get("Encounter.mediaAsset0.bbox").toString().contains("x,y,width,height"), "the field-layer message survives");
+        assertNull(errorType(m, "Encounter.mediaAsset0.iaClass"));
+    }
+
+    @Test void samePhotoPlainThenBoxedThenPlainFlagsBothLaterSlots() {
+        Map<String, Object> m = validate(row("Encounter.mediaAsset0", "a.jpg", "Encounter.mediaAsset1", "a.jpg", "Encounter.mediaAsset1.bbox", "1,1,5,5",
+            "Encounter.mediaAsset1.iaClass", "body", "Encounter.mediaAsset2", "a.jpg"));
+        assertEquals(BulkValidatorException.TYPE_INVALID_DUPLICATE, errorType(m, "Encounter.mediaAsset1"));
+        assertEquals(BulkValidatorException.TYPE_INVALID_DUPLICATE, errorType(m, "Encounter.mediaAsset2"));
+        assertNull(errorType(m, "Encounter.mediaAsset0"));
     }
 
     @Test void boxWithoutPhotoIsInvalid() {
@@ -139,6 +166,6 @@ class BulkBoxRowRulesTest {
         java.util.Set<String> names = new java.util.LinkedHashSet<String>(java.util.List.of("Encounter.genus", "Encounter.specificEpithet", "Encounter.year", "Encounter.mediaAsset0", "Encounter.mediaAsset0.bbox"));
         JSONArray values = new JSONArray().put("Genus").put("species").put(2020).put("a.jpg").put("1,1,5,5");
         Map<String, Object> m = BulkImportUtil.validateRow(names, values, sh, false);
-        assertEquals(BulkValidatorException.TYPE_REQUIRED_VALUE, errorType(m, "Encounter.mediaAsset0.iaClass"));
+        assertEquals(BulkValidatorException.TYPE_REQUIRED_VALUE, errorType(m, "Encounter.mediaAsset0.bbox"));   // no iaClass column in the sheet
     }
 }

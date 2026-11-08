@@ -73,6 +73,10 @@ class BulkImporterBoxedDbTest extends IdentificationDbTestSupport {
         }).when(sh).storeNewEncounter(any(Encounter.class), anyString());
         List<String> encIds = new ArrayList<String>();
         Set<String> expectedBoxIds = new HashSet<String>();
+        Map<String, Set<String> > boxesByEncounter = new HashMap<String, Set<String> >();
+        Map<String, Integer> annotationsByEncounter = new HashMap<String, Integer>();
+        Map<String, String> featureIdByBox = new HashMap<String, String>();
+        Map<String, int[]> geometryByBox = new HashMap<String, int[]>();
         int aId, bId;
         try {
             MediaAsset a = boxedAsset(sh);
@@ -93,6 +97,14 @@ class BulkImporterBoxedDbTest extends IdentificationDbTestSupport {
                 for (Encounter enc : imp.getEncounters()) {
                     encIds.add(enc.getId());
                     expectedBoxIds.addAll(boxIds(enc));
+                    boxesByEncounter.put(enc.getId(), new HashSet<String>(boxIds(enc)));
+                    annotationsByEncounter.put(enc.getId(), enc.getAnnotations().size());
+                    for (Annotation ann : enc.getAnnotations()) {
+                        if (!ann.isImportedBox()) continue;
+                        JSONObject p = ann.getFeature().getParameters();
+                        featureIdByBox.put(ann.getId(), ann.getFeature().getId());
+                        geometryByBox.put(ann.getId(), new int[] { p.getInt("x"), p.getInt("y"), p.getInt("width"), p.getInt("height") });
+                    }
                 }
             }
             sh.commitDBTransaction();
@@ -101,6 +113,8 @@ class BulkImporterBoxedDbTest extends IdentificationDbTestSupport {
         }
         assertEquals(2, encIds.size());
         assertEquals(2, expectedBoxIds.size());
+        assertEquals(Set.of(1, 2), new HashSet<Integer>(annotationsByEncounter.values()), "one encounter holds a box, the other a box and the trivial b.jpg");
+        assertEquals(2, geometryByBox.size());
         assertEquals(2, storeResults.size(), storeResults.toString());
         for (String r : storeResults) {
             String[] parts = r.split("=");
@@ -114,13 +128,21 @@ class BulkImporterBoxedDbTest extends IdentificationDbTestSupport {
                 Encounter enc = check.getEncounter(encId);
                 assertNotNull(enc, encId);
                 assertNotNull(enc.getAnnotations(), encId);
+                assertEquals(annotationsByEncounter.get(encId).intValue(), enc.getAnnotations().size(), "ENCOUNTER_ANNOTATIONS of " + encId);
+                assertEquals(boxesByEncounter.get(encId), new HashSet<String>(boxIds(enc)), "this encounter's own boxes, " + encId);
                 for (Annotation ann : enc.getAnnotations()) {
                     if (!ann.isImportedBox()) continue;
                     boxesSeen.add(ann.getId());
                     Feature f = ann.getFeature();
                     assertNotNull(f, ann.getId());
+                    assertEquals(featureIdByBox.get(ann.getId()), f.getId(), "ANNOTATION_FEATURES holds the feature built at import");
                     assertEquals(importId, ann.importedBoxImportTaskId());
-                    assertTrue(f.getParameters().has("width") && f.getParameters().has("x"), f.getParameters().toString());
+                    int[] g = geometryByBox.get(ann.getId());
+                    JSONObject p = f.getParameters();
+                    assertEquals(g[0], p.getInt("x"));
+                    assertEquals(g[1], p.getInt("y"));
+                    assertEquals(g[2], p.getInt("width"));
+                    assertEquals(g[3], p.getInt("height"));
                     assertNotNull(f.getAnnotation(), "FEATURE.ANNOTATION");
                     assertEquals(ann.getId(), f.getAnnotation().getId());
                     assertNotNull(f.getMediaAsset(), "MEDIAASSET_FEATURES");
@@ -132,7 +154,12 @@ class BulkImporterBoxedDbTest extends IdentificationDbTestSupport {
             assertEquals(expectedBoxIds, boxesSeen);
             MediaAsset ra = MediaAssetFactory.load(aId, check);
             assertEquals(2, ra.getFeatures().size(), "a.jpg carries the two boxes and nothing trivial");
-            for (Feature f : ra.getFeatures()) assertFalse(f.isUnity());
+            Set<String> assetFeatureIds = new HashSet<String>();
+            for (Feature f : ra.getFeatures()) {
+                assertFalse(f.isUnity());
+                assetFeatureIds.add(f.getId());
+            }
+            assertEquals(new HashSet<String>(featureIdByBox.values()), assetFeatureIds, "the asset's features are exactly the two boxes' features");
             MediaAsset rb = MediaAssetFactory.load(bId, check);
             assertEquals(1, rb.getFeatures().size());
             assertTrue(rb.getFeatures().get(0).isUnity());
@@ -153,6 +180,7 @@ class BulkImporterBoxedDbTest extends IdentificationDbTestSupport {
             assertNotNull(reloaded);
             JSONObject env = IAGateway.buildImportEnvelope(reloaded);
             assertEquals("extract-then-identify", env.getString("annotationMode"));
+            assertEquals(2, env.getJSONArray("annotationIds").length());
             assertEquals(expectedBoxIds, new HashSet<Object>(env.getJSONArray("annotationIds").toList()));
             assertFalse(env.has("mediaAssetIds"));
         } finally {
