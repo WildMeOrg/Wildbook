@@ -223,6 +223,13 @@ public class StartupWildbook implements ServletContextListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        // Bulk-import boxes (spec 4.1): build the labeled-keyword map now so a configured label
+        // that collides with a reserved box-column suffix is warned about at startup.
+        try {
+            org.ecocean.api.bulk.BulkImportUtil.getLabeledKeywordMap();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         // initialize the MarkedIndividual names cache
         // moved initNamesCache here
         Shepherd myShepherd = new Shepherd(context);

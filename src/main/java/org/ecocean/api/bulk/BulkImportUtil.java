@@ -360,6 +360,12 @@ public class BulkImportUtil {
         try {
             for (String label : CommonConfiguration.getIndexedPropertyValues("kwLabel",
                 "context0")) {
+                // bulk-import boxes (spec 4.1): the box column suffixes are reserved
+                if (BulkValidator.BOX_SUFFIXES.contains(label)) {
+                    System.out.println("WARN: BulkImportUtil labeled keyword '" + label +
+                        "' is a reserved bulk-import suffix; ignored");
+                    continue;
+                }
                 labeledKeywordMap.put(label,
                     new LinkedHashSet<String>(CommonConfiguration.getIndexedPropertyValues(label,
                         "context0")));
