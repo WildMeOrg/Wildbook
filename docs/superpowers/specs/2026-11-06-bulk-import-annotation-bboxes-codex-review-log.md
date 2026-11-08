@@ -513,3 +513,13 @@ classes, else completed). Codex: converged; keep the shared species-level routin
 (identification-enabled regression test), applied. Follow-up recorded: MlServiceClient sends only
 extract_model_id while older matching reads model_id; installs with model_id-only entries fail v2
 extraction with 422 (pre-existing; separate fix).
+
+## Plan D round 1 and branch D rounds 1-2 (2026-11-08)
+
+Plan round 1: 3 Major (viewpoints are published as `annotationViewpoint`; the current Bulk Import
+page renumbers photo columns, so the spreadsheet route needs constraints until PR C; import-only
+extraction and NO_EXTRACTION_CONFIG semantics) and 6 Minor, all applied while writing the skill.
+Branch round 1: 1 Major (a preview showing box columns must not relax the page rules; ascending
+columns required) and 5 Minor, applied. Branch round 2: converged; 2 Minor wording fixes applied
+(extractor-dependent preparation; pending is not "sent"). Full suite on the branch: 226 classes,
+2027 tests, 0 failures.
