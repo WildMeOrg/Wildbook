@@ -120,11 +120,13 @@ const EditableCell = observer(
                 </div>
               );
             }
-            const missingList = rawError
-              .replace(/^MISSING/, "")
-              .split(",")
-              .map((name) => name.trim())
-              .filter(Boolean);
+            const missingText = rawError.replace(/^MISSING/, "");
+            const missingList = store.isBoxedSheet
+              ? [missingText] // one exact filename, commas included
+              : missingText
+                  .split(",")
+                  .map((name) => name.trim())
+                  .filter(Boolean);
 
             return (
               <div

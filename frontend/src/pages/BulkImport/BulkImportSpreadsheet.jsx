@@ -284,9 +284,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           } else {
             if (store && store.setSpreadsheetData) {
               store.setSpreadsheetData(processedData);
-              const { errors, warnings } = store.validateSpreadsheet();
-              store.setValidationErrors(errors);
-              store.setValidationWarnings(warnings);
+              store.revalidate();
               store.setActiveStep(2);
             }
           }

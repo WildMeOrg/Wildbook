@@ -18,6 +18,7 @@ const mockStore = {
   setValidationWarnings: jest.fn(),
   applyDynamicValidationRules: jest.fn(),
   setActiveStep: jest.fn(),
+  revalidate: jest.fn(),
   clearSubmissionErrors: jest.fn(),
   setSpreadsheetError: jest.fn(),
   resetSpreadsheet: jest.fn(),

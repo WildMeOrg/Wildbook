@@ -212,6 +212,22 @@ describe("EditableDataTable", () => {
       );
     });
 
+    test("a missing boxed filename with a comma is one item", () => {
+      const store = {
+        ...boxedStore,
+        validationErrors: { 0: { [A2]: "MISSINGx,y.jpg" } },
+      };
+      renderWithProviders(<DataTable store={store} />);
+      const feedback = screen
+        .getByDisplayValue("c.jpg")
+        .parentElement.querySelector(".invalid-feedback");
+      expect(feedback.textContent).toContain("1");
+      fireEvent.click(feedback.querySelector("button"));
+      const items = feedback.querySelectorAll("li");
+      expect(items).toHaveLength(1);
+      expect(items[0].textContent).toBe("x,y.jpg");
+    });
+
     test("a warning with values renders", () => {
       renderWithProviders(<DataTable store={boxedStore} />);
       const warning = screen

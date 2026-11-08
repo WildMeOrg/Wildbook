@@ -3,9 +3,10 @@ import { Modal } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import MainButton from "../../components/MainButton";
 import ThemeContext from "../../ThemeColorProvider";
+import { observer } from "mobx-react-lite";
 import { isLegacyBoxedDraft } from "./bulkImportSlots";
 
-export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
+export const BulkImportContinueModal = observer(({ store, setRenderMode1 }) => {
   const [show, setShow] = useState(Boolean(store.submissionId));
   const theme = useContext(ThemeContext);
 
@@ -118,6 +119,7 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
       <Modal.Footer>
         <MainButton
           onClick={handleContinue}
+          disabled={store.indexableFields === null} // photo slots depend on the site settings
           backgroundColor={theme.wildMeColors.cyan700}
           color={theme.defaultColors.white}
           noArrow={true}
@@ -140,6 +142,6 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
       </Modal.Footer>
     </Modal>
   );
-};
+});
 
 export default BulkImportContinueModal;

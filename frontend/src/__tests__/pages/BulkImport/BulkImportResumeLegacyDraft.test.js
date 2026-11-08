@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import BulkImportContinueModal from "../../../pages/BulkImport/BulkImportContinueModal";
 import { BulkImportSpreadsheet } from "../../../pages/BulkImport/BulkImportSpreadsheet";
 import BulkImportStore from "../../../pages/BulkImport/BulkImportStore";
@@ -47,6 +47,7 @@ afterEach(() => localStorage.clear());
     localStorage.setItem("BulkImportStore", JSON.stringify(draft));
     const store = new BulkImportStore();
     store.fetchAndApplyUploaded = jest.fn();
+    store.setIndexableFields(["Encounter.mediaAsset#.bbox"]);
     render(
       <ThemeContext.Provider value={theme}>
         <BulkImportContinueModal store={store} setRenderMode1={jest.fn()} />
@@ -63,7 +64,6 @@ afterEach(() => localStorage.clear());
     expect(store.spreadsheetUploadProgress).toBe(0);
     expect(store.spreadsheetFileName).toBe("");
 
-    store.setIndexableFields(["Encounter.mediaAsset#.bbox"]);
     renderWithProviders(
       <ThemeContext.Provider value={theme}>
         <BulkImportSpreadsheet store={store} />
@@ -72,4 +72,30 @@ afterEach(() => localStorage.clear());
     expect(screen.getByTestId("spreadsheet-input")).toBeInTheDocument();
     expect(document.getElementById("next-button")).toBeDisabled();
   });
+});
+
+test("resume waits for site settings, so a current boxed draft keeps its slots", () => {
+  const current = {
+    ...base,
+    columnsDef: [A0, `${A0}.bbox`, A2],
+    spreadsheetData: [
+      { [A0]: "a.jpg", [`${A0}.bbox`]: "1,1,5,5", [A2]: "c.jpg" },
+    ],
+  };
+  localStorage.setItem("BulkImportStore", JSON.stringify(current));
+  const store = new BulkImportStore();
+  store.fetchAndApplyUploaded = jest.fn();
+  render(
+    <ThemeContext.Provider value={theme}>
+      <BulkImportContinueModal store={store} setRenderMode1={jest.fn()} />
+    </ThemeContext.Provider>,
+  );
+  const resume = screen.getByText("CONTINUE").closest("button");
+  expect(resume).toBeDisabled();
+  act(() => store.setIndexableFields(["Encounter.mediaAsset#.bbox"]));
+  expect(resume).not.toBeDisabled();
+  fireEvent.click(resume);
+  expect(store.isBoxedSheet).toBe(true);
+  expect(store.photoColumns).toEqual([A0, A2]);
+  expect(store.spreadsheetData[0][A2]).toBe("c.jpg");
 });

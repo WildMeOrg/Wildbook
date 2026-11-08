@@ -123,6 +123,26 @@ describe("BulkImportStore with box columns", () => {
     expect(store.photoCellMessage("c.jpg")).toBe("MISSINGc.jpg");
   });
 
+  test("a boxed filename is matched verbatim, surrounding spaces included", () => {
+    const store = boxedStore([{ [A0]: " a.jpg", [A2]: "c.jpg" }]);
+    store._uploadedImages = [" a.jpg", "c.jpg"];
+    expect(store.missingPhotos).toEqual([]);
+    expect(store.validateMediaAssetColumnsOnly().errors).toEqual({});
+    store._uploadedImages = ["a.jpg", "c.jpg"];
+    expect(store.missingPhotos).toEqual([" a.jpg"]);
+    expect(store.validateMediaAssetColumnsOnly().errors[0][A0]).toBe(
+      "MISSING a.jpg",
+    );
+  });
+
+  test("un-boxed missing photos keep the original untrimmed split", () => {
+    const store = new BulkImportStore();
+    store._columnsDef = [A0];
+    store._spreadsheetData = [{ [A0]: "a.jpg, b.jpg" }];
+    store._uploadedImages = ["a.jpg", "b.jpg"];
+    expect(store.missingPhotos).toEqual([" b.jpg"]);
+  });
+
   test("a rule left by an earlier un-boxed sheet does not reject bboxSource", () => {
     const store = new BulkImportStore();
     store.setIndexableFields(CAPABLE);

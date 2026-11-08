@@ -490,7 +490,10 @@ export class BulkImportStore {
       this.photoColumns.forEach((col) => {
         const mediaAssets = row[col];
         if (!mediaAssets) return;
-        this.photoNames(mediaAssets).forEach((name) => {
+        const names = this.isBoxedSheet
+          ? this.photoNames(mediaAssets)
+          : mediaAssets.split(",");
+        names.forEach((name) => {
           if (!this._uploadedImages.includes(name)) {
             missing.add(name);
           }
@@ -503,7 +506,7 @@ export class BulkImportStore {
   // a boxed sheet's photo cell is one exact filename; the merged slot-0 cell lists several
   photoNames(val) {
     const text = String(val ?? "");
-    if (this.isBoxedSheet) return text.trim() ? [text.trim()] : [];
+    if (this.isBoxedSheet) return text.trim() ? [text] : []; // verbatim, as the server matches it
     return text.split(",").map((img) => img.trim());
   }
 
@@ -594,7 +597,9 @@ export class BulkImportStore {
         }
 
         if (isPhotoSlotColumn(col) && value) {
-          const imgs = this.photoNames(value);
+          const imgs = this.isBoxedSheet
+            ? this.photoNames(value)
+            : value.split(/\s*,\s*/);
           if (imgs.some((img) => uploadingSet.has(img)))
             rowHasPendingUpload = true;
         }
@@ -876,7 +881,8 @@ export class BulkImportStore {
       if (!rule) return;
 
       this._spreadsheetData.forEach((row, rowIndex) => {
-        const value = String(row[col] ?? "").trim();
+        const cell = String(row[col] ?? "");
+        const value = this.isBoxedSheet && cell.trim() ? cell : cell.trim();
         let error = "";
 
         if (rule.required && !value) {
