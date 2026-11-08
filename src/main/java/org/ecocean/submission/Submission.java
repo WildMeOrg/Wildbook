@@ -80,6 +80,8 @@ public class Submission {
     public JSONObject identificationPhase() {
         JSONObject phase = aiPhase();
         if (requestsIdentification() || !isBoxed() || phase.has("code")) return phase;
+        String state = phase.optString("state");
+        if (!"pending".equals(state) && !"dispatching".equals(state) && !"dispatched".equals(state)) return phase;
         return phase.put("code", "BOXES_EXTRACTED_ONLY");
     }
     public String getId() { return id; }

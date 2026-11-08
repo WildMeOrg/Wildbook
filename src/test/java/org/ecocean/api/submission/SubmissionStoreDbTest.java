@@ -831,7 +831,10 @@ class SubmissionStoreDbTest {
                     for (org.ecocean.Annotation a : enc.getAnnotations()) if (a.isImportedBox()) boxes.add(a);
                     assertEquals(1, boxes.size(), mode + "/" + cls);
                     assertEquals(cls, boxes.get(0).getIAClass(), "execute's second validation pass used the same skip flag");
-                    assertEquals(2, boxes.get(0).getFeature().getParameters().getInt("width"));
+                    JSONObject geometry = boxes.get(0).getFeature().getParameters();
+                    assertEquals(0, geometry.getInt("x")); assertEquals(0, geometry.getInt("y"));
+                    assertEquals(2, geometry.getInt("width")); assertEquals(2, geometry.getInt("height"));
+                    assertEquals("Manta birostris", boxes.get(0).getSpecies(sh));
                     org.ecocean.servlet.importer.ImportTask task = sh.getImportTask(run.getString("jobId"));
                     assertEquals("pending-detection", task.getStatus(), mode);
                     assertTrue(task.annotationsImported()); assertTrue(task.skippedDetection());
@@ -895,5 +898,24 @@ class SubmissionStoreDbTest {
                     .getJSONObject("identification").getString("state"), mode);
             }
         } finally { org.ecocean.TestIAJsonPropertiesUtil.override(null); }
+    }
+
+    @Test void bothStatusEndpointsReportTheSameBoxedPhases() {
+        java.util.Map<String, java.util.function.Consumer<org.ecocean.submission.Submission>> cases = new java.util.LinkedHashMap<>();
+        cases.put("pending", d -> {});
+        cases.put("dispatched", d -> d.aiState("dispatched"));
+        cases.put("failed-handoff", d -> d.aiState("failed"));
+        cases.put("unknown-handoff", d -> d.aiState("unknown"));
+        java.util.Map<String, String> codes = java.util.Map.of("pending", "BOXES_EXTRACTED_ONLY", "dispatched", "BOXES_EXTRACTED_ONLY",
+            "failed-handoff", "AI_HANDOFF_FAILED", "unknown-handoff", "AI_HANDOFF_UNKNOWN");
+        for (java.util.Map.Entry<String, java.util.function.Consumer<org.ecocean.submission.Submission>> c : cases.entrySet()) {
+            String id = boxedImportedForAi("import-only"); mutate(id, c.getValue());
+            JSONObject get = store.get("context0", "admin", id, true, false);
+            JSONObject results = new SubmissionJobs(() -> new Shepherd("context0", properties)).results("context0", "admin", id, true, 0, 100);
+            for (String phase : new String[]{"detection", "identification"})
+                assertEquals(SubmissionJson.canonical(get.getJSONObject(phase)), SubmissionJson.canonical(results.getJSONObject(phase)), c.getKey() + " " + phase);
+            assertEquals(codes.get(c.getKey()), get.getJSONObject("identification").getString("code"), c.getKey());
+            assertEquals("BOXES_SUPPLIED", get.getJSONObject("detection").getString("code"), c.getKey());
+        }
     }
 }

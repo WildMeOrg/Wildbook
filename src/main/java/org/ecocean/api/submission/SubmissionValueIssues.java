@@ -59,7 +59,7 @@ public class SubmissionValueIssues {
     }
 
     private static Issue translate(String field, String legacy, JSONObject fields, Map<String, Object> checked, Shepherd sh) {
-        Issue box = translateBox(field, legacy);
+        Issue box = translateBox(field, legacy, fields);
         if (box != null) return box;
         if (legacy.startsWith("error parsing integer")) return new Issue(field, "UNPARSEABLE", field + " must be a whole number");
         if (legacy.startsWith("error parsing double")) return new Issue(field, "UNPARSEABLE", field + " must be a decimal number");
@@ -93,7 +93,7 @@ public class SubmissionValueIssues {
     }
 
     // bulk-import boxes (spec 4.9): the per-photo box columns and the detector score, from the shared rules' messages
-    private static Issue translateBox(String field, String legacy) {
+    private static Issue translateBox(String field, String legacy, JSONObject fields) {
         String slot = field.replaceAll("^(Encounter\\.mediaAsset\\d+).*$", "$1");
         if (legacy.startsWith("bbox must be") || legacy.startsWith("bbox x and y") || legacy.startsWith("bbox width and height"))
             return new Issue(field, "INVALID_BOX", field + " must be \"x,y,width,height\": four whole numbers on the image's pixel grid, x and y at least 0, width and height at least 1");
@@ -102,9 +102,11 @@ public class SubmissionValueIssues {
             return new Issue(field, "MISSING_CLASS", classField + " is required when a box is supplied");
         }
         if (legacy.startsWith("invalid iaClass '")) {
-            int end = legacy.indexOf("'; ", "invalid iaClass '".length());
-            String cls = end > 0 ? legacy.substring("invalid iaClass '".length(), end) : "";
-            String rest = end > 0 ? legacy.substring(end + 3) : "";
+            // locate the server's suffix after the supplied class itself, never at a delimiter the user may have typed
+            Object raw = fields.opt(field);
+            String cls = raw == null ? "" : raw.toString().trim();
+            String head = "invalid iaClass '" + cls + "'; ";
+            String rest = legacy.startsWith(head) ? legacy.substring(head.length()) : "";
             if (rest.startsWith("valid classes for ")) {
                 int colon = rest.indexOf(": ");
                 String species = colon > 0 ? rest.substring("valid classes for ".length(), colon) : "";
@@ -117,7 +119,7 @@ public class SubmissionValueIssues {
         }
         if (legacy.startsWith("invalid viewpoint value")) return new Issue(field, "INVALID_VIEWPOINT", field + " is not a known viewpoint");
         if (legacy.startsWith("invalid theta value") || legacy.startsWith("theta must be"))
-            return new Issue(field, "INVALID_THETA", field + " must be a finite number of radians between -6.2832 and 6.2832");
+            return new Issue(field, "INVALID_THETA", field + " must be a finite number of radians between -" + BulkValidator.THETA_LIMIT + " and " + BulkValidator.THETA_LIMIT);
         if (legacy.startsWith(field + " needs a box in "))
             return new Issue(field, "REQUIRES_FIELD", field + " requires " + legacy.substring((field + " needs a box in ").length()));
         if (legacy.equals("box without a photo in this slot")) return new Issue(field, "REQUIRES_FIELD", field + " requires " + slot);

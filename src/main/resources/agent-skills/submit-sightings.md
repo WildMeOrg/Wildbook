@@ -465,18 +465,22 @@ objects. `indexing.state: "unknown"` means indexing was dispatched but completio
 is not acknowledged; it is not proof that search is current. `indexing.state: "failed"`
 requires operator inspection. Derivatives may be `pending`, `running`, `complete`,
 or `unknown`; an unknown derivative outcome also requires operator inspection.
-Detection and identification are `skipped` for explicit import-only. For a submission
-with boxes, detection is `skipped` with code `BOXES_SUPPLIED`; its boxes are handed off
-for extraction, so `identification` carries the handoff state below (with code
-`BOXES_EXTRACTED_ONLY` in import-only, where the boxes are extracted but not matched).
-For the default `detect-and-identify`, these two phase objects describe the same workflow handoff:
+Without boxes, detection and identification are both `skipped` for explicit
+import-only, and for the default `detect-and-identify` the two phase objects describe
+the same workflow handoff, as in the table below. With boxes, detection is always
+`skipped` with code `BOXES_SUPPLIED`, and `identification` alone carries the handoff
+state from the table: here the handoff sends the boxes for extraction (and matching in
+`detect-and-identify`) instead of detection. In import-only with boxes, `pending`,
+`dispatching` and `dispatched` also carry code `BOXES_EXTRACTED_ONLY`: the boxes are
+extracted for later matching but not identified. Failure states (`not_started`,
+`failed`, `unknown`) keep their own codes and messages in every mode.
 
 | AI phase state | Meaning and action |
 |---|---|
 | `not_started` | Record import failed or requires reconciliation; inspect the import before considering AI work. |
 | `pending` | Waiting for record import and completed derivatives before preparing the IA tasks. |
 | `dispatching` | IA tasks and the queue message are saved; the worker owns the handoff. Do not resend. |
-| `dispatched` | The detection message was handed to the existing pipeline with identification requested afterward. This does not mean either phase completed. Give the linked import task to the person for progress and match-candidate review in Wildbook. The scoped submissions token does not grant access to that browser page. |
+| `dispatched` | The detection message (with boxes: the extraction message) was handed to the existing pipeline, with identification requested afterward unless import-only. This does not mean either phase completed. Give the linked import task to the person for progress and match-candidate review in Wildbook. The scoped submissions token does not grant access to that browser page. |
 | `failed` | The workflow could not be started. Check its phase code/message and the import task; involve the operator. |
 | `unknown` | The AI handoff outcome needs reconciliation. Check the phase code/message; do not create a replacement batch or manually resend. |
 

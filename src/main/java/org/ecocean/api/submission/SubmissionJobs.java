@@ -73,10 +73,12 @@ public class SubmissionJobs extends SubmissionStore {
             JSONObject row = normalizedRows.optJSONObject(i);
             JSONObject fields = row == null ? null : row.optJSONObject("fields");
             if (fields == null) continue;
-            for (String name : org.ecocean.api.bulk.BulkImportUtil.findIndexedFieldNames(fields.keySet(), "Encounter.mediaAsset.bbox")) {
-                if (name == null) continue;
+            for (String name : fields.keySet()) {
+                String prefix;
+                try { prefix = org.ecocean.api.bulk.BulkValidator.indexPrefixValue(name); }
+                catch (org.ecocean.api.bulk.BulkValidatorException unknown) { continue; }
                 Object value = fields.opt(name);
-                if (value instanceof String && !((String)value).trim().isEmpty()) return true;
+                if ("Encounter.mediaAsset.bbox".equals(prefix) && value instanceof String && !((String)value).isEmpty()) return true;
             }
         }
         return false;

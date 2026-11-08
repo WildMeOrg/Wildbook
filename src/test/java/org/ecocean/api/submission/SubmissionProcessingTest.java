@@ -214,4 +214,38 @@ class SubmissionProcessingTest {
             assertEquals(SubmissionJson.canonical(legacy.get()), SubmissionJson.canonical(actual));
         }
     }
+
+    // ---- Codex branch round 1 regressions ----
+    @Test void unboxedPhaseObjectsAreLiterallyUnchanged() {
+        assertEquals("{\"message\":\"Explicit import-only mode\",\"state\":\"skipped\"}", SubmissionJson.canonical(draft("import-only").identificationPhase()));
+        assertEquals("{\"message\":\"Explicit import-only mode\",\"state\":\"skipped\"}", SubmissionJson.canonical(draft("import-only").detectionPhase()));
+        JSONObject pending = new JSONObject().put("state", "pending").put("message", "Detection and identification workflow handoff; dispatched does not mean completed. See import task for progress and match candidates.");
+        assertEquals(SubmissionJson.canonical(pending), SubmissionJson.canonical(draft("detect-and-identify").detectionPhase()));
+        assertEquals(SubmissionJson.canonical(pending), SubmissionJson.canonical(draft("detect-and-identify").identificationPhase()));
+    }
+
+    @Test void boxesExtractedOnlyIsAddedToNormalStatesOnly() {
+        for (String state : new String[]{"pending", "dispatching", "dispatched"}) {
+            Submission d = boxedDraft("import-only"); d.aiState(state);
+            assertEquals("BOXES_EXTRACTED_ONLY", d.identificationPhase().getString("code"), state);
+        }
+        Submission skipped = boxedDraft("import-only"); skipped.aiState("skipped"); // not a hand-off state
+        assertFalse(skipped.identificationPhase().has("code"));
+    }
+
+    @Test void hasBoxesIgnoresNonStringValues() {
+        JSONObject numeric = new JSONObject().put("fields", new JSONObject().put("Encounter.mediaAsset0", "a.png").put("Encounter.mediaAsset0.bbox", 5));
+        assertFalse(SubmissionJobs.hasBoxes(new JSONArray().put(numeric)));
+    }
+
+    @Test void prepareRejectsADraftWithNoImportedMedia() {
+        Submission draft = unimported("detect-and-identify");
+        draft.imported(new JSONObject().put("rows", new JSONArray()).put("records", new JSONObject().put("mediaAssets", new JSONArray())).toString());
+        Shepherd sh = mock(Shepherd.class); when(sh.getImportTask("job")).thenReturn(mock(ImportTask.class));
+        try (MockedStatic<IA> ia = mockStatic(IA.class)) {
+            ia.when(() -> IA.getBaseURL("context0")).thenReturn("https://example.test");
+            IllegalStateException ex = assertThrows(IllegalStateException.class, () -> new SubmissionProcessing(() -> sh).prepare(draft, sh));
+            assertEquals("No imported media", ex.getMessage());
+        }
+    }
 }

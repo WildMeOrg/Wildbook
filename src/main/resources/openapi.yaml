@@ -235,6 +235,10 @@ components:
         rowCount:
           type: integer
           minimum: 0
+        detection:
+          $ref: '#/components/schemas/SubmissionApiPhase'
+        identification:
+          $ref: '#/components/schemas/SubmissionApiPhase'
         errors:
           type: array
           items:
@@ -410,8 +414,9 @@ components:
             queue; no completion acknowledgment is available. Derivatives unknown requires
             operator reconciliation. A submission whose rows carry boxes reports detection
             `skipped` with code `BOXES_SUPPLIED`; for import-only with boxes, identification
-            reports the extraction hand-off state with code `BOXES_EXTRACTED_ONLY` (the
-            boxes are extracted for later matching but not identified).
+            reports the extraction hand-off state, and pending/dispatching/dispatched carry
+            code `BOXES_EXTRACTED_ONLY` (the boxes are extracted for later matching but not
+            identified). Failure states (not_started, failed, unknown) keep their own codes.
         message:
           type: string
           minLength: 1
@@ -495,6 +500,10 @@ components:
         code:
           type: string
           minLength: 1
+          description: Issue kind. Image reuse issues are DUPLICATE_MEDIA (an image reused
+            in a row, across rows without boxes, or boxed on one row and not another) and
+            DUPLICATE_BOX (the identical box twice on one image); field values use
+            INVALID_VALUE with a reason.
         message:
           type: string
           minLength: 1

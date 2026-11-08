@@ -25,7 +25,7 @@ public class SubmissionValidator {
     static final String BOX_SUFFIX = "(?:" + String.join("|", BulkValidator.BOX_SUFFIXES) + ")";
     public static boolean supported(String field) {
         return FIELDS.contains(field) || field.matches("Encounter\\.mediaAsset" + SLOT)
-            || field.matches("Encounter\\.mediaAsset" + SLOT + "\\." + BOX_SUFFIX)
+            || isBoxField(field)
             || field.matches("Encounter\\.quality" + SLOT);
     }
     public static JSONObject configuration(String context) {
@@ -102,7 +102,8 @@ public class SubmissionValidator {
                     // exact-slot mode) without boxing the slot; every other field keeps the empty-value rule
                     else if (isBoxField(entry.getKey())) values.put(entry.getKey(), "");
                     else issue(errors, source, i, entry.getKey(), "INVALID_VALUE", "INVALID", "Provided value cannot be empty");
-                } else if (inRowRepeats.contains(entry.getKey())) {
+                } else if (inRowRepeats.contains(entry.getKey()) && entry.getValue() instanceof BulkValidatorException
+                        && ((BulkValidatorException)entry.getValue()).isType(BulkValidatorException.TYPE_INVALID_DUPLICATE)) {
                     // the shared rules' INVALID_DUPLICATE for a photo this validator already reported as repeated in the row
                 } else if (!(locationRejected && "Encounter.locationID".equals(entry.getKey()))) { // already INVALID_LOCATION
                     SubmissionValueIssues.Issue explained = SubmissionValueIssues.explain(entry.getKey(), (Exception)entry.getValue(), copied, checked, sh, today);

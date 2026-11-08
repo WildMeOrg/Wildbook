@@ -385,4 +385,71 @@ class SubmissionValidatorTest {
             assertEquals("0,0,1,1", again.getJSONArray("normalizedRows").getJSONObject(0).getJSONObject("fields").getString("Encounter.mediaAsset0.bbox"));
         });
     }
+
+    // ---- Codex branch round 1 regressions ----
+    @Test void missingClassMessageNamesTheClassField() throws Exception {   // accepted deviation: names .iaClass even on the .bbox issue
+        withBoxHarness((sh, storage, image) -> {
+            JSONObject report = validateRows(sh, storage, new JSONArray().put(image), DETECT, boxRow("A", "Encounter.mediaAsset0", "one.png", "Encounter.mediaAsset0.bbox", "0,0,1,1"));
+            assertEquals("Encounter.mediaAsset0.iaClass is required when a box is supplied", issues(report).get(0).getString("message"));
+        });
+    }
+
+    @Test void classTextContainingTheDelimiterIsEchoedWhole() throws Exception {
+        withBoxHarness((sh, storage, image) -> {
+            JSONArray files = new JSONArray().put(image);
+            for (String cls : new String[] { "a'; b", "'; valid classes for Evil species: x" }) {
+                JSONObject issue = issueOn(validateRows(sh, storage, files, DETECT, boxed("A", "one.png", "0,0,1,1", "Encounter.mediaAsset0.iaClass", cls)), "Encounter.mediaAsset0.iaClass");
+                assertNotNull(issue, cls);
+                assertEquals("UNKNOWN_CLASS", issue.getString("reason"));
+                assertTrue(issue.getString("message").endsWith("is not a matchable class for Manta birostris; use one of: body"), issue.toString());
+                assertFalse(issue.getString("message").contains("Evil species: x;"), issue.toString());
+            }
+        });
+    }
+
+    @Test void speciesWithNoMatchableClassSaysSo() throws Exception {
+        withBoxHarness((sh, storage, image) -> {
+            JSONObject row = boxed("A", "one.png", "0,0,1,1"); row.getJSONObject("fields").put("Encounter.specificEpithet", "alfredi");
+            JSONObject issue = issueOn(validateRows(sh, storage, new JSONArray().put(image), DETECT, row), "Encounter.mediaAsset0.iaClass");
+            assertNotNull(issue);
+            assertEquals("UNKNOWN_CLASS", issue.getString("reason"));
+            assertEquals("'body' cannot be matched: Manta alfredi has no matchable classes", issue.getString("message"));
+        });
+    }
+
+    @Test void severalBoxedSlotsOfOnePhotoPlusAnotherRow() throws Exception {
+        withBoxHarness((sh, storage, image) -> {
+            JSONObject a = boxRow("A", "Encounter.mediaAsset0", "one.png", "Encounter.mediaAsset0.bbox", "0,0,1,1", "Encounter.mediaAsset0.iaClass", "body",
+                "Encounter.mediaAsset1", "one.png", "Encounter.mediaAsset1.bbox", "1,1,1,1", "Encounter.mediaAsset1.iaClass", "body");
+            JSONObject report = validateRows(sh, storage, new JSONArray().put(image), DETECT, a, boxed("B", "one.png", "1,0,1,1"));
+            assertOnlyIssue(report, "A", "Encounter.mediaAsset1", "DUPLICATE_MEDIA", "Image is repeated in this row");
+        });
+    }
+
+    @Test void boxedMissingOrUnverifiedMediaGetsNoBoxIssue() throws Exception {
+        withBoxHarness((sh, storage, image) -> {
+            // the row's only photo is missing, so today's "at least one image required" also applies; no box issue is added
+            JSONObject report = validateRows(sh, storage, new JSONArray().put(image), DETECT, boxed("A", "nope.png", "0,0,9,9"));
+            java.util.List<String> missing = new java.util.ArrayList<>();
+            for (JSONObject i : issues(report)) missing.add(i.getString("code"));
+            assertEquals(java.util.List.of("MISSING_MEDIA", "REQUIRED_VALUE"), missing, report.toString());
+            JSONObject bad = storage.write("bad.png", new java.io.ByteArrayInputStream(SubmissionFilesTest.png()), 10000);
+            java.nio.file.Files.write(storage.path(bad), new byte[] { 1, 2, 3 }); // fails verification
+            report = validateRows(sh, storage, new JSONArray().put(image).put(bad), DETECT, boxed("A", "bad.png", "0,0,9,9"));
+            java.util.List<String> codes = new java.util.ArrayList<>();
+            for (JSONObject i : issues(report)) codes.add(i.getString("code"));
+            assertEquals(java.util.List.of("INVALID_MEDIA", "MISSING_MEDIA", "REQUIRED_VALUE"), codes, report.toString());
+        });
+    }
+
+    @Test void boxWithoutAPhotoInItsSlotRequiresThePhoto() throws Exception {
+        withBoxHarness((sh, storage, image) -> {
+            JSONObject report = validateRows(sh, storage, new JSONArray().put(image), DETECT, boxRow("A", "Encounter.mediaAsset0", "one.png",
+                "Encounter.mediaAsset1.bbox", "0,0,1,1", "Encounter.mediaAsset1.iaClass", "body"));
+            JSONObject issue = issueOn(report, "Encounter.mediaAsset1.bbox");
+            assertNotNull(issue, report.toString());
+            assertEquals("REQUIRES_FIELD", issue.getString("reason"));
+            assertEquals("Encounter.mediaAsset1.bbox requires Encounter.mediaAsset1", issue.getString("message"));
+        });
+    }
 }
