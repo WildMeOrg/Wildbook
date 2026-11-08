@@ -597,6 +597,7 @@ class BulkBoxImportApiTest {
     @Test void anonymousRequestGetsA401WithTheFlag() throws Exception {
         anonymous = true;
         JSONObject res = post(payload(BOXED, new Object[] { "a.jpg", "1,1,5,5", "body" }));
+        org.mockito.Mockito.verify(mockResponse).setStatus(401);
         assertFalse(res.getBoolean("success"));
         assertFalse(res.getBoolean("annotationsImported"));
         assertTrue(handoffs.isEmpty());

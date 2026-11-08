@@ -226,10 +226,19 @@ class SettingApiTest {
     @Test void apiGetUser()
     throws ServletException, IOException {
         User user = mock(User.class);
+        // bulk-import boxes (spec 4.6): one species with a matchable class (body, default option)
+        // and a non-matchable one (fin, default false), so the capability map can be asserted exactly
+        org.ecocean.IAJsonProperties iac = org.ecocean.IAJsonProperties.iaConfig();
+        iac.setJson(new JSONObject().put("Genus", new JSONObject().put("species", new JSONObject()
+            .put("body", new JSONObject().put("_id_conf", new JSONArray().put(new JSONObject().put("default", true))))
+            .put("fin", new JSONObject().put("_id_conf", new JSONArray().put(new JSONObject().put("default", false)))))));
+        org.ecocean.TestIAJsonPropertiesUtil.override(iac);
 
+        try {
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getAllTaxonomyCommonNames()).thenReturn(List.of(List.of("Genus species"), List.of("a genus")));
         })) {
             try (MockedStatic<CommonConfiguration> mockService = mockStatic(
                 CommonConfiguration.class)) {
@@ -250,10 +259,15 @@ class SettingApiTest {
                     assertEquals(org.ecocean.Util.asSortedList(org.ecocean.api.bulk.BulkValidator.FIELD_NAMES_INDEXABLE),
                         jout.getJSONArray("bulkImportIndexableFields").toList());
                     assertTrue(jout.getJSONArray("bulkImportIndexableFields").toList().contains("Encounter.mediaAsset#.bbox"));
-                    assertEquals(jout.getJSONObject("iaClassesForTaxonomy").keySet(),
-                        jout.getJSONObject("bulkImportMatchableClasses").keySet());
+                    assertEquals(Map.of("Genus species", List.of("body")),
+                        jout.getJSONObject("bulkImportMatchableClasses").toMap());
+                    assertEquals(new java.util.HashSet<Object>(List.of("body", "fin")),   // the existing map is unsorted
+                        new java.util.HashSet<Object>(jout.getJSONObject("iaClassesForTaxonomy").getJSONArray("Genus species").toList()));
                 }
             }
+        }
+        } finally {
+            org.ecocean.TestIAJsonPropertiesUtil.override(null);
         }
     }
 
