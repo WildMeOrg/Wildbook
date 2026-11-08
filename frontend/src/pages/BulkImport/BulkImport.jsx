@@ -26,7 +26,8 @@ const BulkImport = observer(() => {
 
   // bulk-import boxes: the capability is needed before any parse, resume or submit
   useEffect(() => {
-    store.setIndexableFields(siteData?.bulkImportIndexableFields);
+    if (siteData)
+      store.setIndexableFields(siteData.bulkImportIndexableFields || []);
   }, [siteData]);
 
   useEffect(() => {

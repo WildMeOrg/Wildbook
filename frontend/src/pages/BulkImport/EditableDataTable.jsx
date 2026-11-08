@@ -38,10 +38,7 @@ const EditableCell = observer(
     const handleBlur = (e) => {
       const newValue = e.target.value;
       store.updateCellValue(rowIndex, columnId, newValue);
-      store.invalidateValidation();
-      const { errors, warnings } = store.validateSpreadsheet();
-      store.setValidationErrors(errors);
-      store.setValidationWarnings(warnings);
+      store.revalidate();
       if (columnId === "Encounter.submitterID") {
         setColId(columnId);
         setColValue(newValue);
@@ -241,10 +238,7 @@ export const DataTable = observer(({ store }) => {
   useEffect(() => {
     if (!siteData) return;
     const timeout = setTimeout(() => {
-      store.invalidateValidation();
-      const { errors, warnings } = store.validateSpreadsheet();
-      store.setValidationErrors(errors);
-      store.setValidationWarnings(warnings);
+      store.revalidate();
     }, 500);
 
     return () => clearTimeout(timeout);

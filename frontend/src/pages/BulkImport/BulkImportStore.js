@@ -99,7 +99,7 @@ export class BulkImportStore {
   _labeledKeywordAllowedPairs = [];
   _validViewpoints = [];
   _matchableClasses = {};
-  _indexableFields = [];
+  _indexableFields = null; // null until site settings load
   _applyToAllRowModalShow = false;
   _validationErrors = {};
   _validationWarnings = {};
@@ -490,7 +490,7 @@ export class BulkImportStore {
       this.photoColumns.forEach((col) => {
         const mediaAssets = row[col];
         if (!mediaAssets) return;
-        mediaAssets.split(",").forEach((name) => {
+        this.photoNames(mediaAssets).forEach((name) => {
           if (!this._uploadedImages.includes(name)) {
             missing.add(name);
           }
@@ -500,20 +500,24 @@ export class BulkImportStore {
     return Array.from(missing);
   }
 
-  // a photo cell lists one file (boxed sheet) or several comma-separated files (merged slot 0)
+  // a boxed sheet's photo cell is one exact filename; the merged slot-0 cell lists several
+  photoNames(val) {
+    const text = String(val ?? "");
+    if (this.isBoxedSheet) return text.trim() ? [text.trim()] : [];
+    return text.split(",").map((img) => img.trim());
+  }
+
   photoCellValid(val) {
     if (!val) return true;
-    return val
-      .split(",")
-      .map((img) => img.trim())
-      .every((img) => this._uploadedImages.includes(img));
+    return this.photoNames(val).every((img) =>
+      this._uploadedImages.includes(img),
+    );
   }
 
   photoCellMessage(val) {
-    const missing = val
-      .split(",")
-      .map((img) => img.trim())
-      .filter((img) => !this._uploadedImages.includes(img));
+    const missing = this.photoNames(val).filter(
+      (img) => !this._uploadedImages.includes(img),
+    );
     return `MISSING${missing.join(", ")}`;
   }
 
@@ -590,7 +594,7 @@ export class BulkImportStore {
         }
 
         if (isPhotoSlotColumn(col) && value) {
-          const imgs = value.split(/\s*,\s*/);
+          const imgs = this.photoNames(value);
           if (imgs.some((img) => uploadingSet.has(img)))
             rowHasPendingUpload = true;
         }
@@ -643,7 +647,7 @@ export class BulkImportStore {
   }
 
   setIndexableFields(fields) {
-    this._indexableFields = fields || [];
+    this._indexableFields = fields ?? null;
   }
 
   get indexableFields() {
@@ -1596,6 +1600,8 @@ export class BulkImportStore {
       if (suffix) {
         if (boxRules[suffix]) {
           this._validationRules[col] = { required: false, ...boxRules[suffix] };
+        } else {
+          delete this._validationRules[col]; // e.g. a rule left by an earlier un-boxed sheet
         }
         return;
       }

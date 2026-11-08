@@ -2,6 +2,7 @@ import React from "react";
 import { screen, fireEvent } from "@testing-library/react";
 import { DataTable } from "../../../pages/BulkImport/EditableDataTable";
 import { renderWithProviders } from "../../../utils/utils";
+import { FormattedMessage } from "react-intl";
 import { useSiteSettings } from "../../../SiteSettingsContext";
 
 const mockStore = {
@@ -14,6 +15,7 @@ const mockStore = {
   validationWarnings: {},
   updateCellValue: jest.fn(),
   invalidateValidation: jest.fn(),
+  revalidate: jest.fn(),
   validateSpreadsheet: jest.fn(() => ({ errors: {}, warnings: {} })),
   setValidationErrors: jest.fn(),
   setValidationWarnings: jest.fn(),
@@ -95,10 +97,7 @@ describe("EditableDataTable", () => {
     renderWithProviders(<DataTable store={mockStore} />);
     const input = screen.getByDisplayValue("Bob");
     fireEvent.blur(input);
-    expect(mockStore.invalidateValidation).toHaveBeenCalled();
-    expect(mockStore.validateSpreadsheet).toHaveBeenCalled();
-    expect(mockStore.setValidationErrors).toHaveBeenCalled();
-    expect(mockStore.setValidationWarnings).toHaveBeenCalled();
+    expect(mockStore.revalidate).toHaveBeenCalled();
   });
 
   test("shows row number as first column", () => {
@@ -159,7 +158,14 @@ describe("EditableDataTable", () => {
     const boxedStore = {
       ...mockStore,
       isBoxedSheet: true,
-      columnsDef: ["name", A0, `${A0}.bbox`, `${A0}.keywords`, A2],
+      columnsDef: [
+        "name",
+        A0,
+        `${A0}.bbox`,
+        `${A0}.keywords`,
+        `${A0}.pattern`,
+        A2,
+      ],
       photoColumns: [A0, A2],
       spreadsheetData: [
         {
@@ -167,6 +173,7 @@ describe("EditableDataTable", () => {
           [A0]: "a.jpg",
           [`${A0}.bbox`]: "1,2,3",
           [`${A0}.keywords`]: "kw",
+          [`${A0}.pattern`]: "spotted",
           [A2]: "c.jpg",
         },
       ],
@@ -188,7 +195,7 @@ describe("EditableDataTable", () => {
 
     test("photo and per-photo cells are read-only, others editable", () => {
       renderWithProviders(<DataTable store={boxedStore} />);
-      ["a.jpg", "1,2,3", "kw", "c.jpg"].forEach((v) =>
+      ["a.jpg", "1,2,3", "kw", "spotted", "c.jpg"].forEach((v) =>
         expect(screen.getByDisplayValue(v)).toHaveAttribute("readonly"),
       );
       expect(screen.getByDisplayValue("Alice")).not.toHaveAttribute("readonly");
@@ -210,7 +217,16 @@ describe("EditableDataTable", () => {
       const warning = screen
         .getByDisplayValue("Alice")
         .parentElement.querySelector(".text-warning");
-      expect(warning.textContent).not.toBe("");
+      expect(warning.textContent).toBe(
+        "BULKIMPORT_WARNING_IACLASS_NOT_MATCHABLE",
+      );
+      expect(FormattedMessage).toHaveBeenCalledWith(
+        {
+          id: "BULKIMPORT_WARNING_IACLASS_NOT_MATCHABLE",
+          values: { allowed: "x" },
+        },
+        expect.anything(),
+      );
     });
   });
 });

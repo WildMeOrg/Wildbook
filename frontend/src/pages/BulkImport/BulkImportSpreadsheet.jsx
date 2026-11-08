@@ -308,7 +308,11 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
     reader.readAsArrayBuffer(file);
   };
 
+  // the box capability decides how photo columns are parsed, so wait for site settings
+  const settingsReady = store.indexableFields !== null;
+
   const handleFileUpload = (event) => {
+    if (!settingsReady) return;
     store.clearSubmissionErrors();
     const file = event.target.files[0];
     const filename = file?.name || "";
@@ -329,6 +333,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
   const handleDrop = (event) => {
     event.preventDefault();
     setIsDragging(false);
+    if (!settingsReady) return;
     const file = event.dataTransfer.files[0];
     if (!file) return;
 
@@ -402,6 +407,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             noArrow={true}
             style={{ width: "auto", fontSize: "1rem", margin: "0 auto" }}
             onClick={handleUploadClick}
+            disabled={!settingsReady}
           >
             <FormattedMessage id="BROWSE" />
           </MainButton>

@@ -115,6 +115,49 @@ describe("BulkImportStore with box columns", () => {
     expect(store.validationWarnings[0][`${A0}.iaClass`]).toEqual(warning);
   });
 
+  test("a boxed photo cell is one exact filename, commas included", () => {
+    const store = boxedStore([{ [A0]: "a,b.jpg", [A2]: "c.jpg" }]);
+    store._uploadedImages = ["a,b.jpg"];
+    expect(store.missingPhotos).toEqual(["c.jpg"]);
+    expect(store.photoCellValid("a,b.jpg")).toBe(true);
+    expect(store.photoCellMessage("c.jpg")).toBe("MISSINGc.jpg");
+  });
+
+  test("a rule left by an earlier un-boxed sheet does not reject bboxSource", () => {
+    const store = new BulkImportStore();
+    store.setIndexableFields(CAPABLE);
+    store._columnsDef = [A0, `${A0}.bboxSource`];
+    store._spreadsheetData = [{ [A0]: "a.jpg", [`${A0}.bboxSource`]: "md-v5" }];
+    store.applyDynamicValidationRules();
+    expect(store._validationRules[`${A0}.bboxSource`]).toBeDefined();
+
+    store._columnsDef = [A0, `${A0}.bbox`, `${A0}.bboxSource`];
+    store._spreadsheetData = [
+      {
+        [A0]: "a.jpg",
+        [`${A0}.bbox`]: "1,1,5,5",
+        [`${A0}.bboxSource`]: "md-v5",
+      },
+    ];
+    store.revalidate();
+    expect(store.validationErrors[0]?.[`${A0}.bboxSource`]).toBeUndefined();
+  });
+
+  test("changing the species refreshes the class warning", () => {
+    const store = boxedStore([
+      { "Encounter.genus": "Equus quagga", [`${A0}.iaClass`]: "giraffe_whole" },
+    ]);
+    store.setMatchableClasses({
+      "Giraffa giraffa": ["giraffe_whole"],
+      "Equus quagga": ["zebra_plains"],
+    });
+    store.revalidate();
+    expect(store.validationWarnings[0]?.[`${A0}.iaClass`]).toBeDefined();
+    store.updateCellValue(0, "Encounter.genus", "Giraffa giraffa");
+    store.revalidate();
+    expect(store.validationWarnings[0]).toBeUndefined();
+  });
+
   test("un-boxed photos are counted only when some box is filled in", () => {
     const store = boxedStore([
       { [A0]: "a.jpg", [`${A0}.bbox`]: "1,1,5,5", [A2]: "b.jpg" },

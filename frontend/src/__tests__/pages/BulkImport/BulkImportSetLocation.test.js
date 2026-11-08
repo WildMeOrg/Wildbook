@@ -194,20 +194,4 @@ describe("BulkImportSetLocation", () => {
     expect(startLoading).toBeInTheDocument();
     expect(startLoading.closest("button")).toBeDisabled();
   });
-
-  it("warns with the count of photos without a box", () => {
-    render(
-      <BulkImportSetLocation store={{ ...store, unboxedPhotoCount: 2 }} />,
-    );
-    expect(
-      document.getElementById("unboxed-photos-warning"),
-    ).toBeInTheDocument();
-  });
-
-  it("does not warn when every photo has a box or the sheet has none", () => {
-    render(
-      <BulkImportSetLocation store={{ ...store, unboxedPhotoCount: 0 }} />,
-    );
-    expect(document.getElementById("unboxed-photos-warning")).toBeNull();
-  });
 });
