@@ -22,6 +22,7 @@ org.ecocean.ia.IA,
 org.ecocean.ia.WbiaQueueUtil,
 java.util.Collections,java.util.Comparator,
 org.json.JSONObject,
+org.apache.commons.lang3.StringEscapeUtils,
 java.util.Properties" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
@@ -426,8 +427,8 @@ try{
             }
 
 	    out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
-	    String[] headers = new String[]{"Encounter", "Date", "Occurrence", "Individual", "#Images","Match Results by Class"};
-	    if (adminMode) headers = new String[]{"Encounter", "Date", "User", "Occurrence", "Individual", "#Images","Match Results by Class"};
+	    String[] headers = new String[]{"Encounter", "Date", "Occurrence", "Individual", "Image File Name", "#Images","Match Results by Class"};
+	    if (adminMode) headers = new String[]{"Encounter", "Date", "User", "Occurrence", "Individual", "Image File Name", "#Images","Match Results by Class"};
 	    for (int i = 0 ; i < headers.length ; i++) {
 	        out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
 	    }
@@ -489,6 +490,17 @@ try{
 	        set.addAll(mas);
 	        mas.clear();
 	        mas.addAll(set);
+
+	        // Issue #1795: original (user-supplied) image file names
+	        List<String> imageFilenames = new ArrayList<String>();
+	        for (String fn : org.ecocean.api.BulkImport.imageFilenames(mas)) {
+	            imageFilenames.add(StringEscapeUtils.escapeHtml4(fn));
+	        }
+	        if (imageFilenames.size() < 1) {
+	            out.println("<td class=\"dim\">-</td>");
+	        } else {
+	            out.println("<td style=\"word-break: break-all;\">" + String.join("<br>", imageFilenames) + "</td>");
+	        }
 	        
 	        
 	        if (Util.collectionSize(mas) < 1) {

@@ -125,6 +125,9 @@ const BulkImportTask = observer(() => {
         individualID: item.individualId || "-",
         individualName: item.individualDisplayName || item.individualId || "-",
         imageCount: item.numberMediaAssets,
+        imageFilenames: Array.isArray(item.mediaAssetFilenames)
+          ? item.mediaAssetFilenames
+          : [],
         class: classArray,
         createdMillis: item.createdMillis || "-",
       };
@@ -201,6 +204,23 @@ const BulkImportTask = observer(() => {
           </a>
         ) : (
           "-"
+        ),
+    },
+    {
+      name: intl.formatMessage({
+        id: "BULK_IMPORT_TASK_IMAGE_FILE_NAME",
+        defaultMessage: "Image File Name",
+      }),
+      selector: (row) => row.imageFilenames.join(", "),
+      cell: (row) =>
+        row.imageFilenames.length === 0 ? (
+          "-"
+        ) : (
+          <div className="d-flex flex-column text-break">
+            {row.imageFilenames.map((filename, index) => (
+              <span key={`${index}-${filename}`}>{filename}</span>
+            ))}
+          </div>
         ),
     },
     {
