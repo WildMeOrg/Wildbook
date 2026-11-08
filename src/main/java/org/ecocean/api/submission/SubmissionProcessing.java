@@ -44,7 +44,7 @@ public class SubmissionProcessing extends SubmissionStore {
         try {
             lock(sh, "submission:" + id); Submission draft = find(sh, "id == :id", id);
             if (draft == null || !context.equals(draft.getContext()) || !"imported".equals(draft.getState())
-                    || !draft.requestsIdentification() || !"complete".equals(draft.getDerivatives()) || !"pending".equals(draft.getAiState())) return;
+                    || !draft.requestsAi() || !"complete".equals(draft.getDerivatives()) || !"pending".equals(draft.getAiState())) return;
             preparing = true; message = preparation.prepare(draft, sh);
             claim = System.currentTimeMillis(); draft.claimAi(claim); commitAttempted = true; commit(sh);
         } catch (Exception ex) {

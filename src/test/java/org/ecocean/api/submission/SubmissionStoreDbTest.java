@@ -181,8 +181,10 @@ class SubmissionStoreDbTest {
         assertEquals(404, assertThrows(SubmissionException.class, () -> store.manifest("context0", "other", id, false)).status);
     }
 
-    private JSONObject readyJob(String owner) {
-        String id = store.create("context0", owner, UUID.randomUUID().toString(), create()).getString("id");
+    private JSONObject readyJob(String owner) { return readyJob(owner, create(), null); }
+    /** As readyJob(owner), with an explicit create body and, when given, the approved report's normalizedRows (bulk-import boxes). */
+    private JSONObject readyJob(String owner, JSONObject createBody, JSONArray normalizedRows) {
+        String id = store.create("context0", owner, UUID.randomUUID().toString(), createBody).getString("id");
         String validation = UUID.randomUUID().toString();
         Shepherd sh = new Shepherd("context0", properties);
         try {
@@ -193,7 +195,9 @@ class SubmissionStoreDbTest {
             javax.jdo.Query<?> query = sh.getPM().newQuery(org.ecocean.submission.Submission.class, "id == :id");
             try {
                 org.ecocean.submission.Submission draft = (org.ecocean.submission.Submission)((java.util.List<?>)query.execute(id)).get(0);
-                draft.setValidation(new JSONObject().put("id", validation).put("valid", true).put("revision", 0).put("configDigest", SubmissionJson.hash(SubmissionJson.canonical(SubmissionValidator.configuration("context0")))).toString(), true);
+                JSONObject approved = new JSONObject().put("id", validation).put("valid", true).put("revision", 0).put("configDigest", SubmissionJson.hash(SubmissionJson.canonical(SubmissionValidator.configuration("context0"))));
+                if (normalizedRows != null) approved.put("normalizedRows", normalizedRows);
+                draft.setValidation(approved.toString(), true);
                 assertTrue(sh.commitDBTransactionWithStatus());
             } finally { query.closeAll(); }
         } finally { sh.rollbackAndClose(); }
@@ -668,4 +672,180 @@ class SubmissionStoreDbTest {
         assertEquals(first.toString(), store.create("context0", owner, "daily-0", create()).toString());
     }
 
+
+    // ---- bulk-import boxes PR E (spec 4.9) ----
+    private static JSONObject createMode(String mode) { return create().put("processing", new JSONObject().put("mode", mode)); }
+    private static JSONArray boxedRows() {
+        return new JSONArray().put(new JSONObject().put("clientRowId", "r").put("fields", new JSONObject()
+            .put("Encounter.mediaAsset0", "a.png").put("Encounter.mediaAsset0.bbox", "0,0,1,1").put("Encounter.mediaAsset0.iaClass", "body")));
+    }
+    // a detached copy whose fields were read inside the transaction
+    private org.ecocean.servlet.importer.ImportTask loadTask(String jobId) {
+        Shepherd sh = new Shepherd("context0", properties);
+        try {
+            sh.beginDBTransaction(); org.ecocean.servlet.importer.ImportTask task = sh.getImportTask(jobId);
+            sh.getPM().retrieve(task); sh.getPM().makeTransient(task); return task;
+        } finally { sh.rollbackAndClose(); }
+    }
+    // a queued job left behind would be claimed by the next realImport's claimNext
+    private void retire(String id) { mutate(id, d -> d.fail("TEST_RETIRED", false)); }
+    private org.ecocean.submission.Submission loadDraft(String id) {
+        Shepherd sh = new Shepherd("context0", properties);
+        try {
+            sh.beginDBTransaction(); javax.jdo.Query<?> query = sh.getPM().newQuery(org.ecocean.submission.Submission.class, "id == :id");
+            try { org.ecocean.submission.Submission d = (org.ecocean.submission.Submission)((java.util.List<?>)query.execute(id)).get(0); sh.getPM().makeTransient(d); return d; }
+            finally { query.closeAll(); }
+        } finally { sh.rollbackAndClose(); }
+    }
+    private String identificationState(String id) {
+        return store.get("context0", "admin", id, true, false).getJSONObject("identification").getString("state");
+    }
+    private String boxedImportedForAi(String mode) {
+        String owner = UUID.randomUUID().toString(); JSONObject ready = readyJob(owner, createMode(mode), boxedRows());
+        enqueue(new SubmissionJobs(() -> new Shepherd("context0", properties)), owner, ready, "boxed-commit");
+        String id = ready.getString("id");
+        mutate(id, draft -> { draft.imported(new JSONObject().put("rows", new JSONArray())
+            .put("records", new JSONObject().put("mediaAssets", new JSONArray().put(42))).toString()); draft.derivatives("complete"); });
+        return id;
+    }
+
+    @Test void enqueueDerivesBoxedFromTheApprovedRows() {
+        for (String mode : new String[]{"import-only", "detect-and-identify"}) {
+            String owner = UUID.randomUUID().toString(); JSONObject ready = readyJob(owner, createMode(mode), boxedRows());
+            JSONObject accepted = enqueue(new SubmissionJobs(() -> new Shepherd("context0", properties)), owner, ready, "boxed");
+            retire(ready.getString("id"));
+            assertTrue(loadDraft(ready.getString("id")).isBoxed(), mode);
+            org.ecocean.servlet.importer.ImportTask task = loadTask(accepted.getString("importTaskId"));
+            assertTrue(task.getPassedParameters().getBoolean("annotationsImported"), mode);
+            assertTrue(task.getPassedParameters().getBoolean("skipDetection"), mode);
+            assertEquals("import-only".equals(mode), task.getPassedParameters().getBoolean("skipIdentification"), mode);
+            assertTrue(task.annotationsImported(), mode); assertTrue(task.skippedDetection(), mode);
+        }
+        String owner = UUID.randomUUID().toString(); JSONObject ready = readyJob(owner); // an older report: no normalizedRows
+        JSONObject accepted = enqueue(new SubmissionJobs(() -> new Shepherd("context0", properties)), owner, ready, "plain");
+        retire(ready.getString("id"));
+        assertFalse(loadDraft(ready.getString("id")).isBoxed());
+        org.ecocean.servlet.importer.ImportTask task = loadTask(accepted.getString("importTaskId"));
+        assertFalse(task.getPassedParameters().getBoolean("annotationsImported"));
+        assertFalse(task.getPassedParameters().getBoolean("skipDetection")); // the implicit create is detect-and-identify
+    }
+
+    @Test void boxedImportOnlyIsPendingAfterReloadAndDispatchesWithIdentificationOff() throws Exception {
+        String id = boxedImportedForAi("import-only");
+        SubmissionProcessing processing = new SubmissionProcessing(() -> new Shepherd("context0", properties));
+        TestPMFUtil.closePMF("context0");
+        assertTrue(processing.pending("context0").contains(id));
+        java.util.concurrent.atomic.AtomicInteger publishes = new java.util.concurrent.atomic.AtomicInteger();
+        processing.dispatch("context0", id, (draft, sh) -> { assertFalse(draft.requestsIdentification()); assertTrue(draft.requestsAi()); return new JSONObject(); },
+            (ctx, msg) -> publishes.incrementAndGet());
+        assertEquals(1, publishes.get());
+        assertEquals("dispatched", identificationState(id));
+        assertEquals("skipped", aiState(id)); // detection: boxes supplied
+        String owner = loadDraft(id).getOwnerId();
+        JSONObject results = new SubmissionJobs(() -> new Shepherd("context0", properties)).results("context0", owner, id, true, 0, 100);
+        assertEquals("dispatched", results.getJSONObject("identification").getString("state"));
+        assertEquals("BOXES_EXTRACTED_ONLY", results.getJSONObject("identification").getString("code"));
+        assertEquals("BOXES_SUPPLIED", results.getJSONObject("detection").getString("code"));
+    }
+
+    @Test void boxedAmbiguousPublicationStaysUnknownWithoutRepublish() throws Exception {
+        String id = boxedImportedForAi("import-only");
+        SubmissionProcessing processing = new SubmissionProcessing(() -> new Shepherd("context0", properties));
+        java.util.concurrent.atomic.AtomicInteger publishes = new java.util.concurrent.atomic.AtomicInteger();
+        assertThrows(java.io.IOException.class, () -> processing.dispatch("context0", id, (draft, sh) -> new JSONObject(),
+            (ctx, msg) -> { publishes.incrementAndGet(); throw new java.io.IOException("uncertain publish"); }));
+        assertEquals("unknown", identificationState(id));
+        JSONObject phase = store.get("context0", "admin", id, true, false).getJSONObject("identification");
+        assertEquals("AI_HANDOFF_UNKNOWN", phase.getString("code"));
+        processing.dispatch("context0", id, (draft, sh) -> new JSONObject(), (ctx, msg) -> publishes.incrementAndGet());
+        assertEquals(1, publishes.get());
+        String owner = loadDraft(id).getOwnerId();
+        assertEquals("AI_HANDOFF_UNKNOWN", new SubmissionJobs(() -> new Shepherd("context0", properties)).results("context0", owner, id, true, 0, 100)
+            .getJSONObject("identification").getString("code"));
+    }
+
+    private void sql(String statement, String... params) throws Exception {
+        try (java.sql.Connection c = java.sql.DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+             java.sql.PreparedStatement ps = c.prepareStatement(statement)) {
+            for (int i = 0; i < params.length; i++) ps.setString(i + 1, params[i]);
+            ps.executeUpdate();
+        }
+    }
+
+    @Test void boxedFlagSurvivesSqlNullAndRoundTrips() throws Exception {
+        String id = store.create("context0", UUID.randomUUID().toString(), UUID.randomUUID().toString(), create()).getString("id");
+        mutate(id, d -> d.boxed(true)); assertTrue(loadDraft(id).isBoxed());
+        TestPMFUtil.closePMF("context0");
+        sql("UPDATE \"SUBMISSION\" SET \"BOXED\" = NULL WHERE \"ID\" = ?", id);
+        assertFalse(loadDraft(id).isBoxed());
+        mutate(id, d -> d.boxed(false)); assertFalse(loadDraft(id).isBoxed());
+    }
+
+    @Test void upgradeAddsTheBoxedColumnToAnOldTableWithRetainedRows() throws Exception {
+        String id = store.create("context0", UUID.randomUUID().toString(), UUID.randomUUID().toString(), create()).getString("id");
+        TestPMFUtil.closePMF("context0");
+        sql("ALTER TABLE \"SUBMISSION\" DROP COLUMN \"BOXED\"");
+        assertFalse(loadDraft(id).isBoxed()); // reopening with current metadata and autoCreateAll adds the column back
+        try (java.sql.Connection c = java.sql.DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+             java.sql.ResultSet r = c.createStatement().executeQuery("SELECT count(*) FROM information_schema.columns WHERE table_name = 'SUBMISSION' AND column_name = 'BOXED'")) {
+            r.next(); assertEquals(1, r.getInt(1));
+        }
+        mutate(id, d -> d.boxed(true)); assertTrue(loadDraft(id).isBoxed());
+    }
+
+    private static void installBoxFixture() {
+        org.ecocean.IAJsonProperties iac = org.ecocean.IAJsonProperties.iaConfig();
+        iac.setJson(new JSONObject().put("Manta", new JSONObject().put("birostris", new JSONObject()
+            .put("body", new JSONObject().put("_id_conf", new JSONArray().put(new JSONObject().put("default", true))))
+            .put("fin", new JSONObject().put("_id_conf", new JSONArray().put(new JSONObject().put("default", false)))))));
+        org.ecocean.TestIAJsonPropertiesUtil.override(iac);
+        Shepherd sh = realShepherd();
+        try { org.ecocean.media.FeatureType.initAll(sh); } finally { sh.closeDBTransaction(); }
+    }
+
+    /** Runs a boxed realImport in the given mode with the given class; returns {id, report, jobId} or the invalid report. */
+    private JSONObject boxedRealImport(String mode, String iaClass, java.nio.file.Path root) throws Exception {
+        String owner = UUID.randomUUID().toString(); String id = readyJob(owner, createMode(mode), null).getString("id");
+        JSONObject report = realImport(owner, id, root, java.util.Arrays.asList(new JSONObject().put("Encounter.mediaAsset0.bbox", "0,0,2,2").put("Encounter.mediaAsset0.iaClass", iaClass)), () -> {});
+        return new JSONObject().put("id", id).put("owner", owner).put("report", report)
+            .put("jobId", store.get("context0", owner, id, false, false).optString("importTaskId", null));
+    }
+
+    @Test void boxedRealImportCreatesTheBoxesInBothModes(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        installBoxFixture();
+        try {
+            int n = 0;
+            for (Object[] c : new Object[][]{{"import-only", "body"}, {"detect-and-identify", "body"}, {"import-only", "fin"}}) {
+                String mode = (String)c[0], cls = (String)c[1];
+                JSONObject run = boxedRealImport(mode, cls, java.nio.file.Files.createDirectory(root.resolve("run" + (n++))));
+                assertTrue(run.getJSONObject("report").getBoolean("valid"), run.toString());
+                String id = run.getString("id");
+                assertEquals("imported", store.get("context0", run.getString("owner"), id, false, false).getString("state"));
+                JSONObject results = new SubmissionJobs(SubmissionStoreDbTest::realShepherd).results("context0", run.getString("owner"), id, false, 0, 100);
+                String encId = results.getJSONArray("rows").getJSONObject(0).getJSONArray("encounterIds").getString(0);
+                Shepherd sh = realShepherd();
+                try {
+                    sh.beginDBTransaction();
+                    org.ecocean.Encounter enc = sh.getEncounter(encId);
+                    java.util.List<org.ecocean.Annotation> boxes = new java.util.ArrayList<>();
+                    for (org.ecocean.Annotation a : enc.getAnnotations()) if (a.isImportedBox()) boxes.add(a);
+                    assertEquals(1, boxes.size(), mode + "/" + cls);
+                    assertEquals(cls, boxes.get(0).getIAClass(), "execute's second validation pass used the same skip flag");
+                    assertEquals(2, boxes.get(0).getFeature().getParameters().getInt("width"));
+                    org.ecocean.servlet.importer.ImportTask task = sh.getImportTask(run.getString("jobId"));
+                    assertEquals("pending-detection", task.getStatus(), mode);
+                    assertTrue(task.annotationsImported()); assertTrue(task.skippedDetection());
+                    assertEquals("import-only".equals(mode), task.getPassedParameters().getBoolean("skipIdentification"));
+                } finally { sh.rollbackAndClose(); }
+            }
+            JSONObject rejected = boxedRealImport("detect-and-identify", "fin", java.nio.file.Files.createDirectory(root.resolve("rejected")));
+            assertFalse(rejected.getJSONObject("report").getBoolean("valid"));
+            assertTrue(rejected.getJSONObject("report").getJSONArray("errors").toString().contains("UNKNOWN_CLASS"));
+            assertTrue(rejected.isNull("jobId") || rejected.optString("jobId", "").isEmpty(), "nothing imported");
+            String owner = UUID.randomUUID().toString(); String plain = readyJob(owner, createMode("import-only"), null).getString("id");
+            realImport(owner, plain, java.nio.file.Files.createDirectory(root.resolve("plain")), java.util.Arrays.asList(new JSONObject()), () -> {});
+            String plainJob = store.get("context0", owner, plain, false, false).getString("importTaskId");
+            assertEquals("complete", loadTask(plainJob).getStatus()); // (regression)
+        } finally { org.ecocean.TestIAJsonPropertiesUtil.override(null); }
+    }
 }

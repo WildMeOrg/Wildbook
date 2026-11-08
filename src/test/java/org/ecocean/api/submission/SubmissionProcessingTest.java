@@ -89,4 +89,78 @@ class SubmissionProcessingTest {
             verify(sh, never()).getPM();
         }
     }
+
+    // ---- bulk-import boxes PR E (spec 4.9): boxed drafts ----
+    static Submission boxedDraft(String mode) {
+        Submission draft = unimported(mode); draft.boxed(true);
+        draft.imported(new JSONObject().put("rows", new JSONArray()).put("records", new JSONObject().put("mediaAssets", new JSONArray().put(42))).toString());
+        return draft;
+    }
+
+    @Test void boxedImportOnlyDraftRequestsAiButNotIdentification() {
+        Submission draft = boxedDraft("import-only");
+        assertTrue(draft.requestsAi()); assertFalse(draft.requestsIdentification());
+        assertEquals("pending", draft.getAiState());
+        JSONObject json = draft.json(false);
+        assertEquals("skipped", json.getJSONObject("detection").getString("state"));
+        assertEquals("BOXES_SUPPLIED", json.getJSONObject("detection").getString("code"));
+        JSONObject id = json.getJSONObject("identification");
+        assertEquals("pending", id.getString("state"));
+        assertEquals("BOXES_EXTRACTED_ONLY", id.getString("code"));
+        assertTrue(id.getString("message").contains("Extraction-only") && id.getString("message").contains("identification is not run"), id.toString());
+        assertEquals("import-only", json.getJSONObject("processing").getString("mode"));
+        draft.claimAi(1); draft.aiState("dispatched");
+        assertEquals("dispatched", draft.identificationPhase().getString("state"));
+        assertEquals("BOXES_EXTRACTED_ONLY", draft.identificationPhase().getString("code"));
+    }
+
+    @Test void boxedDetectAndIdentifyDraftSkipsDetectionOnly() {
+        Submission draft = boxedDraft("detect-and-identify");
+        JSONObject json = draft.json(false);
+        assertEquals("BOXES_SUPPLIED", json.getJSONObject("detection").getString("code"));
+        JSONObject id = json.getJSONObject("identification");
+        assertEquals("pending", id.getString("state")); assertFalse(id.has("code"));
+        assertTrue(id.getString("message").contains("Extraction and identification"), id.toString());
+    }
+
+    @Test void boxedDraftFailuresKeepTheirCodesAndMessages() {
+        for (String mode : new String[]{"import-only", "detect-and-identify"}) {
+            Submission failed = unimported(mode); failed.boxed(true); failed.fail("IMPORT_FAILED", false);
+            JSONObject id = failed.identificationPhase();
+            assertEquals("not_started", id.getString("state"), mode); assertEquals("IMPORT_FAILED", id.getString("code"), mode);
+            assertTrue(id.getString("message").contains("Inspect the import outcome"), id.toString());
+            assertFalse(id.getString("message").toLowerCase().contains("extract"), id.toString());
+            assertEquals("BOXES_SUPPLIED", failed.detectionPhase().getString("code"));
+            Submission uncertain = unimported(mode); uncertain.boxed(true); uncertain.fail("COMMIT_OUTCOME_UNCERTAIN", true);
+            assertEquals("IMPORT_OUTCOME_UNCERTAIN", uncertain.identificationPhase().getString("code"), mode);
+            for (String state : new String[]{"failed", "unknown"}) {
+                Submission handoff = boxedDraft(mode); handoff.aiState(state);
+                JSONObject phase = handoff.identificationPhase();
+                assertEquals(state, phase.getString("state"));
+                assertEquals("unknown".equals(state) ? "AI_HANDOFF_UNKNOWN" : "AI_HANDOFF_FAILED", phase.getString("code"));
+                assertTrue(phase.getString("message").contains("operator inspection"), phase.toString());
+                assertFalse(phase.getString("message").toLowerCase().contains("extract"), phase.toString());
+            }
+        }
+    }
+
+    @Test void unboxedDraftsAreUnchangedByTheBoxViews() {   // (regression)
+        Submission importOnly = draft("import-only");
+        assertFalse(importOnly.isBoxed()); assertFalse(importOnly.requestsAi());
+        assertEquals(importOnly.aiPhase().toString(), importOnly.detectionPhase().toString());
+        assertEquals(importOnly.aiPhase().toString(), importOnly.identificationPhase().toString());
+        assertFalse(importOnly.identificationPhase().has("code"));
+        Submission detect = draft("detect-and-identify");
+        assertEquals("pending", detect.detectionPhase().getString("state"));
+        assertTrue(detect.identificationPhase().getString("message").startsWith("Detection and identification"));
+    }
+
+    @Test void hasBoxesReadsTheApprovedRows() {
+        assertFalse(SubmissionJobs.hasBoxes(null));
+        JSONObject empty = new JSONObject().put("fields", new JSONObject().put("Encounter.mediaAsset0", "a.png").put("Encounter.mediaAsset0.bbox", ""));
+        JSONObject boxed = new JSONObject().put("fields", new JSONObject().put("Encounter.mediaAsset0", "a.png").put("Encounter.mediaAsset0.bbox", "0,0,1,1"));
+        assertFalse(SubmissionJobs.hasBoxes(new JSONArray().put(empty)));
+        assertTrue(SubmissionJobs.hasBoxes(new JSONArray().put(empty).put(boxed)));
+        assertFalse(SubmissionJobs.hasBoxes(new JSONArray().put(new JSONObject().put("fields", new JSONObject().put("Encounter.year", 2020)))));
+    }
 }
