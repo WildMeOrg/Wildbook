@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE jdo PUBLIC "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN" "http://java.sun.com/dtd/jdo_2_0.dtd">
+<jdo>
+  <package name="org.ecocean.auth">
+    <class name="ServiceKey" identity-type="application" table="SERVICE_KEY">
+      <version strategy="version-number" column="LOCK_VERSION"/>
+      <field name="id" primary-key="true"><column name="ID" length="36" allows-null="false"/></field>
+      <field name="organizationId"><column length="36" allows-null="false"/></field>
+      <field name="serviceUserId"><column length="36" allows-null="false"/></field>
+      <field name="label"><column length="255"/></field>
+      <field name="secretHash"><column length="64" allows-null="false"/></field>
+      <field name="scopes"><column length="255" allows-null="false"/></field>
+      <field name="createdAt"/>
+      <field name="createdBy"><column length="36"/></field>
+      <field name="expiresAt"/>
+      <field name="revokedAt"><column name="REVOKEDAT" allows-null="true"/></field>
+      <field name="revokedBy"><column length="36"/></field>
+      <field name="lastUsedAt"><column name="LASTUSEDAT" allows-null="true"/></field>
+      <index name="SERVICE_KEY_ORG_IDX"><field name="organizationId"/></index>
+    </class>
+  </package>
+</jdo>

@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { IntlProvider } from "react-intl";
 import MatchResultsBottomBar from "../../../pages/MatchResultsPage/components/MatchResultsBottomBar";
 
@@ -402,4 +402,45 @@ describe("MatchResultsBottomBar — Cancel button", () => {
     fireEvent.click(screen.getByText("CANCEL"));
     expect(window.close).toHaveBeenCalled();
   });
+});
+
+test("keeps results below the action bar as its height changes and disconnects on unmount", () => {
+  const originalObserver = window.ResizeObserver;
+  let resize;
+  const disconnect = jest.fn();
+  const observe = jest.fn();
+  window.ResizeObserver = jest.fn((callback) => {
+    resize = callback;
+    return { observe, disconnect };
+  });
+  let height = 60;
+  const bounds = jest
+    .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+    .mockImplementation(() => ({ height }));
+
+  try {
+    const { unmount } = renderBar();
+    const spacer = screen.getByTestId("match-results-bottom-bar-spacer");
+    expect(spacer).toHaveStyle({ height: "70px" });
+    expect(observe).toHaveBeenCalledWith(
+      screen.getByTestId("match-results-bottom-bar"),
+    );
+
+    act(() => {
+      height = 164;
+      resize();
+    });
+    expect(spacer).toHaveStyle({ height: "174px" });
+
+    act(() => {
+      height = 60;
+      resize();
+    });
+    expect(spacer).toHaveStyle({ height: "70px" });
+    unmount();
+    expect(disconnect).toHaveBeenCalledTimes(1);
+  } finally {
+    bounds.mockRestore();
+    window.ResizeObserver = originalObserver;
+  }
 });

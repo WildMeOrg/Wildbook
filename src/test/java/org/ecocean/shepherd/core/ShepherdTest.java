@@ -83,6 +83,22 @@ public class ShepherdTest {
         verify(mockPM, times(1)).addInstanceLifecycleListener(any(), isNull());
     }
 
+    @Test public void testRepeatedBeginOnSameShepherdRegistersListenerOnlyOnce() {
+        when(mockTransaction.isActive()).thenReturn(false);
+        Shepherd testShepherd = new Shepherd("testContext");
+        try {
+            testShepherd.beginDBTransaction();
+            testShepherd.beginDBTransaction();
+
+            verify(mockTransaction, times(2)).begin();
+            verify(mockPM, times(1)).addInstanceLifecycleListener(any(), isNull());
+            verify(mockTransaction, times(1)).setSynchronization(
+                any(org.ecocean.IndexingTransactionSynchronization.class));
+        } finally {
+            testShepherd.rollbackAndClose();
+        }
+    }
+
     @Test public void testCommitTransactionWhenActive() {
         when(mockTransaction.isActive()).thenReturn(true);
         Shepherd testShepherd = new Shepherd("testContext");
