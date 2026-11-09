@@ -319,6 +319,9 @@ class BulkBoxImportApiTest {
         assertNotNull(error(res, 0, huge), res.toString());
         res = post(tolerant(payload(fields, row)));
         assertNotNull(error(res, 0, huge), res.toString());
+        // the tolerant import goes ahead without the bad column
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        assertTrue(res.getBoolean("success"), res.toString());
     }
 
     @Test void boxTouchingTheEdgeIsAccepted() throws Exception {
