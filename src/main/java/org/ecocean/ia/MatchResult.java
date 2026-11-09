@@ -18,6 +18,8 @@ import org.json.JSONObject;
 import org.ecocean.api.UploadedFiles;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
+import org.ecocean.IAJsonProperties;
+import org.ecocean.Taxonomy;
 import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
@@ -475,7 +477,9 @@ public class MatchResult implements java.io.Serializable {
         // One IA.json read for endpoint + model id + layer key. A null block
         // means the config is unreadable or absent: skip PairX rather than
         // POST a default model id this deployment may not have loaded.
-        JSONObject pairxConf = _getPairxConfig(enc.getTaxonomyString());
+        String[] matchIdentity = taskMatchIdentity(getTaskParameters());
+        JSONObject pairxConf = _getPairxConfig(enc.getTaxonomyString(), ann1.getIAClass(),
+            matchIdentity[0], matchIdentity[1]);
         if (pairxConf == null) {
             System.out.println(
                 "[WARNING] createInspectionPairxAsset() no MLService config for tx=" +
@@ -651,9 +655,12 @@ public class MatchResult implements java.io.Serializable {
      * once per value per visualisation.
      */
     static JSONObject _getPairxConfig(String txStr) {
+        return _getPairxConfig(txStr, new MLService());
+    }
+
+    private static JSONObject _getPairxConfig(String txStr, MLService mls) {
         if (txStr == null) return null;
         try {
-            MLService mls = new MLService();
             List<JSONObject> confs = mls.getConfigs(txStr);
             if (confs.size() < 1) {
                 System.out.println("[WARNING] _getPairxConfig() empty MLService configs for tx=" +
@@ -665,6 +672,78 @@ public class MatchResult implements java.io.Serializable {
             System.out.println("[WARNING] _getPairxConfig(" + txStr + ") failed: " + ex);
             return null;
         }
+    }
+
+    /**
+     * PairX config for a match whose query annotation has {@code iaClass}
+     * and whose task recorded embedding {@code (method, version)}.
+     * Single-pipeline taxonomies: {@link #_getPairxConfig(String)}, unchanged.
+     * Multi-pipeline (docs/plans/2026-10-16-mlservice-multi-config.md): see
+     * {@link #selectMultiPipelinePairxConfig}.
+     */
+    static JSONObject _getPairxConfig(String txStr, String iaClass, String method,
+        String version) {
+        if (txStr == null) return null;
+        // one IA.json read, shared with the single-pipeline fallback
+        IAJsonProperties iac = IAJsonProperties.iaConfig();
+        Taxonomy taxy = new Taxonomy(txStr);
+        if ((iac == null) || !iac.isMultiPipeline(taxy))
+            return _getPairxConfig(txStr, new MLService(iac));
+        return selectMultiPipelinePairxConfig(iac, taxy, iaClass, method, version);
+    }
+
+    /**
+     * Multi-pipeline PairX config. PairX must explain a match in the
+     * embedding space it was computed in, so when the match's (method,
+     * version) is known, use the config (species entries, then the class's
+     * entries) whose extract_model_id produces it, and if none does, skip
+     * PairX (null) rather than visualise with a different model. Only a
+     * match with no recorded identity falls back to the class's extractor;
+     * a partial one (method without version or vice versa) is skipped too.
+     */
+    static JSONObject selectMultiPipelinePairxConfig(IAJsonProperties iac, Taxonomy taxy,
+        String iaClass, String method, String version) {
+        boolean hasMethod = Util.stringExists(method);
+        boolean hasVersion = Util.stringExists(version);
+        if (hasMethod != hasVersion) {
+            System.out.println("[WARN] MatchResult: partial match identity method=" + method +
+                " version=" + version + " for " + taxy + "; skipping PairX");
+            return null;
+        }
+        if (hasMethod) {
+            List<JSONArray> sources = new ArrayList<JSONArray>();
+            sources.add(iac.getActiveMlServiceConfigs(taxy));
+            sources.add(iac.getMlServiceConfigsForIAClass(taxy, iaClass));
+            for (JSONArray confs : sources) {
+                if (confs == null) continue;
+                for (int i = 0; i < confs.length(); i++) {
+                    JSONObject conf = confs.optJSONObject(i);
+                    String[] id = MlServiceProcessor.extractorIdentity(conf);
+                    if ((id != null) && method.equals(id[0]) && version.equals(id[1]))
+                        return conf;
+                }
+            }
+            System.out.println("[WARN] MatchResult: no ml-service config for " + taxy +
+                " extracts " + method + "-" + version + "; skipping PairX");
+            return null;
+        }
+        return iac.selectExtractionConfig(taxy, iaClass);
+    }
+
+    /**
+     * {@code {method, version}} the match ran in, from the match task
+     * parameters' {@code ibeis.identification} block (the {@code _id_conf}
+     * entry on the legacy path, stamped by MlServiceProcessor on the v2
+     * path); nulls when absent.
+     */
+    static String[] taskMatchIdentity(JSONObject params) {
+        String[] mv = { null, null };
+        JSONObject ident = (params == null) ? null
+            : params.optJSONObject("ibeis.identification");
+        if (ident == null) return mv;
+        mv[0] = ident.optString("method", null);
+        mv[1] = ident.optString("version", null);
+        return mv;
     }
 
     /**
@@ -767,6 +846,11 @@ public class MatchResult implements java.io.Serializable {
     }
 
     public JSONObject prospectsForApiGet(int cutoff, Set<String> projectIds, Shepherd myShepherd) {
+        return prospectsForApiGet(cutoff, projectIds, myShepherd, null);
+    }
+
+    public JSONObject prospectsForApiGet(int cutoff, Set<String> projectIds, Shepherd myShepherd,
+        MatchResultViewer viewer) {
         JSONObject sj = new JSONObject();
 
         // Batch-load every prospect's parent encounter once (was: one findEncounter per prospect per
@@ -787,7 +871,7 @@ public class MatchResult implements java.io.Serializable {
         for (String type : prospectScoreTypes()) {
             JSONArray jarr = new JSONArray();
             for (MatchResultProspect mrp : prospectsSorted(type, cutoff, projectIds, myShepherd)) {
-                jarr.put(mrp.jsonForApiGet(myShepherd, encByAnnId));
+                jarr.put(mrp.jsonForApiGet(myShepherd, encByAnnId, viewer));
             }
             sj.put(type, jarr);
         }
@@ -795,14 +879,19 @@ public class MatchResult implements java.io.Serializable {
     }
 
     public JSONObject jsonForApiGet(int cutoff, Set<String> projectIds, Shepherd myShepherd) {
+        return jsonForApiGet(cutoff, projectIds, myShepherd, null);
+    }
+
+    public JSONObject jsonForApiGet(int cutoff, Set<String> projectIds, Shepherd myShepherd,
+        MatchResultViewer viewer) {
         JSONObject rtn = new JSONObject();
 
         rtn.put("id", id);
-        rtn.put("queryAnnotation", annotationDetails(queryAnnotation, myShepherd));
+        rtn.put("queryAnnotation", annotationDetails(queryAnnotation, myShepherd, null, viewer));
         rtn.put("numberTotalProspects", numberProspects());
         rtn.put("numberCandidates", getNumberCandidates());
         rtn.put("created", Util.millisToISO8601String(created));
-        rtn.put("prospects", prospectsForApiGet(cutoff, projectIds, myShepherd));
+        rtn.put("prospects", prospectsForApiGet(cutoff, projectIds, myShepherd, viewer));
         rtn.put("projectIds", projectIds);
         return rtn;
     }
@@ -859,6 +948,20 @@ public class MatchResult implements java.io.Serializable {
 
     public static JSONObject annotationDetails(Annotation ann, Shepherd myShepherd,
         java.util.Map<String, Encounter> encByAnnId) {
+        return annotationDetails(ann, myShepherd, encByAnnId, null);
+    }
+
+    // last path segment of the user-facing filename, or null; some stores fall back to a URL path
+    static String displayFilename(MediaAsset ma) {
+        String fn = ma.getUserFilename();
+        if (fn == null) return null;
+        fn = fn.substring(Math.max(fn.lastIndexOf('/'), fn.lastIndexOf('\\')) + 1).trim();
+        return fn.isEmpty() ? null : fn;
+    }
+
+    // viewer decides whether each encounter's locationId is included; null viewer -> never
+    public static JSONObject annotationDetails(Annotation ann, Shepherd myShepherd,
+        java.util.Map<String, Encounter> encByAnnId, MatchResultViewer viewer) {
         JSONObject aj = new JSONObject();
 
         if (ann == null) return aj;
@@ -884,6 +987,7 @@ public class MatchResult implements java.io.Serializable {
         if (ma != null) {
             JSONObject mj = ma.toSimpleJSONObject(bestResolutionURL(ma, myShepherd));
             mj.put("rotationInfo", ma.getRotationInfo());
+            mj.put("filename", displayFilename(ma));
             aj.put("asset", mj);
         }
         Encounter enc = resolveEncounter(ann, myShepherd, encByAnnId);
@@ -892,7 +996,10 @@ public class MatchResult implements java.io.Serializable {
             // TODO add "access" permission value if needed?
             ej.put("id", enc.getId());
             ej.put("taxonomy", enc.getTaxonomyString());
-            ej.put("locationId", enc.getLocationID());
+            String date = enc.getDate();
+            if ((date != null) && !date.isEmpty() && !"Unknown".equals(date)) ej.put("date", date);
+            if ((viewer != null) && viewer.canSeeLocation(enc))
+                ej.put("locationId", enc.getLocationID());
             aj.put("encounter", ej);
             MarkedIndividual indiv = enc.getIndividual();
             if (indiv != null) {

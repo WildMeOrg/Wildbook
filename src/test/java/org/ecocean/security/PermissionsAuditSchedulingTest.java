@@ -1,0 +1,264 @@
+package org.ecocean.security;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.jdo.PersistenceManager;
+import org.ecocean.OpenSearch;
+import org.ecocean.SystemValue;
+import org.ecocean.security.PermissionsAudit.Result;
+import org.ecocean.shepherd.core.Shepherd;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+
+/**
+ * The permissions audit is scheduled, not signalled: it runs on a fixed delay after each
+ * completion, sooner after an incomplete run (bounded), only in the JVM configured as the runner,
+ * and its executor stops on undeploy. Nothing is acknowledged; the last-run timestamp is for the log.
+ */
+class PermissionsAuditSchedulingTest {
+    @AfterEach void tearDown() {
+        OpenSearch.BACKGROUND_PERMISSIONS_RUNNER = true;
+        OpenSearch.shutdownBackground();
+    }
+
+    @Test void completedAuditWaitsTheNormalDelay() {
+        assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_MINUTES,
+            OpenSearch.nextPermissionsDelayMinutes(true, 0));
+        assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_MINUTES,
+            OpenSearch.nextPermissionsDelayMinutes(true, 7), "a completion resets the streak");
+    }
+
+    @Test void incompleteAuditRetriesSoonerButNotForever() {
+        for (int streak = 1; streak <= 4; streak++) {
+            assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_RETRY_MINUTES,
+                OpenSearch.nextPermissionsDelayMinutes(false, streak), "streak " + streak);
+        }
+        assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_MINUTES,
+            OpenSearch.nextPermissionsDelayMinutes(false, 5),
+            "five incomplete audits in a row fall back to the normal delay (no tight loop)");
+        assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_MINUTES,
+            OpenSearch.nextPermissionsDelayMinutes(false, 12));
+    }
+
+    @Test void runStampsTheTimestampWhateverTheOutcomeAndReportsCompletion() {
+        for (boolean completed : new boolean[] { true, false }) {
+            final Result result = new Result();
+            result.completed = completed;
+            try (MockedStatic<PermissionsAudit> audit = mockStatic(PermissionsAudit.class);
+                MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                    PersistenceManager pm = mock(PersistenceManager.class);
+                    when(mock.getPM()).thenReturn(pm);
+                })) {
+                audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result);
+
+                boolean rtn = OpenSearch.runPermissionsAudit("context0");
+
+                assertEquals(completed, rtn);
+                audit.verify(() -> PermissionsAudit.run(anyString(), any()));
+                assertEquals(1, shepherds.constructed().size(), "one short transaction for the stamp");
+                verify(shepherds.constructed().get(0).getPM()).makePersistent(any(SystemValue.class));
+            }
+        }
+    }
+
+    private static Result result(boolean completed) {
+        Result r = new Result();
+        r.completed = completed;
+        return r;
+    }
+
+    @Test void auditThatThrowsCountsAsIncomplete() {
+        try (MockedStatic<PermissionsAudit> audit = mockStatic(PermissionsAudit.class);
+            MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                when(mock.getPM()).thenReturn(mock(PersistenceManager.class));
+            })) {
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenThrow(new RuntimeException("boom"));
+            int delay = OpenSearch.permissionsAuditTick("context0");
+            assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_RETRY_MINUTES, delay, "an exception is an incomplete audit");
+            assertEquals(1, OpenSearch.permissionsIncompleteStreak());
+        }
+    }
+
+    @Test void tickTracksTheStreakAndACompletionResetsIt() {
+        try (MockedStatic<PermissionsAudit> audit = mockStatic(PermissionsAudit.class);
+            MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                when(mock.getPM()).thenReturn(mock(PersistenceManager.class));
+            })) {
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result(false));
+            assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_RETRY_MINUTES, OpenSearch.permissionsAuditTick("context0"));
+            assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_RETRY_MINUTES, OpenSearch.permissionsAuditTick("context0"));
+            assertEquals(2, OpenSearch.permissionsIncompleteStreak());
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result(true));
+            assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_MINUTES, OpenSearch.permissionsAuditTick("context0"));
+            assertEquals(0, OpenSearch.permissionsIncompleteStreak());
+        }
+    }
+
+    @Test void startingTheSchedulerTwiceSchedulesOneChain() {
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        assertFalse(OpenSearch.startPermissionsAuditScheduler("context0"), "already scheduled on this executor");
+        ScheduledThreadPoolExecutor exec = (ScheduledThreadPoolExecutor)OpenSearch.backgroundExecutor();
+        assertEquals(1, exec.getQueue().size(), "one pending audit, not two chains");
+    }
+
+    @Test void shutdownResetsTheStreakAndAllowsAFreshChain() {
+        try (MockedStatic<PermissionsAudit> audit = mockStatic(PermissionsAudit.class);
+            MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                when(mock.getPM()).thenReturn(mock(PersistenceManager.class));
+            })) {
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result(false));
+            OpenSearch.permissionsAuditTick("context0");
+            assertEquals(1, OpenSearch.permissionsIncompleteStreak());
+        }
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        OpenSearch.shutdownBackground();
+        assertEquals(0, OpenSearch.permissionsIncompleteStreak(), "a redeploy starts from a clean streak");
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"), "and may schedule a chain again");
+    }
+
+    @Test void deadExecutorWithAStaleChainGuardIsRecoveredByTheNextStart() {
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        OpenSearch.backgroundExecutor().shutdownNow(); // died without shutdownBackground()
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"),
+            "a fresh executor gets a fresh chain although the old guard was left set");
+        assertEquals(1, ((ScheduledThreadPoolExecutor)OpenSearch.backgroundExecutor()).getQueue().size());
+    }
+
+    @Test void retiringTickDoesNotTouchTheReplacementStreak() {
+        long old = OpenSearch.backgroundGeneration();
+        OpenSearch.shutdownBackground(); // a new generation from here on
+        try (MockedStatic<PermissionsAudit> audit = mockStatic(PermissionsAudit.class);
+            MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                when(mock.getPM()).thenReturn(mock(PersistenceManager.class));
+            })) {
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result(false));
+            OpenSearch.permissionsAuditTick("context0", old);
+            assertEquals(0, OpenSearch.permissionsIncompleteStreak(), "a tick from a retired executor is ignored");
+            OpenSearch.permissionsAuditTick("context0", OpenSearch.backgroundGeneration());
+            assertEquals(1, OpenSearch.permissionsIncompleteStreak());
+        }
+    }
+
+    @Test void shutdownInterruptsAnActiveBackgroundTask() throws Exception {
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        final CountDownLatch running = new CountDownLatch(1);
+        final AtomicBoolean interrupted = new AtomicBoolean(false);
+        OpenSearch.backgroundExecutor().submit(() -> {
+            running.countDown();
+            try {
+                Thread.sleep(60000);
+            } catch (InterruptedException ie) {
+                interrupted.set(true);
+            }
+        });
+        assertTrue(running.await(5, TimeUnit.SECONDS));
+        OpenSearch.shutdownBackground();
+        assertTrue(interrupted.get(), "undeploy interrupts what is running");
+        assertTrue(OpenSearch.backgroundExecutor() == null);
+    }
+
+    @Test void reArmSchedulesTheNextTickOnlyForTheCurrentGeneration() {
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        ScheduledThreadPoolExecutor exec = (ScheduledThreadPoolExecutor)OpenSearch.backgroundExecutor();
+        assertEquals(1, exec.getQueue().size());
+        long generation = OpenSearch.backgroundGeneration();
+
+        OpenSearch.rearmPermissionsAudit("context0", exec, generation, 7); // what a finished tick does
+        assertEquals(2, exec.getQueue().size(), "the chain continues with the tick's delay");
+        long maxDelayMinutes = 0;
+        for (Runnable r : exec.getQueue()) {
+            long d = ((java.util.concurrent.Delayed)r).getDelay(TimeUnit.MINUTES);
+            if (d > maxDelayMinutes) maxDelayMinutes = d;
+        }
+        assertTrue(maxDelayMinutes >= 6, "re-armed with the delay the tick chose");
+
+        OpenSearch.rearmPermissionsAudit("context0", exec, generation - 1, 7); // a retired tick
+        assertEquals(2, exec.getQueue().size(), "a retired generation does not re-arm");
+    }
+
+    /** The task the executor would run, run here on the mocking thread. */
+    private static Runnable scheduledTask(ScheduledThreadPoolExecutor exec, long minDelayMinutes) {
+        for (Runnable r : exec.getQueue()) {
+            if (((java.util.concurrent.Delayed)r).getDelay(TimeUnit.MINUTES) >= minDelayMinutes) return r;
+        }
+        return null;
+    }
+
+    @Test void theScheduledTaskTicksChoosesItsDelayAndReArmsItself() {
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        ScheduledThreadPoolExecutor exec = (ScheduledThreadPoolExecutor)OpenSearch.backgroundExecutor();
+        Runnable first = scheduledTask(exec, 0);
+        assertNotNull(first);
+        try (MockedStatic<PermissionsAudit> audit = mockStatic(PermissionsAudit.class);
+            MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                when(mock.getPM()).thenReturn(mock(PersistenceManager.class));
+            })) {
+            // an incomplete audit: the task must re-arm itself with the retry delay
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result(false));
+            first.run();
+            assertEquals(1, OpenSearch.permissionsIncompleteStreak());
+            Runnable retry = null;
+            for (Runnable r : exec.getQueue()) {
+                long d = ((java.util.concurrent.Delayed)r).getDelay(TimeUnit.SECONDS);
+                if ((r != first) && (d > 60) && (d <= OpenSearch.BACKGROUND_PERMISSIONS_RETRY_MINUTES * 60L)) retry = r;
+            }
+            assertNotNull(retry, "re-armed with the retry delay: " + exec.getQueue());
+            // a completed audit: the streak resets and the normal delay is chosen
+            audit.when(() -> PermissionsAudit.run(anyString(), any())).thenReturn(result(true));
+            retry.run();
+            assertEquals(0, OpenSearch.permissionsIncompleteStreak());
+            boolean normal = false;
+            for (Runnable r : exec.getQueue()) {
+                long d = ((java.util.concurrent.Delayed)r).getDelay(TimeUnit.SECONDS);
+                if ((r != first) && (r != retry) && (d > OpenSearch.BACKGROUND_PERMISSIONS_RETRY_MINUTES * 60L)) normal = true;
+            }
+            assertTrue(normal, "re-armed with the normal delay: " + exec.getQueue());
+        }
+    }
+
+    @Test void configComesFromTheBackgroundProperties() {
+        PermissionsAudit.Config c = OpenSearch.permissionsAuditConfig();
+        assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_PAGE_SIZE, c.pageSize);
+        assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_MAX_REPAIRS, c.repairCap);
+        assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_MAX_REBUILDS, c.rebuildCap);
+        assertEquals(OpenSearch.BACKGROUND_PERMISSIONS_SCROLL_KEEP_ALIVE, c.keepAlive);
+    }
+
+    @Test void schedulerStartsOnlyInTheDesignatedRunner() {
+        OpenSearch.BACKGROUND_PERMISSIONS_RUNNER = false;
+        assertFalse(OpenSearch.startPermissionsAuditScheduler("context0"),
+            "a JVM that is not the runner never audits");
+        OpenSearch.BACKGROUND_PERMISSIONS_RUNNER = true;
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        ScheduledExecutorService exec = OpenSearch.backgroundExecutor();
+        assertNotNull(exec);
+        assertFalse(exec.isShutdown());
+    }
+
+    @Test void shutdownStopsTheExecutorAndAFreshStartGetsANewOne() {
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"));
+        ScheduledExecutorService first = OpenSearch.backgroundExecutor();
+        OpenSearch.shutdownBackground();
+        assertTrue(first.isShutdown(), "undeploy stops the scheduler");
+        assertTrue(OpenSearch.startPermissionsAuditScheduler("context0"), "a redeploy starts a fresh one");
+        assertFalse(OpenSearch.backgroundExecutor().isShutdown());
+        assertTrue(first != OpenSearch.backgroundExecutor());
+    }
+}
