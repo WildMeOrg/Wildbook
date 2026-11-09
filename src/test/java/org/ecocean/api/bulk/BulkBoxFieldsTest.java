@@ -42,6 +42,25 @@ class BulkBoxFieldsTest {
         assertEquals(fieldName, ex.getErrors().getJSONObject(0).getString("fieldName"), fieldName + " = " + value);
     }
 
+    @Test void numberedColumnsStopAtTheMaximumIndex() throws Exception {
+        assertEquals(199, BulkValidator.indexIntValue("Encounter.mediaAsset199"));
+        assertEquals(199, BulkValidator.indexIntValue("Encounter.mediaAsset199.bbox"));
+        for (String tooBig : new String[] { "Encounter.mediaAsset200", "Encounter.mediaAsset99999.bbox",
+            "Encounter.mediaAsset99999999999", "Encounter.keyword250" }) {
+            BulkValidatorException ex = assertThrows(BulkValidatorException.class,
+                () -> BulkValidator.indexIntValue(tooBig), tooBig);
+            assertEquals(BulkValidatorException.TYPE_INVALID_VALUE, ex.getType(), tooBig);
+            assertTrue(ex.getMessage().contains("above the maximum of 199"), ex.getMessage());
+            // an invalid value is an error, not a skipped unknown column
+            assertTrue(!ex.treatAsWarning(true), tooBig);
+        }
+        // a too-big column is left out instead of padding the list to its index
+        List<String> found = BulkImportUtil.findIndexedFieldNames(new java.util.HashSet<>(Arrays.asList(
+            "Encounter.mediaAsset0", "Encounter.mediaAsset99999", "Encounter.mediaAsset99999.bbox")),
+            "Encounter.mediaAsset");
+        assertEquals(Arrays.asList("Encounter.mediaAsset0"), found);
+    }
+
     @Test void bboxParsesTrimsAndCanonicalizes() throws Exception {
         assertEquals("10,20,300,400", BulkValidator.validateValue("Encounter.mediaAsset0.bbox", " 10, 20 ,300,400 ", sh));
         assertEquals("0,0,1,1", BulkValidator.validateValue("Encounter.mediaAsset3.bbox", "0,0,1,1", sh));
