@@ -72,6 +72,13 @@ public class Shepherd {
     private String action = "undefined";
     private String shepherdID = "";
 
+    // The PersistenceManager this Shepherd has already registered its WildbookLifecycleListener and
+    // indexing Synchronization on. Compared by identity: beginDBTransaction() runs again on every
+    // updateDBTransaction() (= commit + begin) and used to add ANOTHER listener each time, so one
+    // store event fanned out to N duplicate callbacks. A brand-new pm (pm was null/closed) does not
+    // match and gets registered once.
+    private PersistenceManager listenerRegisteredOn = null;
+
     // Constructor to create a new shepherd thread object
     public Shepherd(String context) { this(context, null); }
 
@@ -1147,15 +1154,19 @@ public class Shepherd {
     public User getUser(String username) {
         if (username == null) return null;
         User user = null;
-        String filter = "SELECT FROM org.ecocean.User WHERE username == \"" + username.trim() +
-            "\"";
-        Query query = getPM().newQuery(filter);
-        Collection c = (Collection)(query.execute());
-        Iterator it = c.iterator();
-        if (it.hasNext()) {
-            user = (User)it.next();
+        // parameterized (not a string-built literal): a quote or backslash in a username must
+        // resolve, not throw -- this runs inside every encounter/annotation/individual index write
+        Query query = getPM().newQuery(User.class);
+        try {
+            query.setFilter("username == :u");
+            Collection c = (Collection)query.execute(username.trim());
+            Iterator it = c.iterator();
+            if (it.hasNext()) {
+                user = (User)it.next();
+            }
+        } finally {
+            query.closeAll();
         }
-        query.closeAll();
         return user;
     }
 
@@ -2456,6 +2467,22 @@ public class Shepherd {
         return al;
     }
 
+    /**
+     * Like getAllOrganizations(), but a datastore failure propagates as a JDOException instead
+     * of being swallowed into an empty list. For writers (the OpenSearch permissions pass) that
+     * must never mistake a failed read for an empty catalog.
+     */
+    public List<Organization> getAllOrganizationsStrict() {
+        Query q = pm.newQuery(pm.getExtent(Organization.class, true));
+
+        try {
+            q.setOrdering("name ascending");
+            return new ArrayList<Organization>((Collection)q.execute());
+        } finally {
+            q.closeAll();
+        }
+    }
+
     public List getPairs(Query query, int pageSize) {
         Collection c;
 
@@ -3484,21 +3511,47 @@ public class Shepherd {
     public void beginDBTransaction() {
         // PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
         try {
-            if (pm == null || pm.isClosed()) {
+            if (pm == null || pm.isClosed())
                 pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
-                pm.currentTransaction().begin();
-            } else if (!pm.currentTransaction().isActive()) {
-                pm.currentTransaction().begin();
+            if (pm == null) {
+                System.out.println(
+                    "Shepherd.beginDBTransaction(): could not obtain a PersistenceManager");
+                return; // nothing began; do not record a "begin" state for it
             }
+            listenerRegisteredOn = prepareAndBeginTransaction(pm, listenerRegisteredOn);
             ShepherdState.setShepherdState(action + "_" + shepherdID, "begin");
-
-            pm.addInstanceLifecycleListener(new WildbookLifecycleListener(), null);
         } catch (JDOUserException jdoe) {
             jdoe.printStackTrace();
         } catch (NullPointerException npe) {
             npe.printStackTrace();
         }
         // pmf=null;
+    }
+
+    /*
+     * Register the store listener and the indexing Synchronization (once per PersistenceManager),
+     * make sure the deferred-indexing park is in place, and only THEN activate the transaction.
+     * The order is the contract: a store callback can only fire once the transaction is active,
+     * and by then it needs both the listener and a live park already there.
+     *
+     * The Synchronization is what releases parked reindex requests when the transaction completes
+     * -- it is registered on the transaction itself, so commit/rollback/close here need not know
+     * about it (and a raw pm.currentTransaction().commit() is covered too).
+     *
+     * Package-private and static so the ordering can be asserted against a mock PersistenceManager
+     * without standing up a datastore. Returns the pm the registrations now belong to.
+     */
+    static PersistenceManager prepareAndBeginTransaction(PersistenceManager pm,
+        PersistenceManager listenerRegisteredOn) {
+        if (pm == null) return listenerRegisteredOn;
+        if (listenerRegisteredOn != pm) {
+            pm.addInstanceLifecycleListener(new WildbookLifecycleListener(), null);
+            IndexingManager.registerSynchronization(pm);
+            listenerRegisteredOn = pm;
+        }
+        IndexingManager.installPendingBucket(pm);
+        if (!pm.currentTransaction().isActive()) pm.currentTransaction().begin();
+        return listenerRegisteredOn;
     }
 
     public boolean isDBTransactionActive() {
