@@ -29,4 +29,11 @@ class BulkKeywordLengthTest {
         assertThrows(BulkValidatorException.class,
                 () -> BulkValidator.validateValue("Encounter.mediaAsset0.keywords", kw, null));
     }
+
+    @Test
+    void mediaAssetKeywordsAreCheckedIndividually() throws Exception {
+        String keywords = repeat(200) + "_" + repeat(200);
+        assertEquals(keywords,
+                BulkValidator.validateValue("Encounter.mediaAsset0.keywords", keywords, null));
+    }
 }
