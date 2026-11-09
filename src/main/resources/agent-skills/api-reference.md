@@ -60,6 +60,13 @@ Authorization: Bearer wbsvc_<id>.<secret>
 A `403` means this key is not allowed that scope, or that submission writing is not turned on for the
 organization's account. Tell the operator.
 
+Records a service key submits belong to the organization's service account, which ordinary members
+cannot see. To credit the person who collected them, name that person once per draft with
+`onBehalfOf` (see the submit-sightings skill): the exact username of a direct member of the key's
+organization, or `public`. A named member, admins and orgAdmins included, then owns the records and
+the import as if they had uploaded them, so their collaborators and their organizations' orgAdmins
+get the usual access. `public` makes the records readable by anyone and editable by any logged-in user.
+
 If the trade fails with 401, the `error` message says why:
 
 | Message | What it means and what to do |

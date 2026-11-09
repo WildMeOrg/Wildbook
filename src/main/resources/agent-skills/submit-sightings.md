@@ -133,6 +133,37 @@ The mode is fixed at creation, and this API has no "start AI later" or AI retry
 operation for an existing submission. Retry with the saved original create body and
 key; do not change mode or make another batch to force matching.
 
+#### Crediting the person who collected the sightings (organization service keys only)
+
+In Wildbook, the account that owns a record decides who can see and edit it. With an
+organization service key, records are owned by the organization's service account unless you
+name the collector when you create the draft:
+
+```jsonc
+{
+  "contractVersion": "1",
+  "source": {"name": "field-survey-integration"},
+  "onBehalfOf": "jdoe"
+}
+```
+
+- `onBehalfOf` is either the exact Wildbook username of a person who is a direct member of the
+  key's organization, or exactly `public`. Use the username the person or the operator gives
+  you; never guess one. Nothing else is accepted, and no account is ever created for a name.
+- It applies to every row of the draft and cannot be changed afterwards. If one batch holds
+  sightings from several collectors, make one draft per collector.
+- A named member then owns the encounters, the new sighting and the import task, exactly as if
+  they had uploaded them. They, their collaborators and the organization's administrators can
+  see and edit them.
+- `public` makes the records open to everyone: anyone can view them, including people who are
+  not logged in, any logged-in user can edit them or delete the whole import, and other
+  organizations' keys can find them and fetch their images. Use it only when the person
+  confirms the data is meant to be public.
+- Only a service key may send `onBehalfOf`. An ordinary account's draft is refused with HTTP 403
+  `ATTRIBUTION_NOT_ALLOWED`.
+- After a member is named, the service key itself usually can no longer see those records in
+  search. The submission's results still list their IDs for the key that sent them.
+
 Upgrade note: existing submissions retain their saved mode, including older
 omitted-mode submissions normalized to import-only. Retrying an existing create
 without a mode uses its saved mode; it does not upgrade that submission. New
@@ -203,7 +234,8 @@ Each image must be used in only one row and only one slot. All photos for the sa
 new encounter belong in that one row. Do not create duplicate rows for its photos.
 The per-encounter image limit from capabilities can be lower than 200.
 
-Do not send legacy fields such as `Encounter.submitterID`, `Encounter.id`,
+Do not send legacy fields such as `Encounter.submitterID` (to credit a collector, use
+`onBehalfOf` when creating the draft), `Encounter.id`,
 `Encounter.catalogNumber`, `Encounter.individualID`, `Encounter.otherCatalogNumbers`,
 `Encounter.latitude`, `Encounter.longitude`, timestamp/millisecond fields, project,
 keyword, measurement, `Sighting.*` or `MarkedIndividual.*` fields. They are not
@@ -298,6 +330,10 @@ POST `/api/v3/submissions/{id}/validate` with `{}` and the current If-Match.
 HTTP 200 means a validation report was produced, not that the data passed. Check
 `valid`, `errors`, `warnings`, `normalizedRows`, `revision`, `effectiveOwnerId`, and
 `processing`. Save the report's `id` as the `validationId` for commit.
+`effectiveOwnerId` is who will own the records: the named member's user ID, `public`, or
+otherwise the account that sent the draft. `draftOwnerId` is always the sending account. For a
+draft with `onBehalfOf`, `effectiveOwner` gives the resolved `username`, `userId` and
+`organizationId` (the IDs are `null` for `public`); confirm it is the intended person.
 
 An illustrative excerpt of a failed report is:
 
@@ -368,7 +404,8 @@ Concrete failure examples and corrections (assume other fields are valid):
 | no image reference | `REQUIRED_VALUE` on `Encounter.mediaAsset0` | Upload and reference at least one authorized photo. |
 | same image in two slots or rows | `DUPLICATE_MEDIA` | Put each uploaded image in exactly one slot in one row. |
 | too many images in one row | `LIMIT_EXCEEDED` | Respect maxMediaPerEncounter; do not split one observation into fabricated encounters to bypass it. |
-| `Encounter.submitterID`, `Encounter.otherCatalogNumbers`, or another unsupported field | `UNSUPPORTED_FIELD` | Use the supported contract; the authenticated account determines ownership. |
+| `Encounter.submitterID`, `Encounter.otherCatalogNumbers`, or another unsupported field | `UNSUPPORTED_FIELD` | Use the supported contract. To credit the collector with a service key, use `onBehalfOf` when creating the draft. |
+| `onBehalfOf` names someone who is not a direct member of the key's organization, a misspelled or differently capitalized username, or anything other than exactly `public` | `SUBMITTER_NOT_ALLOWED` on `onBehalfOf` | Ask the person for the collector's exact username. `onBehalfOf` cannot be changed, so create a new draft with the corrected name. |
 | `Encounter.sightingID` already used by a sighting in this Wildbook | `SIGHTING_EXISTS` on `Encounter.sightingID` | Ask the person. Existing sightings cannot be added to through this API; do not invent a different ID. |
 | `Encounter.sightingID` `"herd 12"`, or a number instead of a string | `INVALID_VALUE` (`INVALID`) on `Encounter.sightingID` | Report the source ID to the person; do not alter it to pass validation. |
 
@@ -384,6 +421,10 @@ the API does not overwrite or individually delete completed uploads. Keep within
 the total draft byte budget. Review normalized data, effective ownership, and the validation report
 `processing.mode` before commit; the mode must match the intended request. A valid report applies to that input revision. Commit checks the recorded
 location/media-policy digest; execution revalidates all rows and current eligibility.
+If the named collector has left the organization, or the username now belongs to someone else,
+commit returns HTTP 409 `VALIDATION_STALE`, or a queued import ends `failed` with that code and
+imports nothing. If the key's account is no longer a service account, the code is
+`ATTRIBUTION_NOT_ALLOWED`.
 Taxonomy/life-stage/living-status changes can therefore cause execution to fail
 after queue acceptance, rather than yielding a commit-time conflict.
 
