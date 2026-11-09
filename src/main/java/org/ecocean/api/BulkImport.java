@@ -1066,6 +1066,30 @@ public class BulkImport extends ApiBase {
         } catch (java.io.FileNotFoundException ex) {}
     }
 
+    /**
+     * Original (user-supplied) file names of the given assets, in order, for display
+     * on the bulk import task pages (issue #1795). An asset whose name cannot be
+     * resolved (e.g. a legacy asset with a missing or invalid path) is skipped, so one
+     * bad asset never breaks the whole task view.
+     */
+    public static List<String> imageFilenames(List<MediaAsset> assets) {
+        List<String> names = new ArrayList<String>();
+
+        if (assets == null) return names;
+        for (MediaAsset ma : assets) {
+            if (ma == null) continue;
+            try {
+                String fn = ma.getUserFilename();
+                if (Util.stringExists(fn)) names.add(fn);
+            } catch (RuntimeException ex) {
+                // log the id only: MediaAsset.toString() can throw on the same bad data
+                System.out.println("[WARNING] BulkImport.imageFilenames() skipping MediaAsset " +
+                    ma.getIdInt() + ": " + ex);
+            }
+        }
+        return names;
+    }
+
     private static JSONObject taskJson(ImportTask task, boolean detailed, Shepherd myShepherd) {
         JSONObject jt = new JSONObject();
 
@@ -1123,8 +1147,10 @@ public class BulkImport extends ApiBase {
                     // annotation count. numAnnotations can inflate post-
                     // detection (multiple objects per image) and is zero
                     // pre-detection, neither of which match user expectation.
-                    encj.put("numberMediaAssets",
-                        enc.getMedia() == null ? 0 : enc.getMedia().size());
+                    List<MediaAsset> encMedia = enc.getMedia();
+                    encj.put("numberMediaAssets", encMedia.size());
+                    // Issue #1795: lets the task page show which image(s) each encounter came from
+                    encj.put("mediaAssetFilenames", new JSONArray(imageFilenames(encMedia)));
                     User sub = enc.getSubmitterUser(myShepherd);
                     if (sub != null)
                         encj.put("submitter", sub.infoJSONObject(myShepherd));
