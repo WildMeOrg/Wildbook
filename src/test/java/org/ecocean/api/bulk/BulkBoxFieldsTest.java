@@ -59,6 +59,9 @@ class BulkBoxFieldsTest {
             "Encounter.mediaAsset0", "Encounter.mediaAsset99999", "Encounter.mediaAsset99999.bbox")),
             "Encounter.mediaAsset");
         assertEquals(Arrays.asList("Encounter.mediaAsset0"), found);
+        found = BulkImportUtil.findIndexedFieldNames(new java.util.HashSet<>(Arrays.asList(
+            "Encounter.mediaAsset1.bbox", "Encounter.mediaAsset99999.bbox")), "Encounter.mediaAsset.bbox");
+        assertEquals(Arrays.asList(null, "Encounter.mediaAsset1.bbox"), found);
     }
 
     @Test void bboxParsesTrimsAndCanonicalizes() throws Exception {
