@@ -134,7 +134,7 @@ public final class ServiceKeyAuth {
     }
 
     /** Ids of the organizations {@code userId} is a direct member of, read from the datastore (no cache). */
-    static Set<String> directOrganizationIds(PersistenceManager pm, String userId) {
+    public static Set<String> directOrganizationIds(PersistenceManager pm, String userId) {
         Set<String> ids = new LinkedHashSet<>();
         if (userId == null) return ids;
         JDOConnection connection = pm.getDataStoreConnection();
@@ -167,7 +167,7 @@ public final class ServiceKeyAuth {
 
     /** Loads one object by a single-parameter filter, bypassing caches, then reloads its state from the datastore. */
     @SuppressWarnings("unchecked")
-    private static <T> T fresh(PersistenceManager pm, Class<T> cls, String filter, String value) {
+    public static <T> T fresh(PersistenceManager pm, Class<T> cls, String filter, String value) {
         if (value == null) return null;
         Query<T> query = pm.newQuery(cls, filter);
         try {

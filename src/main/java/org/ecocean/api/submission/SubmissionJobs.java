@@ -52,13 +52,27 @@ public class SubmissionJobs extends SubmissionStore {
             } finally { jobs.closeAll(); }
             User owner = sh.getUserByUUID(draft.getOwnerId());
             if (owner == null || !SubmissionPolicy.enrolled(context, draft.getOwnerId())) throw new SubmissionException(403, "ACCESS_DENIED", "Owner is not eligible");
+            // the named collector must still resolve to the approved one; a member owns the import
+            User creator = owner;
+            if (SubmissionAttribution.requested(draft) != null) {
+                JSONObject collector = SubmissionAttribution.resolve(sh, draft);
+                JSONObject approvedOwner = approved.optJSONObject("effectiveOwner");
+                if (collector == null || approvedOwner == null
+                        || !SubmissionJson.canonical(collector).equals(SubmissionJson.canonical(approvedOwner)))
+                    throw new SubmissionException(409, "VALIDATION_STALE", "The named collector changed; validate again");
+                if (!collector.isNull("userId")) {
+                    creator = sh.getUserByUUID(collector.getString("userId"));
+                    if (creator == null) throw new SubmissionException(409, "VALIDATION_STALE", "The named collector changed; validate again");
+                }
+            }
             String job = UUID.randomUUID().toString();
             JSONObject accepted = new JSONObject().put("submissionId", id).put("operationId", job).put("importTaskId", job)
                 .put("revision", revision).put("acceptedRevision", revision).put("state", "queued").put("statusUrl", "/api/v3/submissions/" + id);
             // bulk-import boxes (spec 4.9): a boxed draft never detects; its boxes are extracted and identified unless import-only
             boolean boxed = hasBoxes(approved.optJSONArray("normalizedRows"));
             draft.boxed(boxed);
-            ImportTask task = new ImportTask(owner, job); task.setStatus("queued"); task.setProcessingProgress(0.0D);
+            ImportTask task = new ImportTask(creator, job); task.setStatus("queued"); task.setProcessingProgress(0.0D);
+            task.setEncounters(new ArrayList<>()); // readable and deletable before (or without) an import
             task.setPassedParameters(new JSONObject().put("submissionId", id).put("processing", draft.getProcessingMode())
                 .put("skipDetection", !draft.requestsIdentification() || boxed).put("skipIdentification", !draft.requestsIdentification())
                 .put(ImportTask.PARAM_ANNOTATIONS_IMPORTED, boxed));
@@ -133,9 +147,11 @@ public class SubmissionJobs extends SubmissionStore {
             Submission draft = owned(sh, context, actor, id, admin);
             JSONArray all = draft.getResultJson() == null ? new JSONArray() : new JSONObject(draft.getResultJson()).getJSONArray("rows");
             User user = sh.getUserByUUID(actor);
+            boolean receipt = SubmissionAttribution.requested(draft) != null && actor.equals(draft.getOwnerId());
             JSONArray rows = new JSONArray();
             for (int i = offset; i < Math.min(all.length(), (long)offset + limit); i++) {
-                JSONObject row = all.getJSONObject(i); boolean visible = admin;
+                // the account that sent an attributed submission keeps its receipt of the IDs it created
+                JSONObject row = all.getJSONObject(i); boolean visible = admin || receipt;
                 if (!visible && user != null) {
                     visible = true; JSONArray ids = row.getJSONArray("encounterIds");
                     for (int n = 0; n < ids.length(); n++) {

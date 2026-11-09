@@ -126,6 +126,9 @@ public class Submissions extends ApiBase {
                 .put("indexedQuality", "Encounter.quality0 through Encounter.quality199")
                 .put("required", new org.json.JSONArray().put("Encounter.genus").put("Encounter.specificEpithet")
                     .put("Encounter.year").put("Encounter.locationID")))
+            .put("attribution", new JSONObject().put("field", SubmissionAttribution.FIELD).put("appliesTo", "submission")
+                .put("values", new org.json.JSONArray().put(SubmissionAttribution.PUBLIC).put("username of a direct member of the key's organization"))
+                .put("availableTo", "organization service keys"))
             .put("uploadMediaTypes", new org.json.JSONArray().put("image/jpeg").put("image/png"))
             .put("maxImagePixels", SubmissionFiles.MAX_PIXELS).put("maxFiles", SubmissionFiles.MAX_FILES);
     }
