@@ -212,16 +212,23 @@ const BulkImportTask = observer(() => {
         defaultMessage: "Image File Name",
       }),
       selector: (row) => row.imageFilenames.join(", "),
-      cell: (row) =>
-        row.imageFilenames.length === 0 ? (
-          "-"
-        ) : (
-          <div className="d-flex flex-column text-break">
+      cell: (row) => {
+        if (row.imageFilenames.length === 0) return "-";
+        if (row.imageFilenames.length === 1) {
+          return <span className="text-break">{row.imageFilenames[0]}</span>;
+        }
+        // Long names wrap over several lines, so give each its own bullet;
+        // stacked plain lines read as one long name.
+        return (
+          <ul className="text-break ps-3 my-1">
             {row.imageFilenames.map((filename, index) => (
-              <span key={`${index}-${filename}`}>{filename}</span>
+              <li key={`${index}-${filename}`} className="mb-1">
+                {filename}
+              </li>
             ))}
-          </div>
-        ),
+          </ul>
+        );
+      },
     },
     {
       name: "Image Count",

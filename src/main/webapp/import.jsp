@@ -498,8 +498,11 @@ try{
 	        }
 	        if (imageFilenames.size() < 1) {
 	            out.println("<td class=\"dim\">-</td>");
+	        } else if (imageFilenames.size() == 1) {
+	            out.println("<td style=\"word-break: break-all;\">" + imageFilenames.get(0) + "</td>");
 	        } else {
-	            out.println("<td style=\"word-break: break-all;\">" + String.join("<br>", imageFilenames) + "</td>");
+	            // one bullet per file: wrapped long names otherwise run together
+	            out.println("<td style=\"word-break: break-all;\"><ul style=\"padding-left: 1.2em; margin: 0;\"><li>" + String.join("</li><li>", imageFilenames) + "</li></ul></td>");
 	        }
 	        
 	        

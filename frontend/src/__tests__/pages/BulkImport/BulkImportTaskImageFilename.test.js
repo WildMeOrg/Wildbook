@@ -124,14 +124,26 @@ describe("BulkImportTask — image file name column (issue #1795)", () => {
     expect(screen.getByRole("columnheader", { name: COLUMN })).toBeTruthy();
   });
 
-  test("lists every file name of the encounter, in order", () => {
+  test("lists several file names as separate list items, in order", () => {
     renderWithEncounter({
-      mediaAssetFilenames: ["IMG_0001.JPG", "fluke left é.png"],
+      mediaAssetFilenames: [
+        "45528e1d-8d65-4f92-af0b-29f8ee603cdd-master.jpg",
+        "003A9525.jpg",
+      ],
     });
-    const names = Array.from(filenameCell().querySelectorAll("span")).map(
-      (s) => s.textContent,
+    const names = Array.from(filenameCell().querySelectorAll("li")).map(
+      (li) => li.textContent,
     );
-    expect(names).toEqual(["IMG_0001.JPG", "fluke left é.png"]);
+    expect(names).toEqual([
+      "45528e1d-8d65-4f92-af0b-29f8ee603cdd-master.jpg",
+      "003A9525.jpg",
+    ]);
+  });
+
+  test("shows a single file name without a list", () => {
+    renderWithEncounter({ mediaAssetFilenames: ["IMG_0001.JPG"] });
+    expect(filenameCell().querySelector("li")).toBeNull();
+    expect(filenameCell()).toHaveTextContent(/^IMG_0001\.JPG$/);
   });
 
   test("shows a dash when the server sends no file names", () => {
