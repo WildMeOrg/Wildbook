@@ -140,6 +140,37 @@ describe("BulkImportTask — image file name column (issue #1795)", () => {
     ]);
   });
 
+  test("shows up to three names with nothing collapsed", () => {
+    renderWithEncounter({ mediaAssetFilenames: ["a.jpg", "b.jpg", "c.jpg"] });
+    expect(filenameCell().querySelectorAll("li")).toHaveLength(3);
+    expect(filenameCell().querySelector("details")).toBeNull();
+  });
+
+  test("collapses names past the first three behind '+N more'", () => {
+    const names = Array.from({ length: 150 }, (_, i) => `IMG_${i}.jpg`);
+    renderWithEncounter({ mediaAssetFilenames: names });
+
+    const details = filenameCell().querySelector("details");
+    expect(details).not.toBeNull();
+    expect(details.open).toBe(false);
+    // setupTests.js mocks useIntl().formatMessage to return the raw en.json
+    // template without interpolating values, so assert the template here and
+    // the count via the number of collapsed items below.
+    expect(details.querySelector("summary")).toHaveTextContent("+{count} more");
+
+    // the first three are outside the collapsed block, the rest inside it
+    const visible = Array.from(
+      filenameCell().querySelectorAll(":scope > div > ul > li"),
+    ).map((li) => li.textContent);
+    expect(visible).toEqual(["IMG_0.jpg", "IMG_1.jpg", "IMG_2.jpg"]);
+    const collapsed = Array.from(details.querySelectorAll("li")).map(
+      (li) => li.textContent,
+    );
+    expect(collapsed).toHaveLength(147);
+    expect(collapsed[0]).toBe("IMG_3.jpg");
+    expect(collapsed[146]).toBe("IMG_149.jpg");
+  });
+
   test("shows a single file name without a list", () => {
     renderWithEncounter({ mediaAssetFilenames: ["IMG_0001.JPG"] });
     expect(filenameCell().querySelector("li")).toBeNull();

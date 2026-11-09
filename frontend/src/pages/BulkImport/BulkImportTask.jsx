@@ -25,6 +25,9 @@ import { BulkImportTaskStore } from "./BulkImportTaskStore";
 
 const TreeSelect = lazy(() => import("antd/es/tree-select"));
 
+// image file names shown before the rest collapse behind "+N more" (#1795)
+const VISIBLE_FILENAMES = 3;
+
 const BulkImportTask = observer(() => {
   const intl = useIntl();
   const theme = useContext(ThemeColorContext);
@@ -218,15 +221,36 @@ const BulkImportTask = observer(() => {
           return <span className="text-break">{row.imageFilenames[0]}</span>;
         }
         // Long names wrap over several lines, so give each its own bullet;
-        // stacked plain lines read as one long name.
+        // stacked plain lines read as one long name. Past the first few,
+        // the rest collapse so one big encounter can't swamp the table.
+        const listItems = (names, offset) =>
+          names.map((filename, index) => (
+            <li key={`${offset + index}-${filename}`} className="mb-1">
+              {filename}
+            </li>
+          ));
+        const shown = row.imageFilenames.slice(0, VISIBLE_FILENAMES);
+        const hidden = row.imageFilenames.slice(VISIBLE_FILENAMES);
         return (
-          <ul className="text-break ps-3 my-1">
-            {row.imageFilenames.map((filename, index) => (
-              <li key={`${index}-${filename}`} className="mb-1">
-                {filename}
-              </li>
-            ))}
-          </ul>
+          <div className="text-break my-1">
+            <ul className="ps-3 mb-0">{listItems(shown, 0)}</ul>
+            {hidden.length > 0 && (
+              <details>
+                <summary>
+                  {intl.formatMessage(
+                    {
+                      id: "BULK_IMPORT_TASK_MORE_FILE_NAMES",
+                      defaultMessage: "+{count} more",
+                    },
+                    { count: hidden.length },
+                  )}
+                </summary>
+                <ul className="ps-3 mb-0">
+                  {listItems(hidden, VISIBLE_FILENAMES)}
+                </ul>
+              </details>
+            )}
+          </div>
         );
       },
     },

@@ -501,8 +501,17 @@ try{
 	        } else if (imageFilenames.size() == 1) {
 	            out.println("<td style=\"word-break: break-all;\">" + imageFilenames.get(0) + "</td>");
 	        } else {
-	            // one bullet per file: wrapped long names otherwise run together
-	            out.println("<td style=\"word-break: break-all;\"><ul style=\"padding-left: 1.2em; margin: 0;\"><li>" + String.join("</li><li>", imageFilenames) + "</li></ul></td>");
+	            // one bullet per file (wrapped long names otherwise run together);
+	            // past the first 3, the rest collapse behind "+N more"
+	            int visibleFilenames = 3;
+	            List<String> shownNames = imageFilenames.subList(0, Math.min(visibleFilenames, imageFilenames.size()));
+	            List<String> hiddenNames = imageFilenames.subList(shownNames.size(), imageFilenames.size());
+	            String ulOpen = "<ul style=\"padding-left: 1.2em; margin: 0;\"><li>";
+	            String cell = ulOpen + String.join("</li><li>", shownNames) + "</li></ul>";
+	            if (hiddenNames.size() > 0) {
+	                cell += "<details><summary>+" + hiddenNames.size() + " more</summary>" + ulOpen + String.join("</li><li>", hiddenNames) + "</li></ul></details>";
+	            }
+	            out.println("<td style=\"word-break: break-all;\">" + cell + "</td>");
 	        }
 	        
 	        
