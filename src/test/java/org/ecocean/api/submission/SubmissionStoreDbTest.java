@@ -668,4 +668,328 @@ class SubmissionStoreDbTest {
         assertEquals(first.toString(), store.create("context0", owner, "daily-0", create()).toString());
     }
 
+
+    // ---- submitting on behalf of an organization member (onBehalfOf) ----
+
+    /** An organization with a service account and the people a collector name can point at. */
+    private static final class Org {
+        String orgId, svcId, svc, member, admin, childOnly, parentOnly, outsider, otherSvc;
+    }
+    private static org.ecocean.User person(Shepherd sh, String username) {
+        org.ecocean.User user = new org.ecocean.User(null, UUID.randomUUID().toString());
+        user.setUsername(username); sh.getPM().makePersistent(user); return user;
+    }
+    private static Org org() {
+        Org o = new Org(); String tag = UUID.randomUUID().toString().substring(0, 8);
+        Shepherd sh = new Shepherd("context0", properties);
+        try {
+            sh.beginDBTransaction();
+            org.ecocean.Organization home = new org.ecocean.Organization("Collectors " + tag), parent = new org.ecocean.Organization("Parent " + tag),
+                child = new org.ecocean.Organization("Child " + tag), other = new org.ecocean.Organization("Other " + tag);
+            for (org.ecocean.Organization each : new org.ecocean.Organization[] { home, parent, child, other }) sh.getPM().makePersistent(each);
+            parent.addChild(home); home.addChild(child);
+            org.ecocean.User svc = person(sh, "svc-" + tag); svc.setServiceOrganizationId(home.getId()); home.addMember(svc);
+            org.ecocean.User member = person(sh, "member-" + tag); home.addMember(member);
+            org.ecocean.User admin = person(sh, "orgadmin-" + tag); home.addMember(admin);
+            org.ecocean.Role role = new org.ecocean.Role(admin.getUsername(), org.ecocean.Organization.ROLE_MANAGER); role.setContext("context0"); sh.getPM().makePersistent(role);
+            org.ecocean.User childOnly = person(sh, "child-" + tag); child.addMember(childOnly);
+            org.ecocean.User parentOnly = person(sh, "parent-" + tag); parent.addMember(parentOnly);
+            org.ecocean.User outsider = person(sh, "outsider-" + tag); other.addMember(outsider);
+            org.ecocean.User otherSvc = person(sh, "svc2-" + tag); otherSvc.setServiceOrganizationId(other.getId()); other.addMember(otherSvc); home.addMember(otherSvc);
+            assertTrue(sh.commitDBTransactionWithStatus());
+            o.orgId = home.getId(); o.svcId = svc.getId(); o.svc = svc.getUsername(); o.member = member.getUsername(); o.admin = admin.getUsername();
+            o.childOnly = childOnly.getUsername(); o.parentOnly = parentOnly.getUsername(); o.outsider = outsider.getUsername(); o.otherSvc = otherSvc.getUsername();
+            return o;
+        } finally { sh.rollbackAndClose(); }
+    }
+    private static JSONObject createFor(String collector) { return create().put("onBehalfOf", collector); }
+    private static void inTransaction(java.util.function.Consumer<Shepherd> work) {
+        Shepherd sh = new Shepherd("context0", properties);
+        try { sh.beginDBTransaction(); work.accept(sh); assertTrue(sh.commitDBTransactionWithStatus()); }
+        finally { sh.rollbackAndClose(); }
+    }
+    private static <T> T read(java.util.function.Function<Shepherd, T> work) {
+        Shepherd sh = realShepherd();
+        try { sh.beginDBTransaction(); return work.apply(sh); } finally { sh.rollbackAndClose(); }
+    }
+    private static long count(Class<?> type) {
+        return read(sh -> { javax.jdo.Query<?> q = sh.getPM().newQuery(type);
+            try { q.setResult("count(this)"); return ((Number)q.execute()).longValue(); } finally { q.closeAll(); } });
+    }
+    private static void notServiceAccount(String userId) {
+        inTransaction(sh -> sh.getUserByUUID(userId).setServiceOrganizationId(null));
+    }
+    private static void removeMember(String username, String orgId) {
+        inTransaction(sh -> sh.getOrganization(orgId).removeMember(sh.getUser(username)));
+    }
+
+    /** The outcome of one attributed run: the report and, if commit was refused, why. */
+    private static final class Run { String id; JSONObject report; SubmissionException commitError; }
+    /** Like realImport, but for a draft created with an onBehalfOf body, with a hook between validation and commit. */
+    private Run attributedImport(String owner, JSONObject body, java.nio.file.Path root, Runnable beforeCommit, Runnable beforeExecute) throws Exception {
+        if (!assetStoreSaved) {
+            Shepherd sh = realShepherd();
+            try {
+                sh.beginDBTransaction();
+                sh.getPM().makePersistent(new org.ecocean.media.LocalAssetStore("pilot", java.nio.file.Files.createDirectories(assetRoot.resolve("assets")), "http://localhost/assets", true));
+                assertTrue(sh.commitDBTransactionWithStatus()); assetStoreSaved = true;
+            } finally { sh.rollbackAndClose(); }
+        }
+        SubmissionStore intake = new SubmissionStore(SubmissionStoreDbTest::realShepherd); SubmissionJobs jobs = new SubmissionJobs(SubmissionStoreDbTest::realShepherd);
+        SubmissionFiles storage = new SubmissionFiles(java.nio.file.Files.createDirectories(root.resolve("staged")));
+        Run run = new Run();
+        try (org.mockito.MockedStatic<org.ecocean.LocationID> locations = org.mockito.Mockito.mockStatic(org.ecocean.LocationID.class);
+             org.mockito.MockedStatic<SubmissionPolicy> policy = org.mockito.Mockito.mockStatic(SubmissionPolicy.class, org.mockito.Mockito.CALLS_REAL_METHODS)) {
+            locations.when(org.ecocean.LocationID::getLocationIDStructure).thenReturn(new JSONObject("{\"locationID\":[{\"id\":\"reef\"}]}"));
+            locations.when(() -> org.ecocean.LocationID.isValidLocationID("reef")).thenReturn(true);
+            policy.when(() -> SubmissionPolicy.commitEnabled("context0")).thenReturn(true);
+            policy.when(() -> SubmissionPolicy.enrolled("context0", owner)).thenReturn(true);
+            run.id = intake.create("context0", owner, UUID.randomUUID().toString(), body).getString("id");
+            intake.upload("context0", owner, run.id, false, 0, storage,
+                limit -> storage.write("photo-0.png", new java.io.ByteArrayInputStream(SubmissionFilesTest.png()), limit));
+            JSONObject fields = new JSONObject().put("Encounter.genus", "Manta").put("Encounter.specificEpithet", "birostris")
+                .put("Encounter.year", 2024).put("Encounter.locationID", "reef").put("Encounter.mediaAsset0", "photo-0.png")
+                .put("Encounter.sightingID", "s-" + run.id.substring(0, 8));
+            intake.replaceRows("context0", owner, run.id, false, 1, new JSONObject().put("rows", new JSONArray()
+                .put(new JSONObject().put("clientRowId", "source-0").put("fields", fields))));
+            run.report = intake.validate("context0", owner, run.id, false, 2, storage);
+            if (!run.report.getBoolean("valid")) return run;
+            beforeCommit.run();
+            try {
+                jobs.enqueue("context0", owner, run.id, false, 2, "commit", new JSONObject().put("validationId", run.report.getString("id")));
+            } catch (SubmissionException ex) { run.commitError = ex; return run; }
+            beforeExecute.run();
+            assertEquals(run.id, jobs.claimNext("context0"));
+            jobs.execute("context0", run.id, (draft, transaction) -> new SubmissionImporter().execute(draft, draft.getJobId(), transaction, storage));
+            TestPMFUtil.closePMF("context0");
+            return run;
+        } finally { org.ecocean.media.AssetStore.init(java.util.Collections.emptyList()); }
+    }
+    private static JSONObject results(String actor, String id) {
+        return new SubmissionJobs(SubmissionStoreDbTest::realShepherd).results("context0", actor, id, false, 0, 100);
+    }
+    private static String encounterId(String owner, String id) {
+        return results(owner, id).getJSONArray("rows").getJSONObject(0).getJSONArray("encounterIds").getString(0);
+    }
+    private static String onlyDraft(String owner) {
+        return read(sh -> {
+            javax.jdo.Query<?> q = sh.getPM().newQuery(org.ecocean.submission.Submission.class, "ownerId == :o");
+            try { return ((org.ecocean.submission.Submission)((java.util.List<?>)q.execute(owner)).get(0)).getId(); }
+            finally { q.closeAll(); }
+        });
+    }
+    private static String taskId(String owner, String id) { return store.get("context0", owner, id, false, false).getString("importTaskId"); }
+
+    @Test void collectorIsPublicOrADirectHumanMemberAndNothingIsCreated() {
+        Org o = org(); long users = count(org.ecocean.User.class);
+        read(sh -> {
+            assertEquals(o.orgId, SubmissionAttribution.serviceOrganization(sh, o.svcId));
+            assertEquals(o.member, SubmissionAttribution.collector(sh, o.orgId, o.member).getString("username"));
+            assertEquals(o.admin, SubmissionAttribution.collector(sh, o.orgId, o.admin).getString("username"));
+            JSONObject pub = SubmissionAttribution.collector(sh, o.orgId, "public");
+            assertEquals("public", pub.getString("username")); assertTrue(pub.isNull("userId")); assertTrue(pub.isNull("organizationId"));
+            for (String refused : new String[] { "nobody-" + UUID.randomUUID(), o.member.toUpperCase(), "Public", "N/A",
+                    o.outsider, o.childOnly, o.parentOnly, o.otherSvc, o.svc })
+                assertNull(SubmissionAttribution.collector(sh, o.orgId, refused), refused);
+            org.ecocean.Organization parent = null;
+            for (org.ecocean.Organization each : sh.getAllOrganizationsForUser(sh.getUser(o.parentOnly))) parent = each;
+            assertTrue(parent.getChildren().stream().anyMatch(c -> c.getId().equals(o.orgId)), "hierarchy persisted");
+            String ordinary = sh.getUser(o.member).getId();
+            assertEquals(403, assertThrows(SubmissionException.class, () -> SubmissionAttribution.serviceOrganization(sh, ordinary)).status);
+            assertEquals("ATTRIBUTION_NOT_ALLOWED", assertThrows(SubmissionException.class,
+                () -> SubmissionAttribution.serviceOrganization(sh, UUID.randomUUID().toString())).code);
+            return null;
+        });
+        assertEquals(users, count(org.ecocean.User.class), "no account is ever created");
+    }
+
+    @Test void onlyAServiceAccountMayNameACollectorAndTheNameIsFixed() {
+        Org o = org(); String[] ordinary = new String[1], adminOwner = new String[1];
+        inTransaction(sh -> {
+            ordinary[0] = person(sh, "plain-" + UUID.randomUUID()).getId();
+            org.ecocean.User admin = person(sh, "admin-" + UUID.randomUUID()); adminOwner[0] = admin.getId();
+            org.ecocean.Role role = new org.ecocean.Role(admin.getUsername(), "admin"); role.setContext("context0"); sh.getPM().makePersistent(role);
+        });
+        long drafts = count(org.ecocean.submission.Submission.class);
+        for (String owner : new String[] { ordinary[0], adminOwner[0] }) {
+            SubmissionException refused = assertThrows(SubmissionException.class, () -> store.create("context0", owner, "k", createFor(o.member)));
+            assertEquals(403, refused.status); assertEquals("ATTRIBUTION_NOT_ALLOWED", refused.code);
+        }
+        assertEquals(drafts, count(org.ecocean.submission.Submission.class), "nothing stored");
+        JSONObject draft = store.create("context0", o.svcId, "k", createFor("  " + o.member + " "));
+        assertEquals(o.member, draft.getString("onBehalfOf"));
+        assertEquals(409, assertThrows(SubmissionException.class, () -> store.create("context0", o.svcId, "k", createFor("public"))).status);
+        store.replaceRows("context0", o.svcId, draft.getString("id"), false, 0, rows(2024));
+        assertEquals(o.member, store.get("context0", o.svcId, draft.getString("id"), false, false).getString("onBehalfOf"));
+        assertFalse(store.create("context0", o.svcId, "unattributed", create()).has("onBehalfOf"));
+    }
+
+    @Test void validationReportsWhoWillOwnTheRecords() {
+        Org o = org(); SubmissionFiles none = org.mockito.Mockito.mock(SubmissionFiles.class);
+        java.util.function.Function<JSONObject, JSONObject> validate = body -> {
+            String id = store.create("context0", o.svcId, UUID.randomUUID().toString(), body).getString("id");
+            store.replaceRows("context0", o.svcId, id, false, 0, rows(2024));
+            return store.validate("context0", o.svcId, id, false, 1, none);
+        };
+        String memberId = read(sh -> sh.getUser(o.member).getId());
+        JSONObject member = validate.apply(createFor(o.member));
+        assertEquals(memberId, member.getString("effectiveOwnerId"));
+        assertEquals(o.svcId, member.getString("draftOwnerId"));
+        assertEquals(SubmissionJson.canonical(new JSONObject().put("username", o.member).put("userId", memberId).put("organizationId", o.orgId)),
+            SubmissionJson.canonical(member.getJSONObject("effectiveOwner")));
+        JSONObject pub = validate.apply(createFor("public"));
+        assertEquals("public", pub.getString("effectiveOwnerId")); assertTrue(pub.getJSONObject("effectiveOwner").isNull("userId"));
+        JSONObject refused = validate.apply(createFor(o.outsider));
+        assertFalse(refused.getBoolean("valid")); assertFalse(refused.has("effectiveOwner"));
+        JSONArray errors = refused.getJSONArray("errors"); boolean found = false;
+        for (int i = 0; i < errors.length(); i++) if ("SUBMITTER_NOT_ALLOWED".equals(errors.getJSONObject(i).getString("code"))) {
+            found = true; assertEquals("onBehalfOf", errors.getJSONObject(i).getString("field"));
+            assertEquals(SubmissionAttribution.NOT_ALLOWED_MESSAGE, errors.getJSONObject(i).getString("message"));
+        }
+        assertTrue(found, refused.toString());
+        JSONObject plain = validate.apply(create());
+        assertEquals(o.svcId, plain.getString("effectiveOwnerId")); assertFalse(plain.has("effectiveOwner"));
+        String id = store.create("context0", o.svcId, UUID.randomUUID().toString(), createFor(o.member)).getString("id");
+        store.replaceRows("context0", o.svcId, id, false, 0, rows(2024));
+        notServiceAccount(o.svcId);
+        assertEquals("ATTRIBUTION_NOT_ALLOWED", assertThrows(SubmissionException.class, () -> store.validate("context0", o.svcId, id, false, 1, none)).code);
+    }
+
+    @Test void aMemberCollectorOwnsTheEncountersSightingAndImportTask(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        Org o = org();
+        Run run = attributedImport(o.svcId, createFor(o.member), root, () -> {}, () -> {});
+        assertTrue(run.report.getBoolean("valid"), run.report.toString()); assertNull(run.commitError);
+        assertEquals("imported", store.get("context0", o.svcId, run.id, false, false).getString("state"));
+        String encId = encounterId(o.svcId, run.id), task = taskId(o.svcId, run.id);
+        // the account that sent it keeps the receipt even though it cannot open the records; another account gets nothing
+        assertEquals(1, results(o.svcId, run.id).getJSONArray("rows").length());
+        String memberId = read(sh -> sh.getUser(o.member).getId());
+        assertEquals(404, assertThrows(SubmissionException.class, () -> results(memberId, run.id)).status);
+        read(sh -> {
+            org.ecocean.User member = sh.getUser(o.member);
+            org.ecocean.Encounter enc = sh.getEncounter(encId);
+            assertEquals(o.member, enc.getSubmitterID());
+            assertEquals(o.member, sh.getOccurrence(enc.getOccurrenceID()).getSubmitterID());
+            assertEquals(member.getId(), sh.getImportTask(task).getCreator().getId());
+            assertTrue(sh.getImportTasksForUser(member).stream().anyMatch(t -> t.getId().equals(task)));
+            // the member and the organization's orgAdmin see it; an outsider and the service account do not
+            assertTrue(org.ecocean.security.Collaboration.canUserAccessEncounter(enc, o.member, sh));
+            assertTrue(org.ecocean.security.Collaboration.canUserAccessEncounter(enc, o.admin, sh));
+            assertFalse(org.ecocean.security.Collaboration.canUserAccessEncounter(enc, o.outsider, sh));
+            assertFalse(org.ecocean.security.Collaboration.canUserAccessEncounter(enc, o.svc, sh));
+            return null;
+        });
+    }
+
+    @Test void publicRecordsArePublicAndTheirTaskStaysWithTheServiceAccount(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        Org o = org();
+        Run run = attributedImport(o.svcId, createFor("public"), root, () -> {}, () -> {});
+        assertEquals("imported", store.get("context0", o.svcId, run.id, false, false).getString("state"));
+        String encId = encounterId(o.svcId, run.id), task = taskId(o.svcId, run.id);
+        Properties config = configCache.get("context0"); Object before = config.get("collaborationSecurityEnabled");
+        config.setProperty("collaborationSecurityEnabled", "true");
+        try {
+            read(sh -> {
+                org.ecocean.Encounter enc = sh.getEncounter(encId);
+                assertEquals("public", enc.getSubmitterID());
+                assertEquals(o.svcId, sh.getImportTask(task).getCreator().getId());
+                assertTrue(org.ecocean.security.Collaboration.canUserAccessEncounter(enc, o.outsider, sh));
+                assertTrue(enc.opensearchAclFields(sh).getBoolean("publiclyReadable"));
+                return null;
+            });
+        } finally { if (before == null) config.remove("collaborationSecurityEnabled"); else config.put("collaborationSecurityEnabled", before); }
+    }
+
+    @Test void memberRecordsAreNotPubliclySearchable(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        Org o = org();
+        Run run = attributedImport(o.svcId, createFor(o.member), root, () -> {}, () -> {});
+        String encId = encounterId(o.svcId, run.id);
+        Properties config = configCache.get("context0"); Object before = config.get("collaborationSecurityEnabled");
+        config.setProperty("collaborationSecurityEnabled", "true");
+        try {
+            boolean publiclyReadable = SubmissionStoreDbTest.<Boolean>read(sh -> sh.getEncounter(encId).opensearchAclFields(sh).getBoolean("publiclyReadable"));
+            assertFalse(publiclyReadable);
+        } finally { if (before == null) config.remove("collaborationSecurityEnabled"); else config.put("collaborationSecurityEnabled", before); }
+    }
+
+    @Test void commitRechecksTheCollectorAndReplaysAnAcceptedCommit(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        Org o = org();
+        Run removed = attributedImport(o.svcId, createFor(o.member), root.resolve("a"), () -> removeMember(o.member, o.orgId), () -> {});
+        assertEquals("VALIDATION_STALE", removed.commitError.code);
+        assertFalse(store.get("context0", o.svcId, removed.id, false, false).has("importTaskId"), "no task reserved");
+
+        Org p = org(); java.nio.file.Files.createDirectories(root.resolve("b"));
+        Run reused = attributedImport(p.svcId, createFor(p.member), root.resolve("b"), () -> {
+            inTransaction(sh -> sh.getUser(p.member).setUsername("renamed-" + UUID.randomUUID()));
+            inTransaction(sh -> sh.getOrganization(p.orgId).addMember(person(sh, p.member)));
+        }, () -> {});
+        assertEquals("VALIDATION_STALE", reused.commitError.code, "same username, different person");
+
+        Org q = org(); java.nio.file.Files.createDirectories(root.resolve("c"));
+        Run owner = attributedImport(q.svcId, createFor(q.member), root.resolve("c"), () -> notServiceAccount(q.svcId), () -> {});
+        assertEquals("ATTRIBUTION_NOT_ALLOWED", owner.commitError.code);
+    }
+
+    @Test void aQueuedTaskIsTheMembersAndReadableAndAnAcceptedCommitReplays(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        Org o = org(); String[] queued = new String[1];
+        SubmissionJobs jobs = new SubmissionJobs(SubmissionStoreDbTest::realShepherd);
+        attributedImport(o.svcId, createFor(o.member), root, () -> {}, () -> {
+            String id = onlyDraft(o.svcId); queued[0] = id; String task = taskId(o.svcId, id);
+            read(sh -> {
+                org.ecocean.servlet.importer.ImportTask reserved = sh.getImportTask(task);
+                assertEquals(o.member, reserved.getCreator().getUsername());
+                assertNotNull(reserved.getEncounters()); assertTrue(reserved.getEncounters().isEmpty());
+                assertNotNull(reserved.iaSummaryJson(sh));
+                return null;
+            });
+            // the accepted commit replays even though the member has since left
+            removeMember(o.member, o.orgId);
+            String validation = read(sh -> {
+                javax.jdo.Query<?> q = sh.getPM().newQuery(org.ecocean.submission.Submission.class, "id == :id");
+                try { return new JSONObject(((org.ecocean.submission.Submission)((java.util.List<?>)q.execute(id)).get(0)).getValidationJson()).getString("id"); }
+                finally { q.closeAll(); }
+            });
+            assertEquals("queued", jobs.enqueue("context0", o.svcId, id, false, 2, "commit", new JSONObject().put("validationId", validation)).getString("state"));
+        });
+        // the member left after commit: the import is refused, nothing is imported, the empty task is the member's to delete
+        JSONObject status = store.get("context0", o.svcId, queued[0], false, false);
+        assertEquals("failed", status.getString("state"));
+        assertEquals("VALIDATION_STALE", status.getJSONArray("errors").getJSONObject(0).getString("code"));
+        String task = taskId(o.svcId, queued[0]);
+        Shepherd sh = realShepherd();
+        try {
+            sh.beginDBTransaction();
+            org.ecocean.servlet.importer.ImportTask failed = sh.getImportTask(task);
+            assertEquals("failed", failed.getStatus()); assertTrue(failed.getEncounters().isEmpty());
+            assertNotNull(failed.iaSummaryJson(sh));
+            org.ecocean.servlet.importer.ImportTask.deleteWithRelated(task, sh.getUser(o.member), sh);
+            assertTrue(sh.commitDBTransactionWithStatus());
+        } finally { sh.rollbackAndClose(); }
+        assertNull(read(s2 -> s2.getImportTask(task)));
+    }
+
+    @Test void anOwnerThatStopsBeingAServiceAccountFailsTheImportDefinitely(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        Org o = org(); long media = mediaAssetCount();
+        Run run = attributedImport(o.svcId, createFor(o.member), root.resolve("a"), () -> {}, () -> notServiceAccount(o.svcId));
+        JSONObject status = store.get("context0", o.svcId, run.id, false, false);
+        assertEquals("failed", status.getString("state"));
+        assertEquals("ATTRIBUTION_NOT_ALLOWED", status.getJSONArray("errors").getJSONObject(0).getString("code"));
+        assertEquals(media, mediaAssetCount(), "nothing imported");
+
+        // the owner changes between the importer's first check and the validator's rerun
+        Org p = org(); java.nio.file.Files.createDirectories(root.resolve("b"));
+        java.util.concurrent.atomic.AtomicInteger checks = new java.util.concurrent.atomic.AtomicInteger();
+        try (org.mockito.MockedStatic<SubmissionAttribution> attribution = org.mockito.Mockito.mockStatic(SubmissionAttribution.class, org.mockito.Mockito.CALLS_REAL_METHODS)) {
+            attribution.when(() -> SubmissionAttribution.serviceOrganization(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq(p.svcId)))
+                .thenAnswer(call -> {
+                    // create, validate, commit, then the importer's own check pass; the rerun inside the importer fails
+                    if (checks.incrementAndGet() >= 5) throw new SubmissionException(403, "ATTRIBUTION_NOT_ALLOWED", "changed");
+                    return call.callRealMethod();
+                });
+            Run raced = attributedImport(p.svcId, createFor(p.member), root.resolve("b"), () -> {}, () -> {});
+            JSONObject after = store.get("context0", p.svcId, raced.id, false, false);
+            assertEquals("failed", after.getString("state"), "never needs_reconciliation");
+            assertEquals("ATTRIBUTION_NOT_ALLOWED", after.getJSONArray("errors").getJSONObject(0).getString("code"));
+        }
+    }
 }

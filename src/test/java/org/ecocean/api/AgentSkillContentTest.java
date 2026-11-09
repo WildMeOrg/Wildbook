@@ -242,6 +242,10 @@ class AgentSkillContentTest {
                 assertTrue(org.ecocean.api.submission.SubmissionValidator.supported(field), field);
         for (String field : org.ecocean.api.submission.SubmissionValidator.FIELDS)
             assertTrue(md.contains("`" + field + "`"), "document supported field " + field);
+        // the onBehalfOf example is a create body the runtime accepts
+        java.util.regex.Matcher attributed = java.util.regex.Pattern.compile("```jsonc\\s*\\n(.*?)\\n```", java.util.regex.Pattern.DOTALL).matcher(md);
+        assertTrue(attributed.find(), "submit-sightings shows an onBehalfOf create body");
+        assertEquals("jdoe", org.ecocean.api.submission.SubmissionJson.create(new org.json.JSONObject(attributed.group(1))).getString("onBehalfOf"));
     }
 
     @Test void inat_to_wildbook_import_is_well_formed() {

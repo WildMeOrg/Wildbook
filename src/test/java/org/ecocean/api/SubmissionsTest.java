@@ -47,6 +47,32 @@ class SubmissionsTest {
             verify(response).setStatus(428); verifyNoInteractions(store);
         }
     }
+    @Test void createWithOnBehalfOfIs201AndPassesTheNameToTheStore() throws Exception {
+        SubmissionStore store = mock(SubmissionStore.class);
+        String id = "00000000-0000-4000-8000-000000000002";
+        when(store.create(org.mockito.ArgumentMatchers.eq("context0"), org.mockito.ArgumentMatchers.eq("svc"), org.mockito.ArgumentMatchers.eq("key"),
+            org.mockito.ArgumentMatchers.argThat(body -> "jdoe".equals(body.optString("onBehalfOf")))))
+            .thenReturn(new JSONObject().put("id", id).put("revision", 0).put("onBehalfOf", "jdoe"));
+        Submissions servlet = new Submissions() { @Override protected SubmissionStore store() { return store; } };
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getMethod()).thenReturn("POST"); when(request.getPathInfo()).thenReturn("/");
+        when(request.getHeader("Idempotency-Key")).thenReturn("key"); when(request.getContentType()).thenReturn("application/json");
+        byte[] body = "{\"contractVersion\":\"1\",\"source\":{\"name\":\"agent\"},\"onBehalfOf\":\"jdoe\"}".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        java.io.ByteArrayInputStream bytes = new java.io.ByteArrayInputStream(body);
+        when(request.getInputStream()).thenReturn(new javax.servlet.ServletInputStream() {
+            @Override public int read() { return bytes.read(); }
+            @Override public boolean isFinished() { return bytes.available() == 0; }
+            @Override public boolean isReady() { return true; }
+            @Override public void setReadListener(javax.servlet.ReadListener listener) {}
+        });
+        when(request.getAttribute(SubmissionAuthenticationFilter.ACTOR)).thenReturn(new SubmissionAuthenticationFilter.Actor("svc", false));
+        StringWriter out = new StringWriter(); HttpServletResponse response = response(out);
+        try (org.mockito.MockedStatic<SubmissionPolicy> policy = mockStatic(SubmissionPolicy.class)) {
+            servlet.service(request, response);
+        }
+        verify(response).setStatus(201);
+        assertEquals("jdoe", new JSONObject(out.toString()).getString("onBehalfOf"));
+    }
     @Test void capabilitiesFixtureComesFromTheRuntimeServlet() throws Exception {
         try (org.mockito.MockedStatic<org.ecocean.CommonConfiguration> config = mockStatic(org.ecocean.CommonConfiguration.class)) {
         HttpServletRequest request = mock(HttpServletRequest.class);
@@ -56,6 +82,7 @@ class SubmissionsTest {
         new Submissions().service(request, response(out));
         JSONObject capabilities = new JSONObject(out.toString());
         assertEquals(200, capabilities.getJSONObject("limits").getInt("maxRows"));
+        assertEquals("onBehalfOf", capabilities.getJSONObject("attribution").getString("field"));
         java.nio.file.Files.writeString(java.nio.file.Path.of("target/submissions-capabilities.json"), out.toString());
         }
     }

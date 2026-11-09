@@ -17,22 +17,30 @@ public class SubmissionImporter {
         public PreImportRejection(int status, String code, String message) { super(status, code, message); }
     }
     public JSONObject execute(Submission draft, String taskId, Shepherd sh, SubmissionFiles storage) throws Exception {
+        boolean attributed = SubmissionAttribution.requested(draft) != null;
+        if (attributed) definite(() -> SubmissionAttribution.serviceOrganization(sh, draft.getOwnerId()));
         User owner = sh.getUserByUUID(draft.getOwnerId());
         if (owner == null || owner.getUsername() == null || owner.getUsername().isBlank() || !SubmissionPolicy.enrolled(draft.getContext(), draft.getOwnerId()))
             throw new PreImportRejection(403, "ACCESS_DENIED", "Owner is no longer eligible");
         JSONObject approved = new JSONObject(draft.getValidationJson());
-        JSONObject checked = new SubmissionValidator().validate(draft, sh, storage);
+        // the rerun resolves the owner again; a change in between must still end definitely failed
+        JSONObject checked = definite(() -> new SubmissionValidator().validate(draft, sh, storage));
         if (!approved.getBoolean("valid") || approved.getLong("revision") != draft.getRevision() || !checked.getBoolean("valid") || !approved.getString("configDigest").equals(checked.getString("configDigest"))
                 || !approved.getString("manifestDigest").equals(checked.getString("manifestDigest"))
                 || !SubmissionJson.canonical(approved.getJSONArray("normalizedRows")).equals(SubmissionJson.canonical(checked.getJSONArray("normalizedRows"))))
             throw new PreImportRejection(409, "VALIDATION_STALE", "Input or configuration changed after validation");
+        JSONObject approvedOwner = approved.optJSONObject("effectiveOwner"), checkedOwner = checked.optJSONObject("effectiveOwner");
+        if (attributed && (approvedOwner == null || checkedOwner == null
+                || !SubmissionJson.canonical(approvedOwner).equals(SubmissionJson.canonical(checkedOwner))))
+            throw new PreImportRejection(409, "VALIDATION_STALE", "The named collector changed after validation");
+        String submitter = attributed ? approvedOwner.getString("username") : owner.getUsername();
         ImportTask task = sh.getImportTask(taskId);
         if (task == null) throw new PreImportRejection(409, "INVALID_STATE", "Reserved import task missing");
         JSONArray rows = checked.getJSONArray("normalizedRows"), files = new JSONArray(draft.getFilesJson());
         List<Map<String, Object>> validated = new ArrayList<>(); Set<String> requiredFiles = new HashSet<>();
         for (int i = 0; i < rows.length(); i++) {
             JSONObject fields = new JSONObject(rows.getJSONObject(i).getJSONObject("fields").toString());
-            fields.put("Encounter.submitterID", owner.getUsername());
+            fields.put("Encounter.submitterID", submitter);
             Map<String, Object> data = BulkImportUtil.validateRow(fields, sh);
             for (Object value : data.values()) if (!(value instanceof BulkValidator))
                 throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed");
@@ -63,5 +71,14 @@ public class SubmissionImporter {
         task.setEncounters(importer.getEncounters()); task.setProcessingProgress(1.0D); task.setStatus(draft.requestsIdentification() ? "pending-detection" : "complete");
         sh.getPM().makePersistent(task);
         return new JSONObject().put("rows", mapping).put("records", imported);
+    }
+    /** An attribution refusal before any import work is a definite failure, never one needing reconciliation. */
+    private static <T> T definite(java.util.concurrent.Callable<T> check) throws Exception {
+        try {
+            return check.call();
+        } catch (SubmissionException ex) {
+            if (ex instanceof PreImportRejection || !SubmissionAttribution.OWNER_NOT_ALLOWED.equals(ex.code)) throw ex;
+            throw new PreImportRejection(ex.status, ex.code, ex.getMessage());
+        }
     }
 }
