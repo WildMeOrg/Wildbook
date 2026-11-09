@@ -39,6 +39,36 @@ describe("SimpleDataTable pagination preservation", () => {
     expect(screen.queryByText("row-1")).not.toBeInTheDocument();
   });
 
+  test("keeps the user's column sort when a new data array arrives", () => {
+    const rows = () => [{ id: "b" }, { id: "c" }, { id: "a" }];
+    const shownIds = () =>
+      Array.from(document.querySelectorAll('[role="cell"]')).map(
+        (cell) => cell.textContent,
+      );
+    const { rerender } = render(
+      <SimpleDataTable columns={columns} data={rows()} perPage={10} />,
+    );
+    expect(shownIds()).toEqual(["b", "c", "a"]);
+
+    // click the ID header once: ascending
+    fireEvent.click(screen.getByText("ID"));
+    expect(shownIds()).toEqual(["a", "b", "c"]);
+
+    // a poll (or a search keystroke) hands over a fresh, unsorted array, and
+    // the page rebuilds its columns, so every selector is a new function
+    const freshColumns = () => [
+      { name: "ID", selector: (row) => row.id, cell: (row) => row.id },
+    ];
+    rerender(
+      <SimpleDataTable columns={freshColumns()} data={rows()} perPage={10} />,
+    );
+    expect(shownIds()).toEqual(["a", "b", "c"]);
+
+    // the table still knows which column is sorted: the next click reverses
+    fireEvent.click(screen.getByText("ID"));
+    expect(shownIds()).toEqual(["c", "b", "a"]);
+  });
+
   test("clamps to the last page when the row count shrinks", () => {
     const { rerender } = render(
       <SimpleDataTable columns={columns} data={makeRows(25)} perPage={10} />,
