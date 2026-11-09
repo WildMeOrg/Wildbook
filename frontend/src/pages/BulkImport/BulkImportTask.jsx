@@ -38,6 +38,7 @@ const BulkImportTask = observer(() => {
   const [userRoles, setUserRoles] = useState(null);
   const store = useLocalObservable(() => new BulkImportTaskStore());
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchText, setSearchText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSendingToIdentification, setIsSendingToIdentification] =
     useState(false);
@@ -145,6 +146,30 @@ const BulkImportTask = observer(() => {
       ...item,
     }));
 
+  // Case-insensitive match on the text shown in each row (including file
+  // names collapsed under "+N more"). Rows keep their original "#" number.
+  const searchTerm = searchText.trim().toLowerCase();
+  const filteredTableData = searchTerm
+    ? sortedTableData.filter((row) =>
+        [
+          row.encounterID,
+          row.encounterDate,
+          row.user,
+          row.occurrenceID,
+          row.individualID,
+          row.individualName,
+          ...row.imageFilenames,
+          ...row.class.flatMap((arr) =>
+            Array.isArray(arr) ? [arr[1], arr[2]] : [],
+          ),
+        ].some((value) =>
+          String(value ?? "")
+            .toLowerCase()
+            .includes(searchTerm),
+        ),
+      )
+    : sortedTableData;
+
   const columns = [
     {
       name: "#",
@@ -245,9 +270,7 @@ const BulkImportTask = observer(() => {
                     { count: hidden.length },
                   )}
                 </summary>
-                <ul className="ps-3 mb-0">
-                  {listItems(hidden)}
-                </ul>
+                <ul className="ps-3 mb-0">{listItems(hidden)}</ul>
               </details>
             )}
           </div>
@@ -470,7 +493,25 @@ const BulkImportTask = observer(() => {
           />
         </div>
 
-        <div className="mb-2">
+        <div className="mb-2 d-flex flex-wrap align-items-end gap-3">
+          <label>
+            <h6 className="mb-2">
+              <FormattedMessage
+                id="BULK_IMPORT_TASK_SEARCH"
+                defaultMessage="Search encounters"
+              />
+            </h6>
+            <input
+              type="search"
+              className="form-control"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder={intl.formatMessage({
+                id: "BULK_IMPORT_TASK_SEARCH_PLACEHOLDER",
+                defaultMessage: "Encounter, sighting, individual, file name…",
+              })}
+            />
+          </label>
           <label>
             <h6 className="mb-2">
               <FormattedMessage
@@ -492,9 +533,21 @@ const BulkImportTask = observer(() => {
             </select>
           </label>
         </div>
+        {searchTerm && (
+          <p className="text-muted small mb-2" aria-live="polite">
+            <FormattedMessage
+              id="BULK_IMPORT_TASK_SEARCH_COUNT"
+              defaultMessage="{shown} of {total} encounters match"
+              values={{
+                shown: filteredTableData.length,
+                total: sortedTableData.length,
+              }}
+            />
+          </p>
+        )}
         <SimpleDataTable
           columns={columns}
-          data={sortedTableData}
+          data={filteredTableData}
           perPage={rowsPerPage}
         />
       </section>
