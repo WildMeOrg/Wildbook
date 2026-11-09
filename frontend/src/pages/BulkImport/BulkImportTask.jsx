@@ -288,9 +288,8 @@ const BulkImportTask = observer(() => {
       name: "Class",
       selector: (row) => row.class,
       cell: (row) => {
-        const tuples = Array.isArray(row.class)
-          ? row.class.filter((arr) => Array.isArray(arr) && arr.length === 3)
-          : [];
+        // row.class holds only well-formed [taskId, status, class] tuples
+        const tuples = row.class;
         if (tuples.length === 0) return "-";
         return (
           <div className="d-flex flex-column">

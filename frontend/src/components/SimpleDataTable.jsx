@@ -65,7 +65,6 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
   }, [dataset, currentPage, safePerPage]);
 
   const userColumns = columns.map((col) => ({
-    id: col.selector,
     name: col.name,
     selector: col.selector,
     sortable: col.sortable ?? true,

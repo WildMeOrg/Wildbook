@@ -54,9 +54,19 @@ describe("SimpleDataTable pagination preservation", () => {
     fireEvent.click(screen.getByText("ID"));
     expect(shownIds()).toEqual(["a", "b", "c"]);
 
-    // a poll (or a search keystroke) hands over a fresh, unsorted array
-    rerender(<SimpleDataTable columns={columns} data={rows()} perPage={10} />);
+    // a poll (or a search keystroke) hands over a fresh, unsorted array, and
+    // the page rebuilds its columns, so every selector is a new function
+    const freshColumns = () => [
+      { name: "ID", selector: (row) => row.id, cell: (row) => row.id },
+    ];
+    rerender(
+      <SimpleDataTable columns={freshColumns()} data={rows()} perPage={10} />,
+    );
     expect(shownIds()).toEqual(["a", "b", "c"]);
+
+    // the table still knows which column is sorted: the next click reverses
+    fireEvent.click(screen.getByText("ID"));
+    expect(shownIds()).toEqual(["c", "b", "a"]);
   });
 
   test("clamps to the last page when the row count shrinks", () => {
