@@ -57,12 +57,19 @@ class AuthTokenServiceKeyTest {
             } else {
                 ska.when(() -> ServiceKeyAuth.authenticate(any(), anyString(), anyLong())).thenReturn(grant);
             }
+            // the fresh creator check itself is covered against a database in ServiceKeysReadAsDbTest
             if (readAsFailure != null) {
-                ska.when(() -> ServiceKeyAuth.readAsRefusal(any(), anyString(), anyString()))
+                ska.when(() -> ServiceKeyAuth.dataSubject(any(), argThat(g -> g.readAsUserId != null)))
                     .thenThrow(readAsFailure);
             } else if (readAsEligible != null) {
-                ska.when(() -> ServiceKeyAuth.readAsRefusal(any(), anyString(), anyString()))
-                    .thenReturn(readAsEligible ? null : "creator not a direct member");
+                if (readAsEligible) {
+                    ska.when(() -> ServiceKeyAuth.dataSubject(any(), argThat(g -> g.readAsUserId != null)))
+                        .then(i -> ((ServiceKeyAuth.Grant)i.getArgument(1)).readAsUserId);
+                } else {
+                    ska.when(() -> ServiceKeyAuth.dataSubject(any(), argThat(g -> g.readAsUserId != null)))
+                        .thenThrow(new ServiceKeyException(401,
+                            "service key unavailable; contact your Wildbook administrator"));
+                }
             }
             if (admission != null) {
                 sp.when(() -> SubmissionPolicy.requireAdmission(anyString(), anyString())).thenThrow(admission);

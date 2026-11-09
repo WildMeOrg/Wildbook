@@ -143,7 +143,7 @@ class ServiceKeysReadAsDbTest {
         ServiceKeys servlet = new ServiceKeys();
         if ("GET".equals(method)) servlet.doGet(req, resp);
         else if ("POST".equals(method)) servlet.doPost(req, resp);
-        else if ("PATCH".equals(method)) servlet.doPatch(req, resp);
+        else if ("PATCH".equals(method)) servlet.service(req, resp); // the real dispatch
         else if ("DELETE".equals(method)) servlet.doDelete(req, resp);
         else throw new IllegalArgumentException(method);
         org.mockito.ArgumentCaptor<Integer> status = org.mockito.ArgumentCaptor.forClass(Integer.class);
@@ -347,6 +347,12 @@ class ServiceKeysReadAsDbTest {
         assertEquals(405, call(r, "PATCH", "/api/v3/service-keys", "/mine", "{}").status, "mine");
         assertEquals(405, call(r, "PATCH", "/api/v3/organizations", "/" + orgA.getId() + "/service-keys", "{}")
             .status, "organization keys");
+        String keyId = createBound(r, orgA).json().getString("keyId");
+        assertEquals(405, call(r, "PATCH", "/api/v3/organizations",
+            "/" + orgA.getId() + "/service-keys/" + keyId, "{}").status, "one key");
+        assertEquals(404, call(r, "PATCH", "/api/v3/service-keys", "/nope", "{}").status,
+            "unknown paths stay 404");
+        assertEquals(1, mine(r).json().getJSONArray("keys").length(), "nothing was changed");
     }
 
     @Test void mineIsGetOnlyAndEmptyForOthers() throws Exception {

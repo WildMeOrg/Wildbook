@@ -100,7 +100,7 @@ public final class ServiceKeyAuth {
     }
 
     /** Why a key of {@code orgId} may not read as {@code userId}, or null when it may. */
-    public static String readAsRefusal(PersistenceManager pm, String userId, String orgId) {
+    static String readAsRefusal(PersistenceManager pm, String userId, String orgId) {
         if (userId == null || orgId == null) return "no creator or organization";
         User user = FreshObjects.load(pm, User.class, "uuid == :id", userId);
         if (user == null) return "creator not found";

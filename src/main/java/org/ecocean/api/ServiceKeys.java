@@ -70,11 +70,10 @@ public class ServiceKeys extends ApiBase {
         handle("DELETE", request, response);
     }
 
-    /** ApiBase routes PATCH here and otherwise answers it with an empty 200; no key route takes it. */
+    /** ApiBase routes PATCH here and would otherwise answer it with an empty 200; no key route takes it. */
     @Override protected void doPatch(HttpServletRequest request, HttpServletResponse response)
         throws IOException {
-        response.setHeader("Cache-Control", "no-store");
-        writeError(response, 405, "method not allowed");
+        handle("PATCH", request, response);
     }
 
     /**
@@ -98,7 +97,8 @@ public class ServiceKeys extends ApiBase {
         }
         boolean getOnly = route.discovery || route.mine;
         boolean allowed = getOnly ? "GET".equals(method)
-            : route.keyId != null ? "DELETE".equals(method) : true;
+            : route.keyId != null ? "DELETE".equals(method)
+            : "GET".equals(method) || "POST".equals(method) || "DELETE".equals(method);
         if (!allowed) {
             response.setHeader("Allow", getOnly ? "GET" : route.keyId != null ? "DELETE" : "GET, POST, DELETE");
             writeError(response, 405, "method not allowed");
