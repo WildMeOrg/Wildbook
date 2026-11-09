@@ -96,6 +96,9 @@ class WildbookTokenAuthenticationFilterTest {
         assertEquals("context0",
             wrapped.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_CONTEXT_ATTR),
             "filter sets the verified context attribute for SearchApi");
+        assertEquals("user-uuid-1",
+            wrapped.getAttribute(WildbookTokenAuthenticationFilter.TOKEN_SUBJECT_ATTR),
+            "filter sets the verified subject UUID for Shepherd.getUser(request)");
     }
 
     @Test void expiredToken_returns401() throws Exception {
