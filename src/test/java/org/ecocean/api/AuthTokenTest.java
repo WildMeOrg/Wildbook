@@ -3,6 +3,7 @@ package org.ecocean.api;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
@@ -69,6 +70,26 @@ class AuthTokenTest {
             assertFalse(body.isEmpty(), "response body must not be empty");
             JSONObject json = new JSONObject(body);
             assertFalse(json.optBoolean("success", true), "success must be false");
+            // clients that wait for a challenge before sending Basic credentials get one
+            verify(mockResponse).setHeader("WWW-Authenticate", "Basic realm=\"Wildbook\"");
+        }
+    }
+
+    /** A wrong password is a plain 401: no challenge, so browsers never pop a login dialog. */
+    @Test
+    void wrongPassword_returns401WithoutChallenge() throws Exception {
+        when(mockRequest.getHeader("Authorization")).thenReturn(basic("alice", "wrong"));
+        User alice = mock(User.class);
+        when(alice.checkPassword("wrong")).thenReturn(false);
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, ctx) -> when(mock.getUser("alice")).thenReturn(alice))) {
+            new AuthToken().doPost(mockRequest, mockResponse);
+
+            writer.flush();
+            verify(mockResponse).setStatus(401);
+            assertEquals("invalid credentials", new JSONObject(responseOut.toString()).optString("error"),
+                "error");
+            verify(mockResponse, never()).setHeader(eq("WWW-Authenticate"), anyString());
         }
     }
 

@@ -94,6 +94,7 @@ class LocationRoleAccessTest {
             "a location named exactly like a system role grants nothing");
         assertTrue(LocationRoleAccess.roleNamesFor("admin").isEmpty());
         assertTrue(LocationRoleAccess.roleNamesFor("orgAdmin").isEmpty());
+        assertTrue(LocationRoleAccess.roleNamesFor("api-submission").isEmpty());
     }
 
     // pure traversal edge cases live with the traversal, in LocationIDLineageTest
