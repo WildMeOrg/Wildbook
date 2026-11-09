@@ -4,6 +4,7 @@ import { Button, Modal, Form, Alert } from "react-bootstrap";
 import useGetMe from "../../models/auth/users/useGetMe";
 import useMintToken from "../../models/auth/useMintToken";
 import ServiceKeysPanel, { canManageServiceKeys } from "./ServiceKeysPanel";
+import MyReadAsKeysPanel from "./MyReadAsKeysPanel";
 
 const SKILL_URL = "/api/v3/agent-skill";
 
@@ -115,6 +116,7 @@ export default function ApiAccessPage() {
       )}
 
       {canManageServiceKeys(me) && <ServiceKeysPanel username={username} />}
+      {username && <MyReadAsKeysPanel username={username} />}
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Form onSubmit={submit}>

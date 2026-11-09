@@ -147,7 +147,7 @@ class ServiceKeysTest {
                 w.revokeArgs = Arrays.asList(i.getArgument(1), i.getArgument(2));
                 return w.revokeAllCount;
             });
-            store.when(() -> ServiceKeyStore.create(any(), any(), any(), any(), anyInt(), anyString())).then(i -> {
+            store.when(() -> ServiceKeyStore.create(any(), any(), any(), any(), anyInt(), anyString(), anyBoolean())).then(i -> {
                 if (w.createFailure != null) throw w.createFailure;
                 w.createdLabel = i.getArgument(2);
                 @SuppressWarnings("unchecked") Set<String> scopes = i.getArgument(3);

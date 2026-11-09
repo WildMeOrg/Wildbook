@@ -24,9 +24,13 @@ import org.json.JSONObject;
 /**
  * Service key management:
  *   GET    /api/v3/service-keys/organizations              organizations the caller can manage
+ *   GET    /api/v3/service-keys/mine                       live keys that read as the caller
  *   GET    /api/v3/organizations/{orgId}/service-keys        list
- *   POST   /api/v3/organizations/{orgId}/service-keys        create {"label","scopes":[...],"days"}
- *   DELETE /api/v3/organizations/{orgId}/service-keys/{keyId} revoke one (idempotent)
+ *   POST   /api/v3/organizations/{orgId}/service-keys        create {"label","scopes":[...],"days",
+ *                                                             "readAsCreator"}
+ *   DELETE /api/v3/organizations/{orgId}/service-keys/{keyId} revoke one (idempotent); also allowed,
+ *                                                             without managing the organization, to
+ *                                                             the creator of a key that reads as them
  *   DELETE /api/v3/organizations/{orgId}/service-keys        revoke all
  * Every request needs a fresh HTTP Basic credential, checked here; a session cookie alone is never
  * enough (Shiro maps these paths to anon). Mutations refuse a foreign Origin.
@@ -38,11 +42,16 @@ public class ServiceKeys extends ApiBase {
     /** A parsed request path. */
     private static final class Route {
         final boolean discovery;
+        final boolean mine;
         final String orgId;
         final String keyId;
 
         Route(boolean discovery, String orgId, String keyId) {
-            this.discovery = discovery; this.orgId = orgId; this.keyId = keyId;
+            this(discovery, false, orgId, keyId);
+        }
+
+        Route(boolean discovery, boolean mine, String orgId, String keyId) {
+            this.discovery = discovery; this.mine = mine; this.orgId = orgId; this.keyId = keyId;
         }
     }
 
@@ -80,10 +89,11 @@ public class ServiceKeys extends ApiBase {
             writeError(response, 404, "not found");
             return;
         }
-        boolean allowed = route.discovery ? "GET".equals(method)
+        boolean getOnly = route.discovery || route.mine;
+        boolean allowed = getOnly ? "GET".equals(method)
             : route.keyId != null ? "DELETE".equals(method) : true;
         if (!allowed) {
-            response.setHeader("Allow", route.discovery ? "GET" : route.keyId != null ? "DELETE" : "GET, POST, DELETE");
+            response.setHeader("Allow", getOnly ? "GET" : route.keyId != null ? "DELETE" : "GET, POST, DELETE");
             writeError(response, 405, "method not allowed");
             return;
         }
@@ -122,12 +132,26 @@ public class ServiceKeys extends ApiBase {
                 writeJson(response, 200, new JSONObject().put("organizations", orgs));
                 return;
             }
+            if (route.mine) {
+                JSONArray keys = new JSONArray();
+                for (ServiceKey key : ServiceKeyStore.listReadingAs(myShepherd, user.getId())) {
+                    // the caller may not manage the organization, so its id comes with each key
+                    keys.put(ServiceKeyStore.toJson(myShepherd, key)
+                        .put("organizationId", key.getOrganizationId()));
+                }
+                writeJson(response, 200, new JSONObject().put("keys", keys));
+                return;
+            }
             Organization org = ServiceKeyStore.organization(myShepherd, route.orgId);
             if (org == null) {
                 writeError(response, 404, "organization not found");
                 return;
             }
-            if (!canManage(myShepherd, user, org)) {
+            // a key that reads as its creator is theirs to withdraw, one key at a time, even
+            // after they stop managing the organization
+            boolean ownReadAsKey = route.keyId != null && "DELETE".equals(method)
+                && ServiceKeyStore.readsAs(myShepherd, org.getId(), route.keyId, user.getId());
+            if (!ownReadAsKey && !canManage(myShepherd, user, org)) {
                 System.out.println("ServiceKeys " + method + " DENIED (not allowed) user=" + user.getId()
                     + " org=" + org.getId());
                 writeError(response, 403, "not allowed to manage this organization's service keys");
@@ -219,8 +243,14 @@ public class ServiceKeys extends ApiBase {
             }
             days = (int)d;
         }
+        Object readAsValue = body.opt("readAsCreator");
+        if (readAsValue != null && readAsValue != JSONObject.NULL && !(readAsValue instanceof Boolean)) {
+            writeError(response, 400, "readAsCreator must be true or false");
+            return;
+        }
+        boolean readAsCreator = Boolean.TRUE.equals(readAsValue);
         ServiceKeyCredential.Issued issued = ServiceKeyStore.create(myShepherd, org, label, scopes, days,
-            user.getId());
+            user.getId(), readAsCreator);
         ServiceKey key = ServiceKeyStore.get(myShepherd, org.getId(), issued.keyId);
         if (key == null) throw new IllegalStateException("created key not readable");
         JSONObject out = ServiceKeyStore.toJson(myShepherd, key);
@@ -228,7 +258,7 @@ public class ServiceKeys extends ApiBase {
         out.put("organizationId", org.getId());
         if (!commit(myShepherd, response)) return;
         System.out.println("ServiceKeys created key=" + issued.keyId + " org=" + org.getId() + " by user="
-            + user.getId());
+            + user.getId() + (readAsCreator ? " readAsCreator" : ""));
         writeJson(response, 201, out);
     }
 
@@ -245,7 +275,10 @@ public class ServiceKeys extends ApiBase {
         // parts[0] is the empty string before the leading slash
         if (parts.length < 2 || !parts[0].isEmpty()) return null;
         if (servletPath.equals("/api/v3/service-keys")) {
-            return (parts.length == 2 && parts[1].equals("organizations")) ? new Route(true, null, null) : null;
+            if (parts.length != 2) return null;
+            if (parts[1].equals("organizations")) return new Route(true, null, null);
+            if (parts[1].equals("mine")) return new Route(false, true, null, null);
+            return null;
         }
         if (!servletPath.equals("/api/v3/organizations")) return null;
         if (parts.length < 3 || parts[1].isEmpty() || !parts[2].equals("service-keys")) return null;

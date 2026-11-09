@@ -156,7 +156,7 @@ describe("ServiceKeysPanel", () => {
     expect(await screen.findByText("wbsvc_k2.SECRETVALUE")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copy" })).toBeInTheDocument();
     const body = JSON.parse(fetchMock.mock.calls.find(([, o]) => o.method === "POST")[1].body);
-    expect(body).toEqual({ label: "new", scopes: ["data:read"], days: 90 });
+    expect(body).toEqual({ label: "new", scopes: ["data:read"], days: 90, readAsCreator: false });
     fireEvent.click(screen.getByRole("button", { name: "Done" }));
     expect(screen.queryByText(/SECRETVALUE/)).not.toBeInTheDocument();
     expect(JSON.stringify({ ...localStorage })).not.toMatch(/SECRETVALUE|s3cr3t/);
@@ -289,6 +289,50 @@ describe("ServiceKeysPanel", () => {
     expect(screen.getByText(messages.API_SERVICE_KEY_WRITE_NEEDS_ADMIN)).toBeInTheDocument();
   });
 
+  it("readAsCreatorSentOnlyWithDataRead", async () => {
+    await openPanel();
+    const box = screen.getByLabelText(messages.API_SERVICE_KEY_READ_AS_CREATOR);
+    expect(screen.getByText(messages.API_SERVICE_KEY_READ_AS_CREATOR_HELP)).toBeInTheDocument();
+    fireEvent.click(box);
+    fireEvent.change(screen.getByLabelText("Label"), { target: { value: "bound" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create service key" }));
+    await enterPassword();
+    await screen.findByText("wbsvc_k2.SECRETVALUE");
+    const body = JSON.parse(fetchMock.mock.calls.find(([, o]) => o.method === "POST")[1].body);
+    expect(body.readAsCreator).toBe(true);
+    // the option disappears without data:read
+    fireEvent.click(screen.getByLabelText("data:read"));
+    expect(
+      screen.queryByLabelText(messages.API_SERVICE_KEY_READ_AS_CREATOR),
+    ).not.toBeInTheDocument();
+  });
+
+  it("readsAsColumn", async () => {
+    keysState = [
+      { ...KEY, readAsCreator: true },
+      { ...KEY, keyId: "k3", label: "plain", readAsCreator: false },
+    ];
+    await openPanel();
+    expect(screen.getByRole("columnheader", { name: "Reads as" })).toBeInTheDocument();
+    expect(screen.getByText("ingest").closest("tr")).toHaveTextContent("Creator");
+    expect(screen.getByText("plain").closest("tr")).toHaveTextContent("Service account");
+  });
+
+  it("notMemberErrorShown", async () => {
+    installFetch({
+      createStatus: 403,
+      createError: "readAsCreator needs a creator who is a direct member of this organization",
+    });
+    await openPanel();
+    fireEvent.click(screen.getByLabelText(messages.API_SERVICE_KEY_READ_AS_CREATOR));
+    fireEvent.change(screen.getByLabelText("Label"), { target: { value: "bound" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create service key" }));
+    await enterPassword();
+    expect(
+      await screen.findByText(messages.API_SERVICE_KEY_READ_AS_NOT_MEMBER),
+    ).toBeInTheDocument();
+  });
+
   it("refreshFailureAfterCreateDoesNotReprompt", async () => {
     await openPanel();
     const base = fetchMock.getMockImplementation();
@@ -319,5 +363,64 @@ describe("ServiceKeysPanel", () => {
     expect(await screen.findByText(messages.API_SERVICE_KEY_ERROR)).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByLabelText("Password")).not.toBeInTheDocument());
     expect(fetchMock.mock.calls.filter(([, o]) => o.method === "DELETE").length).toBe(1);
+  });
+});
+
+describe("MyReadAsKeysPanel", () => {
+  const MINE = {
+    ...KEY,
+    keyId: "m1",
+    label: "gundi",
+    readAsCreator: true,
+    organizationId: "org 7",
+  };
+  let mine;
+
+  beforeEach(() => {
+    mockMe = { data: { username: "bob", roles: ["researcher"] } };
+    mine = [MINE];
+    fetchMock = jest.fn((url, opts) => {
+      if (url === "/api/v3/service-keys/mine") return json(200, { keys: mine });
+      if (opts.method === "DELETE") {
+        mine = [];
+        return json(200, { keyId: "m1", revoked: true });
+      }
+      return json(500, {});
+    });
+    global.fetch = fetchMock;
+    window.confirm = jest.fn(() => true);
+  });
+
+  const openMine = async () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: messages.API_MY_READ_AS_KEYS }));
+    await enterPassword();
+    await waitFor(() => expect(screen.queryByLabelText("Password")).not.toBeInTheDocument());
+  };
+
+  it("shownToEveryoneSignedIn", () => {
+    renderPage();
+    expect(
+      screen.getByRole("button", { name: messages.API_MY_READ_AS_KEYS }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Manage service keys" })).not.toBeInTheDocument();
+  });
+
+  it("listsAndRevokesThroughTheKeysOrganization", async () => {
+    await openMine();
+    expect(await screen.findByText("gundi")).toBeInTheDocument();
+    expect(fetchMock.mock.calls[0][1].credentials).toBe("omit");
+    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe("Basic " + btoa("bob:s3cr3t"));
+    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+    await enterPassword();
+    expect(await screen.findByText(messages.API_MY_READ_AS_KEYS_NONE)).toBeInTheDocument();
+    const del = fetchMock.mock.calls.find(([, o]) => o.method === "DELETE");
+    expect(del[0]).toBe("/api/v3/organizations/org%207/service-keys/m1");
+  });
+
+  it("emptyState", async () => {
+    mine = [];
+    await openMine();
+    expect(await screen.findByText(messages.API_MY_READ_AS_KEYS_NONE)).toBeInTheDocument();
   });
 });
