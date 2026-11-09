@@ -13,6 +13,8 @@ import {
   isPhotoSlotColumn,
 } from "./bulkImportSlots";
 
+const TEXT_BOX_SUFFIXES = ["bbox", "iaClass", "bboxSource"];
+
 export const BulkImportSpreadsheet = observer(({ store }) => {
   const theme = useContext(ThemeContext);
 
@@ -67,9 +69,10 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           defval: "",
         });
         // the parser reads a box like "362,285,296,342" as one number with
-        // thousands separators; keep the text the cell shows for box columns
-        const boxKeys = Object.keys(allJsonDataRaw[0] || {}).filter(
-          (k) => boxSuffixOf(k) === "bbox",
+        // thousands separators (and "00123" as 123); keep the text the cell
+        // shows for box columns that hold text, but leave theta a number
+        const boxKeys = Object.keys(allJsonDataRaw[0] || {}).filter((k) =>
+          TEXT_BOX_SUFFIXES.includes(boxSuffixOf(k)),
         );
         if (boxKeys.length > 0) {
           const shown = XLSX.utils.sheet_to_json(worksheet, {

@@ -3,6 +3,7 @@ import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { BulkImportSpreadsheet } from "../../../pages/BulkImport/BulkImportSpreadsheet";
 import BulkImportStore from "../../../pages/BulkImport/BulkImportStore";
 import { renderWithProviders } from "../../../utils/utils";
+import * as XLSX from "xlsx";
 
 jest.mock("@flowjs/flow.js", () =>
   jest.fn().mockImplementation(() => ({
@@ -69,6 +70,59 @@ describe("BulkImportSpreadsheet photo slots", () => {
     );
     expect(store.spreadsheetData[0][`${A0}.bbox`]).toBe("362,285,296,342");
     expect(store.validationErrors[0]?.[`${A0}.bbox`]).toBeUndefined();
+  });
+
+  test("box text survives across rows with blanks; theta stays a number", async () => {
+    const store = new BulkImportStore();
+    store.setIndexableFields([
+      "Encounter.mediaAsset#",
+      "Encounter.mediaAsset#.bbox",
+    ]);
+    renderWithProviders(<BulkImportSpreadsheet store={store} />);
+    const csv =
+      `${A0},${A0}.bbox,${A0}.theta,${A0}.bboxSource\n` +
+      `a.jpg,"362,285,296,342",0.3,00123\n` +
+      `,,,\n` +
+      `b.jpg,,,\n` +
+      `c.jpg,"40,34,514,695",,\n`;
+    fireEvent.change(screen.getByTestId("spreadsheet-input"), {
+      target: { files: [new File([csv], "sheet.csv", { type: "text/csv" })] },
+    });
+    await waitFor(() => expect(store.spreadsheetData.length).toBe(3));
+    const rows = store.spreadsheetData;
+    expect(rows.map((r) => r[`${A0}.bbox`])).toEqual([
+      "362,285,296,342",
+      "",
+      "40,34,514,695",
+    ]);
+    expect(rows[0][`${A0}.theta`]).toBe(0.3);
+    expect(rows[0][`${A0}.bboxSource`]).toBe("00123");
+  });
+
+  test("an Excel box typed as a comma-formatted number keeps its text", async () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      [A0, `${A0}.bbox`],
+      ["a.jpg", 362285296342],
+      ["b.jpg", 362285296342],
+    ]);
+    ws.B2.z = "#,##0";
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "S");
+    const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" });
+    const store = new BulkImportStore();
+    store.setIndexableFields([
+      "Encounter.mediaAsset#",
+      "Encounter.mediaAsset#.bbox",
+    ]);
+    renderWithProviders(<BulkImportSpreadsheet store={store} />);
+    fireEvent.change(screen.getByTestId("spreadsheet-input"), {
+      target: { files: [new File([buf], "sheet.xlsx")] },
+    });
+    await waitFor(() => expect(store.spreadsheetData.length).toBe(2));
+    expect(store.spreadsheetData[0][`${A0}.bbox`]).toBe("362,285,296,342");
+    // a General-format number has no commas to recover and stays invalid
+    expect(store.spreadsheetData[1][`${A0}.bbox`]).not.toMatch(/,/);
+    expect(store.validationErrors[1]?.[`${A0}.bbox`]).toBeTruthy();
   });
 
   test("an un-boxed sheet still merges photos into slot 0", async () => {
