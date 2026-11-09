@@ -90,6 +90,31 @@ class ShepherdTokenSubjectDbTest {
         assertNull(resolve(request("dave-" + suffix, Boolean.TRUE)), "non-string subject");
     }
 
+    @Test void subjectIsReadFreshAfterARenameElsewhere() {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        String frankId = persistUser("frank-" + suffix);
+        assertEquals("frank-" + suffix, resolve(request("frank-" + suffix, frankId)).getUsername(),
+            "first resolve (warms any cache)");
+        // another transaction renames frank and hands his old username to someone else
+        Shepherd other = new Shepherd("context0", properties);
+        other.beginDBTransaction();
+        try {
+            other.getUserByUUID(frankId).setUsername("frank-renamed-" + suffix);
+            assertTrue(other.commitDBTransactionWithStatus(), "rename committed");
+        } finally { other.closeDBTransaction(); }
+        persistUser("frank-" + suffix);
+
+        Shepherd live = new Shepherd("context0", properties);
+        live.beginDBTransaction();
+        try {
+            User u = live.getUser(request("frank-" + suffix, frankId));
+            assertNotNull(u, "subject resolves after the rename");
+            assertEquals(frankId, u.getId(), "still the verified UUID, not the new holder of the old name");
+            assertEquals("frank-renamed-" + suffix, u.getUsername(), "fresh state, not a cached copy");
+            assertFalse(u.isAdmin(live), "role lookups work on the loaded user inside the transaction");
+        } finally { live.rollbackAndClose(); }
+    }
+
     @Test void sessionRequestStillResolvesByUsername() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         String erinId = persistUser("erin-" + suffix);
