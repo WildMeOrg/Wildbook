@@ -68,6 +68,8 @@ public final class MatchInspectionPairxEnricher {
             String taxonomy = null;
             Encounter qEnc = queryAnn.findEncounter(shep);
             if (qEnc != null) taxonomy = qEnc.getTaxonomyString();
+            String queryIaClass = queryAnn.getIAClass();
+            String[] matchIdentity = MatchResult.taskMatchIdentity(mr.getTaskParameters());
             String queryImageUri = imageUriOf(queryAnn);
             int[] queryBbox = MatchResult.clampBbox(queryAnn.getBbox());
             double queryTheta = queryAnn.getTheta();
@@ -85,7 +87,8 @@ public final class MatchInspectionPairxEnricher {
                     out.add(new PairxDto(
                         matchResultId, pAnn.getId(), prospect.getType(),
                         taxonomy, queryImageUri, prospectImageUri,
-                        queryBbox, prospectBbox, queryTheta, prospectTheta));
+                        queryBbox, prospectBbox, queryTheta, prospectTheta,
+                        queryIaClass, matchIdentity[0], matchIdentity[1]));
                 }
             }
             shep.commitDBTransaction();
@@ -127,7 +130,8 @@ public final class MatchInspectionPairxEnricher {
         // One IA.json read for endpoint + model id + layer key; MLService
         // re-parses the file per construction, so resolving these
         // separately would read it three times per visualisation.
-        JSONObject pairxConf = MatchResult._getPairxConfig(dto.taxonomyString);
+        JSONObject pairxConf = MatchResult._getPairxConfig(dto.taxonomyString,
+            dto.queryIaClass, dto.matchMethod, dto.matchVersion);
         URL pairxUrl = MatchResult._pairxUrlFromConfig(pairxConf);
         if (pairxUrl == null) return null;
         JSONObject payload = buildPayload(dto,
@@ -466,11 +470,26 @@ public final class MatchInspectionPairxEnricher {
         final int[] prospectBbox;           // pre-clamped
         final double queryTheta;
         final double prospectTheta;
+        // multi-pipeline PairX config selection: the query's class and the
+        // embedding space the match ran in (null when unknown)
+        final String queryIaClass;
+        final String matchMethod;
+        final String matchVersion;
 
         PairxDto(String matchResultId, String prospectAnnotationId, String scoreType,
             String taxonomyString, String queryImageUri, String prospectImageUri,
             int[] queryBbox, int[] prospectBbox,
             double queryTheta, double prospectTheta) {
+            this(matchResultId, prospectAnnotationId, scoreType, taxonomyString, queryImageUri,
+                prospectImageUri, queryBbox, prospectBbox, queryTheta, prospectTheta, null, null,
+                null);
+        }
+
+        PairxDto(String matchResultId, String prospectAnnotationId, String scoreType,
+            String taxonomyString, String queryImageUri, String prospectImageUri,
+            int[] queryBbox, int[] prospectBbox,
+            double queryTheta, double prospectTheta, String queryIaClass,
+            String matchMethod, String matchVersion) {
             this.matchResultId = matchResultId;
             this.prospectAnnotationId = prospectAnnotationId;
             this.scoreType = scoreType;
@@ -481,6 +500,9 @@ public final class MatchInspectionPairxEnricher {
             this.prospectBbox = prospectBbox;
             this.queryTheta = queryTheta;
             this.prospectTheta = prospectTheta;
+            this.queryIaClass = queryIaClass;
+            this.matchMethod = matchMethod;
+            this.matchVersion = matchVersion;
         }
     }
 }

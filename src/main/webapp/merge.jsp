@@ -95,6 +95,7 @@ table.compareZone tr th {
         data: JSON.stringify(requestJSON),
         dataType: 'json',
         contentType: 'application/json',
+        timeout: 300000,
         success: function(data) {
             incrementalIdResults = data.incrementalIdArr;
             projectNameResults = data.projects;
@@ -107,20 +108,42 @@ table.compareZone tr th {
                 requestJsonForCurrentUsersProjects['participantId'] = '<%= currentUser.getUsername()%>';
                 doAjaxForProject(requestJsonForCurrentUsersProjects);
               }
+            }else if(numProjects === undefined){
+              //the current user's projects: decide whether the merge is permitted, even if the user has none
+              let projNameOptions = (projectNameResults || []).map(entry =>{return entry.researchProjectName});
+              compareUserProjectsToConflictedOnesOnIndividuals(projNameOptions,conflictingProjs);
             }else{
-              if(projectNameResults){
-                let projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
-                let prjIdOptions = projectNameResults.map(entry =>{return entry.projectIdPrefix});
-                  if(projNameOptions.length>0){
-                    compareUserProjectsToConflictedOnesOnIndividuals(projNameOptions,conflictingProjs);
-                  }
-              }
+              //no incremental ID data for this project, so its row can't be completed
+              showLoadError();
             }
         },
         error: function(x,y,z) {
             console.warn('%o %o %o', x, y, z);
+            showLoadError();
         }
     });
+  }
+  function showLoadError(){
+    $('#everything-else').hide();
+    $('#progress-div').hide();
+    $('#load-error').show();
+  }
+  //project rows are keyed by name and incremental IDs are requested by prefix, so every project
+  //needs both and they must match one to one; otherwise a project row would be silently skipped
+  function projectNamesAndPrefixesMatch(projectByIndividArr){
+    let prefixByName = new Map();
+    let nameByPrefix = new Map();
+    for(const projects of projectByIndividArr){
+      for(const entry of (projects || [])){
+        let name = entry.researchProjectName;
+        let prefix = entry.projectIdPrefix;
+        if(!name || !prefix) return false;
+        if((prefixByName.has(name) && prefixByName.get(name) !== prefix) || (nameByPrefix.has(prefix) && nameByPrefix.get(prefix) !== name)) return false;
+        prefixByName.set(name, prefix);
+        nameByPrefix.set(prefix, name);
+      }
+    }
+    return true;
   }
   function compareUserProjectsToConflictedOnesOnIndividuals(userProjNames, conflictingProjsOnIndividuals){
     let shouldShow = true;
@@ -171,9 +194,14 @@ table.compareZone tr th {
         data: JSON.stringify(requestJSON),
         dataType: 'json',
         contentType: 'application/json',
+        timeout: 300000,
         success: function(data) {
             let projectByIndividArr = data.projectByIndividArr;
-            if(projectByIndividArr && projectByIndividArr.length>0){
+            if(!projectByIndividArr || projectByIndividArr.length==0 || !projectNamesAndPrefixesMatch(projectByIndividArr)){
+              //an empty list means neither individual was found (individuals without projects return empty lists)
+              showLoadError();
+            }
+            else{
               for(let i=0; i< projectByIndividArr.length; i++){
                 let currentIndividaulsProjects = projectByIndividArr[i];
                 if(currentIndividaulsProjects && currentIndividaulsProjects.length>0){
@@ -189,12 +217,10 @@ table.compareZone tr th {
               //done with fetching project names and id prefixes belonging to individuals
               populateProjectRows(projNamesBelongingToIndividuals, projIdPrefixesBelongingToIndividuals);
             }
-            else{
-            // no projects on the individuals, so no project rows to populate
-            }
           },
           error: function(x,y,z) {
               console.warn('%o %o %o', x, y, z);
+              showLoadError();
           }
       });
   }
@@ -342,6 +368,9 @@ table.compareZone tr th {
         <span class="sr-only"><%= props.getProperty("PercentComplete")%></span>
       </div>
     </div>
+  </div>
+  <div id="load-error" style="display: none;">
+    <h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("LoadError")%></h4>
   </div>
   <div id="not-permitted" style="display: none;">
     <h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("NotPermitted")%></h4>
