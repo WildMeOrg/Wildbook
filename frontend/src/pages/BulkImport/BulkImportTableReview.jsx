@@ -10,6 +10,14 @@ import { BulkImportSpreadsheetUploadInfo } from "./BulkImportSpreadsheetUploadIn
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
 import ErrorSummaryBar from "./BulkImportErrorSummaryBar";
 import { useIntl } from "react-intl";
+import { boxSuffixOf } from "./bulkImportSlots";
+
+// a box error's server reason (e.g. "box 1000,0,296,342 exceeds image 1152x768") says what
+// to fix in the spreadsheet, since box cells cannot be edited on the page
+const boxReason = (error) =>
+  boxSuffixOf(error?.fieldName || "") && typeof error?.details === "string"
+    ? error.details.replace(/^[\w.$]+Exception:\s*/, "")
+    : null;
 
 export const BulkImportTableReview = observer(({ store }) => {
   const intl = useIntl();
@@ -138,6 +146,7 @@ export const BulkImportTableReview = observer(({ store }) => {
                     <FormattedMessage id="ROW" /> {Number(error.rowNumber) + 1}:{" "}
                     {renderErrorCode(error.type)} {": "}
                     {name}
+                    {boxReason(error) && ` (${boxReason(error)})`}
                   </li>
                 );
               })}

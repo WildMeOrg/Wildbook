@@ -1,7 +1,9 @@
 import React from "react";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "../../../utils/utils";
-import BulkImportTask from "../../../pages/BulkImport/BulkImportTask";
+import BulkImportTask, {
+  detectionDone,
+} from "../../../pages/BulkImport/BulkImportTask";
 import axios from "axios";
 import { useSiteSettings } from "../../../SiteSettingsContext";
 
@@ -259,5 +261,17 @@ describe("BulkImportTask", () => {
       "href",
       "/encounters/encounter.jsp?number=E123",
     );
+  });
+});
+
+describe("detectionDone", () => {
+  test("detection counts as done when complete or when boxes were supplied", () => {
+    expect(detectionDone({ detectionStatus: "complete" })).toBe(true);
+    expect(
+      detectionDone({ detectionStatus: "skipped", annotationsImported: true }),
+    ).toBe(true);
+    expect(detectionDone({ detectionStatus: "skipped" })).toBe(false);
+    expect(detectionDone({ detectionStatus: "sent" })).toBe(false);
+    expect(detectionDone(undefined)).toBe(false);
   });
 });

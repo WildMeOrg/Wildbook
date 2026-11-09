@@ -151,4 +151,34 @@ describe("BulkImportTableReview", () => {
       screen.getByText(/BULK_IMPORT_ERROR_REQUIRED_VALUE/),
     ).toBeInTheDocument();
   });
+
+  it("shows the server's reason for box errors only", () => {
+    const store = createMockStore({
+      submissionErrors: [
+        {
+          type: "INVALID_VALUE",
+          rowNumber: 1,
+          fieldName: "Encounter.mediaAsset0.bbox",
+          details:
+            "org.ecocean.api.bulk.BulkValidatorException: box 1000,0,296,342 exceeds image 1152x768",
+        },
+        {
+          type: "INVALID_VALUE",
+          rowNumber: 0,
+          fieldName: "Encounter.year",
+          details: "org.ecocean.api.bulk.BulkValidatorException: bad year",
+        },
+      ],
+    });
+
+    render(<BulkImportTableReview store={store} />);
+
+    expect(
+      screen.getByText(
+        /Encounter\.mediaAsset0\.bbox \(box 1000,0,296,342 exceeds image 1152x768\)/,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/BulkValidatorException/)).toBeNull();
+    expect(screen.queryByText(/bad year/)).toBeNull();
+  });
 });

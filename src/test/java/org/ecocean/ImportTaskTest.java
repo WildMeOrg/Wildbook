@@ -304,6 +304,40 @@ class ImportTaskTest {
     }
     // ---- bulk-import boxes PR A, task 2: annotationsImported flag ----
 
+    @Test void iaSummaryForSuppliedBoxesShowsDetectionDone() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        MediaAsset boxed = mock(MediaAsset.class);
+        MediaAsset unboxed = mock(MediaAsset.class);
+        when(boxed.getDetectionStatus()).thenReturn("complete");
+        List<MediaAsset> someMAs = new ArrayList<MediaAsset>();
+        someMAs.add(boxed);
+        someMAs.add(unboxed);
+        when(itask.getMediaAssets()).thenReturn(someMAs);
+        when(itask.getIATask()).thenReturn(mock(Task.class));
+        when(itask.iaTaskStarted()).thenReturn(true);
+        when(itask.annotationsImported()).thenReturn(true);
+        when(itask.skippedDetection()).thenReturn(true);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals("skipped", sum.optString("detectionStatus"));
+        assertTrue(sum.optBoolean("annotationsImported"));
+        assertEquals(1.0, sum.optDouble("detectionPercent"), 0.0);
+    }
+
+    @Test void iaSummaryWithoutSuppliedBoxesOmitsTheFlag() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        when(itask.getMediaAssets()).thenReturn(new ArrayList<MediaAsset>());
+        when(itask.skippedDetection()).thenReturn(true);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals("skipped", sum.optString("detectionStatus"));
+        assertFalse(sum.has("annotationsImported"));
+    }
+
     @Test void annotationsImportedSkipsDetectionButNotIdentification() {
         ImportTask t = new ImportTask();
         t.setPassedParameters(new JSONObject().put(ImportTask.PARAM_ANNOTATIONS_IMPORTED, true));

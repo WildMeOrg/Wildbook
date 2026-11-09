@@ -25,6 +25,11 @@ import { BulkImportTaskStore } from "./BulkImportTaskStore";
 
 const TreeSelect = lazy(() => import("antd/es/tree-select"));
 
+// supplied boxes replace detection (detectionStatus "skipped"), so identification can still run
+export const detectionDone = (iaSummary) =>
+  iaSummary?.detectionStatus === "complete" ||
+  iaSummary?.annotationsImported === true;
+
 const BulkImportTask = observer(() => {
   const intl = useIntl();
   const theme = useContext(ThemeColorContext);
@@ -504,7 +509,7 @@ const BulkImportTask = observer(() => {
                 !userRoles?.includes("researcher")) ||
               !store.locationIDString ||
               task?.status !== "complete" ||
-              task?.iaSummary?.detectionStatus !== "complete"
+              !detectionDone(task?.iaSummary)
             }
             onClick={async () => {
               setShowError(false);
@@ -569,7 +574,7 @@ const BulkImportTask = observer(() => {
             !userRoles?.includes("researcher")) ||
             !store.locationIDString ||
             task?.status !== "complete" ||
-            task?.iaSummary?.detectionStatus !== "complete") && (
+            !detectionDone(task?.iaSummary)) && (
             <p
               style={{
                 color: theme.grayColors.gray500,
