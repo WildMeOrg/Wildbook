@@ -81,8 +81,10 @@ public final class ServiceKeyAuth {
      */
     public static String dataSubject(Shepherd sh, Grant grant) {
         if (grant.readAsUserId == null) return grant.serviceUserId;
-        if (!isReadAsEligible(sh.getPM(), grant.readAsUserId, grant.organizationId)) {
-            System.out.println("ServiceKeyAuth read-as creator no longer eligible key=" + grant.keyId
+        String reason = readAsRefusal(sh.getPM(), grant.readAsUserId, grant.organizationId);
+        if (reason != null) {
+            // the caller only ever sees the generic UNAVAILABLE text
+            System.out.println("ServiceKeyAuth read-as refused (" + reason + ") key=" + grant.keyId
                 + " org=" + grant.organizationId + " user=" + grant.readAsUserId);
             throw fail(UNAVAILABLE);
         }
@@ -94,10 +96,17 @@ public final class ServiceKeyAuth {
      * service account) and is a direct member of that organization. Read fresh from the datastore.
      */
     public static boolean isReadAsEligible(PersistenceManager pm, String userId, String orgId) {
-        if (userId == null || orgId == null) return false;
+        return readAsRefusal(pm, userId, orgId) == null;
+    }
+
+    /** Why a key of {@code orgId} may not read as {@code userId}, or null when it may. */
+    public static String readAsRefusal(PersistenceManager pm, String userId, String orgId) {
+        if (userId == null || orgId == null) return "no creator or organization";
         User user = FreshObjects.load(pm, User.class, "uuid == :id", userId);
-        if (user == null || user.isServiceAccount()) return false;
-        return directOrganizationIds(pm, userId).contains(orgId);
+        if (user == null) return "creator not found";
+        if (user.isServiceAccount()) return "creator is a service account";
+        if (!directOrganizationIds(pm, userId).contains(orgId)) return "creator not a direct member";
+        return null;
     }
 
     /** min(configured, 900 s, time until the key expires). */

@@ -57,9 +57,12 @@ class AuthTokenServiceKeyTest {
             } else {
                 ska.when(() -> ServiceKeyAuth.authenticate(any(), anyString(), anyLong())).thenReturn(grant);
             }
-            if (readAsEligible != null) {
-                ska.when(() -> ServiceKeyAuth.isReadAsEligible(any(), anyString(), anyString()))
-                    .thenReturn(readAsEligible);
+            if (readAsFailure != null) {
+                ska.when(() -> ServiceKeyAuth.readAsRefusal(any(), anyString(), anyString()))
+                    .thenThrow(readAsFailure);
+            } else if (readAsEligible != null) {
+                ska.when(() -> ServiceKeyAuth.readAsRefusal(any(), anyString(), anyString()))
+                    .thenReturn(readAsEligible ? null : "creator not a direct member");
             }
             if (admission != null) {
                 sp.when(() -> SubmissionPolicy.requireAdmission(anyString(), anyString())).thenThrow(admission);
@@ -85,6 +88,16 @@ class AuthTokenServiceKeyTest {
 
     /** What the fresh read-as eligibility check answers; null leaves it unmocked. */
     private Boolean readAsEligible;
+    /** Thrown by the fresh read-as check instead, e.g. its membership query failing. */
+    private ServiceKeyException readAsFailure;
+
+    @Test void boundKeyMembershipCheckFailureIs503AndMintsNothing() throws Exception {
+        readAsFailure = new ServiceKeyException(503, "service key check unavailable");
+        Result r = post(null, boundGrant(System.currentTimeMillis() + 3_600_000L, "data:read"));
+        assertEquals(503, r.status, r.body);
+        verify(r.jwt, never()).signUntil(anyString(), anyString(), anyLong(), any(), anyLong());
+        assertFalse(r.committed, "nothing committed");
+    }
 
     private static ServiceKeyAuth.Grant boundGrant(long keyExpiresAt, String... scopes) {
         return new ServiceKeyAuth.Grant("svc-user-id", "key-id", "org-id", Set.of(scopes), keyExpiresAt,

@@ -70,6 +70,13 @@ public class ServiceKeys extends ApiBase {
         handle("DELETE", request, response);
     }
 
+    /** ApiBase routes PATCH here and otherwise answers it with an empty 200; no key route takes it. */
+    @Override protected void doPatch(HttpServletRequest request, HttpServletResponse response)
+        throws IOException {
+        response.setHeader("Cache-Control", "no-store");
+        writeError(response, 405, "method not allowed");
+    }
+
     /**
      * Whether {@code basicUser} may manage {@code org}'s service keys: site admins, and orgAdmin
      * holders for organizations they are a direct member of. Deliberately not

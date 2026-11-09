@@ -145,6 +145,8 @@ export default function ServiceKeysPanel({ username }) {
     setCreated(null);
     setError(null);
     setKeys([]);
+    // consent to read with one's own access is per key and per organization
+    setReadAsCreator(false);
     try {
       await refresh(auth, id);
     } catch (err) {
@@ -192,10 +194,13 @@ export default function ServiceKeysPanel({ username }) {
     });
   };
 
-  const toggleScope = (s) =>
+  const toggleScope = (s) => {
+    // dropping data:read withdraws the read-as choice; re-adding it starts unticked
+    if (s === "data:read") setReadAsCreator(false);
     setScopes((cur) =>
       cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s],
     );
+  };
 
   const status = (k) =>
     k.revokedAt

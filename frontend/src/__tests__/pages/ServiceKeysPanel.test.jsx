@@ -307,6 +307,25 @@ describe("ServiceKeysPanel", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("readAsCreatorResetsOnScopeAndOrgChange", async () => {
+    installFetch({
+      orgs: [
+        { id: "o1", name: "Org One" },
+        { id: "o2", name: "Org Two" },
+      ],
+    });
+    await openPanel();
+    const box = () => screen.getByLabelText(messages.API_SERVICE_KEY_READ_AS_CREATOR);
+    fireEvent.click(box());
+    expect(box()).toBeChecked();
+    fireEvent.click(screen.getByLabelText("data:read"));
+    fireEvent.click(screen.getByLabelText("data:read"));
+    expect(box()).not.toBeChecked();
+    fireEvent.click(box());
+    fireEvent.change(screen.getByLabelText("Organization"), { target: { value: "o2" } });
+    await waitFor(() => expect(box()).not.toBeChecked());
+  });
+
   it("readsAsColumn", async () => {
     keysState = [
       { ...KEY, readAsCreator: true },
@@ -416,6 +435,23 @@ describe("MyReadAsKeysPanel", () => {
     expect(await screen.findByText(messages.API_MY_READ_AS_KEYS_NONE)).toBeInTheDocument();
     const del = fetchMock.mock.calls.find(([, o]) => o.method === "DELETE");
     expect(del[0]).toBe("/api/v3/organizations/org%207/service-keys/m1");
+  });
+
+  it("revokedRowGoneEvenIfRefreshFails", async () => {
+    await openMine();
+    await screen.findByText("gundi");
+    const base = fetchMock.getMockImplementation();
+    fetchMock.mockImplementation((url, opts) =>
+      url === "/api/v3/service-keys/mine"
+        ? json(500, { success: false, error: "boom" })
+        : base(url, opts),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+    await enterPassword();
+    expect(await screen.findByText(messages.API_SERVICE_KEY_ERROR)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByLabelText("Password")).not.toBeInTheDocument());
+    expect(screen.queryByText("gundi")).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.filter(([, o]) => o.method === "DELETE").length).toBe(1);
   });
 
   it("emptyState", async () => {

@@ -75,6 +75,8 @@ export default function MyReadAsKeysPanel({ username }) {
       return;
     askPassword(async (creds) => {
       await revokeKey(creds, k.organizationId, k.keyId);
+      // revoked: drop the row now, so a failed refresh cannot make it look live
+      setKeys((cur) => cur.filter((x) => x.keyId !== k.keyId));
       try {
         await load(creds);
       } catch (_err) {

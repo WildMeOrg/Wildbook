@@ -143,7 +143,9 @@ class ServiceKeysReadAsDbTest {
         ServiceKeys servlet = new ServiceKeys();
         if ("GET".equals(method)) servlet.doGet(req, resp);
         else if ("POST".equals(method)) servlet.doPost(req, resp);
-        else servlet.doDelete(req, resp);
+        else if ("PATCH".equals(method)) servlet.doPatch(req, resp);
+        else if ("DELETE".equals(method)) servlet.doDelete(req, resp);
+        else throw new IllegalArgumentException(method);
         org.mockito.ArgumentCaptor<Integer> status = org.mockito.ArgumentCaptor.forClass(Integer.class);
         verify(resp, atLeastOnce()).setStatus(status.capture());
         Result res = new Result();
@@ -254,6 +256,97 @@ class ServiceKeysReadAsDbTest {
         assertEquals(200, revoke(r, orgA, keyA).status, "creator revokes their key in A");
         assertEquals(200, revoke(r, orgB, keyB).status, "creator revokes their key in B");
         assertEquals(0, mine(r).json().getJSONArray("keys").length(), "nothing live left");
+    }
+
+    private void commitFixture() {
+        assertTrue(sh.commitDBTransactionWithStatus(), "fixture change committed");
+        sh.beginDBTransaction();
+    }
+
+    @Test void creatorDeletedOrTurnedIntoServiceAccountStopsTheKey() throws Exception {
+        User d = user("deleted");
+        User c = user("converted");
+        role(d, Organization.ROLE_MANAGER);
+        role(c, Organization.ROLE_MANAGER);
+        commitFixture();
+        join(orgA, d);
+        join(orgA, c);
+        String dKey = createBound(d, orgA).json().getString("key");
+        String cKey = createBound(c, orgA).json().getString("key");
+        assertEquals(d.getId(), dataSubject(dKey), "works before");
+
+        sh.getPM().refresh(orgA);
+        orgA.removeMember(d);
+        sh.getPM().deletePersistent(sh.getUserByUUID(d.getId()));
+        sh.getUserByUUID(c.getId()).setServiceOrganizationId(orgB.getId());
+        commitFixture();
+
+        assertEquals(401, assertThrows(ServiceKeyException.class, () -> dataSubject(dKey)).status,
+            "deleted (or consolidated-away) creator");
+        assertEquals(401, assertThrows(ServiceKeyException.class, () -> dataSubject(cKey)).status,
+            "creator turned into a service account");
+    }
+
+    @Test void renamedCreatorKeepsTheBinding() throws Exception {
+        String key = createBound(r, orgA).json().getString("key");
+        sh.getUserByUUID(r.getId()).setUsername("renamed" + suffix);
+        commitFixture();
+        assertEquals(r.getId(), dataSubject(key), "the binding is the UUID, not the username");
+    }
+
+    @Test void parentMembershipIsNotEnough() throws Exception {
+        Organization parent = new Organization("P" + suffix);
+        sh.getPM().makePersistent(parent);
+        User p = user("parent-member");
+        commitFixture();
+        parent.addChild(orgB);
+        commitFixture();
+        join(parent, p);
+        role(p, "admin"); // may manage orgB's keys, so only the membership rule can refuse
+        commitFixture();
+        Result res = createBound(p, orgB);
+        assertEquals(403, res.status, "a parent organization's member is not a direct member");
+        assertTrue(res.text.contains("direct member"), "refused by the read-as rule: " + res.text);
+    }
+
+    @Test void selfRevokeWorksAfterLeavingAndUnknownLooksLikeForeign() throws Exception {
+        String key = createBound(r, orgA).json().getString("keyId");
+        String foreign = createBound(siteAdminMember(orgB), orgB).json().getString("keyId");
+        leave(orgA, r);
+        dropRoles(r);
+        Result unknown = revoke(m, orgA, UUID.randomUUID().toString());
+        Result notMine = revoke(m, orgA, key);
+        assertEquals(403, unknown.status, "unknown key");
+        assertEquals(notMine.status, unknown.status, "same answer for an unknown and another's key");
+        assertEquals(notMine.text, unknown.text, "same body");
+        assertEquals(403, revoke(r, orgB, foreign).status, "another creator's key in another organization");
+        assertEquals(200, revoke(r, orgA, key).status, "the creator withdraws it after leaving");
+    }
+
+    private User siteAdminMember(Organization org) {
+        join(org, siteAdmin);
+        return siteAdmin;
+    }
+
+    @Test void mineSkipsExpiredKeys() throws Exception {
+        String keyId = createBound(r, orgA).json().getString("keyId");
+        org.ecocean.auth.ServiceKey key = sh.getPM().getObjectById(org.ecocean.auth.ServiceKey.class, keyId);
+        sh.getPM().refresh(key);
+        // no setter for expiry: age the row directly
+        javax.jdo.datastore.JDOConnection conn = sh.getPM().getDataStoreConnection();
+        try (java.sql.PreparedStatement st = ((java.sql.Connection)conn.getNativeConnection()).prepareStatement(
+                "UPDATE \"SERVICE_KEY\" SET \"EXPIRESAT\" = 1 WHERE \"ID\" = ?")) {
+            st.setString(1, keyId);
+            assertEquals(1, st.executeUpdate(), "expired the key");
+        } finally { conn.close(); }
+        commitFixture();
+        assertEquals(0, mine(r).json().getJSONArray("keys").length(), "expired keys are not listed");
+    }
+
+    @Test void patchIsRejectedEverywhere() throws Exception {
+        assertEquals(405, call(r, "PATCH", "/api/v3/service-keys", "/mine", "{}").status, "mine");
+        assertEquals(405, call(r, "PATCH", "/api/v3/organizations", "/" + orgA.getId() + "/service-keys", "{}")
+            .status, "organization keys");
     }
 
     @Test void mineIsGetOnlyAndEmptyForOthers() throws Exception {
