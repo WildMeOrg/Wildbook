@@ -12,6 +12,9 @@ import { useSiteSettings } from "../../../SiteSettingsContext";
 // Mocks follow BulkImportTaskClassCell.test.js (require()-based factories,
 // which hoist cleanly under babel-plugin-jest-hoist 27).
 
+// setupTests.js replaces useIntl().formatMessage with one that never
+// interpolates values; use the real react-intl here so "+N more" is checked.
+jest.mock("react-intl", () => jest.requireActual("react-intl"));
 jest.mock("axios");
 jest.mock("../../../models/bulkImport/useGetBulkImportTask");
 jest.mock("../../../SiteSettingsContext");
@@ -146,6 +149,17 @@ describe("BulkImportTask — image file name column (issue #1795)", () => {
     expect(filenameCell().querySelector("details")).toBeNull();
   });
 
+  test("collapses a fourth name behind '+1 more'", () => {
+    renderWithEncounter({
+      mediaAssetFilenames: ["a.jpg", "b.jpg", "c.jpg", "d.jpg"],
+    });
+    const details = filenameCell().querySelector("details");
+    expect(details.querySelector("summary")).toHaveTextContent(/^\+1 more$/);
+    expect(
+      Array.from(details.querySelectorAll("li")).map((li) => li.textContent),
+    ).toEqual(["d.jpg"]);
+  });
+
   test("collapses names past the first three behind '+N more'", () => {
     const names = Array.from({ length: 150 }, (_, i) => `IMG_${i}.jpg`);
     renderWithEncounter({ mediaAssetFilenames: names });
@@ -153,10 +167,7 @@ describe("BulkImportTask — image file name column (issue #1795)", () => {
     const details = filenameCell().querySelector("details");
     expect(details).not.toBeNull();
     expect(details.open).toBe(false);
-    // setupTests.js mocks useIntl().formatMessage to return the raw en.json
-    // template without interpolating values, so assert the template here and
-    // the count via the number of collapsed items below.
-    expect(details.querySelector("summary")).toHaveTextContent("+{count} more");
+    expect(details.querySelector("summary")).toHaveTextContent(/^\+147 more$/);
 
     // the first three are outside the collapsed block, the rest inside it
     const visible = Array.from(

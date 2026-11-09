@@ -223,9 +223,9 @@ const BulkImportTask = observer(() => {
         // Long names wrap over several lines, so give each its own bullet;
         // stacked plain lines read as one long name. Past the first few,
         // the rest collapse so one big encounter can't swamp the table.
-        const listItems = (names, offset) =>
+        const listItems = (names) =>
           names.map((filename, index) => (
-            <li key={`${offset + index}-${filename}`} className="mb-1">
+            <li key={`${index}-${filename}`} className="mb-1">
               {filename}
             </li>
           ));
@@ -233,7 +233,7 @@ const BulkImportTask = observer(() => {
         const hidden = row.imageFilenames.slice(VISIBLE_FILENAMES);
         return (
           <div className="text-break my-1">
-            <ul className="ps-3 mb-0">{listItems(shown, 0)}</ul>
+            <ul className="ps-3 mb-0">{listItems(shown)}</ul>
             {hidden.length > 0 && (
               <details>
                 <summary>
@@ -246,7 +246,7 @@ const BulkImportTask = observer(() => {
                   )}
                 </summary>
                 <ul className="ps-3 mb-0">
-                  {listItems(hidden, VISIBLE_FILENAMES)}
+                  {listItems(hidden)}
                 </ul>
               </details>
             )}
