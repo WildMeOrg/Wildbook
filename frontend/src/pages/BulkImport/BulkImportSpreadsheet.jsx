@@ -7,7 +7,11 @@ import ThemeContext from "../../ThemeColorProvider";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { specifiedColumns, removedColumns } from "./BulkImportConstants";
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
-import { hasBoxColumns, isPhotoSlotColumn } from "./bulkImportSlots";
+import {
+  boxSuffixOf,
+  hasBoxColumns,
+  isPhotoSlotColumn,
+} from "./bulkImportSlots";
 
 export const BulkImportSpreadsheet = observer(({ store }) => {
   const theme = useContext(ThemeContext);
@@ -62,6 +66,22 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         const allJsonDataRaw = XLSX.utils.sheet_to_json(worksheet, {
           defval: "",
         });
+        // the parser reads a box like "362,285,296,342" as one number with
+        // thousands separators; keep the text the cell shows for box columns
+        const boxKeys = Object.keys(allJsonDataRaw[0] || {}).filter(
+          (k) => boxSuffixOf(k) === "bbox",
+        );
+        if (boxKeys.length > 0) {
+          const shown = XLSX.utils.sheet_to_json(worksheet, {
+            defval: "",
+            raw: false,
+          });
+          allJsonDataRaw.forEach((row, i) =>
+            boxKeys.forEach((k) => {
+              row[k] = shown[i][k];
+            }),
+          );
+        }
         const allJsonData = allJsonDataRaw.map((row) => {
           const normalizedRow = {};
           for (const key in row) {

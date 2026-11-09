@@ -63,6 +63,14 @@ describe("BulkImportSpreadsheet photo slots", () => {
     expect(store.spreadsheetData[0][A2]).toBe("c.jpg");
   });
 
+  test("a box with three-digit groups stays text, not a thousands number", async () => {
+    const store = await upload(
+      `${A0},${A0}.bbox,${A0}.theta\na.jpg,"362,285,296,342",0.3\n`,
+    );
+    expect(store.spreadsheetData[0][`${A0}.bbox`]).toBe("362,285,296,342");
+    expect(store.validationErrors[0]?.[`${A0}.bbox`]).toBeUndefined();
+  });
+
   test("an un-boxed sheet still merges photos into slot 0", async () => {
     const store = await upload(`${A0},${A1}\na.jpg,b.jpg\n`);
     expect(store.columnsDef).toContain(A0);
