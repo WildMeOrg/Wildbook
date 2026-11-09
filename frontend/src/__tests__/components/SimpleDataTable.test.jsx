@@ -39,6 +39,26 @@ describe("SimpleDataTable pagination preservation", () => {
     expect(screen.queryByText("row-1")).not.toBeInTheDocument();
   });
 
+  test("keeps the user's column sort when a new data array arrives", () => {
+    const rows = () => [{ id: "b" }, { id: "c" }, { id: "a" }];
+    const shownIds = () =>
+      Array.from(document.querySelectorAll('[role="cell"]')).map(
+        (cell) => cell.textContent,
+      );
+    const { rerender } = render(
+      <SimpleDataTable columns={columns} data={rows()} perPage={10} />,
+    );
+    expect(shownIds()).toEqual(["b", "c", "a"]);
+
+    // click the ID header once: ascending
+    fireEvent.click(screen.getByText("ID"));
+    expect(shownIds()).toEqual(["a", "b", "c"]);
+
+    // a poll (or a search keystroke) hands over a fresh, unsorted array
+    rerender(<SimpleDataTable columns={columns} data={rows()} perPage={10} />);
+    expect(shownIds()).toEqual(["a", "b", "c"]);
+  });
+
   test("clamps to the last page when the row count shrinks", () => {
     const { rerender } = render(
       <SimpleDataTable columns={columns} data={makeRows(25)} perPage={10} />,

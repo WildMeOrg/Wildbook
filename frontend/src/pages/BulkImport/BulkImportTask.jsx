@@ -120,7 +120,11 @@ const BulkImportTask = observer(() => {
         task?.iaSummary?.statsAnnotations?.encounterTaskInfo?.[item.id] || [];
       // Issue #1744: keep every per-annotation match task of this encounter
       // (an encounter can hold several matched annotations, e.g. body + part).
-      const classArray = Array.isArray(taskArray) ? taskArray : [];
+      // only well-formed [taskId, status, class] tuples, so search matches
+      // exactly what the Class cell shows
+      const classArray = Array.isArray(taskArray)
+        ? taskArray.filter((arr) => Array.isArray(arr) && arr.length === 3)
+        : [];
       return {
         encounterID: item.id,
         encounterDate: item.date,
@@ -159,9 +163,7 @@ const BulkImportTask = observer(() => {
           row.individualID,
           row.individualName,
           ...row.imageFilenames,
-          ...row.class.flatMap((arr) =>
-            Array.isArray(arr) ? [arr[1], arr[2]] : [],
-          ),
+          ...row.class.flatMap((arr) => [arr[1], arr[2]]),
         ].some((value) =>
           String(value ?? "")
             .toLowerCase()
@@ -495,12 +497,12 @@ const BulkImportTask = observer(() => {
 
         <div className="mb-2 d-flex flex-wrap align-items-end gap-3">
           <label>
-            <h6 className="mb-2">
+            <span className="d-block h6 mb-2">
               <FormattedMessage
-                id="BULK_IMPORT_TASK_SEARCH"
-                defaultMessage="Search encounters"
+                id="SEARCH_ENCOUNTERS"
+                defaultMessage="Search Encounters"
               />
-            </h6>
+            </span>
             <input
               type="search"
               className="form-control"
@@ -533,18 +535,23 @@ const BulkImportTask = observer(() => {
             </select>
           </label>
         </div>
-        {searchTerm && (
-          <p className="text-muted small mb-2" aria-live="polite">
+        {/* stays mounted so screen readers announce changes to the count */}
+        <p
+          className="text-muted small mb-2"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {searchTerm && (
             <FormattedMessage
               id="BULK_IMPORT_TASK_SEARCH_COUNT"
-              defaultMessage="{shown} of {total} encounters match"
+              defaultMessage="Matching encounters: {shown} / {total}"
               values={{
                 shown: filteredTableData.length,
                 total: sortedTableData.length,
               }}
             />
-          </p>
-        )}
+          )}
+        </p>
         <SimpleDataTable
           columns={columns}
           data={filteredTableData}

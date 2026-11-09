@@ -85,6 +85,8 @@ const renderTask = () => {
         statsAnnotations: {
           encounterTaskInfo: {
             "enc-c": [["task-1", "completed", "giraffe_whole"]],
+            // malformed tuple: the Class cell shows "-", so search must not match it
+            "enc-a": [["task-x", "orphaned_status"]],
           },
         },
       },
@@ -119,7 +121,10 @@ const shownEncounters = () =>
   ]);
 
 const search = (text) =>
-  fireEvent.change(screen.getByRole("searchbox"), { target: { value: text } });
+  fireEvent.change(
+    screen.getByRole("searchbox", { name: "Search Encounters" }),
+    { target: { value: text } },
+  );
 
 describe("BulkImportTask — search box", () => {
   beforeEach(() => {
@@ -141,14 +146,14 @@ describe("BulkImportTask — search box", () => {
       ["enc-b", "2"],
       ["enc-c", "3"],
     ]);
-    expect(screen.queryByText(/encounters match/)).toBeNull();
+    expect(screen.queryByText(/Matching encounters/)).toBeNull();
   });
 
   test("finds a file name collapsed under '+N more', keeping its # number", () => {
     renderTask();
     search("003a9525");
     expect(shownEncounters()).toEqual([["enc-b", "2"]]);
-    expect(screen.getByText("1 of 3 encounters match")).toBeTruthy();
+    expect(screen.getByText("Matching encounters: 1 / 3")).toBeTruthy();
   });
 
   test("matches encounter, sighting, individual and class text, ignoring case and spaces", () => {
@@ -165,11 +170,32 @@ describe("BulkImportTask — search box", () => {
     expect(shownEncounters().map(([id]) => id)).toEqual(["enc-c"]);
   });
 
+  test("treats whitespace-only input as no search", () => {
+    renderTask();
+    search("   ");
+    expect(shownEncounters()).toHaveLength(3);
+    expect(screen.queryByText(/Matching encounters/)).toBeNull();
+  });
+
+  test("ignores malformed class entries the Class cell doesn't show", () => {
+    renderTask();
+    search("orphaned_status");
+    expect(shownEncounters()).toEqual([]);
+  });
+
+  test("matches the date and the user shown in the row", () => {
+    renderTask();
+    search("2025-10-25");
+    expect(shownEncounters()).toHaveLength(3);
+    search("jane researcher");
+    expect(shownEncounters()).toHaveLength(3);
+  });
+
   test("shows no rows and a zero count when nothing matches; clearing restores all", () => {
     renderTask();
     search("no-such-thing");
     expect(shownEncounters()).toEqual([]);
-    expect(screen.getByText("0 of 3 encounters match")).toBeTruthy();
+    expect(screen.getByText("Matching encounters: 0 / 3")).toBeTruthy();
     search("");
     expect(shownEncounters()).toHaveLength(3);
   });
