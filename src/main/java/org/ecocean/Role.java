@@ -27,9 +27,25 @@ public class Role implements java.io.Serializable {
     public static final List<String> SYSTEM_ROLES = Collections.unmodifiableList(
         Arrays.asList("admin", "orgAdmin", "researcher", "rest", "machinelearning"));
 
-    /** SYSTEM_ROLES as a set, for membership tests where the hierarchy order does not matter. */
+    /** Explicitly assigned capability; never included in bootstrap grants or merge ranking. */
+    public static final String API_SUBMISSION = "api-submission";
+
+    /** Reserved system names, including opt-in capabilities, excluded from location grants. */
     public static final Set<String> SYSTEM_ROLE_NAMES = Collections.unmodifiableSet(
-        new LinkedHashSet<String>(SYSTEM_ROLES));
+        reservedRoleNames());
+
+    private static Set<String> reservedRoleNames() {
+        Set<String> names = new LinkedHashSet<String>(SYSTEM_ROLES);
+        names.add(API_SUBMISSION);
+        return names;
+    }
+
+    /** Site admins may grant any role; others may not grant admin, API or organization-management roles. */
+    public static boolean canEditRole(String role, boolean siteAdmin) {
+        if (siteAdmin) return true;
+        return !"admin".equals(role) && !API_SUBMISSION.equals(role) &&
+                   !Organization.ROLE_MANAGER.equals(role) && !Organization.ROLE_ADMIN.equals(role);
+    }
 
     private String username;
     private String rolename;

@@ -4,6 +4,7 @@
 package org.ecocean;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +26,8 @@ public class Organization implements java.io.Serializable {
     private MediaAsset logo = null;
     private long created = -1;
     private long modified = -1;
-    private List<User> members = null;
+    // a set: one membership row per (organization, user); see User.organizations, which owns the rows
+    private Set<User> members = null;
     private Organization parent = null;
     private List<Organization> children = null;
 
@@ -55,6 +57,10 @@ public class Organization implements java.io.Serializable {
         this.updateModified();
     }
 
+    public long getCreated() {
+        return created;
+    }
+
     public String getUrl() {
         return url;
     }
@@ -82,20 +88,33 @@ public class Organization implements java.io.Serializable {
         this.updateModified();
     }
 
+    static final Comparator<User> MEMBER_ORDER = Comparator.comparing(User::getUsername,
+        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)).thenComparing(User::getId,
+        Comparator.nullsLast(Comparator.naturalOrder()));
+
+    // a sorted copy; change membership with addMember()/removeMember(), not through this list
     public List<User> getMembers() {
-        return members;
+        if (members == null) return null;
+        List<User> sorted = new ArrayList<User>(members);
+        sorted.sort(MEMBER_ORDER);
+        return sorted;
     }
 
     public void setMembers(List<User> u) {
-        members = u;
+        if (members != null) {
+            for (User old : new ArrayList<User>(members)) {
+                if ((u == null) || !u.contains(old)) old.unlinkOrganization(this);
+            }
+        }
+        members = (u == null) ? null : new HashSet<User>(u);
         this.membersReciprocate(u);
         this.updateModified();
     }
 
     public void addMember(User u) {
         if (u == null) return;
-        if (members == null) members = new ArrayList<User>();
-        if (!members.contains(u)) members.add(u);
+        if (members == null) members = new HashSet<User>();
+        members.add(u);
         this.membersReciprocate(u);
         this.updateModified();
     }
@@ -104,12 +123,9 @@ public class Organization implements java.io.Serializable {
         int ct = 0;
 
         if ((ulist == null) || (ulist.size() < 1)) return 0;
-        if (members == null) members = new ArrayList<User>();
+        if (members == null) members = new HashSet<User>();
         for (User mem : ulist) {
-            if (!members.contains(mem)) {
-                members.add(mem);
-                ct++;
-            }
+            if ((mem != null) && members.add(mem)) ct++;
         }
         this.membersReciprocate(ulist);
         this.updateModified();
@@ -118,8 +134,7 @@ public class Organization implements java.io.Serializable {
 
     public void removeMember(User u) {
         if ((u == null) || (members == null)) return;
-        if (u.getOrganizations() == null) return;
-        u.getOrganizations().remove(this);
+        u.unlinkOrganization(this);
         members.remove(u);
         this.updateModified();
     }
@@ -129,16 +144,26 @@ public class Organization implements java.io.Serializable {
         members.removeAll(ulist);
         // now the other end (thx dn)
         for (User u : ulist) {
-            u.getOrganizations().remove(this);
+            if (u != null) u.unlinkOrganization(this);
         }
         this.updateModified();
+    }
+
+    // the in-memory half of a membership change made from the User side
+    void linkMember(User u) {
+        if (members == null) members = new HashSet<User>();
+        members.add(u);
+    }
+
+    void unlinkMember(User u) {
+        if (members != null) members.remove(u);
     }
 
     // this removes user for this org and any suborgs (returns how many removed from)
     public int removeMemberDeep(User u) {
         if (u == null) return 0;
         int ct = 0;
-        if (this.members.contains(u)) {
+        if (this.hasMember(u)) {
             ct++;
             this.removeMember(u);
         }
@@ -320,11 +345,8 @@ public class Organization implements java.io.Serializable {
     // pass in another org and effectively take over its content.
     // note: this doesnt kill the other org - that must be done manually (if desired)
     public int mergeFrom(Organization other) {
-        int ct = this.addMembers(other.members); // really very simple for now
+        int ct = this.addMembers(other.getMembers()); // really very simple for now
 
-        for (User mem : other.members) {
-            mem.addOrganization(this);
-        }
         this.updateModified();
         return ct;
     }
@@ -334,8 +356,7 @@ public class Organization implements java.io.Serializable {
     private void membersReciprocate(List<User> mems) {
         if (mems == null) return;
         for (User mem : mems) {
-            if ((mem.getOrganizations() != null) && !mem.getOrganizations().contains(this))
-                mem.getOrganizations().add(this);
+            if (mem != null) mem.linkOrganization(this);
         }
     }
 
@@ -368,7 +389,7 @@ public class Organization implements java.io.Serializable {
         j.put("modifiedDate", new DateTime(modified));
         if (includeChildren && this.hasMembers()) {
             JSONArray jm = new JSONArray();
-            for (User u : this.members) {
+            for (User u : this.getMembers()) {
                 JSONObject ju = new JSONObject();
                 ju.put("id", u.getId());
                 ju.put("username", u.getUsername());

@@ -6,7 +6,14 @@ import org.ecocean.Embedding;
 import org.ecocean.ia.Task;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.ecocean.shepherd.core.Shepherd;
+import javax.jdo.PersistenceManager;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.junit.Assert.*;
 
 class EmbeddingTest {
@@ -115,5 +122,43 @@ class EmbeddingTest {
         // non-UUID startId must not reach the SQL (injection guard + cursor reset)
         assertEquals(CATCHUP_SQL_BASE + " order by \"ANNOTATION\".\"ID\" limit 50",
             Embedding.catchUpEmbeddingsSql("not-a-uuid'; drop table", 50));
+    }
+
+    // ---- issue #1787 ----
+
+    @Test void isVectorConfig_acceptsMethodOrApiEndpointOnly() {
+        Assertions.assertFalse(Embedding.isVectorConfig(null));
+        Assertions.assertFalse(Embedding.isVectorConfig(new JSONObject("{\"query_config_dict\":{\"sv_on\":true}}")));
+        Assertions.assertTrue(Embedding.isVectorConfig(new JSONObject("{\"method\":\"miewid\",\"version\":\"msv4_v3\"}")));
+        Assertions.assertTrue(Embedding.isVectorConfig(new JSONObject("{\"api_endpoint\":\"http://x\"}")));
+        Assertions.assertFalse(Embedding.isVectorConfig(new JSONObject("{\"method\":\"\"}")), "blank method is not vector");
+    }
+
+    /** Leaves inherit the option task's parameters minus the option marker (spec §4.0). */
+    @Test void findMatchProspects_leavesDropTheOptionMarkerButKeepRunIdAndV2Flag() {
+        PersistenceManager pm = mock(PersistenceManager.class);
+        Shepherd sh = mock(Shepherd.class);
+        when(sh.getPM()).thenReturn(pm);
+        Annotation ann = mock(Annotation.class);
+        when(ann.numberEmbeddings()).thenReturn(1);
+        when(ann.getMatchingSetQuery(any(Shepherd.class), any(), anyBoolean())).thenReturn(null); // error leaf, no network
+
+        Task option = new Task();
+        JSONObject p = new JSONObject();
+        p.put(Task.PARAM_RUN_ID, "RUN-1");
+        p.put(Task.PARAM_OPTION, true);
+        p.put(Task.PARAM_V2_MATCH, true);
+        p.put("ibeis.identification", new JSONObject("{\"method\":\"miewid\"}"));
+        option.setParameters(p);
+        option.addObject(ann);
+
+        Assertions.assertTrue(Embedding.findMatchProspects(new JSONObject("{\"method\":\"miewid\",\"version\":\"v\"}"), option, sh));
+        Assertions.assertEquals(1, option.getChildren().size());
+        JSONObject leaf = option.getChildren().get(0).getParameters();
+        Assertions.assertFalse(leaf.has(Task.PARAM_OPTION), "a leaf is not an option");
+        Assertions.assertEquals("RUN-1", leaf.getString(Task.PARAM_RUN_ID));
+        Assertions.assertTrue(leaf.getBoolean(Task.PARAM_V2_MATCH));
+        Assertions.assertTrue(leaf.has("ibeis.identification"));
+        Assertions.assertTrue(option.getParameters().getBoolean(Task.PARAM_OPTION), "the option keeps its marker");
     }
 }
