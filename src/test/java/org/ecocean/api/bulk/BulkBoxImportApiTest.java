@@ -211,6 +211,7 @@ class BulkBoxImportApiTest {
     }
 
     JSONObject post(JSONObject payload) throws Exception {
+        responseOut.getBuffer().setLength(0); // read this request's response, not the first one
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload.toString())));
         // registered before the static mocks and closed after them (Mockito resolves mocks in LIFO order)
@@ -301,6 +302,26 @@ class BulkBoxImportApiTest {
         assertNotNull(e);
         assertEquals("INVALID_VALUE", e.getString("type"));
         assertTrue(e.getString("details").contains("exceeds image 200x150"), e.toString());
+    }
+
+    @Test void aHugeColumnIndexIsARowErrorInEveryMode() throws Exception {
+        String huge = "Encounter.mediaAsset99999999.bbox";
+        String[] fields = { "Encounter.mediaAsset0", "Encounter.mediaAsset0.bbox", "Encounter.mediaAsset0.iaClass", huge };
+        Object[] row = { "a.jpg", "1,1,5,5", "body", "1,1,5,5" };
+        JSONObject res = post(payload(fields, row).put("validateOnly", true));
+        assertEquals(200, res.getInt("statusCode"));
+        assertFalse(res.getBoolean("success"));
+        JSONObject e = error(res, 0, huge);
+        assertNotNull(e, res.toString());
+        assertEquals(BulkValidatorException.TYPE_INVALID_VALUE, e.getString("type"));
+        res = post(payload(fields, row));
+        assertEquals(400, res.getInt("statusCode"), res.toString());
+        assertNotNull(error(res, 0, huge), res.toString());
+        res = post(tolerant(payload(fields, row)));
+        assertNotNull(error(res, 0, huge), res.toString());
+        // the tolerant import goes ahead without the bad column
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        assertTrue(res.getBoolean("success"), res.toString());
     }
 
     @Test void boxTouchingTheEdgeIsAccepted() throws Exception {
