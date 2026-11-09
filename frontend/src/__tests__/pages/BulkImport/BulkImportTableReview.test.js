@@ -164,6 +164,12 @@ describe("BulkImportTableReview", () => {
         },
         {
           type: "INVALID_VALUE",
+          rowNumber: 2,
+          fieldName: "Encounter.mediaAsset1",
+          details: "a.jpg has a box in another row but not here",
+        },
+        {
+          type: "INVALID_VALUE",
           rowNumber: 0,
           fieldName: "Encounter.year",
           details: "org.ecocean.api.bulk.BulkValidatorException: bad year",
@@ -177,6 +183,9 @@ describe("BulkImportTableReview", () => {
       screen.getByText(
         /Encounter\.mediaAsset0\.bbox \(box 1000,0,296,342 exceeds image 1152x768\)/,
       ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/\(a\.jpg has a box in another row but not here\)/),
     ).toBeInTheDocument();
     expect(screen.queryByText(/BulkValidatorException/)).toBeNull();
     expect(screen.queryByText(/bad year/)).toBeNull();
