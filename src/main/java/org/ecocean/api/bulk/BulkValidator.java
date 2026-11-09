@@ -60,6 +60,9 @@ public class BulkValidator {
         "theta", "bboxSource");
     // radians; the same bound Annotation.createFromApi applies to a manual annotation's theta
     public static final double THETA_LIMIT = 6.2832;
+    // highest index for numbered columns (Encounter.mediaAsset#, keyword#, ...); matches the
+    // submissions API slot limit
+    public static final int MAX_INDEX = 199;
 
     public static final Set<String> FIELD_NAMES_INDEXABLE = new HashSet<>(Arrays.asList(
         "Encounter.keyword#", "Encounter.mediaAsset#", "Encounter.mediaAsset#.keywords",
@@ -233,10 +236,18 @@ public class BulkValidator {
         Pattern p = Pattern.compile(rawToRegex(raw));
         Matcher m = p.matcher(fieldName);
         if (!m.find()) return -2;
+        int index;
         try {
-            return Integer.parseInt(m.group(1));
-        } catch (Exception ex) {}
-        return -3;
+            index = Integer.parseInt(m.group(1));
+        } catch (NumberFormatException ex) {
+            index = Integer.MAX_VALUE; // more digits than an int holds
+        }
+        // callers pad lists up to the index, so a huge index would cost memory and time
+        if (index > MAX_INDEX)
+            throw new BulkValidatorException("index in " + fieldName + " is above the maximum of " +
+                    MAX_INDEX, ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+        return index;
     }
 
     // will return null if valid fieldName, but not indexable
