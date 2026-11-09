@@ -440,6 +440,13 @@ class SubmissionStoreDbTest {
     }
     /** Uploads one photo per row, validates, and runs a valid draft through the real importer; returns the validation report. */
     private JSONObject realImport(String owner, String id, java.nio.file.Path root, java.util.List<JSONObject> extraFields, Runnable beforeExecute) throws Exception {
+        Run run = realImport(owner, id, root, extraFields, () -> {}, beforeExecute);
+        if (run.commitError != null) throw run.commitError;
+        return run.report;
+    }
+    /** The outcome of one run: the validation report and, if commit was refused, why. */
+    private static final class Run { String id; JSONObject report; SubmissionException commitError; }
+    private Run realImport(String owner, String id, java.nio.file.Path root, java.util.List<JSONObject> extraFields, Runnable beforeCommit, Runnable beforeExecute) throws Exception {
         if (!assetStoreSaved) {
             Shepherd sh = realShepherd();
             try {
@@ -449,7 +456,8 @@ class SubmissionStoreDbTest {
             } finally { sh.rollbackAndClose(); }
         }
         SubmissionStore intake = new SubmissionStore(SubmissionStoreDbTest::realShepherd); SubmissionJobs jobs = new SubmissionJobs(SubmissionStoreDbTest::realShepherd);
-        SubmissionFiles storage = new SubmissionFiles(java.nio.file.Files.createDirectory(root.resolve("staged")));
+        SubmissionFiles storage = new SubmissionFiles(java.nio.file.Files.createDirectories(root.resolve("staged")));
+        Run run = new Run(); run.id = id;
         try (org.mockito.MockedStatic<org.ecocean.LocationID> locations = org.mockito.Mockito.mockStatic(org.ecocean.LocationID.class);
              org.mockito.MockedStatic<SubmissionPolicy> policy = org.mockito.Mockito.mockStatic(SubmissionPolicy.class, org.mockito.Mockito.CALLS_REAL_METHODS)) {
             locations.when(org.ecocean.LocationID::getLocationIDStructure).thenReturn(new JSONObject("{\"locationID\":[{\"id\":\"reef\"}]}"));
@@ -468,8 +476,12 @@ class SubmissionStoreDbTest {
             }
             intake.replaceRows("context0", owner, id, false, revision++, new JSONObject().put("rows", rows));
             JSONObject report = intake.validate("context0", owner, id, false, revision, storage);
-            if (!report.getBoolean("valid")) return report;
-            jobs.enqueue("context0", owner, id, false, revision, "commit", new JSONObject().put("validationId", report.getString("id")));
+            run.report = report;
+            if (!report.getBoolean("valid")) return run;
+            beforeCommit.run();
+            try {
+                jobs.enqueue("context0", owner, id, false, revision, "commit", new JSONObject().put("validationId", report.getString("id")));
+            } catch (SubmissionException refused) { run.commitError = refused; return run; }
             beforeExecute.run();
             assertEquals(id, jobs.claimNext("context0"));
             jobs.execute("context0", id, (draft, transaction) -> {
@@ -477,7 +489,7 @@ class SubmissionStoreDbTest {
                 catch (Exception ex) { ex.printStackTrace(); throw ex; }
             });
             TestPMFUtil.closePMF("context0");
-            return report;
+            return run;
         } finally { org.ecocean.media.AssetStore.init(java.util.Collections.emptyList()); }
     }
     private void saveOccurrence(String id) {
@@ -723,47 +735,10 @@ class SubmissionStoreDbTest {
         inTransaction(sh -> sh.getOrganization(orgId).removeMember(sh.getUser(username)));
     }
 
-    /** The outcome of one attributed run: the report and, if commit was refused, why. */
-    private static final class Run { String id; JSONObject report; SubmissionException commitError; }
-    /** Like realImport, but for a draft created with an onBehalfOf body, with a hook between validation and commit. */
+    /** Creates a draft with the given create body, then runs it through realImport with a sighting ID. */
     private Run attributedImport(String owner, JSONObject body, java.nio.file.Path root, Runnable beforeCommit, Runnable beforeExecute) throws Exception {
-        if (!assetStoreSaved) {
-            Shepherd sh = realShepherd();
-            try {
-                sh.beginDBTransaction();
-                sh.getPM().makePersistent(new org.ecocean.media.LocalAssetStore("pilot", java.nio.file.Files.createDirectories(assetRoot.resolve("assets")), "http://localhost/assets", true));
-                assertTrue(sh.commitDBTransactionWithStatus()); assetStoreSaved = true;
-            } finally { sh.rollbackAndClose(); }
-        }
-        SubmissionStore intake = new SubmissionStore(SubmissionStoreDbTest::realShepherd); SubmissionJobs jobs = new SubmissionJobs(SubmissionStoreDbTest::realShepherd);
-        SubmissionFiles storage = new SubmissionFiles(java.nio.file.Files.createDirectories(root.resolve("staged")));
-        Run run = new Run();
-        try (org.mockito.MockedStatic<org.ecocean.LocationID> locations = org.mockito.Mockito.mockStatic(org.ecocean.LocationID.class);
-             org.mockito.MockedStatic<SubmissionPolicy> policy = org.mockito.Mockito.mockStatic(SubmissionPolicy.class, org.mockito.Mockito.CALLS_REAL_METHODS)) {
-            locations.when(org.ecocean.LocationID::getLocationIDStructure).thenReturn(new JSONObject("{\"locationID\":[{\"id\":\"reef\"}]}"));
-            locations.when(() -> org.ecocean.LocationID.isValidLocationID("reef")).thenReturn(true);
-            policy.when(() -> SubmissionPolicy.commitEnabled("context0")).thenReturn(true);
-            policy.when(() -> SubmissionPolicy.enrolled("context0", owner)).thenReturn(true);
-            run.id = intake.create("context0", owner, UUID.randomUUID().toString(), body).getString("id");
-            intake.upload("context0", owner, run.id, false, 0, storage,
-                limit -> storage.write("photo-0.png", new java.io.ByteArrayInputStream(SubmissionFilesTest.png()), limit));
-            JSONObject fields = new JSONObject().put("Encounter.genus", "Manta").put("Encounter.specificEpithet", "birostris")
-                .put("Encounter.year", 2024).put("Encounter.locationID", "reef").put("Encounter.mediaAsset0", "photo-0.png")
-                .put("Encounter.sightingID", "s-" + run.id.substring(0, 8));
-            intake.replaceRows("context0", owner, run.id, false, 1, new JSONObject().put("rows", new JSONArray()
-                .put(new JSONObject().put("clientRowId", "source-0").put("fields", fields))));
-            run.report = intake.validate("context0", owner, run.id, false, 2, storage);
-            if (!run.report.getBoolean("valid")) return run;
-            beforeCommit.run();
-            try {
-                jobs.enqueue("context0", owner, run.id, false, 2, "commit", new JSONObject().put("validationId", run.report.getString("id")));
-            } catch (SubmissionException ex) { run.commitError = ex; return run; }
-            beforeExecute.run();
-            assertEquals(run.id, jobs.claimNext("context0"));
-            jobs.execute("context0", run.id, (draft, transaction) -> new SubmissionImporter().execute(draft, draft.getJobId(), transaction, storage));
-            TestPMFUtil.closePMF("context0");
-            return run;
-        } finally { org.ecocean.media.AssetStore.init(java.util.Collections.emptyList()); }
+        String id = store.create("context0", owner, UUID.randomUUID().toString(), body).getString("id");
+        return realImport(owner, id, root, java.util.Arrays.asList(new JSONObject().put("Encounter.sightingID", "s-" + id.substring(0, 8))), beforeCommit, beforeExecute);
     }
     private static JSONObject results(String actor, String id) {
         return new SubmissionJobs(SubmissionStoreDbTest::realShepherd).results("context0", actor, id, false, 0, 100);
@@ -991,5 +966,32 @@ class SubmissionStoreDbTest {
             assertEquals("failed", after.getString("state"), "never needs_reconciliation");
             assertEquals("ATTRIBUTION_NOT_ALLOWED", after.getJSONArray("errors").getJSONObject(0).getString("code"));
         }
+    }
+
+    @Test void aUsernameReusedAfterCommitFailsTheImport(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        Org o = org(); long media = mediaAssetCount();
+        Run run = attributedImport(o.svcId, createFor(o.member), root, () -> {}, () -> {
+            inTransaction(sh -> sh.getUser(o.member).setUsername("renamed-" + UUID.randomUUID()));
+            inTransaction(sh -> sh.getOrganization(o.orgId).addMember(person(sh, o.member)));
+        });
+        JSONObject status = store.get("context0", o.svcId, run.id, false, false);
+        assertEquals("failed", status.getString("state"));
+        assertEquals("VALIDATION_STALE", status.getJSONArray("errors").getJSONObject(0).getString("code"));
+        assertEquals(media, mediaAssetCount(), "nothing imported");
+    }
+
+    @Test void withoutOnBehalfOfTheServiceAccountOwnsTheRecordsAndResultsStayFiltered(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        Org o = org();
+        Run run = attributedImport(o.svcId, create(), root, () -> {}, () -> {});
+        assertEquals(o.svcId, run.report.getString("effectiveOwnerId")); assertFalse(run.report.has("effectiveOwner"));
+        String encId = encounterId(o.svcId, run.id), task = taskId(o.svcId, run.id);
+        read(sh -> {
+            assertEquals(o.svc, sh.getEncounter(encId).getSubmitterID());
+            assertEquals(o.svcId, sh.getImportTask(task).getCreator().getId());
+            return null;
+        });
+        // once the record belongs to someone else, an unattributed submission's results hide it as before
+        inTransaction(sh -> sh.getEncounter(encId).setSubmitterID(o.outsider));
+        assertEquals(0, results(o.svcId, run.id).getJSONArray("rows").length());
     }
 }

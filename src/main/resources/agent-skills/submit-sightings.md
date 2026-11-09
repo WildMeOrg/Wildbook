@@ -153,8 +153,8 @@ name the collector when you create the draft:
 - It applies to every row of the draft and cannot be changed afterwards. If one batch holds
   sightings from several collectors, make one draft per collector.
 - A named member then owns the encounters, the new sighting and the import task, exactly as if
-  they had uploaded them. They, their collaborators and the organization's administrators can
-  see and edit them.
+  they had uploaded them. They can see and edit them, and their collaborators and the
+  organization's administrators keep their usual viewing and editing permissions.
 - `public` makes the records open to everyone: anyone can view them, including people who are
   not logged in, any logged-in user can edit them or delete the whole import, and other
   organizations' keys can find them and fetch their images. Use it only when the person
@@ -405,7 +405,7 @@ Concrete failure examples and corrections (assume other fields are valid):
 | same image in two slots or rows | `DUPLICATE_MEDIA` | Put each uploaded image in exactly one slot in one row. |
 | too many images in one row | `LIMIT_EXCEEDED` | Respect maxMediaPerEncounter; do not split one observation into fabricated encounters to bypass it. |
 | `Encounter.submitterID`, `Encounter.otherCatalogNumbers`, or another unsupported field | `UNSUPPORTED_FIELD` | Use the supported contract. To credit the collector with a service key, use `onBehalfOf` when creating the draft. |
-| `onBehalfOf` names someone who is not a direct member of the key's organization, a misspelled or differently capitalized username, or anything other than exactly `public` | `SUBMITTER_NOT_ALLOWED` on `onBehalfOf` | Ask the person for the collector's exact username. `onBehalfOf` cannot be changed, so create a new draft with the corrected name. |
+| `onBehalfOf` is neither exactly `public` nor the exact username of a direct member of the key's organization (for example a misspelled or differently capitalized username, or someone outside the organization) | `SUBMITTER_NOT_ALLOWED` on `onBehalfOf` | Ask the person for the collector's exact username. `onBehalfOf` cannot be changed, so create a new draft with the corrected name. |
 | `Encounter.sightingID` already used by a sighting in this Wildbook | `SIGHTING_EXISTS` on `Encounter.sightingID` | Ask the person. Existing sightings cannot be added to through this API; do not invent a different ID. |
 | `Encounter.sightingID` `"herd 12"`, or a number instead of a string | `INVALID_VALUE` (`INVALID`) on `Encounter.sightingID` | Report the source ID to the person; do not alter it to pass validation. |
 

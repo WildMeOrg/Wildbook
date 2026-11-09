@@ -65,7 +65,7 @@ cannot see. To credit the person who collected them, name that person once per d
 `onBehalfOf` (see the submit-sightings skill): the exact username of a direct member of the key's
 organization, or `public`. A named member, admins and orgAdmins included, then owns the records and
 the import as if they had uploaded them, so their collaborators and their organizations' orgAdmins
-get the usual access. `public` makes the records readable by anyone and editable by any logged-in user.
+keep their usual viewing and editing permissions. `public` makes the records readable by anyone and editable by any logged-in user.
 
 If the trade fails with 401, the `error` message says why:
 
