@@ -78,6 +78,25 @@ class IAGatewayRequestRootTest {
         assertEquals(0, IAGateway.gatewayTaskParams(new JSONObject(), null).length());
     }
 
+    @Test void importedBoxChildIsNeverReusedAsARequestRoot() {
+        Task child = annotationTask("t-box", null);
+        child.addParameter(Task.PARAM_IMPORTED_BOX, true);
+        JSONObject res = new JSONObject().put("taskId", "t-box");
+        JSONObject j = identifyRequest("t-box");
+        Task root = IAGateway.resolveGatewayRoot(child, "t-box", j, res);
+        assertNotSame(child, root, "even a legacy identify request gets a fresh root");
+        assertEquals(root.getId(), res.getString("taskId"));
+        assertEquals(root.getId(), j.getString("taskId"));
+    }
+
+    @Test void gatewayTaskParamsNeverCarryTheImportedBoxMarker() {
+        JSONObject j = new JSONObject().put("taskParameters",
+            new JSONObject().put(Task.PARAM_IMPORTED_BOX, true).put("importTaskId", "imp-1"));
+        JSONObject p = IAGateway.gatewayTaskParams(j, null);
+        assertFalse(p.has(Task.PARAM_IMPORTED_BOX), "only the server marks an imported-box task");
+        assertEquals("imp-1", p.getString("importTaskId"));
+    }
+
     @Test void storedGatewayRootIsNotReplacedAgainByHandleRest() {
         // a fresh replacement root (the loaded task was an umbrella) and a reused media-asset root
         Task umbrella = new Task("u-2");

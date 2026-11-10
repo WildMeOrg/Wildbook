@@ -1025,11 +1025,11 @@ public class IA {
      * instead of committing a holder that omits an existing box.
      */
     private static Task errorChildReloading(Shepherd myShepherd, Task parent, List<String> annIds,
-        String code, String message) {
+        String importId, String code, String message) {
         List<Annotation> anns = new ArrayList<Annotation>();
         for (String id : annIds) {
             Annotation a = strictAnnotation(myShepherd, id);
-            if (a != null) anns.add(a);
+            if ((a != null) && a.isImportedBoxOf(importId)) anns.add(a);
         }
         return errorChildHolding(parent, anns, code, message);
     }
@@ -1047,6 +1047,10 @@ public class IA {
         String context, String baseUrl) {
         if ((inputIds == null) || inputIds.isEmpty() || (root == null)) return 0;
         boolean skipIdent = IBEISIA.taskParametersSkipIdent(root);
+        // extraction mode is only for the boxes of the import this root was created for: any
+        // other annotation in the envelope is left exactly as it was (no task, no status change)
+        String importId = (root.getParameters() == null) ? null
+            : root.getParameters().optString("importTaskId", null);
         List<StagedBox> staged = new ArrayList<StagedBox>();
         Map<String, Task> speciesTasks = new LinkedHashMap<String, Task>();
         Map<String, List<Annotation>> wbiaSpecies = new LinkedHashMap<String, List<Annotation>>();
@@ -1066,6 +1070,11 @@ public class IA {
                 if (ann == null) {
                     System.out.println("WARN: IA.intakeImportedBoxes() annotation " + id +
                         " no longer exists; skipped");
+                    continue;
+                }
+                if (!ann.isImportedBoxOf(importId)) {
+                    System.out.println("WARN: IA.intakeImportedBoxes() annotation " + id +
+                        " is not a box of import " + importId + "; skipped");
                     continue;
                 }
                 MediaAsset ma = ann.getMediaAsset();
@@ -1144,8 +1153,8 @@ public class IA {
                     throw new IllegalStateException("transaction not active after restart");
                 // reload every box: a lookup failure here fails the recovery (below) rather than
                 // committing a holder that omits an existing box
-                Task t = errorChildReloading(myShepherd, root, inputIds, "EXTRACTION_PERSIST",
-                    stagingFailure);
+                Task t = errorChildReloading(myShepherd, root, inputIds, importId,
+                    "EXTRACTION_PERSIST", stagingFailure);
                 markTaskError(root, "EXTRACTION_PERSIST", stagingFailure);
                 myShepherd.getPM().makePersistent(t);
                 myShepherd.getPM().makePersistent(root);

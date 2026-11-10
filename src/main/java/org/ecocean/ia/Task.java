@@ -456,6 +456,12 @@ public class Task implements java.io.Serializable {
         return Util.stringToJSONObject(parameters);
     }
 
+    // stored parameters that do not parse: getParameters() answers null for these, exactly as
+    // it does for a task with no parameters, so a caller that must tell the two apart asks here
+    public boolean hasUnreadableParameters() {
+        return (parameters != null) && !parameters.trim().isEmpty() && (getParameters() == null);
+    }
+
     // see comment above: should this even be public?  (or exist)
     public void setParameters(String s) { // best be json, yo
         parameters = s;
