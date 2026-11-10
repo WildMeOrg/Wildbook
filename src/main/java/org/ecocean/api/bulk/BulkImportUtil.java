@@ -199,11 +199,9 @@ public class BulkImportUtil {
     private static void checkBoxSlots(Map<String, Object> rtn, Set<String> fieldNames,
         boolean identificationSkipped) {
         List<String> bareSlots = findIndexedFieldNames(fieldNames, "Encounter.mediaAsset");
+        Map<String, List<String> > boxFields = boxFieldNames(fieldNames);
         int numSlots = bareSlots.size();
-        for (String suffix : BulkValidator.BOX_SUFFIXES) {
-            numSlots = Math.max(numSlots,
-                findIndexedFieldNames(fieldNames, "Encounter.mediaAsset." + suffix).size());
-        }
+        for (List<String> names : boxFields.values()) numSlots = Math.max(numSlots, names.size());
         if (numSlots == 0) return;
         Object taxG = getValue(rtn, "Encounter.genus");
         Object taxS = getValue(rtn, "Encounter.specificEpithet");
@@ -212,9 +210,8 @@ public class BulkImportUtil {
         List<String> allowed = null; // resolved lazily, only when a boxed slot has a class to check
         Map<String, int[]> seenPhotos = new HashMap<String, int[]>(); // filename -> {first slot, any boxed}
         for (int n = 0; n < numSlots; n++) {
-            String prefix = "Encounter.mediaAsset" + n;
-            String bboxName = prefix + ".bbox";
-            String classNm = prefix + ".iaClass";
+            String bboxName = boxFieldName(boxFields, "bbox", n);
+            String classNm = boxFieldName(boxFields, "iaClass", n);
             String bareName = (n < bareSlots.size()) ? bareSlots.get(n) : null;
             String photo = null;
             if (bareName != null) {
@@ -227,7 +224,7 @@ public class BulkImportUtil {
                 if (!boxed) {
                     for (String suffix : BulkValidator.BOX_SUFFIXES) {
                         if (suffix.equals("bbox")) continue;
-                        String name = prefix + "." + suffix;
+                        String name = boxFieldName(boxFields, suffix, n);
                         if (getValue(rtn, name) != null)
                             putIfClean(rtn, name,
                                 new BulkValidatorException(name + " needs a box in " + bboxName,
@@ -281,6 +278,68 @@ public class BulkImportUtil {
                 if (boxed) seen[1] = 1;
             }
         }
+    }
+
+    /**
+     * A row's box columns by suffix (BulkValidator.BOX_SUFFIXES), each list indexed by slot and
+     * holding the column's real name. An index may be written zero-padded
+     * ("Encounter.mediaAsset01.bbox"), so a slot's column is always found by its number here and
+     * never by rebuilding the name.
+     */
+    public static Map<String, List<String> > boxFieldNames(Set<String> fieldNames) {
+        Map<String, List<String> > rtn = new HashMap<String, List<String> >();
+        for (String suffix : BulkValidator.BOX_SUFFIXES) {
+            rtn.put(suffix, findIndexedFieldNames(fieldNames, "Encounter.mediaAsset." + suffix));
+        }
+        return rtn;
+    }
+
+    /** The real name of a slot's box column; the canonical name when the row has no such column. */
+    public static String boxFieldName(Map<String, List<String> > boxFields, String suffix,
+        int slot) {
+        List<String> names = boxFields.get(suffix);
+        if ((names != null) && (slot < names.size()) && (names.get(slot) != null))
+            return names.get(slot);
+        return "Encounter.mediaAsset" + slot + "." + suffix;
+    }
+
+    /** The slot a box column belongs to ("Encounter.mediaAsset01.theta", "theta" is 1); -1 for any other field. */
+    public static int boxSlot(String fieldName, String suffix) {
+        try {
+            if (!("Encounter.mediaAsset." + suffix).equals(BulkValidator.indexPrefixValue(fieldName)))
+                return -1;
+            return BulkValidator.indexIntValue(fieldName);
+        } catch (BulkValidatorException ex) {
+            return -1;
+        }
+    }
+
+    /**
+     * Two columns that are the same numbered column under different spellings
+     * ("Encounter.mediaAsset01" and "Encounter.mediaAsset1"): only one of them could be read, so
+     * the pair is reported instead. Returns the first such pair, or null.
+     */
+    public static String[] findIndexAliases(Set<String> fieldNames) {
+        Map<String, String> seen = new HashMap<String, String>();
+        for (String fn : fieldNames) {
+            String key;
+            try {
+                String prefix = BulkValidator.indexPrefixValue(fn);
+                int index = (prefix == null) ? -1 : BulkValidator.indexIntValue(fn);
+                if (index < 0) {   // not a numbered column, unless it is a slot's labeled keyword
+                    prefix = getLabeledKeywordLabel(fn);
+                    index = (prefix == null) ? -1 : getLabeledKeywordOffset(fn);
+                    if (index < 0) continue;
+                    prefix = "Encounter.mediaAsset." + prefix;
+                }
+                key = prefix + "#" + index;
+            } catch (BulkValidatorException ex) {
+                continue;
+            }
+            String other = seen.put(key, fn);
+            if (other != null) return new String[] { other, fn };
+        }
+        return null;
     }
 
     // sets a validation exception unless the field already holds one
