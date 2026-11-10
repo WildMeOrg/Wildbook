@@ -235,6 +235,10 @@ components:
         rowCount:
           type: integer
           minimum: 0
+        detection:
+          $ref: '#/components/schemas/SubmissionApiPhase'
+        identification:
+          $ref: '#/components/schemas/SubmissionApiPhase'
         errors:
           type: array
           items:
@@ -408,7 +412,11 @@ components:
           - unknown
           description: Indexing unknown means submitted to the existing async indexing
             queue; no completion acknowledgment is available. Derivatives unknown requires
-            operator reconciliation.
+            operator reconciliation. A submission whose rows carry boxes reports detection
+            `skipped` with code `BOXES_SUPPLIED`; for import-only with boxes, identification
+            reports the extraction hand-off state, and pending/dispatching/dispatched carry
+            code `BOXES_EXTRACTED_ONLY` (the boxes are extracted for later matching but not
+            identified). Failure states (not_started, failed, unknown) keep their own codes.
         message:
           type: string
           minLength: 1
@@ -492,6 +500,10 @@ components:
         code:
           type: string
           minLength: 1
+          description: Issue kind. Image reuse issues are DUPLICATE_MEDIA (an image reused
+            in a row, across rows without boxes, or boxed on one row and not another) and
+            DUPLICATE_BOX (the identical box twice on one image); field values use
+            INVALID_VALUE with a reason.
         message:
           type: string
           minLength: 1
@@ -509,8 +521,12 @@ components:
           minLength: 1
           description: >-
             Present on INVALID_VALUE issues: why the value was rejected. One of REQUIRED,
-            REQUIRES_FIELD, UNPARSEABLE, OUT_OF_RANGE, FUTURE_DATE, NOT_CONFIGURED, INVALID.
-            New reasons may be added; treat an unknown reason as INVALID.
+            REQUIRES_FIELD, UNPARSEABLE, OUT_OF_RANGE, FUTURE_DATE, NOT_CONFIGURED, INVALID,
+            and for the per-photo box columns INVALID_BOX, MISSING_CLASS, UNKNOWN_CLASS,
+            INVALID_VIEWPOINT, INVALID_THETA, BOX_OUT_OF_BOUNDS. New reasons may be added;
+            treat an unknown reason as INVALID. Issue codes include DUPLICATE_MEDIA (an image
+            reused across rows without boxes, or boxed on one row and not another) and
+            DUPLICATE_BOX (the identical box twice on one image).
           x-known-values:
           - REQUIRED
           - REQUIRES_FIELD
@@ -519,6 +535,12 @@ components:
           - FUTURE_DATE
           - NOT_CONFIGURED
           - INVALID
+          - INVALID_BOX
+          - MISSING_CLASS
+          - UNKNOWN_CLASS
+          - INVALID_VIEWPOINT
+          - INVALID_THETA
+          - BOX_OUT_OF_BOUNDS
         limit:
           type: number
     SubmissionApiCapabilities:
@@ -620,6 +642,15 @@ components:
               items:
                 type: string
             indexedMedia:
+              type: string
+            perMedia:
+              type: array
+              items:
+                type: string
+              description: Suffixes a numbered photo slot accepts, as
+                Encounter.mediaAsset{N}.<suffix> (bbox, iaClass, viewpoint, theta, bboxSource).
+                Absent on installations that do not accept user-supplied boxes.
+            indexedQuality:
               type: string
         stagingAvailable:
           type: boolean
@@ -770,7 +801,12 @@ components:
             - type: boolean
           description: Normalized bulk-import field names. Actual supported fields, required
             values and types are supplied by capabilities. Nulls and unknown fields are
-            rejected in this contract.
+            rejected in this contract. Per photo slot N, Encounter.mediaAsset{N}.bbox
+            ("x,y,width,height", whole pixels of the uploaded image, origin top-left),
+            .iaClass (required with a box; a matchable class, or any stored class in
+            import-only), .viewpoint, .theta (radians, clockwise), .bboxSource, and
+            Encounter.quality{N} (the detector's score). The same image may appear on several
+            rows only when every use is boxed with a different box (one animal per row).
           maxProperties: 256
     LoginCredentials:
       type: object
