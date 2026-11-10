@@ -1850,7 +1850,37 @@ paths:
       tags:
         - BulkImport
       summary: Create bulk import task
-      description: Submit data for bulk import processing
+      description: |
+        Submit data for bulk import processing.
+
+        User-supplied bounding boxes, per photo slot N (five indexable columns):
+        - `Encounter.mediaAsset{N}.bbox`: `x,y,width,height`, four integers in the stored
+          image's raw pixel grid (no EXIF rotation), origin top-left; x,y >= 0,
+          width,height >= 1; a whole-photo box is allowed. Required when any other box
+          column of that slot is set.
+        - `Encounter.mediaAsset{N}.iaClass`: required with a box; one of the species'
+          matchable classes (site setting `bulkImportMatchableClasses`), or any stored
+          class when `skipIdentification` (or `skipDetection`) is true.
+        - `Encounter.mediaAsset{N}.viewpoint` (optional, a known viewpoint);
+          `Encounter.mediaAsset{N}.theta` (optional, radians, finite, within +/-6.2832,
+          positive = clockwise as displayed, about the un-rotated box, no clipping);
+          `Encounter.mediaAsset{N}.bboxSource` (optional, 1-128 characters: the detector or
+          person that drew the box).
+        - `Encounter.quality{N}` next to a box is the detector's score.
+
+        Validation (in `validateOnly` mode too) checks each boxed file's type and header
+        dimensions, box bounds, a photo boxed on one row but not another, and identical
+        boxes on one photo. The same photo twice in one row is rejected when a box is
+        involved; a second animal on the same photo is a second row naming the same file.
+
+        An import holding at least one box never runs detection: the boxes are extracted
+        and, unless `skipIdentification` is true, identified; photos without a box are
+        imported untouched (warning type `UNBOXED_PHOTOS`) and need a separate import
+        without box columns if they should be detected. When any row carries a `.bbox`
+        column, every row reads keywords, labeled keywords and `Encounter.quality{N}` by
+        exact slot number. The response carries `annotationsImported`; site setting
+        `bulkImportIndexableFields` lists the accepted indexable columns, so a site whose
+        list lacks the box columns does not accept boxes.
       operationId: createBulkImport
       security:
         - cookieAuth: []
