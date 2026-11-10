@@ -48,6 +48,11 @@ trade it for a short-lived token whenever you need one. Your organization's admi
   working until that token expires, which is at most 15 minutes.
 - If `keyExpiresAt` (a time in milliseconds since 1970) is less than 30 days away, tell the operator to ask
   their organization's admin or a Wildbook admin for a replacement key.
+- What a data token from a key can see depends on how the key was made. By default it sees public data and
+  data submitted with the key. If the person who created the key chose "Read data with my access", it sees
+  exactly what that person can see (everything, if they are a site administrator), and it stops working if
+  they leave the organization. Submission tokens are not affected. If searches miss records the operator
+  expects, tell them; do not look for another way in.
 
 ```
 POST /api/v3/auth/token?scope=submissions:read
@@ -74,7 +79,7 @@ If the trade fails with 401, the `error` message says why:
 | `"invalid service key"` | The key is wrong or mistyped. Ask the operator to check the configured key. |
 | `"service key expired"` | The key has run out. Ask the operator for a new key from their organization's admin or a Wildbook admin. |
 | `"service key revoked"` | The key was canceled on purpose. Stop; do not look for a way around it. |
-| `"service key unavailable; contact your Wildbook administrator"` | The key's account is not usable right now. Tell the operator to contact their Wildbook administrator. |
+| `"service key unavailable; contact your Wildbook administrator"` | The key's account is not usable right now, or the person whose access the key reads with has left the organization. Tell the operator to contact their Wildbook administrator. |
 
 In all four cases, stop and report to the operator. Do not retry in a loop. Any other failure when
 trading the key (400, 500, 503) is the same: stop and report, and do not retry in a loop.

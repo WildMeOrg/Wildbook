@@ -185,18 +185,32 @@ public class AuthToken extends ApiBase {
                     return;
                 }
             }
+            // submission tokens always act as the service account; a data token reads as the key's
+            // creator when the key is bound to them (checked afresh here)
+            String subject = grant.serviceUserId;
+            if (scope == null) {
+                try {
+                    subject = ServiceKeyAuth.dataSubject(myShepherd, grant);
+                } catch (ServiceKeyException ex) {
+                    System.out.println("AuthToken mint DENIED (service key: " + ex.getMessage() + ") key="
+                        + grant.keyId + " ip=" + clientIp);
+                    writeError(response, ex.status, ex.getMessage());
+                    return;
+                }
+            }
             long ttl = ServiceKeyAuth.exchangeTtlMillis(ttlFromConfig(tokenContext), grant.keyExpiresAt, now);
             if (ttl <= 0) {
                 writeError(response, 401, "service key expired");
                 return;
             }
-            String token = jwt.signUntil(grant.serviceUserId, "context0", ttl, scope, grant.keyExpiresAt);
+            String token = jwt.signUntil(subject, "context0", ttl, scope, grant.keyExpiresAt);
             // persist lastUsedAt before handing out the token
             if (!myShepherd.commitDBTransactionWithStatus()) {
                 writeError(response, 500, "token issuance failed");
                 return;
             }
-            System.out.println("AuthToken mint OK key=" + grant.keyId + " org=" + grant.organizationId);
+            System.out.println("AuthToken mint OK key=" + grant.keyId + " org=" + grant.organizationId
+                + (subject.equals(grant.serviceUserId) ? "" : " readAs=" + subject));
             JSONObject out = new JSONObject();
             out.put("token", token);
             out.put("tokenType", "Bearer");

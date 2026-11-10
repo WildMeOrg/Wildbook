@@ -46,12 +46,20 @@ public final class ServiceKeyAuth {
         public final String organizationId;
         public final Set<String> scopes;
         public final long keyExpiresAt;
+        /** The key's creator when its data tokens read as them; null for a key that reads as the service account. */
+        public final String readAsUserId;
 
         public Grant(String serviceUserId, String keyId, String organizationId, Set<String> scopes,
             long keyExpiresAt) {
+            this(serviceUserId, keyId, organizationId, scopes, keyExpiresAt, null);
+        }
+
+        public Grant(String serviceUserId, String keyId, String organizationId, Set<String> scopes,
+            long keyExpiresAt, String readAsUserId) {
             this.serviceUserId = serviceUserId; this.keyId = keyId; this.organizationId = organizationId;
             this.scopes = Collections.unmodifiableSet(new LinkedHashSet<>(scopes));
             this.keyExpiresAt = keyExpiresAt;
+            this.readAsUserId = readAsUserId;
         }
     }
 
@@ -63,7 +71,42 @@ public final class ServiceKeyAuth {
         ServiceKey key = verify(sh, credential, now);
         recordUse(sh, key.getId(), now);
         return new Grant(key.getServiceUserId(), key.getId(), key.getOrganizationId(),
-            key.getScopeSet(), key.getExpiresAt());
+            key.getScopeSet(), key.getExpiresAt(), key.isReadAsCreator() ? key.getCreatedBy() : null);
+    }
+
+    /**
+     * The user a data token from this grant reads as: the service account, or, for a key bound to its
+     * creator, the creator after checking afresh that they may still be read as (see
+     * {@link #isReadAsEligible}). Throws ServiceKeyException 401 when they no longer may.
+     */
+    public static String dataSubject(Shepherd sh, Grant grant) {
+        if (grant.readAsUserId == null) return grant.serviceUserId;
+        String reason = readAsRefusal(sh.getPM(), grant.readAsUserId, grant.organizationId);
+        if (reason != null) {
+            // the caller only ever sees the generic UNAVAILABLE text
+            System.out.println("ServiceKeyAuth read-as refused (" + reason + ") key=" + grant.keyId
+                + " org=" + grant.organizationId + " user=" + grant.readAsUserId);
+            throw fail(UNAVAILABLE);
+        }
+        return grant.readAsUserId;
+    }
+
+    /**
+     * Whether a key of {@code orgId} may read as {@code userId}: the user exists, is a person (not a
+     * service account) and is a direct member of that organization. Read fresh from the datastore.
+     */
+    public static boolean isReadAsEligible(PersistenceManager pm, String userId, String orgId) {
+        return readAsRefusal(pm, userId, orgId) == null;
+    }
+
+    /** Why a key of {@code orgId} may not read as {@code userId}, or null when it may. */
+    private static String readAsRefusal(PersistenceManager pm, String userId, String orgId) {
+        if (userId == null || orgId == null) return "no creator or organization";
+        User user = FreshObjects.load(pm, User.class, "uuid == :id", userId);
+        if (user == null) return "creator not found";
+        if (user.isServiceAccount()) return "creator is a service account";
+        if (!directOrganizationIds(pm, userId).contains(orgId)) return "creator not a direct member";
+        return null;
     }
 
     /** min(configured, 900 s, time until the key expires). */
