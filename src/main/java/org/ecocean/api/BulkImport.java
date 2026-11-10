@@ -178,9 +178,10 @@ public class BulkImport extends ApiBase {
             if (tolerance == null) tolerance = new JSONObject();
             // default failImportOnError behavior is true, means any single error bails on whole import
             boolean toleranceFailImportOnError = tolerance.optBoolean("failImportOnError", true);
-            // if above false, any error in a row causes it to be skipped, unless this false
-            // in that case, rather than skip the row, the bad field will be ignored
-            // note: REQUIRED fields cannot be skipped and if missing will cause row to be skipped
+            // skipRowOnError is accepted but NOT applied: it has never been wired in. What a
+            // tolerant import (failImportOnError false) actually does is leave out each field
+            // that failed validation and import the rest of the row. Making this setting skip
+            // whole rows would change results for existing API clients, so it is left as is.
             boolean toleranceSkipRowOnError = tolerance.optBoolean("skipRowOnError", true);
             // defaulting to true for this, so basically bad fieldnames (and their values) are skipped
             boolean toleranceBadFieldnamesAreWarnings = tolerance.optBoolean(
