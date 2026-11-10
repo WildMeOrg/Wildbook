@@ -1,6 +1,7 @@
 package org.ecocean.api.submission;
 
 import org.ecocean.User;
+import org.ecocean.auth.FreshObjects;
 import org.ecocean.auth.ServiceKeyAuth;
 import org.ecocean.auth.ServiceKeyException;
 import org.ecocean.shepherd.core.Shepherd;
@@ -32,7 +33,7 @@ public final class SubmissionAttribution {
     public static String serviceOrganization(Shepherd sh, String ownerId) {
         User owner;
         try {
-            owner = ServiceKeyAuth.fresh(sh.getPM(), User.class, "uuid == :id", ownerId);
+            owner = FreshObjects.load(sh.getPM(), User.class, "uuid == :id", ownerId);
         } catch (ServiceKeyException ex) {
             throw unavailable();
         }
@@ -51,7 +52,7 @@ public final class SubmissionAttribution {
         if (PUBLIC.equals(name))
             return new JSONObject().put("username", PUBLIC).put("userId", JSONObject.NULL).put("organizationId", JSONObject.NULL);
         try {
-            User user = ServiceKeyAuth.fresh(sh.getPM(), User.class, "username == :name", name);
+            User user = FreshObjects.load(sh.getPM(), User.class, "username == :name", name);
             if (user == null || user.getId() == null || !name.equals(user.getUsername())) return null;
             if (user.getServiceOrganizationId() != null) return null;
             if (!ServiceKeyAuth.directOrganizationIds(sh.getPM(), user.getId()).contains(organizationId)) return null;

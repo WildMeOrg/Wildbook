@@ -4,12 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
-import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 import javax.jdo.datastore.JDOConnection;
@@ -79,15 +77,15 @@ public final class ServiceKeyAuth {
         if (!parsed.isPresent()) throw fail(INVALID);
         PersistenceManager pm = sh.getPM();
         // exact id: an id that is not stored byte-for-byte (e.g. upper-cased) is simply unknown
-        ServiceKey key = fresh(pm, ServiceKey.class, "id == :id", parsed.get()[0]);
+        ServiceKey key = FreshObjects.load(pm, ServiceKey.class, "id == :id", parsed.get()[0]);
         if (key == null || !ServiceKeyCredential.matches(parsed.get()[1], key.getSecretHash()))
             throw fail(INVALID);
         // only the holder of the real secret gets past this point
         if (key.isRevoked()) throw fail(REVOKED);
         if (key.getExpiresAt() <= now) throw fail(EXPIRED);
 
-        User user = fresh(pm, User.class, "uuid == :id", key.getServiceUserId());
-        Organization org = fresh(pm, Organization.class, "id == :id", key.getOrganizationId());
+        User user = FreshObjects.load(pm, User.class, "uuid == :id", key.getServiceUserId());
+        Organization org = FreshObjects.load(pm, Organization.class, "id == :id", key.getOrganizationId());
         if (user == null || org == null) throw fail(UNAVAILABLE);
         if (!isEligible(pm, user, key.getOrganizationId())) throw fail(UNAVAILABLE);
         return key;
@@ -165,25 +163,6 @@ public final class ServiceKeyAuth {
         } finally { query.closeAll(); }
     }
 
-    /** Loads one object by a single-parameter filter, bypassing caches, then reloads its state from the datastore. */
-    @SuppressWarnings("unchecked")
-    public static <T> T fresh(PersistenceManager pm, Class<T> cls, String filter, String value) {
-        if (value == null) return null;
-        Query<T> query = pm.newQuery(cls, filter);
-        try {
-            query.setIgnoreCache(true);
-            Collection<T> rows = (Collection<T>)query.execute(value);
-            if (rows.size() != 1) return null;
-            T obj = rows.iterator().next();
-            try {
-                pm.refresh(obj);
-            } catch (JDOObjectNotFoundException deleted) {
-                // removed between the query and the reload: treat it as absent
-                return null;
-            }
-            return obj;
-        } finally { query.closeAll(); }
-    }
 
     private static ServiceKeyException fail(String message) {
         return new ServiceKeyException(401, message);

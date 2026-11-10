@@ -144,7 +144,7 @@ public final class ServiceKeyStore {
     /** Looks up an organization by id with a parameterized, cache-bypassing query; null if none. */
     public static Organization organization(Shepherd sh, String orgId) {
         if (orgId == null || orgId.isEmpty()) return null;
-        return fresh(sh.getPM(), Organization.class, "id == :id", orgId);
+        return FreshObjects.load(sh.getPM(), Organization.class, "id == :id", orgId);
     }
 
     /**
@@ -197,7 +197,7 @@ public final class ServiceKeyStore {
     private static User serviceUser(Shepherd sh, Organization org, Supplier<String> suffixes) {
         PersistenceManager pm = sh.getPM();
         String orgId = org.getId();
-        User svc = fresh(pm, User.class, "serviceOrganizationId == :org", orgId);
+        User svc = FreshObjects.load(pm, User.class, "serviceOrganizationId == :org", orgId);
         if (svc != null) {
             if (!ServiceKeyAuth.isEligible(pm, svc, orgId))
                 throw new ServiceKeyException(409,
@@ -266,23 +266,6 @@ public final class ServiceKeyStore {
         } finally { query.closeAll(); }
     }
 
-    /** Loads one object by a single-parameter filter, bypassing caches, then reloads its state. */
-    @SuppressWarnings("unchecked")
-    private static <T> T fresh(PersistenceManager pm, Class<T> cls, String filter, String value) {
-        Query<T> query = pm.newQuery(cls, filter);
-        try {
-            query.setIgnoreCache(true);
-            Collection<T> rows = (Collection<T>)query.execute(value);
-            if (rows.size() != 1) return null;
-            T obj = rows.iterator().next();
-            try {
-                pm.refresh(obj);
-            } catch (JDOObjectNotFoundException deleted) {
-                return null; // removed between the query and the reload
-            }
-            return obj;
-        } finally { query.closeAll(); }
-    }
 
     /** pg_advisory_xact_lock on a stable 64-bit hash of {@code value}; released at commit or rollback. */
     private static void lock(Shepherd sh, String value) {
