@@ -185,6 +185,13 @@ class OpenSearchPaginationTest {
         assertTrue(all.isEmpty(), "no GET and no PUT below the default window");
     }
 
+    // The window cache is static, shared by every test class in the JVM and kept for 60 s. The
+    // two tests below read through it, so they use index names no other test touches: a real
+    // name ("annotation", "individual") can still be cached from an earlier class that searched
+    // it, and these tests would in turn leave their made-up windows behind for a later one.
+    private static final String LIVE_INDEX = "pagination_test_live_setting";
+    private static final String REFRESH_INDEX = "pagination_test_cache_refresh";
+
     @Test void ensureMaxResultWindow_decidesFromTheLiveSettingNotTheCache() throws Exception {
         List<Request> puts = new ArrayList<Request>();
         String[] stored = { "14875" };
@@ -195,11 +202,11 @@ class OpenSearchPaginationTest {
                 puts.add(request);
                 return "{\"acknowledged\":true}";
             }
-            return settingsJson("individual", stored[0]);
+            return settingsJson(LIVE_INDEX, stored[0]);
         }).when(os).getRestResponse(any(Request.class));
-        assertEquals(14875, os.getMaxResultWindow("individual")); // primes the 60 s cache
+        assertEquals(14875, os.getMaxResultWindow(LIVE_INDEX)); // primes the 60 s cache
         stored[0] = "660000"; // an operator raised it by hand since
-        os.ensureMaxResultWindow("individual", 544735);
+        os.ensureMaxResultWindow(LIVE_INDEX, 544735);
         assertTrue(puts.isEmpty(), "a stale cached value must not justify lowering the live setting");
     }
 
@@ -209,16 +216,16 @@ class OpenSearchPaginationTest {
         doAnswer(inv -> {
             Request request = inv.getArgument(0);
             if ("PUT".equals(request.getMethod())) {
-                assertEquals("annotation/_settings", request.getEndpoint());
+                assertEquals(REFRESH_INDEX + "/_settings", request.getEndpoint());
                 assertTrue(request.getParameters().isEmpty());
                 stored[0] = Integer.toString(windowIn(request));
                 return "{\"acknowledged\":true}";
             }
-            return settingsJson("annotation", stored[0]);
+            return settingsJson(REFRESH_INDEX, stored[0]);
         }).when(os).getRestResponse(any(Request.class));
-        assertEquals(14875, os.getMaxResultWindow("annotation")); // primes the 60 s cache
-        os.ensureMaxResultWindow("annotation", 786983);
-        assertEquals(944380, os.getMaxResultWindow("annotation"),
+        assertEquals(14875, os.getMaxResultWindow(REFRESH_INDEX)); // primes the 60 s cache
+        os.ensureMaxResultWindow(REFRESH_INDEX, 786983);
+        assertEquals(944380, os.getMaxResultWindow(REFRESH_INDEX),
             "the API gate must see the new window without waiting for the cache to expire");
     }
 }
