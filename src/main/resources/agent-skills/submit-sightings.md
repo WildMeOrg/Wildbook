@@ -18,7 +18,7 @@ Create a private draft, upload photographs, provide sighting rows, check the
 validation report, then commit the approved data once and collect the resulting
 record IDs. Drafting and validation do not create sighting records. Commit does.
 Import creates new encounters, one per row, owned by the submitting
-account. Detection may later add annotations and additional encounters. New submissions default to animal detection followed by individual identification
+account, or by the person named in `onBehalfOf` when the draft has one. Detection may later add annotations and additional encounters. New submissions default to animal detection followed by individual identification
 matching after import. Matching returns candidates for review; it does not automatically
 assign an individual identity. Existing records are not updated.
 
@@ -38,8 +38,9 @@ assign an individual identity. Existing records are not updated.
   `POST /api/v3/auth/token?scope=submissions:write`. Use a non-admin integration
   account for the pilot; do not mint with an operator's own account merely because
   they are setting it up. The authenticated token account becomes the draft owner.
-  Record that account's expected user ID and compare it with `effectiveOwnerId`
-  in the validation report before committing. Have the operator supply
+  Record that account's expected user ID and compare it with `draftOwnerId`
+  in the validation report before committing. For a draft with `onBehalfOf`, also
+  check that `effectiveOwner` names the collector you intended. Have the operator supply
   only the token through the runtime's secret mechanism; do not request their password.
   Alternatively, the operator may configure an organization service key (`wbsvc_...`).
   Trade it for a short-lived token with `POST /api/v3/auth/token?scope=submissions:write`
@@ -499,6 +500,9 @@ GET `/api/v3/submissions/{id}/results?limit=100` returns `rows` with `clientRowI
 Follow `nextCursor` by passing it as `cursor`, retaining your chosen limit; absence
 means the final page. Limits are 1–200. Results obey current access permissions,
 so do not promise that a later read always contains every previously visible row.
+A draft created with `onBehalfOf` is the exception: the service account that sent it
+always gets its rows' IDs back as a receipt, even though the records belong to the
+collector and it cannot open them.
 `links.importTask` opens the existing task page when available.
 
 `indexing`, `derivatives`, `detection`, and `identification` are separate phase

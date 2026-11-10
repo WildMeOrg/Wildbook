@@ -397,8 +397,9 @@ components:
           type: object
           additionalProperties:
             type: string
-          description: Authorized task and record URL links; clients must not construct
-            page paths from IDs.
+          description: Task and record page links for navigation. Opening one is subject
+            to the browser session's own access (for a draft with onBehalfOf the import
+            task belongs to the collector). Clients must not construct page paths from IDs.
         derivatives:
           $ref: '#/components/schemas/SubmissionApiPhase'
     SubmissionApiPhase:
