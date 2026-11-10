@@ -266,7 +266,7 @@ class MlServiceProcessorImportedBoxDbTest extends IdentificationDbTestSupport {
         assertEquals("processing", dispatcher.statuses.get(0), "the child was still non-terminal when its run was dispatched");
 
         dispatcher.childId = f.childFor(a);
-        assertEquals(MlServiceJobOutcome.Kind.OK, processor.runDeferredMatch(publisher.published.get(0)).getKind());
+        assertEquals(MlServiceJobOutcome.Kind.OK, processor.process(publisher.published.get(0)).getKind());
         assertEquals(1, runsUnder(f.childFor(a)).size(), "A's deferred match created its run");
         assertEquals("completed", status(f.childFor(a)));
     }
@@ -289,7 +289,7 @@ class MlServiceProcessorImportedBoxDbTest extends IdentificationDbTestSupport {
         assertNull(assetStatus(f.assetId));
         failChildForTest(f.childFor(b), "ENQUEUE");
         assertEquals(IBEISIA.STATUS_COMPLETE, assetStatus(f.assetId), "an ENQUEUE failure settles the asset");
-        assertEquals(MlServiceJobOutcome.Kind.OK, processor.runDeferredMatch(publisher.published.get(0)).getKind());
+        assertEquals(MlServiceJobOutcome.Kind.OK, processor.process(publisher.published.get(0)).getKind());
         assertEquals(1, runsUnder(f.childFor(a)).size());
         assertEquals("completed", status(f.childFor(a)));
     }
@@ -345,7 +345,7 @@ class MlServiceProcessorImportedBoxDbTest extends IdentificationDbTestSupport {
         processor.process(f.jobFor(a));
         failChildForTest(f.childFor(b), "ENQUEUE");   // the asset settles, so the re-fire reaches the match
         deleteAnnotation(a);
-        MlServiceJobOutcome out = processor.runDeferredMatch(publisher.published.get(0));
+        MlServiceJobOutcome out = processor.process(publisher.published.get(0));
         assertNotEquals(MlServiceJobOutcome.Kind.OK, out.getKind());
         assertEquals("error", status(f.childFor(a)));
         assertEquals("STALE", errorCodeOf(f.childFor(a)));
@@ -403,5 +403,186 @@ class MlServiceProcessorImportedBoxDbTest extends IdentificationDbTestSupport {
         } finally {
             check.rollbackAndClose();
         }
+    }
+
+
+    // ---- an imported-box child works only on the box the server stored on it ----
+
+    /** Every job shape that names child A but not A's own box is dropped with nothing changed. */
+    void assertForeignJobsDropped(boolean skipIdent) throws Exception {
+        Fixture f = boxedImport(2, skipIdent);
+        String a = f.annIds.get(0), b = f.annIds.get(1);
+        Shepherd sh = open("fixture");
+        Encounter plain = encounter(sh, ML_GENUS, ML_SPECIES, BODY);
+        Encounter otherImport = boxedEncounter(sh, ML_GENUS, ML_SPECIES, nextImportId(), 1);
+        String plainId = annotationIds(plain).get(0);
+        String otherId = annotationIds(otherImport).get(0);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        String childA = f.childFor(a);
+        String statusBefore = status(childA);
+        String assetBefore = assetStatus(f.assetId);
+
+        List<JSONObject> jobs = new ArrayList<JSONObject>();
+        for (String foreign : new String[] { plainId, otherId, b, "no-such-annotation" }) {
+            jobs.add(new JSONObject(f.jobFor(a).toString()).put("annotationId", foreign));
+            jobs.add(new JSONObject().put("mlServiceV2", true).put("deferredMatch", true)
+                .put("taskId", childA).put("annotationIds", new JSONArray().put(foreign)).put("__context", CTX));
+        }
+        jobs.add(new JSONObject().put("mlServiceV2", true).put("deferredMatch", true).put("taskId", childA)
+            .put("annotationIds", new JSONArray().put(a).put(plainId)).put("__context", CTX));
+        jobs.add(new JSONObject().put("mlServiceV2", true).put("deferredMatch", true).put("taskId", childA)
+            .put("annotationIds", new JSONArray()).put("__context", CTX));
+        jobs.add(new JSONObject().put("mlServiceV2", true).put("mediaAssetId", f.assetId)
+            .put("taxonomyString", "Pseudobatos lentiginosus").put("taskId", childA).put("__context", CTX));
+        // the child's own job with a media asset added: it would be dispatched as detection
+        jobs.add(new JSONObject(f.jobFor(a).toString()).put("mediaAssetId", f.assetId));
+        for (JSONObject job : jobs) {
+            MlServiceJobOutcome out = processor.process(job);
+            assertEquals(MlServiceJobOutcome.Kind.STALE, out.getKind(), "dropped: " + job);
+            assertEquals(statusBefore, status(childA), "the child is untouched by " + job);
+            assertEquals(assetBefore, assetStatus(f.assetId), "the asset is untouched by " + job);
+        }
+        for (String foreign : new String[] { plainId, otherId, b }) {
+            assertEquals(0, embeddings(foreign), "nothing was extracted for " + foreign);
+            Shepherd check = open("check");
+            try {
+                assertFalse(Task.load(childA, check).holdsAnnotationId(foreign));
+                if (!foreign.equals(b))
+                    assertNull(check.getAnnotation(foreign).getIdentificationStatus(), "status untouched for " + foreign);
+            } finally {
+                check.rollbackAndClose();
+            }
+        }
+        assertEquals(0, client.calls);
+        assertEquals(0, publisher.published.size(), "no deferred match was published");
+        assertEquals(0, dispatcher.published.size(), "no identification run");
+    }
+
+    @Test void jobsNotNamingTheChildsOwnBoxAreDropped() throws Exception {
+        assertForeignJobsDropped(false);
+    }
+
+    @Test void jobsNotNamingTheChildsOwnBoxAreDroppedWhenIdentificationIsSkipped() throws Exception {
+        assertForeignJobsDropped(true);
+    }
+
+    /** A processor whose check fails its task read (whole Shepherd) or its annotation read, once. */
+    MlServiceProcessor flakyCheck(boolean failAnnotationRead, java.util.concurrent.atomic.AtomicBoolean failed) {
+        return new MlServiceProcessor(CTX, client, null, publisher) {
+            @Override Shepherd openShepherd(String action) {
+                Shepherd real = super.openShepherd(action);
+                if (!"importedBoxJobMismatch".equals(action) || failed.get()) return real;
+                Shepherd spied = org.mockito.Mockito.spy(real);
+                if (!failAnnotationRead) {
+                    org.mockito.Mockito.doAnswer(inv -> {
+                        if (failed.getAndSet(true)) return inv.callRealMethod();
+                        throw new javax.jdo.JDODataStoreException("datastore down");
+                    }).when(spied).getPM();
+                    return spied;
+                }
+                javax.jdo.PersistenceManager pm = org.mockito.Mockito.spy(real.getPM());
+                org.mockito.Mockito.doReturn(pm).when(spied).getPM();
+                org.mockito.Mockito.doAnswer(inv -> {
+                    if (failed.getAndSet(true)) return inv.callRealMethod();
+                    throw new javax.jdo.JDODataStoreException("datastore down");
+                }).when(pm).getObjectById(eq(Annotation.class), any());
+                return spied;
+            }
+        };
+    }
+
+    @Test void taskLookupFailureInTheCheckIsAnErrorNotAPass() throws Exception {
+        Fixture f = boxedImport(1, false);
+        String a = f.annIds.get(0);
+        String childA = f.childFor(a);
+        Shepherd sh = open("fixture");
+        Encounter plain = encounter(sh, ML_GENUS, ML_SPECIES, BODY);
+        String plainId = annotationIds(plain).get(0);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+        String statusBefore = status(childA);
+        java.util.concurrent.atomic.AtomicBoolean failed = new java.util.concurrent.atomic.AtomicBoolean();
+        JSONObject foreign = new JSONObject(f.jobFor(a).toString()).put("annotationId", plainId);
+        MlServiceJobOutcome out = flakyCheck(false, failed).process(foreign);
+        assertEquals(MlServiceJobOutcome.Kind.ERROR_PERSIST, out.getKind(), "a failed check never lets the job through");
+        assertTrue(failed.get());
+        assertEquals(statusBefore, status(childA));
+        assertEquals(0, client.calls);
+        assertEquals(0, embeddings(plainId));
+    }
+
+    @Test void annotationLookupFailureInTheCheckIsAnErrorNotAPass() throws Exception {
+        // the child's own box, but stamped by another import: only the annotation read can tell
+        Fixture f = boxedImport(1, false);
+        String a = f.annIds.get(0);
+        String childA = f.childFor(a);
+        restamp(childA, "some-other-import");
+        String statusBefore = status(childA);
+        java.util.concurrent.atomic.AtomicBoolean failed = new java.util.concurrent.atomic.AtomicBoolean();
+        MlServiceJobOutcome out = flakyCheck(true, failed).process(f.jobFor(a));
+        assertEquals(MlServiceJobOutcome.Kind.ERROR_PERSIST, out.getKind(), "a failed read is not a deleted annotation");
+        assertTrue(failed.get());
+        assertEquals(statusBefore, status(childA));
+        assertEquals(0, client.calls);
+        assertEquals(0, embeddings(a));
+        assertEquals(0, publisher.published.size());
+    }
+
+    @Test void unreadableStoredParametersAreAnErrorNotAPass() throws Exception {
+        Fixture f = boxedImport(1, false);
+        String a = f.annIds.get(0);
+        String childA = f.childFor(a);
+        // "none" and "unknown" are stored text that some helpers treat as "no value"
+        for (String corrupt : new String[] { "{\"importedBox\":true,", "none", "Unknown" }) {
+            Shepherd sh = open("corrupt");
+            try {
+                Task.load(childA, sh).setParameters(corrupt);
+                sh.commitDBTransaction();
+            } finally {
+                sh.closeDBTransaction();
+            }
+            MlServiceJobOutcome out = processor.process(f.jobFor(a));
+            assertEquals(MlServiceJobOutcome.Kind.ERROR_PERSIST, out.getKind(), "stored parameters: " + corrupt);
+        }
+        assertEquals(0, client.calls);
+        assertEquals(0, embeddings(a));
+    }
+
+    static void restamp(String childId, String importId) {
+        Shepherd sh = open("restamp");
+        try {
+            Task child = Task.load(childId, sh);
+            JSONObject params = child.getParameters();
+            params.put("importTaskId", importId);
+            child.setParameters(params);
+            sh.commitDBTransaction();
+        } finally {
+            sh.closeDBTransaction();
+        }
+    }
+
+    @Test void legitimateDeferredMatchPassesTheCheck() throws Exception {
+        Fixture f = boxedImport(1, true);   // skipIdent: the deferred job completes the child
+        String a = f.annIds.get(0);
+        String childA = f.childFor(a);
+        JSONObject deferred = new JSONObject().put("mlServiceV2", true).put("deferredMatch", true)
+            .put("taskId", childA).put("annotationIds", new JSONArray().put(a)).put("__context", CTX);
+        assertEquals(MlServiceJobOutcome.Kind.OK, processor.process(deferred).getKind());
+        assertEquals("completed", status(childA));
+    }
+
+    @Test void childHoldingAnotherImportsBoxDoesNotExtractIt() throws Exception {
+        // a child whose stored job names a box that carries a different import's stamp
+        Fixture f = boxedImport(1, false);
+        String a = f.annIds.get(0);
+        String childA = f.childFor(a);
+        restamp(childA, "some-other-import");
+        String statusBefore = status(childA);
+        MlServiceJobOutcome out = processor.process(f.jobFor(a));
+        assertEquals(MlServiceJobOutcome.Kind.STALE, out.getKind());
+        assertEquals(statusBefore, status(childA));
+        assertEquals(0, client.calls);
+        assertEquals(0, embeddings(a));
     }
 }

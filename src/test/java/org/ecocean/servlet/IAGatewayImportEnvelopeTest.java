@@ -160,6 +160,23 @@ class IAGatewayImportEnvelopeTest {
         }
     }
 
+    @Test void handoffNeverCarriesAClientSuppliedImportedBoxMarker() throws Exception {
+        Harness h = new Harness(unboxedTask("42"), true);
+        try (MockedStatic<IAGateway> gateway = mockStatic(IAGateway.class, CALLS_REAL_METHODS)) {
+            gateway.when(() -> IAGateway.addToDetectionQueue(eq(CTX), anyString())).thenAnswer(call -> {
+                h.published.set(call.getArgument(1, String.class)); return true; });
+            JSONObject in = data();
+            in.getJSONObject("taskParameters").put(Task.PARAM_IMPORTED_BOX, true);
+            assertTrue(IAGateway.handleBulkImport(in, new JSONObject(), h.sh, CTX, BASE).getBoolean("success"));
+            ArgumentCaptor<Task> root = ArgumentCaptor.forClass(Task.class);
+            verify(h.sh.getImportTask("job"), atLeastOnce()).setIATask(root.capture());
+            assertFalse(Task.isImportedBoxTask(root.getValue()));
+            assertFalse(Task.isImportedBoxTask(root.getValue().getChildren().get(0)));
+            assertFalse(new JSONObject(h.published.get()).getJSONObject("taskParameters").has(Task.PARAM_IMPORTED_BOX));
+            assertEquals("job", root.getValue().getParameters().getString("importTaskId"));
+        }
+    }
+
     @Test void unboxedInputKeepsLegacyAnnotationFields() throws Exception { // (regression)
         Harness h = new Harness(unboxedTask("42"), true);
         try (MockedStatic<IAGateway> gateway = mockStatic(IAGateway.class, CALLS_REAL_METHODS)) {

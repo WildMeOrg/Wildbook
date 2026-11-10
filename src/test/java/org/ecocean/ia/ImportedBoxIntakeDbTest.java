@@ -731,4 +731,68 @@ class ImportedBoxIntakeDbTest extends IdentificationDbTestSupport {
             check.rollbackAndClose();
         }
     }
+
+
+    // ---- extraction mode takes only the boxes of the root's own import ----
+
+    @Test void annotationsThatAreNotThisImportsBoxesAreLeftUntouched() throws Exception {
+        Shepherd sh = open("fixture");
+        String importId = nextImportId();
+        Encounter mine = boxedEncounter(sh, ML_GENUS, ML_SPECIES, importId, 1);
+        Encounter other = boxedEncounter(sh, ML_GENUS, ML_SPECIES, nextImportId(), 1);
+        Encounter plain = encounter(sh, ML_GENUS, ML_SPECIES, BODY);
+        // the two foreign annotations sit on assets whose detection is still under way
+        other.getAnnotations().get(0).getMediaAsset().setDetectionStatus(IBEISIA.STATUS_PROCESSING);
+        plain.getAnnotations().get(0).getMediaAsset().setDetectionStatus(IBEISIA.STATUS_ERROR);
+        Task req = requestTask(sh, importId, false);
+        String mineId = annotationIds(mine).get(0);
+        String otherId = annotationIds(other).get(0);
+        String plainId = annotationIds(plain).get(0);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+
+        List<JSONObject> jobs = handleRestCapturing(envelope(req.getId(),
+            Arrays.asList(plainId, otherId, mineId), IAGateway.ANNOTATION_MODE_EXTRACT));
+        assertEquals(1, jobs.size(), "only this import's box is extracted");
+        assertEquals(mineId, jobs.get(0).getString("annotationId"));
+
+        Shepherd check = open("check");
+        try {
+            Task species = onlyChild(Task.load(req.getId(), check));
+            assertEquals(1, species.getChildren().size());
+            assertEquals(1, species.getObjectMediaAssets().size(), "the species task lists only the import's asset");
+            Annotation otherAnn = check.getAnnotation(otherId);
+            Annotation plainAnn = check.getAnnotation(plainId);
+            for (Annotation ann : new Annotation[] { otherAnn, plainAnn }) {
+                assertNull(ann.getIdentificationStatus(), "identification status untouched for " + ann.getId());
+                assertEquals(0, Task.getTasksFor(ann, check).size(), "no task holds " + ann.getId());
+            }
+            assertEquals(IBEISIA.STATUS_PROCESSING, otherAnn.getMediaAsset().getDetectionStatus());
+            assertEquals(IBEISIA.STATUS_ERROR, plainAnn.getMediaAsset().getDetectionStatus());
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
+    @Test void rootWithoutAnImportStampExtractsNothing() throws Exception {
+        Shepherd sh = open("fixture");
+        Encounter boxed = boxedEncounter(sh, ML_GENUS, ML_SPECIES, nextImportId(), 1);
+        Task req = requestTask(sh, null, false);
+        String boxId = annotationIds(boxed).get(0);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+
+        List<JSONObject> jobs = handleRestCapturing(envelope(req.getId(), Arrays.asList(boxId),
+            IAGateway.ANNOTATION_MODE_EXTRACT));
+        assertEquals(0, jobs.size());
+        Shepherd check = open("check");
+        try {
+            Annotation ann = check.getAnnotation(boxId);
+            assertNull(ann.getIdentificationStatus());
+            assertEquals(0, Task.getTasksFor(ann, check).size());
+            assertNull(ann.getMediaAsset().getDetectionStatus());
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
 }
