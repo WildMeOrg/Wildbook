@@ -651,4 +651,70 @@ class BulkBoxImportApiTest {
         assertTrue(handoffs.isEmpty());
         assertFalse(res.getBoolean("annotationsImported"));
     }
+
+    // ---- zero-padded slot columns ----
+
+    static final String[] PADDED = { "Encounter.mediaAsset01", "Encounter.mediaAsset01.bbox", "Encounter.mediaAsset01.iaClass" };
+
+    @Test void zeroPaddedBoxColumnsAreCheckedAndImported() throws Exception {
+        // the file checks see the padded box: out of bounds is an error on the padded column
+        JSONObject res = post(payload(PADDED, new Object[] { "a.jpg", "10,10,200,10", "body" }).put("validateOnly", true));
+        assertFalse(res.getBoolean("success"), res.toString());
+        JSONObject e = error(res, 0, "Encounter.mediaAsset01.bbox");
+        assertNotNull(e, res.toString());
+        assertTrue(e.getString("details").contains("exceeds image 200x150"), e.toString());
+        // and a good one is a box, not an un-boxed photo
+        res = post(payload(PADDED, new Object[] { "a.jpg", "1,1,5,5", "body" }).put("validateOnly", true));
+        assertTrue(res.getBoolean("success"), res.toString());
+        assertNull(warning(res, "UNBOXED_PHOTOS"), res.toString());
+        res = post(payload(PADDED, new Object[] { "a.jpg", "1,1,5,5", "body" }));
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        Encounter enc = encounterWith("a.jpg");
+        assertNotNull(enc);
+        assertEquals(1, boxIds(enc).size(), "the padded box was imported");
+        assertEquals(boxIds(enc), envelopeIds());
+    }
+
+    @Test void sameNumberedColumnTwiceIsRejectedUpFront() throws Exception {
+        String[] fields = { "Encounter.mediaAsset1", "Encounter.mediaAsset01", "Encounter.mediaAsset1.bbox", "Encounter.mediaAsset1.iaClass" };
+        JSONObject res = post(payload(fields, new Object[] { "a.jpg", "b.jpg", "1,1,5,5", "body" }).put("validateOnly", true));
+        assertEquals(400, res.getInt("statusCode"), res.toString());
+        assertTrue(res.toString().contains("Encounter.mediaAsset01"), res.toString());
+    }
+
+    @Test void tolerantImportNeverStoresABoxAtARejectedAngle() throws Exception {
+        String[] fields = { "Encounter.mediaAsset0", "Encounter.mediaAsset0.bbox", "Encounter.mediaAsset0.iaClass", "Encounter.mediaAsset0.theta" };
+        JSONObject res = post(tolerant(payload(fields, new Object[] { "a.jpg", "1,1,5,5", "body", "sideways" }, new Object[] { "b.jpg", "1,1,5,5", "body", "0.5" })));
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        assertNotNull(error(res, 0, "Encounter.mediaAsset0.theta"), res.toString());
+        assertEquals(0, boxIds(encounterWith("a.jpg")).size(), "the photo is imported without its box");
+        assertEquals(1, boxIds(encounterWith("b.jpg")).size());
+        assertEquals(boxIds(encounterWith("b.jpg")), envelopeIds());
+    }
+
+    @Test void rejectedAngleNeverMakesAnotherRowsBoxADuplicate() throws Exception {
+        String[] fields = { "Encounter.mediaAsset0", "Encounter.mediaAsset0.bbox", "Encounter.mediaAsset0.iaClass", "Encounter.mediaAsset0.theta" };
+        // same photo, same box: the first row's angle is rejected, the second row's is a real 0
+        JSONObject res = post(tolerant(payload(fields, new Object[] { "a.jpg", "1,1,5,5", "body", "sideways" }, new Object[] { "a.jpg", "1,1,5,5", "body", "0" })));
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        assertNotNull(error(res, 0, "Encounter.mediaAsset0.theta"), res.toString());
+        assertNull(error(res, 1, "Encounter.mediaAsset0.bbox"), "the valid box is not a duplicate: " + res);
+        int boxes = 0;
+        for (Encounter enc : held.getEncounters()) boxes += boxIds(enc).size();
+        assertEquals(1, boxes, "exactly the valid box is imported");
+        assertEquals(1, envelopeIds().size());
+    }
+
+    @Test void strictImportRejectsABadAngleAndEveryAngleRejectedStaysBoxed() throws Exception {
+        String[] fields = { "Encounter.mediaAsset0", "Encounter.mediaAsset0.bbox", "Encounter.mediaAsset0.iaClass", "Encounter.mediaAsset0.theta" };
+        JSONObject res = post(payload(fields, new Object[] { "a.jpg", "1,1,5,5", "body", "sideways" }));
+        assertEquals(400, res.getInt("statusCode"), res.toString());
+        assertNotNull(error(res, 0, "Encounter.mediaAsset0.theta"), res.toString());
+        // tolerant: the only box is withheld, and the import is still a boxed one (no detection)
+        res = post(tolerant(payload(fields, new Object[] { "a.jpg", "1,1,5,5", "body", "sideways" })));
+        assertEquals(200, res.getInt("statusCode"), res.toString());
+        assertTrue(res.getBoolean("annotationsImported"), res.toString());
+        assertEquals(0, boxIds(encounterWith("a.jpg")).size());
+        assertTrue(stamped(held));
+    }
 }
