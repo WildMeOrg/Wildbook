@@ -93,6 +93,12 @@ public class Submissions extends ApiBase {
         if (!value.matches("\"[0-9]{1,18}\"")) throw new SubmissionException(400, "BAD_REQUEST", "Invalid If-Match revision");
         return Long.parseLong(value.substring(1, value.length() - 1));
     }
+    private static java.util.TreeSet<String> supportedRowFields() {
+        java.util.TreeSet<String> supported = new java.util.TreeSet<>(SubmissionValidator.FIELDS);
+        supported.add("Encounter.quality#");
+        return supported;
+    }
+
     private JSONObject capabilities() {
         boolean staging = false;
         try { new SubmissionFiles("context0", getServletContext()); staging = true; }
@@ -112,8 +118,12 @@ public class Submissions extends ApiBase {
                 .put("maxActiveJobs", 1)
                 .put("draftTtlSeconds", SubmissionPolicy.DRAFT_TTL_MILLIS / 1000)
                 .put("idempotencyRetentionSeconds", SubmissionPolicy.DRAFT_TTL_MILLIS / 1000))
-            .put("rowFields", new JSONObject().put("supported", new org.json.JSONArray(new java.util.TreeSet<>(SubmissionValidator.FIELDS)))
+            .put("rowFields", new JSONObject().put("supported", new org.json.JSONArray(supportedRowFields()))
                 .put("indexedMedia", "Encounter.mediaAsset0 through Encounter.mediaAsset199")
+                // bulk-import boxes (spec 4.9): the suffixes a numbered photo slot accepts; a client checks
+                // perMedia before preparing boxed rows
+                .put("perMedia", new org.json.JSONArray(org.ecocean.api.bulk.BulkValidator.BOX_SUFFIXES))
+                .put("indexedQuality", "Encounter.quality0 through Encounter.quality199")
                 .put("required", new org.json.JSONArray().put("Encounter.genus").put("Encounter.specificEpithet")
                     .put("Encounter.year").put("Encounter.locationID")))
             .put("attribution", new JSONObject().put("field", SubmissionAttribution.FIELD).put("appliesTo", "submission")

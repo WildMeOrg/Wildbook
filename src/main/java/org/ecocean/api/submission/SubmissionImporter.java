@@ -41,11 +41,12 @@ public class SubmissionImporter {
         for (int i = 0; i < rows.length(); i++) {
             JSONObject fields = new JSONObject(rows.getJSONObject(i).getJSONObject("fields").toString());
             fields.put("Encounter.submitterID", submitter);
-            Map<String, Object> data = BulkImportUtil.validateRow(fields, sh);
+            Map<String, Object> data = BulkImportUtil.validateRow(fields, sh, !draft.requestsIdentification()); // bulk-import boxes: the same skip flag as /validate
             for (Object value : data.values()) if (!(value instanceof BulkValidator))
                 throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed");
             validated.add(data);
-            for (String field : fields.keySet()) if (field.startsWith("Encounter.mediaAsset")) requiredFiles.add(fields.getString(field));
+            for (String field : BulkImportUtil.findIndexedFieldNames(fields.keySet(), "Encounter.mediaAsset")) // bare slots only (bulk-import boxes)
+                if (field != null) requiredFiles.add(fields.getString(field));
         }
         Map<String, MediaAsset> media = new HashMap<>();
         for (int i = 0; i < files.length(); i++) {
@@ -68,7 +69,7 @@ public class SubmissionImporter {
                 .put("occurrenceIds", new JSONArray().put(enc.getOccurrenceID())).put("individualIds", individuals)
                 .put("mediaAssetIds", mediaIds));
         }
-        task.setEncounters(importer.getEncounters()); task.setProcessingProgress(1.0D); task.setStatus(draft.requestsIdentification() ? "pending-detection" : "complete");
+        task.setEncounters(importer.getEncounters()); task.setProcessingProgress(1.0D); task.setStatus(draft.requestsAi() ? "pending-detection" : "complete");
         sh.getPM().makePersistent(task);
         return new JSONObject().put("rows", mapping).put("records", imported);
     }

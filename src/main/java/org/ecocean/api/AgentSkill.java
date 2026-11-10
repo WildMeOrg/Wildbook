@@ -34,6 +34,7 @@ public class AgentSkill extends ApiBase {
         m.put("review-id-problems", "review-id-problems.md");
         m.put("inat-to-wildbook-import", "inat-to-wildbook-import.md");
         m.put("submit-sightings", "submit-sightings.md");
+        m.put("import-your-own-detections", "import-your-own-detections.md");
         SKILL_RESOURCES = Collections.unmodifiableMap(m);
     }
 

@@ -391,6 +391,24 @@ public class Annotation extends Base implements java.io.Serializable {
         return features.get(0);
     }
 
+    // bulk-import boxes (spec 4.1): a feature created from a user-supplied box carries this marker
+    // in its parameters; every "imported box" rule keys on it, never on geometry
+    public static final String FEATURE_PARAM_IMPORTED_BOX = "_bulkImportBbox";
+
+    public boolean isImportedBox() {
+        Feature f = getFeature();
+
+        return (f != null) && (f.getParameters() != null) &&
+               f.getParameters().has(FEATURE_PARAM_IMPORTED_BOX);
+    }
+
+    // the id of the bulk import that created this box, or null when it is not an imported box
+    public String importedBoxImportTaskId() {
+        if (!isImportedBox()) return null;
+        JSONObject marker = getFeature().getParameters().optJSONObject(FEATURE_PARAM_IMPORTED_BOX);
+        return (marker == null) ? null : marker.optString("importTaskId", null);
+    }
+
     public void setFeatures(ArrayList<Feature> f) {
         features = f;
         this.setVersion();

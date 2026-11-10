@@ -606,6 +606,20 @@ public class MediaAsset extends Base implements java.io.Serializable {
 
     // if unity feature is appropriate, generates that; otherwise does a boundingBox one
     // 'params' is extra params to use, and can be null
+    // bulk-import boxes (spec 4.3): the same with an already-loaded FeatureType; the importer
+    // loads it once on its own persistence manager instead of the FeatureType.initAll cache
+    public Feature generateFeatureFromBbox(FeatureType type, double w, double h, double x,
+        double y, JSONObject params) {
+        if (params == null) params = new JSONObject();
+        params.put("width", w);
+        params.put("height", h);
+        params.put("x", x);
+        params.put("y", y);
+        Feature f = new Feature(type, params);
+        this.addFeature(f);
+        return f;
+    }
+
     public Feature generateFeatureFromBbox(double w, double h, double x, double y,
         JSONObject params) {
         if (params == null) params = new JSONObject();

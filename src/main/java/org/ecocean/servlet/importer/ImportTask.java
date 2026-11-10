@@ -343,14 +343,25 @@ public class ImportTask implements java.io.Serializable {
         return !iaTask.getParameters().optBoolean("skipIdent", false);
     }
 
-    // for sake of this value, skipping detection is also good enough
+    // passed-parameter key set by an import that carried user-supplied boxes (spec 4.4): such an
+    // import never runs detection, but identification still follows the skipIdent flag
+    public static final String PARAM_ANNOTATIONS_IMPORTED = "annotationsImported";
+
+    public boolean annotationsImported() {
+        if (this.getPassedParameters() == null) return false;
+        return this.getPassedParameters().optBoolean(PARAM_ANNOTATIONS_IMPORTED, false);
+    }
+
+    // for sake of this value, skipping detection is also good enough (unless the import brought its
+    // own boxes, in which case only the IA task's skipIdent decides)
     public boolean skippedIdentification() {
-        if (skippedDetection()) return true;
+        if (skippedDetection() && !annotationsImported()) return true;
         return !iaTaskRequestedIdentification();
     }
 
     public boolean skippedDetection() {
         if (this.getPassedParameters() == null) return false;
+        if (annotationsImported()) return true;
         return this.getPassedParameters().optBoolean("skipDetection", false);
     }
 
@@ -933,6 +944,12 @@ public class ImportTask implements java.io.Serializable {
             pj.put("identificationStatus", "unknown");
         }
         if (this.skippedDetection()) pj.put("detectionStatus", "skipped");
+        // supplied boxes stand in for detection: tell the task page so it can show detection as
+        // done and still offer identification
+        if (this.annotationsImported()) {
+            pj.put("annotationsImported", true);
+            pj.put("detectionPercent", 1.0);
+        }
         if (this.skippedIdentification()) pj.put("identificationStatus", "skipped");
         String ds = pj.optString("detectionStatus");
         String is = pj.optString("identificationStatus");
