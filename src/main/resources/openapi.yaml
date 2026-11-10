@@ -215,6 +215,8 @@ components:
           $ref: '#/components/schemas/SubmissionApiSource'
         processing:
           $ref: '#/components/schemas/SubmissionApiProcessing'
+        onBehalfOf:
+          $ref: '#/components/schemas/SubmissionApiOnBehalfOf'
         createdAt:
           type: string
           format: date-time
@@ -235,6 +237,10 @@ components:
         rowCount:
           type: integer
           minimum: 0
+        detection:
+          $ref: '#/components/schemas/SubmissionApiPhase'
+        identification:
+          $ref: '#/components/schemas/SubmissionApiPhase'
         errors:
           type: array
           items:
@@ -328,7 +334,14 @@ components:
             $ref: '#/components/schemas/SubmissionApiRow'
         effectiveOwnerId:
           type: string
+          description: Who will own the imported records. The named member's user id (a UUID),
+            the literal "public", or otherwise the draft owner's user id.
+        draftOwnerId:
+          type: string
           format: uuid
+          description: The account that sent the draft.
+        effectiveOwner:
+          $ref: '#/components/schemas/SubmissionApiEffectiveOwner'
         processing:
           $ref: '#/components/schemas/SubmissionApiProcessing'
     SubmissionApiValidate:
@@ -384,8 +397,9 @@ components:
           type: object
           additionalProperties:
             type: string
-          description: Authorized task and record URL links; clients must not construct
-            page paths from IDs.
+          description: Task and record page links for navigation. Opening one is subject
+            to the browser session's own access (for a draft with onBehalfOf the import
+            task belongs to the collector). Clients must not construct page paths from IDs.
         derivatives:
           $ref: '#/components/schemas/SubmissionApiPhase'
     SubmissionApiPhase:
@@ -408,7 +422,11 @@ components:
           - unknown
           description: Indexing unknown means submitted to the existing async indexing
             queue; no completion acknowledgment is available. Derivatives unknown requires
-            operator reconciliation.
+            operator reconciliation. A submission whose rows carry boxes reports detection
+            `skipped` with code `BOXES_SUPPLIED`; for import-only with boxes, identification
+            reports the extraction hand-off state, and pending/dispatching/dispatched carry
+            code `BOXES_EXTRACTED_ONLY` (the boxes are extracted for later matching but not
+            identified). Failure states (not_started, failed, unknown) keep their own codes.
         message:
           type: string
           minLength: 1
@@ -468,6 +486,7 @@ components:
           - FILE_CONTENT_CONFLICT
           - INTERNAL_ERROR
           - CAPABILITY_UNAVAILABLE
+          - ATTRIBUTION_NOT_ALLOWED
         message:
           type: string
           minLength: 1
@@ -481,7 +500,9 @@ components:
       description: DUPLICATE_CLIENT_ROW_ID is 422; INVALID_STATE is 409; PRECONDITION_REQUIRED
         is 428; REVISION_STALE is 412; IDEMPOTENCY_KEY_REUSED and ALREADY_COMMITTED are
         409; LIMIT_EXCEEDED is 413 for input size or 429 for quotas; ADMISSION_DISABLED
-        is 503.
+        is 503; ATTRIBUTION_NOT_ALLOWED is 403 (onBehalfOf on a draft not owned by an
+        organization service account). A named collector that no longer resolves at commit
+        is VALIDATION_STALE.
     SubmissionApiIssue:
       type: object
       additionalProperties: true
@@ -492,6 +513,10 @@ components:
         code:
           type: string
           minLength: 1
+          description: Issue kind. Image reuse issues are DUPLICATE_MEDIA (an image reused
+            in a row, across rows without boxes, or boxed on one row and not another) and
+            DUPLICATE_BOX (the identical box twice on one image); field values use
+            INVALID_VALUE with a reason.
         message:
           type: string
           minLength: 1
@@ -509,8 +534,12 @@ components:
           minLength: 1
           description: >-
             Present on INVALID_VALUE issues: why the value was rejected. One of REQUIRED,
-            REQUIRES_FIELD, UNPARSEABLE, OUT_OF_RANGE, FUTURE_DATE, NOT_CONFIGURED, INVALID.
-            New reasons may be added; treat an unknown reason as INVALID.
+            REQUIRES_FIELD, UNPARSEABLE, OUT_OF_RANGE, FUTURE_DATE, NOT_CONFIGURED, INVALID,
+            and for the per-photo box columns INVALID_BOX, MISSING_CLASS, UNKNOWN_CLASS,
+            INVALID_VIEWPOINT, INVALID_THETA, BOX_OUT_OF_BOUNDS. New reasons may be added;
+            treat an unknown reason as INVALID. Issue codes include DUPLICATE_MEDIA (an image
+            reused across rows without boxes, or boxed on one row and not another) and
+            DUPLICATE_BOX (the identical box twice on one image).
           x-known-values:
           - REQUIRED
           - REQUIRES_FIELD
@@ -519,6 +548,12 @@ components:
           - FUTURE_DATE
           - NOT_CONFIGURED
           - INVALID
+          - INVALID_BOX
+          - MISSING_CLASS
+          - UNKNOWN_CLASS
+          - INVALID_VIEWPOINT
+          - INVALID_THETA
+          - BOX_OUT_OF_BOUNDS
         limit:
           type: number
     SubmissionApiCapabilities:
@@ -621,6 +656,15 @@ components:
                 type: string
             indexedMedia:
               type: string
+            perMedia:
+              type: array
+              items:
+                type: string
+              description: Suffixes a numbered photo slot accepts, as
+                Encounter.mediaAsset{N}.<suffix> (bbox, iaClass, viewpoint, theta, bboxSource).
+                Absent on installations that do not accept user-supplied boxes.
+            indexedQuality:
+              type: string
         stagingAvailable:
           type: boolean
         maxFiles:
@@ -639,6 +683,10 @@ components:
           type: array
           items:
             type: string
+        attribution:
+          type: object
+          additionalProperties: true
+          description: How a service-key submission names who owns its records (onBehalfOf).
     SubmissionApiAccepted:
       type: object
       additionalProperties: true
@@ -716,6 +764,39 @@ components:
           $ref: '#/components/schemas/SubmissionApiSource'
         processing:
           $ref: '#/components/schemas/SubmissionApiProcessing'
+        onBehalfOf:
+          $ref: '#/components/schemas/SubmissionApiOnBehalfOf'
+    SubmissionApiOnBehalfOf:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: >-
+        Organization service keys only. Who owns what this submission imports: exactly
+        "public", or the exact username of a direct member of the key's organization who is
+        not a service account. Trimmed; fixed for the life of the draft; applies to every row.
+        No account is ever created. Any other value makes validation report
+        SUBMITTER_NOT_ALLOWED; a draft not owned by a service account is refused with 403
+        ATTRIBUTION_NOT_ALLOWED. A named member also becomes the creator of the import task.
+        "public" records are readable by anyone and editable by any logged-in user.
+    SubmissionApiEffectiveOwner:
+      type: object
+      additionalProperties: false
+      required:
+      - username
+      - userId
+      - organizationId
+      properties:
+        username:
+          type: string
+        userId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Null for public.
+        organizationId:
+          type: string
+          nullable: true
+          description: Null for public.
     SubmissionApiResultRow:
       type: object
       additionalProperties: true
@@ -770,7 +851,12 @@ components:
             - type: boolean
           description: Normalized bulk-import field names. Actual supported fields, required
             values and types are supplied by capabilities. Nulls and unknown fields are
-            rejected in this contract.
+            rejected in this contract. Per photo slot N, Encounter.mediaAsset{N}.bbox
+            ("x,y,width,height", whole pixels of the uploaded image, origin top-left),
+            .iaClass (required with a box; a matchable class, or any stored class in
+            import-only), .viewpoint, .theta (radians, clockwise), .bboxSource, and
+            Encounter.quality{N} (the detector's score). The same image may appear on several
+            rows only when every use is boxed with a different box (one animal per row).
           maxProperties: 256
     LoginCredentials:
       type: object
