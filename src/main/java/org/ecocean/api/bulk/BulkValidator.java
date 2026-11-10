@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import org.ecocean.api.ApiException;
 import org.ecocean.api.SiteSettings;
+import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.LocationID;
 import org.ecocean.shepherd.core.Shepherd;
@@ -54,8 +55,20 @@ public class BulkValidator {
         "SocialUnit.socialUnitName", "Survey.comments", "Survey.id", "Survey.type", "Survey.vessel",
         "SurveyTrack.vesselID", "TissueSample.sampleID", "TissueSample.tissueType"));
 
+    // bulk-import boxes (spec 4.1): the per-photo box columns, Encounter.mediaAsset{N}.<suffix>
+    public static final List<String> BOX_SUFFIXES = List.of("bbox", "iaClass", "viewpoint",
+        "theta", "bboxSource");
+    // radians; the same bound Annotation.createFromApi applies to a manual annotation's theta
+    public static final double THETA_LIMIT = 6.2832;
+    // highest index for numbered columns (Encounter.mediaAsset#, keyword#, ...); matches the
+    // submissions API slot limit
+    public static final int MAX_INDEX = 199;
+
     public static final Set<String> FIELD_NAMES_INDEXABLE = new HashSet<>(Arrays.asList(
         "Encounter.keyword#", "Encounter.mediaAsset#", "Encounter.mediaAsset#.keywords",
+        "Encounter.mediaAsset#.bbox", "Encounter.mediaAsset#.iaClass",
+        "Encounter.mediaAsset#.viewpoint", "Encounter.mediaAsset#.theta",
+        "Encounter.mediaAsset#.bboxSource",
         "Encounter.project#.projectIdPrefix", "Encounter.project#.researchProjectName",
         "Encounter.project#.ownerUsername", "Encounter.quality#",
         "Encounter.submitter#.affiliation", "Encounter.submitter#.emailAddress",
@@ -174,9 +187,7 @@ public class BulkValidator {
 
     // specialty, but handy/common
     public String getValueStringTrimmedNonEmpty() {
-        if (value == null) return null;
-        if (value.toString().trim().equals("")) return null;
-        return value.toString().trim();
+        return blankToNull(value);
     }
 
     public Double getValueDouble() {
@@ -225,10 +236,18 @@ public class BulkValidator {
         Pattern p = Pattern.compile(rawToRegex(raw));
         Matcher m = p.matcher(fieldName);
         if (!m.find()) return -2;
+        int index;
         try {
-            return Integer.parseInt(m.group(1));
-        } catch (Exception ex) {}
-        return -3;
+            index = Integer.parseInt(m.group(1));
+        } catch (NumberFormatException ex) {
+            index = Integer.MAX_VALUE; // more digits than an int holds
+        }
+        // callers pad lists up to the index, so a huge index would cost memory and time
+        if (index > MAX_INDEX)
+            throw new BulkValidatorException("index in " + fieldName + " is above the maximum of " +
+                    MAX_INDEX, ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+        return index;
     }
 
     // will return null if valid fieldName, but not indexable
@@ -469,8 +488,68 @@ public class BulkValidator {
                 throw new BulkValidatorException("not yet supporting validating Sighting.taxonomy",
                         ApiException.ERROR_RETURN_CODE_INVALID);
  */
-            case "Encounter.quality":
-                return tryDouble(value);
+            case "Encounter.quality": {
+                Double q;
+                try {
+                    q = tryDouble(value);
+                } catch (BulkValidatorException ex) {
+                    throw new BulkValidatorException("invalid quality value: " + value,
+                            ApiException.ERROR_RETURN_CODE_INVALID,
+                            BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+                }
+                if ((q != null) && !Double.isFinite(q))
+                    throw new BulkValidatorException("quality must be a finite number: " + value,
+                            ApiException.ERROR_RETURN_CODE_INVALID,
+                            BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+                return q;
+            }
+            // bulk-import boxes (spec 4.1 / 4.2 field layer)
+            case "Encounter.mediaAsset.bbox": {
+                String text = blankToNull(value);
+                if (text == null) return null;
+                return canonicalBbox(parseBbox(text, fieldName));
+            }
+            case "Encounter.mediaAsset.iaClass": {
+                String text = blankToNull(value);
+                if (text == null) return null;
+                if (text.length() > 64)
+                    throw new BulkValidatorException("iaClass longer than 64 characters",
+                            ApiException.ERROR_RETURN_CODE_INVALID,
+                            BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+                return text;
+            }
+            case "Encounter.mediaAsset.viewpoint": {
+                String text = blankToNull(value);
+                if (text == null) return null;
+                if (!Annotation.isValidViewpoint(text))
+                    throw new BulkValidatorException("invalid viewpoint value: " + text,
+                            ApiException.ERROR_RETURN_CODE_INVALID,
+                            BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+                return text;
+            }
+            case "Encounter.mediaAsset.theta": {
+                if (value instanceof Double) return checkTheta((Double)value, fieldName);
+                String text = blankToNull(value);
+                if (text == null) return null;
+                Double theta;
+                try {
+                    theta = Double.valueOf(text);
+                } catch (Exception ex) {
+                    throw new BulkValidatorException("invalid theta value: " + text,
+                            ApiException.ERROR_RETURN_CODE_INVALID,
+                            BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+                }
+                return checkTheta(theta, fieldName);
+            }
+            case "Encounter.mediaAsset.bboxSource": {
+                String text = blankToNull(value);
+                if (text == null) return null;
+                if (text.length() > 128)
+                    throw new BulkValidatorException("bboxSource longer than 128 characters",
+                            ApiException.ERROR_RETURN_CODE_INVALID,
+                            BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+                return text;
+            }
             }
         // now we validate, um, weird ones
         int offset = BulkImportUtil.findMeasurementOffset(fieldName);
@@ -489,6 +568,62 @@ public class BulkValidator {
             " and value=" + value);
         return value;
         // throw new BulkValidatorException("unknown error on fieldName validation: " + fieldName, ApiException.ERROR_RETURN_CODE_UNKNOWN);
+    }
+
+    // trimmed text, or null when the value is null or blank (an empty spreadsheet cell)
+    private static String blankToNull(Object value) {
+        if (value == null) return null;
+        String text = value.toString().trim();
+        return text.isEmpty() ? null : text;
+    }
+
+    private static Double checkTheta(Double theta, String fieldName)
+    throws BulkValidatorException {
+        if ((theta == null) || !Double.isFinite(theta) || (theta < -THETA_LIMIT) ||
+            (theta > THETA_LIMIT))
+            throw new BulkValidatorException("theta must be a finite number of radians between -" +
+                    THETA_LIMIT + " and " + THETA_LIMIT + ": " + theta,
+                    ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+        return theta;
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.1, decision 1): parses "x,y,width,height", four integers in the
+     * stored image's raw pixel grid, whitespace tolerated; x,y >= 0 and width,height >= 1. Throws
+     * the four-argument exception naming {@code fieldName} on any violation.
+     */
+    public static int[] parseBbox(String text, String fieldName)
+    throws BulkValidatorException {
+        String[] parts = (text == null) ? new String[0] : text.split(",", -1);
+        if (parts.length != 4)
+            throw new BulkValidatorException("bbox must be x,y,width,height: " + text,
+                    ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+        int[] box = new int[4];
+        for (int i = 0; i < 4; i++) {
+            try {
+                box[i] = Integer.parseInt(parts[i].trim());
+            } catch (NumberFormatException ex) {
+                throw new BulkValidatorException("bbox must be four integers x,y,width,height: " +
+                        text, ApiException.ERROR_RETURN_CODE_INVALID,
+                        BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+            }
+        }
+        if ((box[0] < 0) || (box[1] < 0))
+            throw new BulkValidatorException("bbox x and y must be >= 0: " + text,
+                    ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+        if ((box[2] < 1) || (box[3] < 1))
+            throw new BulkValidatorException("bbox width and height must be >= 1: " + text,
+                    ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+        return box;
+    }
+
+    // the canonical wire form of a parsed box: "x,y,width,height" with no spaces
+    public static String canonicalBbox(int[] box) {
+        return box[0] + "," + box[1] + "," + box[2] + "," + box[3];
     }
 
     private static Integer tryInteger(Object value)

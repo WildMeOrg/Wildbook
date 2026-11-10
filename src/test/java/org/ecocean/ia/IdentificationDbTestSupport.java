@@ -79,6 +79,7 @@ abstract class IdentificationDbTestSupport {
         final List<String> annIds = new ArrayList<String>();
         final Map<String, String> acmByAnn = new HashMap<String, String>();
         final Map<String, String> assetAcmByAnn = new HashMap<String, String>();
+        final Map<String, Integer> assetIdByAnn = new HashMap<String, Integer>();   // bulk-import boxes fixtures
 
         Fx(String catalogNumber) {
             this.catalogNumber = catalogNumber;
@@ -114,6 +115,9 @@ abstract class IdentificationDbTestSupport {
         props.setProperty("datanucleus.ConnectionDriverName", postgres.getDriverClassName());
         props.setProperty("datanucleus.ConnectionURL", postgres.getJdbcUrl());
         props.setProperty("datanucleus.schema.autoCreateTables", "true");
+        // as production (bundles/jdoconfig.properties): a rollback restores field values, which is
+        // what the hand-off recovery tests must survive
+        props.setProperty("datanucleus.RestoreValues", "true");
         TestPMFUtil.closePMF(CTX);
         noIndexing = mockStatic(IndexingManagerFactory.class);
         noIndexing.when(IndexingManagerFactory::getIndexingManager).thenReturn(Mockito.mock(IndexingManager.class));
@@ -191,6 +195,71 @@ abstract class IdentificationDbTestSupport {
 
     static Encounter guitarfish(Shepherd sh, String... iaClasses) throws Exception {
         return encounter(sh, "Pseudobatos", "lentiginosus", iaClasses);
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.4) fixture: ONE media asset carrying {@code boxes} annotations that
+     * each carry this import's provenance marker, on a new encounter of the given species.
+     */
+    static Encounter boxedEncounter(Shepherd sh, String genus, String species, String importId,
+        int boxes) throws Exception {
+        Encounter enc = new Encounter();
+        enc.setSkipAutoIndexing(true);
+        enc.setCatalogNumber("enc-" + (++seq));
+        enc.setGenus(genus);
+        enc.setSpecificEpithet(species);
+        fixtures.put(enc.getCatalogNumber(), new Fx(enc.getCatalogNumber()));
+        MediaAsset ma = boxedAsset(sh);
+        for (int i = 0; i < boxes; i++) addBoxTo(sh, enc, ma, importId, BODY, 1 + 20 * i);
+        sh.getPM().makePersistent(enc);
+        return enc;
+    }
+
+    static MediaAsset boxedAsset(Shepherd sh) throws Exception {
+        LocalAssetStore attachedStore = (LocalAssetStore)AssetStore.get(sh, storeId.intValue());
+        MediaAsset ma = attachedStore.create(testImage);
+        ma.setId(100000 + (++seq));
+        ma.setSkipAutoIndexing(true);
+        ma.setAcmId(ma.getUUID());
+        try {
+            ma.updateMetadata();
+        } catch (Exception ex) {
+            System.out.println("WARN: updateMetadata failed in fixture: " + ex);
+        }
+        if (ma.getImageAttributes() == null) {
+            MediaAssetMetadata md = (ma.getMetadata() == null) ? new MediaAssetMetadata() : ma.getMetadata();
+            md.getData().put("attributes", new JSONObject().put("width", 640).put("height", 480).put("contentType", "image/jpeg"));
+            ma.setMetadata(md);
+        }
+        sh.getPM().makePersistent(ma);
+        return ma;
+    }
+
+    /** One marked box at x offset {@code x} on an existing asset, attached to {@code enc}. */
+    static Annotation addBoxTo(Shepherd sh, Encounter enc, MediaAsset ma, String importId,
+        String iaClass, int x) throws Exception {
+        Feature f = new Feature(FeatureType.load("org.ecocean.boundingBox", sh),
+            new JSONObject().put("x", x).put("y", 1).put("width", 10).put("height", 10)
+            .put(Annotation.FEATURE_PARAM_IMPORTED_BOX, new JSONObject().put("importTaskId", importId)
+            .put("created", System.currentTimeMillis())));
+        ma.addFeature(f);
+        Annotation ann = new Annotation(null, f, iaClass);
+        f.setAnnotation(ann);
+        ann.setSkipAutoIndexing(true);
+        ann.setMatchAgainst(true);
+        ann.setAcmId(ann.getId());
+        sh.getPM().makePersistent(ann);
+        enc.addAnnotation(ann);
+        Fx snapshot = fixtures.get(enc.getCatalogNumber());
+        if (snapshot == null) {
+            snapshot = new Fx(enc.getCatalogNumber());
+            fixtures.put(enc.getCatalogNumber(), snapshot);
+        }
+        snapshot.annIds.add(ann.getId());
+        snapshot.acmByAnn.put(ann.getId(), ann.getAcmId());
+        snapshot.assetAcmByAnn.put(ann.getId(), ma.getAcmId());
+        snapshot.assetIdByAnn.put(ann.getId(), Integer.valueOf(ma.getIdInt()));
+        return ann;
     }
 
     static Task detectionTask(Shepherd sh, String importId) {
