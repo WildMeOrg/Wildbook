@@ -121,10 +121,13 @@ public class SiteSettings extends ApiBase {
 
             JSONObject iaForTx = new JSONObject();
             JSONObject iaConfigJson = new JSONObject();
+            // bulk-import boxes (spec 4.6): per species, the classes a user-supplied box may carry
+            JSONObject bulkImportMatchable = new JSONObject();
             for (String sn : sciNames) {
                 String snSpaces = sn.replaceAll("_", " ");
                 Taxonomy tx = new Taxonomy(snSpaces);
                 iaForTx.put(snSpaces, iaConfig.getValidIAClassesIgnoreRedirects(tx));
+                bulkImportMatchable.put(snSpaces, iaConfig.getMatchableIAClasses(tx));
                 // this part is for iaConfig
                 Map<String, JSONObject> identConfigs = new HashMap<String, JSONObject>();
                 try {
@@ -158,6 +161,11 @@ public class SiteSettings extends ApiBase {
             }
             settings.put("iaClassesForTaxonomy", iaForTx);
             settings.put("iaConfig", iaConfigJson);
+            // bulk-import boxes (spec 4.6): the capability signal; a site whose indexable fields
+            // lack the box columns does not accept boxes
+            settings.put("bulkImportMatchableClasses", bulkImportMatchable);
+            settings.put("bulkImportIndexableFields",
+                Util.asSortedList(BulkValidator.FIELD_NAMES_INDEXABLE));
 
             List<String> behavs = myShepherd.getAllBehaviors();
             behavs.remove(null);

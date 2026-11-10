@@ -175,7 +175,7 @@ public final class ServiceKeyAuth {
     }
 
     /** Ids of the organizations {@code userId} is a direct member of, read from the datastore (no cache). */
-    static Set<String> directOrganizationIds(PersistenceManager pm, String userId) {
+    public static Set<String> directOrganizationIds(PersistenceManager pm, String userId) {
         Set<String> ids = new LinkedHashSet<>();
         if (userId == null) return ids;
         JDOConnection connection = pm.getDataStoreConnection();
