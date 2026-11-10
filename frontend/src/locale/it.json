@@ -878,5 +878,16 @@
   "API_SERVICE_KEY_STATUS": "Stato",
   "API_SERVICE_KEY_STATUS_ACTIVE": "Attiva",
   "API_SERVICE_KEY_STATUS_REVOKED": "Revocata",
-  "API_SERVICE_KEY_STATUS_EXPIRED": "Scaduta"
+  "API_SERVICE_KEY_STATUS_EXPIRED": "Scaduta",
+  "MOBILE_PACK_TITLE": "Pubblica un pacchetto mobile del sito",
+  "MOBILE_PACK_NAME": "Nome del pacchetto",
+  "MOBILE_PACK_PIPELINE": "Specie e regione del corpo",
+  "MOBILE_PACK_SELECT": "Seleziona un rilevatore mobile configurato",
+  "MOBILE_PACK_ID": "ID del pacchetto esistente (vuoto per uno nuovo)",
+  "MOBILE_PACK_PUBLIC_CONFIRM": "Sono autorizzato a pubblicare queste identità e foto, inclusi i dati privati o non approvati di questa ricerca.",
+  "MOBILE_PACK_PUBLISH": "Pubblica pacchetto",
+  "MOBILE_PACK_ERROR": "Pubblicazione o verifica dello stato non riuscita. Controlla la configurazione e riprova.",
+  "MOBILE_PACK_READY": "Pacchetto pronto. Codice:",
+  "MOBILE_PACK_QR": "Codice QR del pacchetto",
+  "MOBILE_PACK_SKIPPED": "Record ignorati senza identità nota o embedding compatibile: {count}"
 }

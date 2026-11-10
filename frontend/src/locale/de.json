@@ -878,5 +878,16 @@
   "API_SERVICE_KEY_STATUS": "Status",
   "API_SERVICE_KEY_STATUS_ACTIVE": "Aktiv",
   "API_SERVICE_KEY_STATUS_REVOKED": "Widerrufen",
-  "API_SERVICE_KEY_STATUS_EXPIRED": "Abgelaufen"
+  "API_SERVICE_KEY_STATUS_EXPIRED": "Abgelaufen",
+  "MOBILE_PACK_TITLE": "Mobiles Standortpaket veröffentlichen",
+  "MOBILE_PACK_NAME": "Paketname",
+  "MOBILE_PACK_PIPELINE": "Art und Körperregion",
+  "MOBILE_PACK_SELECT": "Konfigurierten mobilen Detektor auswählen",
+  "MOBILE_PACK_ID": "Bestehende Paket-ID (für neues Paket leer lassen)",
+  "MOBILE_PACK_PUBLIC_CONFIRM": "Ich bin berechtigt, diese Identitäten und Fotos öffentlich zu veröffentlichen, einschließlich privater oder nicht genehmigter Datensätze dieser Suche.",
+  "MOBILE_PACK_PUBLISH": "Paket veröffentlichen",
+  "MOBILE_PACK_ERROR": "Veröffentlichung oder Statusabfrage fehlgeschlagen. Konfiguration prüfen und erneut versuchen.",
+  "MOBILE_PACK_READY": "Paket bereit. Code:",
+  "MOBILE_PACK_QR": "QR-Code des Pakets",
+  "MOBILE_PACK_SKIPPED": "Übersprungene Datensätze ohne bekannte Identität oder kompatibles Embedding: {count}"
 }
