@@ -147,15 +147,12 @@ Example row for the direct route:
   label (`MISSING_CLASS`, `UNKNOWN_CLASS`), a photo boxed on one row but not another
   (`DUPLICATE_MEDIA`) and the identical box twice (`DUPLICATE_BOX`); fix the rows and validate
   again.
-- **Spreadsheet route:** use the same column names on the Bulk Import page, with three rules,
-  because the page collects a row's photos in the order their columns appear and numbers them
-  again from 0: put the photo columns in ascending order (`Encounter.mediaAsset0`, then
-  `Encounter.mediaAsset1`, …), fill every row's photos from slot 0 with no empty photo cell
-  before its last photo, and keep each box, label and score on the same number as its photo.
-  Breaking any of these can put a box on the wrong photo, and a box that still fits the other
-  photo would not be caught. Also, once any column ends in `.bbox`, every row of that sheet, boxed
-  or not, reads keywords and `Encounter.quality{N}` by the exact slot number. When in doubt, use
-  the direct route.
+- **Spreadsheet route:** use the same column names on the Bulk Import page. Once any column ends
+  in `.bbox`, the page keeps every photo column at its own number, so a row may leave a photo
+  column empty; keep each box, label and score on the same number as its photo. The page shows
+  photo and box cells but does not let you edit them: fix them in the spreadsheet and upload it
+  again. Every row of that sheet, boxed or not, reads keywords and `Encounter.quality{N}` by the
+  exact slot number. When in doubt, use the direct route.
 
 ### 7. After sending
 On the submission status (`GET /api/v3/submissions/{id}`), detection reads `skipped` with code

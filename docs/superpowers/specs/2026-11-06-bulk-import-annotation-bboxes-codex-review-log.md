@@ -523,3 +523,21 @@ Branch round 1: 1 Major (a preview showing box columns must not relax the page r
 columns required) and 5 Minor, applied. Branch round 2: converged; 2 Minor wording fixes applied
 (extractor-dependent preparation; pending is not "sent"). Full suite on the branch: 226 classes,
 2027 tests, 0 failures.
+
+## Plan C rounds 1-3 and branch C rounds 1-3 (2026-11-08)
+
+Plan round 1: 6 Major (read-only must cover every per-photo column; capability signal
+`bulkImportIndexableFields` unused; legacy boxed drafts; client/server numeric parity; iaClass
+warning plumbing and skip-toggle revalidation; "no detection" only when a bbox is non-empty, per
+4.1) and 2 Minor. Round 2: 2 Major (resume ran before capability; legacy raw data not
+authoritative, so legacy boxed drafts now require a spreadsheet re-upload) and 2 Minor. Round 3:
+3 Minor (full spreadsheet reset, Java-style trimming, task wording), applied; no Major left.
+Deviation accepted by Codex: the iaClass check is a warning, since the skip boxes come after the
+table step and the server rejects on Import.
+Branch round 1: 4 Major (parse before settings load; boxed filenames split on commas; stale
+labeled-keyword rule on bboxSource; tests mocking the code under test) and 2 Minor (species edits,
+duplicated revalidation). Round 2: 2 Major (resume before settings; filenames trimmed, comma
+filename split in the table) and 2 Minor (un-boxed missing-photo behaviour changed; one more
+duplicated sequence). Round 3: converged, no findings. Frontend: 28 suites, 316 tests passing
+(CI runner `npm run jest`; `npm test` is broken repo-wide by a Babel version mismatch pinned in
+package-lock.json).

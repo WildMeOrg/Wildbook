@@ -1,7 +1,9 @@
 import React from "react";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "../../../utils/utils";
-import BulkImportTask from "../../../pages/BulkImport/BulkImportTask";
+import BulkImportTask, {
+  detectionDone,
+} from "../../../pages/BulkImport/BulkImportTask";
 import axios from "axios";
 import { useSiteSettings } from "../../../SiteSettingsContext";
 
@@ -259,5 +261,73 @@ describe("BulkImportTask", () => {
       "href",
       "/encounters/encounter.jsp?number=E123",
     );
+  });
+});
+
+describe("detectionDone", () => {
+  test("detection counts as done when complete or when boxes were supplied", () => {
+    expect(detectionDone({ detectionStatus: "complete" })).toBe(true);
+    expect(
+      detectionDone({ detectionStatus: "skipped", annotationsImported: true }),
+    ).toBe(true);
+    expect(detectionDone({ detectionStatus: "skipped" })).toBe(false);
+    expect(detectionDone({ detectionStatus: "sent" })).toBe(false);
+    expect(detectionDone(undefined)).toBe(false);
+  });
+});
+
+describe("BulkImportTask with supplied boxes", () => {
+  const boxedTask = (annotationsImported) => ({
+    ...mockTask,
+    matchingLocations: ["Aachen"],
+    iaSummary: {
+      ...mockTask.iaSummary,
+      detectionStatus: "skipped",
+      detectionPercent: 1,
+      identificationStatus: "complete",
+      identificationPercent: 1,
+      ...(annotationsImported ? { annotationsImported: true } : {}),
+    },
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useSiteSettings.mockReturnValue({
+      data: { locationData: { locationID: [{ id: "Aachen" }] } },
+      isLoading: false,
+      error: null,
+    });
+    delete window.location;
+    window.location = new URL("http://localhost/react/?id=12345");
+    axios.get.mockResolvedValue({ data: { roles: ["admin"] } });
+  });
+
+  test("Send to Identification is enabled for an import with supplied boxes", async () => {
+    mockUseGetBulkImportTask.mockReturnValue({
+      isLoading: false,
+      task: boxedTask(true),
+      error: null,
+    });
+    renderWithProviders(<BulkImportTask />);
+    await waitFor(() =>
+      expect(document.querySelector("#re-id-button")).not.toBeDisabled(),
+    );
+    expect(
+      screen.queryByText("BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC"),
+    ).toBeNull();
+  });
+
+  test("a plain skipped-detection import keeps the button disabled", async () => {
+    mockUseGetBulkImportTask.mockReturnValue({
+      isLoading: false,
+      task: boxedTask(false),
+      error: null,
+    });
+    renderWithProviders(<BulkImportTask />);
+    await waitFor(() => expect(axios.get).toHaveBeenCalled());
+    expect(document.querySelector("#re-id-button")).toBeDisabled();
+    expect(
+      screen.getByText("BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC"),
+    ).toBeInTheDocument();
   });
 });

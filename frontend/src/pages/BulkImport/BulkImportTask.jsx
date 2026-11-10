@@ -25,6 +25,11 @@ import { BulkImportTaskStore } from "./BulkImportTaskStore";
 
 const TreeSelect = lazy(() => import("antd/es/tree-select"));
 
+// supplied boxes replace detection (detectionStatus "skipped"), so identification can still run
+export const detectionDone = (iaSummary) =>
+  iaSummary?.detectionStatus === "complete" ||
+  iaSummary?.annotationsImported === true;
+
 const BulkImportTask = observer(() => {
   const intl = useIntl();
   const theme = useContext(ThemeColorContext);
@@ -39,6 +44,11 @@ const BulkImportTask = observer(() => {
   const [isSendingToIdentification, setIsSendingToIdentification] =
     useState(false);
   const previousLocationID = task?.matchingLocations || [];
+  const canSendToIdentification =
+    (userRoles?.includes("admin") || userRoles?.includes("researcher")) &&
+    !!store.locationIDString &&
+    task?.status === "complete" &&
+    detectionDone(task?.iaSummary);
 
   const fetchData = async () => {
     const response = await axios.get("/api/v3/user");
@@ -498,14 +508,7 @@ const BulkImportTask = observer(() => {
         <Col xs="auto">
           <MainButton
             id="re-id-button"
-            disabled={
-              isSendingToIdentification ||
-              (!userRoles?.includes("admin") &&
-                !userRoles?.includes("researcher")) ||
-              !store.locationIDString ||
-              task?.status !== "complete" ||
-              task?.iaSummary?.detectionStatus !== "complete"
-            }
+            disabled={isSendingToIdentification || !canSendToIdentification}
             onClick={async () => {
               setShowError(false);
               setIsSendingToIdentification(true);
@@ -565,11 +568,7 @@ const BulkImportTask = observer(() => {
             )}
             <FormattedMessage id="BULK_IMPORT_SEND_TO_IDENTIFICATION" />
           </MainButton>
-          {((!userRoles?.includes("admin") &&
-            !userRoles?.includes("researcher")) ||
-            !store.locationIDString ||
-            task?.status !== "complete" ||
-            task?.iaSummary?.detectionStatus !== "complete") && (
+          {!canSendToIdentification && (
             <p
               style={{
                 color: theme.grayColors.gray500,

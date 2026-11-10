@@ -2,6 +2,7 @@ import React from "react";
 import { screen, fireEvent } from "@testing-library/react";
 import { DataTable } from "../../../pages/BulkImport/EditableDataTable";
 import { renderWithProviders } from "../../../utils/utils";
+import { FormattedMessage } from "react-intl";
 import { useSiteSettings } from "../../../SiteSettingsContext";
 
 const mockStore = {
@@ -14,6 +15,7 @@ const mockStore = {
   validationWarnings: {},
   updateCellValue: jest.fn(),
   invalidateValidation: jest.fn(),
+  revalidate: jest.fn(),
   validateSpreadsheet: jest.fn(() => ({ errors: {}, warnings: {} })),
   setValidationErrors: jest.fn(),
   setValidationWarnings: jest.fn(),
@@ -36,7 +38,11 @@ const mockStore = {
   setLabeledKeywordAllowedPairs: jest.fn(),
   mergeValidationError: jest.fn(),
   mergeValidationWarning: jest.fn(),
-  validateMediaAsset0ColumnOnly: jest.fn(() => ({ errors: {}, warnings: {} })),
+  validateMediaAssetColumnsOnly: jest.fn(() => ({ errors: {}, warnings: {} })),
+  photoColumns: ["Encounter.mediaAsset0"],
+  isBoxedSheet: false,
+  setValidViewpoints: jest.fn(),
+  setMatchableClasses: jest.fn(),
   getOptionsForSelectCell: jest.fn(() => [
     { value: "OptionA", label: "OptionA" },
     { value: "OptionB", label: "OptionB" },
@@ -91,10 +97,7 @@ describe("EditableDataTable", () => {
     renderWithProviders(<DataTable store={mockStore} />);
     const input = screen.getByDisplayValue("Bob");
     fireEvent.blur(input);
-    expect(mockStore.invalidateValidation).toHaveBeenCalled();
-    expect(mockStore.validateSpreadsheet).toHaveBeenCalled();
-    expect(mockStore.setValidationErrors).toHaveBeenCalled();
-    expect(mockStore.setValidationWarnings).toHaveBeenCalled();
+    expect(mockStore.revalidate).toHaveBeenCalled();
   });
 
   test("shows row number as first column", () => {
@@ -147,5 +150,99 @@ describe("EditableDataTable", () => {
     };
     renderWithProviders(<DataTable store={emptyStore} />);
     expect(screen.getByText("#")).toBeInTheDocument();
+  });
+
+  describe("boxed sheet", () => {
+    const A0 = "Encounter.mediaAsset0";
+    const A2 = "Encounter.mediaAsset2";
+    const boxedStore = {
+      ...mockStore,
+      isBoxedSheet: true,
+      columnsDef: [
+        "name",
+        A0,
+        `${A0}.bbox`,
+        `${A0}.keywords`,
+        `${A0}.pattern`,
+        A2,
+      ],
+      photoColumns: [A0, A2],
+      spreadsheetData: [
+        {
+          name: "Alice",
+          [A0]: "a.jpg",
+          [`${A0}.bbox`]: "1,2,3",
+          [`${A0}.keywords`]: "kw",
+          [`${A0}.pattern`]: "spotted",
+          [A2]: "c.jpg",
+        },
+      ],
+      validationErrors: {
+        0: {
+          [`${A0}.bbox`]: "BULKIMPORT_ERROR_INVALID_BBOX",
+          [A2]: "MISSINGc.jpg",
+        },
+      },
+      validationWarnings: {
+        0: {
+          name: {
+            id: "BULKIMPORT_WARNING_IACLASS_NOT_MATCHABLE",
+            values: { allowed: "x" },
+          },
+        },
+      },
+    };
+
+    test("photo and per-photo cells are read-only, others editable", () => {
+      renderWithProviders(<DataTable store={boxedStore} />);
+      ["a.jpg", "1,2,3", "kw", "spotted", "c.jpg"].forEach((v) =>
+        expect(screen.getByDisplayValue(v)).toHaveAttribute("readonly"),
+      );
+      expect(screen.getByDisplayValue("Alice")).not.toHaveAttribute("readonly");
+    });
+
+    test("read-only cells still show their errors, on every photo slot", () => {
+      renderWithProviders(<DataTable store={boxedStore} />);
+      ["1,2,3", "c.jpg"].forEach((v) =>
+        expect(
+          screen
+            .getByDisplayValue(v)
+            .parentElement.querySelector(".invalid-feedback"),
+        ).not.toBeNull(),
+      );
+    });
+
+    test("a missing boxed filename with a comma is one item", () => {
+      const store = {
+        ...boxedStore,
+        validationErrors: { 0: { [A2]: "MISSINGx,y.jpg" } },
+      };
+      renderWithProviders(<DataTable store={store} />);
+      const feedback = screen
+        .getByDisplayValue("c.jpg")
+        .parentElement.querySelector(".invalid-feedback");
+      expect(feedback.textContent).toContain("1");
+      fireEvent.click(feedback.querySelector("button"));
+      const items = feedback.querySelectorAll("li");
+      expect(items).toHaveLength(1);
+      expect(items[0].textContent).toBe("x,y.jpg");
+    });
+
+    test("a warning with values renders", () => {
+      renderWithProviders(<DataTable store={boxedStore} />);
+      const warning = screen
+        .getByDisplayValue("Alice")
+        .parentElement.querySelector(".text-warning");
+      expect(warning.textContent).toBe(
+        "BULKIMPORT_WARNING_IACLASS_NOT_MATCHABLE",
+      );
+      expect(FormattedMessage).toHaveBeenCalledWith(
+        {
+          id: "BULKIMPORT_WARNING_IACLASS_NOT_MATCHABLE",
+          values: { allowed: "x" },
+        },
+        expect.anything(),
+      );
+    });
   });
 });

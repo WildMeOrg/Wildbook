@@ -359,8 +359,10 @@ class AgentSkillContentTest {
         String send = section(md, "### 6. Send them");
         assertTrue(send.contains("200 rows"));
         assertTrue(send.contains("import-only") && send.contains("prepare them for later matching"), "import-only still extracts");
-        assertTrue(send.contains("ascending order") && send.contains("from slot 0") && send.contains("no empty photo cell")
-            && send.contains("exact slot number"), "the page rules: ascending columns, no gaps, exact slots");
+        assertTrue(send.contains("keeps every photo column at its own number")
+            && send.contains("same number as its photo") && send.contains("exact slot number")
+            && send.contains("fix them in the spreadsheet"), "the page keeps slots; photo and box cells are fixed in the file");
+        assertFalse(send.contains("ascending order"), "the page no longer renumbers photo columns");
         assertFalse(send.contains("preview"), "a preview showing the columns must not lift the page rules");
         assertTrue(send.contains("only where an extractor is configured"), "import-only preparation depends on an extractor");
         String after = section(md, "### 7. After sending");

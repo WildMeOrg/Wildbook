@@ -944,6 +944,12 @@ public class ImportTask implements java.io.Serializable {
             pj.put("identificationStatus", "unknown");
         }
         if (this.skippedDetection()) pj.put("detectionStatus", "skipped");
+        // supplied boxes stand in for detection: tell the task page so it can show detection as
+        // done and still offer identification
+        if (this.annotationsImported()) {
+            pj.put("annotationsImported", true);
+            pj.put("detectionPercent", 1.0);
+        }
         if (this.skippedIdentification()) pj.put("identificationStatus", "skipped");
         String ds = pj.optString("detectionStatus");
         String is = pj.optString("identificationStatus");
