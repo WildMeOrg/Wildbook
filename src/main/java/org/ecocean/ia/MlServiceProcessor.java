@@ -359,6 +359,20 @@ public class MlServiceProcessor {
             return MlServiceJobOutcome.persistError("PERSIST", ex.getMessage());
         }
         if (ext.outcome != null) return ext.outcome;
+        if (ext.embeddingExists) {
+            // bulk-import boxes (spec 4.4): a replayed imported-box job still gates and matches;
+            // the match config takes its identity from the stored embedding exactly as a fresh
+            // extraction would from the response
+            JSONObject existingMatchConfig = ext.multiPipeline
+                ? resolveMultiPipelineMatchConfig(IAJsonProperties.iaConfig(),
+                    new Taxonomy(ext.taxonomyString), ext.iaClass, ext.existingMv, ext.mlConfig)
+                : ensureMatchConfig(ext.matchConfig, ext.existingMv, ext.mlConfig);
+            List<String> ids = new ArrayList<String>();
+            ids.add(annId);
+            MlServiceJobOutcome existingOutcome = waitAndRunMatch(ids, taskId,
+                existingMatchConfig, false, ext.multiPipeline);
+            return (existingOutcome != null) ? existingOutcome : MlServiceJobOutcome.ok(ids);
+        }
 
         JSONObject response;
         try {
@@ -472,14 +486,20 @@ public class MlServiceProcessor {
             shep.beginDBTransaction();
             Annotation ann = shep.getAnnotation(annId);
             Task task = Task.load(taskId, shep);
+            // bulk-import boxes (spec 4.4): an imported-box child never ends dropped-stale (the
+            // import summary would not count it); every stale or invalid exit is an error that
+            // settles the asset the child holds
+            boolean imported = Task.isImportedBoxTask(task);
             if (ann == null) {
-                markTaskDroppedStale(shep, task, "annotation missing");
+                if (imported) ImportedBoxes.failChild(shep, task, "STALE", "annotation missing");
+                else markTaskDroppedStale(shep, task, "annotation missing");
                 shep.commitDBTransaction();
                 return ExtractionContext.done(MlServiceJobOutcome.stale("annotation missing"));
             }
             MediaAsset ma = ann.getMediaAsset();
             if (ma == null) {
-                markTaskDroppedStale(shep, task, "annotation media asset missing");
+                if (imported) ImportedBoxes.failChild(shep, task, "STALE", "annotation media asset missing");
+                else markTaskDroppedStale(shep, task, "annotation media asset missing");
                 shep.commitDBTransaction();
                 return ExtractionContext.done(
                     MlServiceJobOutcome.stale("annotation media asset missing"));
@@ -489,7 +509,10 @@ public class MlServiceProcessor {
                 ann.findEncounter(shep));
             ConfigPair configs = activeConfigs(shep, effectiveTaxonomy);
             if (configs == null) {
-                markTaskCompleted(task);
+                if (imported)
+                    ImportedBoxes.failChild(shep, task, "PENDING_SPECIES",
+                        "no active ml-service configuration for " + effectiveTaxonomy);
+                else markTaskCompleted(task);
                 shep.commitDBTransaction();
                 return ExtractionContext.done(MlServiceJobOutcome.stale("pending-species"));
             }
@@ -503,18 +526,32 @@ public class MlServiceProcessor {
                 mlConfig = iac.selectExtractionConfig(taxy, ann.getIAClass());
                 String[] extractMv = extractorIdentity(mlConfig);
                 if (extractMv == null) {
-                    markTaskError(task, "INVALID", MULTI_PIPELINE_EXTRACT_ID_RULE + "; got " +
-                        mlConfig + " for " + effectiveTaxonomy);
+                    markExtractionError(shep, task, imported, "INVALID",
+                        MULTI_PIPELINE_EXTRACT_ID_RULE + "; got " + mlConfig + " for " +
+                        effectiveTaxonomy);
                     shep.commitDBTransaction();
                     return ExtractionContext.done(MlServiceJobOutcome.validationError(
                         "INVALID", MULTI_PIPELINE_EXTRACT_ID_RULE));
                 }
                 if (ann.getEmbeddingByMethod(extractMv[0], extractMv[1]) != null) {
+                    if (imported) {
+                        finishExtractionTask(shep, task, ann);
+                        shep.commitDBTransaction();
+                        return ExtractionContext.existing(mlConfig, configs.matchConfig, true,
+                            effectiveTaxonomy, ann.getIAClass(), extractMv);
+                    }
                     markTaskCompleted(task);
                     shep.commitDBTransaction();
                     return ExtractionContext.done(MlServiceJobOutcome.stale("embedding-exists"));
                 }
             } else if (hasEmbeddingForMatchConfig(ann, configs.matchConfig)) {
+                if (imported) {
+                    finishExtractionTask(shep, task, ann);
+                    shep.commitDBTransaction();
+                    return ExtractionContext.existing(mlConfig, configs.matchConfig, false,
+                        effectiveTaxonomy, ann.getIAClass(),
+                        existingEmbeddingIdentity(ann, configs.matchConfig));
+                }
                 markTaskCompleted(task);
                 shep.commitDBTransaction();
                 return ExtractionContext.done(MlServiceJobOutcome.stale("embedding-exists"));
@@ -522,7 +559,7 @@ public class MlServiceProcessor {
 
             URL webUrl = ma.webURL();
             if (webUrl == null) {
-                markTaskError(task, "INVALID_IMAGE_URI",
+                markExtractionError(shep, task, imported, "INVALID_IMAGE_URI",
                     "Annotation " + annId + " media asset has no webURL");
                 shep.commitDBTransaction();
                 return ExtractionContext.done(MlServiceJobOutcome.validationError(
@@ -530,7 +567,8 @@ public class MlServiceProcessor {
             }
             int[] bbox = ann.getBbox();
             if (bbox == null || bbox.length != 4) {
-                markTaskError(task, "INVALID_BBOX", "Annotation " + annId + " has no bbox");
+                markExtractionError(shep, task, imported, "INVALID_BBOX",
+                    "Annotation " + annId + " has no bbox");
                 shep.commitDBTransaction();
                 return ExtractionContext.done(MlServiceJobOutcome.validationError("INVALID_BBOX",
                     "Annotation " + annId + " has no bbox"));
@@ -863,7 +901,9 @@ public class MlServiceProcessor {
             Annotation ann = shep.getAnnotation(annId);
             Task task = Task.load(taskId, shep);
             if (ann == null || ann.getMediaAsset() == null) {
-                markTaskDroppedStale(shep, task, "annotation missing");
+                if (Task.isImportedBoxTask(task))
+                    ImportedBoxes.failChild(shep, task, "STALE", "annotation missing");
+                else markTaskDroppedStale(shep, task, "annotation missing");
                 shep.commitDBTransaction();
                 return PersistResult.done(MlServiceJobOutcome.stale("annotation missing"));
             }
@@ -884,7 +924,7 @@ public class MlServiceProcessor {
                 // that is already stored, close the annotation out here.
                 if (ext.multiPipeline)
                     ann.setIdentificationStatus(IBEISIA.STATUS_COMPLETE_MLSERVICE);
-                markTaskCompleted(task);
+                finishExtractionTask(shep, task, ann);
                 shep.commitDBTransaction();
                 annotationIds.add(ann.getId());
                 return PersistResult.ok(annotationIds);
@@ -895,11 +935,20 @@ public class MlServiceProcessor {
             Embedding emb = new Embedding(ann, mv[0], mv[1],
                 response.getJSONArray("embedding"));
             shep.getPM().makePersistent(emb);
-            markTaskCompleted(task);
+            finishExtractionTask(shep, task, ann);
             annotationIds.add(ann.getId());
             shep.commitDBTransaction();
             return PersistResult.ok(annotationIds);
         } catch (Exception ex) {
+            // Release this transaction's locks (the flushed task row among them) before
+            // markTaskError opens a second Shepherd on the same task; swallow the rollback
+            // exception so it cannot shadow the original failure.
+            try {
+                shep.rollbackDBTransaction();
+            } catch (Exception rbEx) {
+                System.out.println("[WARN] MlServiceProcessor.persistExtraction rollback before " +
+                    "cleanup failed: " + rbEx);
+            }
             markTaskError(taskId, "PERSIST", "extraction persist failed: " + ex.getMessage());
             return PersistResult.done(MlServiceJobOutcome.persistError("PERSIST",
                 ex.getMessage()));
@@ -958,7 +1007,8 @@ public class MlServiceProcessor {
             System.out.println(
                 "NOTICE: MlServiceProcessor skipped identification for task " + taskId +
                 " (skipIdent=true); annotationIds=" + annotationIds);
-            return MlServiceJobOutcome.ok(annotationIds);
+            MlServiceJobOutcome done = completeImportedChildIfSkipped(taskId);
+            return (done != null) ? done : MlServiceJobOutcome.ok(annotationIds);
         }
         MatchVisibilityGate.GateOutcome gate = visibilityGate.gateForBatch(
             annotationIds, taskId, matchConfig, attempt, firstDeferredAt);
@@ -1002,7 +1052,8 @@ public class MlServiceProcessor {
             System.out.println(
                 "NOTICE: MlServiceProcessor.runDeferredMatch skipped identification for task " +
                 taskId + " (skipIdent=true); annotationIds=" + annotationIds);
-            return MlServiceJobOutcome.ok(annotationIds);
+            MlServiceJobOutcome done = completeImportedChildIfSkipped(taskId);
+            return (done != null) ? done : MlServiceJobOutcome.ok(annotationIds);
         }
         JSONObject matchConfig = jobData.optJSONObject("matchConfig");
         if (matchConfig == null) matchConfig = inferMatchConfig(annotationIds);
@@ -1030,12 +1081,11 @@ public class MlServiceProcessor {
 
     /** Spec §4.1 step 3: D's parameters minus the keys a run sets for itself. Pure. */
     static JSONObject matchIntakeParams(JSONObject parentParams) {
-        JSONObject p = (parentParams == null) ? new JSONObject() : new JSONObject(parentParams.toString());
+        JSONObject p = IA.scrubRunParams(parentParams);   // the run keys, on a copy; null-safe
         p.remove("ibeis.detection");          // detection gauges must not count match tasks
-        p.remove(Task.PARAM_RUN_ID);
-        p.remove(Task.PARAM_V2_MATCH);
-        p.remove(Task.PARAM_OPTION);
-        p.remove("ibeis.identification");
+        // bulk-import boxes (spec 4.4): orchestration markers never reach a run
+        p.remove(Task.PARAM_EMBEDDING_EXTRACTION);
+        p.remove(Task.PARAM_IMPORTED_BOX);
         return p;
     }
 
@@ -1121,8 +1171,17 @@ public class MlServiceProcessor {
                 // sibling group's error.
                 if (matchGroup) return MlServiceJobOutcome.stale("annotations missing");
                 Task task = Task.load(taskId, shep);
-                markTaskDroppedStale(shep, task, "annotations missing");
-                shep.commitDBTransaction();
+                if (Task.isImportedBoxTask(task)) {
+                    // bulk-import boxes (spec 4.4): never dropped-stale, which the import summary
+                    // would not count as terminal; error, and settle the asset the child holds
+                    ImportedBoxes.failChild(shep, task, "STALE", "annotations missing");
+                    if (!shep.commitDBTransactionWithStatus())
+                        System.out.println("ERROR: MlServiceProcessor.runMatchProspects() could not " +
+                            "commit the STALE mark on imported-box task " + taskId);
+                } else {
+                    markTaskDroppedStale(shep, task, "annotations missing");
+                    shep.commitDBTransaction();
+                }
                 return MlServiceJobOutcome.stale("annotations missing");
             }
             Task parent = Task.load(taskId, shep);
@@ -1175,13 +1234,26 @@ public class MlServiceProcessor {
             }
             if (failureCode == null) {
                 if (noWorkGroups == groups.size()) {
-                    markTaskError(parent, "INVALID_MATCH_CONFIG", "no default identification options");
+                    if (Task.isImportedBoxTask(parent))
+                        ImportedBoxes.failChild(shep, parent, "INVALID_MATCH_CONFIG", "no default identification options");
+                    else markTaskError(parent, "INVALID_MATCH_CONFIG", "no default identification options");
                     if (shep.commitDBTransactionWithStatus()) {
                         result = MlServiceJobOutcome.validationError("INVALID_MATCH_CONFIG",
                             "no default identification options");
                     } else {
                         failureCode = "MATCH_PERSIST";
                         failureMessage = "could not commit the INVALID_MATCH_CONFIG mark on " + parentId;
+                    }
+                } else if (Task.isImportedBoxTask(parent)) {
+                    // bulk-import boxes (spec 4.4): the extraction child completes only once its
+                    // run durably exists; this is the one finalization point on the happy path
+                    markTaskCompleted(parent);
+                    ImportedBoxes.settleHeldAsset(shep, parent);
+                    if (shep.commitDBTransactionWithStatus()) {
+                        result = MlServiceJobOutcome.ok(annotationIds);
+                    } else {
+                        failureCode = "MATCH_PERSIST";
+                        failureMessage = "could not commit completion of imported-box task " + parentId;
                     }
                 } else {
                     result = MlServiceJobOutcome.ok(annotationIds);
@@ -1274,7 +1346,8 @@ public class MlServiceProcessor {
                 shep.getPM().makePersistent(failed);
                 marked.add(failed.getId());
             }
-            markTaskError(parent, code, message);
+            if (Task.isImportedBoxTask(parent)) ImportedBoxes.failChild(shep, parent, code, message);
+            else markTaskError(parent, code, message);
             if (!shep.commitDBTransactionWithStatus()) {
                 System.out.println("ERROR: MlServiceProcessor.runMatchProspects() recovery commit failed; " +
                     "tasks left pending: " + marked + "; parent " + parentTaskId + "; " + message);
@@ -1567,26 +1640,74 @@ public class MlServiceProcessor {
 
     private JSONObject ensureMatchConfig(JSONObject matchConfig, JSONObject embeddingSource,
         JSONObject mlConfig) {
-        JSONObject config = (matchConfig == null) ? new JSONObject()
-            : new JSONObject(matchConfig.toString());
+        String[] mv = null;
         if (embeddingSource != null) {
-            boolean needMethod = !Util.stringExists(config.optString("method", null));
-            boolean needVersion = !Util.stringExists(config.optString("version", null));
+            boolean needMethod = (matchConfig == null) ||
+                !Util.stringExists(matchConfig.optString("method", null));
+            boolean needVersion = (matchConfig == null) ||
+                !Util.stringExists(matchConfig.optString("version", null));
             // Only parse if we'd actually consume the fallback. The parser
             // throws on malformed input; we don't want to surface that
             // when matchConfig is already fully populated from IA.json.
             if ((needMethod || needVersion)
                 && Util.stringExists(embeddingSource.optString("embedding_model_id", null))) {
-                String[] mv = parseEmbeddingMethodVersion(embeddingSource);
-                if (needMethod) config.put("method", mv[0]);
-                if (needVersion) config.put("version", mv[1]);
+                mv = parseEmbeddingMethodVersion(embeddingSource);
             }
+        }
+        return ensureMatchConfig(matchConfig, mv, mlConfig);
+    }
+
+    /**
+     * The one defaulting rule: method/version from the given identity (a response's, or a stored
+     * embedding's for a replayed imported box) where the IA.json config leaves them out, and the
+     * ml-service api_endpoint where the config has none.
+     */
+    private JSONObject ensureMatchConfig(JSONObject matchConfig, String[] mv, JSONObject mlConfig) {
+        JSONObject config = (matchConfig == null) ? new JSONObject()
+            : new JSONObject(matchConfig.toString());
+        if ((mv != null) && (mv.length == 2)) {
+            if (!Util.stringExists(config.optString("method", null)) && Util.stringExists(mv[0]))
+                config.put("method", mv[0]);
+            if (!Util.stringExists(config.optString("version", null)) && Util.stringExists(mv[1]))
+                config.put("version", mv[1]);
         }
         if (!Util.stringExists(config.optString("api_endpoint", null)) && mlConfig != null
             && Util.stringExists(mlConfig.optString("api_endpoint", null))) {
             config.put("api_endpoint", mlConfig.optString("api_endpoint"));
         }
         return config;
+    }
+
+    // bulk-import boxes (spec 4.4): the identity of the embedding a replayed imported box already has
+    private static String[] existingEmbeddingIdentity(Annotation ann, JSONObject matchConfig) {
+        String method = (matchConfig == null) ? null : matchConfig.optString("method", null);
+        String version = (matchConfig == null) ? null : matchConfig.optString("version", null);
+        Embedding e = Util.stringExists(method)
+            ? ann.getEmbeddingByMethod(method, Util.stringExists(version) ? version : null)
+            : ann.getEmbeddingByMethod(null);
+        if (e == null) e = ann.getEmbeddingByMethod(null);
+        return (e == null) ? null : new String[] { e.getMethod(), e.getMethodVersion() };
+    }
+
+    // bulk-import boxes (spec 4.4): an invalid imported box is an error that settles its asset
+    private void markExtractionError(Shepherd shep, Task task, boolean imported, String code,
+        String message) {
+        if (imported) ImportedBoxes.failChild(shep, task, code, message);
+        else markTaskError(task, code, message);
+    }
+
+    /**
+     * After an embedding is stored (or found): today's extraction child completes here; an
+     * imported-box child stays non-terminal until its run exists (spec 4.4) and its asset is
+     * settled so the visibility gate can let the sibling boxes proceed.
+     */
+    private void finishExtractionTask(Shepherd shep, Task task, Annotation ann) {
+        if (Task.isImportedBoxTask(task)) {
+            task.setStatus("processing");
+            ImportedBoxes.settle(shep, ann.getMediaAsset(), ann.getId());
+            return;
+        }
+        markTaskCompleted(task);
     }
 
     private String detectionStaleReason(MediaAsset ma, Encounter enc, String encounterId) {
@@ -1632,7 +1753,8 @@ public class MlServiceProcessor {
         try {
             shep.beginDBTransaction();
             Task task = Task.load(taskId, shep);
-            markTaskError(task, code, message);
+            if (Task.isImportedBoxTask(task)) ImportedBoxes.failChild(shep, task, code, message);
+            else markTaskError(task, code, message);
             shep.commitDBTransaction();
         } finally {
             shep.rollbackAndClose();
@@ -1715,6 +1837,46 @@ public class MlServiceProcessor {
      * not call this directly; gate from
      * {@link #waitAndRunMatchInternal}.</p>
      */
+    /**
+     * Bulk-import boxes (spec 4.4): the skip guard's finalization for an imported-box child, as
+     * one checked operation. A strict lookup distinguishes a missing task (nothing needed) from a
+     * datastore failure (reported). Returns null when nothing was needed or the completion
+     * committed; otherwise a persistError outcome, never a silent OK.
+     */
+    MlServiceJobOutcome completeImportedChildIfSkipped(String taskId) {
+        if (!Util.stringExists(taskId)) return null;
+        Shepherd shep = null;
+        try {
+            shep = new Shepherd(context);
+            shep.setAction(ACTION_PREFIX + "completeImportedChildIfSkipped");
+            shep.beginDBTransaction();
+            Task task;
+            try {
+                task = (Task)shep.getPM().getObjectById(
+                    shep.getPM().newObjectIdInstance(Task.class, taskId), true);
+            } catch (javax.jdo.JDOObjectNotFoundException notFound) {
+                return null;
+            }
+            if (!Task.isImportedBoxTask(task)) return null;
+            markTaskCompleted(task);
+            ImportedBoxes.settleHeldAsset(shep, task);
+            if (shep.commitDBTransactionWithStatus()) return null;
+            String message = "could not complete skipped imported-box task " + taskId + ": commit failed";
+            System.out.println("ERROR: MlServiceProcessor.completeImportedChildIfSkipped() " + message);
+            return MlServiceJobOutcome.persistError("PERSIST", message);
+        } catch (Exception ex) {
+            String message = "could not complete skipped imported-box task " + taskId + ": " + ex;
+            System.out.println("ERROR: MlServiceProcessor.completeImportedChildIfSkipped() " + message);
+            return MlServiceJobOutcome.persistError("PERSIST", message);
+        } finally {
+            if (shep != null) {
+                try {
+                    shep.rollbackAndClose();
+                } catch (Exception ignore) {}
+            }
+        }
+    }
+
     boolean readSkipIdent(String taskId) {
         if (!Util.stringExists(taskId)) return false;
         Shepherd shep = null;
@@ -1747,9 +1909,7 @@ public class MlServiceProcessor {
 
     private void markTaskError(Task task, String code, String message) {
         if (task == null) return;
-        task.setStatus(IBEISIA.STATUS_ERROR);
-        task.setStatusDetailsAddError(code == null ? "UNKNOWN" : code, message);
-        task.setCompletionDateInMilliseconds();
+        IA.markTaskError(task, code == null ? "UNKNOWN" : code, message);
     }
 
     private void markTaskCompleted(Task task) {
@@ -1976,10 +2136,26 @@ public class MlServiceProcessor {
         final String taxonomyString;
         final String iaClass;
         final MlServiceJobOutcome outcome;
+        // bulk-import boxes (spec 4.4): an imported-box job whose embedding is already stored
+        // skips the service call but still gates and matches, with this identity
+        final boolean embeddingExists;
+        final String[] existingMv;
 
         ExtractionContext(String imageUri, String apiEndpoint, JSONObject mlConfig,
             JSONObject matchConfig, double[] bbox, double theta, boolean multiPipeline,
             String taxonomyString, String iaClass) {
+            this(imageUri, apiEndpoint, mlConfig, matchConfig, bbox, theta, multiPipeline,
+                taxonomyString, iaClass, null, false, null);
+        }
+
+        private ExtractionContext(MlServiceJobOutcome outcome) {
+            this(null, null, null, null, null, 0.0d, false, null, null, outcome, false, null);
+        }
+
+        private ExtractionContext(String imageUri, String apiEndpoint, JSONObject mlConfig,
+            JSONObject matchConfig, double[] bbox, double theta, boolean multiPipeline,
+            String taxonomyString, String iaClass, MlServiceJobOutcome outcome,
+            boolean embeddingExists, String[] existingMv) {
             this.imageUri = imageUri;
             this.apiEndpoint = apiEndpoint;
             this.mlConfig = mlConfig;
@@ -1989,24 +2165,19 @@ public class MlServiceProcessor {
             this.multiPipeline = multiPipeline;
             this.taxonomyString = taxonomyString;
             this.iaClass = iaClass;
-            this.outcome = null;
-        }
-
-        private ExtractionContext(MlServiceJobOutcome outcome) {
-            this.imageUri = null;
-            this.apiEndpoint = null;
-            this.mlConfig = null;
-            this.matchConfig = null;
-            this.bbox = null;
-            this.theta = 0.0d;
-            this.multiPipeline = false;
-            this.taxonomyString = null;
-            this.iaClass = null;
             this.outcome = outcome;
+            this.embeddingExists = embeddingExists;
+            this.existingMv = existingMv;
         }
 
         static ExtractionContext done(MlServiceJobOutcome outcome) {
             return new ExtractionContext(outcome);
+        }
+
+        static ExtractionContext existing(JSONObject mlConfig, JSONObject matchConfig,
+            boolean multiPipeline, String taxonomyString, String iaClass, String[] mv) {
+            return new ExtractionContext(null, null, mlConfig, matchConfig, null, 0.0d,
+                multiPipeline, taxonomyString, iaClass, null, true, mv);
         }
     }
 

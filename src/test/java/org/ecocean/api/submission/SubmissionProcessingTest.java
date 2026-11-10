@@ -71,6 +71,7 @@ class SubmissionProcessingTest {
             JSONObject actual = new SubmissionProcessing(() -> sh).prepare(draft("detect-and-identify"), sh);
             java.util.concurrent.atomic.AtomicReference<JSONObject> legacy = new java.util.concurrent.atomic.AtomicReference<>();
             gateway.when(() -> org.ecocean.servlet.IAGateway.addToDetectionQueue(eq("context0"), anyString())).thenAnswer(call -> { legacy.set(new JSONObject(call.getArgument(1, String.class))); return true; });
+            when(sh.commitDBTransactionWithStatus()).thenReturn(true); // the hand-off now commits with status before it publishes (bulk-import boxes PR A)
             JSONObject data = new JSONObject().put("taskParameters", new JSONObject().put("importTaskId", "job").put("skipIdent", false)).put("bulkImport", new JSONObject());
             org.ecocean.servlet.IAGateway.handleBulkImport(data, new JSONObject(), sh, "context0", "https://example.test");
             for (String volatileKey : new String[]{"taskId", "__handleBulkImport"}) { actual.remove(volatileKey); legacy.get().remove(volatileKey); }
