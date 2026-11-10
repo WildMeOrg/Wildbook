@@ -555,6 +555,15 @@ const BulkImportTask = observer(() => {
           columns={columns}
           data={filteredTableData}
           perPage={rowsPerPage}
+          resetPageKey={searchTerm}
+          emptyMessage={
+            searchTerm ? (
+              <FormattedMessage
+                id="BULK_IMPORT_TASK_SEARCH_NO_MATCH"
+                defaultMessage="No encounters match your search."
+              />
+            ) : undefined
+          }
         />
       </section>
 

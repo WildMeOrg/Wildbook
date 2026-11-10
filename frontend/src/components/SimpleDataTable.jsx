@@ -20,7 +20,16 @@ const sortRows = (rows, sort) => {
   });
 };
 
-const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
+// `resetPageKey`: when this value changes the table returns to its first page
+// (a new search, as opposed to a poll handing over the same rows again).
+// `emptyMessage`: shown in place of the default text when there are no rows.
+const SimpleDataTable = ({
+  columns = [],
+  data = [],
+  perPage = 10,
+  resetPageKey,
+  emptyMessage,
+}) => {
   const theme = useContext(ThemeColorContext);
   const [currentPage, setCurrentPage] = useState(0);
   const [pagedData, setPagedData] = useState([]);
@@ -57,6 +66,13 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
     );
     setCurrentPage((prev) => Math.min(prev, lastPage));
   }, [data, safePerPage, sort]);
+
+  useEffect(() => {
+    // A different search is a different result list: show it from the top.
+    // Declared after the effect above, so on a render that changes both the
+    // data and the key this is the update that wins.
+    setCurrentPage(0);
+  }, [resetPageKey]);
 
   useEffect(() => {
     const start = currentPage * safePerPage;
@@ -111,7 +127,8 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
         striped
         noDataComponent={
           <div className="p-3 text-center text-muted">
-            There are no records to display yet. Page will refresh.
+            {emptyMessage ??
+              "There are no records to display yet. Page will refresh."}
           </div>
         }
       />

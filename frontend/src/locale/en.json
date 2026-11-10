@@ -561,6 +561,7 @@
     "BULK_IMPORT_TASK_MORE_FILE_NAMES": "+{count} more",
     "BULK_IMPORT_TASK_SEARCH_PLACEHOLDER": "Encounter, sighting, individual, file name…",
     "BULK_IMPORT_TASK_SEARCH_COUNT": "Matching encounters: {shown} / {total}",
+    "BULK_IMPORT_TASK_SEARCH_NO_MATCH": "No encounters match your search.",
     "BULK_IMPORT_TASK_DELETE_ERROR": "Failed to delete import task: {error}",
     "BULK_IMPORT_TASK_ERROR_DEFAULT": "You task failed to process due to an error.",
     "FILTER_BULK_IMPORT_FILE_NAMES": "Bulk Import File Names",

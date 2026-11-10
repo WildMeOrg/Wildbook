@@ -31,13 +31,17 @@ jest.mock("../../../components/InfoAccordion", () => {
   }
   return { __esModule: true, default: InfoAccordion };
 });
-// renders one <tr data-encounter="..."> per row, ignoring paging
+// renders one <tr data-encounter="..."> per row, ignoring paging; the paging
+// and empty-message behaviour itself is covered in SimpleDataTable.test.jsx
 jest.mock("../../../components/SimpleDataTable", () => {
   const React = require("react");
-  function SimpleDataTable({ data = [] }) {
+  function SimpleDataTable({ data = [], resetPageKey, emptyMessage }) {
     return React.createElement(
       "table",
-      null,
+      { "data-testid": "task-table", "data-reset-page-key": resetPageKey },
+      data.length === 0 && emptyMessage
+        ? React.createElement("caption", null, emptyMessage)
+        : null,
       React.createElement(
         "tbody",
         null,
@@ -196,7 +200,23 @@ describe("BulkImportTask — search box", () => {
     search("no-such-thing");
     expect(shownEncounters()).toEqual([]);
     expect(screen.getByText("Matching encounters: 0 / 3")).toBeTruthy();
+    expect(screen.getByText("No encounters match your search.")).toBeTruthy();
     search("");
     expect(shownEncounters()).toHaveLength(3);
+    expect(screen.queryByText("No encounters match your search.")).toBeNull();
+  });
+
+  test("tells the table when the search changes, so it can return to the first page", () => {
+    renderTask();
+    const key = () =>
+      screen.getByTestId("task-table").getAttribute("data-reset-page-key");
+    expect(key()).toBe("");
+    search("  Jane ");
+    expect(key()).toBe("jane");
+    // extra spaces or a different case are the same search: no page reset
+    search("JANE   ");
+    expect(key()).toBe("jane");
+    search("");
+    expect(key()).toBe("");
   });
 });
