@@ -30,6 +30,9 @@ export const detectionDone = (iaSummary) =>
   iaSummary?.detectionStatus === "complete" ||
   iaSummary?.annotationsImported === true;
 
+// image file names shown before the rest collapse behind "+N more" (#1795)
+const VISIBLE_FILENAMES = 3;
+
 const BulkImportTask = observer(() => {
   const intl = useIntl();
   const theme = useContext(ThemeColorContext);
@@ -40,6 +43,7 @@ const BulkImportTask = observer(() => {
   const [userRoles, setUserRoles] = useState(null);
   const store = useLocalObservable(() => new BulkImportTaskStore());
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchText, setSearchText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSendingToIdentification, setIsSendingToIdentification] =
     useState(false);
@@ -126,7 +130,11 @@ const BulkImportTask = observer(() => {
         task?.iaSummary?.statsAnnotations?.encounterTaskInfo?.[item.id] || [];
       // Issue #1744: keep every per-annotation match task of this encounter
       // (an encounter can hold several matched annotations, e.g. body + part).
-      const classArray = Array.isArray(taskArray) ? taskArray : [];
+      // only well-formed [taskId, status, class] tuples, so search matches
+      // exactly what the Class cell shows
+      const classArray = Array.isArray(taskArray)
+        ? taskArray.filter((arr) => Array.isArray(arr) && arr.length === 3)
+        : [];
       return {
         encounterID: item.id,
         encounterDate: item.date,
@@ -135,6 +143,9 @@ const BulkImportTask = observer(() => {
         individualID: item.individualId || "-",
         individualName: item.individualDisplayName || item.individualId || "-",
         imageCount: item.numberMediaAssets,
+        imageFilenames: Array.isArray(item.mediaAssetFilenames)
+          ? item.mediaAssetFilenames
+          : [],
         class: classArray,
         createdMillis: item.createdMillis || "-",
       };
@@ -148,6 +159,28 @@ const BulkImportTask = observer(() => {
       tableID: index + 1,
       ...item,
     }));
+
+  // Case-insensitive match on the text shown in each row (including file
+  // names collapsed under "+N more"). Rows keep their original "#" number.
+  const searchTerm = searchText.trim().toLowerCase();
+  const filteredTableData = searchTerm
+    ? sortedTableData.filter((row) =>
+        [
+          row.encounterID,
+          row.encounterDate,
+          row.user,
+          row.occurrenceID,
+          row.individualID,
+          row.individualName,
+          ...row.imageFilenames,
+          ...row.class.flatMap((arr) => [arr[1], arr[2]]),
+        ].some((value) =>
+          String(value ?? "")
+            .toLowerCase()
+            .includes(searchTerm),
+        ),
+      )
+    : sortedTableData;
 
   const columns = [
     {
@@ -214,6 +247,49 @@ const BulkImportTask = observer(() => {
         ),
     },
     {
+      name: intl.formatMessage({
+        id: "BULK_IMPORT_TASK_IMAGE_FILE_NAME",
+        defaultMessage: "Image File Name",
+      }),
+      selector: (row) => row.imageFilenames.join(", "),
+      cell: (row) => {
+        if (row.imageFilenames.length === 0) return "-";
+        if (row.imageFilenames.length === 1) {
+          return <span className="text-break">{row.imageFilenames[0]}</span>;
+        }
+        // Long names wrap over several lines, so give each its own bullet;
+        // stacked plain lines read as one long name. Past the first few,
+        // the rest collapse so one big encounter can't swamp the table.
+        const listItems = (names) =>
+          names.map((filename, index) => (
+            <li key={`${index}-${filename}`} className="mb-1">
+              {filename}
+            </li>
+          ));
+        const shown = row.imageFilenames.slice(0, VISIBLE_FILENAMES);
+        const hidden = row.imageFilenames.slice(VISIBLE_FILENAMES);
+        return (
+          <div className="text-break my-1">
+            <ul className="ps-3 mb-0">{listItems(shown)}</ul>
+            {hidden.length > 0 && (
+              <details>
+                <summary>
+                  {intl.formatMessage(
+                    {
+                      id: "BULK_IMPORT_TASK_MORE_FILE_NAMES",
+                      defaultMessage: "+{count} more",
+                    },
+                    { count: hidden.length },
+                  )}
+                </summary>
+                <ul className="ps-3 mb-0">{listItems(hidden)}</ul>
+              </details>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       name: "Image Count",
       cell: (row) => row.imageCount,
       selector: (row) => row.imageCount,
@@ -222,9 +298,8 @@ const BulkImportTask = observer(() => {
       name: "Class",
       selector: (row) => row.class,
       cell: (row) => {
-        const tuples = Array.isArray(row.class)
-          ? row.class.filter((arr) => Array.isArray(arr) && arr.length === 3)
-          : [];
+        // row.class holds only well-formed [taskId, status, class] tuples
+        const tuples = row.class;
         if (tuples.length === 0) return "-";
         return (
           <div className="d-flex flex-column">
@@ -429,7 +504,25 @@ const BulkImportTask = observer(() => {
           />
         </div>
 
-        <div className="mb-2">
+        <div className="mb-2 d-flex flex-wrap align-items-end gap-3">
+          <label>
+            <span className="d-block h6 mb-2">
+              <FormattedMessage
+                id="SEARCH_ENCOUNTERS"
+                defaultMessage="Search Encounters"
+              />
+            </span>
+            <input
+              type="search"
+              className="form-control"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder={intl.formatMessage({
+                id: "BULK_IMPORT_TASK_SEARCH_PLACEHOLDER",
+                defaultMessage: "Encounter, sighting, individual, file name…",
+              })}
+            />
+          </label>
           <label>
             <h6 className="mb-2">
               <FormattedMessage
@@ -451,10 +544,36 @@ const BulkImportTask = observer(() => {
             </select>
           </label>
         </div>
+        {/* stays mounted so screen readers announce changes to the count */}
+        <p
+          className="text-muted small mb-2"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {searchTerm && (
+            <FormattedMessage
+              id="BULK_IMPORT_TASK_SEARCH_COUNT"
+              defaultMessage="Matching encounters: {shown} / {total}"
+              values={{
+                shown: filteredTableData.length,
+                total: sortedTableData.length,
+              }}
+            />
+          )}
+        </p>
         <SimpleDataTable
           columns={columns}
-          data={sortedTableData}
+          data={filteredTableData}
           perPage={rowsPerPage}
+          resetPageKey={searchTerm}
+          emptyMessage={
+            searchTerm ? (
+              <FormattedMessage
+                id="BULK_IMPORT_TASK_SEARCH_NO_MATCH"
+                defaultMessage="No encounters match your search."
+              />
+            ) : undefined
+          }
         />
       </section>
 
