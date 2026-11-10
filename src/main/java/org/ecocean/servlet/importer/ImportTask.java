@@ -914,6 +914,10 @@ public class ImportTask implements java.io.Serializable {
                 numIdentificationError = Math.max(0,
                     statsAnn.optInt("numLatestTask_error", 0));
                 numIdentificationComplete = numLatestCompleted + numIdentificationError;
+                // supplied boxes: a dropped box has ended too, as suppliedBoxesSettled counts it
+                if (this.annotationsImported())
+                    numIdentificationComplete += Math.max(0,
+                        statsAnn.optInt("numLatestTask_dropped-stale", 0));
                 pj.put("identificationNumberComplete", numIdentificationComplete);
                 pj.put("identificationNumberError", numIdentificationError);
                 pj.put("identificationNumTotal", numIdentificationTotal);
@@ -951,13 +955,41 @@ public class ImportTask implements java.io.Serializable {
             pj.put("detectionPercent", 1.0);
         }
         if (this.skippedIdentification()) pj.put("identificationStatus", "skipped");
+        // supplied boxes skip detection, but each box is still extracted (and matched, unless
+        // identification is skipped): the labels above alone do not say that work is done
+        boolean boxedStarted = pipelineStarted && this.annotationsImported();
+        boolean boxesSettled = boxedStarted && suppliedBoxesSettled(statsAnn, this.getIATask());
+        if (boxesSettled && !this.skippedIdentification() &&
+            (statsAnn == null || statsAnn.optInt("numLatestTasks", 0) == 0)) {
+            // identification was asked for but no box survived the import: nothing will ever
+            // be identified, so report it finished rather than "not started" forever
+            pj.put("identificationStatus", "complete");
+            pj.put("identificationPercent", 1.0);
+        }
         String ds = pj.optString("detectionStatus");
         String is = pj.optString("identificationStatus");
         pj.put("pipelineStarted", pipelineStarted);
         boolean pipelineComplete = ((ds.equals("complete") || ds.equals("skipped")) &&
             (is.equals("complete") || is.equals("skipped")));
+        if (boxedStarted) pipelineComplete = pipelineComplete && boxesSettled;
         pj.put("pipelineComplete", pipelineComplete);
         return pj;
+    }
+
+    /**
+     * Bulk-import boxes: true once every supplied box has reached an end state (its extraction
+     * and, when asked for, its identification), counting an errored box as ended. With no box
+     * at all (none survived the import) the IA root task's own end state is the signal.
+     */
+    static boolean suppliedBoxesSettled(JSONObject statsAnn, Task iaRoot) {
+        int total = (statsAnn == null) ? 0 : statsAnn.optInt("numLatestTasks", 0);
+        if (total > 0) {
+            int ended = Math.max(0, statsAnn.optInt("numLatestTask_completed", 0)) +
+                Math.max(0, statsAnn.optInt("numLatestTask_error", 0)) +
+                Math.max(0, statsAnn.optInt("numLatestTask_dropped-stale", 0));
+            return ended >= total;
+        }
+        return (iaRoot != null) && iaRoot.statusInEndState();
     }
 
     // Batch-count helpers for imports.jsp — run 3 GROUP BY queries instead of 3*N.
