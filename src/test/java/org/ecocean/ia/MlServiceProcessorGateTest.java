@@ -2,6 +2,7 @@ package org.ecocean.ia;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -244,7 +245,66 @@ class MlServiceProcessorGateTest {
         return new MlServiceProcessor("context0", new MlServiceClient(),
             gate, publisher) {
             @Override boolean readSkipIdent(String taskId) { return skipIdent; }
+            // bulk-import boxes PR A: the skip guard now completes an imported-box child through a
+            // database seam; these tests are about the gate, so the seam answers "nothing needed"
+            @Override MlServiceJobOutcome completeImportedChildIfSkipped(String taskId) { return null; }
         };
+    }
+
+    /** Processor whose skip read and skip-completion seam are both scripted; records the seam's calls. */
+    private static MlServiceProcessor processorWithScriptedCompletion(
+        MatchVisibilityGate gate, DeferredMatchPublisher publisher, boolean skipIdent,
+        MlServiceJobOutcome completionResult, List<String> completed) {
+        return new MlServiceProcessor("context0", new MlServiceClient(), gate, publisher) {
+            @Override boolean readSkipIdent(String taskId) { return skipIdent; }
+            @Override MlServiceJobOutcome completeImportedChildIfSkipped(String taskId) {
+                completed.add(taskId);
+                return completionResult;
+            }
+        };
+    }
+
+    // ---- bulk-import boxes PR A, task 7: the imported-box child's finalization (spec 4.4) ----
+
+    @Test void deferDoesNotCompleteImportedChild() { // (regression for the DEFER arm)
+        long firstDeferred = System.currentTimeMillis();
+        RecordingPublisher publisher = new RecordingPublisher();
+        List<String> completed = new ArrayList<String>();
+        MlServiceProcessor p = processorWithScriptedCompletion(
+            new StubGate(MatchVisibilityGate.GateOutcome.defer(2, firstDeferred, "sibling pending")),
+            publisher, false, null, completed);
+        MlServiceJobOutcome out = p.runDeferredMatch(deferredJobPayload(2, firstDeferred));
+        assertEquals(MlServiceJobOutcome.Kind.OK, out.getKind());
+        assertEquals(1, publisher.published.size(), "the deferred re-fire is published");
+        assertTrue(completed.isEmpty(), "a successful DEFER publication completes nothing");
+    }
+
+    @Test void skipIdentCompletesImportedChild() {
+        long firstDeferred = System.currentTimeMillis();
+        RecordingGate gate = new RecordingGate(MatchVisibilityGate.GateOutcome.ready(1, firstDeferred));
+        RecordingPublisher publisher = new RecordingPublisher();
+        List<String> completed = new ArrayList<String>();
+        MlServiceProcessor p = processorWithScriptedCompletion(gate, publisher, true, null, completed);
+        MlServiceJobOutcome out = p.runDeferredMatch(deferredJobPayload(2, firstDeferred));
+        assertEquals(MlServiceJobOutcome.Kind.OK, out.getKind());
+        assertEquals(java.util.Arrays.asList("task-1"), completed, "the skip guard completes the child it skipped");
+        assertEquals(0, gate.calls);
+        assertEquals(0, publisher.published.size());
+    }
+
+    @Test void skipIdentReportsAFailedCompletion() {
+        long firstDeferred = System.currentTimeMillis();
+        RecordingGate gate = new RecordingGate(MatchVisibilityGate.GateOutcome.ready(1, firstDeferred));
+        RecordingPublisher publisher = new RecordingPublisher();
+        List<String> completed = new ArrayList<String>();
+        MlServiceJobOutcome failure = MlServiceJobOutcome.persistError("PERSIST", "could not complete");
+        MlServiceProcessor p = processorWithScriptedCompletion(gate, publisher, true, failure, completed);
+        MlServiceJobOutcome out = p.runDeferredMatch(deferredJobPayload(2, firstDeferred));
+        assertEquals("PERSIST", out.getCode(), "a failed completion is reported, never hidden behind OK");
+        assertNotEquals(MlServiceJobOutcome.Kind.OK, out.getKind());
+        assertEquals(1, completed.size());
+        assertEquals(0, gate.calls);
+        assertEquals(0, publisher.published.size());
     }
 
     // When the IA Task's params carry skipIdent=true (the bulk-import

@@ -145,6 +145,9 @@ const BulkImportInstructionsModal = observer(({ store }) => {
           <li>
             <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP2_ACCEPTED_VALUES" />
           </li>
+          <li>
+            <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_BOXES" />
+          </li>
         </ul>
 
         <h5>

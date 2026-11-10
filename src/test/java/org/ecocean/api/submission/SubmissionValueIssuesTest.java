@@ -24,6 +24,47 @@ class SubmissionValueIssuesTest {
         }
     }
 
+    /** Equus grevyi with a matchable class (body) and a non-matchable one (fin, default false). */
+    static IAJsonProperties boxFixture() {
+        JSONObject json = new JSONObject().put("Equus", new JSONObject().put("grevyi", new JSONObject()
+            .put("body", new JSONObject().put("_id_conf", new JSONArray().put(new JSONObject().put("default", true))))
+            .put("fin", new JSONObject().put("_id_conf", new JSONArray().put(new JSONObject().put("default", false))))));
+        IAJsonProperties iac = IAJsonProperties.iaConfig();
+        assertNotNull(iac);
+        iac.setJson(json);
+        return iac;
+    }
+
+    @Test void boxRejectionsReportSpecificReasons() throws Exception {   // bulk-import boxes PR E
+        String bbox = "Encounter.mediaAsset0.bbox", cls = "Encounter.mediaAsset0.iaClass";
+        List<Case> cases = List.of(
+            new Case("bbox-three", set(bbox, "1,2,3", cls, "body"), bbox, "INVALID_BOX", "x,y,width,height"),
+            new Case("bbox-text", set(bbox, "a,b,c,d", cls, "body"), bbox, "INVALID_BOX", "x,y,width,height"),
+            new Case("bbox-negative", set(bbox, "-1,0,5,5", cls, "body"), bbox, "INVALID_BOX", "x and y at least 0"),
+            new Case("bbox-zero", set(bbox, "0,0,0,5", cls, "body"), bbox, "INVALID_BOX", "width and height at least 1"),
+            new Case("class-missing", set(bbox, "0,0,1,1"), bbox, "MISSING_CLASS", "required when a box is supplied"),
+            new Case("class-unmatchable", set(bbox, "0,0,1,1", cls, "fin"), cls, "UNKNOWN_CLASS", "use one of: body"),
+            new Case("class-without-box", set(cls, "body"), cls, "REQUIRES_FIELD", "requires Encounter.mediaAsset0.bbox"),
+            new Case("class-long", set(bbox, "0,0,1,1", cls, "x".repeat(65)), cls, "OUT_OF_RANGE", "at most 64"),
+            new Case("viewpoint", set(bbox, "0,0,1,1", cls, "body", "Encounter.mediaAsset0.viewpoint", "sideways"), "Encounter.mediaAsset0.viewpoint", "INVALID_VIEWPOINT", "not a known viewpoint"),
+            new Case("theta-range", set(bbox, "0,0,1,1", cls, "body", "Encounter.mediaAsset0.theta", "9"), "Encounter.mediaAsset0.theta", "INVALID_THETA", "-6.2832 and 6.2832"),
+            new Case("theta-text", set(bbox, "0,0,1,1", cls, "body", "Encounter.mediaAsset0.theta", "abc"), "Encounter.mediaAsset0.theta", "INVALID_THETA", "-6.2832 and 6.2832"),
+            new Case("source-long", set(bbox, "0,0,1,1", cls, "body", "Encounter.mediaAsset0.bboxSource", "x".repeat(129)), "Encounter.mediaAsset0.bboxSource", "OUT_OF_RANGE", "at most 128"),
+            new Case("quality-nan", set("Encounter.quality0", "NaN"), "Encounter.quality0", "OUT_OF_RANGE", "finite decimal"),
+            new Case("quality-text", set("Encounter.quality0", "abc"), "Encounter.quality0", "UNPARSEABLE", "decimal number"));
+        JSONArray errors = validate(cases).getJSONArray("errors");
+        for (Case c : cases) {
+            List<JSONObject> own = issuesFor(errors, c.id);
+            assertEquals(1, own.size(), c.id + " " + own);
+            JSONObject issue = own.get(0);
+            assertEquals("INVALID_VALUE", issue.getString("code"), c.id);
+            assertEquals(c.field, issue.getString("field"), c.id);
+            assertEquals(c.reason, issue.getString("reason"), c.id);
+            assertTrue(issue.getString("message").contains(c.messagePart), c.id + ": " + issue);
+            assertFalse(issue.getString("message").contains("Exception") || issue.getString("message").contains("java."), issue.toString());
+        }
+    }
+
     private static JSONObject set(Object... pairs) {
         JSONObject value = new JSONObject();
         for (int i = 0; i < pairs.length; i += 2) value.put((String)pairs[i], pairs[i + 1]);
@@ -158,15 +199,22 @@ class SubmissionValueIssuesTest {
                 for (String key : c.changes.keySet()) fields.put(key, c.changes.get(key));
                 rows.put(new JSONObject().put("clientRowId", c.id).put("fields", fields));
             }
-            Submission draft = new Submission("id", "context0", "owner", "hash", "hash", "{}", 0, Long.MAX_VALUE);
+            // detect-and-identify explicitly (bulk-import boxes PR E): the comparison below passes the same skip flag
+            Submission draft = new Submission("id", "context0", "owner", "hash", "hash", "{\"processing\":{\"mode\":\"detect-and-identify\"}}", 0, Long.MAX_VALUE);
             draft.setFiles(files.toString());
             draft.replaceRows(rows.toString());
-            JSONObject report = new SubmissionValidator(CLOCK).validate(draft, sh, storage);
+            TestIAJsonPropertiesUtil.override(boxFixture());
+            JSONObject report;
+            try { report = new SubmissionValidator(CLOCK).validate(draft, sh, storage); }
+            finally { TestIAJsonPropertiesUtil.override(null); }
             JSONArray errors = report.getJSONArray("errors");
             assertEquals(errors.length() == 0, report.getBoolean("valid"));
             for (int i = 0; i < rows.length(); i++) {
                 JSONObject row = rows.getJSONObject(i), fields = row.getJSONObject("fields");
-                Map<String, Object> legacy = org.ecocean.api.bulk.BulkImportUtil.validateRow(new JSONObject(fields.toString()), sh);
+                Map<String, Object> legacy;
+                TestIAJsonPropertiesUtil.override(boxFixture());
+                try { legacy = org.ecocean.api.bulk.BulkImportUtil.validateRow(new JSONObject(fields.toString()), sh, false); }
+                finally { TestIAJsonPropertiesUtil.override(null); }
                 JSONObject accepted = new JSONObject();
                 int rejected = 0;
                 for (Map.Entry<String, Object> entry : legacy.entrySet()) {

@@ -3,8 +3,10 @@ import { Modal } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import MainButton from "../../components/MainButton";
 import ThemeContext from "../../ThemeColorProvider";
+import { observer } from "mobx-react-lite";
+import { isLegacyBoxedDraft } from "./bulkImportSlots";
 
-export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
+export const BulkImportContinueModal = observer(({ store, setRenderMode1 }) => {
   const [show, setShow] = useState(Boolean(store.submissionId));
   const theme = useContext(ThemeContext);
 
@@ -12,6 +14,8 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
     return JSON.parse(localStorage.getItem("BulkImportStore") || "{}");
   }, []);
 
+  // a boxed draft saved before photo slots were kept cannot be resumed as is
+  const reuploadSpreadsheet = isLegacyBoxedDraft(savedStore);
   const uploadedImageCount = savedStore?.uploadedImages?.length || 0;
   const lastSavedAt = savedStore?.lastSavedAt || Date.now();
 
@@ -26,6 +30,7 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
     if (submissionId) {
       setRenderMode1("list");
       store.hydrate(savedStore);
+      if (reuploadSpreadsheet) store.resetSpreadsheet();
       store.setActiveStep(0);
       store.fetchAndApplyUploaded();
     }
@@ -63,6 +68,14 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
             defaultMessage="You have an unfinished bulk report saved as a draft. Would you like to continue working on it or create a new bulk report? Please note that starting a new report will erase all your current progress and any data uploaded for this bulk import."
           />
         </p>
+        {reuploadSpreadsheet && (
+          <p className="mb-4 text-warning">
+            <FormattedMessage
+              id="BULK_IMPORT_CONTINUE_MODAL_REUPLOAD_SPREADSHEET"
+              defaultMessage="Your saved spreadsheet has box columns and must be uploaded again. Your uploaded images are kept."
+            />
+          </p>
+        )}
 
         <div className="d-flex align-items-center p-3 border rounded">
           <div
@@ -106,6 +119,7 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
       <Modal.Footer>
         <MainButton
           onClick={handleContinue}
+          disabled={store.indexableFields === null} // photo slots depend on the site settings
           backgroundColor={theme.wildMeColors.cyan700}
           color={theme.defaultColors.white}
           noArrow={true}
@@ -128,6 +142,6 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
       </Modal.Footer>
     </Modal>
   );
-};
+});
 
 export default BulkImportContinueModal;
