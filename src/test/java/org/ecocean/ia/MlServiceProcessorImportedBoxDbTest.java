@@ -593,6 +593,7 @@ class MlServiceProcessorImportedBoxDbTest extends IdentificationDbTestSupport {
         assertEquals(statusBefore, status(childA));
         assertEquals(0, client.calls);
         assertEquals(0, embeddings(a));
+    }
 
     // ---- a finished imported-box child is never run again ----
 
