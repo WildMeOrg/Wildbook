@@ -304,7 +304,16 @@ class MlServiceProcessorImportedBoxDbTest extends IdentificationDbTestSupport {
         assertEquals("completed", status(f.childFor(a)));
         JSONObject firstOpt = dispatcher.vectorOpts.get(0);
 
-        // the same job again (a replay): no extraction, but a second run with the same identity
+        // the same job again once the child has finished (a replay of a job that was still
+        // queued, or a duplicate delivery): nothing happens
+        assertEquals(MlServiceJobOutcome.Kind.STALE, processor.process(f.jobFor(a)).getKind());
+        assertEquals("completed", status(f.childFor(a)), "the finished child is not reopened");
+        assertEquals(1, runsUnder(f.childFor(a)).size(), "no second identification run");
+        assertEquals(1, dispatcher.vectorOpts.size());
+
+        // crash recovery: the embedding was stored but the child never finished. The replayed
+        // job extracts nothing and still gates and matches, with the same identity.
+        setStatus(f.childFor(a), "processing");
         assertEquals(MlServiceJobOutcome.Kind.OK, processor.process(f.jobFor(a)).getKind());
         assertEquals(1, client.calls, "no second extraction");
         assertEquals(2, runsUnder(f.childFor(a)).size(), "embedding-exists still gates and matches");
@@ -403,5 +412,79 @@ class MlServiceProcessorImportedBoxDbTest extends IdentificationDbTestSupport {
         } finally {
             check.rollbackAndClose();
         }
+    }
+
+    // ---- a finished imported-box child is never run again ----
+
+    @Test void replayAfterAnErrorDoesNotReopenTheChild() throws Exception {
+        Fixture f = boxedImport(1, false);
+        String a = f.annIds.get(0);
+        client.throwNonRetryable = true;
+        assertNotEquals(MlServiceJobOutcome.Kind.OK, processor.process(f.jobFor(a)).getKind());
+        assertEquals("error", status(f.childFor(a)));
+        client.throwNonRetryable = false;
+        int callsBefore = client.calls;
+        assertEquals(MlServiceJobOutcome.Kind.STALE, processor.process(f.jobFor(a)).getKind());
+        assertEquals("error", status(f.childFor(a)));
+        assertEquals(callsBefore, client.calls, "no second extraction attempt");
+        assertEquals(0, embeddings(a));
+    }
+
+    @Test void deferredMatchForAFinishedChildDoesNothing() throws Exception {
+        Fixture f = boxedImport(1, false);
+        String a = f.annIds.get(0);
+        assertEquals(MlServiceJobOutcome.Kind.OK, processor.process(f.jobFor(a)).getKind());
+        assertEquals("completed", status(f.childFor(a)));
+        JSONObject deferred = new JSONObject().put("mlServiceV2", true).put("deferredMatch", true)
+            .put("taskId", f.childFor(a)).put("annotationIds", new JSONArray().put(a)).put("__context", CTX);
+        assertEquals(MlServiceJobOutcome.Kind.STALE, processor.process(deferred).getKind());
+        assertEquals(1, runsUnder(f.childFor(a)).size(), "no second identification run");
+        assertEquals("completed", status(f.childFor(a)));
+    }
+
+    @Test void skippedIdentificationChildIsNotReopenedByAReplay() throws Exception {
+        Fixture f = boxedImport(1, true);
+        String a = f.annIds.get(0);
+        assertEquals(MlServiceJobOutcome.Kind.OK, processor.process(f.jobFor(a)).getKind());
+        assertEquals("completed", status(f.childFor(a)));
+        assertEquals(MlServiceJobOutcome.Kind.STALE, processor.process(f.jobFor(a)).getKind());
+        assertEquals("completed", status(f.childFor(a)));
+        assertEquals(1, client.calls);
+    }
+
+    @Test void deferredMatchForAnErroredChildDoesNothing() throws Exception {
+        Fixture f = boxedImport(1, false);
+        String a = f.annIds.get(0);
+        client.throwNonRetryable = true;
+        processor.process(f.jobFor(a));
+        assertEquals("error", status(f.childFor(a)));
+        JSONObject deferred = new JSONObject().put("mlServiceV2", true).put("deferredMatch", true)
+            .put("taskId", f.childFor(a)).put("annotationIds", new JSONArray().put(a)).put("__context", CTX);
+        assertEquals(MlServiceJobOutcome.Kind.STALE, processor.process(deferred).getKind());
+        assertEquals("error", status(f.childFor(a)));
+        assertEquals(0, runsUnder(f.childFor(a)).size());
+    }
+
+    @Test void unreadableFinishedCheckLeavesTheDeferredMatchAsBefore() throws Exception {
+        // the check is best-effort: when it cannot read, the deferred match runs as it always did
+        Fixture f = boxedImport(1, false);
+        String a = f.annIds.get(0);
+        assertEquals(MlServiceJobOutcome.Kind.OK, processor.process(f.jobFor(a)).getKind());
+        MlServiceProcessor blind = new MlServiceProcessor(CTX, client, new MatchVisibilityGateImpl(CTX, mock(OpenSearch.class)), publisher) {
+            @Override Shepherd openShepherd(String action) {
+                if ("importedChildFinished".equals(action)) throw new IllegalStateException("no datastore");
+                return super.openShepherd(action);
+            }
+        };
+        JSONObject deferred = new JSONObject().put("mlServiceV2", true).put("deferredMatch", true)
+            .put("taskId", f.childFor(a)).put("annotationIds", new JSONArray().put(a)).put("__context", CTX);
+        int publishedBefore = publisher.published.size();
+        MlServiceJobOutcome out = blind.process(deferred);
+        assertNotEquals(MlServiceJobOutcome.Kind.STALE, out.getKind());
+        // this fixture's visibility gate defers, so "as before" is one more deferred publication
+        assertEquals(publishedBefore + 1, publisher.published.size(), "outcome " + out.getKind());
+        JSONObject again = publisher.published.get(publishedBefore);
+        assertEquals(f.childFor(a), again.getString("taskId"));
+        assertEquals(a, again.getJSONArray("annotationIds").getString(0));
     }
 }
