@@ -393,6 +393,8 @@ const MatchResults = observer(() => {
                       metadata?.queryEncounterAnnotation,
                     ]}
                     thisEncounterImageAsset={metadata?.queryEncounterImageAsset}
+                    thisEncounterDate={metadata?.queryEncounterDate}
+                    thisEncounterLocationId={metadata?.encounterLocationId}
                     methodName={metadata?.methodName}
                     methodDescription={metadata?.methodDescription}
                     taskStatus={metadata?.taskStatus}

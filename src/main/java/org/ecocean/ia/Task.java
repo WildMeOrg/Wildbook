@@ -38,6 +38,10 @@ public class Task implements java.io.Serializable {
     public static final String PARAM_V2_MATCH = "mlServiceV2Match";
     /** Parameter key: the bulk import that stamped this task (PR #1625). */
     public static final String PARAM_IMPORT_TASK_ID = "importTaskId";
+    /** Parameter key: an extraction child created for a user-supplied bulk-import box (spec 4.4). */
+    public static final String PARAM_IMPORTED_BOX = "importedBox";
+    /** Parameter key: an embedding-extraction orchestration child (see isOrchestrationNode). */
+    public static final String PARAM_EMBEDDING_EXTRACTION = "embeddingExtraction";
     /** Stored status of a HotSpotter task whose send failed while a retry may still be scheduled (§4.4). Non-terminal. */
     public static final String STATUS_REQUEUED = "requeued";
     private String id = null;
@@ -81,6 +85,11 @@ public class Task implements java.io.Serializable {
     // test fixtures only: lets a hand-built tree carry distinct creation times
     void setCreated(long millis) {
         created = millis;
+    }
+
+    // test fixtures only: ages a task past the stale-replay threshold (bulk-import boxes PR A)
+    void setModifiedForTests(long millis) {
+        modified = millis;
     }
 
     public long getModifiedLong() {
@@ -839,6 +848,13 @@ public class Task implements java.io.Serializable {
         return t.getId().equals(runIdOf(t));
     }
 
+    /** The per-box extraction child of a bulk import with user-supplied boxes (spec 4.4). */
+    public static boolean isImportedBoxTask(Task t) {
+        if (t == null) return false;
+        JSONObject p = t.getParameters();
+        return (p != null) && p.optBoolean(PARAM_IMPORTED_BOX, false);
+    }
+
     /** Option tasks carry {@link #PARAM_OPTION}; leaves and fan-out children never do (§4.0). */
     public static boolean isOptionTask(Task t) {
         if (t == null) return false;
@@ -1259,6 +1275,12 @@ public class Task implements java.io.Serializable {
     }
 
     public JSONObject matchResultsJson(int cutoff, Set<String> projectIds, Shepherd myShepherd) {
+        return matchResultsJson(cutoff, projectIds, myShepherd, null);
+    }
+
+    // viewer (one per request, shared down the tree) gates which encounter locationIds are shown
+    public JSONObject matchResultsJson(int cutoff, Set<String> projectIds, Shepherd myShepherd,
+        MatchResultViewer viewer) {
         JSONObject rtn = new JSONObject();
 
         rtn.put("id", getId());
@@ -1309,13 +1331,14 @@ public class Task implements java.io.Serializable {
             }
         }
         if (mr != null)
-            rtn.put("matchResults", mr.jsonForApiGet(cutoff, projectIds, myShepherd));
+            rtn.put("matchResults", mr.jsonForApiGet(cutoff, projectIds, myShepherd, viewer));
         // now we recurse thru children if applicable
         if (hasChildren()) {
             JSONArray charr = new JSONArray();
             for (Task child : children) {
                 // TODO decide if we need to process child????
-                JSONObject childJson = child.matchResultsJson(cutoff, projectIds, myShepherd);
+                JSONObject childJson = child.matchResultsJson(cutoff, projectIds, myShepherd,
+                    viewer);
                 // we have to bubble this up all the way to the toplevel  :/
                 if (childJson.optBoolean("_commitShepherd", false))
                     rtn.put("_commitShepherd", true);

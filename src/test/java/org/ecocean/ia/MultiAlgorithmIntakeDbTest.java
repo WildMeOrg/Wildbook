@@ -142,7 +142,7 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
     static MlServiceProcessor strictProcessor() {
         MatchVisibilityGate gate = (ids, task, cfg, attempt, first) ->
             MatchVisibilityGate.GateOutcome.ready(attempt, System.currentTimeMillis());
-        DeferredMatchPublisher publisher = payload -> { };
+        DeferredMatchPublisher publisher = payload -> true;
         return new MlServiceProcessor(CTX, new MlServiceClient(), gate, publisher) {
             @Override Shepherd openShepherd(String action) {
                 Shepherd s = new Shepherd(CTX) {
@@ -166,7 +166,7 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
         final int[] calls = { 0 };
         MatchVisibilityGate gate = (ids, task, cfg, attempt, first) ->
             MatchVisibilityGate.GateOutcome.ready(attempt, System.currentTimeMillis());
-        DeferredMatchPublisher publisher = payload -> { };
+        DeferredMatchPublisher publisher = payload -> true;
         return new MlServiceProcessor(CTX, new MlServiceClient(), gate, publisher) {
             @Override Shepherd openShepherd(String action) {
                 Shepherd s = new Shepherd(CTX) {
@@ -188,7 +188,7 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
         final boolean[] thrown = { false };
         MatchVisibilityGate gate = (ids, task, cfg, attempt, first) ->
             MatchVisibilityGate.GateOutcome.ready(attempt, System.currentTimeMillis());
-        DeferredMatchPublisher publisher = payload -> { };
+        DeferredMatchPublisher publisher = payload -> true;
         return new MlServiceProcessor(CTX, new MlServiceClient(), gate, publisher) {
             @Override Shepherd openShepherd(String action) {
                 Shepherd s = new Shepherd(CTX) {
@@ -1380,7 +1380,7 @@ class MultiAlgorithmIntakeDbTest extends IdentificationDbTestSupport {
         sh.closeDBTransaction();
         MatchVisibilityGate gate = (anns, task, cfg, attempt, first) ->
             MatchVisibilityGate.GateOutcome.ready(attempt, System.currentTimeMillis());
-        MlServiceProcessor broken = new MlServiceProcessor(CTX, new MlServiceClient(), gate, payload -> { }) {
+        MlServiceProcessor broken = new MlServiceProcessor(CTX, new MlServiceClient(), gate, payload -> true) {
             @Override Shepherd openShepherd(String action) {
                 if (!"runMatchProspects".equals(action)) return super.openShepherd(action);
                 return new Shepherd(CTX) {

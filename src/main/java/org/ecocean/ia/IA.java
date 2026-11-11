@@ -22,7 +22,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.Map;
 import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
@@ -265,17 +268,18 @@ public class IA {
      * return to decide whether to commit accompanying state changes; the
      * normal intake path tolerates the swallowed-failure behavior.</p>
      *
-     * <p><b>Task persistence note:</b> {@link Shepherd#storeNewTask}
-     * internally commits/reopens the transaction, so the child Task row
-     * is persisted before this method enqueues. On enqueue failure the
-     * child Task remains in the DB as an orphan — there is no queued
-     * job that will ever drive it. The orphan IS still discoverable
-     * via {@link org.ecocean.media.MediaAsset#getRootIATasks} (since
-     * the task references the MediaAsset through objectMediaAssets),
-     * so it may surface in operator-facing task listings until cleaned
-     * up by an out-of-band path. Callers that need cleanup should
-     * delete the orphan explicitly; the default posture here is to
-     * accept it since FileQueue write failures are rare.</p>
+     * <p><b>Task persistence note:</b> the child Task (with the job as its
+     * resume message) is persisted through {@link #enqueueMlServiceJob},
+     * which commits with status BEFORE the job is published; a child whose
+     * persist or commit fails is neither published nor left behind. On a
+     * queue write failure the committed child remains in the DB as an
+     * orphan — there is no queued job that will ever drive it. The orphan
+     * IS still discoverable via
+     * {@link org.ecocean.media.MediaAsset#getRootIATasks} (since the task
+     * references the MediaAsset through objectMediaAssets), so it may
+     * surface in operator-facing task listings until cleaned up by an
+     * out-of-band path; the default posture is to accept it since
+     * FileQueue write failures are rare.</p>
      *
      * <p>If {@code topTask} is null a fresh root task is created inside
      * this method. This matches the reconciler's use case where there is
@@ -296,7 +300,6 @@ public class IA {
         // flag, so MlServiceProcessor.runMatchProspects strips it back off
         // (mirror of IBEISIA's params.remove("ibeis.detection")).
         childTask.addParameter("ibeis.detection", true);
-        myShepherd.storeNewTask(childTask);
 
         // Best-effort encounterId via existing annotations on the MA.
         String encounterId = null;
@@ -322,11 +325,44 @@ public class IA {
             qjob.put("encounterId", encounterId);
         }
 
+        return enqueueMlServiceJob(myShepherd, childTask, qjob, context);
+    }
+
+    /**
+     * Bulk-import boxes PR A (spec 4.4): persist a job's Task with a checked commit, THEN publish
+     * the job. The job is stored on the task as its resume message first, so a startup replay can
+     * republish it. Returns true iff the queue write succeeded; a persist exception or a false
+     * commit returns false without publishing (the transaction is reopened either way).
+     */
+    public static boolean enqueueMlServiceJob(Shepherd myShepherd, Task child, JSONObject qjob,
+        String context) {
+        child.setQueueResumeMessage(qjob.toString());
+        try {
+            myShepherd.getPM().makePersistent(child);
+        } catch (Exception ex) {
+            System.out.println("ERROR: IA.enqueueMlServiceJob() could not persist task " +
+                child.getId() + ": " + ex);
+            myShepherd.rollbackDBTransaction();
+            myShepherd.beginDBTransaction();
+            return false;
+        }
+        if (!myShepherd.commitDBTransactionWithStatus()) {
+            System.out.println("ERROR: IA.enqueueMlServiceJob() commit failed for task " +
+                child.getId() + "; job not published");
+            myShepherd.beginDBTransaction();
+            return false;
+        }
+        myShepherd.beginDBTransaction();
+        return publishMlServiceJob(context, qjob);
+    }
+
+    /** Publish an ml-service job on the detection queue; an IOException logs and returns false. */
+    public static boolean publishMlServiceJob(String context, JSONObject qjob) {
         try {
             return org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
         } catch (java.io.IOException iox) {
-            System.out.println("ERROR: IA.enqueueOneAssetForMlService() " +
-                "addToDetectionQueue threw on ma " + ma.getId() + ": " + iox);
+            System.out.println("ERROR: IA.publishMlServiceJob() addToDetectionQueue threw for task " +
+                qjob.optString("taskId", null) + ": " + iox);
             return false;
         }
     }
@@ -572,7 +608,8 @@ public class IA {
         if (Embedding.isVectorConfig(opt)) params.put(Task.PARAM_V2_MATCH, true);
     }
 
-    private static void markTaskError(Task t, String code, String message) {
+    // also used by IAGateway's bulk-import hand-off recovery (spec 4.4)
+    public static void markTaskError(Task t, String code, String message) {
         t.setStatus("error");
         t.setStatusDetailsAddError(code, message);
         t.setCompletionDateInMilliseconds();
@@ -911,6 +948,292 @@ public class IA {
         return root;
     }
 
+    /**
+     * Bulk-import boxes (spec 4.4): the permitted envelope shapes. Null means accepted: media ids
+     * without a mode (detection, today), annotation ids without a mode (identification, today, with
+     * or without media ids), or annotation ids in extraction mode with no media ids. Anything else
+     * is a reason string for the root's error.
+     */
+    static String envelopeRejection(JSONObject jin) {
+        if (jin == null) return null;
+        String mode = jin.optString("annotationMode", null);
+        if (mode == null) return null;
+        JSONArray ann = jin.optJSONArray("annotationIds");
+        JSONArray media = jin.optJSONArray("mediaAssetIds");
+        if (!org.ecocean.servlet.IAGateway.ANNOTATION_MODE_EXTRACT.equals(mode))
+            return "unknown annotationMode: " + mode;
+        if ((ann == null) || (ann.length() == 0)) return "annotationMode without annotationIds";
+        if ((media != null) && (media.length() > 0)) return "extraction mode with mediaAssetIds";
+        return null;
+    }
+
+    /** Seam for the WBIA-only branch of {@link #intakeImportedBoxes}; tests substitute it. */
+    interface MatchProspectsRunner {
+        MlServiceJobOutcome run(String context, List<String> annotationIds, String parentTaskId);
+    }
+
+    private static final MatchProspectsRunner REAL_MATCH_RUNNER = new MatchProspectsRunner() {
+        @Override public MlServiceJobOutcome run(String context, List<String> annotationIds,
+            String parentTaskId) {
+            return new MlServiceProcessor(context).runMatchProspects(annotationIds, parentTaskId,
+                null);
+        }
+    };
+    private static volatile MatchProspectsRunner matchProspectsRunner = REAL_MATCH_RUNNER;
+
+    /** Test hook; null restores the real runner. */
+    static void setMatchProspectsRunnerForTests(MatchProspectsRunner r) {
+        matchProspectsRunner = (r == null) ? REAL_MATCH_RUNNER : r;
+    }
+
+    // staged per-box extraction child plus its job, published only after the single commit
+    private static final class StagedBox {
+        final Task child;
+        final JSONObject job;
+        StagedBox(Task child, JSONObject job) {
+            this.child = child;
+            this.job = job;
+        }
+    }
+
+    /**
+     * A strict annotation lookup: null only for a genuinely missing annotation; a datastore
+     * failure propagates (Shepherd.getAnnotation swallows every exception, which would make an
+     * outage look like a deletion).
+     */
+    public static Annotation strictAnnotation(Shepherd shep, String id) {
+        if (id == null) return null;
+        try {
+            return (Annotation)shep.getPM().getObjectById(Annotation.class, id);
+        } catch (javax.jdo.JDOObjectNotFoundException notFound) {
+            return null;
+        }
+    }
+
+    // an error task holding the given (already loaded) annotations
+    private static Task errorChildHolding(Task parent, List<Annotation> anns, String code,
+        String message) {
+        Task t = new Task(parent);
+        for (Annotation a : anns) if (a != null) t.addObject(a);
+        markTaskError(t, code, message);
+        return t;
+    }
+
+    /**
+     * Recovery helper: reloads by id and holds every box that still exists. A genuinely missing
+     * annotation is skipped; a datastore failure PROPAGATES, so the caller's recovery fails
+     * instead of committing a holder that omits an existing box.
+     */
+    private static Task errorChildReloading(Shepherd myShepherd, Task parent, List<String> annIds,
+        String code, String message) {
+        List<Annotation> anns = new ArrayList<Annotation>();
+        for (String id : annIds) {
+            Annotation a = strictAnnotation(myShepherd, id);
+            if (a != null) anns.add(a);
+        }
+        return errorChildHolding(parent, anns, code, message);
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.4): one species task per species under {@code root}; on a species
+     * with an ml-service extractor one child per box holding the box and its asset, with one
+     * {@code mlServiceV2 / annotationId} job each, all persisted with ONE checked commit before
+     * any job is published; on other species the boxes go to the existing identification path
+     * ({@code MlServiceProcessor.runMatchProspects}) unless identification is skipped. Every
+     * failure ends in a terminal error task that holds the boxes concerned, so no box is left
+     * task-less and pending. Returns the number of jobs published plus WBIA species dispatched.
+     */
+    static int intakeImportedBoxes(Shepherd myShepherd, List<String> inputIds, Task root,
+        String context, String baseUrl) {
+        if ((inputIds == null) || inputIds.isEmpty() || (root == null)) return 0;
+        boolean skipIdent = IBEISIA.taskParametersSkipIdent(root);
+        List<StagedBox> staged = new ArrayList<StagedBox>();
+        Map<String, Task> speciesTasks = new LinkedHashMap<String, Task>();
+        Map<String, List<Annotation>> wbiaSpecies = new LinkedHashMap<String, List<Annotation>>();
+        boolean committed = false;
+        String stagingFailure = null;
+        try {
+            // everything fallible, including configuration and base-URL resolution, is inside
+            // the staging try so that no failure can escape to handleRest's catch before the
+            // boxes are covered by an error task
+            if (!Util.stringExists(baseUrl)) baseUrl = getBaseURL(context);
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            Map<String, Taxonomy> taxonomies = new LinkedHashMap<String, Taxonomy>();
+            Map<String, List<Annotation>> bySpecies = new LinkedHashMap<String, List<Annotation>>();
+            List<Annotation> noTaxonomy = new ArrayList<Annotation>();
+            for (String id : inputIds) {
+                Annotation ann = strictAnnotation(myShepherd, id);   // a datastore failure propagates
+                if (ann == null) {
+                    System.out.println("WARN: IA.intakeImportedBoxes() annotation " + id +
+                        " no longer exists; skipped");
+                    continue;
+                }
+                MediaAsset ma = ann.getMediaAsset();
+                Taxonomy taxy = ann.getTaxonomy(myShepherd);
+                if ((ma == null) || (taxy == null) || !Util.stringExists(taxy.getScientificName())) {
+                    noTaxonomy.add(ann);
+                    continue;
+                }
+                root.addObject(ma);   // dedupes; the root lists every asset it handed to IA
+                String key = taxy.getScientificName();
+                taxonomies.put(key, taxy);
+                if (!bySpecies.containsKey(key)) bySpecies.put(key, new ArrayList<Annotation>());
+                bySpecies.get(key).add(ann);
+            }
+            if (!noTaxonomy.isEmpty()) {
+                Task t = errorChildHolding(root, noTaxonomy, "NO_TAXONOMY",
+                    "imported box has no media asset or no taxonomy");
+                myShepherd.getPM().makePersistent(t);
+            }
+            for (Map.Entry<String, List<Annotation>> e : bySpecies.entrySet()) {
+                Taxonomy taxy = taxonomies.get(e.getKey());
+                Task speciesTask = new Task();
+                if (root.getParameters() != null)
+                    speciesTask.setParameters(scrubRunParams(root.getParameters()));
+                List<MediaAsset> assets = new ArrayList<MediaAsset>();
+                for (Annotation ann : e.getValue()) {
+                    if (!assets.contains(ann.getMediaAsset())) assets.add(ann.getMediaAsset());
+                }
+                speciesTask.setObjectMediaAssets(assets);
+                linkUnderRoot(speciesTask, root);
+                speciesTasks.put(e.getKey(), speciesTask);
+                boolean mlService = (iaConfig != null) &&
+                    (iaConfig.getActiveMlServiceConfigs(taxy) != null);
+                if (mlService) {
+                    for (Annotation ann : e.getValue()) {
+                        Task child = new Task(speciesTask);
+                        child.addObject(ann);
+                        child.addObject(ann.getMediaAsset());
+                        child.addParameter(Task.PARAM_EMBEDDING_EXTRACTION, true);
+                        child.addParameter(Task.PARAM_IMPORTED_BOX, true);
+                        child.setStatus("initiated");
+                        ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING_MLSERVICE);
+                        JSONObject job = new JSONObject();
+                        job.put("mlServiceV2", true);
+                        job.put("annotationId", ann.getId());
+                        job.put("taxonomyString", taxy.getScientificName());
+                        job.put("taskId", child.getId());
+                        job.put("__context", context);
+                        job.put("__baseUrl", baseUrl);
+                        child.setQueueResumeMessage(job.toString());
+                        staged.add(new StagedBox(child, job));
+                        myShepherd.getPM().makePersistent(child);
+                    }
+                } else {
+                    wbiaSpecies.put(e.getKey(), new ArrayList<Annotation>(e.getValue()));
+                }
+                myShepherd.getPM().makePersistent(speciesTask);
+            }
+            myShepherd.getPM().makePersistent(root);
+            committed = myShepherd.commitDBTransactionWithStatus();
+            if (!committed) stagingFailure = "commit failed";
+            else myShepherd.beginDBTransaction();
+        } catch (Exception ex) {
+            stagingFailure = ex.toString();
+            ex.printStackTrace();
+        }
+        if (stagingFailure != null) {
+            // nothing of the above is durable: one error task holding every box, so the import
+            // can finish and the operator sees it
+            System.out.println("ERROR: IA.intakeImportedBoxes() staging failed for " + root +
+                ": " + stagingFailure);
+            try {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.beginDBTransaction();
+                if (!myShepherd.isDBTransactionActive())
+                    throw new IllegalStateException("transaction not active after restart");
+                // reload every box: a lookup failure here fails the recovery (below) rather than
+                // committing a holder that omits an existing box
+                Task t = errorChildReloading(myShepherd, root, inputIds, "EXTRACTION_PERSIST",
+                    stagingFailure);
+                markTaskError(root, "EXTRACTION_PERSIST", stagingFailure);
+                myShepherd.getPM().makePersistent(t);
+                myShepherd.getPM().makePersistent(root);
+                if (!myShepherd.commitDBTransactionWithStatus())
+                    System.out.println("ERROR: IA.intakeImportedBoxes() could not persist the " +
+                        "EXTRACTION_PERSIST error for " + root);
+                myShepherd.beginDBTransaction();
+            } catch (Exception ex2) {
+                System.out.println("ERROR: IA.intakeImportedBoxes() recovery failed for " + root +
+                    "; its boxes are left pending: " + ex2);
+                try {
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.beginDBTransaction();
+                } catch (Exception ignore) {}
+            }
+            return 0;
+        }
+        // everything is durable; publish, isolating each item
+        int started = 0;
+        for (StagedBox sb : staged) {
+            boolean ok = false;
+            try {
+                ok = publishMlServiceJob(context, sb.job);
+            } catch (Exception ex) {
+                ok = false;
+            }
+            if (ok) {
+                started++;
+            } else {
+                ImportedBoxes.failChild(myShepherd, sb.child, "ENQUEUE",
+                    "could not publish the extraction job");
+            }
+        }
+        for (Map.Entry<String, List<Annotation>> e : wbiaSpecies.entrySet()) {
+            if (skipIdent) {
+                // staging 2026-11-08: never drop these boxes silently. A class configured for vector
+                // matching on a species without species-level ml-service routing is a configuration
+                // gap the operator must see; a species with no vector pipeline has nothing to extract.
+                Task speciesTask = speciesTasks.get(e.getKey());
+                IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+                Taxonomy taxy = new Taxonomy(e.getKey());
+                Set<String> vectorClasses = new TreeSet<String>();
+                for (Annotation ann : e.getValue()) {
+                    if ((iaConfig != null) && (iaConfig.getDefaultVectorIdentConfig(taxy, ann.getIAClass()) != null))
+                        vectorClasses.add(ann.getIAClass());
+                }
+                Task held;
+                if (!vectorClasses.isEmpty()) {
+                    held = errorChildHolding(speciesTask, e.getValue(), "NO_EXTRACTION_CONFIG",
+                        "class " + String.join(", ", vectorClasses) + " of " + e.getKey() +
+                        " is configured for vector matching, but the species has no ml-service " +
+                        "routing (IA.json needs <species>._default._id_conf with a default " +
+                        "pipeline_root \"vector\" entry and <species>._mlservice_conf); the boxes " +
+                        "were imported without embeddings");
+                } else {
+                    held = new Task(speciesTask);
+                    for (Annotation ann : e.getValue()) held.addObject(ann);
+                    held.addParameter("note", "identification skipped and the species has no " +
+                        "ml-service extraction: nothing to extract");
+                    held.setStatus("completed");
+                }
+                System.out.println("INFO: IA.intakeImportedBoxes() " + held.getStoredStatus() +
+                    " holder " + held.getId() + " for " + e.getValue().size() + " box(es) of " +
+                    e.getKey() + " (identification skipped, no ml-service routing)");
+                myShepherd.getPM().makePersistent(held);
+                continue;
+            }
+            Task speciesTask = speciesTasks.get(e.getKey());
+            List<String> ids = new ArrayList<String>();
+            for (Annotation ann : e.getValue()) ids.add(ann.getId());
+            try {
+                matchProspectsRunner.run(context, ids, speciesTask.getId());
+                started++;
+            } catch (Exception ex) {
+                System.out.println("ERROR: IA.intakeImportedBoxes() identification dispatch threw " +
+                    "for species " + e.getKey() + ": " + ex);
+                // the species' annotations are already loaded: no reload, nothing to omit
+                Task t = errorChildHolding(speciesTask, e.getValue(), "MATCH_DISPATCH", ex.toString());
+                myShepherd.getPM().makePersistent(t);
+            }
+        }
+        if (!myShepherd.commitDBTransactionWithStatus())
+            System.out.println("ERROR: IA.intakeImportedBoxes() could not persist the publish " +
+                "outcomes for " + root);
+        myShepherd.beginDBTransaction();
+        return started;
+    }
+
     // possibly (should?) have .taskId, and *definitely* should have .__context and .__baseUrl
     // note: this is processed *from the queue* and as such does not have "output"
     public static void handleRest(JSONObject jin) {
@@ -930,6 +1253,19 @@ public class IA {
             String taskId = jin.optString("taskId", Util.generateUUID());
             Task topTask = resolveRequestRoot(Task.load(taskId, myShepherd), taskId, fastlane);
             myShepherd.storeNewTask(topTask);
+            // bulk-import boxes (spec 4.4): the envelope shape is validated BEFORE any intake, so a
+            // malformed one can never half-run (detection published, extraction refused)
+            String rejection = envelopeRejection(jin);
+            if (rejection != null) {
+                System.out.println("ERROR: IA.handleRest() rejected envelope for task " + taskId +
+                    ": " + rejection);
+                markTaskError(topTask, "INVALID_ENVELOPE", rejection);
+                if (!myShepherd.commitDBTransactionWithStatus())
+                    System.out.println("ERROR: IA.handleRest() could not persist the INVALID_ENVELOPE " +
+                        "mark on task " + taskId);
+                return;
+            }
+            String annotationMode = jin.optString("annotationMode", null);
             JSONObject opt = jin.optJSONObject("opt"); // should use this to decide how to branch differently than "default"
             JSONArray mlist = jin.optJSONArray("mediaAssetIds");
             if ((mlist != null) && (mlist.length() > 0)) {
@@ -949,7 +1285,20 @@ public class IA {
                 linkUnderRoot(mtask, topTask);
             }
             JSONArray alist = jin.optJSONArray("annotationIds");
-            if ((alist != null) && (alist.length() > 0)) {
+            if ((alist != null) && (alist.length() > 0) &&
+                org.ecocean.servlet.IAGateway.ANNOTATION_MODE_EXTRACT.equals(annotationMode)) {
+                // bulk-import boxes: extract embeddings per box, then identify (spec 4.4). The ids
+                // go straight to the intake, which loads them tolerantly and owns its recovery.
+                List<String> ids = new ArrayList<String>();
+                for (int i = 0; i < alist.length(); i++) {
+                    String aid = alist.optString(i, null);
+                    if (aid != null) ids.add(aid);
+                }
+                int started = intakeImportedBoxes(myShepherd, ids, topTask, context,
+                    jin.optString("__baseUrl", null));
+                System.out.println("INFO: IA.handleRest() imported-box intake started " + started +
+                    " jobs/runs for " + topTask);
+            } else if ((alist != null) && (alist.length() > 0)) {
                 List<Annotation> anns = new ArrayList<Annotation>();
                 for (int i = 0; i < alist.length(); i++) {
                     String aid = alist.optString(i, null);

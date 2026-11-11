@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ecocean.security.SameOriginCheck;
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
@@ -24,9 +25,11 @@ public class UserCreate extends HttpServlet {
         super.init(config);
     }
 
+    // account edits are accepted by POST only
     public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        doPost(request, response);
+        response.setHeader("Allow", "POST");
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
     }
 
     static void clearUnownedRoles(Shepherd sh, String username) {
@@ -46,7 +49,14 @@ public class UserCreate extends HttpServlet {
         } finally { query.closeAll(); }
     }
 
-    static void preserveSubmissionRole(List<Role> rolesToReplace, String username, boolean siteAdmin) {
+    /**
+     * Removes from rolesToReplace every role the editor may not grant (Role.canEditRole), so those
+     * grants are kept rather than deleted and rebuilt from the form, and points each kept grant at
+     * username. Non-admin edits, self-edits included, keep admin, orgAdmin, orgSuper and
+     * api-submission as they are; site admins replace every role.
+     */
+    static void preserveSiteAdminManagedRoles(List<Role> rolesToReplace, String username,
+        boolean siteAdmin) {
         rolesToReplace.removeIf(role -> {
             if (Role.canEditRole(role.getRolename(), siteAdmin)) return false;
             role.setUsername(username);
@@ -60,6 +70,11 @@ public class UserCreate extends HttpServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        // browser requests must come from this site; checked before any database work
+        if (!SameOriginCheck.allows(request)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
         request.setCharacterEncoding("UTF-8");
         String context = "context0";
         Shepherd myShepherd = new Shepherd(context);
@@ -110,20 +125,36 @@ public class UserCreate extends HttpServlet {
                 String originalUsername = null;
                 try {
                     myShepherd.beginDBTransaction();
-                    if (myShepherd.getUserByUUID(uuid) != null) {
+                    boolean siteAdmin = request.isUserInRole("admin");
+                    User reqUser = myShepherd.getUser(request);
+                    boolean existingUser = myShepherd.getUserByUUID(uuid) != null;
+                    if (existingUser) {
                         newUser = myShepherd.getUserByUUID(uuid);
                         originalUsername = newUser.getUsername();
                     } else {
                         newUser = new User(uuid);
                     }
-                    if (username != null) username = username.trim();
-                    if (!usernameAvailable(myShepherd, username, uuid)) {
-                        response.sendError(HttpServletResponse.SC_CONFLICT);
+                    if (!canEditServiceAccount(siteAdmin, newUser)) {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN);
                         myShepherd.rollbackDBTransaction();
                         return;
                     }
-                    if (!request.isUserInRole("admin") && originalUsername != null && newUser.isAdmin(myShepherd)) {
+                    if (existingUser && !canEditExistingUser(myShepherd, reqUser, siteAdmin, newUser)) {
                         response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                        myShepherd.rollbackDBTransaction();
+                        return;
+                    }
+                    // requested organizations are checked before anything is persisted
+                    List<Organization> selectedOrgs = parseOrganizations(myShepherd,
+                        request.getParameterValues("organization"));
+                    if (!canAddOrganizations(myShepherd, reqUser, siteAdmin, selectedOrgs)) {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                        myShepherd.rollbackDBTransaction();
+                        return;
+                    }
+                    if (username != null) username = username.trim();
+                    if (!usernameAvailable(myShepherd, username, uuid)) {
+                        response.sendError(HttpServletResponse.SC_CONFLICT);
                         myShepherd.rollbackDBTransaction();
                         return;
                     }
@@ -218,8 +249,9 @@ public class UserCreate extends HttpServlet {
                         // get existing roles for this existing user
                         preexistingRoles = originalUsername == null ? new ArrayList<Role>()
                             : myShepherd.getAllRolesForUser(originalUsername);
-                        // Keep administrator-managed enrollment on unrelated non-admin edits.
-                        preserveSubmissionRole(preexistingRoles, newUser.getUsername(), request.isUserInRole("admin"));
+                        // roles only a site admin may grant are kept on non-admin edits
+                        preserveSiteAdminManagedRoles(preexistingRoles, newUser.getUsername(),
+                            request.isUserInRole("admin"));
                         myShepherd.getPM().deletePersistentAll(preexistingRoles);
                     }
                     // start role processing
@@ -262,30 +294,16 @@ public class UserCreate extends HttpServlet {
                     if (!createThisUser) {
                         preexistingOrgs = myShepherd.getAllOrganizationsForUser(newUser);
                     }
-                    User reqUser = myShepherd.getUser(request);
 
-                    // handle org requests
-                    String[] orgs = request.getParameterValues("organization");
-                    ArrayList<Organization> selectedOrgs = new ArrayList<Organization>();
-                    if (orgs != null) {
-                        int numOrgs = orgs.length;
-                        // System.out.println("numRoles in context"+d+" is: "+numRoles);
-                        for (int i = 0; i < numOrgs; i++) {
-                            String thisOrg = orgs[i].trim();
-                            if (!thisOrg.trim().equals("")) {
-                                if (myShepherd.getOrganization(thisOrg) != null) {
-                                    Organization org = myShepherd.getOrganization(thisOrg);
-                                    selectedOrgs.add(org);
-                                    // OK - add to new organizations
-                                    if (!preexistingOrgs.contains(org)) {
-                                        org.addMember(newUser);
-                                        myShepherd.commitDBTransaction();
-                                        myShepherd.beginDBTransaction();
-                                    }
-                                }
-                            }
+                    // handle org requests (parsed and checked above)
+                    for (Organization org : selectedOrgs) {
+                        // OK - add to new organizations
+                        if (!preexistingOrgs.contains(org)) {
+                            org.addMember(newUser);
+                            myShepherd.commitDBTransaction();
+                            myShepherd.beginDBTransaction();
                         }
-                    } // end if orgs==null
+                    }
 
                     // OK - remove to no longer selected orgs by seeing what the requesting user could have requested but didn't.
 
@@ -293,7 +311,7 @@ public class UserCreate extends HttpServlet {
                     List<Organization> reqOrgs = new ArrayList<Organization>();
                     if (myShepherd.getUser(request) != null) {
                         User user = myShepherd.getUser(request);
-                        if (request.isUserInRole("admin")) {
+                        if (siteAdmin) {
                             reqOrgs = myShepherd.getAllOrganizations();
                         } else {
                             reqOrgs = myShepherd.getAllOrganizationsForUser(user);
@@ -341,7 +359,7 @@ public class UserCreate extends HttpServlet {
                         !newUser.getUsername().equals(originalUsername)) {
                         try {
                             String tmpUsrSalt = ServletUtilities.getSalt().toHex();
-                            String tmpUsr1Password = "tomcat123"; // it does not matter; this user will be gone very soon
+                            String tmpUsr1Password = Util.generateUUID(); // random and discarded; this user will be gone very soon
                             String tmpUsr1HashedPassword = ServletUtilities.hashAndSaltPassword(
                                 tmpUsr1Password, tmpUsrSalt);
                             tempUserWithOriginalUserName = new User(originalUsername,
@@ -389,5 +407,77 @@ public class UserCreate extends HttpServlet {
             out.println(ServletUtilities.getFooter(context));
         }
         out.close();
+    }
+
+    // service accounts (per-organization API identities) may only be edited by site admins
+    static boolean canEditServiceAccount(boolean requesterIsSiteAdmin, User target) {
+        return requesterIsSiteAdmin || target == null || !target.isServiceAccount();
+    }
+
+    /**
+     * Site admins may edit any existing user, and anyone may edit their own account (matched by
+     * account id). Others may edit a user only when that user holds no site-admin-managed role
+     * (any role Role.canEditRole refuses to non-admins) in any context and shares a direct
+     * organization with them.
+     * Role grants, organization additions and service-account edits are checked separately.
+     */
+    static boolean canEditExistingUser(Shepherd sh, User requester, boolean requesterIsSiteAdmin,
+        User target) {
+        if (requesterIsSiteAdmin) return true;
+        if (requester == null || target == null) return false;
+        if (requester.getId() != null && requester.getId().equals(target.getId())) return true;
+        if (holdsPrivilegedRole(sh, target.getUsername())) return false;
+        List<String> requesterOrgIds = organizationIds(sh.getAllOrganizationsForUser(requester));
+        for (Organization org : sh.getAllOrganizationsForUser(target)) {
+            if (requesterOrgIds.contains(org.getId())) return true;
+        }
+        return false;
+    }
+
+    /** Site admins may add any organization; others only organizations they are a direct member of. */
+    static boolean canAddOrganizations(Shepherd sh, User requester, boolean requesterIsSiteAdmin,
+        List<Organization> requested) {
+        if (requesterIsSiteAdmin || requested == null || requested.isEmpty()) return true;
+        if (requester == null) return false;
+        List<String> requesterOrgIds = organizationIds(sh.getAllOrganizationsForUser(requester));
+        for (Organization org : requested) {
+            if (org == null || !requesterOrgIds.contains(org.getId())) return false;
+        }
+        return true;
+    }
+
+    /**
+     * True when the user holds, in any context, a role that only site admins may grant
+     * (Role.canEditRole(rolename, false) is false). Grants are read fresh from the datastore.
+     */
+    private static boolean holdsPrivilegedRole(Shepherd sh, String username) {
+        if (username == null || username.isBlank()) return false;
+        javax.jdo.Query<?> query = sh.getPM().newQuery(Role.class, "username == :username");
+        try {
+            query.setIgnoreCache(true);
+            query.setResult("rolename");
+            for (Object rolename : (java.util.Collection<?>)query.execute(username)) {
+                if (rolename != null && !Role.canEditRole(rolename.toString(), false)) return true;
+            }
+            return false;
+        } finally { query.closeAll(); }
+    }
+
+    private static List<String> organizationIds(List<Organization> orgs) {
+        List<String> ids = new ArrayList<String>();
+        for (Organization org : orgs) ids.add(org.getId());
+        return ids;
+    }
+
+    // existing organizations named by the request; blank and unknown ids are ignored
+    static List<Organization> parseOrganizations(Shepherd sh, String[] orgIds) {
+        List<Organization> orgs = new ArrayList<Organization>();
+        if (orgIds == null) return orgs;
+        for (String orgId : orgIds) {
+            if (orgId == null || orgId.trim().equals("")) continue;
+            Organization org = sh.getOrganization(orgId.trim());
+            if (org != null && !orgs.contains(org)) orgs.add(org);
+        }
+        return orgs;
     }
 }

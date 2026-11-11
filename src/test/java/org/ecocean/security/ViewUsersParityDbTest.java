@@ -123,11 +123,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         sh.getPM().makePersistent(c);
     }
 
-    // Organization.members is the inverse side (mapped-by User.organizations), so the join rows
-    // are written from each user's organizations list, with IDX = the organization's position in
-    // THAT user's list; the auto-created table's primary key is (ORGANIZATION_ID, IDX). Two users
-    // whose first organization is the same would therefore collide, so the fixture gives every
-    // membership of one organization a distinct position (see seed()).
     private static Organization org(Shepherd sh, String name) {
         Organization o = new Organization(name);
         sh.getPM().makePersistent(o);
@@ -187,13 +182,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         collab(sh, "owner", "back\\slash", Collaboration.STATE_APPROVED);
         Organization orgA = org(sh, "orgA");
         Organization orgB = org(sh, "orgB");
-        Organization filler = org(sh, "filler"); // no orgAdmin: grants nothing; pads positions
+        Organization filler = org(sh, "filler"); // no orgAdmin: grants nothing
         Organization filler2 = org(sh, "filler2");
         Organization filler3 = org(sh, "filler3");
-        memberships(sh, "orgadmin", orgA, orgB);   // orgadmin manages two organizations: (A,0) (B,1)
-        memberships(sh, "memberA", filler, orgA);  // (filler,0) (A,1)
-        memberships(sh, "memberB", orgB);          // (B,0)
-        memberships(sh, "padmem", filler2, filler3, orgA); // (A,2); submits as " padmem "
+        memberships(sh, "orgadmin", orgA, orgB);   // orgadmin manages two organizations
+        memberships(sh, "memberA", filler, orgA);
+        memberships(sh, "memberB", orgB);
+        memberships(sh, "padmem", filler2, filler3, orgA); // submits as " padmem "
         Encounter e1 = encounter(sh, "e1", "owner", "Komodo");
         Encounter e2 = encounter(sh, "e2", "memberA", "Komodo");
         encounter(sh, "e3", "orgadmin", "Flores Sea");

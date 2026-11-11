@@ -11,6 +11,7 @@ import InspectorModal from "./InspectorModal";
 import ExitFullScreenIcon from "../icons/ExitFullScreenIcon";
 import EncounterIcon from "../../../components/icons/EncounterIcon";
 import EmptyMatchPlaceholder from "./EmptyMatchPlaceholder";
+import ImageCaption from "./ImageCaption";
 import { client } from "../../../api/client";
 import "../styles.css";
 
@@ -105,7 +106,9 @@ const styles = {
   },
   matchColumn: {
     flex: 1,
-    minWidth: "30%",
+    // below ~220px a row squeezes the name to one letter per line (#1791);
+    // narrower screens scroll the columns sideways instead
+    minWidth: "max(30%, 220px)",
     display: "flex",
     flexDirection: "column",
   },
@@ -168,6 +171,8 @@ const MatchProspectTable = ({
   thisEncounterImageUrl,
   thisEncounterAnnotations,
   thisEncounterImageAsset,
+  thisEncounterDate,
+  thisEncounterLocationId,
   themeColor,
   columns = [],
   algorithm,
@@ -347,6 +352,18 @@ const MatchProspectTable = ({
     previewedRow?.annotation?.asset?.attributes?.height;
 
   const leftImageUrl = thisEncounterImageUrl;
+  const leftCaption = {
+    date: thisEncounterDate,
+    filename: thisEncounterImageAsset?.filename,
+    locationId: thisEncounterLocationId,
+  };
+  // the previewed candidate's own encounter and asset, never the lazily
+  // fetched PairX inspection asset (previewedRow.asset)
+  const rightCaption = {
+    date: previewedRow?.annotation?.encounter?.date,
+    filename: previewedRow?.annotation?.asset?.filename,
+    locationId: previewedRow?.annotation?.encounter?.locationId,
+  };
   const hasLeftImage = Boolean(leftImageUrl);
   const hasRightImage = Boolean(rightImageUrl);
 
@@ -714,6 +731,12 @@ const MatchProspectTable = ({
                 <EmptyMatchPlaceholder sectionId={`${sectionId}-left`} />
               )}
             </div>
+            {hasLeftImage && (
+              <ImageCaption
+                {...leftCaption}
+                testId={`match-prospect-left-caption-${sectionId}`}
+              />
+            )}
           </div>
 
           <div
@@ -797,6 +820,12 @@ const MatchProspectTable = ({
                 <EmptyMatchPlaceholder sectionId={sectionId} />
               )}
             </div>
+            {hasRightImage && (
+              <ImageCaption
+                {...rightCaption}
+                testId={`match-prospect-right-caption-${sectionId}`}
+              />
+            )}
           </div>
 
           <div
@@ -1016,6 +1045,10 @@ const MatchProspectTable = ({
                     annotations={leftAnnotations}
                     rotationInfo={leftRotationInfo}
                   />
+                  <ImageCaption
+                    {...leftCaption}
+                    testId={`match-prospect-fullscreen-left-caption-${sectionId}`}
+                  />
                 </div>
               </div>
 
@@ -1147,6 +1180,10 @@ const MatchProspectTable = ({
                     rotationInfo={
                       previewedRow?.annotation?.asset?.rotationInfo ?? null
                     }
+                  />
+                  <ImageCaption
+                    {...rightCaption}
+                    testId={`match-prospect-fullscreen-right-caption-${sectionId}`}
                   />
                 </div>
               </div>

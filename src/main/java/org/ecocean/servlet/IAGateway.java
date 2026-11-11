@@ -2,6 +2,7 @@ package org.ecocean.servlet;
 
 import org.ecocean.AccessControl;
 import org.ecocean.Annotation;
+import org.ecocean.Encounter;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.MLService;
@@ -104,6 +105,9 @@ public class IAGateway extends HttpServlet {
         return fastlaneReady;
     }
 
+    /** Envelope {@code annotationMode} value for bulk-import boxes (spec 4.4): extract embeddings, then identify. */
+    public static final String ANNOTATION_MODE_EXTRACT = "extract-then-identify";
+
     /**
      * Which lane a job belongs on. MIRRORS processQueueMessage's dispatch order
      * (v2 -> MLService -> mlServiceV2 -> detect -> identify), because the lane must
@@ -119,6 +123,11 @@ public class IAGateway extends HttpServlet {
     public static int laneFor(JSONObject j) {
         if (j == null) return LANE_IA;
         if (j.optBoolean("v2", false)) { // IA.handleRest
+            // Bulk-import boxes (spec 4.4): an extract-then-identify envelope only ENQUEUES one
+            // ml-service extraction job per box and intakes nothing synchronously, so it belongs
+            // on the detection lane like the media half, whatever the fastlane flag says.
+            if (ANNOTATION_MODE_EXTRACT.equals(j.optString("annotationMode", null)))
+                return LANE_DETECTION;
             JSONArray ann = j.optJSONArray("annotationIds");
             if ((ann != null) && (ann.length() > 0))
                 return j.optBoolean("fastlane", false) ? LANE_FASTLANE : LANE_IA;
@@ -222,10 +231,28 @@ public class IAGateway extends HttpServlet {
     // classloader reachable via pending Runnables' anonymous-inner-
     // class refs, causing a classloader leak across reloads (Codex
     // review Major on Phase A).
+    //
+    // Tomcat only calls destroy() on a servlet it has instantiated, and the ml-service
+    // processors reach the static requeue API without ever hitting /ia, so web.xml declares
+    // this servlet <load-on-startup>. That eager init is what makes this hook -- and the
+    // flush below -- run on every undeploy rather than only after some /ia traffic
+    // (IAGatewayDeploymentDescriptorTest pins it).
     @Override
     public void destroy() {
         try {
             REQUEUE_EXEC.shutdownNow();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        // shutdownNow() cancels delayed publish runnables whose payloads were already reported
+        // as queued (requeueJob returned QUEUED). Flush them to the persistent spool NOW — a
+        // plain file write, safe mid-shutdown — so they survive the redeploy instead of being
+        // silently lost.
+        try {
+            int flushed = flushPendingRequeues();
+            if (flushed > 0)
+                System.out.println("IAGateway.destroy() flushed " + flushed +
+                    " pending requeue(s) to the spool");
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -612,13 +639,17 @@ public class IAGateway extends HttpServlet {
                 if (fastlane) jobj.put("fastlane", true);
                 System.out.println("_doIdentify() requeueing from jin=" + jin);
                 System.out.println("_doIdentify() requeueing as jobj=" + jobj);
-                boolean requeued = requeueJob(jobj, true);
-                if (!requeued) {
-                    // retry budget / two-day window exhausted: the only terminal commit on this
-                    // path (spec §4.4). While a retry is queued the task stays "requeued".
+                RequeueResult requeued = requeueJobResult(jobj, true);
+                if (requeued != RequeueResult.QUEUED) {
+                    // the only terminal commit on this path (spec §4.4); while a retry is queued
+                    // the task stays "requeued". EXECUTOR_REJECTED is terminal here too: unlike
+                    // ml-service assets, no reconciler ever resends an identification.
                     subTask.setStatus("error");
-                    subTask.setStatusDetailsAddError("SEND_FAILED",
-                        "identification could not be sent and the retry budget is exhausted: " + ex.toString());
+                    subTask.setStatusDetailsAddError("SEND_FAILED", requeued.isPolicyExhausted()
+                        ? "identification could not be sent and the retry budget is exhausted (" +
+                        requeued + "): " + ex.toString()
+                        : "identification could not be sent and could not be requeued " +
+                        "(webapp shutting down and the spool write failed): " + ex.toString());
                     subTask.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
                     myShepherd.updateDBTransaction();
                 }
@@ -995,7 +1026,33 @@ public class IAGateway extends HttpServlet {
         if (requeue) requeueJob(jobj, requeueIncrement);
     }
 
+    /**
+     * Typed verdict from {@link #requeueJobResult}. The distinction matters to callers deciding
+     * what to do with the underlying work item: {@code RETRY_CAP}/{@code TIME_CAP} are PERMANENT
+     * policy exhaustion (the job will never run again — mark the work terminal), while
+     * {@code EXECUTOR_REJECTED} means the requeue executor is gone (webapp undeploy in flight) and
+     * the direct spool write failed too — the job is lost from memory. A caller whose work item a
+     * reconciler recovers after redeploy (ml-service detection/extraction assets) leaves it in
+     * that recoverable state, NOT terminal; a caller with no reconciler (the identification send
+     * in {@code _doIdentify}) marks it terminal, since nothing would ever resend it.
+     */
+    public enum RequeueResult {
+        QUEUED, RETRY_CAP, TIME_CAP, EXECUTOR_REJECTED;
+        public boolean isPolicyExhausted() {
+            return this == RETRY_CAP || this == TIME_CAP;
+        }
+    }
+
     public static boolean requeueJob(JSONObject jobj, final boolean increment) {
+        return requeueJobResult(jobj, increment) == RequeueResult.QUEUED;
+    }
+
+    public static RequeueResult requeueJobResult(JSONObject jobj, final boolean increment) {
+        // NOTE: only PENALIZED retries (increment=true) grow the __queueRetries counter, so a
+        // purely non-incrementing chain (e.g. timeouts passing shouldIncrement()=false) is
+        // bounded by the wall-clock MAX_TIME_MILLIS cap, not MAX_RETRIES. Once the counter HAS
+        // accrued MAX_RETRIES penalized retries, though, the job is refused regardless of the
+        // current failure's increment flag — 30 penalized failures mark the job sick for good.
         int MAX_RETRIES = 30;
         long MAX_TIME_MILLIS = 2 * 24 * 60 * 60 * 1000;
         String context = jobj.optString("__context", "context0");
@@ -1006,11 +1063,17 @@ public class IAGateway extends HttpServlet {
 
         if (retries < 0) retries = 0;
         long elapsed = System.currentTimeMillis() - queueStart;
-        if (elapsed > MAX_TIME_MILLIS) retries = MAX_RETRIES + 1; // waiting around too long
-        if (retries > MAX_RETRIES) {
+        if (elapsed > MAX_TIME_MILLIS) { // waiting around too long
             System.out.println("requeueJob(): completely failed taskId=" + taskId + " after " +
-                MAX_RETRIES + " retries (or max time) in queue; giving up");
-            return false;
+                elapsed + "ms (max time) in queue; giving up");
+            return RequeueResult.TIME_CAP;
+        }
+        // >= so exactly MAX_RETRIES retries run: `retries` counts retries already scheduled, and
+        // the old `>` boundary scheduled a 31st retry before rejecting the 32nd call
+        if (retries >= MAX_RETRIES) {
+            System.out.println("requeueJob(): completely failed taskId=" + taskId + " after " +
+                MAX_RETRIES + " retries in queue; giving up");
+            return RequeueResult.RETRY_CAP;
         }
         System.out.println("requeueJob(): attempting to requeue taskId=" + taskId + " for retry " +
             retries + " out of " + MAX_RETRIES + " (actualRetries=" + actualRetries + "; start=" +
@@ -1048,9 +1111,10 @@ public class IAGateway extends HttpServlet {
         // previous code's "logged before sleeping" timing for any
         // operators tailing for this string.
         System.out.println("requeueJob(): backgrounding taskId=" + taskId);
-        // false when the executor rejected the schedule (webapp undeploy): the retry is
-        // permanently lost and the caller must not believe it was requeued
-        return scheduleRequeuePublish(jobj, context, taskId, initialDelayMillis);
+        // EXECUTOR_REJECTED when the schedule was refused (webapp undeploy): the retry is lost
+        // from memory and the caller must not believe it was requeued
+        return scheduleRequeuePublish(jobj, context, taskId, initialDelayMillis)
+                   ? RequeueResult.QUEUED : RequeueResult.EXECUTOR_REJECTED;
     }
 
     // Schedules a single attempt to publish jobj onto the appropriate
@@ -1058,46 +1122,140 @@ public class IAGateway extends HttpServlet {
     // with a 30s backoff — preserving the original code's "retry
     // forever on addToQueue/addToDetectionQueue failure" semantics
     // without an unbounded busy loop on a dedicated thread.
-    private static boolean scheduleRequeuePublish(final JSONObject jobj, final String context,
-        final String taskId, long delayMillis) {
+    // A payload whose delayed publish has been accepted but not yet written to the persistent
+    // spool. Tracked so a shutdown can flush it durably instead of losing it with the cancelled
+    // runnable. Exactly-once publish is enforced by publishPending(): the `published` flag makes
+    // re-publish a no-op and the `inFlight` CAS stops concurrent attempts; the entry leaves the
+    // set only AFTER a successful spool write, so a publisher interrupted mid-write leaves the
+    // payload visible to the shutdown flush.
+    private static final class PendingRequeue {
+        final JSONObject jobj;
+        final String context;
+        final String taskId;
+        final java.util.concurrent.atomic.AtomicBoolean inFlight =
+            new java.util.concurrent.atomic.AtomicBoolean(false);
+        volatile boolean published = false;
+        PendingRequeue(JSONObject jobj, String context, String taskId) {
+            this.jobj = jobj;
+            this.context = context;
+            this.taskId = taskId;
+        }
+    }
+    private static final java.util.Set<PendingRequeue> PENDING_REQUEUES =
+        java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    // The single publish path shared by the delayed runnable, the shutdown flush, and the
+    // schedule-rejection fallback. Returns true iff THIS call performed the durable spool write.
+    // Idempotent: an already-published or currently-in-flight entry is left alone. On write
+    // failure the entry STAYS in PENDING_REQUEUES so another actor can still recover it.
+    private static boolean publishPending(PendingRequeue pr) {
+        if (pr.published || !pr.inFlight.compareAndSet(false, true)) return false;
         try {
-            scheduleRequeuePublishUnguarded(jobj, context, taskId, delayMillis);
+            // recheck under the guard: another actor may have published between the read above
+            // and the CAS, and released inFlight since
+            if (pr.published) return false;
+            // the same classifier as the initial publish (a plain spool-file write NOW). The old
+            // condition sent ANY fastlane payload back to the detection queue, so a single retry
+            // silently undid the lane separation. laneFor still keeps detect/MLService/mlServiceV2
+            // on the detection queue, which retryable ml-service failures depend on to reach
+            // MlServiceProcessor.
+            publishToLane(pr.context, pr.jobj.toString());
+            pr.published = true;
+            PENDING_REQUEUES.remove(pr);
             return true;
-        } catch (java.util.concurrent.RejectedExecutionException rex) {
-            // REQUEUE_EXEC was shut down (webapp undeploy/reload). The job was never written to
-            // the persistent spool, so this retry is genuinely lost — say so loudly rather than
-            // letting the exception propagate into whatever thread asked for the requeue.
-            System.out.println("ERROR: scheduleRequeuePublish() rejected (executor shut down?); " +
-                "requeue LOST for taskId=" + taskId + ": " + rex.toString());
+        } catch (Throwable t) {
+            System.out.println(
+                ".....requeueJob() looping: failed to requeue addTo_Queue() taskId=" +
+                pr.taskId + " due to " + t.toString());
+            t.printStackTrace();
             return false;
+        } finally {
+            pr.inFlight.set(false);
         }
     }
 
-    private static void scheduleRequeuePublishUnguarded(final JSONObject jobj, final String context,
-        final String taskId, long delayMillis) {
-        REQUEUE_EXEC.schedule(new Runnable() {
-            public void run() {
+    // "Last actor" publish: used where NOTHING later is guaranteed to retry (the shutdown flush,
+    // and the schedule-rejection fallback once the executor is gone). Waits briefly for any
+    // concurrent in-flight publisher to settle, then makes its own bounded write attempts.
+    //
+    // Verdict semantics at the deadline: if an owner is STILL in flight (a spool write blocking
+    // >2s during shutdown), we return pessimistic-false by design. The alternatives are both
+    // worse: waiting unboundedly lets a hung disk hang destroy(); reporting optimistic-true
+    // while the owner then fails re-opens the lost-payload hole. A false verdict makes callers
+    // err toward DUPLICATE work (recoverable state / run-match-now, both idempotent-tolerant) —
+    // never toward loss — and physical writes stay CAS+published-gated, so a duplicate verdict
+    // can never become a duplicate spool file.
+    private static boolean publishPendingFinal(PendingRequeue pr) {
+        long deadline = System.currentTimeMillis() + 2000;
+        int writeAttempts = 0;
+
+        while ((System.currentTimeMillis() < deadline) && (writeAttempts < 3)) {
+            if (pr.published) return true;
+            if (pr.inFlight.get()) { // let the current owner finish (it may succeed or fail)
                 try {
-                    // Same classifier as the initial publish. The old condition sent
-                    // ANY fastlane payload back to the detection queue, so a single
-                    // retry silently undid the lane separation. laneFor still keeps
-                    // detect/MLService/mlServiceV2 on the detection queue, which
-                    // retryable ml-service failures depend on to reach
-                    // MlServiceProcessor.
-                    publishToLane(context, jobj.toString());
-                } catch (Throwable t) {
-                    System.out.println(
-                        ".....requeueJob() looping: failed to requeue addTo_Queue() taskId=" +
-                        taskId + " due to " + t.toString());
-                    t.printStackTrace();
-                    // Indefinite retry on publish failure, 30s backoff.
-                    // Catching Throwable (not Exception) ensures even
-                    // unexpected Errors during publish don't kill the
-                    // executor worker silently.
-                    scheduleRequeuePublish(jobj, context, taskId, 30000L);
+                    Thread.sleep(10);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
                 }
+                continue;
             }
-        }, delayMillis, java.util.concurrent.TimeUnit.MILLISECONDS);
+            writeAttempts++;
+            if (publishPending(pr)) return true;
+        }
+        return pr.published;
+    }
+
+    // Durably publish every payload still awaiting its (now cancelled) delayed runnable.
+    // Package-private for tests. Returns how many this call left published (by itself or a
+    // concurrent owner it waited out).
+    static int flushPendingRequeues() {
+        int flushed = 0;
+        for (PendingRequeue pr : PENDING_REQUEUES) {
+            if (pr.published) continue;
+            if (publishPendingFinal(pr)) flushed++;
+            else
+                System.out.println("ERROR: flushPendingRequeues() could not publish taskId=" +
+                    pr.taskId + "; requeue LOST (spool write failing at shutdown)");
+        }
+        return flushed;
+    }
+
+    private static boolean scheduleRequeuePublish(final JSONObject jobj, final String context,
+        final String taskId, long delayMillis) {
+        PendingRequeue pending = new PendingRequeue(jobj, context, taskId);
+        PENDING_REQUEUES.add(pending);
+        return schedulePending(pending, delayMillis);
+    }
+
+    // Schedule the delayed publish of an EXISTING pending entry; on executor rejection (webapp
+    // undeploy) skip the backoff — it only exists to throttle retries, moot when this JVM is
+    // exiting — and write the job durably to the spool right now (a plain file write, safe
+    // mid-shutdown; consumed after the redeploy).
+    private static boolean schedulePending(final PendingRequeue pending, long delayMillis) {
+        try {
+            REQUEUE_EXEC.schedule(new Runnable() {
+                public void run() {
+                    if (publishPending(pending) || pending.published) return;
+                    // publish failed (entry still recoverable in the set): indefinite retry
+                    // with a 30s backoff on the SAME entry — never a duplicate.
+                    schedulePending(pending, 30000L);
+                }
+            }, delayMillis, java.util.concurrent.TimeUnit.MILLISECONDS);
+            return true;
+        } catch (java.util.concurrent.RejectedExecutionException rex) {
+            // The executor is gone (undeploy), so no later actor is guaranteed: settle any
+            // concurrent publisher (e.g. the shutdown flush, which may yet fail) and make our
+            // own final write attempts. Only a genuine spool-write failure gets reported lost.
+            if (publishPendingFinal(pending)) {
+                System.out.println("schedulePending(): executor rejected (shutdown?); " +
+                    "published taskId=" + pending.taskId + " directly to the spool");
+                return true;
+            }
+            System.out.println("ERROR: schedulePending() rejected AND direct spool publish " +
+                "failed; requeue LOST for taskId=" + pending.taskId + ": " + rex.toString());
+            return false;
+        }
     }
 
     public static void processCallbackQueueMessage(String message) {
@@ -1154,6 +1312,114 @@ public class IAGateway extends HttpServlet {
         return rtn;
     }
 
+    /**
+     * Bulk-import boxes (spec 4.4): the one place that decides what an import hands to IA. An
+     * import stamped {@code annotationsImported} never detects: its imported-box annotations go
+     * out as {@code annotationIds} in extraction mode. Every other import sends its media asset
+     * ids exactly as before. Shared with the submissions API's prepare (PR E).
+     */
+    public static JSONObject buildImportEnvelope(ImportTask itask) {
+        JSONObject env = new JSONObject();
+
+        if ((itask != null) && itask.annotationsImported()) {
+            env.put("annotationIds", new JSONArray(importedBoxAnnotationIds(itask)));
+            env.put("annotationMode", ANNOTATION_MODE_EXTRACT);
+            return env;
+        }
+        JSONArray maIds = new JSONArray();
+        if ((itask != null) && (itask.getMediaAssets() != null)) {
+            for (MediaAsset asset : itask.getMediaAssets()) {
+                maIds.put(asset.getId());
+            }
+        }
+        env.put("mediaAssetIds", maIds);
+        return env;
+    }
+
+    // every annotation of the import's encounters that carries THIS import's provenance marker
+    static List<String> importedBoxAnnotationIds(ImportTask itask) {
+        List<String> ids = new ArrayList<String>();
+
+        if ((itask == null) || (itask.getEncounters() == null)) return ids;
+        String importId = itask.getId();
+        for (Encounter enc : itask.getEncounters()) {
+            if ((enc == null) || (enc.getAnnotations() == null)) continue;
+            for (Annotation ann : enc.getAnnotations()) {
+                if ((ann == null) || !ann.isImportedBox()) continue;
+                if ((importId == null) || !importId.equals(ann.importedBoxImportTaskId())) continue;
+                if (!ids.contains(ann.getId())) ids.add(ann.getId());
+            }
+        }
+        return ids;
+    }
+
+    /**
+     * The hand-off could not be committed or published. After a rollback nothing from the failed
+     * attempt can be trusted (production runs RestoreValues), so everything is reloaded by id: the
+     * ImportTask, the root (re-created with its id and parameters when the commit never happened),
+     * and the link between them. A boxed import gets one error child holding every box that still
+     * loads, so no box is left task-less and pending; the ImportTask logs it; the recovery commit
+     * is checked. Returns false, after logging, when even that could not be persisted; the caller
+     * reports failure either way.
+     */
+    static boolean recoverHandoffFailure(Shepherd myShepherd, String importTaskId, String rootId,
+        JSONObject rootParameters, List<String> boxIds, String code, String message) {
+        try {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.beginDBTransaction();
+            if (!myShepherd.isDBTransactionActive())
+                throw new IllegalStateException("transaction not active after restart");
+            ImportTask itask = myShepherd.getImportTask(importTaskId);
+            if (itask == null) throw new IllegalStateException("ImportTask " + importTaskId + " not found");
+            Task root = Task.load(rootId, myShepherd);
+            if (root == null) {   // the commit failed: the root was never persisted
+                root = new Task(rootId);
+                root.setParameters(rootParameters);
+            }
+            itask.setIATask(root);
+            IA.markTaskError(root, code, message);
+            Task errorChild = null;
+            if ((boxIds != null) && !boxIds.isEmpty()) {
+                errorChild = new Task(root);
+                for (String id : boxIds) {
+                    // a genuinely missing box is skipped; a datastore failure propagates to the
+                    // catch below, so no holder that omits an existing box is ever committed
+                    Annotation ann = IA.strictAnnotation(myShepherd, id);
+                    if (ann != null) errorChild.addObject(ann);
+                }
+                IA.markTaskError(errorChild, code, message);
+            }
+            itask.addLog("IA hand-off failed (" + code + "): " + message);
+            myShepherd.getPM().makePersistent(root);
+            if (errorChild != null) myShepherd.getPM().makePersistent(errorChild);
+            myShepherd.getPM().makePersistent(itask);
+            boolean ok = myShepherd.commitDBTransactionWithStatus();
+            myShepherd.beginDBTransaction();
+            if (!ok)
+                System.out.println(
+                    "ERROR: IAGateway.recoverHandoffFailure() could not persist the failure for import " +
+                    importTaskId + ": commit failed");
+            return ok;
+        } catch (Exception ex) {
+            System.out.println(
+                "ERROR: IAGateway.recoverHandoffFailure() could not persist the failure for import " +
+                importTaskId + ": " + ex);
+            try {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.beginDBTransaction();
+            } catch (Exception ignore) {}
+            return false;
+        }
+    }
+
+    /**
+     * Bulk-import hand-off. Builds the root and child tasks and the queue message exactly as
+     * before, then (bulk-import boxes PR A, spec 4.4) persists them with ONE checked commit before
+     * publishing, and reports {@code success:false} instead of an unconditional true when the
+     * commit or the publish fails or throws. An import stamped annotationsImported publishes the
+     * extraction-mode envelope from {@link #buildImportEnvelope}; one whose boxes all failed
+     * import has nothing to hand off and completes its root immediately.
+     */
     public static JSONObject handleBulkImport(JSONObject jin, JSONObject res, Shepherd myShepherd,
         String context, String baseUrl)
     throws ServletException, IOException {
@@ -1165,48 +1431,94 @@ public class IAGateway extends HttpServlet {
         String importTaskId = null;
         if (taskParameters != null) importTaskId = taskParameters.optString("importTaskId", null);
         ImportTask itask = null;
-        Task parentTask = null;
-        String resTaskId = null;
         if (importTaskId != null) itask = myShepherd.getImportTask(importTaskId);
-        if (itask != null) {
-            parentTask = new Task(); // root task to hold all others, to connect to ImportTask
-            parentTask.setParameters(taskParameters);
-            myShepherd.storeNewTask(parentTask);
-            itask.setIATask(parentTask);
-            resTaskId = parentTask.getId();
-            itask.addLog("handleBulkImport() initiated IA Task " + resTaskId);
-            System.out.println("IAGateway.handleBulkImport() created parentTask " + parentTask +
-                " to link to " + itask);
+        if (itask == null) {
+            res.put("success", false);
+            res.put("error", "no ImportTask " + importTaskId);
+            return res;
         }
-        int okCount = 0;
-        JSONArray maIds = new JSONArray();
-        for (MediaAsset asset : itask.getMediaAssets()) {
-            maIds.put(asset.getId());
-        }
+        Task parentTask = new Task(); // root task to hold all others, to connect to ImportTask
+        parentTask.setParameters(taskParameters);
+        itask.setIATask(parentTask);
+        String resTaskId = parentTask.getId();
+        itask.addLog("handleBulkImport() initiated IA Task " + resTaskId);
+        System.out.println("IAGateway.handleBulkImport() created parentTask " + parentTask +
+            " to link to " + itask);
         Task task = new Task();
         task.setParameters(taskParameters);
-        myShepherd.storeNewTask(task);
-        if (parentTask != null) parentTask.addChild(task);
-        if (resTaskId == null) resTaskId = task.getId();
-        myShepherd.commitDBTransaction();
-        // System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and queued " + task);
+        parentTask.addChild(task);
+
+        JSONObject env = buildImportEnvelope(itask);
+        boolean boxed = env.has("annotationMode");
         JSONObject qjob = new JSONObject(jin.toString()); // clone it to start with so we get all same content
         qjob.remove("bulkImport"); // ... but then lose this
         qjob.put("taskId", task.getId());
-        qjob.put("mediaAssetIds", maIds);
         qjob.put("v2", true);
         qjob.put("__context", context);
         qjob.put("__baseUrl", baseUrl);
         qjob.put("__handleBulkImport", System.currentTimeMillis());
+        if (boxed) {
+            // a boxed import never detects: the routing keys are replaced explicitly
+            qjob.remove("mediaAssetIds");
+            qjob.put("annotationIds", env.getJSONArray("annotationIds"));
+            qjob.put("annotationMode", env.getString("annotationMode"));
+        } else {
+            qjob.put("mediaAssetIds", env.getJSONArray("mediaAssetIds"));
+        }
         task.setQueueResumeMessage(qjob.toString());
+        List<String> boxIds = boxed ? Util.jsonArrayToStringList(env.getJSONArray("annotationIds")) : new ArrayList<String>();
+        boolean publish = true;
+        if (boxed && boxIds.isEmpty()) {
+            parentTask.setStatus("completed");
+            parentTask.setCompletionDateInMilliseconds();
+            itask.addLog("no imported boxes survived import; nothing to hand off");
+            publish = false;
+        }
+
+        // ONE persist boundary: tree, envelope and resume message, committed with status
+        String code = null;
+        String detail = null;
+        try {
+            myShepherd.getPM().makePersistent(parentTask);
+            myShepherd.getPM().makePersistent(task);
+            myShepherd.getPM().makePersistent(itask);
+            if (myShepherd.commitDBTransactionWithStatus()) {
+                myShepherd.beginDBTransaction();
+            } else {
+                code = "HANDOFF_COMMIT";
+                detail = "commit failed";
+            }
+        } catch (Exception ex) {
+            code = "HANDOFF_COMMIT";
+            detail = ex.toString();
+        }
         // Classified like everything else. The clone above preserves arbitrary request
         // fields, so an import carrying annotationIds + fastlane would otherwise bypass
         // the classifier and land on the serial detection queue. A normal import (media
         // ids, no annotations) still classifies LANE_DETECTION; an EMPTY, annotation-free
         // import now goes to the IA queue, where it performs no intake either way.
-        boolean ok = publishToLane(context, qjob.toString());
-        if (ok) okCount++;
-        res.put("queuedCount", okCount);
+        if ((code == null) && publish) {
+            try {
+                if (!publishToLane(context, qjob.toString())) {
+                    code = "HANDOFF_PUBLISH";
+                    detail = "publishToLane returned false";
+                }
+            } catch (Exception ex) {
+                code = "HANDOFF_PUBLISH";
+                detail = ex.toString();
+            }
+        }
+        if (code != null) {
+            System.out.println("ERROR: IAGateway.handleBulkImport() " + code + " for import " +
+                importTaskId + ": " + detail);
+            recoverHandoffFailure(myShepherd, importTaskId, parentTask.getId(), taskParameters, boxIds,
+                code, detail);
+            res.put("success", false);
+            res.put("error", code);
+            res.put("resTaskId", resTaskId);
+            return res;
+        }
+        res.put("queuedCount", publish ? 1 : 0);
         res.remove("error");
         res.put("success", true);
         res.put("resTaskId", resTaskId);

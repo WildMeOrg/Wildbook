@@ -169,6 +169,7 @@ public class StartupWildbook implements ServletContextListener {
             return;
         }
         Setting.initialize(context);
+        OrganizationMembershipSchema.check(context); // logs an ERROR if the membership migration was skipped
         // Eagerly build the shared OpenSearch REST client BEFORE any consumer threads start, so no
         // match thread ever hits the (now double-checked, synchronized) cold init concurrently.
         // Constructing the client does not contact OpenSearch, so this is safe here.
@@ -211,6 +212,21 @@ public class StartupWildbook implements ServletContextListener {
         // stuck past a threshold and re-enqueue them.
         try {
             runStaleMlServiceReconciliation(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // Bulk-import boxes (spec 4.4): the same at-most-once gap for imported-box extraction
+        // children; republish the stale ones' queue messages once at startup.
+        try {
+            org.ecocean.ia.ImportedBoxReplay.replay(context,
+                System.currentTimeMillis() - STALE_MLSERVICE_THRESHOLD_MS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // Bulk-import boxes (spec 4.1): build the labeled-keyword map now so a configured label
+        // that collides with a reserved box-column suffix is warned about at startup.
+        try {
+            org.ecocean.api.bulk.BulkImportUtil.getLabeledKeywordMap();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -709,12 +725,14 @@ public class StartupWildbook implements ServletContextListener {
             // topTask so the helper creates a root task internally. The
             // reconciler doesn't need an aggregator parent.
             //
-            // The helper internally calls storeNewTask, which commits the
-            // surrounding transaction. So when we get here, either:
+            // The helper commits the child Task with status before it
+            // publishes (IA.enqueueMlServiceJob). So when we get here, either:
             //   - enqueue succeeded: the child Task + queue file are durable;
-            //   - enqueue failed: the child Task IS still persisted (orphan,
-            //     unreachable without a queued job) but the asset remains
-            //     in processing-mlservice for next-startup retry.
+            //   - the queue write failed: the child Task IS still persisted
+            //     (orphan, unreachable without a queued job) but the asset
+            //     remains in processing-mlservice for next-startup retry;
+            //   - the persist or commit failed: nothing was published and
+            //     the asset remains in processing-mlservice as well.
             boolean enqueued = org.ecocean.ia.IA.enqueueOneAssetForMlService(
                 shep, ma, taxy, /* topTask */ null, context, /* baseUrl */ null);
             if (!enqueued) {

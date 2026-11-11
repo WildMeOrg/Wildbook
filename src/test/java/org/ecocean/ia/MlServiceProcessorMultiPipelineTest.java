@@ -311,7 +311,11 @@ class MlServiceProcessorMultiPipelineTest {
 
     private static final class Recorder implements DeferredMatchPublisher {
         final List<JSONObject> published = new ArrayList<>();
-        @Override public void publish(JSONObject payload) { published.add(payload); }
+        boolean result = true;
+        @Override public boolean publish(JSONObject payload) {
+            published.add(payload);
+            return result;
+        }
     }
 
     private static final class DeferGate implements MatchVisibilityGate {
@@ -364,6 +368,28 @@ class MlServiceProcessorMultiPipelineTest {
         assertEquals(1, publisher.published.size());
         assertTrue(publisher.published.get(0).optBoolean("pinVector", false));
         assertFalse(publisher.published.get(0).has("matchGroup"));
+    }
+
+    @Test void failedDeferredPublishFallsBackWithTheSameGroupAndPin() {
+        Recorder failing = new Recorder();
+        failing.result = false;
+        final List<boolean[]> ran = new ArrayList<boolean[]>();
+        MlServiceProcessor p = new MlServiceProcessor("context0", new MlServiceClient(),
+            new DeferGate(), failing) {
+            @Override boolean readSkipIdent(String taskId) { return false; }
+            @Override MlServiceJobOutcome runMatchProspects(List<String> annotationIds,
+                String taskId, JSONObject matchConfig, boolean matchGroup, boolean pinVector) {
+                ran.add(new boolean[] { matchGroup, pinVector });
+                return MlServiceJobOutcome.ok(new ArrayList<String>(annotationIds));
+            }
+        };
+        p.runDeferredMatch(deferredPayload(true));
+        p.runDeferredMatch(deferredPayload(null).put("pinVector", true));
+        p.runDeferredMatch(deferredPayload(null));
+        assertEquals(3, ran.size(), "every lost re-fire runs the match now");
+        assertTrue(ran.get(0)[0] && ran.get(0)[1], "a multi-pipeline group stays a pinned group");
+        assertTrue(!ran.get(1)[0] && ran.get(1)[1], "a multi-pipeline extraction stays pinned");
+        assertTrue(!ran.get(2)[0] && !ran.get(2)[1], "single-pipeline stays unpinned");
     }
 
     @Test void emptyMatchGroupDoesNotTouchTheSharedParent() {

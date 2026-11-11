@@ -846,6 +846,11 @@ public class MatchResult implements java.io.Serializable {
     }
 
     public JSONObject prospectsForApiGet(int cutoff, Set<String> projectIds, Shepherd myShepherd) {
+        return prospectsForApiGet(cutoff, projectIds, myShepherd, null);
+    }
+
+    public JSONObject prospectsForApiGet(int cutoff, Set<String> projectIds, Shepherd myShepherd,
+        MatchResultViewer viewer) {
         JSONObject sj = new JSONObject();
 
         // Batch-load every prospect's parent encounter once (was: one findEncounter per prospect per
@@ -866,7 +871,7 @@ public class MatchResult implements java.io.Serializable {
         for (String type : prospectScoreTypes()) {
             JSONArray jarr = new JSONArray();
             for (MatchResultProspect mrp : prospectsSorted(type, cutoff, projectIds, myShepherd)) {
-                jarr.put(mrp.jsonForApiGet(myShepherd, encByAnnId));
+                jarr.put(mrp.jsonForApiGet(myShepherd, encByAnnId, viewer));
             }
             sj.put(type, jarr);
         }
@@ -874,14 +879,19 @@ public class MatchResult implements java.io.Serializable {
     }
 
     public JSONObject jsonForApiGet(int cutoff, Set<String> projectIds, Shepherd myShepherd) {
+        return jsonForApiGet(cutoff, projectIds, myShepherd, null);
+    }
+
+    public JSONObject jsonForApiGet(int cutoff, Set<String> projectIds, Shepherd myShepherd,
+        MatchResultViewer viewer) {
         JSONObject rtn = new JSONObject();
 
         rtn.put("id", id);
-        rtn.put("queryAnnotation", annotationDetails(queryAnnotation, myShepherd));
+        rtn.put("queryAnnotation", annotationDetails(queryAnnotation, myShepherd, null, viewer));
         rtn.put("numberTotalProspects", numberProspects());
         rtn.put("numberCandidates", getNumberCandidates());
         rtn.put("created", Util.millisToISO8601String(created));
-        rtn.put("prospects", prospectsForApiGet(cutoff, projectIds, myShepherd));
+        rtn.put("prospects", prospectsForApiGet(cutoff, projectIds, myShepherd, viewer));
         rtn.put("projectIds", projectIds);
         return rtn;
     }
@@ -938,6 +948,20 @@ public class MatchResult implements java.io.Serializable {
 
     public static JSONObject annotationDetails(Annotation ann, Shepherd myShepherd,
         java.util.Map<String, Encounter> encByAnnId) {
+        return annotationDetails(ann, myShepherd, encByAnnId, null);
+    }
+
+    // last path segment of the user-facing filename, or null; some stores fall back to a URL path
+    static String displayFilename(MediaAsset ma) {
+        String fn = ma.getUserFilename();
+        if (fn == null) return null;
+        fn = fn.substring(Math.max(fn.lastIndexOf('/'), fn.lastIndexOf('\\')) + 1).trim();
+        return fn.isEmpty() ? null : fn;
+    }
+
+    // viewer decides whether each encounter's locationId is included; null viewer -> never
+    public static JSONObject annotationDetails(Annotation ann, Shepherd myShepherd,
+        java.util.Map<String, Encounter> encByAnnId, MatchResultViewer viewer) {
         JSONObject aj = new JSONObject();
 
         if (ann == null) return aj;
@@ -963,6 +987,7 @@ public class MatchResult implements java.io.Serializable {
         if (ma != null) {
             JSONObject mj = ma.toSimpleJSONObject(bestResolutionURL(ma, myShepherd));
             mj.put("rotationInfo", ma.getRotationInfo());
+            mj.put("filename", displayFilename(ma));
             aj.put("asset", mj);
         }
         Encounter enc = resolveEncounter(ann, myShepherd, encByAnnId);
@@ -971,7 +996,10 @@ public class MatchResult implements java.io.Serializable {
             // TODO add "access" permission value if needed?
             ej.put("id", enc.getId());
             ej.put("taxonomy", enc.getTaxonomyString());
-            ej.put("locationId", enc.getLocationID());
+            String date = enc.getDate();
+            if ((date != null) && !date.isEmpty() && !"Unknown".equals(date)) ej.put("date", date);
+            if ((viewer != null) && viewer.canSeeLocation(enc))
+                ej.put("locationId", enc.getLocationID());
             aj.put("encounter", ej);
             MarkedIndividual indiv = enc.getIndividual();
             if (indiv != null) {
