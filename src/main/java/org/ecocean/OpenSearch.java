@@ -1196,14 +1196,55 @@ public class OpenSearch {
                 res = queryRawScroll(query);
             }
         }
-        // this is a little hacky, but allows us to page thru results enough to cover what we have
-        if (versions.size() > 10000) {
-            putSettings(indexName,
-                new JSONObject("{\"index.max_result_window\": " +
-                Math.round(1.2 * versions.size()) + "}"));
-            MAX_RESULT_WINDOW_CACHE.remove(indexName);
-        }
+        // keep deep paging (from + size) able to reach everything we have indexed
+        ensureMaxResultWindow(indexName, versions.size());
         return versions;
+    }
+
+    /**
+     * The index.max_result_window a sync pass should store for an index holding indexedDocCount
+     * top-level documents: 1.2x the count (headroom for growth between passes), or -1 when the
+     * index fits inside the default window and the setting should be left alone.
+     */
+    static int targetMaxResultWindow(long indexedDocCount) {
+        if (indexedDocCount <= DEFAULT_MAX_RESULT_WINDOW) return -1;
+        return (int)Math.min(Integer.MAX_VALUE, Math.round(1.2d * indexedDocCount));
+    }
+
+    /**
+     * Grow-only: raise index.max_result_window to targetMaxResultWindow() when that exceeds the
+     * value stored on the index. The stored value is read fresh and strictly (never the 60 s cache
+     * or the tolerant default), and any read failure skips the update, so a transient error can
+     * never lower a window, e.g. one an operator raised by hand. Grow-only assumes serialized
+     * settings writers: the GET and the PUT are not atomic, so a concurrent manual increase can
+     * be overwritten and is not automatically restored.
+     */
+    void ensureMaxResultWindow(String indexName, long indexedDocCount)
+    throws IOException {
+        int target = targetMaxResultWindow(indexedDocCount);
+        if (target < 0) return;
+        int current;
+        try {
+            current = readMaxResultWindow(indexName);
+        } catch (Exception ex) {
+            System.out.println("OpenSearch.ensureMaxResultWindow(" + indexName +
+                ") skipped: could not read current setting: " + ex);
+            return;
+        }
+        if (target <= current) return;
+        putSettings(indexName, new JSONObject().put("index.max_result_window", target));
+        MAX_RESULT_WINDOW_CACHE.remove(indexName);
+    }
+
+    // strict read for update decisions: throws on transport or response-shape errors and on a
+    // value that is not an integer; only a settings response that omits the key means the default
+    private int readMaxResultWindow(String indexName)
+    throws IOException {
+        JSONObject index = new JSONObject(getRestResponse(new Request("GET",
+            indexName + "/_settings"))).getJSONObject(indexName).getJSONObject("settings")
+            .getJSONObject("index");
+        if (!index.has("max_result_window")) return DEFAULT_MAX_RESULT_WINDOW;
+        return Integer.parseInt(index.get("max_result_window").toString());
     }
 
     public JSONObject getSettings(final String indexName)
@@ -1226,8 +1267,11 @@ public class OpenSearch {
     public void putSettings(final String indexName, final JSONObject settings)
     throws IOException {
         if (settings == null) throw new IOException("null data passed");
-        Request settingsRequest = new Request("PUT",
-            indexName + "/_settings?preserve_existing=true");
+        // no preserve_existing: that flag leaves an already-stored setting untouched, which made
+        // every max_result_window raise after the first one a silent no-op. The other caller is
+        // createIndex(), whose wildbook_keyword_normalizer definition is authoritative, so an
+        // index template that pre-populated that key is overwritten by design.
+        Request settingsRequest = new Request("PUT", indexName + "/_settings");
         settingsRequest.setJsonEntity(settings.toString());
         String rtn = getRestResponse(settingsRequest);
         System.out.println("OpenSearch.putSettings() on " + indexName + ": " + settings + " => " +
