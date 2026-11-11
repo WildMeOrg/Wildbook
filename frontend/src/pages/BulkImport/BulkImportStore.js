@@ -14,6 +14,14 @@ import {
   parseEncounterDateString,
 } from "./BulkImportConstants";
 import { defaultMaxMediaSize } from "../../constants/photoUpload.js";
+import {
+  boxSuffixOf,
+  hasBoxColumns,
+  isPhotoSlotColumn,
+  isValidBbox,
+  isValidTheta,
+  javaTrim,
+} from "./bulkImportSlots";
 import { toast } from "react-toastify";
 
 dayjs.extend(customParseFormat);
@@ -89,6 +97,9 @@ export class BulkImportStore {
   _synonymFields = [];
   _labeledKeywordAllowedKeys = [];
   _labeledKeywordAllowedPairs = [];
+  _validViewpoints = [];
+  _matchableClasses = {};
+  _indexableFields = null; // null until site settings load
   _applyToAllRowModalShow = false;
   _validationErrors = {};
   _validationWarnings = {};
@@ -97,26 +108,8 @@ export class BulkImportStore {
   _validationRules = {
     "Encounter.mediaAsset0": {
       required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        const images = val.split(",").map((img) => img.trim());
-        let missing = false;
-        images.forEach((img) => {
-          if (!this._uploadedImages.includes(img)) {
-            missing = true;
-          }
-        });
-        return !missing;
-      },
-      message: (val) => {
-        const images = val.split(",").map((img) => img.trim());
-        const missing = images.filter(
-          (img) => !this._uploadedImages.includes(img),
-        );
-        return `MISSING${missing.join(", ")}`;
-      },
+      validate: (val) => this.photoCellValid(val),
+      message: (val) => this.photoCellMessage(val),
     },
     "Encounter.year": {
       required: true,
@@ -494,15 +487,69 @@ export class BulkImportStore {
     const missing = new Set();
 
     this._spreadsheetData.forEach((row) => {
-      const mediaAssets = row["Encounter.mediaAsset0"];
-      if (!mediaAssets) return;
-      mediaAssets.split(",").forEach((name) => {
-        if (!this._uploadedImages.includes(name)) {
-          missing.add(name);
-        }
+      this.photoColumns.forEach((col) => {
+        const mediaAssets = row[col];
+        if (!mediaAssets) return;
+        const names = this.isBoxedSheet
+          ? this.photoNames(mediaAssets)
+          : mediaAssets.split(",");
+        names.forEach((name) => {
+          if (!this._uploadedImages.includes(name)) {
+            missing.add(name);
+          }
+        });
       });
     });
     return Array.from(missing);
+  }
+
+  // a boxed sheet's photo cell is one exact filename; the merged slot-0 cell lists several
+  photoNames(val) {
+    const text = String(val ?? "");
+    if (this.isBoxedSheet) return text.trim() ? [text] : []; // verbatim, as the server matches it
+    return text.split(",").map((img) => img.trim());
+  }
+
+  photoCellValid(val) {
+    if (!val) return true;
+    return this.photoNames(val).every((img) =>
+      this._uploadedImages.includes(img),
+    );
+  }
+
+  photoCellMessage(val) {
+    const missing = this.photoNames(val).filter(
+      (img) => !this._uploadedImages.includes(img),
+    );
+    return `MISSING${missing.join(", ")}`;
+  }
+
+  // bulk-import boxes (spec 4.6): a sheet with box columns keeps every numbered photo slot
+  get isBoxedSheet() {
+    return hasBoxColumns(this._columnsDef, this._indexableFields);
+  }
+
+  get photoColumns() {
+    return this.isBoxedSheet
+      ? this._columnsDef.filter(isPhotoSlotColumn)
+      : ["Encounter.mediaAsset0"];
+  }
+
+  // photos that get no annotation: only counted when at least one box is filled in
+  get unboxedPhotoCount() {
+    if (!this.isBoxedSheet) return 0;
+    const filled = (row, col) => javaTrim(row[col]) !== "";
+    const anyBox = this._spreadsheetData.some((row) =>
+      this.photoColumns.some((col) => filled(row, `${col}.bbox`)),
+    );
+    if (!anyBox) return 0;
+    let count = 0;
+    this._spreadsheetData.forEach((row) => {
+      this.photoColumns.forEach((col) => {
+        if (filled(row, col) && !filled(row, `${col}.bbox`)) count++;
+      });
+    });
+    return count;
   }
 
   get emptyFieldCount() {
@@ -549,12 +596,10 @@ export class BulkImportStore {
           else emptyField += 1;
         }
 
-        if (
-          col.startsWith("Encounter.mediaAsset") &&
-          value &&
-          col.split(".").length === 2
-        ) {
-          const imgs = value.split(/\s*,\s*/);
+        if (isPhotoSlotColumn(col) && value) {
+          const imgs = this.isBoxedSheet
+            ? this.photoNames(value)
+            : value.split(/\s*,\s*/);
           if (imgs.some((img) => uploadingSet.has(img)))
             rowHasPendingUpload = true;
         }
@@ -596,6 +641,36 @@ export class BulkImportStore {
 
   setLabeledKeywordAllowedPairs(values) {
     this._labeledKeywordAllowedPairs = values;
+  }
+
+  setValidViewpoints(viewpoints) {
+    this._validViewpoints = viewpoints || [];
+  }
+
+  setMatchableClasses(classes) {
+    this._matchableClasses = classes || {};
+  }
+
+  setIndexableFields(fields) {
+    this._indexableFields = fields ?? null;
+  }
+
+  get indexableFields() {
+    return this._indexableFields;
+  }
+
+  // what the spreadsheet step's close button clears; uploaded images are kept
+  resetSpreadsheet() {
+    this.setSpreadsheetUploadProgress(0);
+    this.setSpreadsheetFileName("");
+    this.setSpreadsheetData([]);
+    this.setRawData([]);
+    this.setRawColumns([]);
+    this.setColumnsDef([]);
+    this.setWorksheetInfo(0, [], 0, 0, "");
+    this.setValidationErrors({});
+    this.setValidationWarnings({});
+    this.clearSubmissionErrors();
   }
 
   setSpreadsheetData(data) {
@@ -720,10 +795,20 @@ export class BulkImportStore {
 
   setSkipDetection(skip) {
     this._skipDetection = skip;
+    this.revalidate();
   }
 
   setSkipIdentification(skip) {
     this._skipIdentification = skip;
+    this.revalidate();
+  }
+
+  // the iaClass warning depends on the skip flags
+  revalidate() {
+    this.invalidateValidation();
+    const { errors, warnings } = this.validateSpreadsheet();
+    this._validationErrors = errors;
+    this._validationWarnings = warnings;
   }
 
   setMinimalFields(minimalFields) {
@@ -785,31 +870,34 @@ export class BulkImportStore {
     }
   }
 
-  validateMediaAsset0ColumnOnly() {
+  validateMediaAssetColumnsOnly() {
     const errors = {};
     const warnings = {};
 
-    const col = "Encounter.mediaAsset0";
-    const rule = this._validationRules[col];
+    this.photoColumns.forEach((col) => {
+      const rule =
+        this._validationRules[col] ??
+        this._validationRules["Encounter.mediaAsset0"];
+      if (!rule) return;
 
-    if (!rule) return { errors, warnings };
+      this._spreadsheetData.forEach((row, rowIndex) => {
+        const cell = String(row[col] ?? "");
+        const value = this.isBoxedSheet && cell.trim() ? cell : cell.trim();
+        let error = "";
 
-    this._spreadsheetData.forEach((row, rowIndex) => {
-      const value = String(row[col] ?? "").trim();
-      let error = "";
+        if (rule.required && !value) {
+          error = "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD";
+        } else if (rule.validate && !rule.validate.call(this, value)) {
+          error =
+            typeof rule.message === "function"
+              ? rule.message.call(this, value)
+              : rule.message || "Invalid format";
+        }
 
-      if (rule.required && !value) {
-        error = "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD";
-      } else if (rule.validate && !rule.validate.call(this, value)) {
-        error =
-          typeof rule.message === "function"
-            ? rule.message.call(this, value)
-            : rule.message || "Invalid format";
-      }
-
-      if (error) {
-        errors[rowIndex] = { [col]: error };
-      }
+        if (error) {
+          errors[rowIndex] = { ...errors[rowIndex], [col]: error };
+        }
+      });
     });
     return { errors, warnings };
   }
@@ -1298,12 +1386,9 @@ export class BulkImportStore {
           raw["Encounter.specificEpithet"] = s;
         }
 
-        if (norm["Encounter.mediaAsset0"] != null) {
+        if (!this.isBoxedSheet && norm["Encounter.mediaAsset0"] != null) {
           Object.keys(raw).forEach((key) => {
-            if (
-              key.startsWith("Encounter.mediaAsset") &&
-              key.split(".").length === 2
-            ) {
+            if (isPhotoSlotColumn(key)) {
               delete raw[key];
             }
           });
@@ -1448,6 +1533,9 @@ export class BulkImportStore {
   }
 
   isDynamicKnownColumn(col) {
+    if (this.isBoxedSheet && (isPhotoSlotColumn(col) || boxSuffixOf(col))) {
+      return true;
+    }
     const mediaAssetMatch = col.match(/^Encounter\.mediaAsset(\d+)\.(\w+)$/);
     if (mediaAssetMatch) {
       const suffix = mediaAssetMatch[2];
@@ -1493,7 +1581,37 @@ export class BulkImportStore {
       return Array.isArray(allowedValues) && allowedValues.includes(val);
     };
 
+    const boxed = this.isBoxedSheet;
+    const boxRules = {
+      bbox: { validate: isValidBbox, message: "BULKIMPORT_ERROR_INVALID_BBOX" },
+      theta: {
+        validate: isValidTheta,
+        message: "BULKIMPORT_ERROR_INVALID_THETA",
+      },
+      viewpoint: {
+        validate: (val) =>
+          !javaTrim(val) ||
+          this._validViewpoints.length === 0 ||
+          this._validViewpoints.includes(javaTrim(val)),
+        message: "BULKIMPORT_ERROR_INVALID_VIEWPOINT",
+      },
+    };
+
     this._columnsDef.forEach((col) => {
+      if (boxed && isPhotoSlotColumn(col)) {
+        this._validationRules[col] =
+          this._validationRules["Encounter.mediaAsset0"];
+      }
+      const suffix = boxed ? boxSuffixOf(col) : null;
+      if (suffix) {
+        if (boxRules[suffix]) {
+          this._validationRules[col] = { required: false, ...boxRules[suffix] };
+        } else {
+          delete this._validationRules[col]; // e.g. a rule left by an earlier un-boxed sheet
+        }
+        return;
+      }
+
       if (/^Encounter\.keyword\d+$/.test(col)) {
         this._validationRules[col] = {
           required: false,
@@ -1602,7 +1720,9 @@ export class BulkImportStore {
             this.isDynamicKnownColumn(col);
         }
 
+        const boxSuffix = this.isBoxedSheet ? boxSuffixOf(col) : null;
         if (
+          !boxSuffix &&
           col.startsWith("Encounter.mediaAsset") &&
           this._labeledKeywordAllowedKeys.includes(col.split(".")[2])
         ) {
@@ -1648,6 +1768,26 @@ export class BulkImportStore {
         if (!isKnown) {
           if (!warnings[rowIndex]) warnings[rowIndex] = {};
           warnings[rowIndex][col] = "BULKIMPORT_ERROR_INVALID_UNKNOWNCOLUMN";
+          return;
+        }
+
+        if (boxSuffix === "iaClass") {
+          const allowed =
+            this._matchableClasses?.[javaTrim(row["Encounter.genus"])];
+          const iaClass = javaTrim(value);
+          if (
+            iaClass &&
+            Array.isArray(allowed) &&
+            !allowed.includes(iaClass) &&
+            !this._skipDetection &&
+            !this._skipIdentification
+          ) {
+            if (!warnings[rowIndex]) warnings[rowIndex] = {};
+            warnings[rowIndex][col] = {
+              id: "BULKIMPORT_WARNING_IACLASS_NOT_MATCHABLE",
+              values: { allowed: allowed.join(", ") },
+            };
+          }
           return;
         }
 

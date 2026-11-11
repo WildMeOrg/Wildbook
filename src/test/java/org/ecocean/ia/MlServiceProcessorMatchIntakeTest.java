@@ -58,4 +58,19 @@ class MlServiceProcessorMatchIntakeTest {
         assertEquals(Arrays.asList(d, e), groups.get(2));
         assertSame(a, groups.get(0).get(0));
     }
+    // bulk-import boxes PR A, task 7 (spec 4.4): the extraction markers never reach a run
+    @Test void matchIntakeParamsStripsTheExtractionMarkers() {
+        JSONObject p = new JSONObject().put("importTaskId", "i").put("skipIdent", false)
+            .put("matchingSetFilter", new JSONObject().put("locationIds", "x"))
+            .put(Task.PARAM_IMPORTED_BOX, true).put(Task.PARAM_EMBEDDING_EXTRACTION, true)
+            .put("ibeis.detection", true).put(Task.PARAM_RUN_ID, "r");
+        JSONObject out = MlServiceProcessor.matchIntakeParams(p);
+        assertFalse(out.has(Task.PARAM_IMPORTED_BOX));
+        assertFalse(out.has(Task.PARAM_EMBEDDING_EXTRACTION));
+        assertFalse(out.has("ibeis.detection"));
+        assertFalse(out.has(Task.PARAM_RUN_ID));
+        assertEquals("i", out.getString("importTaskId"));
+        assertFalse(out.getBoolean("skipIdent"));
+        assertEquals("x", out.getJSONObject("matchingSetFilter").getString("locationIds"));
+    }
 }

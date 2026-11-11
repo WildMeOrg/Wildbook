@@ -12,7 +12,8 @@ import java.util.UUID;
 /** Credential format: wbsvc_&lt;keyId&gt;.&lt;secret&gt;; the secret is 32 random bytes, base64url. */
 public final class ServiceKeyCredential {
     public static final String PREFIX = "wbsvc_";
-    public static final Set<String> SCOPES = Set.of("data:read", "submissions:read", "submissions:write");
+    public static final String DATA_READ = "data:read";
+    public static final Set<String> SCOPES = Set.of(DATA_READ, "submissions:read", "submissions:write");
     private static final int SECRET_BYTES = 32;
     private static final SecureRandom RANDOM = new SecureRandom();
 

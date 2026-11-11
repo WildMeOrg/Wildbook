@@ -16,6 +16,7 @@ import { observer } from "mobx-react-lite";
 import { useSiteSettings } from "../../SiteSettingsContext";
 import SelectCell from "../../components/SelectCell";
 import BulkImportApplyToAllRowsModal from "./BulkImportApplyToAllRowsModal";
+import { isPhotoSlotColumn, isSlotColumn } from "./bulkImportSlots";
 
 const EditableCell = observer(
   ({ store, value, rowIndex, columnId, setColId, setColValue }) => {
@@ -37,10 +38,7 @@ const EditableCell = observer(
     const handleBlur = (e) => {
       const newValue = e.target.value;
       store.updateCellValue(rowIndex, columnId, newValue);
-      store.invalidateValidation();
-      const { errors, warnings } = store.validateSpreadsheet();
-      store.setValidationErrors(errors);
-      store.setValidationWarnings(warnings);
+      store.revalidate();
       if (columnId === "Encounter.submitterID") {
         setColId(columnId);
         setColValue(newValue);
@@ -48,7 +46,9 @@ const EditableCell = observer(
       }
     };
 
-    const useSelectCell = columnsUseSelectCell.includes(columnId);
+    // boxed sheets: photo and per-photo cells are fixed in the spreadsheet, not here
+    const readOnly = store.isBoxedSheet && isSlotColumn(columnId);
+    const useSelectCell = !readOnly && columnsUseSelectCell.includes(columnId);
 
     const renderInput = () => {
       if (useSelectCell) {
@@ -71,6 +71,7 @@ const EditableCell = observer(
             className={`form-control form-control-sm rounded ${store.validationErrors?.[rowIndex]?.[columnId] ? "is-invalid" : ""}`}
             value={store.spreadsheetData?.[rowIndex]?.[columnId] ?? ""}
             title={value}
+            readOnly={readOnly}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -93,7 +94,7 @@ const EditableCell = observer(
         {!!store.validationErrors?.[rowIndex]?.[columnId] &&
           (() => {
             const rawError = store.validationErrors[rowIndex][columnId];
-            const isMediaAsset = columnId === "Encounter.mediaAsset0";
+            const isMediaAsset = isPhotoSlotColumn(columnId);
 
             if (!isMediaAsset) {
               if (typeof rawError === "object" && rawError.id) {
@@ -119,11 +120,13 @@ const EditableCell = observer(
                 </div>
               );
             }
-            const missingList = rawError
-              .replace(/^MISSING/, "")
-              .split(",")
-              .map((name) => name.trim())
-              .filter(Boolean);
+            const missingText = rawError.replace(/^MISSING/, "");
+            const missingList = store.isBoxedSheet
+              ? [missingText] // one exact filename, commas included
+              : missingText
+                  .split(",")
+                  .map((name) => name.trim())
+                  .filter(Boolean);
 
             return (
               <div
@@ -160,11 +163,14 @@ const EditableCell = observer(
             className="text-warning small mt-1"
             style={{ whiteSpace: "normal" }}
           >
-            {
-              <FormattedMessage
-                id={store.validationWarnings[rowIndex][columnId]}
-              />
-            }
+            {(() => {
+              const warning = store.validationWarnings[rowIndex][columnId];
+              return typeof warning === "object" ? (
+                <FormattedMessage id={warning.id} values={warning.values} />
+              ) : (
+                <FormattedMessage id={warning} />
+              );
+            })()}
           </div>
         )}
       </div>
@@ -228,14 +234,13 @@ export const DataTable = observer(({ store }) => {
   store.setValidBehavior(validBehavior);
   store.setLabeledKeywordAllowedKeys(LabeledKeywordAllowedKeys);
   store.setLabeledKeywordAllowedPairs(LabeledKeywordAllowedPairs);
+  store.setValidViewpoints(siteData?.annotationViewpoint);
+  store.setMatchableClasses(siteData?.bulkImportMatchableClasses);
 
   useEffect(() => {
     if (!siteData) return;
     const timeout = setTimeout(() => {
-      store.invalidateValidation();
-      const { errors, warnings } = store.validateSpreadsheet();
-      store.setValidationErrors(errors);
-      store.setValidationWarnings(warnings);
+      store.revalidate();
     }, 500);
 
     return () => clearTimeout(timeout);
@@ -243,28 +248,20 @@ export const DataTable = observer(({ store }) => {
 
   const validateMediaAssets = useRef(
     throttle(() => {
-      const col = "Encounter.mediaAsset0";
-      const { errors } = store.validateMediaAsset0ColumnOnly();
-
+      const { errors } = store.validateMediaAssetColumnsOnly();
       const currentErrors = store.validationErrors || {};
 
-      store.spreadsheetData.forEach((_, rowIndex) => {
-        const prevError = currentErrors?.[rowIndex]?.[col];
-        const nextError = errors?.[rowIndex]?.[col];
+      store.photoColumns.forEach((col) => {
+        store.spreadsheetData.forEach((_, rowIndex) => {
+          const prevError = currentErrors?.[rowIndex]?.[col];
+          const nextError = errors?.[rowIndex]?.[col];
 
-        if (prevError && !nextError) {
-          store.mergeValidationError(rowIndex, col, "");
-        }
-      });
-
-      Object.entries(errors).forEach(([rowIndexStr, rowErrors]) => {
-        const rowIndex = Number(rowIndexStr);
-        const newError = rowErrors?.[col];
-        const currentError = currentErrors?.[rowIndex]?.[col];
-
-        if (newError && newError !== currentError) {
-          store.mergeValidationError(rowIndex, col, newError);
-        }
+          if (prevError && !nextError) {
+            store.mergeValidationError(rowIndex, col, "");
+          } else if (nextError && nextError !== prevError) {
+            store.mergeValidationError(rowIndex, col, nextError);
+          }
+        });
       });
     }, 2000),
   ).current;

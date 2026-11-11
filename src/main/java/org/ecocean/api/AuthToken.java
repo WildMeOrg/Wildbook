@@ -74,7 +74,8 @@ public class AuthToken extends ApiBase {
                 return;
             }
             long ttl = ttlFromConfig(tokenContext);
-            String scope = request.getParameter("scope");
+            String requestedScope = request.getParameter("scope");
+            String scope = submissionScope(requestedScope);
             if (scope != null) {
                 if (!org.ecocean.api.submission.SubmissionPolicy.READ.equals(scope)
                     && !org.ecocean.api.submission.SubmissionPolicy.WRITE.equals(scope)) {
@@ -102,7 +103,7 @@ public class AuthToken extends ApiBase {
             out.put("token", token);
             out.put("tokenType", "Bearer");
             out.put("expiresInSeconds", ttl / 1000L);
-            if (scope != null) out.put("scope", scope);
+            if (requestedScope != null) out.put("scope", requestedScope);
             response.setStatus(200);
             response.setContentType("application/json");
             response.getWriter().write(out.toString());
@@ -112,6 +113,14 @@ public class AuthToken extends ApiBase {
         } finally {
             myShepherd.rollbackAndClose();
         }
+    }
+
+    /**
+     * The submission scope to sign into the token, or null for a data token. A data token is the
+     * default, so an explicit scope=data:read (the name a service key lists it under) asks for the same.
+     */
+    static String submissionScope(String requestedScope) {
+        return ServiceKeyCredential.DATA_READ.equals(requestedScope) ? null : requestedScope;
     }
 
     /** Service key mode: exchange a wbsvc_ credential for a token that never outlives the key. */
@@ -148,10 +157,11 @@ public class AuthToken extends ApiBase {
                 writeError(response, 503, "token issuance not configured");
                 return;
             }
-            String scope = request.getParameter("scope");
+            String requestedScope = request.getParameter("scope");
+            String scope = submissionScope(requestedScope);
             boolean allowed;
             if (scope == null) {
-                allowed = grant.scopes.contains("data:read");
+                allowed = grant.scopes.contains(ServiceKeyCredential.DATA_READ);
             } else if (org.ecocean.api.submission.SubmissionPolicy.READ.equals(scope)) {
                 allowed = grant.scopes.contains(org.ecocean.api.submission.SubmissionPolicy.READ)
                     || grant.scopes.contains(org.ecocean.api.submission.SubmissionPolicy.WRITE);
@@ -175,23 +185,37 @@ public class AuthToken extends ApiBase {
                     return;
                 }
             }
+            // submission tokens always act as the service account; a data token reads as the key's
+            // creator when the key is bound to them (checked afresh here)
+            String subject = grant.serviceUserId;
+            if (scope == null) {
+                try {
+                    subject = ServiceKeyAuth.dataSubject(myShepherd, grant);
+                } catch (ServiceKeyException ex) {
+                    System.out.println("AuthToken mint DENIED (service key: " + ex.getMessage() + ") key="
+                        + grant.keyId + " ip=" + clientIp);
+                    writeError(response, ex.status, ex.getMessage());
+                    return;
+                }
+            }
             long ttl = ServiceKeyAuth.exchangeTtlMillis(ttlFromConfig(tokenContext), grant.keyExpiresAt, now);
             if (ttl <= 0) {
                 writeError(response, 401, "service key expired");
                 return;
             }
-            String token = jwt.signUntil(grant.serviceUserId, "context0", ttl, scope, grant.keyExpiresAt);
+            String token = jwt.signUntil(subject, "context0", ttl, scope, grant.keyExpiresAt);
             // persist lastUsedAt before handing out the token
             if (!myShepherd.commitDBTransactionWithStatus()) {
                 writeError(response, 500, "token issuance failed");
                 return;
             }
-            System.out.println("AuthToken mint OK key=" + grant.keyId + " org=" + grant.organizationId);
+            System.out.println("AuthToken mint OK key=" + grant.keyId + " org=" + grant.organizationId
+                + (subject.equals(grant.serviceUserId) ? "" : " readAs=" + subject));
             JSONObject out = new JSONObject();
             out.put("token", token);
             out.put("tokenType", "Bearer");
             out.put("expiresInSeconds", ttl / 1000L);
-            if (scope != null) out.put("scope", scope);
+            if (requestedScope != null) out.put("scope", requestedScope);
             out.put("keyExpiresAt", grant.keyExpiresAt);
             response.setStatus(200);
             response.setContentType("application/json");

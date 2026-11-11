@@ -302,4 +302,100 @@ class ImportTaskTest {
         assertEquals(sum.optInt("detectionNumberError"), 1);
         assertEquals(sum.optString("detectionStatus"), "complete");
     }
+    // ---- bulk-import boxes PR A, task 2: annotationsImported flag ----
+
+    @Test void iaSummaryForSuppliedBoxesShowsDetectionDone() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        MediaAsset boxed = mock(MediaAsset.class);
+        MediaAsset unboxed = mock(MediaAsset.class);
+        when(boxed.getDetectionStatus()).thenReturn("complete");
+        // both photos are IA-valid, so the plain calculation would give 1 of 2 = 0.5
+        when(boxed.isValidImageForIA()).thenReturn(true);
+        when(unboxed.isValidImageForIA()).thenReturn(true);
+        List<MediaAsset> someMAs = new ArrayList<MediaAsset>();
+        someMAs.add(boxed);
+        someMAs.add(unboxed);
+        when(itask.getMediaAssets()).thenReturn(someMAs);
+        when(itask.getIATask()).thenReturn(mock(Task.class));
+        when(itask.iaTaskStarted()).thenReturn(true);
+        when(itask.annotationsImported()).thenReturn(true);
+        when(itask.skippedDetection()).thenReturn(true);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals("skipped", sum.optString("detectionStatus"));
+        assertTrue(sum.optBoolean("annotationsImported"));
+        assertEquals(1.0, sum.optDouble("detectionPercent"), 0.0);
+    }
+
+    @Test void iaSummaryForSuppliedBoxesImportOnlySkipsIdentification() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        MediaAsset boxed = mock(MediaAsset.class);
+        when(boxed.isValidImageForIA()).thenReturn(true);
+        List<MediaAsset> someMAs = new ArrayList<MediaAsset>();
+        someMAs.add(boxed);
+        when(itask.getMediaAssets()).thenReturn(someMAs);
+        when(itask.getIATask()).thenReturn(mock(Task.class));
+        when(itask.iaTaskStarted()).thenReturn(true);
+        when(itask.annotationsImported()).thenReturn(true);
+        when(itask.skippedDetection()).thenReturn(true);
+        when(itask.skippedIdentification()).thenReturn(true);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals("skipped", sum.optString("detectionStatus"));
+        assertEquals("skipped", sum.optString("identificationStatus"));
+        assertTrue(sum.optBoolean("annotationsImported"));
+        assertEquals(1.0, sum.optDouble("detectionPercent"), 0.0);
+        assertTrue(sum.optBoolean("pipelineComplete"));
+    }
+
+    @Test void iaSummaryWithoutSuppliedBoxesOmitsTheFlag() {
+        ImportTask itask = mock(ImportTask.class);
+
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        when(itask.getMediaAssets()).thenReturn(new ArrayList<MediaAsset>());
+        when(itask.skippedDetection()).thenReturn(true);
+
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertEquals("skipped", sum.optString("detectionStatus"));
+        assertFalse(sum.has("annotationsImported"));
+    }
+
+    @Test void annotationsImportedSkipsDetectionButNotIdentification() {
+        ImportTask t = new ImportTask();
+        t.setPassedParameters(new JSONObject().put(ImportTask.PARAM_ANNOTATIONS_IMPORTED, true));
+        Task ia = new Task();
+        ia.setParameters(new JSONObject().put("skipIdent", false));
+        t.setIATask(ia);
+        assertTrue(t.annotationsImported());
+        assertTrue(t.skippedDetection());
+        assertFalse(t.skippedIdentification());
+    }
+
+    @Test void annotationsImportedWithSkipIdentSkipsIdentification() { // (regression)
+        ImportTask t = new ImportTask();
+        t.setPassedParameters(new JSONObject().put(ImportTask.PARAM_ANNOTATIONS_IMPORTED, true)
+            .put("skipDetection", true));
+        Task ia = new Task();
+        ia.setParameters(new JSONObject().put("skipIdent", true));
+        t.setIATask(ia);
+        assertTrue(t.skippedDetection());
+        assertTrue(t.skippedIdentification());
+    }
+
+    @Test void plainSkipDetectionStillImpliesSkippedIdentification() { // (regression)
+        ImportTask t = new ImportTask();
+        t.setPassedParameters(new JSONObject().put("skipDetection", true));
+        assertTrue(t.skippedDetection());
+        assertTrue(t.skippedIdentification());
+    }
+
+    @Test void nullPassedParametersMeanNothingImported() {
+        ImportTask t = new ImportTask();
+        assertFalse(t.annotationsImported());
+        assertFalse(t.skippedDetection());
+    }
 }

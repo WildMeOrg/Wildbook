@@ -7,10 +7,7 @@ const ApplyToAllRowsModal = observer(({ store, columnId, newValue }) => {
   const handleConfirm = () => {
     store.applyToAllRows(columnId, newValue);
     store.setApplyToAllRowModalShow(false);
-    store.invalidateValidation();
-    const { errors, warnings } = store.validateSpreadsheet();
-    store.setValidationErrors(errors);
-    store.setValidationWarnings(warnings);
+    store.revalidate();
   };
 
   const handleCancel = () => {
