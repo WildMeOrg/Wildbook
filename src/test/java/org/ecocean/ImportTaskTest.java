@@ -416,6 +416,71 @@ class ImportTaskTest {
         assertFalse(sum.optBoolean("pipelineComplete"));
     }
 
+    static Task child(Task parent, String status) {
+        Task kid = rootWithStatus(status);
+        parent.addChild(kid);
+        return kid;
+    }
+
+    @Test void boxedImportWithNoBoxFinishesWhenEveryTaskBelowItsRootEnded() {   // review: UrbanFercec
+        JSONObject none = new JSONObject().put("numLatestTasks", 0);
+        for (boolean skipIdent : new boolean[] { true, false }) {
+            // the submissions hand-off: the request found no box and ended in error; the root has no status
+            Task root = rootWithStatus(null);
+            child(root, "error");
+            JSONObject sum = boxedSummaryTask(skipIdent, none, root).iaSummaryJson(mock(Shepherd.class));
+            assertTrue("request ended in error, skipIdent=" + skipIdent, sum.optBoolean("pipelineComplete"));
+            if (!skipIdent) assertEquals("complete", sum.optString("identificationStatus"));
+            // every box was deleted before intake: the request ended as completed
+            root = rootWithStatus(null);
+            child(root, "completed");
+            sum = boxedSummaryTask(skipIdent, none, root).iaSummaryJson(mock(Shepherd.class));
+            assertTrue("request completed, skipIdent=" + skipIdent, sum.optBoolean("pipelineComplete"));
+        }
+    }
+
+    @Test void boxedImportWithNoBoxWaitsForEveryTaskBelowItsRoot() {
+        JSONObject none = new JSONObject().put("numLatestTasks", 0);
+        // a sibling still pending
+        Task root = rootWithStatus(null);
+        child(root, "completed");
+        child(root, "initiated");
+        assertFalse("a pending sibling", boxedSummaryTask(false, none, root).iaSummaryJson(mock(Shepherd.class))
+            .optBoolean("pipelineComplete"));
+        // an ended task whose own child is still running: the walk does not stop at an ended task
+        root = rootWithStatus(null);
+        child(child(root, "completed"), "processing");
+        assertFalse("a running grandchild", boxedSummaryTask(false, none, root).iaSummaryJson(mock(Shepherd.class))
+            .optBoolean("pipelineComplete"));
+        // a request that has not ended, even with an ended task below it (conservative on purpose)
+        root = rootWithStatus(null);
+        child(child(root, null), "error");
+        assertFalse("a request without a status", boxedSummaryTask(false, none, root).iaSummaryJson(mock(Shepherd.class))
+            .optBoolean("pipelineComplete"));
+        // a childless root without a status
+        assertFalse("nothing below the root", boxedSummaryTask(false, none, rootWithStatus(null))
+            .iaSummaryJson(mock(Shepherd.class)).optBoolean("pipelineComplete"));
+        // boxes still counted: the walk is only for the no-box case (Codex: skipIdent=true too, where
+        // identification is "skipped" and only the box count can hold the import back)
+        JSONObject running = new JSONObject().put("numLatestTasks", 1).put("numLatestTask_processing", 1);
+        for (boolean skipIdent : new boolean[] { true, false }) {
+            Task spied = org.mockito.Mockito.spy(rootWithStatus(null));
+            child(spied, "completed");
+            org.mockito.Mockito.clearInvocations(spied);
+            assertFalse("a box still running, skipIdent=" + skipIdent, boxedSummaryTask(skipIdent, running, spied)
+                .iaSummaryJson(mock(Shepherd.class)).optBoolean("pipelineComplete"));
+            org.mockito.Mockito.verify(spied, org.mockito.Mockito.never()).getChildren();
+        }
+    }
+
+    @Test void everyDescendantEndedSurvivesACycle() {
+        Task root = rootWithStatus(null);
+        Task a = child(root, "completed");
+        a.addChild(root);   // malformed: the root under its own child; the walk still ends
+        assertTrue(boxedSummaryTask(false, new JSONObject().put("numLatestTasks", 0), root)
+            .iaSummaryJson(mock(Shepherd.class)).optBoolean("pipelineComplete"));
+    }
+
     @Test void boxedImportWithIdentificationFollowsItsBoxes() {
         JSONObject running = new JSONObject().put("numLatestTasks", 2).put("numLatestTask_completed", 1)
             .put("numLatestTask_processing", 1);
