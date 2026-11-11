@@ -18,7 +18,7 @@ Create a private draft, upload photographs, provide sighting rows, check the
 validation report, then commit the approved data once and collect the resulting
 record IDs. Drafting and validation do not create sighting records. Commit does.
 Import creates new encounters, one per row, owned by the submitting
-account. Detection may later add annotations and additional encounters. New submissions default to animal detection followed by individual identification
+account, or by the person named in `onBehalfOf` when the draft has one. Detection may later add annotations and additional encounters. New submissions default to animal detection followed by individual identification
 matching after import. Matching returns candidates for review; it does not automatically
 assign an individual identity. Existing records are not updated.
 
@@ -38,8 +38,9 @@ assign an individual identity. Existing records are not updated.
   `POST /api/v3/auth/token?scope=submissions:write`. Use a non-admin integration
   account for the pilot; do not mint with an operator's own account merely because
   they are setting it up. The authenticated token account becomes the draft owner.
-  Record that account's expected user ID and compare it with `effectiveOwnerId`
-  in the validation report before committing. Have the operator supply
+  Record that account's expected user ID and compare it with `draftOwnerId`
+  in the validation report before committing. For a draft with `onBehalfOf`, also
+  check that `effectiveOwner` names the collector you intended. Have the operator supply
   only the token through the runtime's secret mechanism; do not request their password.
   Alternatively, the operator may configure an organization service key (`wbsvc_...`).
   Trade it for a short-lived token with `POST /api/v3/auth/token?scope=submissions:write`
@@ -142,6 +143,37 @@ The mode is fixed at creation, and this API has no "start AI later" or AI retry
 operation for an existing submission. Retry with the saved original create body and
 key; do not change mode or make another batch to force matching.
 
+#### Crediting the person who collected the sightings (organization service keys only)
+
+In Wildbook, the account that owns a record decides who can see and edit it. With an
+organization service key, records are owned by the organization's service account unless you
+name the collector when you create the draft:
+
+```jsonc
+{
+  "contractVersion": "1",
+  "source": {"name": "field-survey-integration"},
+  "onBehalfOf": "jdoe"
+}
+```
+
+- `onBehalfOf` is either the exact Wildbook username of a person who is a direct member of the
+  key's organization, or exactly `public`. Use the username the person or the operator gives
+  you; never guess one. Nothing else is accepted, and no account is ever created for a name.
+- It applies to every row of the draft and cannot be changed afterwards. If one batch holds
+  sightings from several collectors, make one draft per collector.
+- A named member then owns the encounters, the new sighting and the import task, exactly as if
+  they had uploaded them. They can see and edit them, and their collaborators and the
+  organization's administrators keep their usual viewing and editing permissions.
+- `public` makes the records open to everyone: anyone can view them, including people who are
+  not logged in, any logged-in user can edit them or delete the whole import, and other
+  organizations' keys can find them and fetch their images. Use it only when the person
+  confirms the data is meant to be public.
+- Only a service key may send `onBehalfOf`. An ordinary account's draft is refused with HTTP 403
+  `ATTRIBUTION_NOT_ALLOWED`.
+- After a member is named, the service key itself usually can no longer see those records in
+  search. The submission's results still list their IDs for the key that sent them.
+
 Upgrade note: existing submissions retain their saved mode, including older
 omitted-mode submissions normalized to import-only. Retrying an existing create
 without a mode uses its saved mode; it does not upgrade that submission. New
@@ -222,7 +254,8 @@ photo with that animal's own box. Every use of that photo must then carry a box,
 and two rows may not carry the identical box.
 The per-encounter image limit from capabilities can be lower than 200.
 
-Do not send legacy fields such as `Encounter.submitterID`, `Encounter.id`,
+Do not send legacy fields such as `Encounter.submitterID` (to credit a collector, use
+`onBehalfOf` when creating the draft), `Encounter.id`,
 `Encounter.catalogNumber`, `Encounter.individualID`, `Encounter.otherCatalogNumbers`,
 `Encounter.latitude`, `Encounter.longitude`, timestamp/millisecond fields, project,
 keyword, measurement, `Sighting.*` or `MarkedIndividual.*` fields. They are not
@@ -317,6 +350,10 @@ POST `/api/v3/submissions/{id}/validate` with `{}` and the current If-Match.
 HTTP 200 means a validation report was produced, not that the data passed. Check
 `valid`, `errors`, `warnings`, `normalizedRows`, `revision`, `effectiveOwnerId`, and
 `processing`. Save the report's `id` as the `validationId` for commit.
+`effectiveOwnerId` is who will own the records: the named member's user ID, `public`, or
+otherwise the account that sent the draft. `draftOwnerId` is always the sending account. For a
+draft with `onBehalfOf`, `effectiveOwner` gives the resolved `username`, `userId` and
+`organizationId` (the IDs are `null` for `public`); confirm it is the intended person.
 
 An illustrative excerpt of a failed report is:
 
@@ -396,7 +433,8 @@ Concrete failure examples and corrections (assume other fields are valid):
 | the identical box twice on one photo | `DUPLICATE_BOX` on the later row's `.bbox` | Keep one row per animal; remove the duplicate. |
 | `Encounter.mediaAsset0.iaClass` without a `.bbox`, or a box without a class | `INVALID_VALUE` (`REQUIRES_FIELD` or `MISSING_CLASS`) | Send the box and its class together. |
 | too many images in one row | `LIMIT_EXCEEDED` | Respect maxMediaPerEncounter; do not split one observation into fabricated encounters to bypass it. |
-| `Encounter.submitterID`, `Encounter.otherCatalogNumbers`, or another unsupported field | `UNSUPPORTED_FIELD` | Use the supported contract; the authenticated account determines ownership. |
+| `Encounter.submitterID`, `Encounter.otherCatalogNumbers`, or another unsupported field | `UNSUPPORTED_FIELD` | Use the supported contract. To credit the collector with a service key, use `onBehalfOf` when creating the draft. |
+| `onBehalfOf` is neither exactly `public` nor the exact username of a direct member of the key's organization (for example a misspelled or differently capitalized username, or someone outside the organization) | `SUBMITTER_NOT_ALLOWED` on `onBehalfOf` | Ask the person for the collector's exact username. `onBehalfOf` cannot be changed, so create a new draft with the corrected name. |
 | `Encounter.sightingID` already used by a sighting in this Wildbook | `SIGHTING_EXISTS` on `Encounter.sightingID` | Ask the person. Existing sightings cannot be added to through this API; do not invent a different ID. |
 | `Encounter.sightingID` `"herd 12"`, or a number instead of a string | `INVALID_VALUE` (`INVALID`) on `Encounter.sightingID` | Report the source ID to the person; do not alter it to pass validation. |
 
@@ -412,6 +450,10 @@ the API does not overwrite or individually delete completed uploads. Keep within
 the total draft byte budget. Review normalized data, effective ownership, and the validation report
 `processing.mode` before commit; the mode must match the intended request. A valid report applies to that input revision. Commit checks the recorded
 location/media-policy digest; execution revalidates all rows and current eligibility.
+If the named collector has left the organization, or the username now belongs to someone else,
+commit returns HTTP 409 `VALIDATION_STALE`, or a queued import ends `failed` with that code and
+imports nothing. If the key's account is no longer a service account, the code is
+`ATTRIBUTION_NOT_ALLOWED`.
 Taxonomy/life-stage/living-status changes can therefore cause execution to fail
 after queue acceptance, rather than yielding a commit-time conflict.
 
@@ -458,6 +500,9 @@ GET `/api/v3/submissions/{id}/results?limit=100` returns `rows` with `clientRowI
 Follow `nextCursor` by passing it as `cursor`, retaining your chosen limit; absence
 means the final page. Limits are 1–200. Results obey current access permissions,
 so do not promise that a later read always contains every previously visible row.
+A draft created with `onBehalfOf` is the exception: the service account that sent it
+always gets its rows' IDs back as a receipt, even though the records belong to the
+collector and it cannot open them.
 `links.importTask` opens the existing task page when available.
 
 `indexing`, `derivatives`, `detection`, and `identification` are separate phase

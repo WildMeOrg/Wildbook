@@ -84,6 +84,16 @@ class SubmissionValidatorTest {
         }
     }
 
+    /** A key never creates a User: every bulk column the shared importer can create an account from stays unsupported. */
+    @Test void columnsThatCouldCreateAnAccountAreNotSupported() {
+        for (String field : new String[] { "Encounter.submitterID",
+                "Encounter.submitter0.emailAddress", "Encounter.submitter0.fullName", "Encounter.submitter0.affiliation",
+                "Encounter.photographer0.emailAddress", "Encounter.photographer0.fullName", "Encounter.photographer0.affiliation",
+                "Encounter.informOther0.emailAddress", "Encounter.informOther0.fullName", "Encounter.informOther0.affiliation",
+                "Encounter.project0.ownerUsername", "Encounter.project0.projectIdPrefix", "Encounter.project0.researchProjectName" })
+            assertFalse(SubmissionValidator.supported(field), field);
+    }
+
     // ---- bulk-import boxes PR E (spec 4.9) ----
     static final String DETECT = "{\"processing\":{\"mode\":\"detect-and-identify\"}}";
     static final String IMPORT_ONLY = "{\"processing\":{\"mode\":\"import-only\"}}";

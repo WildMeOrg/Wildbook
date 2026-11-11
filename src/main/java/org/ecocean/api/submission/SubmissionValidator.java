@@ -51,6 +51,12 @@ public class SubmissionValidator {
             catch (Exception ex) { issue(errors, null, -1, null, "INVALID_MEDIA", "Staged image unavailable or invalid: " + file.getString("name")); }
         }
         if (rows.length() == 0) issue(errors, null, -1, null, "REQUIRED_VALUE", "At least one row required");
+        // the collector named at create; the owner must still be a service account (403 otherwise)
+        JSONObject collector = null;
+        if (SubmissionAttribution.requested(draft) != null) {
+            collector = SubmissionAttribution.resolve(sh, draft);
+            if (collector == null) issue(errors, null, -1, SubmissionAttribution.FIELD, SubmissionAttribution.NOT_ALLOWED, SubmissionAttribution.NOT_ALLOWED_MESSAGE);
+        }
         // bulk-import boxes (spec 4.9): every eligible photo use, by filename, for the cross-row pass below
         Map<String, List<Use>> uses = new LinkedHashMap<>();
         Map<String, Boolean> sightingExists = new HashMap<>();
@@ -158,12 +164,17 @@ public class SubmissionValidator {
                 }
             }
         }
-        return new JSONObject().put("id", UUID.randomUUID().toString()).put("submissionId", draft.getId())
+        Object effectiveOwnerId = collector == null ? draft.getOwnerId()
+            : collector.isNull("userId") ? SubmissionAttribution.PUBLIC : collector.get("userId");
+        JSONObject report = new JSONObject().put("id", UUID.randomUUID().toString()).put("submissionId", draft.getId())
             .put("revision", draft.getRevision()).put("valid", errors.length() == 0)
             .put("configDigest", SubmissionJson.hash(SubmissionJson.canonical(config)))
             .put("manifestDigest", SubmissionJson.hash(SubmissionJson.canonical(files)))
             .put("errors", errors).put("warnings", new JSONArray()).put("normalizedRows", normalized)
-            .put("effectiveOwnerId", draft.getOwnerId()).put("processing", new JSONObject().put("mode", draft.getProcessingMode()));
+            .put("effectiveOwnerId", effectiveOwnerId).put("draftOwnerId", draft.getOwnerId())
+            .put("processing", new JSONObject().put("mode", draft.getProcessingMode()));
+        if (collector != null) report.put("effectiveOwner", collector);
+        return report;
     }
     private static final class Use { int row; String source, bareField, bboxField, boxKey; boolean boxed; }
 

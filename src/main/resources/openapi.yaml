@@ -215,6 +215,8 @@ components:
           $ref: '#/components/schemas/SubmissionApiSource'
         processing:
           $ref: '#/components/schemas/SubmissionApiProcessing'
+        onBehalfOf:
+          $ref: '#/components/schemas/SubmissionApiOnBehalfOf'
         createdAt:
           type: string
           format: date-time
@@ -332,7 +334,14 @@ components:
             $ref: '#/components/schemas/SubmissionApiRow'
         effectiveOwnerId:
           type: string
+          description: Who will own the imported records. The named member's user id (a UUID),
+            the literal "public", or otherwise the draft owner's user id.
+        draftOwnerId:
+          type: string
           format: uuid
+          description: The account that sent the draft.
+        effectiveOwner:
+          $ref: '#/components/schemas/SubmissionApiEffectiveOwner'
         processing:
           $ref: '#/components/schemas/SubmissionApiProcessing'
     SubmissionApiValidate:
@@ -388,8 +397,9 @@ components:
           type: object
           additionalProperties:
             type: string
-          description: Authorized task and record URL links; clients must not construct
-            page paths from IDs.
+          description: Task and record page links for navigation. Opening one is subject
+            to the browser session's own access (for a draft with onBehalfOf the import
+            task belongs to the collector). Clients must not construct page paths from IDs.
         derivatives:
           $ref: '#/components/schemas/SubmissionApiPhase'
     SubmissionApiPhase:
@@ -476,6 +486,7 @@ components:
           - FILE_CONTENT_CONFLICT
           - INTERNAL_ERROR
           - CAPABILITY_UNAVAILABLE
+          - ATTRIBUTION_NOT_ALLOWED
         message:
           type: string
           minLength: 1
@@ -489,7 +500,9 @@ components:
       description: DUPLICATE_CLIENT_ROW_ID is 422; INVALID_STATE is 409; PRECONDITION_REQUIRED
         is 428; REVISION_STALE is 412; IDEMPOTENCY_KEY_REUSED and ALREADY_COMMITTED are
         409; LIMIT_EXCEEDED is 413 for input size or 429 for quotas; ADMISSION_DISABLED
-        is 503.
+        is 503; ATTRIBUTION_NOT_ALLOWED is 403 (onBehalfOf on a draft not owned by an
+        organization service account). A named collector that no longer resolves at commit
+        is VALIDATION_STALE.
     SubmissionApiIssue:
       type: object
       additionalProperties: true
@@ -670,6 +683,10 @@ components:
           type: array
           items:
             type: string
+        attribution:
+          type: object
+          additionalProperties: true
+          description: How a service-key submission names who owns its records (onBehalfOf).
     SubmissionApiAccepted:
       type: object
       additionalProperties: true
@@ -747,6 +764,39 @@ components:
           $ref: '#/components/schemas/SubmissionApiSource'
         processing:
           $ref: '#/components/schemas/SubmissionApiProcessing'
+        onBehalfOf:
+          $ref: '#/components/schemas/SubmissionApiOnBehalfOf'
+    SubmissionApiOnBehalfOf:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: >-
+        Organization service keys only. Who owns what this submission imports: exactly
+        "public", or the exact username of a direct member of the key's organization who is
+        not a service account. Trimmed; fixed for the life of the draft; applies to every row.
+        No account is ever created. Any other value makes validation report
+        SUBMITTER_NOT_ALLOWED; a draft not owned by a service account is refused with 403
+        ATTRIBUTION_NOT_ALLOWED. A named member also becomes the creator of the import task.
+        "public" records are readable by anyone and editable by any logged-in user.
+    SubmissionApiEffectiveOwner:
+      type: object
+      additionalProperties: false
+      required:
+      - username
+      - userId
+      - organizationId
+      properties:
+        username:
+          type: string
+        userId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Null for public.
+        organizationId:
+          type: string
+          nullable: true
+          description: Null for public.
     SubmissionApiResultRow:
       type: object
       additionalProperties: true

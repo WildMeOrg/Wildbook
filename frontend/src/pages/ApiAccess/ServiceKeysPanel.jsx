@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import { Button, Modal, Form, Alert, Table } from "react-bootstrap";
+import PasswordPromptModal from "./PasswordPromptModal";
 import {
   listManageableOrgs,
   listKeys,
@@ -37,6 +38,7 @@ export default function ServiceKeysPanel({ username }) {
   const [label, setLabel] = useState("");
   const [scopes, setScopes] = useState(["data:read"]);
   const [days, setDays] = useState(String(DEFAULT_DAYS));
+  const [readAsCreator, setReadAsCreator] = useState(false);
 
   // pending = {run(authObj)} while the password prompt is open
   const [pending, setPending] = useState(null);
@@ -58,7 +60,9 @@ export default function ServiceKeysPanel({ username }) {
         ? t("API_SERVICE_KEY_LIMIT")
         : t("API_SERVICE_KEY_ACCOUNT_CONFLICT")
       : err.status === 403
-        ? t("API_SERVICE_KEY_FORBIDDEN")
+        ? /direct member/.test(err.message || "")
+          ? t("API_SERVICE_KEY_READ_AS_NOT_MEMBER")
+          : t("API_SERVICE_KEY_FORBIDDEN")
         : t("API_SERVICE_KEY_ERROR");
 
   const closePanel = () => {
@@ -72,6 +76,7 @@ export default function ServiceKeysPanel({ username }) {
     setLabel("");
     setScopes(["data:read"]);
     setDays(String(DEFAULT_DAYS));
+    setReadAsCreator(false);
   };
 
   const askPassword = (run) => {
@@ -140,6 +145,8 @@ export default function ServiceKeysPanel({ username }) {
     setCreated(null);
     setError(null);
     setKeys([]);
+    // consent to read with one's own access is per key and per organization
+    setReadAsCreator(false);
     try {
       await refresh(auth, id);
     } catch (err) {
@@ -155,11 +162,13 @@ export default function ServiceKeysPanel({ username }) {
         label: label.trim(),
         scopes,
         days: daysNum,
+        readAsCreator: readAsCreator && scopes.includes("data:read"),
       });
       setAuth(creds);
       setCreated(res);
       setError(null);
       setLabel("");
+      setReadAsCreator(false);
       return () => refresh(creds, orgId);
     });
   };
@@ -185,10 +194,13 @@ export default function ServiceKeysPanel({ username }) {
     });
   };
 
-  const toggleScope = (s) =>
+  const toggleScope = (s) => {
+    // dropping data:read withdraws the read-as choice; re-adding it starts unticked
+    if (s === "data:read") setReadAsCreator(false);
     setScopes((cur) =>
       cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s],
     );
+  };
 
   const status = (k) =>
     k.revokedAt
@@ -269,6 +281,7 @@ export default function ServiceKeysPanel({ username }) {
                     <th>{t("API_SERVICE_KEY_SCOPES")}</th>
                     <th>{t("API_SERVICE_KEY_EXPIRES")}</th>
                     <th>{t("API_SERVICE_KEY_CREATED_BY")}</th>
+                    <th>{t("API_SERVICE_KEY_READS_AS")}</th>
                     <th>{t("API_SERVICE_KEY_LAST_USED")}</th>
                     <th>{t("API_SERVICE_KEY_STATUS")}</th>
                     <th />
@@ -281,6 +294,11 @@ export default function ServiceKeysPanel({ username }) {
                       <td>{(k.scopes || []).join(", ")}</td>
                       <td>{fmt(k.expiresAt)}</td>
                       <td>{k.createdByName || "\u2014"}</td>
+                      <td>
+                        {k.readAsCreator
+                          ? t("API_SERVICE_KEY_READS_AS_CREATOR")
+                          : t("API_SERVICE_KEY_READS_AS_SERVICE")}
+                      </td>
                       <td>
                         {k.lastUsedAt
                           ? fmt(k.lastUsedAt)
@@ -339,6 +357,18 @@ export default function ServiceKeysPanel({ username }) {
                     <Form.Text>{t("API_SERVICE_KEY_WRITE_NEEDS_ADMIN")}</Form.Text>
                   )}
                 </Form.Group>
+                {scopes.includes("data:read") && (
+                  <Form.Group className="mb-2">
+                    <Form.Check
+                      type="checkbox"
+                      id="svc-read-as-creator"
+                      label={t("API_SERVICE_KEY_READ_AS_CREATOR")}
+                      checked={readAsCreator}
+                      onChange={(e) => setReadAsCreator(e.target.checked)}
+                    />
+                    <Form.Text>{t("API_SERVICE_KEY_READ_AS_CREATOR_HELP")}</Form.Text>
+                  </Form.Group>
+                )}
                 <Form.Group className="mb-3" controlId="svc-days">
                   <Form.Label>{t("API_SERVICE_KEY_DAYS")}</Form.Label>
                   <Form.Control
@@ -365,37 +395,15 @@ export default function ServiceKeysPanel({ username }) {
         </Modal.Body>
       </Modal>
 
-      <Modal show={!!pending} onHide={cancelPrompt}>
-        <Form onSubmit={submitPassword}>
-          <Modal.Header closeButton>
-            <Modal.Title>{t("API_SERVICE_KEY_PASSWORD_TITLE")}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <p>{t("API_SERVICE_KEY_PASSWORD_PROMPT")}</p>
-            {promptError && <Alert variant="danger">{promptError}</Alert>}
-            <Form.Group>
-              <Form.Label htmlFor="svc-pw">
-                {t("API_SERVICE_KEY_PASSWORD")}
-              </Form.Label>
-              <Form.Control
-                id="svc-pw"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={cancelPrompt}>
-              {t("API_SERVICE_KEY_CANCEL")}
-            </Button>
-            <Button type="submit" disabled={busy || !password}>
-              {t("API_SERVICE_KEY_CONFIRM")}
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+      <PasswordPromptModal
+        show={!!pending}
+        password={password}
+        setPassword={setPassword}
+        error={promptError}
+        busy={busy}
+        onCancel={cancelPrompt}
+        onSubmit={submitPassword}
+      />
     </div>
   );
 }

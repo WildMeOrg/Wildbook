@@ -87,6 +87,7 @@ public class Submission {
     public String getId() { return id; }
     public String getContext() { return context; }
     public String getOwnerId() { return ownerId; }
+    public String getCreateJson() { return createJson; }
     public String getCreateHash() { return createHash; }
     public String getRowsJson() { return rowsJson; }
     public String getFilesJson() { return filesJson; }
@@ -133,6 +134,7 @@ public class Submission {
             .put("createdAt", Instant.ofEpochMilli(createdAt).toString())
             .put("expiresAt", Instant.ofEpochMilli(expiresAt).toString())
             .put("rowCount", originalCreate ? 0 : new JSONArray(rowsJson).length());
+        if (original.has("onBehalfOf")) result.put("onBehalfOf", original.getString("onBehalfOf"));
         if (!originalCreate && !"[]".equals(rowsJson)) result.put("rowsDigest", org.ecocean.api.submission.SubmissionJson.hash(rowsJson));
         if (!originalCreate && jobId != null) result.put("operationId", jobId).put("importTaskId", jobId)
             .put("indexing", new JSONObject().put("state", phase))
