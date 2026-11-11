@@ -97,6 +97,18 @@ class IAGatewayRequestRootTest {
         assertEquals("imp-1", p.getString("importTaskId"));
     }
 
+    @Test void gatewayTaskParamsDropTheMarkerAtEveryDepth() {   // review: UrbanFercec
+        JSONObject nested = new JSONObject().put(Task.PARAM_IMPORTED_BOX, true).put("keep", 1);
+        JSONObject j = new JSONObject().put("taskParameters", new JSONObject()
+            .put("x", nested)
+            .put("list", new org.json.JSONArray().put(new JSONObject().put(Task.PARAM_IMPORTED_BOX, true)))
+            .put("importTaskId", "imp-1"));
+        JSONObject p = IAGateway.gatewayTaskParams(j, null);
+        assertFalse(p.toString().contains(Task.PARAM_IMPORTED_BOX), p.toString());
+        assertEquals(1, p.getJSONObject("x").getInt("keep"));
+        assertEquals("imp-1", p.getString("importTaskId"));
+    }
+
     @Test void storedGatewayRootIsNotReplacedAgainByHandleRest() {
         // a fresh replacement root (the loaded task was an umbrella) and a reused media-asset root
         Task umbrella = new Task("u-2");

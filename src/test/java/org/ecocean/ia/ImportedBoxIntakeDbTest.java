@@ -791,6 +791,65 @@ class ImportedBoxIntakeDbTest extends IdentificationDbTestSupport {
             assertNull(ann.getIdentificationStatus());
             assertEquals(0, Task.getTasksFor(ann, check).size());
             assertNull(ann.getMediaAsset().getDetectionStatus());
+            Task root = Task.load(req.getId(), check);   // review: UrbanFercec - the root still ends
+            assertEquals("error", root.getStoredStatus());
+            assertTrue(String.valueOf(root.getStatusDetails()).contains("INVALID_ENVELOPE"),
+                String.valueOf(root.getStatusDetails()));
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
+    @Test void rootWhoseBoxesAreAllGoneCompletesWithNothingToDo() throws Exception {   // review: UrbanFercec
+        Shepherd sh = open("fixture");
+        Task req = requestTask(sh, nextImportId(), false);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+
+        List<JSONObject> jobs = handleRestCapturing(envelope(req.getId(),
+            Arrays.asList("00000000-0000-0000-0000-00000000dead"), IAGateway.ANNOTATION_MODE_EXTRACT));
+        assertEquals(0, jobs.size());
+        Shepherd check = open("check");
+        try {
+            Task root = Task.load(req.getId(), check);
+            assertEquals("completed", root.getStoredStatus());
+            assertTrue(root.getChildren() == null || root.getChildren().isEmpty());
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+    @Test void aFailedCommitOfTheEmptyRootEndsItThroughRecovery() throws Exception {   // Codex round 1
+        Shepherd fixture = open("fixture");
+        Encounter boxed = boxedEncounter(fixture, ML_GENUS, ML_SPECIES, nextImportId(), 1);
+        Task req = requestTask(fixture, nextImportId(), false);   // another import: nothing is taken
+        List<String> ids = annotationIds(boxed);
+        fixture.commitDBTransaction();
+        fixture.closeDBTransaction();
+
+        Shepherd real = open("intake");
+        Shepherd sh = spy(real);
+        AtomicInteger commits = new AtomicInteger();
+        doAnswer(inv -> {
+            if (commits.incrementAndGet() == 1) { real.rollbackDBTransaction(); return false; }
+            return inv.callRealMethod();
+        }).when(sh).commitDBTransactionWithStatus();
+        List<JSONObject> jobs = new ArrayList<JSONObject>();
+        try (MockedStatic<IAGateway> gateway = mockStatic(IAGateway.class, CALLS_REAL_METHODS)) {
+            gateway.when(() -> IAGateway.addToDetectionQueue(eq(CTX), anyString())).thenAnswer(call -> {
+                jobs.add(new JSONObject(call.getArgument(1, String.class))); return true; });
+            Task root = Task.load(req.getId(), sh);
+            assertEquals(0, IA.intakeImportedBoxes(sh, ids, root, CTX, BASE));
+        } finally {
+            real.rollbackAndClose();
+        }
+        assertEquals(0, jobs.size(), "nothing was published");
+        assertTrue(commits.get() >= 2, "the recovery committed");
+        Shepherd check = open("check");
+        try {
+            Task reqTask = Task.load(req.getId(), check);
+            assertEquals("error", reqTask.getStoredStatus());
+            assertEquals("EXTRACTION_PERSIST", MultiAlgorithmIntakeDbTest.errorCode(reqTask));
+            assertNull(check.getAnnotation(ids.get(0)).getIdentificationStatus(), "the other import's box is untouched");
         } finally {
             check.rollbackAndClose();
         }

@@ -16,6 +16,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.ecocean.Annotation;
@@ -533,8 +534,9 @@ class MlServiceProcessorImportedBoxDbTest extends IdentificationDbTestSupport {
         Fixture f = boxedImport(1, false);
         String a = f.annIds.get(0);
         String childA = f.childFor(a);
-        // "none" and "unknown" are stored text that some helpers treat as "no value"
-        for (String corrupt : new String[] { "{\"importedBox\":true,", "none", "Unknown" }) {
+        // a real imported-box child whose parameters no longer parse still fails closed: its stored
+        // job and its held box say what it is ("none"/"Unknown" are text some helpers read as "no value")
+        for (String corrupt : new String[] { "{\"importedBox\":true,", "importedBox", "none", "Unknown", "{broken" }) {
             Shepherd sh = open("corrupt");
             try {
                 Task.load(childA, sh).setParameters(corrupt);
@@ -547,6 +549,25 @@ class MlServiceProcessorImportedBoxDbTest extends IdentificationDbTestSupport {
         }
         assertEquals(0, client.calls);
         assertEquals(0, embeddings(a));
+    }
+
+    @Test void unreadableParametersWithoutTheMarkerDoNotStopAnOrdinaryJob() throws Exception {   // review: UrbanFercec
+        // a plain task, e.g. detection, whose stored parameters do not parse is not an imported-box
+        // child: the check lets its job through, as before the check existed
+        for (String corrupt : new String[] { "{broken", "none", "Unknown" }) {
+            Shepherd sh = open("plain");
+            Task plain = new Task();
+            plain.setParameters(corrupt);
+            plain.setQueueResumeMessage(new JSONObject().put("mlServiceV2", true).put("mediaAssetId", 1)
+                .put("taskId", plain.getId()).toString());   // a detection job names an asset, not a box
+            sh.getPM().makePersistent(plain);
+            String id = plain.getId();
+            sh.commitDBTransaction();
+            sh.closeDBTransaction();
+            assertNull(processor.importedBoxJobMismatch(id, new ArrayList<String>()), "stored parameters: " + corrupt);
+            assertNull(processor.importedBoxJobMismatch(id, new ArrayList<String>(Arrays.asList("ann-x"))),
+                "stored parameters: " + corrupt);
+        }
     }
 
     static void restamp(String childId, String importId) {

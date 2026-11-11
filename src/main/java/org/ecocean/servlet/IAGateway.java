@@ -513,7 +513,7 @@ public class IAGateway extends HttpServlet {
             tparams.put("username", tuser.getUsername());
         }
         // the imported-box marker is only ever set by the server, on the children it creates
-        tparams.remove(Task.PARAM_IMPORTED_BOX);
+        Task.stripImportedBoxMarker(tparams);
         return org.ecocean.ia.IA.scrubRunParams(tparams);
     }
 
@@ -1434,7 +1434,7 @@ public class IAGateway extends HttpServlet {
         String importTaskId = null;
         if (taskParameters != null) importTaskId = taskParameters.optString("importTaskId", null);
         // the imported-box marker is only ever set by the server, on the children it creates
-        if (taskParameters != null) taskParameters.remove(Task.PARAM_IMPORTED_BOX);
+        if (taskParameters != null) Task.stripImportedBoxMarker(taskParameters);
         ImportTask itask = null;
         if (importTaskId != null) itask = myShepherd.getImportTask(importTaskId);
         if (itask == null) {

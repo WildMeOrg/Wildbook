@@ -137,8 +137,13 @@ public class MlServiceProcessor {
             } catch (javax.jdo.JDOObjectNotFoundException notFound) {
                 return null;
             }
-            if (task.hasUnreadableParameters())
-                throw new IllegalStateException("task " + taskId + " has unreadable parameters");
+            if (task.hasUnreadableParameters()) {
+                // fail closed when anything persisted says this could be an imported-box child;
+                // any other task with unreadable parameters is not one, and its job runs as before
+                if (mayBeImportedBoxChild(task))
+                    throw new IllegalStateException("task " + taskId + " has unreadable parameters");
+                return null;
+            }
             if (!Task.isImportedBoxTask(task)) return null;
             String boxId = null;
             String stored = task.getQueueResumeMessage();
@@ -154,6 +159,25 @@ public class MlServiceProcessor {
         } finally {
             shep.rollbackAndClose();
         }
+    }
+
+    /**
+     * For a task whose parameters cannot be read: true when other persisted evidence could make it
+     * an imported-box child, namely the marker text, a stored job that names an annotation (only
+     * extraction children store one), or a held annotation that is an imported box.
+     */
+    static boolean mayBeImportedBoxChild(Task task) {
+        if (task.rawParametersMentionImportedBox()) return true;
+        String stored = task.getQueueResumeMessage();
+        if (stored != null) {
+            JSONObject job = Util.stringToJSONObject(stored);
+            if ((job == null) || job.has("annotationId")) return true;   // unreadable job: fail closed
+        }
+        List<Annotation> held = task.getObjectAnnotations();
+        if (held != null) {
+            for (Annotation ann : held) if ((ann != null) && ann.isImportedBox()) return true;
+        }
+        return false;
     }
 
     private MlServiceJobOutcome processDetection(JSONObject jobData, String taxonomyString,

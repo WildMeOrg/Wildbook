@@ -1052,6 +1052,7 @@ public class IA {
         String importId = (root.getParameters() == null) ? null
             : root.getParameters().optString("importTaskId", null);
         List<StagedBox> staged = new ArrayList<StagedBox>();
+        int foreign = 0;   // named, existing, but not a box of this root's import
         Map<String, Task> speciesTasks = new LinkedHashMap<String, Task>();
         Map<String, List<Annotation>> wbiaSpecies = new LinkedHashMap<String, List<Annotation>>();
         boolean committed = false;
@@ -1075,6 +1076,7 @@ public class IA {
                 if (!ann.isImportedBoxOf(importId)) {
                     System.out.println("WARN: IA.intakeImportedBoxes() annotation " + id +
                         " is not a box of import " + importId + "; skipped");
+                    foreign++;
                     continue;
                 }
                 MediaAsset ma = ann.getMediaAsset();
@@ -1088,6 +1090,24 @@ public class IA {
                 taxonomies.put(key, taxy);
                 if (!bySpecies.containsKey(key)) bySpecies.put(key, new ArrayList<Annotation>());
                 bySpecies.get(key).add(ann);
+            }
+            if (bySpecies.isEmpty() && noTaxonomy.isEmpty()) {
+                // nothing was taken, so no task below will ever end the root: end it here, so a
+                // client polling it does not wait forever. Boxes of another import (or a root with
+                // no import) make the envelope invalid; boxes that were all deleted leave nothing to do.
+                if (foreign > 0) {
+                    markTaskError(root, "INVALID_ENVELOPE", foreign +
+                        " named annotation(s) are not boxes of import " + importId);
+                } else {
+                    root.setStatus("completed");
+                    root.setCompletionDateInMilliseconds();
+                }
+                myShepherd.getPM().makePersistent(root);
+                // a failed commit goes to the staging recovery below, which ends the root in error
+                if (!myShepherd.commitDBTransactionWithStatus())
+                    throw new IllegalStateException("could not commit the end of a root that took no box");
+                myShepherd.beginDBTransaction();
+                return 0;
             }
             if (!noTaxonomy.isEmpty()) {
                 Task t = errorChildHolding(root, noTaxonomy, "NO_TAXONOMY",
