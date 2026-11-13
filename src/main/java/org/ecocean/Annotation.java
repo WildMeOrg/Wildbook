@@ -409,6 +409,11 @@ public class Annotation extends Base implements java.io.Serializable {
         return (marker == null) ? null : marker.optString("importTaskId", null);
     }
 
+    // true only for a box that the given bulk import created
+    public boolean isImportedBoxOf(String importTaskId) {
+        return Util.stringExists(importTaskId) && importTaskId.equals(importedBoxImportTaskId());
+    }
+
     public void setFeatures(ArrayList<Feature> f) {
         features = f;
         this.setVersion();
