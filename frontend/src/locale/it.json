@@ -472,6 +472,7 @@
   "HAS_ACM_ID": "Ha acmID",
   "TOTAL_ANNOTATIONS": "Annotazioni totali",
   "VALID_FOR_IMAGE_ANALYSIS": "Valido per analisi immagine",
+  "VALID_FOR_IMAGE_ANALYSIS_UNCHECKED": "{count} non verificate",
   "TOTAL_MARKED_INDIVIDUALS": "Totale individui marcati",
   "IMAGES_UPLOADED_TITLE": "Immagini caricate: {count}",
   "FILE_UPLOADED_SUCCESSFULLY": "File caricato con successo",
