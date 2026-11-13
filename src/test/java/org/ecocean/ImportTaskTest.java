@@ -343,6 +343,9 @@ class ImportTaskTest {
         when(itask.annotationsImported()).thenReturn(true);
         when(itask.skippedDetection()).thenReturn(true);
         when(itask.skippedIdentification()).thenReturn(true);
+        // its one box has been extracted
+        when(itask.statsAnnotations(any(Shepherd.class))).thenReturn(
+            new JSONObject().put("numLatestTasks", 1).put("numLatestTask_completed", 1));
 
         JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
         assertEquals("skipped", sum.optString("detectionStatus"));
@@ -350,6 +353,162 @@ class ImportTaskTest {
         assertTrue(sum.optBoolean("annotationsImported"));
         assertEquals(1.0, sum.optDouble("detectionPercent"), 0.0);
         assertTrue(sum.optBoolean("pipelineComplete"));
+    }
+
+    // ---- a boxed import is finished when its boxes are, not when its labels say "skipped" ----
+
+    /** A started boxed import with one IA-valid photo; stats and root as given. */
+    static ImportTask boxedSummaryTask(boolean skipIdent, JSONObject stats, Task root) {
+        ImportTask itask = mock(ImportTask.class);
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        MediaAsset boxed = mock(MediaAsset.class);
+        when(boxed.isValidImageForIA()).thenReturn(true);
+        List<MediaAsset> someMAs = new ArrayList<MediaAsset>();
+        someMAs.add(boxed);
+        when(itask.getMediaAssets()).thenReturn(someMAs);
+        when(itask.getIATask()).thenReturn(root);
+        when(itask.iaTaskStarted()).thenReturn(true);
+        when(itask.annotationsImported()).thenReturn(true);
+        when(itask.skippedDetection()).thenReturn(true);
+        when(itask.skippedIdentification()).thenReturn(skipIdent);
+        when(itask.iaTaskRequestedIdentification()).thenReturn(!skipIdent);
+        when(itask.statsAnnotations(any(Shepherd.class))).thenReturn(stats);
+        return itask;
+    }
+
+    static Task rootWithStatus(String status) {
+        Task root = new Task();
+        if (status != null) root.setStatus(status);
+        return root;
+    }
+
+    @Test void boxedImportOnlyIsNotCompleteWhileBoxesAreStillExtracting() {
+        JSONObject stats = new JSONObject().put("numLatestTasks", 3).put("numLatestTask_completed", 1)
+            .put("numLatestTask_initiated", 1).put("numLatestTask_processing", 1);
+        JSONObject sum = boxedSummaryTask(true, stats, rootWithStatus(null)).iaSummaryJson(mock(Shepherd.class));
+        assertEquals("skipped", sum.optString("detectionStatus"));
+        assertEquals("skipped", sum.optString("identificationStatus"));
+        assertFalse("two boxes have not been extracted yet", sum.optBoolean("pipelineComplete"));
+        assertTrue(sum.optBoolean("pipelineStarted"));
+    }
+
+    @Test void boxedImportOnlyIsCompleteOnceEveryBoxEnded() {
+        // an errored or dropped box has ended too
+        JSONObject stats = new JSONObject().put("numLatestTasks", 3).put("numLatestTask_completed", 1)
+            .put("numLatestTask_error", 1).put("numLatestTask_dropped-stale", 1);
+        JSONObject sum = boxedSummaryTask(true, stats, rootWithStatus(null)).iaSummaryJson(mock(Shepherd.class));
+        assertTrue(sum.optBoolean("pipelineComplete"));
+    }
+
+    @Test void boxedImportWithNoSurvivingBoxFinishesWithItsRoot() {
+        // identification was requested, no box survived: the completed root ends the pipeline
+        JSONObject none = new JSONObject().put("numLatestTasks", 0);
+        JSONObject sum = boxedSummaryTask(false, none, rootWithStatus("completed")).iaSummaryJson(mock(Shepherd.class));
+        assertEquals("complete", sum.optString("identificationStatus"));
+        assertEquals(1.0, sum.optDouble("identificationPercent"), 0.0);
+        assertTrue(sum.optBoolean("pipelineComplete"));
+        // an error root ends it as well
+        sum = boxedSummaryTask(false, none, rootWithStatus("error")).iaSummaryJson(mock(Shepherd.class));
+        assertTrue(sum.optBoolean("pipelineComplete"));
+        // a root that has not ended does not
+        sum = boxedSummaryTask(false, none, rootWithStatus(null)).iaSummaryJson(mock(Shepherd.class));
+        assertEquals("identification not started", sum.optString("identificationStatus"));
+        assertFalse(sum.optBoolean("pipelineComplete"));
+    }
+
+    static Task child(Task parent, String status) {
+        Task kid = rootWithStatus(status);
+        parent.addChild(kid);
+        return kid;
+    }
+
+    @Test void boxedImportWithNoBoxFinishesWhenEveryTaskBelowItsRootEnded() {   // review: UrbanFercec
+        JSONObject none = new JSONObject().put("numLatestTasks", 0);
+        for (boolean skipIdent : new boolean[] { true, false }) {
+            // the submissions hand-off: the request found no box and ended in error; the root has no status
+            Task root = rootWithStatus(null);
+            child(root, "error");
+            JSONObject sum = boxedSummaryTask(skipIdent, none, root).iaSummaryJson(mock(Shepherd.class));
+            assertTrue("request ended in error, skipIdent=" + skipIdent, sum.optBoolean("pipelineComplete"));
+            if (!skipIdent) assertEquals("complete", sum.optString("identificationStatus"));
+            // every box was deleted before intake: the request ended as completed
+            root = rootWithStatus(null);
+            child(root, "completed");
+            sum = boxedSummaryTask(skipIdent, none, root).iaSummaryJson(mock(Shepherd.class));
+            assertTrue("request completed, skipIdent=" + skipIdent, sum.optBoolean("pipelineComplete"));
+        }
+    }
+
+    @Test void boxedImportWithNoBoxWaitsForEveryTaskBelowItsRoot() {
+        JSONObject none = new JSONObject().put("numLatestTasks", 0);
+        // a sibling still pending
+        Task root = rootWithStatus(null);
+        child(root, "completed");
+        child(root, "initiated");
+        assertFalse("a pending sibling", boxedSummaryTask(false, none, root).iaSummaryJson(mock(Shepherd.class))
+            .optBoolean("pipelineComplete"));
+        // an ended task whose own child is still running: the walk does not stop at an ended task
+        root = rootWithStatus(null);
+        child(child(root, "completed"), "processing");
+        assertFalse("a running grandchild", boxedSummaryTask(false, none, root).iaSummaryJson(mock(Shepherd.class))
+            .optBoolean("pipelineComplete"));
+        // a request that has not ended, even with an ended task below it (conservative on purpose)
+        root = rootWithStatus(null);
+        child(child(root, null), "error");
+        assertFalse("a request without a status", boxedSummaryTask(false, none, root).iaSummaryJson(mock(Shepherd.class))
+            .optBoolean("pipelineComplete"));
+        // a childless root without a status
+        assertFalse("nothing below the root", boxedSummaryTask(false, none, rootWithStatus(null))
+            .iaSummaryJson(mock(Shepherd.class)).optBoolean("pipelineComplete"));
+        // boxes still counted: the walk is only for the no-box case (Codex: skipIdent=true too, where
+        // identification is "skipped" and only the box count can hold the import back)
+        JSONObject running = new JSONObject().put("numLatestTasks", 1).put("numLatestTask_processing", 1);
+        for (boolean skipIdent : new boolean[] { true, false }) {
+            Task spied = org.mockito.Mockito.spy(rootWithStatus(null));
+            child(spied, "completed");
+            org.mockito.Mockito.clearInvocations(spied);
+            assertFalse("a box still running, skipIdent=" + skipIdent, boxedSummaryTask(skipIdent, running, spied)
+                .iaSummaryJson(mock(Shepherd.class)).optBoolean("pipelineComplete"));
+            org.mockito.Mockito.verify(spied, org.mockito.Mockito.never()).getChildren();
+        }
+    }
+
+    @Test void everyDescendantEndedSurvivesACycle() {
+        Task root = rootWithStatus(null);
+        Task a = child(root, "completed");
+        a.addChild(root);   // malformed: the root under its own child; the walk still ends
+        assertTrue(boxedSummaryTask(false, new JSONObject().put("numLatestTasks", 0), root)
+            .iaSummaryJson(mock(Shepherd.class)).optBoolean("pipelineComplete"));
+    }
+
+    @Test void boxedImportWithIdentificationFollowsItsBoxes() {
+        JSONObject running = new JSONObject().put("numLatestTasks", 2).put("numLatestTask_completed", 1)
+            .put("numLatestTask_processing", 1);
+        JSONObject sum = boxedSummaryTask(false, running, rootWithStatus(null)).iaSummaryJson(mock(Shepherd.class));
+        assertEquals("sent", sum.optString("identificationStatus"));
+        assertFalse(sum.optBoolean("pipelineComplete"));
+        // every way a box can end counts, here one of each
+        JSONObject mixed = new JSONObject().put("numLatestTasks", 3).put("numLatestTask_completed", 1)
+            .put("numLatestTask_error", 1).put("numLatestTask_dropped-stale", 1);
+        sum = boxedSummaryTask(false, mixed, rootWithStatus(null)).iaSummaryJson(mock(Shepherd.class));
+        assertEquals("complete", sum.optString("identificationStatus"));
+        assertTrue(sum.optBoolean("pipelineComplete"));
+        JSONObject done = new JSONObject().put("numLatestTasks", 2).put("numLatestTask_completed", 2);
+        sum = boxedSummaryTask(false, done, rootWithStatus(null)).iaSummaryJson(mock(Shepherd.class));
+        assertEquals("complete", sum.optString("identificationStatus"));
+        assertTrue(sum.optBoolean("pipelineComplete"));
+    }
+
+    @Test void importWithoutSuppliedBoxesKeepsItsCompletionRule() { // (regression)
+        ImportTask itask = mock(ImportTask.class);
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
+        when(itask.getMediaAssets()).thenReturn(new ArrayList<MediaAsset>());
+        when(itask.getIATask()).thenReturn(rootWithStatus(null));
+        when(itask.iaTaskStarted()).thenReturn(true);
+        when(itask.skippedDetection()).thenReturn(true);
+        when(itask.skippedIdentification()).thenReturn(true);
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
+        assertTrue("skipped + skipped is complete when no boxes were supplied", sum.optBoolean("pipelineComplete"));
     }
 
     @Test void iaSummaryWithoutSuppliedBoxesOmitsTheFlag() {
