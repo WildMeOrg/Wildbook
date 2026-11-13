@@ -198,6 +198,17 @@ export const BulkImportSetLocation = observer(({ store }) => {
           className="d-flex flex-column "
           style={{ width: "300px", marginLeft: "auto" }}
         >
+          {store.unboxedPhotoCount > 0 && (
+            <div
+              className="alert alert-warning mt-3 mb-0"
+              id="unboxed-photos-warning"
+            >
+              <FormattedMessage
+                id="BULKIMPORT_UNBOXED_PHOTOS_WARNING"
+                values={{ count: store.unboxedPhotoCount }}
+              />
+            </div>
+          )}
           <div className="form-check mt-3">
             <input
               className="form-check-input"

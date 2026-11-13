@@ -83,7 +83,7 @@ public class SubmissionJson {
     }
     public static JSONObject create(JSONObject value) { return create(value, "detect-and-identify"); }
     public static JSONObject create(JSONObject value, String defaultMode) {
-        keys(value, "contractVersion", "source", "processing");
+        keys(value, "contractVersion", "source", "processing", SubmissionAttribution.FIELD);
         if (!"1".equals(value.opt("contractVersion"))) throw new SubmissionException(400, "BAD_REQUEST", "Unsupported contract version");
         JSONObject source = value.optJSONObject("source");
         if (source == null) throw new SubmissionException(400, "BAD_REQUEST", "source is required");
@@ -95,8 +95,15 @@ public class SubmissionJson {
         keys(processing, "mode");
         if (!"import-only".equals(processing.opt("mode")) && !"detect-and-identify".equals(processing.opt("mode")))
             throw new SubmissionException(422, "CAPABILITY_UNAVAILABLE", "Use detect-and-identify or import-only");
-        return new JSONObject().put("contractVersion", "1").put("source", new JSONObject(source.toString()))
+        JSONObject normalized = new JSONObject().put("contractVersion", "1").put("source", new JSONObject(source.toString()))
             .put("processing", processing);
+        if (value.has(SubmissionAttribution.FIELD)) {
+            Object raw = value.get(SubmissionAttribution.FIELD);
+            String name = raw instanceof String ? ((String)raw).trim() : "";
+            if (name.isEmpty() || name.length() > 100) throw new SubmissionException(400, "BAD_REQUEST", "Invalid onBehalfOf");
+            normalized.put(SubmissionAttribution.FIELD, name);
+        }
+        return normalized;
     }
     public static JSONArray rows(JSONObject value) {
         keys(value, "rows");

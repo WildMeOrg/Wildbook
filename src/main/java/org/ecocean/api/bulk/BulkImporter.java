@@ -33,6 +33,9 @@ import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.User;
+import org.ecocean.media.Feature;
+import org.ecocean.media.FeatureType;
+import org.ecocean.LabeledKeyword;
 import org.ecocean.Util;
 
 public class BulkImporter {
@@ -81,7 +84,15 @@ public class BulkImporter {
     }
     private Map<String, User> userCache = new HashMap<String, User>();
     private Map<String, Keyword> keywordCache = new HashMap<String, Keyword>();
+    // bulk-import boxes: labeled keywords keyed by (label, value); never in keywordCache, whose
+    // keys are free-text ordinary keywords such as "colour=red"
+    private Map<List<String>, LabeledKeyword> labeledKeywordCache =
+        new HashMap<List<String>, LabeledKeyword>();
     private Map<String, Project> projectCache = new HashMap<String, Project>();
+    // bulk-import boxes (spec 4.1): when any row carries an Encounter.mediaAsset#.bbox field,
+    // EVERY row reads its per-slot metadata by exact slot number instead of positionally
+    private final boolean exactSlotMode;
+    private FeatureType bboxFeatureType = null;
 
     public BulkImporter(String id, List<Map<String, Object> > rows, Map<String, MediaAsset> maMap,
         User user, Shepherd myShepherd) {
@@ -95,6 +106,25 @@ public class BulkImporter {
         this.importTaskId = id;
         this.myShepherd = myShepherd;
         this.startTime = System.currentTimeMillis();
+        this.exactSlotMode = hasBboxColumn(rows);
+    }
+
+    private static boolean hasBboxColumn(List<Map<String, Object> > rows) {
+        if (rows == null) return false;
+        for (Map<String, Object> row : rows) {
+            // findIndexedFieldNames swallows the unknown-field exception a tolerated column raises
+            for (String name : BulkImportUtil.findIndexedFieldNames(row.keySet(),
+                "Encounter.mediaAsset.bbox")) {
+                if (name != null) return true;
+            }
+        }
+        return false;
+    }
+
+    private FeatureType bboxType() {
+        if (bboxFeatureType == null)
+            bboxFeatureType = FeatureType.load("org.ecocean.boundingBox", myShepherd);
+        return bboxFeatureType;
     }
 
     public JSONObject createImport()
@@ -107,10 +137,26 @@ public class BulkImporter {
             if (rowNum % 100 == 0) logProgress("processRow=" + rowNum);
             List<BulkValidator> fields = new ArrayList<BulkValidator>();
             Map<String, Object> rowResult = dataRows.get(rowNum);
+            // bulk-import boxes (spec 4.1): a box whose angle was rejected is never stored at
+            // angle 0. Its .bbox is withheld, so the slot's photo is imported without the box
+            // (as it is for a rejected class); a blank or absent angle still means 0.
+            Set<Integer> rejectedTheta = new HashSet<Integer>();
+            for (String rowFieldName : rowResult.keySet()) {
+                if (!(rowResult.get(rowFieldName) instanceof Exception)) continue;
+                int slot = BulkImportUtil.boxSlot(rowFieldName, "theta");
+                if (slot >= 0) rejectedTheta.add(slot);
+            }
             for (String rowFieldName : rowResult.keySet()) {
                 Object fieldObj = rowResult.get(rowFieldName);
                 if (fieldObj instanceof BulkValidator) {
-                    fields.add((BulkValidator)fieldObj);
+                    BulkValidator bv = (BulkValidator)fieldObj;
+                    if (bv.indexPrefixEquals("Encounter.mediaAsset.bbox") &&
+                        rejectedTheta.contains(bv.getIndexInt())) {
+                        trace("[WARN] createImport: row=" + rowNum + " " + rowFieldName +
+                            " has a rejected angle; its photo is imported without the box");
+                        continue;
+                    }
+                    fields.add(bv);
                 }
                 // } else if (fieldObj instanceof BulkValidatorException) {
             }
@@ -182,6 +228,13 @@ public class BulkImporter {
             trace("EEEE " + enc);
             arr.put(enc.getId());
             needIndexing.add(enc);
+            // bulk-import boxes: the matchable boxes are indexed with their encounter (trivial
+            // annotations are not match candidates and stay out, as before)
+            if (enc.getAnnotations() != null) {
+                for (Annotation ann : enc.getAnnotations()) {
+                    if (ann.isImportedBox()) needIndexing.add(ann);
+                }
+            }
             persistenceTicks++;
             markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
@@ -272,6 +325,7 @@ public class BulkImporter {
  */
         List<String> maFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
             "Encounter.mediaAsset");
+        Map<String, List<String> > boxFields = BulkImportUtil.boxFieldNames(allFieldNames);
         List<String> kwFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
             "Encounter.keyword");
         List<String> multiKwFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
@@ -742,6 +796,12 @@ public class BulkImporter {
             BulkValidator bv = fmap.get(maKey);
             if (bv == null) throw new RuntimeException("could not find fmap for key=" + maKey);
             if (bv.valueIsNull()) continue;
+            int slot = bv.getIndexInt();
+            // bulk-import boxes (spec 4.1): per-slot metadata by the slot number in exact-slot
+            // mode, positionally (as before) otherwise
+            int metaIndex = exactSlotMode ? slot : offset;
+            BulkValidator bboxBV = fmap.get(BulkImportUtil.boxFieldName(boxFields, "bbox", slot));
+            boolean boxed = (bboxBV != null) && !bboxBV.valueIsNull();
             MediaAsset ma = this.mediaAssetMap.get(bv.getValueString());
             if (ma == null) {
                 // The referenced image has no MediaAsset — typically because it
@@ -754,24 +814,29 @@ public class BulkImporter {
                 // slot — otherwise a later valid image would inherit this
                 // corrupt image's positional metadata.
                 trace("[WARN] processRow: skipping image with no MediaAsset (likely "
-                    + "corrupt/unreadable) for maKey=" + maKey + ", value=" + bv.getValueString());
+                    + "corrupt/unreadable) for maKey=" + maKey + ", value=" + bv.getValueString() +
+                    (boxed ? " and its box" : ""));
                 offset++;
                 continue;
             }
             Set<String> kws = new HashSet<String>();
-            if ((offset < kwFields.size()) && (kwFields.get(offset) != null))
-                kws.add(fmap.get(kwFields.get(offset)).getValueString());
+            if ((metaIndex < kwFields.size()) && (kwFields.get(metaIndex) != null))
+                kws.add(fmap.get(kwFields.get(metaIndex)).getValueString());
             // StandardImport claims multivalue keywordS is delimited by underscore :/ is this for real?
-            if ((offset < multiKwFields.size()) && (multiKwFields.get(offset) != null)) {
-                String multi = fmap.get(multiKwFields.get(offset)).getValueString();
+            if ((metaIndex < multiKwFields.size()) && (multiKwFields.get(metaIndex) != null)) {
+                String multi = fmap.get(multiKwFields.get(metaIndex)).getValueString();
                 if (multi != null) kws.addAll(Arrays.asList(multi.split("_")));
             }
             handleKeywords(ma, kws);
-            Annotation ann = new Annotation(tx, ma);
+            if (exactSlotMode) handleLabeledKeywords(ma, slot, fmap);
+            Double quality = null;
+            if ((metaIndex < maQuality.size()) && (maQuality.get(metaIndex) != null))
+                quality = fmap.get(maQuality.get(metaIndex)).getValueDouble();
+            Annotation ann = boxed ? importedBox(ma, slot, bboxBV, fmap, boxFields, quality) : null;
+            if (ann == null) ann = new Annotation(tx, ma);
             ann.setIsExemplar(true);
             ann.setSkipAutoIndexing(true);
-            if ((offset < maQuality.size()) && (maQuality.get(offset) != null))
-                ann.setQuality(fmap.get(maQuality.get(offset)).getValueDouble());
+            if (quality != null) ann.setQuality(quality);
             annots.add(ann);
             offset++;
         }
@@ -802,6 +867,81 @@ public class BulkImporter {
 
     public List<Encounter> getEncounters() {
         return new ArrayList<Encounter>(encounterCache.values());
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.3): the matchable annotation for a boxed slot, or null when the
+     * guard fails. The guard needs the slot's .bbox and .iaClass AND the row's Encounter.genus
+     * and Encounter.specificEpithet validators present with values: under tolerance the endpoint
+     * drops rejected fields before this runs, and a box must never be stored without its
+     * validated class (decisions 2 and 3) or borrow a taxonomy the row did not validate (a reused
+     * encounter keeps an earlier row's, and Util.taxonomyString yields a genus-only string when
+     * the epithet was dropped). The caller imports the photo as a trivial annotation instead.
+     */
+    private Annotation importedBox(MediaAsset ma, int slot, BulkValidator bboxBV,
+        Map<String, BulkValidator> fmap, Map<String, List<String> > boxFields, Double quality) {
+        BulkValidator classBV = fmap.get(BulkImportUtil.boxFieldName(boxFields, "iaClass", slot));
+        BulkValidator genusBV = fmap.get("Encounter.genus");
+        BulkValidator epithetBV = fmap.get("Encounter.specificEpithet");
+        if ((classBV == null) || classBV.valueIsNull() || (genusBV == null) ||
+            genusBV.valueIsNull() || (epithetBV == null) || epithetBV.valueIsNull()) {
+            trace("[WARN] processRow: slot " + slot +
+                " has a box but no validated iaClass or taxonomy; its photo is imported without the box");
+            return null;
+        }
+        int[] box;
+        try {
+            box = BulkValidator.parseBbox(bboxBV.getValueString(), bboxBV.getFieldName());
+        } catch (BulkValidatorException ex) { // the value is canonical: validation already parsed it
+            throw new RuntimeException("unparseable validated bbox on " + bboxBV.getFieldName(), ex);
+        }
+        BulkValidator thetaBV = fmap.get(BulkImportUtil.boxFieldName(boxFields, "theta", slot));
+        BulkValidator viewpointBV = fmap.get(BulkImportUtil.boxFieldName(boxFields, "viewpoint", slot));
+        BulkValidator sourceBV = fmap.get(BulkImportUtil.boxFieldName(boxFields, "bboxSource", slot));
+        Double theta = ((thetaBV == null) || thetaBV.valueIsNull()) ? null : thetaBV.getValueDouble();
+        String viewpoint = (viewpointBV == null) ? null : viewpointBV.getValueString();
+        String source = (sourceBV == null) ? null : sourceBV.getValueString();
+        JSONObject params = new JSONObject();
+        params.put("theta", (theta == null) ? 0.0 : theta.doubleValue());
+        if (viewpoint != null) params.put("viewpoint", viewpoint);
+        JSONObject marker = new JSONObject();
+        if (importTaskId != null) marker.put("importTaskId", importTaskId);
+        if (source != null) marker.put("source", source);
+        if (quality != null) marker.put("scoreSource", "detector");
+        marker.put("created", System.currentTimeMillis());
+        params.put(Annotation.FEATURE_PARAM_IMPORTED_BOX, marker);
+        Feature f = ma.generateFeatureFromBbox(bboxType(), box[2], box[3], box[0], box[1], params);
+        String boxTx = Util.taxonomyString(genusBV.getValueString(), epithetBV.getValueString());
+        Annotation ann = new Annotation(boxTx, f, classBV.getValueString());
+        f.setAnnotation(ann);
+        ann.setAcmId(ann.getId());
+        ann.setMatchAgainst(true);
+        ann.setWbiaRegistered(Boolean.FALSE);
+        ann.setWbiaRegisterAttempts(0);
+        if (viewpoint != null) ann.setViewpoint(viewpoint);
+        trace("+ imported box " + ann.getId() + " (" + classBV.getValueString() + ") on slot " +
+            slot + " of " + ma);
+        return ann;
+    }
+
+    // bulk-import boxes (spec 4.1): labeled keywords Encounter.mediaAsset{N}.<label>, by exact
+    // slot (exact-slot mode only; positional imports keep validating and dropping them, as before)
+    private void handleLabeledKeywords(MediaAsset ma, int slot, Map<String, BulkValidator> fmap) {
+        for (Map.Entry<String, BulkValidator> e : fmap.entrySet()) {
+            String label = BulkImportUtil.getLabeledKeywordLabel(e.getKey());
+            if ((label == null) || (BulkImportUtil.getLabeledKeywordOffset(e.getKey()) != slot))
+                continue;
+            String value = e.getValue().getValueString();
+            if (value == null) continue;
+            List<String> cacheKey = List.of(label, value);
+            LabeledKeyword lk = labeledKeywordCache.get(cacheKey);
+            if (lk == null) {
+                lk = myShepherd.getOrCreateLabeledKeyword(label, value, false);
+                if (lk == null) continue;
+                labeledKeywordCache.put(cacheKey, lk);
+            }
+            ma.addKeyword(lk);
+        }
     }
 
     private void handleKeywords(MediaAsset ma, Set<String> keywordValues) {

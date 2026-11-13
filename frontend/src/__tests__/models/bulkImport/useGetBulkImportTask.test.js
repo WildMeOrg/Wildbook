@@ -391,4 +391,95 @@ describe("computeBulkImportPollInterval", () => {
     expect(computeBulkImportPollInterval(handoff, c, BUDGET_MS)).toBe(POLL);
     expect(c.handoffFirstSeen).toBe(BUDGET_MS);
   });
+
+  // ---- imports with user-supplied boxes: extraction progress keeps the poll alive ----
+
+  const boxedTask = (ended, total, extra = {}) => ({
+    task: {
+      status: "processing-detection",
+      encounters: [{ id: "e1" }],
+      importPercent: 1.0,
+      iaSummary: {
+        annotationsImported: true,
+        detectionStatus: "skipped",
+        identificationStatus: "skipped",
+        pipelineStarted: true,
+        pipelineComplete: ended >= total,
+        statsAnnotations: {
+          numLatestTasks: total,
+          numLatestTask_completed: ended,
+          ...extra,
+        },
+      },
+    },
+  });
+
+  test("boxed import keeps polling past the budget while more boxes end", () => {
+    const c = clocks();
+    expect(computeBulkImportPollInterval(boxedTask(0, 30), c, 0)).toBe(POLL);
+    // each poll lands just inside a fresh window because the count advanced
+    expect(computeBulkImportPollInterval(boxedTask(10, 30), c, BUDGET_MS - 1)).toBe(POLL);
+    expect(computeBulkImportPollInterval(boxedTask(20, 30), c, 2 * BUDGET_MS - 2)).toBe(POLL);
+    expect(c.lastBoxesEnded).toBe(20);
+    // all boxes ended: the pipeline is complete and polling stops
+    expect(computeBulkImportPollInterval(boxedTask(30, 30), c, 2 * BUDGET_MS)).toBe(false);
+  });
+
+  test("boxed import whose boxes stop ending is bounded by one budget window", () => {
+    const c = clocks();
+    expect(computeBulkImportPollInterval(boxedTask(5, 30), c, 0)).toBe(POLL);
+    expect(computeBulkImportPollInterval(boxedTask(5, 30), c, BUDGET_MS - 1)).toBe(POLL);
+    expect(computeBulkImportPollInterval(boxedTask(5, 30), c, BUDGET_MS + 1)).toBe(false);
+  });
+
+  test("errored and dropped boxes count as progress for a boxed import", () => {
+    const c = clocks();
+    expect(computeBulkImportPollInterval(boxedTask(1, 30), c, 0)).toBe(POLL);
+    const withError = boxedTask(1, 30, { numLatestTask_error: 1 });
+    expect(computeBulkImportPollInterval(withError, c, BUDGET_MS - 1)).toBe(POLL);
+    const withDropped = boxedTask(1, 30, {
+      numLatestTask_error: 1,
+      "numLatestTask_dropped-stale": 1,
+    });
+    expect(computeBulkImportPollInterval(withDropped, c, 2 * BUDGET_MS - 2)).toBe(POLL);
+    expect(c.lastBoxesEnded).toBe(3);
+  });
+
+  test("box counts are ignored for an import without supplied boxes", () => {
+    const c = clocks();
+    const plain = (ended) => {
+      const r = boxedTask(ended, 30);
+      delete r.task.iaSummary.annotationsImported;
+      return r;
+    };
+    expect(computeBulkImportPollInterval(plain(0), c, 0)).toBe(POLL);
+    // the count advances, but this is not a boxed import: no budget reset
+    expect(computeBulkImportPollInterval(plain(10), c, BUDGET_MS + 1)).toBe(false);
+    expect(c.lastBoxesEnded).toBe(null);
+  });
+
+  test("boxed signal first seen after an expired hand-off gets one fresh window, then only real progress re-arms", () => {
+    const c = clocks();
+    // same task, before the summary carries the boxed flag: bounded and expired
+    const before = {
+      task: { status: "processing-detection", encounters: [{ id: "e1" }], importPercent: 1.0 },
+    };
+    expect(computeBulkImportPollInterval(before, c, 0)).toBe(POLL);
+    expect(computeBulkImportPollInterval(before, c, BUDGET_MS + 1)).toBe(false);
+    // the boxed summary appears with some boxes already ended: one fresh window
+    const t0 = BUDGET_MS + 2;
+    expect(computeBulkImportPollInterval(boxedTask(4, 30), c, t0)).toBe(POLL);
+    expect(c.lastBoxesEnded).toBe(4);
+    expect(c.handoffFirstSeen).toBe(t0);
+    // unchanged count: no reset, stops after that window
+    expect(computeBulkImportPollInterval(boxedTask(4, 30), c, t0 + BUDGET_MS + 1)).toBe(false);
+    // a lower count, and a recovery to the previous maximum, never reset the budget
+    expect(computeBulkImportPollInterval(boxedTask(2, 30), c, t0 + BUDGET_MS + 2)).toBe(false);
+    expect(computeBulkImportPollInterval(boxedTask(4, 30), c, t0 + BUDGET_MS + 3)).toBe(false);
+    expect(c.lastBoxesEnded).toBe(4);
+    // a later fetch (e.g. on window focus) that shows real progress re-arms polling
+    const t1 = t0 + 2 * BUDGET_MS;
+    expect(computeBulkImportPollInterval(boxedTask(5, 30), c, t1)).toBe(POLL);
+    expect(c.handoffFirstSeen).toBe(t1);
+  });
 });
