@@ -288,7 +288,7 @@ describe("BulkImportStore tests part 1", () => {
     expect(store.emptyFieldCount).toBe(3);
   });
 
-  test("validateMediaAsset0ColumnOnly flags missing when required", () => {
+  test("validateMediaAssetColumnsOnly flags missing when required", () => {
     store._validationRules["Encounter.mediaAsset0"] = {
       required: true,
       validate: () => false,
@@ -298,7 +298,7 @@ describe("BulkImportStore tests part 1", () => {
       { "Encounter.mediaAsset0": "" },
       { "Encounter.mediaAsset0": "f1,f2" },
     ];
-    const { errors } = store.validateMediaAsset0ColumnOnly();
+    const { errors } = store.validateMediaAssetColumnsOnly();
     expect(errors).toHaveProperty("1");
     expect(errors[1]["Encounter.mediaAsset0"]).toBe("bad");
   });
@@ -655,7 +655,7 @@ describe("BulkImportStore tests part 1", () => {
     expect(store._rawData[0]["Encounter.decimalLongitude"]).toBe("2");
   });
 
-  test("validateMediaAsset0ColumnOnly flags required and invalid", () => {
+  test("validateMediaAssetColumnsOnly flags required and invalid", () => {
     store._validationRules["Encounter.mediaAsset0"] = {
       required: true,
       validate: () => false,
@@ -665,7 +665,7 @@ describe("BulkImportStore tests part 1", () => {
       { "Encounter.mediaAsset0": "" },
       { "Encounter.mediaAsset0": "x" },
     ];
-    const { errors, warnings } = store.validateMediaAsset0ColumnOnly();
+    const { errors, warnings } = store.validateMediaAssetColumnsOnly();
     expect(warnings).toEqual({});
     expect(errors["0"]["Encounter.mediaAsset0"]).toBe(
       "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD",
@@ -813,7 +813,7 @@ describe("BulkImportStore tests part 3", () => {
     expect(store.isValidISO("not-a-date")).toBe(false);
   });
 
-  test("validateMediaAsset0ColumnOnly flags required and invalid correctly", () => {
+  test("validateMediaAssetColumnsOnly flags required and invalid correctly", () => {
     store._validationRules["Encounter.mediaAsset0"] = {
       required: true,
       validate: () => false,
@@ -823,7 +823,7 @@ describe("BulkImportStore tests part 3", () => {
       { "Encounter.mediaAsset0": "" },
       { "Encounter.mediaAsset0": "foo" },
     ];
-    const { errors, warnings } = store.validateMediaAsset0ColumnOnly();
+    const { errors, warnings } = store.validateMediaAssetColumnsOnly();
     expect(warnings).toEqual({});
     expect(errors[0]["Encounter.mediaAsset0"]).toBe(
       "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD",

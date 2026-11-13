@@ -48,6 +48,11 @@ trade it for a short-lived token whenever you need one. Your organization's admi
   working until that token expires, which is at most 15 minutes.
 - If `keyExpiresAt` (a time in milliseconds since 1970) is less than 30 days away, tell the operator to ask
   their organization's admin or a Wildbook admin for a replacement key.
+- What a data token from a key can see depends on how the key was made. By default it sees public data and
+  data submitted with the key. If the person who created the key chose "Read data with my access", it sees
+  exactly what that person can see (everything, if they are a site administrator), and it stops working if
+  they leave the organization. Submission tokens are not affected. If searches miss records the operator
+  expects, tell them; do not look for another way in.
 
 ```
 POST /api/v3/auth/token?scope=submissions:read
@@ -60,6 +65,13 @@ Authorization: Bearer wbsvc_<id>.<secret>
 A `403` means this key is not allowed that scope, or that submission writing is not turned on for the
 organization's account. Tell the operator.
 
+Records a service key submits belong to the organization's service account, which ordinary members
+cannot see. To credit the person who collected them, name that person once per draft with
+`onBehalfOf` (see the submit-sightings skill): the exact username of a direct member of the key's
+organization, or `public`. A named member, admins and orgAdmins included, then owns the records and
+the import as if they had uploaded them, so their collaborators and their organizations' orgAdmins
+keep their usual viewing and editing permissions. `public` makes the records readable by anyone and editable by any logged-in user.
+
 If the trade fails with 401, the `error` message says why:
 
 | Message | What it means and what to do |
@@ -67,7 +79,7 @@ If the trade fails with 401, the `error` message says why:
 | `"invalid service key"` | The key is wrong or mistyped. Ask the operator to check the configured key. |
 | `"service key expired"` | The key has run out. Ask the operator for a new key from their organization's admin or a Wildbook admin. |
 | `"service key revoked"` | The key was canceled on purpose. Stop; do not look for a way around it. |
-| `"service key unavailable; contact your Wildbook administrator"` | The key's account is not usable right now. Tell the operator to contact their Wildbook administrator. |
+| `"service key unavailable; contact your Wildbook administrator"` | The key's account is not usable right now, or the person whose access the key reads with has left the organization. Tell the operator to contact their Wildbook administrator. |
 
 In all four cases, stop and report to the operator. Do not retry in a loop. Any other failure when
 trading the key (400, 500, 503) is the same: stop and report, and do not retry in a loop.
@@ -120,9 +132,10 @@ the catalog and comparing every pair yourself. `embeddings` is a **nested** fiel
 sit inside a `nested` query:
 ```json
 { "query": { "bool": {
-    "must": [ { "nested": { "path": "embeddings", "query": { "bool": {
-        "must":   [ { "knn": { "embeddings.vector": { "vector": [ /* the query photo's stored vector */ ], "k": 200 } } } ],
-        "filter": [ { "term": { "embeddings.methodVersion": "<version>" } } ] } } } } ],
+    "must": [ { "nested": { "path": "embeddings", "query": {
+        "knn": { "embeddings.vector": {
+            "vector": [ /* the query photo's stored vector */ ], "k": 200,
+            "filter": { "term": { "embeddings.methodVersion": "<version>" } } } } } } } ],
     "filter": [ { "term": { "matchAgainst": true } } ] } },
   "_source": { "excludes": ["embeddings.vector", "embeddings.vector_1536"] } }
 ```
@@ -133,7 +146,7 @@ Five things to know before relying on it:
   EfficientNet MiewID models, e.g. `msv4.1`, `msv5`) and `embeddings.vector_1536` holds 1536-number
   vectors (the DINOv3 model, `msv5-dinov3`). Read the query photo's vector from whichever of the two
   its embedding carries, send the `knn` against that same field, and filter on the same
-  `methodVersion`. A vector sent against the other field fails the whole request (currently a `500`
+  `methodVersion` inside the `knn` clause's own `filter` (see the last point below). A vector sent against the other field fails the whole request (currently a `500`
   with `"error": "query failed"`, the same response as other query failures). Before retrying a
   failed `knn`, check that the vector's length matches the field (2152 for `embeddings.vector`, 1536
   for `embeddings.vector_1536`); if it does not, fix the field instead of retrying.
@@ -155,10 +168,13 @@ Five things to know before relying on it:
   vectors can take a minute with them. When you do need vectors, fetch them in batches by id
   (`{"terms": {"id": [...]}}`, ~40 per call) rather than one at a time — per-request overhead, not
   payload size, is the cost that matters.
-- **Outer filters apply after the kNN, not during it.** `k` is how many neighbours the vector search
-  returns; anything in the outer `bool.filter` then removes hits from that set. Ask for a `k`
-  comfortably larger than the number of results you need, or a restrictive filter can leave you with
-  very few hits, or none.
+- **Put `methodVersion` inside the `knn` clause's `filter`, as in the example.** That filter applies
+  while the `k` nearest are chosen, so another model's vectors (same length, same field) cannot take
+  the slots. Anywhere else, including beside the `knn`, it only removes hits afterwards and can leave
+  few or none. In this example `matchAgainst` stays in the outer `bool.filter`, and Wildbook adds its
+  permission filter for a non-admin key outside the `knn` too, so both remove hits from the `k`
+  already chosen. Ask for a `k` comfortably larger than the number of results you need. An empty
+  result does not prove that no similar photo you can see exists.
 
 Be considerate with volume. An instance whose vector index has no approximate-search structure
 answers every kNN with an exact scan of all stored vectors — seconds of CPU per query, and

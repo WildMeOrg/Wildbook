@@ -52,4 +52,11 @@ describe("BulkImportInstructionsModal (without changing the component)", () => {
     fireEvent.click(screen.getByText("BULK_IMPORT_INSTRUCTIONS_CLOSE_BUTTON"));
     expect(store.setShowInstructions).toHaveBeenCalledWith(false);
   });
+
+  it("explains spreadsheets with box columns", () => {
+    render(<BulkImportInstructionsModal store={store} />);
+    expect(
+      screen.getByText("BULK_IMPORT_INSTRUCTIONS_BOXES"),
+    ).toBeInTheDocument();
+  });
 });

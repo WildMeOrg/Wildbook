@@ -115,7 +115,7 @@ public class SubmissionFiles {
                     digest.update(buffer, 0, n); out.write(buffer, 0, n);
                 }
             }
-            String mediaType = inspect(path);
+            String mediaType = inspect(path).getString("mediaType");
             String lower = name.toLowerCase(Locale.ROOT);
             if (!(mediaType.equals("image/png") ? lower.endsWith(".png") : (lower.endsWith(".jpg") || lower.endsWith(".jpeg"))))
                 throw new SubmissionException(422, "VALIDATION_INVALID", "Filename extension must match image content");
@@ -134,7 +134,8 @@ public class SubmissionFiles {
         if (file == null || Files.isSymbolicLink(dir.toPath().resolve(name))) throw new IOException("Invalid staging file");
         return file.toPath();
     }
-    public void verify(JSONObject entry) throws Exception {
+    /** Re-hashes and inspects a staged file; returns its header width and height (bulk-import boxes: box bounds). */
+    public int[] verify(JSONObject entry) throws Exception {
         Path path = path(entry);
         MessageDigest digest = MessageDigest.getInstance("SHA-256"); long count = 0;
         try (InputStream in = Files.newInputStream(path)) {
@@ -143,9 +144,11 @@ public class SubmissionFiles {
         }
         StringBuilder sha = new StringBuilder(); for (byte b : digest.digest()) sha.append(String.format("%02x", b & 255));
         if (count != entry.getLong("sizeBytes") || !sha.toString().equals(entry.getString("sha256"))) throw new IOException("Staged file changed");
-        inspect(path);
+        JSONObject inspected = inspect(path);
+        return new int[] { inspected.getInt("width"), inspected.getInt("height") };
     }
-    public static String inspect(Path path) throws IOException {
+    /** {mediaType, width, height}: the format check, the header read and a subsampled decode, in one open of the file. */
+    public static JSONObject inspect(Path path) throws IOException {
         try (ImageInputStream input = ImageIO.createImageInputStream(path.toFile())) {
             if (input == null) throw new IOException("Cannot read image");
             Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
@@ -162,7 +165,7 @@ public class SubmissionFiles {
                 param.setSourceSubsampling(4, 4, 0, 0);
                 java.awt.image.BufferedImage decoded = reader.read(0, param);
                 if (decoded == null) throw new IOException("Cannot decode image"); decoded.flush();
-                return format.equals("png") ? "image/png" : "image/jpeg";
+                return new JSONObject().put("mediaType", format.equals("png") ? "image/png" : "image/jpeg").put("width", w).put("height", h);
             } finally { reader.dispose(); }
         } catch (IOException ex) { throw new SubmissionException(422, "VALIDATION_INVALID", "Image is truncated or cannot be decoded"); }
     }

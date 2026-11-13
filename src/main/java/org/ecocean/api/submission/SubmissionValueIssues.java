@@ -17,7 +17,8 @@ import org.json.JSONObject;
  */
 public class SubmissionValueIssues {
     public static final List<String> REASONS = List.of("REQUIRED", "REQUIRES_FIELD", "UNPARSEABLE", "OUT_OF_RANGE",
-        "FUTURE_DATE", "NOT_CONFIGURED", "INVALID");
+        "FUTURE_DATE", "NOT_CONFIGURED", "INVALID", "INVALID_BOX", "MISSING_CLASS", "UNKNOWN_CLASS", "INVALID_VIEWPOINT",
+        "INVALID_THETA", "BOX_OUT_OF_BOUNDS");
     private static final int MAX_ECHO = 64, MAX_ALLOWED_LISTED = 20, MAX_ALLOWED_TEXT = 300;
 
     public static class Issue {
@@ -58,6 +59,8 @@ public class SubmissionValueIssues {
     }
 
     private static Issue translate(String field, String legacy, JSONObject fields, Map<String, Object> checked, Shepherd sh) {
+        Issue box = translateBox(field, legacy, fields);
+        if (box != null) return box;
         if (legacy.startsWith("error parsing integer")) return new Issue(field, "UNPARSEABLE", field + " must be a whole number");
         if (legacy.startsWith("error parsing double")) return new Issue(field, "UNPARSEABLE", field + " must be a decimal number");
         if (legacy.equals("year value too small")) return new Issue(field, "OUT_OF_RANGE", "Encounter.year must be 1000 or later");
@@ -87,6 +90,44 @@ public class SubmissionValueIssues {
         if (legacy.startsWith("invalid livingStatus value"))
             return notConfigured(field, fields, CommonConfiguration.getIndexedPropertyValues("livingStatus", sh.getContext()));
         return new Issue(field, "INVALID", sanitize(legacy));
+    }
+
+    // bulk-import boxes (spec 4.9): the per-photo box columns and the detector score, from the shared rules' messages
+    private static Issue translateBox(String field, String legacy, JSONObject fields) {
+        String slot = field.replaceAll("^(Encounter\\.mediaAsset\\d+).*$", "$1");
+        if (legacy.startsWith("bbox must be") || legacy.startsWith("bbox x and y") || legacy.startsWith("bbox width and height"))
+            return new Issue(field, "INVALID_BOX", field + " must be \"x,y,width,height\": four whole numbers on the image's pixel grid, x and y at least 0, width and height at least 1");
+        if (legacy.startsWith("a box needs an iaClass")) {
+            String classField = legacy.startsWith("a box needs an iaClass in ") ? legacy.substring("a box needs an iaClass in ".length()) : field;
+            return new Issue(field, "MISSING_CLASS", classField + " is required when a box is supplied");
+        }
+        if (legacy.startsWith("invalid iaClass '")) {
+            // locate the server's suffix after the supplied class itself, never at a delimiter the user may have typed
+            Object raw = fields.opt(field);
+            String cls = raw == null ? "" : raw.toString().trim();
+            String head = "invalid iaClass '" + cls + "'; ";
+            String rest = legacy.startsWith(head) ? legacy.substring(head.length()) : "";
+            if (rest.startsWith("valid classes for ")) {
+                int colon = rest.indexOf(": ");
+                String species = colon > 0 ? rest.substring("valid classes for ".length(), colon) : "";
+                String list = colon > 0 ? rest.substring(colon + 2) : "";
+                return new Issue(field, "UNKNOWN_CLASS", "'" + echo(cls) + "' is not a matchable class for " + species + "; use one of: " + list);
+            }
+            if (rest.startsWith("no matchable classes for "))
+                return new Issue(field, "UNKNOWN_CLASS", "'" + echo(cls) + "' cannot be matched: " + rest.substring("no matchable classes for ".length()) + " has no matchable classes");
+            return new Issue(field, "UNKNOWN_CLASS", "'" + echo(cls) + "' is not a matchable class");
+        }
+        if (legacy.startsWith("invalid viewpoint value")) return new Issue(field, "INVALID_VIEWPOINT", field + " is not a known viewpoint");
+        if (legacy.startsWith("invalid theta value") || legacy.startsWith("theta must be"))
+            return new Issue(field, "INVALID_THETA", field + " must be a finite number of radians between -" + BulkValidator.THETA_LIMIT + " and " + BulkValidator.THETA_LIMIT);
+        if (legacy.startsWith(field + " needs a box in "))
+            return new Issue(field, "REQUIRES_FIELD", field + " requires " + legacy.substring((field + " needs a box in ").length()));
+        if (legacy.equals("box without a photo in this slot")) return new Issue(field, "REQUIRES_FIELD", field + " requires " + slot);
+        if (legacy.startsWith("iaClass longer than")) return new Issue(field, "OUT_OF_RANGE", field + " must be at most 64 characters");
+        if (legacy.startsWith("bboxSource longer than")) return new Issue(field, "OUT_OF_RANGE", field + " must be at most 128 characters");
+        if (legacy.startsWith("invalid quality value")) return new Issue(field, "UNPARSEABLE", field + " must be a decimal number");
+        if (legacy.startsWith("quality must be a finite number")) return new Issue(field, "OUT_OF_RANGE", field + " must be a finite decimal number");
+        return null;
     }
 
     private static Issue futureDate(String field, JSONObject fields, Map<String, Object> checked, LocalDate today) {

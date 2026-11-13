@@ -44,7 +44,7 @@ public class SubmissionProcessing extends SubmissionStore {
         try {
             lock(sh, "submission:" + id); Submission draft = find(sh, "id == :id", id);
             if (draft == null || !context.equals(draft.getContext()) || !"imported".equals(draft.getState())
-                    || !draft.requestsIdentification() || !"complete".equals(draft.getDerivatives()) || !"pending".equals(draft.getAiState())) return;
+                    || !draft.requestsAi() || !"complete".equals(draft.getDerivatives()) || !"pending".equals(draft.getAiState())) return;
             preparing = true; message = preparation.prepare(draft, sh);
             claim = System.currentTimeMillis(); draft.claimAi(claim); commitAttempted = true; commit(sh);
         } catch (Exception ex) {
@@ -90,15 +90,17 @@ public class SubmissionProcessing extends SubmissionStore {
         if (imported.getIATask() != null) throw new IllegalStateException("IA task already exists; inspect before dispatch");
         JSONArray media = new JSONObject(draft.getResultJson()).getJSONObject("records").getJSONArray("mediaAssets");
         if (media.isEmpty()) throw new IllegalStateException("No imported media");
-        JSONArray mediaIds = new JSONArray();
-        for (int i = 0; i < media.length(); i++) mediaIds.put(String.valueOf(media.getInt(i)));
-        JSONObject parameters = new JSONObject().put("importTaskId", draft.getJobId()).put("skipIdent", false);
+        // bulk-import boxes (spec 4.9): the same envelope the bulk-import hand-off sends: the boxes' annotation
+        // ids in extraction mode for a boxed import, else the imported media ids
+        JSONObject envelope = org.ecocean.servlet.IAGateway.buildImportEnvelope(imported);
+        JSONObject parameters = new JSONObject().put("importTaskId", draft.getJobId()).put("skipIdent", !draft.requestsIdentification());
         Task parent = new Task(); parent.setParameters(parameters); sh.getPM().makePersistent(parent);
         Task child = new Task(); child.setParameters(new JSONObject(parameters.toString())); sh.getPM().makePersistent(child);
         parent.addChild(child); imported.setIATask(parent); imported.setStatus("processing-detection");
         JSONObject message = new JSONObject().put("taskParameters", parameters).put("taskId", child.getId())
-            .put("mediaAssetIds", mediaIds).put("v2", true)
+            .put("v2", true)
             .put("__context", draft.getContext()).put("__baseUrl", base).put("__handleBulkImport", System.currentTimeMillis());
+        for (String key : envelope.keySet()) message.put(key, envelope.get(key));
         child.setQueueResumeMessage(message.toString());
         sh.getPM().makePersistent(imported);
         return message;
