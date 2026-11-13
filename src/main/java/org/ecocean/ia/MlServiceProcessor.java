@@ -570,6 +570,12 @@ public class MlServiceProcessor {
             // import summary would not count it); every stale or invalid exit is an error that
             // settles the asset the child holds
             boolean imported = Task.isImportedBoxTask(task);
+            // a job for an imported-box child that already finished (a startup replay of a job
+            // that was still queued, or a duplicate delivery) does nothing: the child is not
+            // reopened and no second identification run is created
+            if (imported && task.statusInEndState())
+                return ExtractionContext.done(
+                    MlServiceJobOutcome.stale("imported-box task already finished"));
             if (ann == null) {
                 if (imported) ImportedBoxes.failChild(shep, task, "STALE", "annotation missing");
                 else markTaskDroppedStale(shep, task, "annotation missing");
@@ -1124,6 +1130,9 @@ public class MlServiceProcessor {
         }
         List<String> annotationIds = jsonArrayToStringList(jobData.optJSONArray("annotationIds"));
         String taskId = jobData.optString("taskId", null);
+        // as in loadExtractionContext: a finished imported-box child is never matched again
+        if (importedChildFinished(taskId))
+            return MlServiceJobOutcome.stale("imported-box task already finished");
         // Honor skipIdent before inferMatchConfig, which opens a Shepherd
         // to inspect existing embeddings (matchConfig fallback path).
         // A skipIdent task should do no match-side DB work at all
@@ -1150,6 +1159,31 @@ public class MlServiceProcessor {
         boolean matchGroup = jobData.optBoolean("matchGroup", false);
         return waitAndRunMatchInternal(annotationIds, taskId, matchConfig,
             attempt, firstDeferredAt, matchGroup, jobData.optBoolean("pinVector", matchGroup));
+    }
+
+    /**
+     * True when the task is an imported-box child in an end state. Reads only; false on any
+     * failure, like readSkipIdent, so a read problem leaves the deferred match as it was.
+     */
+    boolean importedChildFinished(String taskId) {
+        if (!Util.stringExists(taskId)) return false;
+        Shepherd shep = null;
+        try {
+            shep = openShepherd("importedChildFinished");
+            shep.beginDBTransaction();
+            Task task = Task.load(taskId, shep);
+            return Task.isImportedBoxTask(task) && task.statusInEndState();
+        } catch (Exception ex) {
+            System.out.println("WARN: MlServiceProcessor.importedChildFinished failed for task " +
+                taskId + ": " + ex);
+            return false;
+        } finally {
+            if (shep != null) {
+                try {
+                    shep.rollbackAndClose();
+                } catch (Exception ignore) {}
+            }
+        }
     }
 
     /** Package-private seam so tests can substitute a Shepherd whose checked commit fails. */
