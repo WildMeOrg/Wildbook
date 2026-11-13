@@ -45,10 +45,10 @@ export default function AuthenticatedSwitch({
   showHowToPhotograph,
   siteSettingsLoading,
 }) {
-  const { data } = useGetMe();
-  const username = data?.username;
+  const { data: currentUser } = useGetMe();
+  const username = currentUser?.username;
   const avatar =
-    data?.imageURL || `${process.env.PUBLIC_URL}/images/Avatar.png`;
+    currentUser?.imageURL || `${process.env.PUBLIC_URL}/images/Avatar.png`;
   const [header, setHeader] = React.useState(true);
 
   return (
@@ -103,7 +103,10 @@ export default function AuthenticatedSwitch({
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/projects/overview" element={<ProjectList />} />
             <Route path="/home" element={<Home />} />
-            <Route path="/report" element={<ReportEncounter />} />
+            <Route
+              path="/report"
+              element={<ReportEncounter currentUser={currentUser} />}
+            />
             <Route path="/reportConfirm" element={<ReportConfirm />} />
             <Route path="/encounter" element={<Encounter />} />
 

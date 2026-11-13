@@ -63,11 +63,21 @@ jest.mock(
       isHumanLocal: false,
       error: null,
       setImageRequired: jest.fn(),
+      prefillFollowUpContacts: jest.fn(),
     })),
   }),
 );
 
-const renderComponent = () => renderWithProviders(<ReportEncounter />, false);
+const renderComponent = ({ currentUser, isLoggedIn = false } = {}) =>
+  renderWithProviders(
+    <ReportEncounter currentUser={currentUser} />,
+    isLoggedIn,
+  );
+
+const signedInUser = {
+  displayName: "Alex Doe",
+  email: "alex@example.com",
+};
 
 describe("ReportEncounter Component", () => {
   beforeEach(() => {
@@ -91,6 +101,58 @@ describe("ReportEncounter Component", () => {
     expect(screen.getByTestId("species-section")).toBeInTheDocument();
   });
 
+  test("forwards the signed-in user to the store prefill method", async () => {
+    const currentUser = {
+      displayName: "Alex Doe",
+      email: "alex@example.com",
+    };
+
+    renderComponent({ currentUser, isLoggedIn: true });
+    const store = ReportEncounterStore.mock.results[0].value;
+
+    await waitFor(() => {
+      expect(store.prefillFollowUpContacts).toHaveBeenCalledWith(currentUser);
+    });
+  });
+
+  test("prefills when the current user arrives after the first render", async () => {
+    const currentUser = {
+      displayName: "Alex Doe",
+      email: "alex@example.com",
+    };
+
+    const DeferredCurrentUserReport = () => {
+      const [loadedUser, setLoadedUser] = React.useState();
+
+      return (
+        <>
+          <button type="button" onClick={() => setLoadedUser(currentUser)}>
+            Load current user
+          </button>
+          <ReportEncounter currentUser={loadedUser} />
+        </>
+      );
+    };
+
+    renderWithProviders(<DeferredCurrentUserReport />, true);
+    const store = ReportEncounterStore.mock.results[0].value;
+
+    expect(store.prefillFollowUpContacts).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Load current user" }));
+
+    await waitFor(() => {
+      expect(store.prefillFollowUpContacts).toHaveBeenCalledWith(currentUser);
+    });
+  });
+
+  test("does not prefill an anonymous report", () => {
+    renderComponent();
+    const store = ReportEncounterStore.mock.results[0].value;
+
+    expect(store.prefillFollowUpContacts).not.toHaveBeenCalled();
+  });
+
   test("displays missing required fields message on validation fail", async () => {
     ReportEncounterStore.mockImplementation(() => ({
       validateFields: jest.fn(() => false),
@@ -103,9 +165,10 @@ describe("ReportEncounter Component", () => {
       isHumanLocal: true,
       error: null,
       setImageRequired: jest.fn(),
+      prefillFollowUpContacts: jest.fn(),
     }));
 
-    renderComponent();
+    renderComponent({ currentUser: signedInUser, isLoggedIn: true });
 
     const submitButton = screen.getByRole("button", {
       name: /SUBMIT_ENCOUNTER/i,
@@ -130,9 +193,10 @@ describe("ReportEncounter Component", () => {
       isHumanLocal: true,
       error: null,
       setImageRequired: jest.fn(),
+      prefillFollowUpContacts: jest.fn(),
     }));
 
-    renderComponent();
+    renderComponent({ currentUser: signedInUser, isLoggedIn: true });
 
     const submitButton = screen.getByRole("button", {
       name: /SUBMIT_ENCOUNTER/i,
@@ -156,9 +220,10 @@ describe("ReportEncounter Component", () => {
       isHumanLocal: true,
       error: null,
       setImageRequired: jest.fn(),
+      prefillFollowUpContacts: jest.fn(),
     }));
 
-    renderComponent();
+    renderComponent({ currentUser: signedInUser, isLoggedIn: true });
 
     const submitButton = screen.getByRole("button", {
       name: /SUBMIT_ENCOUNTER/i,
@@ -168,6 +233,42 @@ describe("ReportEncounter Component", () => {
     await waitFor(() => {
       expect(screen.getByText("SUBMISSION_FAILED")).toBeInTheDocument();
     });
+  });
+
+  test("anonymous visitors can submit after accepting the agreement", async () => {
+    const mockSubmitReport = jest.fn().mockResolvedValue({ id: 123 });
+    ReportEncounterStore.mockImplementation(() => ({
+      submitReport: mockSubmitReport,
+      finished: false,
+      success: false,
+      setIsHumanLocal: jest.fn(),
+      setShowSubmissionFailedAlert: jest.fn(),
+      validateFields: jest.fn(() => true),
+      showSubmissionFailedAlert: false,
+      isHumanLocal: true,
+      error: null,
+      setImageRequired: jest.fn(),
+      prefillFollowUpContacts: jest.fn(),
+    }));
+
+    renderComponent();
+    const store = ReportEncounterStore.mock.results[0].value;
+    const submitButton = screen.getByRole("button", {
+      name: /SUBMIT_ENCOUNTER/i,
+    });
+
+    expect(submitButton).toBeDisabled();
+    expect(store.prefillFollowUpContacts).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("checkbox"));
+
+    expect(submitButton).toBeEnabled();
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockSubmitReport).toHaveBeenCalledTimes(1);
+    });
+    expect(store.prefillFollowUpContacts).not.toHaveBeenCalled();
   });
 
   test("does not render captcha when user is logged in", () => {
