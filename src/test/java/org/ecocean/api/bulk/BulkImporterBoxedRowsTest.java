@@ -354,4 +354,60 @@ class BulkImporterBoxedRowsTest {
         assertFalse(onQ.isImportedBox());
         assertTrue(onQ.isTrivial());
     }
+
+    // ---- zero-padded slot columns, and a rejected angle ----
+
+    @Test void zeroPaddedBoxColumnsStillMakeTheBox() throws Exception {
+        Encounter enc = run(row("Encounter.mediaAsset01", "p.jpg", "Encounter.mediaAsset01.bbox", "10,20,300,400",
+            "Encounter.mediaAsset01.iaClass", "body", "Encounter.mediaAsset01.theta", "0.25",
+            "Encounter.mediaAsset01.viewpoint", "left", "Encounter.mediaAsset01.bboxSource", "yolo")).getEncounters().get(0);
+        assertEquals(1, enc.getAnnotations().size());
+        Annotation ann = enc.getAnnotations().get(0);
+        assertTrue(ann.isImportedBox(), "the padded box column is read");
+        JSONObject p = ann.getFeature().getParameters();
+        assertEquals(10.0, p.getDouble("x"));
+        assertEquals(300.0, p.getDouble("width"));
+        assertEquals(0.25, p.getDouble("theta"));
+        assertEquals("left", ann.getViewpoint());
+        assertEquals("body", ann.getIAClass());
+        assertEquals("yolo", p.getJSONObject(Annotation.FEATURE_PARAM_IMPORTED_BOX).getString("source"));
+    }
+
+    @Test void rejectedAngleImportsThePhotoWithoutTheBox() throws Exception {
+        for (String bad : new String[] { "sideways", "7" }) {
+            fixture();
+            Encounter enc = run(boxedRow("Encounter.mediaAsset0.theta", bad)).getEncounters().get(0);
+            assertEquals(1, enc.getAnnotations().size());
+            Annotation ann = enc.getAnnotations().get(0);
+            assertFalse(ann.isImportedBox(), "no box at a made-up angle for theta=" + bad);
+            assertTrue(ann.isTrivial());
+        }
+    }
+
+    @Test void rejectedAngleOnOneSlotLeavesTheOtherSlotsBox() throws Exception {
+        Encounter enc = run(boxedRow("Encounter.mediaAsset0.theta", "sideways", "Encounter.mediaAsset1", "q.jpg",
+            "Encounter.mediaAsset1.bbox", "1,2,30,40", "Encounter.mediaAsset1.iaClass", "body")).getEncounters().get(0);
+        assertFalse(annotationOn(enc, maMap.get("p.jpg")).isImportedBox());
+        Annotation q = annotationOn(enc, maMap.get("q.jpg"));
+        assertTrue(q.isImportedBox());
+        assertEquals(0.0, q.getFeature().getParameters().getDouble("theta"), "an absent angle still means 0");
+    }
+
+    @Test void rejectedAngleIsMatchedToItsBoxByNumberNotSpelling() throws Exception {
+        Encounter enc = run(row("Encounter.mediaAsset01", "p.jpg", "Encounter.mediaAsset1.bbox", "10,20,300,400",
+            "Encounter.mediaAsset001.iaClass", "body", "Encounter.mediaAsset01.theta", "sideways")).getEncounters().get(0);
+        assertFalse(enc.getAnnotations().get(0).isImportedBox());
+    }
+
+    @Test void zeroPaddedSlotsKeepTheirKeywordsQualityAndLabels() throws Exception {
+        // slots 0 and 2 only, every column of slot 2 padded
+        Encounter enc = run(boxedRow("Encounter.keyword0", "kw-zero", "Encounter.mediaAsset02", "q.jpg",
+            "Encounter.mediaAsset02.bbox", "1,2,30,40", "Encounter.mediaAsset02.iaClass", "body",
+            "Encounter.keyword02", "kw-two", "Encounter.quality02", "0.4", "Encounter.mediaAsset02.colour", "red")).getEncounters().get(0);
+        Annotation q = annotationOn(enc, maMap.get("q.jpg"));
+        assertTrue(q.isImportedBox());
+        assertEquals(0.4, q.getQuality());
+        assertEquals(Set.of("kw-two", "red"), keywordNames(maMap.get("q.jpg")));
+        assertEquals(Set.of("kw-zero"), keywordNames(maMap.get("p.jpg")));
+    }
 }

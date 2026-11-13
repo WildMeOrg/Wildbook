@@ -76,6 +76,57 @@ class ImportedBoxReplayDbTest extends IdentificationDbTestSupport {
         return captured;
     }
 
+    @Test void aNestedMarkerIsNotAnImportedBoxChild() throws Exception {   // review: UrbanFercec
+        long now = System.currentTimeMillis();
+        Shepherd sh = open("fixture");
+        Task decoy = new Task();
+        decoy.setParameters(new JSONObject().put("x", new JSONObject().put(Task.PARAM_IMPORTED_BOX, true)));
+        decoy.setStatus("initiated");
+        decoy.setQueueResumeMessage(job(decoy.getId()));
+        decoy.setModifiedForTests(now - 1000 * HOUR);   // older than any other fixture
+        sh.getPM().makePersistent(decoy);
+        String stale = persistChild(sh, true, "initiated", now - 900 * HOUR, true);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+
+        Shepherd q = open("query");
+        try {
+            List<String> messages = ImportedBoxReplay.fetchStaleResumeMessages(q, now - 800 * HOUR, 500);
+            assertFalse(messages.contains(job(decoy.getId())), "the marker must be the top-level flag");
+            assertTrue(messages.contains(job(stale)));
+            // Codex round 1: an older non-replayable row must not use up the limit
+            assertEquals(java.util.Collections.singletonList(job(stale)),
+                ImportedBoxReplay.fetchStaleResumeMessages(q, now - 800 * HOUR, 1));
+        } finally {
+            q.rollbackAndClose();
+        }
+    }
+
+    @Test void theScanBoundIsStrict() throws Exception {   // Codex round 2
+        long now = System.currentTimeMillis();
+        Shepherd sh = open("fixture");
+        for (int i = 0; i < 3; i++) {   // three non-replayable candidates, oldest of all
+            Task decoy = new Task();
+            decoy.setParameters(new JSONObject().put("x", new JSONObject().put(Task.PARAM_IMPORTED_BOX, true)));
+            decoy.setStatus("initiated");
+            decoy.setModifiedForTests(now - (5000 - i) * HOUR);
+            sh.getPM().makePersistent(decoy);
+        }
+        String fourth = persistChild(sh, true, "initiated", now - 4900 * HOUR, true);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+
+        Shepherd q = open("query");
+        try {
+            // a page size (2) that does not divide the bound (3): the fourth row is never examined
+            assertTrue(ImportedBoxReplay.fetchStaleResumeMessages(q, now - 4000 * HOUR, 2, 3).isEmpty());
+            assertEquals(java.util.Collections.singletonList(job(fourth)),
+                ImportedBoxReplay.fetchStaleResumeMessages(q, now - 4000 * HOUR, 2, 4));
+        } finally {
+            q.rollbackAndClose();
+        }
+    }
+
     @Test void onlyStaleNonTerminalImportedBoxChildrenAreReplayed() throws Exception {
         long now = System.currentTimeMillis();
         Shepherd sh = open("fixture");

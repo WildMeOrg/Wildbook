@@ -80,12 +80,29 @@ public class MlServiceProcessor {
         if (jobData == null) {
             return MlServiceJobOutcome.validationError("INVALID_PAYLOAD", "payload is null");
         }
-        if (jobData.optBoolean("deferredMatch", false)) {
+        String taskId = jobData.optString("taskId", null);
+        boolean deferred = jobData.optBoolean("deferredMatch", false);
+        List<String> named = deferred
+            ? jsonArrayToStringList(jobData.optJSONArray("annotationIds")) : new ArrayList<String>();
+        // a payload that would be dispatched as detection (mediaAssetId wins below) names no box
+        if (!deferred && jobData.has("annotationId") && !jobData.has("mediaAssetId"))
+            named.add(jobData.optString("annotationId", null));
+        String mismatch;
+        try {
+            mismatch = importedBoxJobMismatch(taskId, named);
+        } catch (Exception ex) {
+            return MlServiceJobOutcome.persistError("PERSIST", "imported-box check failed: " + ex);
+        }
+        if (mismatch != null) {
+            System.out.println("WARN: MlServiceProcessor.process() dropped a job for task " + taskId +
+                ": " + mismatch);
+            return MlServiceJobOutcome.stale(mismatch);
+        }
+        if (deferred) {
             return runDeferredMatch(jobData);
         }
 
         String taxonomyString = jobData.optString("taxonomyString", null);
-        String taskId = jobData.optString("taskId", null);
         String encounterId = jobData.optString("encounterId", null);
 
         if (jobData.has("mediaAssetId")) {
@@ -98,6 +115,69 @@ public class MlServiceProcessor {
         }
         return MlServiceJobOutcome.validationError("INVALID_PAYLOAD",
             "neither mediaAssetId nor annotationId in payload");
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.4): an imported-box child works on exactly one box, the one named
+     * in the job the server stored on it when it created the child, and that box must carry the
+     * stamp of the child's import. Returns why a job must be dropped without any write, or null
+     * when it may run (always null for a task that is not an imported-box child). Reads only.
+     */
+    String importedBoxJobMismatch(String taskId, List<String> annIds) {
+        if (taskId == null) return null;
+        Shepherd shep = openShepherd("importedBoxJobMismatch");
+        try {
+            shep.beginDBTransaction();
+            // strict lookups: only a genuinely absent row reads as absent; a datastore failure
+            // propagates, so an outage can never look like "not an imported-box task"
+            Task task;
+            try {
+                task = (Task)shep.getPM().getObjectById(
+                    shep.getPM().newObjectIdInstance(Task.class, taskId), true);
+            } catch (javax.jdo.JDOObjectNotFoundException notFound) {
+                return null;
+            }
+            if (task.hasUnreadableParameters()) {
+                // fail closed when anything persisted says this could be an imported-box child;
+                // any other task with unreadable parameters is not one, and its job runs as before
+                if (mayBeImportedBoxChild(task))
+                    throw new IllegalStateException("task " + taskId + " has unreadable parameters");
+                return null;
+            }
+            if (!Task.isImportedBoxTask(task)) return null;
+            String boxId = null;
+            String stored = task.getQueueResumeMessage();
+            if (stored != null) boxId = new JSONObject(stored).optString("annotationId", null);
+            if (boxId == null) return "imported-box task has no stored box";
+            if ((annIds == null) || (annIds.size() != 1) || !boxId.equals(annIds.get(0)))
+                return "the job does not name this task's box";
+            Annotation ann = IA.strictAnnotation(shep, boxId);   // null: deleted, handled downstream
+            if ((ann != null) &&
+                !ann.isImportedBoxOf(task.getParameters().optString("importTaskId", null)))
+                return "the annotation is not a box of this task's import";
+            return null;
+        } finally {
+            shep.rollbackAndClose();
+        }
+    }
+
+    /**
+     * For a task whose parameters cannot be read: true when other persisted evidence could make it
+     * an imported-box child, namely the marker text, a stored job that names an annotation (only
+     * extraction children store one), or a held annotation that is an imported box.
+     */
+    static boolean mayBeImportedBoxChild(Task task) {
+        if (task.rawParametersMentionImportedBox()) return true;
+        String stored = task.getQueueResumeMessage();
+        if (stored != null) {
+            JSONObject job = Util.stringToJSONObject(stored);
+            if ((job == null) || job.has("annotationId")) return true;   // unreadable job: fail closed
+        }
+        List<Annotation> held = task.getObjectAnnotations();
+        if (held != null) {
+            for (Annotation ann : held) if ((ann != null) && ann.isImportedBox()) return true;
+        }
+        return false;
     }
 
     private MlServiceJobOutcome processDetection(JSONObject jobData, String taxonomyString,

@@ -34,6 +34,8 @@ public class SubmissionStore {
                 if (!existing.getCreateHash().equals(hash)) throw new SubmissionException(409, "IDEMPOTENCY_KEY_REUSED", "Key was used with different input");
                 return existing.json(true);
             }
+            // only an organization's service account may name a collector; nothing is stored otherwise
+            if (normalized.has(SubmissionAttribution.FIELD)) SubmissionAttribution.serviceOrganization(sh, ownerId);
             Query<?> count = sh.getPM().newQuery(Submission.class,
                 "context == :ctx && ownerId == :owner && (state == 'draft' || state == 'validated') && expiresAt > :now");
             try {

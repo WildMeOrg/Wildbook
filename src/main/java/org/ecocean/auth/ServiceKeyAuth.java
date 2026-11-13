@@ -4,12 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
-import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 import javax.jdo.datastore.JDOConnection;
@@ -48,12 +46,20 @@ public final class ServiceKeyAuth {
         public final String organizationId;
         public final Set<String> scopes;
         public final long keyExpiresAt;
+        /** The key's creator when its data tokens read as them; null for a key that reads as the service account. */
+        public final String readAsUserId;
 
         public Grant(String serviceUserId, String keyId, String organizationId, Set<String> scopes,
             long keyExpiresAt) {
+            this(serviceUserId, keyId, organizationId, scopes, keyExpiresAt, null);
+        }
+
+        public Grant(String serviceUserId, String keyId, String organizationId, Set<String> scopes,
+            long keyExpiresAt, String readAsUserId) {
             this.serviceUserId = serviceUserId; this.keyId = keyId; this.organizationId = organizationId;
             this.scopes = Collections.unmodifiableSet(new LinkedHashSet<>(scopes));
             this.keyExpiresAt = keyExpiresAt;
+            this.readAsUserId = readAsUserId;
         }
     }
 
@@ -65,7 +71,42 @@ public final class ServiceKeyAuth {
         ServiceKey key = verify(sh, credential, now);
         recordUse(sh, key.getId(), now);
         return new Grant(key.getServiceUserId(), key.getId(), key.getOrganizationId(),
-            key.getScopeSet(), key.getExpiresAt());
+            key.getScopeSet(), key.getExpiresAt(), key.isReadAsCreator() ? key.getCreatedBy() : null);
+    }
+
+    /**
+     * The user a data token from this grant reads as: the service account, or, for a key bound to its
+     * creator, the creator after checking afresh that they may still be read as (see
+     * {@link #isReadAsEligible}). Throws ServiceKeyException 401 when they no longer may.
+     */
+    public static String dataSubject(Shepherd sh, Grant grant) {
+        if (grant.readAsUserId == null) return grant.serviceUserId;
+        String reason = readAsRefusal(sh.getPM(), grant.readAsUserId, grant.organizationId);
+        if (reason != null) {
+            // the caller only ever sees the generic UNAVAILABLE text
+            System.out.println("ServiceKeyAuth read-as refused (" + reason + ") key=" + grant.keyId
+                + " org=" + grant.organizationId + " user=" + grant.readAsUserId);
+            throw fail(UNAVAILABLE);
+        }
+        return grant.readAsUserId;
+    }
+
+    /**
+     * Whether a key of {@code orgId} may read as {@code userId}: the user exists, is a person (not a
+     * service account) and is a direct member of that organization. Read fresh from the datastore.
+     */
+    public static boolean isReadAsEligible(PersistenceManager pm, String userId, String orgId) {
+        return readAsRefusal(pm, userId, orgId) == null;
+    }
+
+    /** Why a key of {@code orgId} may not read as {@code userId}, or null when it may. */
+    private static String readAsRefusal(PersistenceManager pm, String userId, String orgId) {
+        if (userId == null || orgId == null) return "no creator or organization";
+        User user = FreshObjects.load(pm, User.class, "uuid == :id", userId);
+        if (user == null) return "creator not found";
+        if (user.isServiceAccount()) return "creator is a service account";
+        if (!directOrganizationIds(pm, userId).contains(orgId)) return "creator not a direct member";
+        return null;
     }
 
     /** min(configured, 900 s, time until the key expires). */
@@ -79,15 +120,15 @@ public final class ServiceKeyAuth {
         if (!parsed.isPresent()) throw fail(INVALID);
         PersistenceManager pm = sh.getPM();
         // exact id: an id that is not stored byte-for-byte (e.g. upper-cased) is simply unknown
-        ServiceKey key = fresh(pm, ServiceKey.class, "id == :id", parsed.get()[0]);
+        ServiceKey key = FreshObjects.load(pm, ServiceKey.class, "id == :id", parsed.get()[0]);
         if (key == null || !ServiceKeyCredential.matches(parsed.get()[1], key.getSecretHash()))
             throw fail(INVALID);
         // only the holder of the real secret gets past this point
         if (key.isRevoked()) throw fail(REVOKED);
         if (key.getExpiresAt() <= now) throw fail(EXPIRED);
 
-        User user = fresh(pm, User.class, "uuid == :id", key.getServiceUserId());
-        Organization org = fresh(pm, Organization.class, "id == :id", key.getOrganizationId());
+        User user = FreshObjects.load(pm, User.class, "uuid == :id", key.getServiceUserId());
+        Organization org = FreshObjects.load(pm, Organization.class, "id == :id", key.getOrganizationId());
         if (user == null || org == null) throw fail(UNAVAILABLE);
         if (!isEligible(pm, user, key.getOrganizationId())) throw fail(UNAVAILABLE);
         return key;
@@ -134,7 +175,7 @@ public final class ServiceKeyAuth {
     }
 
     /** Ids of the organizations {@code userId} is a direct member of, read from the datastore (no cache). */
-    static Set<String> directOrganizationIds(PersistenceManager pm, String userId) {
+    public static Set<String> directOrganizationIds(PersistenceManager pm, String userId) {
         Set<String> ids = new LinkedHashSet<>();
         if (userId == null) return ids;
         JDOConnection connection = pm.getDataStoreConnection();
@@ -165,25 +206,6 @@ public final class ServiceKeyAuth {
         } finally { query.closeAll(); }
     }
 
-    /** Loads one object by a single-parameter filter, bypassing caches, then reloads its state from the datastore. */
-    @SuppressWarnings("unchecked")
-    private static <T> T fresh(PersistenceManager pm, Class<T> cls, String filter, String value) {
-        if (value == null) return null;
-        Query<T> query = pm.newQuery(cls, filter);
-        try {
-            query.setIgnoreCache(true);
-            Collection<T> rows = (Collection<T>)query.execute(value);
-            if (rows.size() != 1) return null;
-            T obj = rows.iterator().next();
-            try {
-                pm.refresh(obj);
-            } catch (JDOObjectNotFoundException deleted) {
-                // removed between the query and the reload: treat it as absent
-                return null;
-            }
-            return obj;
-        } finally { query.closeAll(); }
-    }
 
     private static ServiceKeyException fail(String message) {
         return new ServiceKeyException(401, message);

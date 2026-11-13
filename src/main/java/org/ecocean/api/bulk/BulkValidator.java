@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
@@ -233,8 +234,7 @@ public class BulkValidator {
                     BulkValidatorException.TYPE_UNKNOWN_FIELDNAME, fieldName);
         String raw = getRawIndexableFieldName(fieldName);
         if (raw == null) return -1;
-        Pattern p = Pattern.compile(rawToRegex(raw));
-        Matcher m = p.matcher(fieldName);
+        Matcher m = indexPattern(raw).matcher(fieldName);
         if (!m.find()) return -2;
         int index;
         try {
@@ -268,9 +268,17 @@ public class BulkValidator {
         return regex.replace("#", "(\\d+)");
     }
 
+    // the indexable names are a fixed list and these lookups run per column per row
+    private static final Map<String, Pattern> INDEX_PATTERNS =
+        new java.util.concurrent.ConcurrentHashMap<String, Pattern>();
+
+    private static Pattern indexPattern(String raw) {
+        return INDEX_PATTERNS.computeIfAbsent(raw, r -> Pattern.compile(rawToRegex(r)));
+    }
+
     private static String getRawIndexableFieldName(String fieldName) {
         for (String ifn : FIELD_NAMES_INDEXABLE) {
-            if (fieldName.matches(rawToRegex(ifn))) return ifn;
+            if (indexPattern(ifn).matcher(fieldName).matches()) return ifn;
         }
         return null;
     }

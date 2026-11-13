@@ -413,3 +413,131 @@ quality rejected, `annotationsImported:false` on responses and task parameters, 
 changes, reserved labels and the two settings, reused encounters' imported boxes indexed), tests,
 no simpler design, no reusable code. Pre-existing `SettingApiTest.apiPostSuccess` early return noted
 as supplying no evidence (not touched by this PR). Full suite 226 classes / 1972 tests / 0 failures.
+
+## Plan E round 1 (2026-11-07, plan rev 1 -> rev 2)
+
+Verdict: not converged; 11 findings (8 Major, 3 Minor), no Critical; all applied. The two declared
+deviations (inspect keeps its own reader; the status keeps its two phase objects with two new
+codes) accepted.
+1. Bare-slot scans ran over the unfiltered keys, so an unsupported huge index reached the slot
+   helper (which grows a list to the index) -> scan `copied.keySet()` after unsupported removal;
+   the spreadsheet route's unbounded growth noted as a pre-existing follow-up.
+2. The cross-row pass checked identical boxes only when every use was boxed and could double-report
+   in-row repeats -> eligible uses collected after validation (in-row repeats excluded), mixed-use
+   and duplicate-box reported independently, a rejected `.bbox` counts as boxed with an unknown key.
+3. Blanket dedupe-by-field could suppress independent date/value errors -> one explicit
+   suppression only (the shared rules' INVALID_DUPLICATE on an already-reported in-row repeat).
+4. Empty optional box values hit "Provided value cannot be empty" and an empty `.bbox` column
+   would be dropped from normalized rows -> null values of the new fields keep the key as `""`
+   (exact-slot mode survives, draft stays un-boxed).
+5. Reason mapping missed two bbox families and one theta family -> all mapped by prefix.
+6. `/results` builds the phase objects itself and `aiPhase()` had to change -> `aiPhase` keyed on
+   `requestsAi`; `detectionPhase`/`identificationPhase` used by `json()` and `results()`; the
+   boxed import-only identification view keeps the hand-off state with `BOXES_EXTRACTED_ONLY`.
+7. Harness facts: `readyJob` has no `normalizedRows` (optJSONArray), dispatch tests live in the
+   store DB test, the issue test's comparison validator needs the same skip flag, the boxed
+   envelope test must stub `ImportTask.getId()`.
+8. Missing tests -> capabilities JSON, boxed `pending()` after reload, boxed ambiguous publication,
+   both modes through enqueue -> execute -> prepare with the PR A accessors, box identity across
+   spellings, boxed legacy-contract comparison, the staging matrix enumerated.
+9. Minor: persistence upgrade proof -> SQL NULL round trip; wording.
+10. Minor: the no-box inventory completed (quality accepted, issue order, stamp, id order, keys).
+11. Minor: ownership cleanup (prepare tests in Task 4, OpenAPI in Task 5, skip flag in Task 1).
+
+## Plan E round 2 (2026-11-07, plan rev 2 -> rev 3)
+
+Verdict: not converged; 7 findings (4 Major, 3 Minor), no Critical; round-1 findings 1, 2, 3, 5, 7
+resolved, 4, 6, 8, 9, 10, 11 partially. All applied.
+1. Blank quality cannot be accepted by submissions-only handling (the shared validator parses it
+   first) -> quality keeps the shared validation: omit unset, `""` is UNPARSEABLE; blank handling
+   limited to the five box suffixes.
+2. Three task checkpoints depended on later tasks (UNKNOWN_CLASS reason, hasBoxes, prepare
+   envelope) -> assertions moved to the owning tasks.
+3. `skippedIdentification()` is true before any IA task exists (PR A's accessor) -> asserted only
+   after real prepare, in Task 4, before and after reload.
+4. The pairing message starts with the field name -> matched as `field + " needs a box in "`; a
+   theta-without-box case added.
+5. Minor: SQL NULL proves null reads, not a live upgrade -> an old-shaped-table test (drop the
+   column, reopen with autoCreateAll, retained row reads false).
+6. Minor: in-row repeats drop from two issues to one and slot order decides the flagged field ->
+   recorded; an all-un-boxed in-row regression case.
+7. Minor: boxed import-only text contradicted its state and could replace failure messages ->
+   an extraction-only message; failure phases returned untouched; both representations asserted
+   for state, code and message.
+
+## Plan E round 3 (2026-11-07, plan rev 3 -> rev 4)
+
+Verdict: not converged; 1 Major (test setup) and 3 Minor, no Critical; round-2 findings 2-6
+resolved, 1 and 7 partially (stale wording). All applied.
+1. Minor: a stale "or quality" clause in Task 2's null-to-empty rule -> the five suffixes only.
+2. Minor: a state test required "not identified" while the contract says "identification is not
+   run" -> aligned.
+3. Major: the real-prepare test never reached prepare because realImport leaves derivatives
+   pending -> `mutate(derivatives("complete"))` and the callback-URL mock before dispatch; the
+   publisher asserted called exactly once.
+4. Minor: the real-import test could not detect a missing skip flag in execute's second pass ->
+   a `fin` (default false) box imported in import-only with its persisted class asserted, and the
+   same row rejected in detect-and-identify.
+
+## Plan E round 4 (2026-11-07): converged
+
+Verdict: converged; round-3 findings resolved; no Critical, Major or Minor findings across spec
+fidelity, correctness, no-box neutrality (all differences recorded), persistence (upgrade test),
+tests, no simpler design, reuse. Implementation proceeds from rev 4; the branch review follows.
+
+## Branch E round 1 (2026-11-08)
+
+Verdict: not converged; no Critical or Major; 7 Minor, all applied (delimiter-safe class
+translation, narrowed suppression, BOXES_EXTRACTED_ONLY on normal states only, the missing-class
+message recorded as an accepted deviation, missing tests and edge cases, boxed phase docs,
+THETA_LIMIT / isBoxField / hasBoxes reuse). Process note: targeted Maven runs overlapped the
+background full build in the same worktree; that build was discarded and rerun.
+
+## Branch E round 2 (2026-11-08)
+
+Verdict: not converged on tests only; no Critical, Major or production defect; 2 Minor test gaps,
+applied (the full mode-by-phase matrix through both status endpoints with exact text; the
+repeated-slot test reuses the excluded slot's box). Clean full build: 226 classes, 2018 tests,
+0 failures, 7 skips.
+
+## Branch E round 3 (2026-11-08): converged
+
+Verdict: converged; round-2 gaps resolved; no Critical, Major or Minor findings. Two recorded
+deviations stand (inspect keeps its reader; the missing-class message names .iaClass).
+
+## Staging fix review (2026-11-08, PR A commit a0108162a)
+
+Flakebook staging found import-only boxes dropped silently when a species lacks species-level
+ml-service routing. Fix: a terminal holder (NO_EXTRACTION_CONFIG error for vector-configured
+classes, else completed). Codex: converged; keep the shared species-level routing rule; one Minor
+(identification-enabled regression test), applied. Follow-up recorded: MlServiceClient sends only
+extract_model_id while older matching reads model_id; installs with model_id-only entries fail v2
+extraction with 422 (pre-existing; separate fix).
+
+## Plan D round 1 and branch D rounds 1-2 (2026-11-08)
+
+Plan round 1: 3 Major (viewpoints are published as `annotationViewpoint`; the current Bulk Import
+page renumbers photo columns, so the spreadsheet route needs constraints until PR C; import-only
+extraction and NO_EXTRACTION_CONFIG semantics) and 6 Minor, all applied while writing the skill.
+Branch round 1: 1 Major (a preview showing box columns must not relax the page rules; ascending
+columns required) and 5 Minor, applied. Branch round 2: converged; 2 Minor wording fixes applied
+(extractor-dependent preparation; pending is not "sent"). Full suite on the branch: 226 classes,
+2027 tests, 0 failures.
+
+## Plan C rounds 1-3 and branch C rounds 1-3 (2026-11-08)
+
+Plan round 1: 6 Major (read-only must cover every per-photo column; capability signal
+`bulkImportIndexableFields` unused; legacy boxed drafts; client/server numeric parity; iaClass
+warning plumbing and skip-toggle revalidation; "no detection" only when a bbox is non-empty, per
+4.1) and 2 Minor. Round 2: 2 Major (resume ran before capability; legacy raw data not
+authoritative, so legacy boxed drafts now require a spreadsheet re-upload) and 2 Minor. Round 3:
+3 Minor (full spreadsheet reset, Java-style trimming, task wording), applied; no Major left.
+Deviation accepted by Codex: the iaClass check is a warning, since the skip boxes come after the
+table step and the server rejects on Import.
+Branch round 1: 4 Major (parse before settings load; boxed filenames split on commas; stale
+labeled-keyword rule on bboxSource; tests mocking the code under test) and 2 Minor (species edits,
+duplicated revalidation). Round 2: 2 Major (resume before settings; filenames trimmed, comma
+filename split in the table) and 2 Minor (un-boxed missing-photo behaviour changed; one more
+duplicated sequence). Round 3: converged, no findings. Frontend: 28 suites, 316 tests passing
+(CI runner `npm run jest`; `npm test` is broken repo-wide by a Babel version mismatch pinned in
+package-lock.json).

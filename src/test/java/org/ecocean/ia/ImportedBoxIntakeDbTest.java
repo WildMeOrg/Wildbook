@@ -731,4 +731,127 @@ class ImportedBoxIntakeDbTest extends IdentificationDbTestSupport {
             check.rollbackAndClose();
         }
     }
+
+
+    // ---- extraction mode takes only the boxes of the root's own import ----
+
+    @Test void annotationsThatAreNotThisImportsBoxesAreLeftUntouched() throws Exception {
+        Shepherd sh = open("fixture");
+        String importId = nextImportId();
+        Encounter mine = boxedEncounter(sh, ML_GENUS, ML_SPECIES, importId, 1);
+        Encounter other = boxedEncounter(sh, ML_GENUS, ML_SPECIES, nextImportId(), 1);
+        Encounter plain = encounter(sh, ML_GENUS, ML_SPECIES, BODY);
+        // the two foreign annotations sit on assets whose detection is still under way
+        other.getAnnotations().get(0).getMediaAsset().setDetectionStatus(IBEISIA.STATUS_PROCESSING);
+        plain.getAnnotations().get(0).getMediaAsset().setDetectionStatus(IBEISIA.STATUS_ERROR);
+        Task req = requestTask(sh, importId, false);
+        String mineId = annotationIds(mine).get(0);
+        String otherId = annotationIds(other).get(0);
+        String plainId = annotationIds(plain).get(0);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+
+        List<JSONObject> jobs = handleRestCapturing(envelope(req.getId(),
+            Arrays.asList(plainId, otherId, mineId), IAGateway.ANNOTATION_MODE_EXTRACT));
+        assertEquals(1, jobs.size(), "only this import's box is extracted");
+        assertEquals(mineId, jobs.get(0).getString("annotationId"));
+
+        Shepherd check = open("check");
+        try {
+            Task species = onlyChild(Task.load(req.getId(), check));
+            assertEquals(1, species.getChildren().size());
+            assertEquals(1, species.getObjectMediaAssets().size(), "the species task lists only the import's asset");
+            Annotation otherAnn = check.getAnnotation(otherId);
+            Annotation plainAnn = check.getAnnotation(plainId);
+            for (Annotation ann : new Annotation[] { otherAnn, plainAnn }) {
+                assertNull(ann.getIdentificationStatus(), "identification status untouched for " + ann.getId());
+                assertEquals(0, Task.getTasksFor(ann, check).size(), "no task holds " + ann.getId());
+            }
+            assertEquals(IBEISIA.STATUS_PROCESSING, otherAnn.getMediaAsset().getDetectionStatus());
+            assertEquals(IBEISIA.STATUS_ERROR, plainAnn.getMediaAsset().getDetectionStatus());
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
+    @Test void rootWithoutAnImportStampExtractsNothing() throws Exception {
+        Shepherd sh = open("fixture");
+        Encounter boxed = boxedEncounter(sh, ML_GENUS, ML_SPECIES, nextImportId(), 1);
+        Task req = requestTask(sh, null, false);
+        String boxId = annotationIds(boxed).get(0);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+
+        List<JSONObject> jobs = handleRestCapturing(envelope(req.getId(), Arrays.asList(boxId),
+            IAGateway.ANNOTATION_MODE_EXTRACT));
+        assertEquals(0, jobs.size());
+        Shepherd check = open("check");
+        try {
+            Annotation ann = check.getAnnotation(boxId);
+            assertNull(ann.getIdentificationStatus());
+            assertEquals(0, Task.getTasksFor(ann, check).size());
+            assertNull(ann.getMediaAsset().getDetectionStatus());
+            Task root = Task.load(req.getId(), check);   // review: UrbanFercec - the root still ends
+            assertEquals("error", root.getStoredStatus());
+            assertTrue(String.valueOf(root.getStatusDetails()).contains("INVALID_ENVELOPE"),
+                String.valueOf(root.getStatusDetails()));
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+
+    @Test void rootWhoseBoxesAreAllGoneCompletesWithNothingToDo() throws Exception {   // review: UrbanFercec
+        Shepherd sh = open("fixture");
+        Task req = requestTask(sh, nextImportId(), false);
+        sh.commitDBTransaction();
+        sh.closeDBTransaction();
+
+        List<JSONObject> jobs = handleRestCapturing(envelope(req.getId(),
+            Arrays.asList("00000000-0000-0000-0000-00000000dead"), IAGateway.ANNOTATION_MODE_EXTRACT));
+        assertEquals(0, jobs.size());
+        Shepherd check = open("check");
+        try {
+            Task root = Task.load(req.getId(), check);
+            assertEquals("completed", root.getStoredStatus());
+            assertTrue(root.getChildren() == null || root.getChildren().isEmpty());
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
+    @Test void aFailedCommitOfTheEmptyRootEndsItThroughRecovery() throws Exception {   // Codex round 1
+        Shepherd fixture = open("fixture");
+        Encounter boxed = boxedEncounter(fixture, ML_GENUS, ML_SPECIES, nextImportId(), 1);
+        Task req = requestTask(fixture, nextImportId(), false);   // another import: nothing is taken
+        List<String> ids = annotationIds(boxed);
+        fixture.commitDBTransaction();
+        fixture.closeDBTransaction();
+
+        Shepherd real = open("intake");
+        Shepherd sh = spy(real);
+        AtomicInteger commits = new AtomicInteger();
+        doAnswer(inv -> {
+            if (commits.incrementAndGet() == 1) { real.rollbackDBTransaction(); return false; }
+            return inv.callRealMethod();
+        }).when(sh).commitDBTransactionWithStatus();
+        List<JSONObject> jobs = new ArrayList<JSONObject>();
+        try (MockedStatic<IAGateway> gateway = mockStatic(IAGateway.class, CALLS_REAL_METHODS)) {
+            gateway.when(() -> IAGateway.addToDetectionQueue(eq(CTX), anyString())).thenAnswer(call -> {
+                jobs.add(new JSONObject(call.getArgument(1, String.class))); return true; });
+            Task root = Task.load(req.getId(), sh);
+            assertEquals(0, IA.intakeImportedBoxes(sh, ids, root, CTX, BASE));
+        } finally {
+            real.rollbackAndClose();
+        }
+        assertEquals(0, jobs.size(), "nothing was published");
+        assertTrue(commits.get() >= 2, "the recovery committed");
+        Shepherd check = open("check");
+        try {
+            Task reqTask = Task.load(req.getId(), check);
+            assertEquals("error", reqTask.getStoredStatus());
+            assertEquals("EXTRACTION_PERSIST", MultiAlgorithmIntakeDbTest.errorCode(reqTask));
+            assertNull(check.getAnnotation(ids.get(0)).getIdentificationStatus(), "the other import's box is untouched");
+        } finally {
+            check.rollbackAndClose();
+        }
+    }
 }

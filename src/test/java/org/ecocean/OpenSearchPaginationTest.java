@@ -1,9 +1,17 @@
 package org.ecocean;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.opensearch.client.Request;
 
 class OpenSearchPaginationTest {
     // ===== parseMaxResultWindow: reads the live index setting, defaults to 10000 =====
@@ -71,5 +79,153 @@ class OpenSearchPaginationTest {
 
     @Test void staleContext_nullMessageIsNotRetryable() {
         assertFalse(OpenSearch.isStaleSearchContextError(null));
+    }
+
+    // ===== max_result_window bump (background sync): grow-only, strict read, no preserve_existing =====
+
+    private static String settingsJson(String indexName, Object window) {
+        JSONObject index = new JSONObject();
+        if (window != null) index.put("max_result_window", window);
+        return new JSONObject().put(indexName, new JSONObject().put("settings",
+            new JSONObject().put("index", index))).toString();
+    }
+
+    /** spy whose GET _settings answers with getBody (or throws getFailure) and which records every PUT */
+    private static OpenSearch stubbed(String getBody, IOException getFailure, List<Request> puts)
+    throws Exception {
+        OpenSearch os = spy(new OpenSearch());
+        doAnswer(inv -> {
+            Request request = inv.getArgument(0);
+            if ("PUT".equals(request.getMethod())) {
+                puts.add(request);
+                return "{\"acknowledged\":true}";
+            }
+            if (getFailure != null) throw getFailure;
+            return getBody;
+        }).when(os).getRestResponse(any(Request.class));
+        return os;
+    }
+
+    private static int windowIn(Request put) throws Exception {
+        return new JSONObject(EntityUtils.toString(put.getEntity())).getInt("index.max_result_window");
+    }
+
+    @Test void targetMaxResultWindow_isOnePointTwoTimesTheCount() {
+        assertEquals(14624, OpenSearch.targetMaxResultWindow(12187)); // the stale value seen in the field
+        assertEquals(653682, OpenSearch.targetMaxResultWindow(544735));
+        assertEquals(12001, OpenSearch.targetMaxResultWindow(10001));
+    }
+
+    @Test void targetMaxResultWindow_leavesIndexesAtOrBelowTheDefaultAlone() {
+        assertEquals(-1, OpenSearch.targetMaxResultWindow(10000));
+        assertEquals(-1, OpenSearch.targetMaxResultWindow(0));
+        assertEquals(-1, OpenSearch.targetMaxResultWindow(-5));
+    }
+
+    @Test void targetMaxResultWindow_clampsToIntegerRange() {
+        assertEquals(Integer.MAX_VALUE, OpenSearch.targetMaxResultWindow(Integer.MAX_VALUE));
+        assertEquals(Integer.MAX_VALUE, OpenSearch.targetMaxResultWindow(Long.MAX_VALUE));
+    }
+
+    @Test void ensureMaxResultWindow_raisesStoredWindowWithoutPreserveExisting() throws Exception {
+        List<Request> puts = new ArrayList<Request>();
+        OpenSearch os = stubbed(settingsJson("encounter", "14875"), null, puts);
+        os.ensureMaxResultWindow("encounter", 544735);
+        assertEquals(1, puts.size());
+        assertEquals("encounter/_settings", puts.get(0).getEndpoint());
+        assertTrue(puts.get(0).getParameters().isEmpty(),
+            "preserve_existing=true made every update after the first a no-op");
+        assertEquals(653682, windowIn(puts.get(0)));
+    }
+
+    @Test void ensureMaxResultWindow_neverLowersALargerStoredWindow() throws Exception {
+        List<Request> puts = new ArrayList<Request>();
+        OpenSearch os = stubbed(settingsJson("encounter", "660000"), null, puts);
+        os.ensureMaxResultWindow("encounter", 544735);
+        assertTrue(puts.isEmpty(), "a hand-raised window must survive the sync");
+    }
+
+    @Test void ensureMaxResultWindow_skipsWhenSettingsReadFails() throws Exception {
+        List<Request> puts = new ArrayList<Request>();
+        OpenSearch os = stubbed(null, new IOException("connection refused"), puts);
+        os.ensureMaxResultWindow("encounter", 544735);
+        assertTrue(puts.isEmpty(), "a failed read must not be mistaken for the default window");
+    }
+
+    @Test void ensureMaxResultWindow_skipsWhenSettingsResponseIsMalformed() throws Exception {
+        List<Request> puts = new ArrayList<Request>();
+        OpenSearch os = stubbed("{}", null, puts);
+        os.ensureMaxResultWindow("encounter", 544735);
+        assertTrue(puts.isEmpty());
+    }
+
+    @Test void ensureMaxResultWindow_skipsWhenStoredValueIsUnparseable() throws Exception {
+        List<Request> puts = new ArrayList<Request>();
+        OpenSearch os = stubbed(settingsJson("encounter", "lots"), null, puts);
+        os.ensureMaxResultWindow("encounter", 544735);
+        assertTrue(puts.isEmpty());
+    }
+
+    @Test void ensureMaxResultWindow_treatsAnAbsentSettingAsTheDefault() throws Exception {
+        List<Request> puts = new ArrayList<Request>();
+        OpenSearch os = stubbed(settingsJson("encounter", null), null, puts);
+        os.ensureMaxResultWindow("encounter", 12187);
+        assertEquals(1, puts.size());
+        assertEquals(14624, windowIn(puts.get(0)));
+    }
+
+    @Test void ensureMaxResultWindow_doesNotTouchOpenSearchForSmallIndexes() throws Exception {
+        List<Request> all = new ArrayList<Request>();
+        OpenSearch os = spy(new OpenSearch());
+        doAnswer(inv -> {
+            all.add(inv.getArgument(0));
+            return settingsJson("encounter", "10000");
+        }).when(os).getRestResponse(any(Request.class));
+        os.ensureMaxResultWindow("encounter", 10000);
+        assertTrue(all.isEmpty(), "no GET and no PUT below the default window");
+    }
+
+    // The window cache is static, shared by every test class in the JVM and kept for 60 s. The
+    // two tests below read through it, so they use index names no other test touches: a real
+    // name ("annotation", "individual") can still be cached from an earlier class that searched
+    // it, and these tests would in turn leave their made-up windows behind for a later one.
+    private static final String LIVE_INDEX = "pagination_test_live_setting";
+    private static final String REFRESH_INDEX = "pagination_test_cache_refresh";
+
+    @Test void ensureMaxResultWindow_decidesFromTheLiveSettingNotTheCache() throws Exception {
+        List<Request> puts = new ArrayList<Request>();
+        String[] stored = { "14875" };
+        OpenSearch os = spy(new OpenSearch());
+        doAnswer(inv -> {
+            Request request = inv.getArgument(0);
+            if ("PUT".equals(request.getMethod())) {
+                puts.add(request);
+                return "{\"acknowledged\":true}";
+            }
+            return settingsJson(LIVE_INDEX, stored[0]);
+        }).when(os).getRestResponse(any(Request.class));
+        assertEquals(14875, os.getMaxResultWindow(LIVE_INDEX)); // primes the 60 s cache
+        stored[0] = "660000"; // an operator raised it by hand since
+        os.ensureMaxResultWindow(LIVE_INDEX, 544735);
+        assertTrue(puts.isEmpty(), "a stale cached value must not justify lowering the live setting");
+    }
+
+    @Test void ensureMaxResultWindow_refreshesTheCachedWindowRightAway() throws Exception {
+        String[] stored = { "14875" };
+        OpenSearch os = spy(new OpenSearch());
+        doAnswer(inv -> {
+            Request request = inv.getArgument(0);
+            if ("PUT".equals(request.getMethod())) {
+                assertEquals(REFRESH_INDEX + "/_settings", request.getEndpoint());
+                assertTrue(request.getParameters().isEmpty());
+                stored[0] = Integer.toString(windowIn(request));
+                return "{\"acknowledged\":true}";
+            }
+            return settingsJson(REFRESH_INDEX, stored[0]);
+        }).when(os).getRestResponse(any(Request.class));
+        assertEquals(14875, os.getMaxResultWindow(REFRESH_INDEX)); // primes the 60 s cache
+        os.ensureMaxResultWindow(REFRESH_INDEX, 786983);
+        assertEquals(944380, os.getMaxResultWindow(REFRESH_INDEX),
+            "the API gate must see the new window without waiting for the cache to expire");
     }
 }
