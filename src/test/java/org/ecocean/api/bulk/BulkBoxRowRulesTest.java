@@ -168,4 +168,59 @@ class BulkBoxRowRulesTest {
         Map<String, Object> m = BulkImportUtil.validateRow(names, values, sh, false);
         assertEquals(BulkValidatorException.TYPE_REQUIRED_VALUE, errorType(m, "Encounter.mediaAsset0.bbox"));   // no iaClass column in the sheet
     }
+
+    // ---- a slot's columns are found by number, however the index is written ----
+
+    @Test void zeroPaddedSlotColumnsGetTheSameRules() {
+        // box without a class: required, reported on the padded column the sheet has
+        Map<String, Object> m = validate(row("Encounter.mediaAsset01", "a.jpg", "Encounter.mediaAsset01.bbox", "1,1,5,5"));
+        assertEquals(BulkValidatorException.TYPE_REQUIRED_VALUE, errorType(m, "Encounter.mediaAsset01.bbox"));
+        assertFalse(m.containsKey("Encounter.mediaAsset1.bbox"), "no fabricated canonical key");
+        // a class the species does not have
+        m = validate(row("Encounter.mediaAsset01", "a.jpg", "Encounter.mediaAsset01.bbox", "1,1,5,5", "Encounter.mediaAsset01.iaClass", "nope"));
+        assertEquals(BulkValidatorException.TYPE_INVALID_VALUE, errorType(m, "Encounter.mediaAsset01.iaClass"));
+        // a suffix without its box
+        m = validate(row("Encounter.mediaAsset01", "a.jpg", "Encounter.mediaAsset01.theta", "0.5"));
+        assertEquals(BulkValidatorException.TYPE_REQUIRED_VALUE, errorType(m, "Encounter.mediaAsset01.theta"));
+        // a box without a photo
+        m = validate(row("Encounter.mediaAsset01.bbox", "1,1,5,5", "Encounter.mediaAsset01.iaClass", "body"));
+        assertEquals(BulkValidatorException.TYPE_INVALID_VALUE, errorType(m, "Encounter.mediaAsset01.bbox"));
+        // complete, and with the photo, box and class each spelled differently
+        assertNoErrors(validate(row("Encounter.mediaAsset01", "a.jpg", "Encounter.mediaAsset01.bbox", "1,1,5,5", "Encounter.mediaAsset01.iaClass", "body")));
+        assertNoErrors(validate(row("Encounter.mediaAsset1", "a.jpg", "Encounter.mediaAsset01.bbox", "1,1,5,5", "Encounter.mediaAsset001.iaClass", "body")));
+    }
+
+    @Test void sameNumberedColumnUnderTwoSpellingsIsFound() {
+        assertNull(BulkImportUtil.findIndexAliases(new java.util.LinkedHashSet<String>(java.util.List.of(
+            "Encounter.mediaAsset0", "Encounter.mediaAsset1", "Encounter.mediaAsset1.bbox", "Encounter.keyword1",
+            "Encounter.year", "not.a.field"))));
+        String[] pair = BulkImportUtil.findIndexAliases(new java.util.LinkedHashSet<String>(java.util.List.of(
+            "Encounter.mediaAsset0", "Encounter.mediaAsset1", "Encounter.mediaAsset01")));
+        assertNotNull(pair);
+        assertEquals("Encounter.mediaAsset1", pair[0]);
+        assertEquals("Encounter.mediaAsset01", pair[1]);
+        assertNotNull(BulkImportUtil.findIndexAliases(new java.util.LinkedHashSet<String>(java.util.List.of(
+            "Encounter.mediaAsset2.bbox", "Encounter.mediaAsset02.bbox"))));
+    }
+
+    @Test void boxSlotReadsTheNumberNotTheSpelling() {
+        assertEquals(1, BulkImportUtil.boxSlot("Encounter.mediaAsset01.theta", "theta"));
+        assertEquals(1, BulkImportUtil.boxSlot("Encounter.mediaAsset1.theta", "theta"));
+        assertEquals(-1, BulkImportUtil.boxSlot("Encounter.mediaAsset1.theta", "bbox"));
+        assertEquals(-1, BulkImportUtil.boxSlot("Encounter.mediaAsset1", "bbox"));
+        assertEquals(-1, BulkImportUtil.boxSlot("not.a.field", "bbox"));
+    }
+
+    @Test void sameSlotsLabeledKeywordUnderTwoSpellingsIsFound() {
+        BulkImportUtil.labeledKeywordMap = new java.util.LinkedHashMap<String, java.util.Set<String> >();
+        BulkImportUtil.labeledKeywordMap.put("colour", new java.util.LinkedHashSet<String>(java.util.List.of("red")));
+        try {
+            assertNotNull(BulkImportUtil.findIndexAliases(new java.util.LinkedHashSet<String>(java.util.List.of(
+                "Encounter.mediaAsset1.colour", "Encounter.mediaAsset01.colour"))));
+            assertNull(BulkImportUtil.findIndexAliases(new java.util.LinkedHashSet<String>(java.util.List.of(
+                "Encounter.mediaAsset1.colour", "Encounter.mediaAsset2.colour", "Encounter.mediaAsset1"))));
+        } finally {
+            BulkImportUtil.labeledKeywordMap = null;
+        }
+    }
 }

@@ -1025,11 +1025,11 @@ public class IA {
      * instead of committing a holder that omits an existing box.
      */
     private static Task errorChildReloading(Shepherd myShepherd, Task parent, List<String> annIds,
-        String code, String message) {
+        String importId, String code, String message) {
         List<Annotation> anns = new ArrayList<Annotation>();
         for (String id : annIds) {
             Annotation a = strictAnnotation(myShepherd, id);
-            if (a != null) anns.add(a);
+            if ((a != null) && a.isImportedBoxOf(importId)) anns.add(a);
         }
         return errorChildHolding(parent, anns, code, message);
     }
@@ -1047,7 +1047,12 @@ public class IA {
         String context, String baseUrl) {
         if ((inputIds == null) || inputIds.isEmpty() || (root == null)) return 0;
         boolean skipIdent = IBEISIA.taskParametersSkipIdent(root);
+        // extraction mode is only for the boxes of the import this root was created for: any
+        // other annotation in the envelope is left exactly as it was (no task, no status change)
+        String importId = (root.getParameters() == null) ? null
+            : root.getParameters().optString("importTaskId", null);
         List<StagedBox> staged = new ArrayList<StagedBox>();
+        int foreign = 0;   // named, existing, but not a box of this root's import
         Map<String, Task> speciesTasks = new LinkedHashMap<String, Task>();
         Map<String, List<Annotation>> wbiaSpecies = new LinkedHashMap<String, List<Annotation>>();
         boolean committed = false;
@@ -1068,6 +1073,12 @@ public class IA {
                         " no longer exists; skipped");
                     continue;
                 }
+                if (!ann.isImportedBoxOf(importId)) {
+                    System.out.println("WARN: IA.intakeImportedBoxes() annotation " + id +
+                        " is not a box of import " + importId + "; skipped");
+                    foreign++;
+                    continue;
+                }
                 MediaAsset ma = ann.getMediaAsset();
                 Taxonomy taxy = ann.getTaxonomy(myShepherd);
                 if ((ma == null) || (taxy == null) || !Util.stringExists(taxy.getScientificName())) {
@@ -1079,6 +1090,24 @@ public class IA {
                 taxonomies.put(key, taxy);
                 if (!bySpecies.containsKey(key)) bySpecies.put(key, new ArrayList<Annotation>());
                 bySpecies.get(key).add(ann);
+            }
+            if (bySpecies.isEmpty() && noTaxonomy.isEmpty()) {
+                // nothing was taken, so no task below will ever end the root: end it here, so a
+                // client polling it does not wait forever. Boxes of another import (or a root with
+                // no import) make the envelope invalid; boxes that were all deleted leave nothing to do.
+                if (foreign > 0) {
+                    markTaskError(root, "INVALID_ENVELOPE", foreign +
+                        " named annotation(s) are not boxes of import " + importId);
+                } else {
+                    root.setStatus("completed");
+                    root.setCompletionDateInMilliseconds();
+                }
+                myShepherd.getPM().makePersistent(root);
+                // a failed commit goes to the staging recovery below, which ends the root in error
+                if (!myShepherd.commitDBTransactionWithStatus())
+                    throw new IllegalStateException("could not commit the end of a root that took no box");
+                myShepherd.beginDBTransaction();
+                return 0;
             }
             if (!noTaxonomy.isEmpty()) {
                 Task t = errorChildHolding(root, noTaxonomy, "NO_TAXONOMY",
@@ -1144,8 +1173,8 @@ public class IA {
                     throw new IllegalStateException("transaction not active after restart");
                 // reload every box: a lookup failure here fails the recovery (below) rather than
                 // committing a holder that omits an existing box
-                Task t = errorChildReloading(myShepherd, root, inputIds, "EXTRACTION_PERSIST",
-                    stagingFailure);
+                Task t = errorChildReloading(myShepherd, root, inputIds, importId,
+                    "EXTRACTION_PERSIST", stagingFailure);
                 markTaskError(root, "EXTRACTION_PERSIST", stagingFailure);
                 myShepherd.getPM().makePersistent(t);
                 myShepherd.getPM().makePersistent(root);

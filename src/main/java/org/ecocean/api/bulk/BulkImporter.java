@@ -137,10 +137,26 @@ public class BulkImporter {
             if (rowNum % 100 == 0) logProgress("processRow=" + rowNum);
             List<BulkValidator> fields = new ArrayList<BulkValidator>();
             Map<String, Object> rowResult = dataRows.get(rowNum);
+            // bulk-import boxes (spec 4.1): a box whose angle was rejected is never stored at
+            // angle 0. Its .bbox is withheld, so the slot's photo is imported without the box
+            // (as it is for a rejected class); a blank or absent angle still means 0.
+            Set<Integer> rejectedTheta = new HashSet<Integer>();
+            for (String rowFieldName : rowResult.keySet()) {
+                if (!(rowResult.get(rowFieldName) instanceof Exception)) continue;
+                int slot = BulkImportUtil.boxSlot(rowFieldName, "theta");
+                if (slot >= 0) rejectedTheta.add(slot);
+            }
             for (String rowFieldName : rowResult.keySet()) {
                 Object fieldObj = rowResult.get(rowFieldName);
                 if (fieldObj instanceof BulkValidator) {
-                    fields.add((BulkValidator)fieldObj);
+                    BulkValidator bv = (BulkValidator)fieldObj;
+                    if (bv.indexPrefixEquals("Encounter.mediaAsset.bbox") &&
+                        rejectedTheta.contains(bv.getIndexInt())) {
+                        trace("[WARN] createImport: row=" + rowNum + " " + rowFieldName +
+                            " has a rejected angle; its photo is imported without the box");
+                        continue;
+                    }
+                    fields.add(bv);
                 }
                 // } else if (fieldObj instanceof BulkValidatorException) {
             }
@@ -309,6 +325,7 @@ public class BulkImporter {
  */
         List<String> maFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
             "Encounter.mediaAsset");
+        Map<String, List<String> > boxFields = BulkImportUtil.boxFieldNames(allFieldNames);
         List<String> kwFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
             "Encounter.keyword");
         List<String> multiKwFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
@@ -783,7 +800,7 @@ public class BulkImporter {
             // bulk-import boxes (spec 4.1): per-slot metadata by the slot number in exact-slot
             // mode, positionally (as before) otherwise
             int metaIndex = exactSlotMode ? slot : offset;
-            BulkValidator bboxBV = fmap.get("Encounter.mediaAsset" + slot + ".bbox");
+            BulkValidator bboxBV = fmap.get(BulkImportUtil.boxFieldName(boxFields, "bbox", slot));
             boolean boxed = (bboxBV != null) && !bboxBV.valueIsNull();
             MediaAsset ma = this.mediaAssetMap.get(bv.getValueString());
             if (ma == null) {
@@ -815,7 +832,7 @@ public class BulkImporter {
             Double quality = null;
             if ((metaIndex < maQuality.size()) && (maQuality.get(metaIndex) != null))
                 quality = fmap.get(maQuality.get(metaIndex)).getValueDouble();
-            Annotation ann = boxed ? importedBox(ma, slot, bboxBV, fmap, quality) : null;
+            Annotation ann = boxed ? importedBox(ma, slot, bboxBV, fmap, boxFields, quality) : null;
             if (ann == null) ann = new Annotation(tx, ma);
             ann.setIsExemplar(true);
             ann.setSkipAutoIndexing(true);
@@ -862,9 +879,8 @@ public class BulkImporter {
      * the epithet was dropped). The caller imports the photo as a trivial annotation instead.
      */
     private Annotation importedBox(MediaAsset ma, int slot, BulkValidator bboxBV,
-        Map<String, BulkValidator> fmap, Double quality) {
-        String prefix = "Encounter.mediaAsset" + slot;
-        BulkValidator classBV = fmap.get(prefix + ".iaClass");
+        Map<String, BulkValidator> fmap, Map<String, List<String> > boxFields, Double quality) {
+        BulkValidator classBV = fmap.get(BulkImportUtil.boxFieldName(boxFields, "iaClass", slot));
         BulkValidator genusBV = fmap.get("Encounter.genus");
         BulkValidator epithetBV = fmap.get("Encounter.specificEpithet");
         if ((classBV == null) || classBV.valueIsNull() || (genusBV == null) ||
@@ -879,9 +895,9 @@ public class BulkImporter {
         } catch (BulkValidatorException ex) { // the value is canonical: validation already parsed it
             throw new RuntimeException("unparseable validated bbox on " + bboxBV.getFieldName(), ex);
         }
-        BulkValidator thetaBV = fmap.get(prefix + ".theta");
-        BulkValidator viewpointBV = fmap.get(prefix + ".viewpoint");
-        BulkValidator sourceBV = fmap.get(prefix + ".bboxSource");
+        BulkValidator thetaBV = fmap.get(BulkImportUtil.boxFieldName(boxFields, "theta", slot));
+        BulkValidator viewpointBV = fmap.get(BulkImportUtil.boxFieldName(boxFields, "viewpoint", slot));
+        BulkValidator sourceBV = fmap.get(BulkImportUtil.boxFieldName(boxFields, "bboxSource", slot));
         Double theta = ((thetaBV == null) || thetaBV.valueIsNull()) ? null : thetaBV.getValueDouble();
         String viewpoint = (viewpointBV == null) ? null : viewpointBV.getValueString();
         String source = (sourceBV == null) ? null : sourceBV.getValueString();

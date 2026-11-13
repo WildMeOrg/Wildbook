@@ -478,7 +478,9 @@ public class IAGateway extends HttpServlet {
         // a legacy identify request ({identify:{annotationIds}}) names its own identification
         // task, which holds the query annotation: reuse it unless it belongs to a run
         boolean identifyJob = (j != null) && (j.optJSONObject("identify") != null);
+        // an imported-box child is server-owned: a request never runs under it or rewrites it
         boolean replace = (loaded != null) && ((Task.runIdOf(loaded) != null) ||
+            Task.isImportedBoxTask(loaded) ||
             (!identifyJob && org.ecocean.ia.IA.mustReplaceRequestRoot(loaded)));
         if (replace) {
             Task fresh = new Task();
@@ -510,6 +512,8 @@ public class IAGateway extends HttpServlet {
             tparams.put("userId", tuser.getUUID());
             tparams.put("username", tuser.getUsername());
         }
+        // the imported-box marker is only ever set by the server, on the children it creates
+        Task.stripImportedBoxMarker(tparams);
         return org.ecocean.ia.IA.scrubRunParams(tparams);
     }
 
@@ -1345,8 +1349,7 @@ public class IAGateway extends HttpServlet {
         for (Encounter enc : itask.getEncounters()) {
             if ((enc == null) || (enc.getAnnotations() == null)) continue;
             for (Annotation ann : enc.getAnnotations()) {
-                if ((ann == null) || !ann.isImportedBox()) continue;
-                if ((importId == null) || !importId.equals(ann.importedBoxImportTaskId())) continue;
+                if ((ann == null) || !ann.isImportedBoxOf(importId)) continue;
                 if (!ids.contains(ann.getId())) ids.add(ann.getId());
             }
         }
@@ -1430,6 +1433,8 @@ public class IAGateway extends HttpServlet {
         JSONObject taskParameters = jin.optJSONObject("taskParameters");
         String importTaskId = null;
         if (taskParameters != null) importTaskId = taskParameters.optString("importTaskId", null);
+        // the imported-box marker is only ever set by the server, on the children it creates
+        if (taskParameters != null) Task.stripImportedBoxMarker(taskParameters);
         ImportTask itask = null;
         if (importTaskId != null) itask = myShepherd.getImportTask(importTaskId);
         if (itask == null) {

@@ -456,6 +456,38 @@ public class Task implements java.io.Serializable {
         return Util.stringToJSONObject(parameters);
     }
 
+    // stored parameters that do not parse: getParameters() answers null for these, exactly as
+    // it does for a task with no parameters, so a caller that must tell the two apart asks here
+    public boolean hasUnreadableParameters() {
+        return (parameters != null) && !parameters.trim().isEmpty() && (getParameters() == null);
+    }
+
+    // the stored parameter text mentions the imported-box marker key at all, readable or not
+    public boolean rawParametersMentionImportedBox() {
+        return (parameters != null) && parameters.contains(PARAM_IMPORTED_BOX);
+    }
+
+    /**
+     * Removes the imported-box marker key at every depth of client-supplied parameters: only the
+     * server sets it, on the children it creates (spec 4.4). Returns its argument, for chaining.
+     */
+    public static JSONObject stripImportedBoxMarker(JSONObject params) {
+        stripImportedBoxMarkerFrom(params);
+        return params;
+    }
+
+    private static void stripImportedBoxMarkerFrom(Object value) {
+        if (value instanceof JSONObject) {
+            JSONObject obj = (JSONObject)value;
+            obj.remove(PARAM_IMPORTED_BOX);
+            for (String key : new java.util.ArrayList<String>(obj.keySet()))
+                stripImportedBoxMarkerFrom(obj.opt(key));
+        } else if (value instanceof org.json.JSONArray) {
+            org.json.JSONArray arr = (org.json.JSONArray)value;
+            for (int i = 0; i < arr.length(); i++) stripImportedBoxMarkerFrom(arr.opt(i));
+        }
+    }
+
     // see comment above: should this even be public?  (or exist)
     public void setParameters(String s) { // best be json, yo
         parameters = s;

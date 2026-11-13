@@ -173,7 +173,7 @@ class SubmissionProcessingTest {
         ImportTask task = mock(ImportTask.class);
         when(task.getId()).thenReturn("job"); when(task.annotationsImported()).thenReturn(true);
         org.ecocean.Annotation ann = mock(org.ecocean.Annotation.class);
-        when(ann.isImportedBox()).thenReturn(true); when(ann.importedBoxImportTaskId()).thenReturn("job"); when(ann.getId()).thenReturn("ann-1");
+        when(ann.isImportedBox()).thenReturn(true); when(ann.importedBoxImportTaskId()).thenReturn("job"); when(ann.isImportedBoxOf("job")).thenReturn(true); when(ann.getId()).thenReturn("ann-1");
         org.ecocean.Encounter enc = mock(org.ecocean.Encounter.class);
         when(enc.getAnnotations()).thenReturn(new java.util.ArrayList<>(java.util.List.of(ann)));
         when(task.getEncounters()).thenReturn(new java.util.ArrayList<>(java.util.List.of(enc)));
