@@ -216,6 +216,17 @@ public class BulkImport extends ApiBase {
                     }
                     fieldNames.add(fn);
                 }
+                String[] aliases = BulkImportUtil.findIndexAliases(fieldNames);
+                if (aliases != null) {
+                    JSONObject dupErr = new JSONObject();
+                    dupErr.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                    dupErr.put("type", BulkValidatorException.TYPE_INVALID_DUPLICATE);
+                    dupErr.put("details", aliases[0] + " and " + aliases[1] +
+                        " are the same numbered column");
+                    dupErr.put("fieldName", aliases[1]);
+                    throw new ApiException("duplicate columns: " + aliases[0] + ", " + aliases[1],
+                            dupErr);
+                }
                 List<List<String> > syn = BulkValidator.findSynonyms(fieldNames);
                 if (syn != null) {
                     JSONArray synErrs = new JSONArray();
@@ -744,6 +755,7 @@ public class BulkImport extends ApiBase {
         String bboxField;
         int[] box;     // null when the slot is not boxed
         double theta;
+        boolean thetaRejected;   // its angle failed validation: the box will not be imported
     }
 
     /**
@@ -779,6 +791,7 @@ public class BulkImport extends ApiBase {
             Map<String, Object> row = validatedRows.get(r);
             List<String> bare = BulkImportUtil.findIndexedFieldNames(row.keySet(),
                 "Encounter.mediaAsset");
+            Map<String, List<String> > boxFields = BulkImportUtil.boxFieldNames(row.keySet());
             for (int n = 0; n < bare.size(); n++) {
                 String bareName = bare.get(n);
                 if (bareName == null) continue;
@@ -789,7 +802,7 @@ public class BulkImport extends ApiBase {
                 SlotRef ref = new SlotRef();
                 ref.row = r;
                 ref.bareField = bareName;
-                ref.bboxField = "Encounter.mediaAsset" + n + ".bbox";
+                ref.bboxField = BulkImportUtil.boxFieldName(boxFields, "bbox", n);
                 Object bboxObj = row.get(ref.bboxField);
                 if ((bboxObj instanceof BulkValidator) && !((BulkValidator)bboxObj).valueIsNull()) {
                     try {
@@ -799,7 +812,8 @@ public class BulkImport extends ApiBase {
                         row.put(ref.bboxField, ex);
                         continue;
                     }
-                    Object thetaObj = row.get("Encounter.mediaAsset" + n + ".theta");
+                    Object thetaObj = row.get(BulkImportUtil.boxFieldName(boxFields, "theta", n));
+                    ref.thetaRejected = (thetaObj instanceof Exception);
                     ref.theta = ((thetaObj instanceof BulkValidator) &&
                         !((BulkValidator)thetaObj).valueIsNull()) ?
                         ((BulkValidator)thetaObj).getValueDouble() : 0.0;
@@ -863,6 +877,9 @@ public class BulkImport extends ApiBase {
                         BulkValidatorException.TYPE_INVALID_VALUE, ref.bboxField));
                     continue;
                 }
+                // its real angle is unknown and it will not be imported: it neither is nor
+                // makes a duplicate
+                if (ref.thetaRejected) continue;
                 if (!seenBoxes.add(canonical + "@" + ref.theta)) {
                     BulkImportUtil.putIfClean(validatedRows.get(ref.row), ref.bboxField,
                         new BulkValidatorException("box " + canonical + " on " + filename +
