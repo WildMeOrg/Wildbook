@@ -4329,6 +4329,8 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNumberField("height", ma.getHeight());
             jgen.writeStringField("mimeTypeMajor", ma.getMimeTypeMajor());
             jgen.writeStringField("mimeTypeMinor", ma.getMimeTypeMinor());
+            // issue #1799: shown under each search gallery thumbnail (falls back to the stored filename)
+            jgen.writeStringField("userFilename", ma.getUserFilename());
             try {
                 // historic data might throw IllegalArgumentException: Path not under given root
                 URL url = ma.safeURL(myShepherd, null, "master");

@@ -297,6 +297,59 @@ describe("GalleryView", () => {
     );
   });
 
+  test("shows the image filename under each thumbnail, full name in title", () => {
+    const name = "2024-06-01_whale_left_flank_very_long_name.jpg";
+    const store = makeStore({
+      currentPageItems: [
+        { __k: "a1", url: "#", annotations: [], userFilename: name },
+      ],
+    });
+
+    renderWithProviders(<GalleryView store={store} pg={jest.fn()} />);
+
+    const caption = screen.getByText(name);
+    expect(caption.tagName).toBe("FIGCAPTION");
+    expect(caption).toHaveAttribute("title", name);
+    expect(caption).toHaveClass("text-truncate");
+  });
+
+  test("renders no caption when the asset has no filename (not yet reindexed)", () => {
+    const store = makeStore({
+      currentPageItems: [{ __k: "a1", url: "#", annotations: [] }],
+    });
+
+    const { container } = renderWithProviders(
+      <GalleryView store={store} pg={jest.fn()} />,
+    );
+
+    expect(screen.getByRole("img")).toBeInTheDocument();
+    expect(container.querySelector("figcaption")).toBeNull();
+  });
+
+  test("caption sits outside the annotation box so rects keep their position", () => {
+    const store = makeStore({
+      currentPageItems: [
+        {
+          __k: "a1",
+          url: "#",
+          userFilename: "a.jpg",
+          annotations: [
+            { id: "ann1", isTrivial: false, boundingBox: [10, 20, 100, 50] },
+          ],
+        },
+      ],
+    });
+
+    renderWithProviders(<GalleryView store={store} pg={jest.fn()} />);
+    const img = screen.getByRole("img");
+    loadImage(img);
+
+    const box = img.parentElement;
+    expect(box.querySelector("figcaption")).toBeNull();
+    expect(box.style.height).toBe("200px");
+    expect(screen.getByText("a.jpg").parentElement).toBe(box.parentElement);
+  });
+
   test("resets selectedImageIndex to 0 when page items change", () => {
     const store = makeStore({
       currentPageItems: [],
