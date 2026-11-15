@@ -1,9 +1,7 @@
 package org.ecocean.media;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
@@ -34,35 +32,36 @@ import org.mockito.MockedStatic;
  */
 class MediaAssetStandardChildrenJobTest {
     private static final List<Integer> IDS = Arrays.asList(11, 12, 13);
+    private static final List<Integer> NONE = Collections.<Integer>emptyList();
 
-    // what happened, in order: "begin:1", "update:12", "commit:1", "close:1", ..., "callback"
+    // what happened, in order: "begin:1", "update:11", "commit:1", "close:1", ..., "callback"
+    // (begin/commit/close carry the Shepherd number in construction order, update the asset id)
     private List<String> events;
-    // per Shepherd number (1-based, in construction order)
+    // per Shepherd number
     private Set<Integer> beginFails;
     private Set<Integer> commitFails;
-    private Set<Integer> closeThrows;
+    private Map<Integer, Throwable> closeThrows;
     // per asset id
     private Map<Integer, Throwable> updateThrows;
     private Set<Integer> missing;
+    private RuntimeException callbackThrows;
 
     @BeforeEach
     void setUp() {
         events = new ArrayList<String>();
         beginFails = new HashSet<Integer>();
         commitFails = new HashSet<Integer>();
-        closeThrows = new HashSet<Integer>();
+        closeThrows = new HashMap<Integer, Throwable>();
         updateThrows = new HashMap<Integer, Throwable>();
         missing = new HashSet<Integer>();
+        callbackThrows = null;
     }
 
-    private void run(List<Integer> ids) {
-        final int[] shepherdCount = { 0 };
-        final Map<Shepherd, Integer> numbers = new HashMap<Shepherd, Integer>();
-
+    // runs the job over IDS and returns the ids it reports as failed
+    private List<Integer> run() {
         try (MockedConstruction<Shepherd> shepherds = mockConstruction(Shepherd.class,
                 (shep, ctx) -> {
-            final int n = ++shepherdCount[0];
-            numbers.put(shep, n);
+            final int n = ctx.getCount();
             final boolean[] active = { false };
             doAnswer(inv -> {
                 events.add("begin:" + n);
@@ -76,7 +75,8 @@ class MediaAssetStandardChildrenJobTest {
             });
             doAnswer(inv -> {
                 events.add("close:" + n);
-                if (closeThrows.contains(n)) throw new RuntimeException("close failed");
+                Throwable t = closeThrows.get(n);
+                if (t != null) throw t;
                 return null;
             }).when(shep).rollbackAndClose();
         });
@@ -84,9 +84,11 @@ class MediaAssetStandardChildrenJobTest {
             factory.when(() -> MediaAssetFactory.load(anyInt(), any(Shepherd.class))).thenAnswer(
                 inv -> {
                 final int id = inv.getArgument(0);
+                final Shepherd loadedWith = inv.getArgument(1);
                 if (missing.contains(id)) return null;
                 MediaAsset ma = mock(MediaAsset.class);
-                when(ma.updateStandardChildren(any(Shepherd.class))).thenAnswer(inv2 -> {
+                // only the Shepherd the asset was loaded with may save its children
+                when(ma.updateStandardChildren(loadedWith)).thenAnswer(inv2 -> {
                     events.add("update:" + id);
                     Throwable t = updateThrows.get(id);
                     if (t != null) throw t;
@@ -94,25 +96,29 @@ class MediaAssetStandardChildrenJobTest {
                 });
                 return ma;
             });
-            MediaAsset.runStandardChildrenJob("context0", ids, () -> events.add("callback"),
-                "test");
+            return MediaAsset.runStandardChildrenJob("context0", IDS, () -> {
+                events.add("callback");
+                if (callbackThrows != null) throw callbackThrows;
+            }, "test");
         }
     }
 
+    private static final List<String> ALL_OK = Arrays.asList(
+        "begin:1", "update:11", "commit:1", "close:1",
+        "begin:2", "update:12", "commit:2", "close:2",
+        "begin:3", "update:13", "commit:3", "close:3",
+        "callback");
+
     @Test
     void eachAssetIsCommittedAndClosedBeforeTheNextBegins() {
-        run(IDS);
-        assertEquals(Arrays.asList(
-            "begin:1", "update:11", "commit:1", "close:1",
-            "begin:2", "update:12", "commit:2", "close:2",
-            "begin:3", "update:13", "commit:3", "close:3",
-            "callback"), events);
+        assertEquals(NONE, run());
+        assertEquals(ALL_OK, events);
     }
 
     @Test
     void anExceptionOnOneAssetDoesNotLoseTheOthers() {
         updateThrows.put(12, new RuntimeException("resize failed"));
-        run(IDS);
+        assertEquals(Arrays.asList(12), run());
         assertEquals(Arrays.asList(
             "begin:1", "update:11", "commit:1", "close:1",
             "begin:2", "update:12", "close:2",
@@ -123,71 +129,91 @@ class MediaAssetStandardChildrenJobTest {
     @Test
     void aNonFatalErrorOnOneAssetDoesNotLoseTheOthers() {
         updateThrows.put(12, new AssertionError("not fatal"));
-        run(IDS);
-        assertFalse(events.contains("commit:2"));
-        assertTrue(events.contains("close:2"));
-        assertTrue(events.contains("commit:3"));
-        assertEquals("callback", events.get(events.size() - 1));
-    }
-
-    @Test
-    void aFailedCommitIsCleanedUpAndTheJobContinues() {
-        commitFails.add(2);
-        run(IDS);
+        assertEquals(Arrays.asList(12), run());
         assertEquals(Arrays.asList(
             "begin:1", "update:11", "commit:1", "close:1",
-            "begin:2", "update:12", "commit:2", "close:2",
+            "begin:2", "update:12", "close:2",
             "begin:3", "update:13", "commit:3", "close:3",
             "callback"), events);
     }
 
     @Test
-    void aFatalErrorStopsTheJobKeepsEarlierCommitsAndSkipsTheCallback() {
-        updateThrows.put(12, new OutOfMemoryError("Java heap space"));
-        assertThrows(OutOfMemoryError.class, () -> run(IDS));
-        assertEquals(Arrays.asList(
-            "begin:1", "update:11", "commit:1", "close:1",
-            "begin:2", "update:12", "close:2"), events);
+    void aFailedCommitIsReportedCleanedUpAndTheJobContinues() {
+        commitFails.add(2);
+        assertEquals(Arrays.asList(12), run());
+        assertEquals(ALL_OK, events);
     }
 
     @Test
-    void aCleanupFailureDoesNotStopTheJob() {
-        closeThrows.add(1);
-        run(IDS);
-        assertTrue(events.contains("commit:1"));
-        assertTrue(events.contains("commit:2"));
-        assertTrue(events.contains("commit:3"));
-        assertEquals("callback", events.get(events.size() - 1));
+    void whenEveryAssetFailsTheCallbackStillRunsOnceAfterCleanup() {
+        commitFails.addAll(Arrays.asList(1, 2, 3));
+        assertEquals(IDS, run());
+        assertEquals(ALL_OK, events);
+    }
+
+    @Test
+    void aFatalErrorStopsTheJobKeepsEarlierCommitsAndSkipsTheCallback() {
+        for (Error fatal : new Error[] {
+            new OutOfMemoryError("Java heap space"), new ThreadDeath(),
+            new NoClassDefFoundError("gone")
+        }) {
+            setUp();
+            updateThrows.put(12, fatal);
+            assertThrows(fatal.getClass(), () -> run());
+            assertEquals(Arrays.asList(
+                "begin:1", "update:11", "commit:1", "close:1",
+                "begin:2", "update:12", "close:2"), events);
+        }
+    }
+
+    @Test
+    void aFatalErrorDuringCleanupStopsTheJobAndSkipsTheCallback() {
+        closeThrows.put(1, new OutOfMemoryError("Java heap space"));
+        assertThrows(OutOfMemoryError.class, () -> run());
+        assertEquals(Arrays.asList("begin:1", "update:11", "commit:1", "close:1"), events);
+    }
+
+    @Test
+    void aCleanupFailureDoesNotStopTheJobOrUndoTheCommit() {
+        closeThrows.put(1, new RuntimeException("close failed"));
+        assertEquals(NONE, run());
+        assertEquals(ALL_OK, events);
     }
 
     @Test
     void anAssetWhoseTransactionDidNotBeginIsSkipped() {
         beginFails.add(2);
-        run(IDS);
-        assertFalse(events.contains("update:12"));
-        assertFalse(events.contains("commit:2"));
-        assertTrue(events.contains("close:2"));
-        assertTrue(events.contains("commit:3"));
-        assertEquals("callback", events.get(events.size() - 1));
+        assertEquals(Arrays.asList(12), run());
+        assertEquals(Arrays.asList(
+            "begin:1", "update:11", "commit:1", "close:1",
+            "begin:2", "close:2",
+            "begin:3", "update:13", "commit:3", "close:3",
+            "callback"), events);
     }
 
     @Test
     void aMissingAssetIsSkipped() {
         missing.add(12);
-        run(IDS);
-        assertFalse(events.contains("update:12"));
-        assertFalse(events.contains("commit:2"));
-        assertTrue(events.contains("close:2"));
-        assertTrue(events.contains("commit:3"));
-        assertEquals("callback", events.get(events.size() - 1));
+        assertEquals(Arrays.asList(12), run());
+        assertEquals(Arrays.asList(
+            "begin:1", "update:11", "commit:1", "close:1",
+            "begin:2", "close:2",
+            "begin:3", "update:13", "commit:3", "close:3",
+            "callback"), events);
+    }
+
+    @Test
+    void anExceptionFromTheCallbackDoesNotEscape() {
+        callbackThrows = new RuntimeException("indexing failed");
+        assertEquals(NONE, run());
+        assertEquals(ALL_OK, events);
     }
 
     @Test
     void emptyOrNullIdsRunTheCallbackAtOnceWithoutAThread() {
         final List<String> ran = new ArrayList<String>();
 
-        MediaAsset.updateStandardChildrenBackground("context0", Collections.<Integer>emptyList(),
-            () -> ran.add("empty"));
+        MediaAsset.updateStandardChildrenBackground("context0", NONE, () -> ran.add("empty"));
         MediaAsset.updateStandardChildrenBackground("context0", null, () -> ran.add("null"));
         assertEquals(Arrays.asList("empty", "null"), ran);
     }

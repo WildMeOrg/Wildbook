@@ -1220,9 +1220,9 @@ public class MediaAsset extends Base implements java.io.Serializable {
      * transaction, so an interruption part-way through keeps the children already committed
      * instead of losing them for every asset in {@code ids}.
      *
-     * {@code afterCommit} runs once, after every asset has been attempted and its transaction is
-     * finished, including when some (or all) assets failed; an asset that failed has no children
-     * at that point. Callers that index a parent object from its child URLs can use the callback
+     * {@code afterCommit} runs once, after every asset has been attempted and its cleanup has
+     * been attempted, whether or not the commits succeeded: a failed asset gained no children
+     * from this job. Callers that index a parent object from its child URLs can use the callback
      * to avoid indexing before a _master child is visible. It does not run if the job is stopped
      * by a fatal error (see {@link #isFatal}).
      */
@@ -1254,7 +1254,8 @@ public class MediaAsset extends Base implements java.io.Serializable {
     // body of the background job, synchronous so it can be tested. one Shepherd (so one
     // PersistenceManager and one transaction) per asset: a failure on one asset cannot leave state
     // behind for the next, and each commit makes that asset's children durable on its own.
-    static void runStandardChildrenJob(String context, List<Integer> ids, Runnable afterCommit,
+    // returns the ids that did not commit.
+    static List<Integer> runStandardChildrenJob(String context, List<Integer> ids, Runnable afterCommit,
         String tid) {
         int ct = 0;
         List<Integer> failed = new ArrayList<Integer>();
@@ -1284,7 +1285,6 @@ public class MediaAsset extends Base implements java.io.Serializable {
                     "] failed for id=" + id + ": " + t);
                 t.printStackTrace();
             } finally {
-                if (!ok) failed.add(id);
                 // a no-op rollback after a successful commit; never let cleanup trouble hide the
                 // outcome of this asset or stop the next one
                 if (myShepherd != null) {
@@ -1297,11 +1297,13 @@ public class MediaAsset extends Base implements java.io.Serializable {
                     }
                 }
             }
+            // after cleanup: nothing may come between a failure and closing the Shepherd
+            if (!ok) failed.add(id);
         }
         System.out.println("updateStandardChildrenBackground() [" + tid + "] finished: " +
             (ids.size() - failed.size()) + " ok, " + failed.size() + " failed" +
             (failed.isEmpty() ? "" : " " + failed));
-        if (afterCommit == null) return;
+        if (afterCommit == null) return failed;
         try {
             afterCommit.run();
         } catch (Throwable t) {
@@ -1310,6 +1312,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
                 "] afterCommit failed: " + t);
             t.printStackTrace();
         }
+        return failed;
     }
 
     // convenience when you have list of MediaAssets
