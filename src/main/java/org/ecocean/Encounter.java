@@ -4330,7 +4330,12 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStringField("mimeTypeMajor", ma.getMimeTypeMajor());
             jgen.writeStringField("mimeTypeMinor", ma.getMimeTypeMinor());
             // issue #1799: shown under each search gallery thumbnail (falls back to the stored filename)
-            jgen.writeStringField("userFilename", ma.getUserFilename());
+            // historic data can throw here too (the fallback resolves the path), so keep it guarded
+            String userFilename = null;
+            try {
+                userFilename = ma.getUserFilename();
+            } catch (Exception ex) {}
+            jgen.writeStringField("userFilename", userFilename);
             try {
                 // historic data might throw IllegalArgumentException: Path not under given root
                 URL url = ma.safeURL(myShepherd, null, "master");

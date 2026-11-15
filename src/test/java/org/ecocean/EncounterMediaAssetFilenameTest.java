@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -22,10 +23,28 @@ import org.junit.jupiter.api.Test;
  */
 class EncounterMediaAssetFilenameTest {
     @Test void searchDocumentMediaAssetsCarryUserFilename() throws Exception {
-        Shepherd sh = mock(Shepherd.class);
         MediaAsset ma = mock(MediaAsset.class);
         when(ma.getUUID()).thenReturn("ma-uuid");
         when(ma.getUserFilename()).thenReturn("left_flank.jpg");
+        JSONObject asset = serializeSingleAsset(ma);
+        assertEquals("left_flank.jpg", asset.getString("userFilename"));
+    }
+
+    // legacy assets whose path is outside the store root make getUserFilename() throw; the
+    // encounter must still index, with a null filename
+    @Test void legacyAssetWhoseFilenameThrowsStillIndexes() throws Exception {
+        MediaAsset ma = mock(MediaAsset.class);
+        when(ma.getUUID()).thenReturn("ma-uuid");
+        when(ma.getUserFilename()).thenThrow(
+            new IllegalArgumentException("Path not under given root"));
+        JSONObject asset = serializeSingleAsset(ma);
+        assertTrue(asset.isNull("userFilename"));
+        assertEquals("ma-uuid", asset.getString("uuid"));
+        assertTrue(asset.has("annotations"));
+    }
+
+    private JSONObject serializeSingleAsset(MediaAsset ma) throws Exception {
+        Shepherd sh = mock(Shepherd.class);
         ArrayList<MediaAsset> media = new ArrayList<MediaAsset>();
         media.add(ma);
 
@@ -42,8 +61,6 @@ class EncounterMediaAssetFilenameTest {
         jg.writeEndObject();
         jg.close();
 
-        JSONObject asset = new JSONObject(sw.toString()).getJSONArray("mediaAssets")
-            .getJSONObject(0);
-        assertEquals("left_flank.jpg", asset.getString("userFilename"));
+        return new JSONObject(sw.toString()).getJSONArray("mediaAssets").getJSONObject(0);
     }
 }
