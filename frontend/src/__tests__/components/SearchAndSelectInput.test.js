@@ -530,3 +530,14 @@ describe("SearchAndSelectInput (async loadOptions)", () => {
     ]);
   });
 });
+
+test("keeps name aliases available to creation validation", () => {
+  render(
+    <SearchAndSelectInput
+      options={[{ value: 213, label: "00000213", names: ["00000001"] }]}
+    />,
+  );
+  expect(latestCreatableProps.options).toEqual([
+    { value: "213", label: "00000213", names: ["00000001"] },
+  ]);
+});
