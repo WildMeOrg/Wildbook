@@ -580,6 +580,7 @@
   "BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC": "Die Schaltfläche ist deaktiviert, wenn die Erkennung oder die erste Identifizierungsaufgabe nicht abgeschlossen ist. Bitte warten Sie, bis die Aufgabe abgeschlossen ist, bevor Sie zur Identifizierung senden.",
   "DATE": "Datum",
   "VERBATIM_EVENT_DATE": "Genaues Ereignisdatum",
+  "IMAGE_FILE_NAME": "Bilddateiname",
   "SAVE": "Speichern",
   "IDENTIFY": "Identifizieren",
   "IDENTIFIED_AS": "Identifiziert als",

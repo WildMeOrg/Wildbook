@@ -297,57 +297,51 @@ describe("GalleryView", () => {
     );
   });
 
-  test("shows the image filename under each thumbnail, full name in title", () => {
+  test("shows date, filename and location in the match-results caption strip", () => {
     const name = "2024-06-01_whale_left_flank_very_long_name.jpg";
-    const store = makeStore({
-      currentPageItems: [
-        { __k: "a1", url: "#", annotations: [], userFilename: name },
-      ],
-    });
-
-    renderWithProviders(<GalleryView store={store} pg={jest.fn()} />);
-
-    const caption = screen.getByText(name);
-    expect(caption.tagName).toBe("FIGCAPTION");
-    expect(caption).toHaveAttribute("title", name);
-    expect(caption).toHaveClass("text-truncate");
-  });
-
-  test("renders no caption when the asset has no filename (not yet reindexed)", () => {
-    const store = makeStore({
-      currentPageItems: [{ __k: "a1", url: "#", annotations: [] }],
-    });
-
-    const { container } = renderWithProviders(
-      <GalleryView store={store} pg={jest.fn()} />,
-    );
-
-    expect(screen.getByRole("img")).toBeInTheDocument();
-    expect(container.querySelector("figcaption")).toBeNull();
-  });
-
-  test("caption sits outside the annotation box so rects keep their position", () => {
     const store = makeStore({
       currentPageItems: [
         {
           __k: "a1",
           url: "#",
-          userFilename: "a.jpg",
-          annotations: [
-            { id: "ann1", isTrivial: false, boundingBox: [10, 20, 100, 50] },
-          ],
+          annotations: [],
+          userFilename: name,
+          date: "2000-02-07",
+          locationId: "Western Australia",
         },
       ],
     });
 
     renderWithProviders(<GalleryView store={store} pg={jest.fn()} />);
-    const img = screen.getByRole("img");
-    loadImage(img);
 
-    const box = img.parentElement;
-    expect(box.querySelector("figcaption")).toBeNull();
-    expect(box.style.height).toBe("200px");
-    expect(screen.getByText("a.jpg").parentElement).toBe(box.parentElement);
+    const strip = screen.getByTestId("gallery-caption-0");
+    // overlaid on the image box, like /react/match-results
+    expect(strip.parentElement).toBe(screen.getByRole("img").parentElement);
+    expect(strip).toHaveStyle({ position: "absolute", bottom: "0px" });
+    expect(screen.getByTestId("gallery-caption-0-filename")).toHaveTextContent(
+      name,
+    );
+    expect(screen.getByTestId("gallery-caption-0-filename")).toHaveAttribute(
+      "title",
+      name,
+    );
+    expect(screen.getByTestId("gallery-caption-0-date")).toHaveTextContent(
+      "2000-02-07",
+    );
+    expect(screen.getByTestId("gallery-caption-0-location")).toHaveTextContent(
+      "Western Australia",
+    );
+  });
+
+  test("renders no caption when the asset has no date, filename or location", () => {
+    const store = makeStore({
+      currentPageItems: [{ __k: "a1", url: "#", annotations: [] }],
+    });
+
+    renderWithProviders(<GalleryView store={store} pg={jest.fn()} />);
+
+    expect(screen.getByRole("img")).toBeInTheDocument();
+    expect(screen.queryByTestId("gallery-caption-0")).toBeNull();
   });
 
   test("resets selectedImageIndex to 0 when page items change", () => {

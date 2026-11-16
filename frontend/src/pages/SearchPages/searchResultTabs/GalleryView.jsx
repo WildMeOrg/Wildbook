@@ -10,6 +10,7 @@ import "swiper/css/zoom";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import MainButton from "../../../components/MainButton";
 import ThemeColorContext from "../../../ThemeColorProvider";
+import ImageCaption from "../../MatchResultsPage/components/ImageCaption";
 
 const GalleryView = observer(({ store, pg = {} }) => {
   const theme = React.useContext(ThemeColorContext);
@@ -167,92 +168,86 @@ const GalleryView = observer(({ store, pg = {} }) => {
             const scaleY = dims ? dims.nh / dims.dh : 1;
 
             return (
-              <figure
+              <div
                 key={asset.__k}
-                style={{ margin: 0, marginBottom: 20, display: "inline-block" }}
+                className="position-relative"
+                style={{
+                  marginBottom: 20,
+                  display: "inline-block",
+                  width: dims?.dw,
+                  height: dims?.dh,
+                  overflow: "hidden",
+                }}
               >
-                <div
-                  className="position-relative"
+                <img
+                  src={asset.url}
+                  alt={`Media Asset ${asset.id ?? asset.uuid ?? ""}`}
                   style={{
-                    display: "inline-block",
-                    width: dims?.dw,
-                    height: dims?.dh,
-                    overflow: "hidden",
+                    height: 200,
+                    width: "auto",
+                    maxWidth: 300,
+                    cursor: "zoom-in",
+                    display: "block",
                   }}
-                >
-                  <img
-                    src={asset.url}
-                    alt={`Media Asset ${asset.id ?? asset.uuid ?? ""}`}
-                    style={{
-                      height: 200,
-                      width: "auto",
-                      maxWidth: 300,
-                      cursor: "zoom-in",
-                      display: "block",
-                    }}
-                    loading="lazy"
-                    decoding="async"
-                    onLoad={(e) => {
-                      const img = e.currentTarget;
-                      setImgDims((prev) => ({
-                        ...prev,
-                        [asset.__k]: {
-                          // Use the API-reported dimensions (the coordinate frame the
-                          // annotation bounding boxes are stored in), matching the
-                          // modal. The served image may be a resized derivative whose
-                          // naturalWidth differs, which would misplace the boxes.
-                          nw: asset.width || img.naturalWidth,
-                          nh: asset.height || img.naturalHeight,
-                          dw: img.clientWidth,
-                          dh: img.clientHeight,
-                        },
-                      }));
-                    }}
-                    onClick={() => {
-                      store.imageModalStore.setSelectedImageIndex(i);
-                      setImageModalOpen(true);
-                    }}
-                  />
+                  loading="lazy"
+                  decoding="async"
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    setImgDims((prev) => ({
+                      ...prev,
+                      [asset.__k]: {
+                        // Use the API-reported dimensions (the coordinate frame the
+                        // annotation bounding boxes are stored in), matching the
+                        // modal. The served image may be a resized derivative whose
+                        // naturalWidth differs, which would misplace the boxes.
+                        nw: asset.width || img.naturalWidth,
+                        nh: asset.height || img.naturalHeight,
+                        dw: img.clientWidth,
+                        dh: img.clientHeight,
+                      },
+                    }));
+                  }}
+                  onClick={() => {
+                    store.imageModalStore.setSelectedImageIndex(i);
+                    setImageModalOpen(true);
+                  }}
+                />
 
-                  {dims &&
-                    rects.length > 0 &&
-                    rects.map((rect, index) => (
-                      <div
-                        key={index}
-                        className="position-absolute"
-                        onClick={() => {
-                          store.imageModalStore.setSelectedAnnotationId(
-                            rect.annotationId,
-                          );
-                        }}
-                        style={{
-                          left: rect.x / scaleX,
-                          top: rect.y / scaleY,
-                          width: rect.width / scaleX,
-                          height: rect.height / scaleY,
-                          border: "2px dotted red",
-                          transform: `rotate(${rect.rotation}rad)`,
-                          cursor: "pointer",
-                          backgroundColor:
-                            rect.annotationId ===
-                            store.imageModalStore.selectedAnnotationId
-                              ? "rgba(255, 0, 0, 0.3)"
-                              : "transparent",
-                        }}
-                      />
-                    ))}
-                </div>
-                {/* issue #1799: kept outside the box above so the annotation rects stay aligned */}
-                {asset.userFilename && (
-                  <figcaption
-                    className="text-truncate small mt-1"
-                    title={asset.userFilename}
-                    style={{ width: dims?.dw, maxWidth: 300 }}
-                  >
-                    {asset.userFilename}
-                  </figcaption>
-                )}
-              </figure>
+                {dims &&
+                  rects.length > 0 &&
+                  rects.map((rect, index) => (
+                    <div
+                      key={index}
+                      className="position-absolute"
+                      onClick={() => {
+                        store.imageModalStore.setSelectedAnnotationId(
+                          rect.annotationId,
+                        );
+                      }}
+                      style={{
+                        left: rect.x / scaleX,
+                        top: rect.y / scaleY,
+                        width: rect.width / scaleX,
+                        height: rect.height / scaleY,
+                        border: "2px dotted red",
+                        transform: `rotate(${rect.rotation}rad)`,
+                        cursor: "pointer",
+                        backgroundColor:
+                          rect.annotationId ===
+                          store.imageModalStore.selectedAnnotationId
+                            ? "rgba(255, 0, 0, 0.3)"
+                            : "transparent",
+                      }}
+                    />
+                  ))}
+                {/* issue #1799: same strip as /react/match-results */}
+                <ImageCaption
+                  date={asset.date}
+                  filename={asset.userFilename}
+                  locationId={asset.locationId}
+                  testId={`gallery-caption-${i}`}
+                />
+              </div>
             );
           })
         ) : (

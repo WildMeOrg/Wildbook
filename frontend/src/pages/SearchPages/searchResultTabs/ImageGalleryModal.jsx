@@ -394,6 +394,12 @@ export const ImageGalleryModal = observer(
                   )}
                 </dd>
                 <dt className="col-5">
+                  <FormattedMessage id="IMAGE_FILE_NAME" />
+                </dt>
+                <dd className="col-7 mb-0" style={{ overflowWrap: "anywhere" }}>
+                  {encounterData?.userFilename || "—"}
+                </dd>
+                <dt className="col-5">
                   <FormattedMessage id="INDIVIDUAL_ID" />
                 </dt>
                 <dd className="col-7 mb-0">

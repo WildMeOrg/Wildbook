@@ -578,6 +578,7 @@
     "BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC": "Button is disabled if detection or initial identification task is incomplete. Please wait for the task to complete before sending to identification.",
     "DATE": "Date",
     "VERBATIM_EVENT_DATE": "Verbatim Event Date",
+    "IMAGE_FILE_NAME": "Image File Name",
     "SAVE": "Save",
     "IDENTIFY": "Identify",
     "IDENTIFIED_AS": "Identified as",

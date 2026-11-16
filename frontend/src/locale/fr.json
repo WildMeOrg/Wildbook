@@ -580,6 +580,7 @@
   "BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC": "Le bouton est désactivé si la détection ou la tâche d’identification initiale n’est pas terminée. Veuillez attendre la fin de la tâche avant d’envoyer à l’identification.",
   "DATE": "Date",
   "VERBATIM_EVENT_DATE": "Date exacte de l’événement",
+  "IMAGE_FILE_NAME": "Nom du fichier image",
   "SAVE": "Enregistrer",
   "IDENTIFY": "Identifier",
   "IDENTIFIED_AS": "Identifié comme",
