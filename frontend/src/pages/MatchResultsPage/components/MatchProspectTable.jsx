@@ -106,7 +106,9 @@ const styles = {
   },
   matchColumn: {
     flex: 1,
-    minWidth: "30%",
+    // below ~220px a row squeezes the name to one letter per line (#1791);
+    // narrower screens scroll the columns sideways instead
+    minWidth: "max(30%, 220px)",
     display: "flex",
     flexDirection: "column",
   },

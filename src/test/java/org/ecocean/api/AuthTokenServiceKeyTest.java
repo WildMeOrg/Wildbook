@@ -57,6 +57,20 @@ class AuthTokenServiceKeyTest {
             } else {
                 ska.when(() -> ServiceKeyAuth.authenticate(any(), anyString(), anyLong())).thenReturn(grant);
             }
+            // the fresh creator check itself is covered against a database in ServiceKeysReadAsDbTest
+            if (readAsFailure != null) {
+                ska.when(() -> ServiceKeyAuth.dataSubject(any(), argThat(g -> g.readAsUserId != null)))
+                    .thenThrow(readAsFailure);
+            } else if (readAsEligible != null) {
+                if (readAsEligible) {
+                    ska.when(() -> ServiceKeyAuth.dataSubject(any(), argThat(g -> g.readAsUserId != null)))
+                        .then(i -> ((ServiceKeyAuth.Grant)i.getArgument(1)).readAsUserId);
+                } else {
+                    ska.when(() -> ServiceKeyAuth.dataSubject(any(), argThat(g -> g.readAsUserId != null)))
+                        .thenThrow(new ServiceKeyException(401,
+                            "service key unavailable; contact your Wildbook administrator"));
+                }
+            }
             if (admission != null) {
                 sp.when(() -> SubmissionPolicy.requireAdmission(anyString(), anyString())).thenThrow(admission);
             } else {
@@ -77,6 +91,60 @@ class AuthTokenServiceKeyTest {
             if (r.status != 200) assertFalse(r.committed, "a refused exchange never commits");
         }
         return r;
+    }
+
+    /** What the fresh read-as eligibility check answers; null leaves it unmocked. */
+    private Boolean readAsEligible;
+    /** Thrown by the fresh read-as check instead, e.g. its membership query failing. */
+    private ServiceKeyException readAsFailure;
+
+    @Test void boundKeyMembershipCheckFailureIs503AndMintsNothing() throws Exception {
+        readAsFailure = new ServiceKeyException(503, "service key check unavailable");
+        Result r = post(null, boundGrant(System.currentTimeMillis() + 3_600_000L, "data:read"));
+        assertEquals(503, r.status, r.body);
+        verify(r.jwt, never()).signUntil(anyString(), anyString(), anyLong(), any(), anyLong());
+        assertFalse(r.committed, "nothing committed");
+    }
+
+    private static ServiceKeyAuth.Grant boundGrant(long keyExpiresAt, String... scopes) {
+        return new ServiceKeyAuth.Grant("svc-user-id", "key-id", "org-id", Set.of(scopes), keyExpiresAt,
+            "creator-id");
+    }
+
+    @Test void boundKeyDataTokenReadsAsCreator() throws Exception {
+        readAsEligible = true;
+        long keyExpiresAt = System.currentTimeMillis() + 3_600_000L;
+        Result r = post(null, boundGrant(keyExpiresAt, "data:read"));
+        assertEquals(200, r.status, r.body);
+        verify(r.jwt).signUntil(eq("creator-id"), eq("context0"), longThat(t -> t > 0 && t <= 900_000L),
+            isNull(), eq(keyExpiresAt));
+        assertFalse(r.body.contains("creator-id"), "no ids in the response");
+        assertTrue(r.committed, "lastUsedAt is committed");
+    }
+
+    @Test void boundKeySubmissionTokenStaysServiceAccount() throws Exception {
+        readAsEligible = false; // must not matter: the check is for data tokens only
+        long keyExpiresAt = System.currentTimeMillis() + 3_600_000L;
+        Result r = post(SubmissionPolicy.READ, boundGrant(keyExpiresAt, "data:read", SubmissionPolicy.READ));
+        assertEquals(200, r.status, r.body);
+        verify(r.jwt).signUntil(eq("svc-user-id"), eq("context0"), anyLong(), eq(SubmissionPolicy.READ),
+            eq(keyExpiresAt));
+    }
+
+    @Test void boundKeyRefusedWhenCreatorNoLongerEligible() throws Exception {
+        readAsEligible = false;
+        Result r = post(null, boundGrant(System.currentTimeMillis() + 3_600_000L, "data:read"));
+        assertEquals(401, r.status, r.body);
+        assertEquals("service key unavailable; contact your Wildbook administrator",
+            new JSONObject(r.body).getString("error"), "same text as other unavailable keys");
+        verify(r.jwt, never()).signUntil(anyString(), anyString(), anyLong(), any(), anyLong());
+    }
+
+    @Test void unboundKeyNeverChecksReadAs() throws Exception {
+        readAsEligible = false; // an unbound key must not consult it
+        Result r = post(null, grant(System.currentTimeMillis() + 3_600_000L, "data:read"));
+        assertEquals(200, r.status, r.body);
+        verify(r.jwt).signUntil(eq("svc-user-id"), anyString(), anyLong(), isNull(), anyLong());
     }
 
     private Result post(String scope, ServiceKeyAuth.Grant grant) throws Exception {

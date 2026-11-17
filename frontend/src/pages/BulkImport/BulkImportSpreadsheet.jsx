@@ -7,6 +7,13 @@ import ThemeContext from "../../ThemeColorProvider";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { specifiedColumns, removedColumns } from "./BulkImportConstants";
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
+import {
+  boxSuffixOf,
+  hasBoxColumns,
+  isPhotoSlotColumn,
+} from "./bulkImportSlots";
+
+const TEXT_BOX_SUFFIXES = ["bbox", "iaClass", "bboxSource"];
 
 export const BulkImportSpreadsheet = observer(({ store }) => {
   const theme = useContext(ThemeContext);
@@ -61,6 +68,23 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         const allJsonDataRaw = XLSX.utils.sheet_to_json(worksheet, {
           defval: "",
         });
+        // the parser reads a box like "362,285,296,342" as one number with
+        // thousands separators (and "00123" as 123); keep the text the cell
+        // shows for box columns that hold text, but leave theta a number
+        const boxKeys = Object.keys(allJsonDataRaw[0] || {}).filter((k) =>
+          TEXT_BOX_SUFFIXES.includes(boxSuffixOf(k)),
+        );
+        if (boxKeys.length > 0) {
+          const shown = XLSX.utils.sheet_to_json(worksheet, {
+            defval: "",
+            raw: false,
+          });
+          allJsonDataRaw.forEach((row, i) =>
+            boxKeys.forEach((k) => {
+              row[k] = shown[i][k];
+            }),
+          );
+        }
         const allJsonData = allJsonDataRaw.map((row) => {
           const normalizedRow = {};
           for (const key in row) {
@@ -78,10 +102,9 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
         const rowKeys = Object.keys(allJsonData[0] || {});
         store.setRawColumns(rowKeys);
-        const mediaAssetsCols = rowKeys.filter(
-          (k) =>
-            k.startsWith("Encounter.mediaAsset") && k.split(".").length === 2,
-        );
+        // a sheet with box columns keeps every numbered photo slot (no merge, spec 4.6)
+        const boxed = hasBoxColumns(rowKeys, store.indexableFields);
+        const mediaAssetsCols = boxed ? [] : rowKeys.filter(isPhotoSlotColumn);
 
         const remaining = rowKeys
           .filter((k) => !specifiedColumns.includes(k))
@@ -284,9 +307,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           } else {
             if (store && store.setSpreadsheetData) {
               store.setSpreadsheetData(processedData);
-              const { errors, warnings } = store.validateSpreadsheet();
-              store.setValidationErrors(errors);
-              store.setValidationWarnings(warnings);
+              store.revalidate();
               store.setActiveStep(2);
             }
           }
@@ -308,7 +329,11 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
     reader.readAsArrayBuffer(file);
   };
 
+  // the box capability decides how photo columns are parsed, so wait for site settings
+  const settingsReady = store.indexableFields !== null;
+
   const handleFileUpload = (event) => {
+    if (!settingsReady) return;
     store.clearSubmissionErrors();
     const file = event.target.files[0];
     const filename = file?.name || "";
@@ -329,6 +354,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
   const handleDrop = (event) => {
     event.preventDefault();
     setIsDragging(false);
+    if (!settingsReady) return;
     const file = event.dataTransfer.files[0];
     if (!file) return;
 
@@ -402,6 +428,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             noArrow={true}
             style={{ width: "auto", fontSize: "1rem", margin: "0 auto" }}
             onClick={handleUploadClick}
+            disabled={!settingsReady}
           >
             <FormattedMessage id="BROWSE" />
           </MainButton>
@@ -420,16 +447,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           <div
             id="close-button"
             onClick={() => {
-              store.setSpreadsheetUploadProgress(0);
-              store.setSpreadsheetFileName("");
-              store.setSpreadsheetData([]);
-              store.setRawData([]);
-              store.setRawColumns([]);
-              store.setColumnsDef([]);
-              store.setWorksheetInfo(0, [], 0, 0, "");
-              store.setValidationErrors({});
-              store.setValidationWarnings({});
-              store.clearSubmissionErrors();
+              store.resetSpreadsheet();
             }}
             className="position-absolute bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm border"
             style={{
