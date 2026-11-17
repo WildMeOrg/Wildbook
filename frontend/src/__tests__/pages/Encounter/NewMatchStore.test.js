@@ -1,6 +1,8 @@
 import NewMatchStore from "../../../pages/Encounter/stores/NewMatchStore";
 import axios from "axios";
 import { act } from "react";
+import { observable, runInAction } from "mobx";
+import EncounterStore from "../../../pages/Encounter/stores/EncounterStore";
 
 jest.mock("axios");
 jest.mock("../../../utils/treeSelectionFunction", () => ({
@@ -292,5 +294,282 @@ describe("NewMatchStore", () => {
     const store = new NewMatchStore(encounterStore);
 
     expect(store.annotationIds).toEqual(["ann-3"]);
+  });
+
+  describe("matchers narrowed to the IA class of the selected annotations", () => {
+    const FACE = {
+      description: "Face matcher (vector)",
+      default: true,
+      _iaClasses: ["dog_face"],
+    };
+    const BODY = {
+      description: "Body matcher (vector)",
+      default: true,
+      _iaClasses: ["detection", "dog+body"],
+    };
+    const HOTSPOTTER = {
+      description: "HotSpotter",
+      default: false,
+      _iaClasses: ["dog_face"],
+    };
+    const ann = (id, iaClass, extra = {}) => ({
+      id,
+      encounterId: "E-1",
+      iaClass,
+      embeddingCounts: { miewid: 1 },
+      ...extra,
+    });
+    // observable, so the store's reactions see later changes
+    const makeDogStore = (mediaAssets, iaConfig = [FACE, BODY, HOTSPOTTER]) =>
+      observable({
+        siteSettingsData: { iaConfig: { "Canis familiaris": iaConfig } },
+        encounterData: {
+          id: "E-1",
+          taxonomy: "Canis familiaris",
+          mediaAssets,
+        },
+        selectedImageIndex: 0,
+      });
+    const labels = (store) => store.algorithmOptions.map((o) => o.value);
+
+    test("offers and preselects only the matchers of the annotation's class", () => {
+      const store = new NewMatchStore(
+        makeDogStore([{ annotations: [ann("a1", "dog+body")] }]),
+      );
+
+      expect(labels(store)).toEqual([BODY.description]);
+      expect(store.algorithms).toEqual([BODY.description]);
+      expect(store.matchingAlgorithms).toEqual([BODY]);
+    });
+
+    test("ignores the classes of annotations that belong to another encounter", () => {
+      const store = new NewMatchStore(
+        makeDogStore([
+          {
+            annotations: [
+              ann("a1", "dog_face"),
+              ann("a2", "dog+body", { encounterId: "OTHER" }),
+            ],
+          },
+        ]),
+      );
+
+      expect(labels(store)).toEqual([FACE.description, HOTSPOTTER.description]);
+    });
+
+    test("offers the union when the image has annotations of two classes", () => {
+      const store = new NewMatchStore(
+        makeDogStore([
+          { annotations: [ann("a1", "dog_face"), ann("a2", "dog+body")] },
+        ]),
+      );
+
+      expect(labels(store)).toEqual([
+        FACE.description,
+        BODY.description,
+        HOTSPOTTER.description,
+      ]);
+    });
+
+    test("does not narrow when the annotations carry no class", () => {
+      const store = new NewMatchStore(
+        makeDogStore([{ annotations: [ann("a1", null)] }]),
+      );
+
+      expect(labels(store)).toHaveLength(3);
+    });
+
+    test("does not narrow when a selected class is listed by no matcher", () => {
+      // a class stored under a _save_as name with no entry of its own still
+      // matches through the taxonomy defaults; hiding matchers would be wrong
+      const lone = new NewMatchStore(
+        makeDogStore([{ annotations: [ann("a1", "canonical")] }]),
+      );
+      const mixed = new NewMatchStore(
+        makeDogStore([
+          { annotations: [ann("a1", "canonical"), ann("a2", "dog+body")] },
+        ]),
+      );
+
+      expect(labels(lone)).toHaveLength(3);
+      expect(labels(mixed)).toHaveLength(3);
+    });
+
+    test("keeps matchers that carry no _iaClasses list", () => {
+      const legacy = { description: "Legacy matcher" };
+      const store = new NewMatchStore(
+        makeDogStore(
+          [{ annotations: [ann("a1", "dog+body")] }],
+          [FACE, BODY, legacy],
+        ),
+      );
+
+      expect(labels(store)).toEqual([BODY.description, legacy.description]);
+    });
+
+    test("switching to an image of another class drops the old choice and applies the new defaults", () => {
+      const encounterStore = makeDogStore([
+        { annotations: [ann("a1", "dog_face")] },
+        { annotations: [ann("a2", "dog+body")] },
+      ]);
+      const store = new NewMatchStore(encounterStore);
+      expect(store.algorithms).toEqual([FACE.description]);
+
+      runInAction(() => {
+        encounterStore.selectedImageIndex = 1;
+      });
+
+      expect(store.algorithms).toEqual([BODY.description]);
+      expect(store.matchingAlgorithms).toEqual([BODY]);
+    });
+
+    test("a choice that is still offered survives a selection change, without defaults added to it", () => {
+      const encounterStore = makeDogStore([
+        { annotations: [ann("a1", "dog_face")] },
+        { annotations: [ann("a2", "dog_face")] },
+      ]);
+      const store = new NewMatchStore(encounterStore);
+      store.setAlgorithm([HOTSPOTTER.description]);
+
+      runInAction(() => {
+        encounterStore.selectedImageIndex = 1;
+      });
+
+      expect(store.algorithms).toEqual([HOTSPOTTER.description]);
+    });
+
+    test("a refresh with the same annotations does not re-apply defaults over a cleared selection", () => {
+      const encounterStore = makeDogStore([
+        { annotations: [ann("a1", "dog_face")] },
+      ]);
+      const store = new NewMatchStore(encounterStore);
+      store.setAlgorithm([]);
+
+      runInAction(() => {
+        encounterStore.encounterData.mediaAssets = [
+          { annotations: [ann("a1", "dog_face")] },
+        ];
+      });
+
+      expect(store.algorithms).toEqual([]);
+    });
+
+    test("vector matchers are dropped from the selection when the annotations have no embedding", () => {
+      const encounterStore = makeDogStore(
+        [
+          { annotations: [ann("a1", "dog_face")] },
+          { annotations: [ann("a2", "dog_face", { embeddingCounts: {} })] },
+        ],
+        [FACE, { ...HOTSPOTTER, default: true }],
+      );
+      const store = new NewMatchStore(encounterStore);
+      expect(store.algorithms).toEqual([
+        FACE.description,
+        HOTSPOTTER.description,
+      ]);
+
+      runInAction(() => {
+        encounterStore.selectedImageIndex = 1;
+      });
+
+      expect(labels(store)).toEqual([HOTSPOTTER.description]);
+      expect(store.algorithms).toEqual([HOTSPOTTER.description]);
+    });
+
+    test("an embedding arriving on the same annotation selects the newly offered vector default", () => {
+      const encounterStore = makeDogStore(
+        [{ annotations: [ann("a1", "dog_face", { embeddingCounts: {} })] }],
+        [FACE],
+      );
+      const store = new NewMatchStore(encounterStore);
+      expect(store.algorithms).toEqual([]);
+
+      runInAction(() => {
+        encounterStore.encounterData.mediaAssets = [
+          { annotations: [ann("a1", "dog_face")] },
+        ];
+      });
+
+      expect(store.algorithms).toEqual([FACE.description]);
+    });
+
+    test("losing the last choice with no default on offer leaves nothing selected or posted", () => {
+      const encounterStore = makeDogStore(
+        [
+          { annotations: [ann("a1", "dog_face")] },
+          { annotations: [ann("a2", "dog_face", { embeddingCounts: {} })] },
+        ],
+        [FACE, HOTSPOTTER],
+      );
+      const store = new NewMatchStore(encounterStore);
+      expect(store.algorithms).toEqual([FACE.description]);
+
+      runInAction(() => {
+        encounterStore.selectedImageIndex = 1;
+      });
+
+      expect(labels(store)).toEqual([HOTSPOTTER.description]);
+      expect(store.algorithms).toEqual([]);
+      expect(store.matchingAlgorithms).toEqual([]);
+    });
+
+    test("works when encounter data arrives before site settings", () => {
+      const encounterStore = new EncounterStore();
+      const store = encounterStore.newMatch;
+
+      encounterStore.setEncounterData({
+        id: "E-1",
+        taxonomy: "Canis familiaris",
+        mediaAssets: [{ annotations: [ann("a1", "dog+body")] }],
+      });
+      expect(store.algorithms).toEqual([]);
+
+      encounterStore.setSiteSettings({
+        iaConfig: { "Canis familiaris": [FACE, BODY, HOTSPOTTER] },
+      });
+
+      expect(labels(store)).toEqual([BODY.description]);
+      expect(store.algorithms).toEqual([BODY.description]);
+    });
+
+    test("the posted payload carries only the narrowed matchers", async () => {
+      axios.post.mockResolvedValue({ status: 200, data: { taskId: "t" } });
+      const store = new NewMatchStore(
+        makeDogStore([{ annotations: [ann("a1", "dog_face")] }]),
+      );
+
+      await store.buildNewMatchPayload();
+
+      const payload = axios.post.mock.calls[0][1];
+      expect(payload.taskParameters.matchingAlgorithms).toEqual([FACE]);
+      expect(payload.annotationIds).toEqual(["a1"]);
+    });
+
+    test("works through a real EncounterStore, with data arriving after construction", () => {
+      const encounterStore = new EncounterStore();
+      const store = encounterStore.newMatch;
+      expect(store.algorithmOptions).toEqual([]);
+
+      encounterStore.setSiteSettings({
+        iaConfig: { "Canis familiaris": [FACE, BODY, HOTSPOTTER] },
+      });
+      encounterStore.setEncounterData({
+        id: "E-1",
+        taxonomy: "Canis familiaris",
+        locationId: "LOC-1",
+        mediaAssets: [
+          { annotations: [ann("a1", "dog_face")] },
+          { annotations: [ann("a2", "dog+body")] },
+        ],
+      });
+
+      expect(store.locationId).toEqual(["LOC-1"]);
+      expect(store.algorithms).toEqual([FACE.description]);
+
+      encounterStore.setSelectedImageIndex(1);
+
+      expect(labels(store)).toEqual([BODY.description]);
+      expect(store.algorithms).toEqual([BODY.description]);
+    });
   });
 });
