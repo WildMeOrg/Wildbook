@@ -171,6 +171,11 @@
 			"id": "Chad",
 			"locationID": [
 				{
+					"name": "Sena Oura National Park",
+					"id": "Sena Oura National Park",
+					"locationID":[]
+				},
+				{
 					"name": "Zakouma",
 					"id": "Zakouma",
 					"geospatialInfo":{
