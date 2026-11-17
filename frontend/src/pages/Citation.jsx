@@ -37,6 +37,16 @@ export default function Citation() {
               </li>
               <li>
                 <strong>
+                  <FormattedMessage id="CITATION_AGREEMENT_ITEM_2_SUBITEM_GIRAFFESPOTTER" />
+                </strong>
+              </li>
+              <ul>
+                <li>
+                  <FormattedMessage id="CITATION_CITATION_DETAILS_GIRAFFESPOTTER" />
+                </li>
+              </ul>
+              <li>
+                <strong>
                   <FormattedMessage id="CITATION_AGREEMENT_ITEM_2_SUBITEM_2" />
                 </strong>
               </li>
