@@ -282,6 +282,7 @@ describe("EncounterSearch", () => {
               individualId: "ind-2",
               individualDisplayName: "Ind 2",
               date: "2023-01-02",
+              locationId: "Western Australia",
               verbatimDate: "Jan 2, 2023",
               mediaAssets: [{ id: "asset2", url: "http://x/2.jpg" }],
             },
@@ -311,6 +312,7 @@ describe("EncounterSearch", () => {
         individualId: "ind-2",
         individualDisplayName: "Ind 2",
         date: "2023-01-02",
+        locationId: "Western Australia",
         verbatimDate: "Jan 2, 2023",
       });
     });

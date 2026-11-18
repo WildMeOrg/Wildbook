@@ -191,6 +191,7 @@ const EncounterSearch = observer(() => {
             encounterId: encounter.id,
             individualId: encounter.individualId,
             date: encounter.date,
+            locationId: encounter.locationId,
             individualDisplayName: encounter.individualDisplayName,
             verbatimDate: encounter.verbatimDate,
           });
