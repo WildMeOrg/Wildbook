@@ -35,4 +35,15 @@ describe("Citation Component", () => {
     expect(strong1.tagName).toBe("STRONG");
     expect(strong2.tagName).toBe("STRONG");
   });
+
+  test("renders the GiraffeSpotter citation", () => {
+    renderWithProviders(<Citation />);
+    const label = screen.getByText(
+      "CITATION_AGREEMENT_ITEM_2_SUBITEM_GIRAFFESPOTTER",
+    );
+    expect(label.tagName).toBe("STRONG");
+    expect(
+      screen.getByText("CITATION_CITATION_DETAILS_GIRAFFESPOTTER"),
+    ).toBeInTheDocument();
+  });
 });

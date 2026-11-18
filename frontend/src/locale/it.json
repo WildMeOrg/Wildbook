@@ -272,6 +272,8 @@
   "CITATION_AGREEMENT_ITEM_1": "Non utilizzare i dati contenuti in Wildbook in nessuna pubblicazione, prodotto o applicazione commerciale senza il previo consenso scritto del fornitore di dati originale.",
   "CITATION_AGREEMENT_ITEM_2": "Citare correttamente sia i fornitori di dati che Wildbook dopo aver ottenuto l'approvazione per l'utilizzo.",
   "CITATION_AGREEMENT_ITEM_2_SUBITEM_1": "I dataset collaborativi dovrebbero elencare tutti i contributori di dati in ordine decrescente in base alla quantità di incontri contribuiti. L'anno dovrebbe essere indicato come l'anno in cui il dataset è stato consolidato e scaricato.",
+  "CITATION_AGREEMENT_ITEM_2_SUBITEM_GIRAFFESPOTTER": "Citazione di GiraffeSpotter:",
+  "CITATION_CITATION_DETAILS_GIRAFFESPOTTER": "Wild Me & Giraffe Conservation Foundation (2026) GiraffeSpotter: a photographic identification platform for all four giraffe species, v11.0. https://giraffespotter.org",
   "CITATION_AGREEMENT_ITEM_2_SUBITEM_2": "Esempio di citazione per un dataset:",
   "CITATION_AGREEMENT_ITEM_2_SUBITEM_3": "Esempio di citazione per un Wildbook:",
   "CITATION_CITATION_DETAILS_1": "<Data owner names>. (n.d.). <Wildbook Name> [Online database]. <Wildbook URL>. Accessed <Day> <Month> <Year>.",
