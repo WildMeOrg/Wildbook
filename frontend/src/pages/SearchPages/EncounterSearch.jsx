@@ -193,7 +193,7 @@ const EncounterSearch = observer(() => {
             date: encounter.date,
             locationId: encounter.locationId,
             individualDisplayName: encounter.individualDisplayName,
-            verbatimDate: encounter.verbatimDate,
+            verbatimEventDate: encounter.verbatimEventDate,
           });
           assetOffset++;
 
