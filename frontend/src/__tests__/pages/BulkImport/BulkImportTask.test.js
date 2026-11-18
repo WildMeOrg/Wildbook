@@ -1,7 +1,9 @@
 import React from "react";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "../../../utils/utils";
-import BulkImportTask from "../../../pages/BulkImport/BulkImportTask";
+import BulkImportTask, {
+  detectionDone,
+} from "../../../pages/BulkImport/BulkImportTask";
 import axios from "axios";
 import { useSiteSettings } from "../../../SiteSettingsContext";
 
@@ -262,120 +264,70 @@ describe("BulkImportTask", () => {
   });
 });
 
-// NOTE: the test intl provider renders message IDS (not translations), so the
-// button is matched by its id "BULK_IMPORT_SEND_TO_HOTSPOTTER".
-describe("HotSpotter second-pass button", () => {
-  // completeTask has one identified (E1) and one unidentified (E2) encounter, and a
-  // matchingLocations so the store's initFromPrevious effect enables the button.
-  const completeTask = {
-    id: "12345",
-    status: "complete",
-    matchingLocations: ["loc1"],
+describe("detectionDone", () => {
+  test("detection counts as done when complete or when boxes were supplied", () => {
+    expect(detectionDone({ detectionStatus: "complete" })).toBe(true);
+    expect(
+      detectionDone({ detectionStatus: "skipped", annotationsImported: true }),
+    ).toBe(true);
+    expect(detectionDone({ detectionStatus: "skipped" })).toBe(false);
+    expect(detectionDone({ detectionStatus: "sent" })).toBe(false);
+    expect(detectionDone(undefined)).toBe(false);
+  });
+});
+
+describe("BulkImportTask with supplied boxes", () => {
+  const boxedTask = (annotationsImported) => ({
+    ...mockTask,
+    matchingLocations: ["Aachen"],
     iaSummary: {
-      detectionStatus: "complete",
+      ...mockTask.iaSummary,
+      detectionStatus: "skipped",
+      detectionPercent: 1,
       identificationStatus: "complete",
+      identificationPercent: 1,
+      ...(annotationsImported ? { annotationsImported: true } : {}),
     },
-    encounters: [
-      { id: "E1", individualId: "MI-1" },
-      { id: "E2" }, // no individualId => unidentified
-    ],
-  };
-
-  const setSite = (hotspotterAvailable) =>
-    useSiteSettings.mockReturnValue({
-      data: {
-        hotspotterAvailable,
-        locationData: { locationID: [{ id: "loc1" }] },
-      },
-      isLoading: false,
-      error: null,
-    });
-
-  const setRoles = (roles, resendResponse) =>
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v3/user") return Promise.resolve({ data: { roles } });
-      return Promise.resolve(
-        resendResponse || { status: 200, data: { success: true } },
-      );
-    });
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
-    delete window.location;
-    window.location = {
-      search: "?id=12345",
-      href: "http://localhost/react/?id=12345",
-      reload: jest.fn(),
-      assign: jest.fn(),
-    };
-    mockUseGetBulkImportTask.mockReturnValue({
-      task: completeTask,
+    useSiteSettings.mockReturnValue({
+      data: { locationData: { locationID: [{ id: "Aachen" }] } },
       isLoading: false,
       error: null,
-      refetch: jest.fn(),
     });
+    delete window.location;
+    window.location = new URL("http://localhost/react/?id=12345");
+    axios.get.mockResolvedValue({ data: { roles: ["admin"] } });
   });
 
-  test("is hidden when hotspotterAvailable is false", async () => {
-    setSite(false);
-    setRoles(["admin"]);
+  test("Send to Identification is enabled for an import with supplied boxes", async () => {
+    mockUseGetBulkImportTask.mockReturnValue({
+      isLoading: false,
+      task: boxedTask(true),
+      error: null,
+    });
     renderWithProviders(<BulkImportTask />);
-    // wait for roles to load, then confirm the button never appears
-    await waitFor(() => expect(axios.get).toHaveBeenCalledWith("/api/v3/user"));
-    expect(screen.queryByText("BULK_IMPORT_SEND_TO_HOTSPOTTER")).toBeNull();
-  });
-
-  test("is hidden for a non-admin even when hotspotter is available", async () => {
-    setSite(true);
-    setRoles(["researcher"]);
-    renderWithProviders(<BulkImportTask />);
-    await waitFor(() => expect(axios.get).toHaveBeenCalledWith("/api/v3/user"));
-    expect(screen.queryByText("BULK_IMPORT_SEND_TO_HOTSPOTTER")).toBeNull();
-  });
-
-  test("admin + available renders the button and it is enabled", async () => {
-    setSite(true);
-    setRoles(["admin"]);
-    renderWithProviders(<BulkImportTask />);
-    const btn = await screen.findByText("BULK_IMPORT_SEND_TO_HOTSPOTTER");
     await waitFor(() =>
-      expect(btn.closest("button")).not.toBeDisabled(),
+      expect(document.querySelector("#re-id-button")).not.toBeDisabled(),
     );
+    expect(
+      screen.queryByText("BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC"),
+    ).toBeNull();
   });
 
-  test("sends algorithm=hotspotter&unidentifiedOnly=true on click", async () => {
-    setSite(true);
-    setRoles(["admin"]);
-    window.confirm = jest.fn(() => true);
-    window.alert = jest.fn();
-
-    renderWithProviders(<BulkImportTask />);
-    const btn = await screen.findByText("BULK_IMPORT_SEND_TO_HOTSPOTTER");
-    await waitFor(() => expect(btn.closest("button")).not.toBeDisabled());
-    fireEvent.click(btn.closest("button"));
-
-    await waitFor(() => {
-      const hit = axios.get.mock.calls
-        .map((c) => c[0])
-        .find((u) => u.includes("resendBulkImportID.jsp"));
-      expect(hit).toBeDefined();
-      expect(hit).toContain("algorithm=hotspotter");
-      expect(hit).toContain("unidentifiedOnly=true");
+  test("a plain skipped-detection import keeps the button disabled", async () => {
+    mockUseGetBulkImportTask.mockReturnValue({
+      isLoading: false,
+      task: boxedTask(false),
+      error: null,
     });
-  });
-
-  test("treats a string success:'false' response as failure (no reload)", async () => {
-    setSite(true);
-    setRoles(["admin"], { status: 200, data: { success: "false", error: "nope" } });
-    window.confirm = jest.fn(() => true);
-    window.alert = jest.fn();
-
     renderWithProviders(<BulkImportTask />);
-    const btn = await screen.findByText("BULK_IMPORT_SEND_TO_HOTSPOTTER");
-    await waitFor(() => expect(btn.closest("button")).not.toBeDisabled());
-    fireEvent.click(btn.closest("button"));
-
-    await waitFor(() => expect(window.alert).toHaveBeenCalledWith("nope"));
-    expect(window.location.reload).not.toHaveBeenCalled();
+    await waitFor(() => expect(axios.get).toHaveBeenCalled());
+    expect(document.querySelector("#re-id-button")).toBeDisabled();
+    expect(
+      screen.getByText("BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC"),
+    ).toBeInTheDocument();
   });
 });

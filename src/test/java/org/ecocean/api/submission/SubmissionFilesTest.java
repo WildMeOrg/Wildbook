@@ -78,4 +78,15 @@ class SubmissionFilesTest {
         try (SubmissionResources slot = SubmissionResources.acquire("two")) { assertNotNull(slot); }
     }
 
+
+    @Test void verifyReturnsTheHeaderDimensionsAndInspectReportsThem() throws Exception {   // bulk-import boxes PR E
+        SubmissionFiles files = new SubmissionFiles(root);
+        JSONObject entry = files.write("image.png", new ByteArrayInputStream(png()), 10000);
+        assertEquals("image/png", entry.getString("mediaType"));
+        assertArrayEquals(new int[] { 2, 2 }, files.verify(entry));
+        JSONObject inspected = SubmissionFiles.inspect(files.path(entry));
+        assertEquals("image/png", inspected.getString("mediaType"));
+        assertEquals(2, inspected.getInt("width"));
+        assertEquals(2, inspected.getInt("height"));
+    }
 }
