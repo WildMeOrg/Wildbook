@@ -82,10 +82,6 @@ Properties props= ShepherdProperties.getProperties("users.properties", langCode,
             			</tr>
             	</table>
 <%
-
-	myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
-
 }
 else{
 %>
