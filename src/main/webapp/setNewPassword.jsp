@@ -88,16 +88,14 @@ else{
 <%=props.getProperty("notEnough") %>
 <%
 }
-%>
-
-    	
-    </div>
-   
- <%
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
-%>   
- 
+%>
+
+
+    </div>
+
+
       <jsp:include page="footer.jsp" flush="true"/>
  
 
