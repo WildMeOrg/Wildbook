@@ -18,6 +18,8 @@ public class ServiceKey {
     private Long revokedAt;
     private String revokedBy;
     private Long lastUsedAt;
+    /** Data tokens read as the creator ({@code createdBy}) instead of the service account. Null means no. */
+    private Boolean readAsCreator;
 
     public ServiceKey() {}
 
@@ -40,11 +42,13 @@ public class ServiceKey {
     public Long getRevokedAt() { return revokedAt; }
     public String getRevokedBy() { return revokedBy; }
     public Long getLastUsedAt() { return lastUsedAt; }
+    public boolean isReadAsCreator() { return Boolean.TRUE.equals(readAsCreator); }
 
     public void setLabel(String label) { this.label = label; }
     public void setRevokedAt(Long revokedAt) { this.revokedAt = revokedAt; }
     public void setRevokedBy(String revokedBy) { this.revokedBy = revokedBy; }
     public void setLastUsedAt(Long lastUsedAt) { this.lastUsedAt = lastUsedAt; }
+    public void setReadAsCreator(boolean readAsCreator) { this.readAsCreator = readAsCreator ? Boolean.TRUE : null; }
 
     public boolean isRevoked() { return revokedAt != null; }
 

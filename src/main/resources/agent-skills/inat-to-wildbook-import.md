@@ -44,6 +44,10 @@ consistent.
 4. Hand off for import: tell the person to open Wildbook's **Bulk Import** page, upload the
    `photos/` folder, then upload the CSV. Every row is marked `unapproved` so their team verifies
    before anything enters analyses.
+   The `submitterID` column works on the Bulk Import page only. If these sightings are sent through
+   the submissions API with an organization service key instead, that API rejects a
+   `submitterID` column: name the person once per draft with `onBehalfOf` (see the
+   submit-sightings skill).
 5. Each row carries `Encounter.otherCatalogNumbers` set to `iNaturalist:<observation id>`. This is
    the back-reference that lets Wildbook recognise a sighting that was already imported, so keep it
    in the spreadsheet.
