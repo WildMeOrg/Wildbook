@@ -117,7 +117,6 @@ class EncounterStore {
   constructor() {
     this.modals = new ModalStore(this);
     this.errors = new ErrorStore(this);
-    this.newMatch = new NewMatchStore(this);
     this.imageModal = new ImageModalStore(this);
 
     makeAutoObservable(
@@ -131,6 +130,11 @@ class EncounterStore {
       },
       { autoBind: true },
     );
+
+    // NewMatchStore sets up reactions on this store in its constructor, so it
+    // must be built after makeAutoObservable: a reaction that first runs
+    // against plain fields tracks nothing and never fires again.
+    this.newMatch = new NewMatchStore(this);
   }
 
   setIntl(intl) {
