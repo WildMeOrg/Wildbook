@@ -1406,6 +1406,15 @@ public class Shepherd {
     }
 
     public User getUser(HttpServletRequest request) {
+        // token-authenticated request: the filter verified a UUID subject; resolve exactly that
+        // user, uncached, and never fall back to the principal's username
+        Object subject = (request == null) ? null : request.getAttribute(
+            org.ecocean.security.WildbookTokenAuthenticationFilter.TOKEN_SUBJECT_ATTR);
+        if (subject != null) {
+            if (!(subject instanceof String) || ((String)subject).trim().isEmpty()) return null;
+            return org.ecocean.auth.FreshObjects.load(getPM(), User.class, "uuid == :id",
+                (String)subject);
+        }
         String username = getUsername(request);
 
         if (username == null) return null;

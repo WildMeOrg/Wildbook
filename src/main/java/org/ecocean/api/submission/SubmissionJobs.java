@@ -52,14 +52,50 @@ public class SubmissionJobs extends SubmissionStore {
             } finally { jobs.closeAll(); }
             User owner = sh.getUserByUUID(draft.getOwnerId());
             if (owner == null || !SubmissionPolicy.enrolled(context, draft.getOwnerId())) throw new SubmissionException(403, "ACCESS_DENIED", "Owner is not eligible");
+            // the named collector must still resolve to the approved one; a member owns the import
+            User creator = owner;
+            if (SubmissionAttribution.requested(draft) != null) {
+                JSONObject collector = SubmissionAttribution.resolve(sh, draft);
+                JSONObject approvedOwner = approved.optJSONObject("effectiveOwner");
+                if (collector == null || approvedOwner == null
+                        || !SubmissionJson.canonical(collector).equals(SubmissionJson.canonical(approvedOwner)))
+                    throw new SubmissionException(409, "VALIDATION_STALE", "The named collector changed; validate again");
+                if (!collector.isNull("userId")) {
+                    creator = sh.getUserByUUID(collector.getString("userId"));
+                    if (creator == null) throw new SubmissionException(409, "VALIDATION_STALE", "The named collector changed; validate again");
+                }
+            }
             String job = UUID.randomUUID().toString();
             JSONObject accepted = new JSONObject().put("submissionId", id).put("operationId", job).put("importTaskId", job)
                 .put("revision", revision).put("acceptedRevision", revision).put("state", "queued").put("statusUrl", "/api/v3/submissions/" + id);
-            ImportTask task = new ImportTask(owner, job); task.setStatus("queued"); task.setProcessingProgress(0.0D);
-            task.setPassedParameters(new JSONObject().put("submissionId", id).put("processing", draft.getProcessingMode()).put("skipDetection", !draft.requestsIdentification()).put("skipIdentification", !draft.requestsIdentification()));
+            // bulk-import boxes (spec 4.9): a boxed draft never detects; its boxes are extracted and identified unless import-only
+            boolean boxed = hasBoxes(approved.optJSONArray("normalizedRows"));
+            draft.boxed(boxed);
+            ImportTask task = new ImportTask(creator, job); task.setStatus("queued"); task.setProcessingProgress(0.0D);
+            task.setEncounters(new ArrayList<>()); // readable and deletable before (or without) an import
+            task.setPassedParameters(new JSONObject().put("submissionId", id).put("processing", draft.getProcessingMode())
+                .put("skipDetection", !draft.requestsIdentification() || boxed).put("skipIdentification", !draft.requestsIdentification())
+                .put(ImportTask.PARAM_ANNOTATIONS_IMPORTED, boxed));
             sh.getPM().makePersistent(task);
             draft.queue(job, keyHash, hash, accepted.toString()); commit(sh); return accepted;
         } finally { sh.rollbackAndClose(); }
+    }
+    /** Bulk-import boxes: any approved row holding a non-empty Encounter.mediaAsset{N}.bbox value. Null-safe (older reports). */
+    static boolean hasBoxes(JSONArray normalizedRows) {
+        if (normalizedRows == null) return false;
+        for (int i = 0; i < normalizedRows.length(); i++) {
+            JSONObject row = normalizedRows.optJSONObject(i);
+            JSONObject fields = row == null ? null : row.optJSONObject("fields");
+            if (fields == null) continue;
+            for (String name : fields.keySet()) {
+                String prefix;
+                try { prefix = org.ecocean.api.bulk.BulkValidator.indexPrefixValue(name); }
+                catch (org.ecocean.api.bulk.BulkValidatorException unknown) { continue; }
+                Object value = fields.opt(name);
+                if ("Encounter.mediaAsset.bbox".equals(prefix) && value instanceof String && !((String)value).isEmpty()) return true;
+            }
+        }
+        return false;
     }
     public String claimNext(String context) {
         Shepherd sh = open();
@@ -111,9 +147,11 @@ public class SubmissionJobs extends SubmissionStore {
             Submission draft = owned(sh, context, actor, id, admin);
             JSONArray all = draft.getResultJson() == null ? new JSONArray() : new JSONObject(draft.getResultJson()).getJSONArray("rows");
             User user = sh.getUserByUUID(actor);
+            boolean receipt = SubmissionAttribution.requested(draft) != null && actor.equals(draft.getOwnerId());
             JSONArray rows = new JSONArray();
             for (int i = offset; i < Math.min(all.length(), (long)offset + limit); i++) {
-                JSONObject row = all.getJSONObject(i); boolean visible = admin;
+                // the account that sent an attributed submission keeps its receipt of the IDs it created
+                JSONObject row = all.getJSONObject(i); boolean visible = admin || receipt;
                 if (!visible && user != null) {
                     visible = true; JSONArray ids = row.getJSONArray("encounterIds");
                     for (int n = 0; n < ids.length(); n++) {
@@ -126,7 +164,7 @@ public class SubmissionJobs extends SubmissionStore {
             JSONObject result = new JSONObject().put("submissionId", id).put("state", draft.effectiveState()).put("rows", rows)
                 .put("indexing", new JSONObject().put("state", draft.getPhase()).put("message", "unknown means dispatched; completion is not acknowledged"))
                 .put("derivatives", new JSONObject().put("state", draft.getDerivatives()))
-                .put("detection", draft.aiPhase()).put("identification", draft.aiPhase())
+                .put("detection", draft.detectionPhase()).put("identification", draft.identificationPhase())
                 .put("errors", draft.getErrorCode() == null ? new JSONArray() : new JSONArray().put(new JSONObject().put("code", draft.getErrorCode()).put("message", draft.getErrorMessage())));
             if ((long)offset + limit < all.length()) result.put("nextCursor", String.valueOf(offset + limit));
             if (draft.getJobId() != null) result.put("links", new JSONObject().put("importTask", "/react/bulk-import-task?id=" + draft.getJobId()));

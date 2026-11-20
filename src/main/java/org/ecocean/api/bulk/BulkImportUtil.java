@@ -17,6 +17,8 @@ import java.util.Set;
 import org.ecocean.api.ApiException;
 import org.ecocean.Base;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.IAJsonProperties;
+import org.ecocean.Taxonomy;
 import org.ecocean.OpenSearch;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
@@ -31,6 +33,13 @@ public class BulkImportUtil {
 
     public static Map<String, Object> validateRow(Set<String> fieldNames, JSONArray rowValues,
         Shepherd myShepherd) {
+        return validateRow(fieldNames, rowValues, myShepherd, false);
+    }
+
+    // bulk-import boxes (decision 3): identificationSkipped widens the accepted box classes from
+    // the species' matchable list to every stored class
+    public static Map<String, Object> validateRow(Set<String> fieldNames, JSONArray rowValues,
+        Shepherd myShepherd, boolean identificationSkipped) {
         if ((fieldNames == null) || (rowValues == null)) return new HashMap<String, Object>();
         JSONObject row = new JSONObject();
         int i = 0;
@@ -42,10 +51,15 @@ public class BulkImportUtil {
             }
             i++;
         }
-        return validateRow(row, myShepherd);
+        return validateRow(row, myShepherd, identificationSkipped);
     }
 
     public static Map<String, Object> validateRow(JSONObject row, Shepherd myShepherd) {
+        return validateRow(row, myShepherd, false);
+    }
+
+    public static Map<String, Object> validateRow(JSONObject row, Shepherd myShepherd,
+        boolean identificationSkipped) {
         Map<String, Object> rtn = new HashMap<String, Object>();
 
         if (row == null) return rtn;
@@ -162,7 +176,177 @@ public class BulkImportUtil {
                     ApiException.ERROR_RETURN_CODE_REQUIRED));
         }
 
+        // bulk-import boxes (spec 4.2 row layer): per-slot pairing, class, duplicate photos
+        checkBoxSlots(rtn, fieldNames, identificationSkipped);
+
         return rtn;
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.2, decisions 2 and 3), per photo slot N of this row: (1) any of
+     * .iaClass/.viewpoint/.theta/.bboxSource without a .bbox column or value is REQUIRED on that
+     * field (never on a .bbox column the sheet does not have: the review table shows errors by
+     * column, and a fabricated .bbox key would switch the importer to exact-slot mode); (2) a
+     * .bbox on a slot with no photo (absent or blank cell) is INVALID on .bbox; (3) a .bbox
+     * without a .iaClass is REQUIRED on .iaClass when that column exists, else on .bbox; (4) when
+     * the taxonomy validated, a class outside the species' matchable list (every stored class when
+     * identification is skipped) is INVALID on .iaClass, naming the accepted classes; (5) the same
+     * photo in two slots of the row, when any of those slots is boxed, is INVALID_DUPLICATE on the
+     * later slot. A rejected .bbox value counts as a boxed slot and gets no pairing errors piled on;
+     * an exception already on a field is never overwritten. The class lists are read only when a
+     * boxed slot needs them.
+     */
+    private static void checkBoxSlots(Map<String, Object> rtn, Set<String> fieldNames,
+        boolean identificationSkipped) {
+        List<String> bareSlots = findIndexedFieldNames(fieldNames, "Encounter.mediaAsset");
+        Map<String, List<String> > boxFields = boxFieldNames(fieldNames);
+        int numSlots = bareSlots.size();
+        for (List<String> names : boxFields.values()) numSlots = Math.max(numSlots, names.size());
+        if (numSlots == 0) return;
+        Object taxG = getValue(rtn, "Encounter.genus");
+        Object taxS = getValue(rtn, "Encounter.specificEpithet");
+        String sciName = ((taxG != null) && (taxS != null)) ?
+            Util.taxonomyString(taxG.toString(), taxS.toString()) : null;
+        List<String> allowed = null; // resolved lazily, only when a boxed slot has a class to check
+        Map<String, int[]> seenPhotos = new HashMap<String, int[]>(); // filename -> {first slot, any boxed}
+        for (int n = 0; n < numSlots; n++) {
+            String bboxName = boxFieldName(boxFields, "bbox", n);
+            String classNm = boxFieldName(boxFields, "iaClass", n);
+            String bareName = (n < bareSlots.size()) ? bareSlots.get(n) : null;
+            String photo = null;
+            if (bareName != null) {
+                Object bare = getValue(rtn, bareName);
+                if ((bare != null) && !bare.toString().trim().isEmpty()) photo = bare.toString();
+            }
+            Object bbox = getValue(rtn, bboxName);
+            boolean boxed = (bbox != null) || isException(rtn, bboxName);
+            if (bbox == null) {
+                if (!boxed) {
+                    for (String suffix : BulkValidator.BOX_SUFFIXES) {
+                        if (suffix.equals("bbox")) continue;
+                        String name = boxFieldName(boxFields, suffix, n);
+                        if (getValue(rtn, name) != null)
+                            putIfClean(rtn, name,
+                                new BulkValidatorException(name + " needs a box in " + bboxName,
+                                ApiException.ERROR_RETURN_CODE_REQUIRED,
+                                BulkValidatorException.TYPE_REQUIRED_VALUE, name));
+                    }
+                }
+            } else {
+                if (photo == null) {
+                    putIfClean(rtn, bboxName,
+                        new BulkValidatorException("box without a photo in this slot",
+                        ApiException.ERROR_RETURN_CODE_INVALID,
+                        BulkValidatorException.TYPE_INVALID_VALUE, bboxName));
+                }
+                Object cls = getValue(rtn, classNm);
+                if (cls == null) {
+                    String where = rtn.containsKey(classNm) ? classNm : bboxName;
+                    putIfClean(rtn, where,
+                        new BulkValidatorException("a box needs an iaClass in " + classNm,
+                        ApiException.ERROR_RETURN_CODE_REQUIRED,
+                        BulkValidatorException.TYPE_REQUIRED_VALUE, where));
+                } else if (sciName != null) {
+                    if (allowed == null) {
+                        Taxonomy taxy = new Taxonomy(sciName);
+                        IAJsonProperties iac = IAJsonProperties.iaConfig();
+                        allowed = identificationSkipped ? iac.getCanonicalIAClasses(taxy) :
+                            iac.getMatchableIAClasses(taxy);
+                    }
+                    if (!allowed.contains(cls.toString())) {
+                        String msg = allowed.isEmpty() ? ("no matchable classes for " + sciName) :
+                            ("valid classes for " + sciName + ": " + String.join(", ", allowed));
+                        putIfClean(rtn, classNm,
+                            new BulkValidatorException("invalid iaClass '" + cls + "'; " + msg,
+                            ApiException.ERROR_RETURN_CODE_INVALID,
+                            BulkValidatorException.TYPE_INVALID_VALUE, classNm));
+                    }
+                }
+            }
+            if (photo == null) continue;
+            int[] seen = seenPhotos.get(photo);
+            if (seen == null) {
+                seenPhotos.put(photo, new int[] { n, boxed ? 1 : 0 });
+            } else {
+                if ((seen[1] == 1) || boxed) {
+                    putIfClean(rtn, bareName,
+                        new BulkValidatorException("photo " + photo + " is already in slot " +
+                        seen[0] + " of this row; a second animal on the same photo needs its own row",
+                        ApiException.ERROR_RETURN_CODE_INVALID,
+                        BulkValidatorException.TYPE_INVALID_DUPLICATE, bareName));
+                }
+                if (boxed) seen[1] = 1;
+            }
+        }
+    }
+
+    /**
+     * A row's box columns by suffix (BulkValidator.BOX_SUFFIXES), each list indexed by slot and
+     * holding the column's real name. An index may be written zero-padded
+     * ("Encounter.mediaAsset01.bbox"), so a slot's column is always found by its number here and
+     * never by rebuilding the name.
+     */
+    public static Map<String, List<String> > boxFieldNames(Set<String> fieldNames) {
+        Map<String, List<String> > rtn = new HashMap<String, List<String> >();
+        for (String suffix : BulkValidator.BOX_SUFFIXES) {
+            rtn.put(suffix, findIndexedFieldNames(fieldNames, "Encounter.mediaAsset." + suffix));
+        }
+        return rtn;
+    }
+
+    /** The real name of a slot's box column; the canonical name when the row has no such column. */
+    public static String boxFieldName(Map<String, List<String> > boxFields, String suffix,
+        int slot) {
+        List<String> names = boxFields.get(suffix);
+        if ((names != null) && (slot < names.size()) && (names.get(slot) != null))
+            return names.get(slot);
+        return "Encounter.mediaAsset" + slot + "." + suffix;
+    }
+
+    /** The slot a box column belongs to ("Encounter.mediaAsset01.theta", "theta" is 1); -1 for any other field. */
+    public static int boxSlot(String fieldName, String suffix) {
+        try {
+            if (!("Encounter.mediaAsset." + suffix).equals(BulkValidator.indexPrefixValue(fieldName)))
+                return -1;
+            return BulkValidator.indexIntValue(fieldName);
+        } catch (BulkValidatorException ex) {
+            return -1;
+        }
+    }
+
+    /**
+     * Two columns that are the same numbered column under different spellings
+     * ("Encounter.mediaAsset01" and "Encounter.mediaAsset1"): only one of them could be read, so
+     * the pair is reported instead. Returns the first such pair, or null.
+     */
+    public static String[] findIndexAliases(Set<String> fieldNames) {
+        Map<String, String> seen = new HashMap<String, String>();
+        for (String fn : fieldNames) {
+            String key;
+            try {
+                String prefix = BulkValidator.indexPrefixValue(fn);
+                int index = (prefix == null) ? -1 : BulkValidator.indexIntValue(fn);
+                if (index < 0) {   // not a numbered column, unless it is a slot's labeled keyword
+                    prefix = getLabeledKeywordLabel(fn);
+                    index = (prefix == null) ? -1 : getLabeledKeywordOffset(fn);
+                    if (index < 0) continue;
+                    prefix = "Encounter.mediaAsset." + prefix;
+                }
+                key = prefix + "#" + index;
+            } catch (BulkValidatorException ex) {
+                continue;
+            }
+            String other = seen.put(key, fn);
+            if (other != null) return new String[] { other, fn };
+        }
+        return null;
+    }
+
+    // sets a validation exception unless the field already holds one
+    public static void putIfClean(Map<String, Object> map, String fieldName,
+        BulkValidatorException ex) {
+        if (isException(map, fieldName)) return;
+        map.put(fieldName, ex);
     }
 
     private static void checkYMD(Map<String, Object> map, String ykey, String mkey, String dkey) {
@@ -360,6 +544,12 @@ public class BulkImportUtil {
         try {
             for (String label : CommonConfiguration.getIndexedPropertyValues("kwLabel",
                 "context0")) {
+                // bulk-import boxes (spec 4.1): the box column suffixes are reserved
+                if (BulkValidator.BOX_SUFFIXES.contains(label)) {
+                    System.out.println("WARN: BulkImportUtil labeled keyword '" + label +
+                        "' is a reserved bulk-import suffix; ignored");
+                    continue;
+                }
                 labeledKeywordMap.put(label,
                     new LinkedHashSet<String>(CommonConfiguration.getIndexedPropertyValues(label,
                         "context0")));
