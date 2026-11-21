@@ -3803,6 +3803,61 @@ public class Encounter extends Base implements java.io.Serializable {
         return out;
     }
 
+    /**
+     * Mark every encounter that shows any of these assets as modified, so its search document
+     * (which carries the assets' keywords) is reindexed when the caller's transaction commits.
+     * Call inside the transaction that changed the assets; lookup failures propagate so the
+     * caller can roll that change back.
+     */
+    public static void touchEncountersOf(Collection<MediaAsset> mas, Shepherd myShepherd) {
+        if ((mas == null) || mas.isEmpty()) return;
+        Set<Integer> assetIds = new HashSet<Integer>();
+        Set<String> catalogNumbers = new LinkedHashSet<String>();
+        for (MediaAsset ma : mas) {
+            if (ma == null) continue;
+            assetIds.add(ma.getIdInt());
+            catalogNumbers.addAll(findCatalogNumbersByMediaAssetId(ma.getIdInt(), myShepherd));
+        }
+        for (String catalogNumber : catalogNumbers) {
+            Encounter enc = myShepherd.getPM().getObjectById(Encounter.class, catalogNumber);
+            boolean showsAsset = false;
+            for (MediaAsset ma : enc.getMedia()) {
+                if (assetIds.contains(ma.getIdInt())) {
+                    showsAsset = true;
+                    break;
+                }
+            }
+            if (!showsAsset) continue;
+            enc.setDWCDateLastModified();
+            // an unchanged value (two edits in the same second) would not dirty the field
+            javax.jdo.JDOHelper.makeDirty(enc, "modified");
+        }
+    }
+
+    // Candidates only: annotations reaching the asset through any feature, or through the
+    // deprecated direct column. Native SQL for the reason given on findCatalogNumbersByAnnotationId.
+    private static List<String> findCatalogNumbersByMediaAssetId(int assetId,
+        Shepherd myShepherd) {
+        List<String> catalogNumbers = new ArrayList<String>();
+        Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
+            "SELECT DISTINCT ea.\"CATALOGNUMBER_OID\" FROM \"ENCOUNTER_ANNOTATIONS\" ea" +
+            " WHERE ea.\"ID_EID\" IN (" +
+            " SELECT af.\"ID_OID\" FROM \"ANNOTATION_FEATURES\" af" +
+            " JOIN \"MEDIAASSET_FEATURES\" mf ON mf.\"ID_EID\" = af.\"ID_EID\"" +
+            " WHERE mf.\"ID_OID\" = ?" +
+            " UNION SELECT a.\"ID\" FROM \"ANNOTATION\" a WHERE a.\"MEDIAASSET_ID_OID\" = ?)");
+        try {
+            List results = (List)query.execute(assetId, assetId);
+            if (results != null)
+                for (Object o : results) {
+                    if (o != null) catalogNumbers.add((String)o);
+                }
+        } finally {
+            query.closeAll();
+        }
+        return catalogNumbers;
+    }
+
     public static Encounter findByAnnotationId(String annid, Shepherd myShepherd) {
         Annotation ann = ((Annotation)(myShepherd.getPM().getObjectById(
             myShepherd.getPM().newObjectIdInstance(Annotation.class, annid), true)));
