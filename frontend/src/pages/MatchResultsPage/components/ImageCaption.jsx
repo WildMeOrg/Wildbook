@@ -12,23 +12,34 @@ const field = {
 };
 
 const styles = {
+  // shared look; placement-specific layout is added in stripStyle below
   strip: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 5,
     display: "flex",
     flexWrap: "wrap",
     alignItems: "center",
     gap: "4px 8px",
     padding: "8px 12px",
+    boxSizing: "border-box",
     background: "rgba(17, 17, 17, 0.78)",
     color: "#fff",
     fontSize: "13px",
     lineHeight: 1.3,
+  },
+  overlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 5,
     // drags and wheel zoom pass through to the image underneath
     pointerEvents: "none",
+  },
+  // In normal flow under the image. width 0 + minWidth 100% makes the strip
+  // exactly as wide as its parent without the text ever widening the parent,
+  // so the tile stays the width of the image (also before it has loaded).
+  below: {
+    width: 0,
+    minWidth: "100%",
   },
   date: { ...field, fontWeight: 600 },
   filename: { ...field, flex: "0 1 auto" },
@@ -49,10 +60,20 @@ const styles = {
 };
 
 // Issue #1733: encounter date, image filename and (when the server sent it,
-// i.e. the viewer may see that encounter) location ID along the bottom of a
-// match image. Each value wraps to at most two lines; title keeps the full
-// value for assistive technology. Renders nothing when all three are missing.
-const ImageCaption = ({ date, filename, locationId, testId }) => {
+// i.e. the viewer may see that encounter) location ID for a match image.
+// Each value wraps to at most two lines; title carries the full value as a
+// hover tooltip (below placement only, since the overlay ignores the pointer).
+// Renders nothing when all three are missing.
+// placement: "overlay" (default) pins the strip over the bottom of the
+// positioned image box; "below" puts it in normal flow under the image
+// (issue #1799, encounter search gallery).
+const ImageCaption = ({
+  date,
+  filename,
+  locationId,
+  testId,
+  placement = "overlay",
+}) => {
   const parts = [
     date && { key: "date", style: styles.date, value: date },
     filename && { key: "filename", style: styles.filename, value: filename },
@@ -64,7 +85,13 @@ const ImageCaption = ({ date, filename, locationId, testId }) => {
   ].filter(Boolean);
   if (parts.length === 0) return null;
   return (
-    <div style={styles.strip} data-testid={testId}>
+    <div
+      style={{
+        ...styles.strip,
+        ...(placement === "below" ? styles.below : styles.overlay),
+      }}
+      data-testid={testId}
+    >
       {parts.map((part, i) => (
         // a value and the dot before it wrap together, so no line ends on a dot
         <span key={part.key} style={styles.group}>
