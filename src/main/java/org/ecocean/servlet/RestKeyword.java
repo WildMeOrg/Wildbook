@@ -116,13 +116,9 @@ public class RestKeyword extends HttpServlet {
                             System.out.println("mine -> " + mine);
                             if (mine == null) mine = new ArrayList<Keyword>();
                             ArrayList<Keyword> newList = new ArrayList<Keyword>();
-                            boolean maChanged = false;
                             // first add what should be added
                             for (int i = 0; i < toAdd.size(); i++) {
-                                if (!mine.contains(toAdd.get(i))) {
-                                    newList.add(toAdd.get(i));
-                                    maChanged = true;
-                                }
+                                if (!mine.contains(toAdd.get(i))) newList.add(toAdd.get(i));
                                 // Here we also want to set IA viewpoint
                                 Keyword kw = toAdd.get(i);
                                 String kwName = kw.getReadableName();
@@ -144,13 +140,11 @@ public class RestKeyword extends HttpServlet {
                             }
                             // then add from mine except where should be removed
                             for (int i = 0; i < mine.size(); i++) {
-                                if (!toRemove.contains(mine.get(i).getIndexname())) {
+                                if (!toRemove.contains(mine.get(i).getIndexname()))
                                     newList.add(mine.get(i));
-                                } else {
-                                    maChanged = true;
-                                }
                             }
-                            if (maChanged) changed.add(ma);
+                            // unchanged keywords keep their order, so equal lists = no change
+                            if (!newList.equals(mine)) changed.add(ma);
                             System.out.println(ma + " ----------> " + newList);
                             JSONObject mj = new JSONObject();
                             for (Keyword k : newList) {

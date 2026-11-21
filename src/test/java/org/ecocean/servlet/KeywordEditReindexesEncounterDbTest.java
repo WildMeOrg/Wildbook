@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -44,7 +45,6 @@ import org.ecocean.LabeledKeyword;
 import org.ecocean.OpenSearch;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.Feature;
-import org.ecocean.media.FeatureType;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.shepherd.core.Shepherd;
@@ -54,6 +54,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -98,7 +99,6 @@ class KeywordEditReindexesEncounterDbTest {
         LocalAssetStore store = new LocalAssetStore("local-1291", imageDir, "file://" + imageDir, false);
         Shepherd sh = new Shepherd(CTX, props);
         try {
-            FeatureType.initAll(sh);
             sh.beginDBTransaction();
             sh.getPM().makePersistent(store);
             sh.commitDBTransaction();
@@ -150,13 +150,6 @@ class KeywordEditReindexesEncounterDbTest {
         return ma;
     }
 
-    static Feature featureOn(Shepherd sh, MediaAsset ma) throws Exception {
-        Feature f = new Feature(FeatureType.load("org.ecocean.boundingBox", sh),
-            new JSONObject().put("x", 1).put("y", 1).put("width", 10).put("height", 10));
-        ma.addFeature(f);
-        return f;
-    }
-
     static Encounter encounterWith(Shepherd sh, World w, Annotation ann) {
         Encounter enc = new Encounter();
         enc.setSkipAutoIndexing(true);
@@ -171,7 +164,7 @@ class KeywordEditReindexesEncounterDbTest {
 
     /** The usual shape: one annotation whose (only) feature is on the asset. */
     static Encounter ownerOf(Shepherd sh, World w, MediaAsset ma) throws Exception {
-        Feature f = featureOn(sh, ma);
+        Feature f = ma.generateUnityFeature();
         Annotation ann = new Annotation(null, f, "body");
         f.setAnnotation(ann);
         return encounterWith(sh, w, ann);
@@ -206,23 +199,27 @@ class KeywordEditReindexesEncounterDbTest {
     /** POST /AddLabeledKeyword; returns the parsed response body. */
     static JSONObject addLabeled(MockedStatic<ServletUtilities> su, int assetId, String label,
         String value) throws Exception {
+        return addLabeled(assetId, label, value, mock(HttpServletResponse.class));
+    }
+
+    static JSONObject addLabeled(int assetId, String label, String value,
+        HttpServletResponse resp) throws Exception {
         HttpServletRequest req = mock(HttpServletRequest.class);
         when(req.getParameter("label")).thenReturn(label);
         when(req.getParameter("value")).thenReturn(value);
         when(req.getParameter("mid")).thenReturn(Integer.toString(assetId));
         StringWriter body = new StringWriter();
-        HttpServletResponse resp = mock(HttpServletResponse.class);
         when(resp.getWriter()).thenReturn(new PrintWriter(body));
         new AddLabeledKeyword().doPost(req, resp);
         return new JSONObject(body.toString().trim());
     }
 
-    /** POST /RestKeyword onMediaAssets; returns the parsed response body. */
+    /** POST /RestKeyword onMediaAssets; op is add (keyword ids), newAdd (names) or remove (ids). */
     static JSONObject restKeyword(MockedStatic<ServletUtilities> su, int assetId, String op,
-        String keywordId) throws Exception {
+        String keyword) throws Exception {
         JSONObject jin = new JSONObject().put("onMediaAssets", new JSONObject()
             .put("assetIds", new JSONArray().put(assetId))
-            .put(op, new JSONArray().put(keywordId)));
+            .put(op, new JSONArray().put(keyword)));
         HttpServletRequest req = mock(HttpServletRequest.class);
         when(req.getUserPrincipal()).thenReturn(() -> "researcher");
         su.when(() -> ServletUtilities.jsonFromHttpServletRequest(req)).thenReturn(jin);
@@ -276,6 +273,25 @@ class KeywordEditReindexesEncounterDbTest {
         return out;
     }
 
+    /** Display names of the asset's keywords, committed state. */
+    static Set<String> assetKeywords(int assetId) {
+        Set<String> out = new HashSet<String>();
+        Shepherd sh = new Shepherd(CTX);
+        try {
+            sh.beginDBTransaction();
+            List<Keyword> kws = sh.getMediaAsset(Integer.toString(assetId)).getKeywords();
+            if (kws != null) for (Keyword kw : kws) out.add(kw.getDisplayName());
+        } finally {
+            sh.rollbackAndClose();
+        }
+        return out;
+    }
+
+    /** Wait until just past a second boundary, so the next few hundred ms share one second. */
+    static void startOfSecond() throws InterruptedException {
+        Thread.sleep(1000 - (System.currentTimeMillis() % 1000) + 20);
+    }
+
     static String now() {
         return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
     }
@@ -296,6 +312,7 @@ class KeywordEditReindexesEncounterDbTest {
         // setDWCDateLastModified() writes an unchanged value; it must still queue the encounter
         boolean sameSecond = false;
         for (int attempt = 0; (attempt < 5) && !sameSecond; attempt++) {
+            startOfSecond();
             String pinned = now();
             setModified(encId, pinned);
             String value = Integer.toString(attempt);
@@ -316,7 +333,8 @@ class KeywordEditReindexesEncounterDbTest {
         int assetId = w.assetIds.get(0);
         String encId = w.encIds.get(0);
 
-        run(su -> addLabeled(su, assetId, "quality", "2"));
+        run(su -> assertTrue(addLabeled(su, assetId, "quality", "2").getBoolean("success")));
+        assertEquals(Set.of("quality=2"), labeledKeywordsOf(encId));
         setModified(encId, OLD_MODIFIED);
         List<String> again = run(su -> assertTrue(
             addLabeled(su, assetId, "quality", "2").getBoolean("success")));
@@ -352,8 +370,8 @@ class KeywordEditReindexesEncounterDbTest {
             MediaAsset shown = asset(sh, world);
             MediaAsset other = asset(sh, world);
             ArrayList<Feature> fts = new ArrayList<Feature>();
-            fts.add(featureOn(sh, shown));
-            fts.add(featureOn(sh, other));
+            fts.add(shown.generateUnityFeature());
+            fts.add(other.generateUnityFeature());
             Annotation ann = new Annotation(null, fts, "body");
             for (Feature f : fts) f.setAnnotation(ann);
             encounterWith(sh, world, ann);
@@ -387,6 +405,39 @@ class KeywordEditReindexesEncounterDbTest {
         List<String> absent = run(su -> assertTrue(
             restKeyword(su, assetId, "remove", kwId).getBoolean("success")));
         assertEquals(List.of(), absent, "removing an absent keyword queues nothing");
+        assertEquals(OLD_MODIFIED, modified(encId));
+    }
+
+    @Test void addingAPlainKeywordThroughRestKeywordQueuesTheEncounter() throws Exception {
+        World w = seed((sh, world) -> ownerOf(sh, world, asset(sh, world)));
+        int assetId = w.assetIds.get(0);
+        String encId = w.encIds.get(0);
+
+        List<String> queued = run(su -> assertTrue(
+            restKeyword(su, assetId, "newAdd", "spots-1291").getBoolean("success")));
+        assertEquals(List.of(encId), queued);
+        assertEquals(Set.of("spots-1291"), assetKeywords(assetId));
+        assertTrue(!OLD_MODIFIED.equals(modified(encId)), "MODIFIED advanced");
+    }
+
+    @Test void aFailedEncounterLookupRollsTheKeywordBackAndReports400() throws Exception {
+        World w = seed((sh, world) -> ownerOf(sh, world, asset(sh, world)));
+        int assetId = w.assetIds.get(0);
+        String encId = w.encIds.get(0);
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+
+        List<String> queued = run(su -> {
+            try (MockedStatic<Encounter> enc = mockStatic(Encounter.class, Mockito.CALLS_REAL_METHODS)) {
+                enc.when(() -> Encounter.touchEncountersOf(any(), any()))
+                    .thenThrow(new RuntimeException("lookup failed"));
+                JSONObject out = addLabeled(assetId, "quality", "6", resp);
+                assertTrue(!out.optBoolean("success", false), "reported as failed: " + out);
+                assertTrue(out.has("error"), "has an error: " + out);
+            }
+        });
+        verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        assertEquals(List.of(), queued);
+        assertEquals(Set.of(), assetKeywords(assetId), "the keyword edit rolled back");
         assertEquals(OLD_MODIFIED, modified(encId));
     }
 }
