@@ -297,6 +297,53 @@ describe("GalleryView", () => {
     );
   });
 
+  test("shows date, filename and location in the match-results caption strip", () => {
+    const name = "2024-06-01_whale_left_flank_very_long_name.jpg";
+    const store = makeStore({
+      currentPageItems: [
+        {
+          __k: "a1",
+          url: "#",
+          annotations: [],
+          userFilename: name,
+          date: "2000-02-07",
+          locationId: "Western Australia",
+        },
+      ],
+    });
+
+    renderWithProviders(<GalleryView store={store} pg={jest.fn()} />);
+
+    const strip = screen.getByTestId("gallery-caption-0");
+    // overlaid on the image box, like /react/match-results
+    expect(strip.parentElement).toBe(screen.getByRole("img").parentElement);
+    expect(strip).toHaveStyle({ position: "absolute", bottom: "0px" });
+    expect(screen.getByTestId("gallery-caption-0-filename")).toHaveTextContent(
+      name,
+    );
+    expect(screen.getByTestId("gallery-caption-0-filename")).toHaveAttribute(
+      "title",
+      name,
+    );
+    expect(screen.getByTestId("gallery-caption-0-date")).toHaveTextContent(
+      "2000-02-07",
+    );
+    expect(screen.getByTestId("gallery-caption-0-location")).toHaveTextContent(
+      "Western Australia",
+    );
+  });
+
+  test("renders no caption when the asset has no date, filename or location", () => {
+    const store = makeStore({
+      currentPageItems: [{ __k: "a1", url: "#", annotations: [] }],
+    });
+
+    renderWithProviders(<GalleryView store={store} pg={jest.fn()} />);
+
+    expect(screen.getByRole("img")).toBeInTheDocument();
+    expect(screen.queryByTestId("gallery-caption-0")).toBeNull();
+  });
+
   test("resets selectedImageIndex to 0 when page items change", () => {
     const store = makeStore({
       currentPageItems: [],
