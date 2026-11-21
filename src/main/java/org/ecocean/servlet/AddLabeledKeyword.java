@@ -125,8 +125,7 @@ public class AddLabeledKeyword extends HttpServlet {
     }
 
     private void errorAndClose(String msg, HttpServletResponse response, Shepherd myShepherd) {
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        myShepherd.rollbackAndClose();
         // status before writing: closing the writer can commit the response as 200
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         jout.put("error", msg);

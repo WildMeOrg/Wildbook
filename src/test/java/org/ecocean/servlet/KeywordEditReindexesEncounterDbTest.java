@@ -8,7 +8,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -54,6 +54,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
@@ -199,17 +200,18 @@ class KeywordEditReindexesEncounterDbTest {
     /** POST /AddLabeledKeyword; returns the parsed response body. */
     static JSONObject addLabeled(MockedStatic<ServletUtilities> su, int assetId, String label,
         String value) throws Exception {
-        return addLabeled(assetId, label, value, mock(HttpServletResponse.class));
+        StringWriter body = new StringWriter();
+        return addLabeled(assetId, label, value, mock(HttpServletResponse.class),
+            new PrintWriter(body), body);
     }
 
     static JSONObject addLabeled(int assetId, String label, String value,
-        HttpServletResponse resp) throws Exception {
+        HttpServletResponse resp, PrintWriter writer, StringWriter body) throws Exception {
         HttpServletRequest req = mock(HttpServletRequest.class);
         when(req.getParameter("label")).thenReturn(label);
         when(req.getParameter("value")).thenReturn(value);
         when(req.getParameter("mid")).thenReturn(Integer.toString(assetId));
-        StringWriter body = new StringWriter();
-        when(resp.getWriter()).thenReturn(new PrintWriter(body));
+        when(resp.getWriter()).thenReturn(writer);
         new AddLabeledKeyword().doPost(req, resp);
         return new JSONObject(body.toString().trim());
     }
@@ -279,8 +281,7 @@ class KeywordEditReindexesEncounterDbTest {
         Shepherd sh = new Shepherd(CTX);
         try {
             sh.beginDBTransaction();
-            List<Keyword> kws = sh.getMediaAsset(Integer.toString(assetId)).getKeywords();
-            if (kws != null) for (Keyword kw : kws) out.add(kw.getDisplayName());
+            out.addAll(sh.getMediaAsset(Integer.toString(assetId)).getKeywordNames());
         } finally {
             sh.rollbackAndClose();
         }
@@ -318,7 +319,7 @@ class KeywordEditReindexesEncounterDbTest {
             String value = Integer.toString(attempt);
             List<String> second = run(su -> assertTrue(
                 addLabeled(su, assetId, "distinctiveness", value).getBoolean("success")));
-            sameSecond = pinned.equals(now()) && pinned.equals(modified(encId));
+            sameSecond = pinned.equals(modified(encId));
             assertEquals(List.of(encId), second, "adding distinctiveness=" + value +
                 " queues the owning encounter");
         }
@@ -425,17 +426,21 @@ class KeywordEditReindexesEncounterDbTest {
         int assetId = w.assetIds.get(0);
         String encId = w.encIds.get(0);
         HttpServletResponse resp = mock(HttpServletResponse.class);
+        StringWriter body = new StringWriter();
+        PrintWriter writer = spy(new PrintWriter(body));
 
         List<String> queued = run(su -> {
             try (MockedStatic<Encounter> enc = mockStatic(Encounter.class, Mockito.CALLS_REAL_METHODS)) {
                 enc.when(() -> Encounter.touchEncountersOf(any(), any()))
                     .thenThrow(new RuntimeException("lookup failed"));
-                JSONObject out = addLabeled(assetId, "quality", "6", resp);
+                JSONObject out = addLabeled(assetId, "quality", "6", resp, writer, body);
                 assertTrue(!out.optBoolean("success", false), "reported as failed: " + out);
                 assertTrue(out.has("error"), "has an error: " + out);
             }
         });
-        verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        InOrder order = Mockito.inOrder(resp, writer);
+        order.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        order.verify(writer).close(); // status set before the body is flushed and closed
         assertEquals(List.of(), queued);
         assertEquals(Set.of(), assetKeywords(assetId), "the keyword edit rolled back");
         assertEquals(OLD_MODIFIED, modified(encId));
