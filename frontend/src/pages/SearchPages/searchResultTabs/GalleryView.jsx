@@ -10,6 +10,7 @@ import "swiper/css/zoom";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import MainButton from "../../../components/MainButton";
 import ThemeColorContext from "../../../ThemeColorProvider";
+import ImageCaption from "../../MatchResultsPage/components/ImageCaption";
 
 const GalleryView = observer(({ store, pg = {} }) => {
   const theme = React.useContext(ThemeColorContext);
@@ -239,6 +240,13 @@ const GalleryView = observer(({ store, pg = {} }) => {
                       }}
                     />
                   ))}
+                {/* issue #1799: same strip as /react/match-results */}
+                <ImageCaption
+                  date={asset.date}
+                  filename={asset.userFilename}
+                  locationId={asset.locationId}
+                  testId={`gallery-caption-${i}`}
+                />
               </div>
             );
           })

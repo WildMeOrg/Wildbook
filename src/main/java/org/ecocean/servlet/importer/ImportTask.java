@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -185,11 +186,16 @@ public class ImportTask implements java.io.Serializable {
     public List<MediaAsset> getMediaAssets() {
         if (encounters == null) return null;
         List<MediaAsset> mas = new ArrayList<MediaAsset>();
+        // dont want duplicates. identity (not equals) is "same asset" here because the
+        // encounters are attached to one PersistenceManager, which hands back one instance
+        // per row; a set keeps this O(n) instead of O(n^2) list.contains() on big imports
+        Set<MediaAsset> seen = Collections.newSetFromMap(new IdentityHashMap<MediaAsset,
+            Boolean>());
         for (Encounter enc : encounters) {
             ArrayList<MediaAsset> encMAs = enc.getMedia();
             if (Util.collectionSize(encMAs) > 0)
                 for (MediaAsset ma : encMAs) {
-                    if (!mas.contains(ma)) mas.add(ma); // dont want duplicates
+                    if (seen.add(ma)) mas.add(ma);
                 }
         }
         return mas;
@@ -343,14 +349,25 @@ public class ImportTask implements java.io.Serializable {
         return !iaTask.getParameters().optBoolean("skipIdent", false);
     }
 
-    // for sake of this value, skipping detection is also good enough
+    // passed-parameter key set by an import that carried user-supplied boxes (spec 4.4): such an
+    // import never runs detection, but identification still follows the skipIdent flag
+    public static final String PARAM_ANNOTATIONS_IMPORTED = "annotationsImported";
+
+    public boolean annotationsImported() {
+        if (this.getPassedParameters() == null) return false;
+        return this.getPassedParameters().optBoolean(PARAM_ANNOTATIONS_IMPORTED, false);
+    }
+
+    // for sake of this value, skipping detection is also good enough (unless the import brought its
+    // own boxes, in which case only the IA task's skipIdent decides)
     public boolean skippedIdentification() {
-        if (skippedDetection()) return true;
+        if (skippedDetection() && !annotationsImported()) return true;
         return !iaTaskRequestedIdentification();
     }
 
     public boolean skippedDetection() {
         if (this.getPassedParameters() == null) return false;
+        if (annotationsImported()) return true;
         return this.getPassedParameters().optBoolean("skipDetection", false);
     }
 
@@ -818,28 +835,22 @@ public class ImportTask implements java.io.Serializable {
         int numDetectionError = 0;
         int numAcmId = 0;
         int numAllowedIA = 0;
+        int numValidIAUnknown = 0;
+        // assets that may still be detected: not in a terminal detection state and not
+        // known to be invalid for IA. detection is complete when this reaches zero.
+        int numDetectionOutstanding = 0;
         int numAssets = 0;
         int numAnnotations = 0;
         boolean pipelineStarted = false;
         Map<String, Integer> statsMA = this.statsMediaAssets();
         JSONObject statsAnn = this.statsAnnotations(myShepherd);
+        List<MediaAsset> mas = this.getMediaAssets();
 
-        if (this.getMediaAssets() != null)
-            numAssets = this.getMediaAssets().size();
-        for (MediaAsset ma : this.getMediaAssets()) {
+        if (mas == null) mas = new ArrayList<MediaAsset>();
+        numAssets = mas.size();
+        for (MediaAsset ma : mas) {
             numAnnotations += ma.numAnnotations();
             if (ma.getAcmId() != null) numAcmId++;
-            // check if we can get validity off the image before the expensive check of hitting the AssetStore
-            if (ma.isValidImageForIA() != null) {
-                if (ma.isValidImageForIA().booleanValue()) numAllowedIA++;
-            } else if (ma.validateSourceImage()) {
-                numAllowedIA++;
-            }
-/*
-                if ((ma.isValidImageForIA() == null) || !ma.isValidImageForIA().booleanValue()) {
-                    invalidMediaAssets.add(asset);
-                }
- */
             // Terminal detection statuses include the completion states
             // (complete, complete-mlservice, pending — needs user review)
             // plus the failure/blocked terminal states (pending-species —
@@ -849,14 +860,30 @@ public class ImportTask implements java.io.Serializable {
             // retryable errors never reports 100% detection complete and
             // the frontend polls forever.
             String ds = ma.getDetectionStatus();
-            if (IBEISIA.STATUS_COMPLETE.equals(ds) ||
+            boolean terminal = IBEISIA.STATUS_COMPLETE.equals(ds) ||
                 IBEISIA.STATUS_COMPLETE_MLSERVICE.equals(ds) ||
                 IBEISIA.STATUS_PENDING.equals(ds) ||
                 IBEISIA.STATUS_PENDING_SPECIES.equals(ds) ||
-                IBEISIA.STATUS_ERROR.equals(ds)) {
+                IBEISIA.STATUS_ERROR.equals(ds);
+            if (terminal) {
                 numDetectionComplete++;
                 if (IBEISIA.STATUS_ERROR.equals(ds)) numDetectionError++;
             }
+            // validateSourceImage() fully decodes the image file, and this GET never
+            // persists the result, so only pay for it while the answer can still affect
+            // detection progress. once an asset is terminal its validity is moot here.
+            Boolean valid = ma.isValidImageForIA();
+            if ((valid == null) && !terminal) {
+                ma.validateSourceImage();
+                valid = ma.isValidImageForIA(); // still null for non-LOCAL stores
+            }
+            if (valid == null) {
+                numValidIAUnknown++;
+            } else if (valid.booleanValue()) {
+                numAllowedIA++;
+            }
+            // unknown validity counts as outstanding so it can't fake completion
+            if (!terminal && !Boolean.FALSE.equals(valid)) numDetectionOutstanding++;
         }
         JSONObject pj = new JSONObject();
         pj.put("statsMediaAssets", statsMA);
@@ -865,6 +892,7 @@ public class ImportTask implements java.io.Serializable {
         pj.put("numberAnnotations", numAnnotations);
         pj.put("numberMediaAssetACMIds", numAcmId);
         pj.put("numberMediaAssetValidIA", numAllowedIA);
+        pj.put("numberMediaAssetValidIAUnknown", numValidIAUnknown);
         pj.put("detectionNumberComplete", numDetectionComplete);
         // Backend signal for "detection finished, but some assets errored".
         // Aggregate detectionStatus stays "complete" (so frontend polling
@@ -874,9 +902,10 @@ public class ImportTask implements java.io.Serializable {
         // non-legacy flavor
         if ((this.getIATask() != null) && this.iaTaskStarted()) {
             pipelineStarted = true;
-            // `>=` rather than `==` so non-IA-eligible MAs that land in a
-            // terminal detection state don't strand the import at "sent".
-            if (numDetectionComplete >= numAllowedIA) {
+            // decided per asset rather than comparing totals, so non-IA-eligible MAs
+            // don't strand the import at "sent" and terminal ineligible MAs can't pad
+            // the count past eligible MAs that are still in flight.
+            if (numDetectionOutstanding == 0) {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
@@ -903,6 +932,10 @@ public class ImportTask implements java.io.Serializable {
                 numIdentificationError = Math.max(0,
                     statsAnn.optInt("numLatestTask_error", 0));
                 numIdentificationComplete = numLatestCompleted + numIdentificationError;
+                // supplied boxes: a dropped box has ended too, as suppliedBoxesSettled counts it
+                if (this.annotationsImported())
+                    numIdentificationComplete += Math.max(0,
+                        statsAnn.optInt("numLatestTask_dropped-stale", 0));
                 pj.put("identificationNumberComplete", numIdentificationComplete);
                 pj.put("identificationNumberError", numIdentificationError);
                 pj.put("identificationNumTotal", numIdentificationTotal);
@@ -933,14 +966,71 @@ public class ImportTask implements java.io.Serializable {
             pj.put("identificationStatus", "unknown");
         }
         if (this.skippedDetection()) pj.put("detectionStatus", "skipped");
+        // supplied boxes stand in for detection: tell the task page so it can show detection as
+        // done and still offer identification
+        if (this.annotationsImported()) {
+            pj.put("annotationsImported", true);
+            pj.put("detectionPercent", 1.0);
+        }
         if (this.skippedIdentification()) pj.put("identificationStatus", "skipped");
+        // supplied boxes skip detection, but each box is still extracted (and matched, unless
+        // identification is skipped): the labels above alone do not say that work is done
+        boolean boxedStarted = pipelineStarted && this.annotationsImported();
+        boolean boxesSettled = boxedStarted && suppliedBoxesSettled(statsAnn, this.getIATask());
+        if (boxesSettled && !this.skippedIdentification() &&
+            (statsAnn == null || statsAnn.optInt("numLatestTasks", 0) == 0)) {
+            // identification was asked for but no box survived the import: nothing will ever
+            // be identified, so report it finished rather than "not started" forever
+            pj.put("identificationStatus", "complete");
+            pj.put("identificationPercent", 1.0);
+        }
         String ds = pj.optString("detectionStatus");
         String is = pj.optString("identificationStatus");
         pj.put("pipelineStarted", pipelineStarted);
         boolean pipelineComplete = ((ds.equals("complete") || ds.equals("skipped")) &&
             (is.equals("complete") || is.equals("skipped")));
+        if (boxedStarted) pipelineComplete = pipelineComplete && boxesSettled;
         pj.put("pipelineComplete", pipelineComplete);
         return pj;
+    }
+
+    /**
+     * Bulk-import boxes: true once every supplied box has reached an end state (its extraction
+     * and, when asked for, its identification), counting an errored box as ended. With no box
+     * at all the IA root task is the signal: it has ended itself (the bulk hand-off ends it when
+     * no box survived the import), or every task below it has ended (a request that found no box
+     * to work on ends only itself, so the root never gets a status of its own).
+     */
+    static boolean suppliedBoxesSettled(JSONObject statsAnn, Task iaRoot) {
+        int total = (statsAnn == null) ? 0 : statsAnn.optInt("numLatestTasks", 0);
+        if (total > 0) {
+            int ended = Math.max(0, statsAnn.optInt("numLatestTask_completed", 0)) +
+                Math.max(0, statsAnn.optInt("numLatestTask_error", 0)) +
+                Math.max(0, statsAnn.optInt("numLatestTask_dropped-stale", 0));
+            return ended >= total;
+        }
+        return (iaRoot != null) && (iaRoot.statusInEndState() || everyDescendantEnded(iaRoot));
+    }
+
+    /**
+     * True when the task has at least one child and every task below it, at every depth, is in
+     * an end state. A task that ended does not prove its own children did, so the walk never
+     * stops at an ended task.
+     */
+    static boolean everyDescendantEnded(Task root) {
+        List<Task> top = root.getChildren();
+        if ((top == null) || top.isEmpty()) return false;
+        java.util.Deque<Task> todo = new java.util.ArrayDeque<Task>(top);
+        java.util.Set<String> seen = new java.util.HashSet<String>();
+        seen.add(root.getId());
+        while (!todo.isEmpty()) {
+            Task t = todo.pop();
+            if ((t == null) || !seen.add(t.getId())) continue;   // a cycle or a repeat is walked once
+            if (!t.statusInEndState()) return false;
+            List<Task> kids = t.getChildren();
+            if (kids != null) todo.addAll(kids);
+        }
+        return true;
     }
 
     // Batch-count helpers for imports.jsp — run 3 GROUP BY queries instead of 3*N.

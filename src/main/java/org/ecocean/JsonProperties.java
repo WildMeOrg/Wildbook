@@ -71,6 +71,33 @@ public class JsonProperties extends Properties {
         }
     }
 
+    /**
+     * Quiet counterpart of {@link #get}: the same period-separated, link-following lookup, but
+     * null when any key along the way is absent, with no exception and no stack trace logged.
+     * For optional configuration such as a class's {@code _save_as} or {@code _id_conf}.
+     */
+    public Object opt(String periodSeparatedKeys) {
+        if ((periodSeparatedKeys == null) || (this.getJson() == null)) return null;
+        String[] keys = periodSeparatedKeys.split("\\.");
+        JSONObject level = this.getJson();
+        for (int i = 0; i < keys.length; i++) {
+            if (level == null) return null;
+            String key = keys[i];
+            boolean last = (i == keys.length - 1);
+            String linkDestination = getLinkDestination(key, level);
+            if (linkDestination != null) {
+                Object linked = opt(linkDestination);
+                if (last) return linked;
+                level = (linked instanceof JSONObject) ? (JSONObject)linked : null;
+            } else if (last) {
+                return level.opt(key);
+            } else {
+                level = level.optJSONObject(key);
+            }
+        }
+        return null;
+    }
+
     public Object getRecursive(String[] keys, JSONObject currentLevel) {
         // System.out.println("getRecursive called on "+String.join(".", keys));
 
