@@ -20,7 +20,7 @@ import {
 } from "./reportDateTime";
 import "./recaptcha.css";
 
-const ReportEncounter = observer(() => {
+const ReportEncounter = observer(({ currentUser }) => {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const Navigate = useNavigate();
@@ -102,6 +102,12 @@ const ReportEncounter = observer(() => {
     localStorage.removeItem("lon");
     localStorage.removeItem("submissionId");
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      store.prefillFollowUpContacts(currentUser);
+    }
+  }, [currentUser, store]);
 
   const handleSubmit = async () => {
     if (loading) return;

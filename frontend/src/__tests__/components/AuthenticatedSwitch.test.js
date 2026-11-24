@@ -44,6 +44,16 @@ jest.mock("../../pages/Home", () => {
   return HomeMock;
 });
 
+jest.mock("../../pages/ReportsAndManagamentPages/ReportEncounter", () => {
+  const ReportEncounterMock = ({ currentUser }) => (
+    <div data-testid="report-encounter">
+      {JSON.stringify(currentUser ?? null)}
+    </div>
+  );
+  ReportEncounterMock.displayName = "ReportEncounter";
+  return ReportEncounterMock;
+});
+
 jest.mock("../../pages/errorPages/NotFound", () => {
   const NotFoundMock = ({ setHeader }) => {
     setHeader(false);
@@ -84,6 +94,23 @@ describe("AuthenticatedSwitch", () => {
     window.history.pushState({}, "", "/login");
     renderComponent({ showAlert: false, setShowAlert: jest.fn() });
     expect(await screen.findByText("Login Page")).toBeInTheDocument();
+  });
+
+  test("passes the current user to the authenticated report route", async () => {
+    const currentUser = {
+      username: "testUser",
+      displayName: "Test User",
+      email: "test@example.com",
+      imageURL: "test-avatar.png",
+    };
+    useGetMe.mockReturnValue({ data: currentUser });
+    window.history.pushState({}, "", "/report");
+
+    renderComponent({ showAlert: false, setShowAlert: jest.fn() });
+
+    expect(await screen.findByTestId("report-encounter")).toHaveTextContent(
+      JSON.stringify(currentUser),
+    );
   });
 
   test("renders the NotFound page when navigating to an unknown route and sets header to false", async () => {
