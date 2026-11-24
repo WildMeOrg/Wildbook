@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { useSiteSettings } from "../../SiteSettingsContext";
 import {
   formatReportDateTime,
+  isPartialReportDate,
   parseReportDateTime,
 } from "./reportDateTime";
 import "./recaptcha.css";
@@ -74,9 +75,12 @@ const ReportEncounter = observer(() => {
       JSON.parse(localStorage.getItem("fileNames")).forEach((fileName) => {
         store.setImageSectionFileNames(fileName, "add");
       });
-    localStorage.getItem("datetime") &&
+    const savedDateTime = localStorage.getItem("datetime");
+    savedDateTime &&
       store.setDateTimeSectionValue(
-        parseReportDateTime(localStorage.getItem("datetime")),
+        isPartialReportDate(savedDateTime)
+          ? savedDateTime
+          : parseReportDateTime(savedDateTime),
       );
     localStorage.getItem("exifDateTime") &&
       store.setExifDateTime(localStorage.getItem("exifDateTime"));

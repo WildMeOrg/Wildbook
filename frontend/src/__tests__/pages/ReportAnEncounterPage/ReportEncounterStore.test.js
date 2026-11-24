@@ -89,6 +89,56 @@ describe("ReportEncounterStore", () => {
     );
   });
 
+  test.each([
+    ["2024-03", "2024-03"],
+    ["2024", "2024"],
+  ])(
+    "submits partial date %p at its own precision",
+    async (typed, expected) => {
+      axios.post.mockResolvedValue({ status: 200, data: {} });
+
+      store.setImageSectionFileNames("image1.jpg", "add");
+      store.setSpeciesSectionValue("Tiger");
+      store.setDateTimeSectionValue(typed);
+      store.setLocationId("123-location");
+
+      await store.submitReport();
+
+      expect(store.dateTimeSection.error).toBe(false);
+      expect(axios.post).toHaveBeenCalledWith(
+        "/api/v3/encounters",
+        expect.objectContaining({ dateTime: expected }),
+      );
+    },
+  );
+
+  describe("future check for partial dates", () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      // 2026-11-15 12:00 in the browser's local zone
+      jest.setSystemTime(new Date(2026, 10, 15, 12, 0));
+      store.setImageRequired(false);
+      store.setLocationId("123-location");
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    test.each([
+      ["2026", true],
+      ["2026-11", true],
+      ["2026-10", true],
+      ["2026-12", false],
+      ["2027", false],
+      ["2027-01", false],
+    ])("%p valid=%p", (value, valid) => {
+      store.setDateTimeSectionValue(value);
+      expect(store.validateFields()).toBe(valid);
+      expect(store.dateTimeSection.error).toBe(!valid);
+    });
+  });
+
   test("should handle submission failure", async () => {
     axios.post.mockRejectedValue({
       response: { data: { errors: "Submission failed" } },

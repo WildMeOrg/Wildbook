@@ -27,6 +27,12 @@ export const DateTimeSection = observer(({ store }) => {
         <Datetime
           inputProps={{
             placeholder: "YYYY-MM-DD",
+            // react-datetime only displays values it can parse with its own
+            // format; a partial date (e.g. "2024-03") restored after login
+            // would otherwise render as an empty field.
+            ...(typeof store.dateTimeSection.value === "string" && {
+              value: store.dateTimeSection.value,
+            }),
             onBlur: (e) => {
               const inputDate = e.target.value;
               if (inputDate === "") {

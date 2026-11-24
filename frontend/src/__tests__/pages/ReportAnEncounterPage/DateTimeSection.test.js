@@ -1,21 +1,9 @@
 import React from "react";
-import { screen, fireEvent, waitFor } from "@testing-library/react";
+import { screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { DateTimeSection } from "../../../pages/ReportsAndManagamentPages/DateTimeSection";
 import userEvent from "@testing-library/user-event";
 import { ReportEncounterStore } from "../../../pages/ReportsAndManagamentPages/ReportEncounterStore";
 import { renderWithProviders } from "../../../utils/utils";
-
-jest.mock("moment", () => {
-  const originalMoment = jest.requireActual("moment");
-  return (date, format, strict) => {
-    if (strict && format === originalMoment.ISO_8601) {
-      return {
-        isValid: () => originalMoment(date, format, strict).isValid(),
-      };
-    }
-    return originalMoment(date);
-  };
-});
 
 jest.mock("../../../pages/ReportsAndManagamentPages/ReportEncounterStore", () => ({
   ReportEncounterStore: jest.fn().mockImplementation(() => ({
@@ -89,5 +77,45 @@ describe("DateTimeSection Component", () => {
     );
     const selectedValue = mockStore.setDateTimeSectionValue.mock.calls.at(-1)[0];
     expect(selectedValue.format("YYYY-MM-DDTHH:mm")).toBe("2024-03-12T15:30");
+  });
+});
+
+describe("DateTimeSection partial dates (real store)", () => {
+  const { ReportEncounterStore: RealStore } = jest.requireActual(
+    "../../../pages/ReportsAndManagamentPages/ReportEncounterStore",
+  );
+
+  test("typing a year-month keeps the exact text and shows no warning on blur", async () => {
+    const store = new RealStore();
+    renderWithProviders(<DateTimeSection store={store} />);
+    const input = screen.getByPlaceholderText("YYYY-MM-DD");
+
+    await userEvent.type(input, "2024-03");
+    fireEvent.blur(input);
+
+    expect(store.dateTimeSection.value).toBe("2024-03");
+    expect(store.dateTimeSection.error).toBe(false);
+    expect(screen.queryByText("INVALID_DATETIME_WARNING")).toBeNull();
+  });
+
+  test("a malformed month shows the warning on blur", async () => {
+    const store = new RealStore();
+    renderWithProviders(<DateTimeSection store={store} />);
+    const input = screen.getByPlaceholderText("YYYY-MM-DD");
+
+    await userEvent.type(input, "2024-3");
+    fireEvent.blur(input);
+
+    expect(store.dateTimeSection.error).toBe(true);
+    expect(screen.getByText("INVALID_DATETIME_WARNING")).toBeInTheDocument();
+  });
+
+  test("a partial date set after mount (login restore) is displayed", () => {
+    const store = new RealStore();
+    renderWithProviders(<DateTimeSection store={store} />);
+
+    act(() => store.setDateTimeSectionValue("2024-03"));
+
+    expect(screen.getByPlaceholderText("YYYY-MM-DD")).toHaveValue("2024-03");
   });
 });
