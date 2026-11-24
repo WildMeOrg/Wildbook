@@ -53,8 +53,8 @@ export function toReportDateTimeValue(value) {
 }
 
 export function formatReportDateTime(value) {
-  if (isPartialReportDate(value)) return value.trim();
-  const dateTime = parseReportDateTime(value);
+  const dateTime = toReportDateTimeValue(value);
+  if (typeof dateTime === "string") return dateTime || null;
   if (!dateTime.isValid()) return null;
   return dateTime.format(REPORT_DATE_TIME_FORMAT);
 }
