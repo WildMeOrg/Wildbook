@@ -12,6 +12,9 @@ import MainButton from "../../../components/MainButton";
 import ThemeColorContext from "../../../ThemeColorProvider";
 import ImageCaption from "../../MatchResultsPage/components/ImageCaption";
 
+const THUMB_HEIGHT = 200;
+const THUMB_MAX_WIDTH = 300;
+
 const GalleryView = observer(({ store, pg = {} }) => {
   const theme = React.useContext(ThemeColorContext);
   const nextPage = store.currentPage + 1;
@@ -144,7 +147,15 @@ const GalleryView = observer(({ store, pg = {} }) => {
         </MainButton>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "20px",
+          // captions differ in height; keep every image on the row's top edge
+          alignItems: "flex-start",
+        }}
+      >
         {store.currentPageItems.length > 0 ? (
           store.currentPageItems.map((asset, i) => {
             const rects =
@@ -164,88 +175,113 @@ const GalleryView = observer(({ store, pg = {} }) => {
                 })) || [];
 
             const dims = imgDims[asset.__k];
+            // Until the image reports its size (or if it never loads), reserve the
+            // thumbnail box from the asset's stored size using the img rule below
+            // (200px tall, at most 300px wide), so the tile and the caption under
+            // it never collapse to zero width.
+            const reservedWidth =
+              asset.width > 0 && asset.height > 0
+                ? Math.min(
+                    THUMB_MAX_WIDTH,
+                    Math.round((THUMB_HEIGHT * asset.width) / asset.height),
+                  )
+                : THUMB_HEIGHT;
             const scaleX = dims ? dims.nw / dims.dw : 1;
             const scaleY = dims ? dims.nh / dims.dh : 1;
 
             return (
+              // issue #1799: the caption sits under the image box, not over it,
+              // so it never hides the animal. The image box keeps its own size
+              // and clipping, which is the frame the annotation boxes use.
               <div
                 key={asset.__k}
-                className="position-relative"
+                data-testid={`gallery-tile-${i}`}
                 style={{
                   marginBottom: 20,
-                  display: "inline-block",
-                  width: dims?.dw,
-                  height: dims?.dh,
-                  overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column",
+                  flex: "0 0 auto",
                 }}
               >
-                <img
-                  src={asset.url}
-                  alt={`Media Asset ${asset.id ?? asset.uuid ?? ""}`}
+                <div
+                  className="position-relative"
+                  data-testid={`gallery-image-box-${i}`}
                   style={{
-                    height: 200,
-                    width: "auto",
-                    maxWidth: 300,
-                    cursor: "zoom-in",
-                    display: "block",
+                    display: "inline-block",
+                    width: dims?.dw ?? reservedWidth,
+                    height: dims?.dh ?? THUMB_HEIGHT,
+                    overflow: "hidden",
                   }}
-                  loading="lazy"
-                  decoding="async"
-                  onLoad={(e) => {
-                    const img = e.currentTarget;
-                    setImgDims((prev) => ({
-                      ...prev,
-                      [asset.__k]: {
-                        // Use the API-reported dimensions (the coordinate frame the
-                        // annotation bounding boxes are stored in), matching the
-                        // modal. The served image may be a resized derivative whose
-                        // naturalWidth differs, which would misplace the boxes.
-                        nw: asset.width || img.naturalWidth,
-                        nh: asset.height || img.naturalHeight,
-                        dw: img.clientWidth,
-                        dh: img.clientHeight,
-                      },
-                    }));
-                  }}
-                  onClick={() => {
-                    store.imageModalStore.setSelectedImageIndex(i);
-                    setImageModalOpen(true);
-                  }}
-                />
+                >
+                  <img
+                    src={asset.url}
+                    alt={`Media Asset ${asset.id ?? asset.uuid ?? ""}`}
+                    style={{
+                      height: THUMB_HEIGHT,
+                      width: "auto",
+                      maxWidth: THUMB_MAX_WIDTH,
+                      cursor: "zoom-in",
+                      display: "block",
+                    }}
+                    loading="lazy"
+                    decoding="async"
+                    onLoad={(e) => {
+                      const img = e.currentTarget;
+                      setImgDims((prev) => ({
+                        ...prev,
+                        [asset.__k]: {
+                          // Use the API-reported dimensions (the coordinate frame the
+                          // annotation bounding boxes are stored in), matching the
+                          // modal. The served image may be a resized derivative whose
+                          // naturalWidth differs, which would misplace the boxes.
+                          nw: asset.width || img.naturalWidth,
+                          nh: asset.height || img.naturalHeight,
+                          dw: img.clientWidth,
+                          dh: img.clientHeight,
+                        },
+                      }));
+                    }}
+                    onClick={() => {
+                      store.imageModalStore.setSelectedImageIndex(i);
+                      setImageModalOpen(true);
+                    }}
+                  />
 
-                {dims &&
-                  rects.length > 0 &&
-                  rects.map((rect, index) => (
-                    <div
-                      key={index}
-                      className="position-absolute"
-                      onClick={() => {
-                        store.imageModalStore.setSelectedAnnotationId(
-                          rect.annotationId,
-                        );
-                      }}
-                      style={{
-                        left: rect.x / scaleX,
-                        top: rect.y / scaleY,
-                        width: rect.width / scaleX,
-                        height: rect.height / scaleY,
-                        border: "2px dotted red",
-                        transform: `rotate(${rect.rotation}rad)`,
-                        cursor: "pointer",
-                        backgroundColor:
-                          rect.annotationId ===
-                          store.imageModalStore.selectedAnnotationId
-                            ? "rgba(255, 0, 0, 0.3)"
-                            : "transparent",
-                      }}
-                    />
-                  ))}
-                {/* issue #1799: same strip as /react/match-results */}
+                  {dims &&
+                    rects.length > 0 &&
+                    rects.map((rect, index) => (
+                      <div
+                        key={index}
+                        className="position-absolute"
+                        onClick={() => {
+                          store.imageModalStore.setSelectedAnnotationId(
+                            rect.annotationId,
+                          );
+                        }}
+                        style={{
+                          left: rect.x / scaleX,
+                          top: rect.y / scaleY,
+                          width: rect.width / scaleX,
+                          height: rect.height / scaleY,
+                          border: "2px dotted red",
+                          transform: `rotate(${rect.rotation}rad)`,
+                          cursor: "pointer",
+                          backgroundColor:
+                            rect.annotationId ===
+                            store.imageModalStore.selectedAnnotationId
+                              ? "rgba(255, 0, 0, 0.3)"
+                              : "transparent",
+                        }}
+                      />
+                    ))}
+                </div>
+                {/* issue #1799: same strip as /react/match-results, under the image */}
                 <ImageCaption
                   date={asset.date}
                   filename={asset.userFilename}
                   locationId={asset.locationId}
                   testId={`gallery-caption-${i}`}
+                  placement="below"
                 />
               </div>
             );
