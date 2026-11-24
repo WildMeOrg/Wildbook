@@ -218,6 +218,22 @@ describe("ReportEncounter Component", () => {
     );
   });
 
+  test("restores a saved partial date at its own precision", () => {
+    const setDateTimeSectionValue = jest.fn();
+    ReportEncounterStore.mockImplementation(() => ({
+      isHumanLocal: true,
+      setIsHumanLocal: jest.fn(),
+      setImageRequired: jest.fn(),
+      setDateTimeSectionValue,
+    }));
+    localStorage.setItem("datetime", "2024-03");
+
+    renderComponent();
+
+    expect(setDateTimeSectionValue).toHaveBeenCalledWith("2024-03");
+    expect(localStorage.getItem("datetime")).toBe(null);
+  });
+
   test("renders CAPTCHA when user is not signed in", async () => {
     ReportEncounterStore.mockImplementation(() => ({
       isHumanLocal: false,

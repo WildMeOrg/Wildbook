@@ -1,27 +1,18 @@
 import React from "react";
-import { screen, fireEvent, waitFor, act } from "@testing-library/react";
+import { screen, fireEvent, act } from "@testing-library/react";
 import { DateTimeSection } from "../../../pages/ReportsAndManagamentPages/DateTimeSection";
 import userEvent from "@testing-library/user-event";
 import { ReportEncounterStore } from "../../../pages/ReportsAndManagamentPages/ReportEncounterStore";
 import { renderWithProviders } from "../../../utils/utils";
 
-jest.mock("../../../pages/ReportsAndManagamentPages/ReportEncounterStore", () => ({
-  ReportEncounterStore: jest.fn().mockImplementation(() => ({
-    dateTimeSection: {
-      value: "",
-      required: true,
-      error: false,
-    },
-    setDateTimeSectionValue: jest.fn(),
-    setDateTimeSectionError: jest.fn(),
-    exifDateTime: ["2024-03-12 15:30", "2024-03-10 12:00"],
-  })),
-}));
-
-const mockStore = new ReportEncounterStore();
+let store;
 
 const renderComponent = () => {
-  return renderWithProviders(<DateTimeSection store={mockStore} />);
+  store = new ReportEncounterStore();
+  store.setExifDateTime("2024-03-12 15:30");
+  store.setExifDateTime("2024-03-10 12:00");
+  renderWithProviders(<DateTimeSection store={store} />);
+  return screen.getByPlaceholderText("YYYY-MM-DD");
 };
 
 describe("DateTimeSection Component", () => {
@@ -30,78 +21,67 @@ describe("DateTimeSection Component", () => {
     expect(screen.getAllByText("DATETIME_SECTION")[1]).toBeInTheDocument();
   });
 
-  test("allows users to input a valid date and time", async () => {
-    renderComponent();
-    const input = screen.getByPlaceholderText("YYYY-MM-DD");
+  test("accepts a typed full date", async () => {
+    const input = renderComponent();
 
     await userEvent.type(input, "2024-03-12");
     fireEvent.blur(input);
 
-    await waitFor(() =>
-      expect(mockStore.setDateTimeSectionError).toHaveBeenCalledWith(false),
-    );
+    expect(input).toHaveValue("2024-03-12");
+    expect(store.dateTimeSection.value).toBe("2024-03-12");
+    expect(store.dateTimeSection.error).toBe(false);
+    expect(screen.queryByText("INVALID_DATETIME_WARNING")).toBeNull();
   });
 
   test("shows error on invalid date format", async () => {
-    mockStore.dateTimeSection = {
-      value: "2025-03-03 0",
-      required: true,
-      error: true,
-      setDateTimeSectionValue: jest.fn(),
-      setDateTimeSectionError: jest.fn(),
-    };
-    renderComponent();
-    const input = screen.getByPlaceholderText("YYYY-MM-DD");
+    const input = renderComponent();
 
-    fireEvent.change(input, { target: { value: "2025-03-03 0" } });
+    await userEvent.type(input, "2025-03-03 0");
     fireEvent.blur(input);
 
-    await waitFor(() => {
-      expect(mockStore.setDateTimeSectionError).toHaveBeenCalledWith(true);
-      expect(mockStore.dateTimeSection.error).toBe(true);
-      expect(screen.getByText("INVALID_DATETIME_WARNING")).toBeInTheDocument();
-    });
+    expect(store.dateTimeSection.error).toBe(true);
+    expect(screen.getByText("INVALID_DATETIME_WARNING")).toBeInTheDocument();
   });
 
-  test("allows selecting EXIF date", async () => {
+  test("allows selecting EXIF date", () => {
     renderComponent();
-    const select = screen.getByLabelText("DATETIME_EXIF");
-    fireEvent.change(select, { target: { value: "2024-03-12 15:30" } });
+    fireEvent.change(screen.getByLabelText("DATETIME_EXIF"), {
+      target: { value: "2024-03-12 15:30" },
+    });
 
-    await waitFor(() =>
-      expect(mockStore.setDateTimeSectionValue).toHaveBeenCalledWith(
-        expect.objectContaining({
-          format: expect.any(Function),
-        }),
-      ),
+    expect(store.dateTimeSection.value.format("YYYY-MM-DDTHH:mm")).toBe(
+      "2024-03-12T15:30",
     );
-    const selectedValue = mockStore.setDateTimeSectionValue.mock.calls.at(-1)[0];
-    expect(selectedValue.format("YYYY-MM-DDTHH:mm")).toBe("2024-03-12T15:30");
+  });
+
+  test("selecting the empty EXIF option clears the field", async () => {
+    const input = renderComponent();
+    await userEvent.type(input, "2024-03");
+    const select = screen.getByLabelText("DATETIME_EXIF");
+
+    fireEvent.change(select, { target: { value: "2024-03-12 15:30" } });
+    fireEvent.change(select, { target: { value: "" } });
+
+    expect(store.dateTimeSection.value).toBe("");
+    expect(input).toHaveValue("");
   });
 });
 
-describe("DateTimeSection partial dates (real store)", () => {
-  const { ReportEncounterStore: RealStore } = jest.requireActual(
-    "../../../pages/ReportsAndManagamentPages/ReportEncounterStore",
-  );
-
+describe("DateTimeSection partial dates", () => {
   test("typing a year-month keeps the exact text and shows no warning on blur", async () => {
-    const store = new RealStore();
-    renderWithProviders(<DateTimeSection store={store} />);
-    const input = screen.getByPlaceholderText("YYYY-MM-DD");
+    const input = renderComponent();
 
     await userEvent.type(input, "2024-03");
     fireEvent.blur(input);
 
+    expect(input).toHaveValue("2024-03");
     expect(store.dateTimeSection.value).toBe("2024-03");
     expect(store.dateTimeSection.error).toBe(false);
     expect(screen.queryByText("INVALID_DATETIME_WARNING")).toBeNull();
   });
 
   test("a malformed month shows the warning on blur", async () => {
-    const store = new RealStore();
-    renderWithProviders(<DateTimeSection store={store} />);
-    const input = screen.getByPlaceholderText("YYYY-MM-DD");
+    const input = renderComponent();
 
     await userEvent.type(input, "2024-3");
     fireEvent.blur(input);
@@ -110,12 +90,26 @@ describe("DateTimeSection partial dates (real store)", () => {
     expect(screen.getByText("INVALID_DATETIME_WARNING")).toBeInTheDocument();
   });
 
+  test("editing the middle of a partial date keeps the caret in place", async () => {
+    const input = renderComponent();
+    await userEvent.type(input, "2024-03");
+
+    // replace the "4" of 2024 with "3"
+    await userEvent.type(input, "3", {
+      initialSelectionStart: 3,
+      initialSelectionEnd: 4,
+    });
+
+    expect(input).toHaveValue("2023-03");
+    expect(input.selectionStart).toBe(4);
+    expect(store.dateTimeSection.value).toBe("2023-03");
+  });
+
   test("a partial date set after mount (login restore) is displayed", () => {
-    const store = new RealStore();
-    renderWithProviders(<DateTimeSection store={store} />);
+    const input = renderComponent();
 
     act(() => store.setDateTimeSectionValue("2024-03"));
 
-    expect(screen.getByPlaceholderText("YYYY-MM-DD")).toHaveValue("2024-03");
+    expect(input).toHaveValue("2024-03");
   });
 });

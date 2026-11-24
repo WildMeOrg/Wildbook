@@ -43,6 +43,15 @@ export function parseReportDateTime(value) {
   return moment(value);
 }
 
+// Value to hold in the report store for a saved or selected string: a partial
+// date stays a string so it keeps its precision; anything else becomes a
+// moment; an empty selection clears the field.
+export function toReportDateTimeValue(value) {
+  if (!value) return "";
+  if (isPartialReportDate(value)) return value.trim();
+  return parseReportDateTime(value);
+}
+
 export function formatReportDateTime(value) {
   if (isPartialReportDate(value)) return value.trim();
   const dateTime = parseReportDateTime(value);
