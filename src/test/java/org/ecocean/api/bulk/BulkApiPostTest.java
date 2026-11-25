@@ -13,6 +13,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.LocationID;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.ReCAPTCHA;
+import org.ecocean.shepherd.core.AdvisoryLock;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.User;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,8 +40,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -57,8 +61,23 @@ class BulkApiPostTest {
     StringWriter responseOut;
     List<File> emptyFiles = new ArrayList<File>();
 
+    MockedStatic<AdvisoryLock> advisoryLock;
+
+    // the import path takes the bulkImportId lock and reserves its ImportTask on a Shepherd of its own
+    static void reservable(Shepherd sh)
+    throws Exception {
+        when(sh.getPM()).thenReturn(mock(PersistenceManager.class));
+        when(sh.commitDBTransactionWithStatus()).thenReturn(true);
+    }
+
+    @AfterEach void closeLock() {
+        advisoryLock.close();
+    }
+
     @BeforeEach void setUp()
     throws IOException {
+        advisoryLock = mockStatic(AdvisoryLock.class, CALLS_REAL_METHODS);
+        advisoryLock.when(() -> AdvisoryLock.tryXact(any(), anyLong())).thenReturn(true);
         mockRequest = mock(HttpServletRequest.class);
         mockResponse = mock(HttpServletResponse.class);
         mockPMF = mock(PersistenceManagerFactory.class);
@@ -73,6 +92,7 @@ class BulkApiPostTest {
     throws ServletException, IOException {
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             doNothing().when(mock).beginDBTransaction();
         })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
@@ -96,6 +116,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
@@ -118,6 +139,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
@@ -293,6 +315,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
@@ -326,6 +349,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -367,6 +391,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
@@ -403,6 +428,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
@@ -438,6 +464,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
@@ -471,6 +498,7 @@ class BulkApiPostTest {
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload.toString())));
         try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                 reservable(mock);
                  when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
                  when(mock.getUser(any(String.class))).thenReturn(user);
                  when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -503,6 +531,7 @@ class BulkApiPostTest {
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload.toString())));
         try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                 reservable(mock);
                  when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
                  when(mock.getUser(any(String.class))).thenReturn(user);
                  when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -541,6 +570,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -577,6 +607,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -616,6 +647,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -653,6 +685,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
         })) {
@@ -690,6 +723,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
@@ -740,6 +774,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);

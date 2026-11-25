@@ -16,6 +16,7 @@ import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.ReCAPTCHA;
+import org.ecocean.shepherd.core.AdvisoryLock;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.User;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,8 +43,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -65,8 +69,23 @@ class BulkImagesTest {
     File mockUploadDir = new File("src/test/bulk-images");
     MediaAsset mockMediaAsset;
 
+    MockedStatic<AdvisoryLock> advisoryLock;
+
+    // the import path takes the bulkImportId lock and reserves its ImportTask on a Shepherd of its own
+    static void reservable(Shepherd sh)
+    throws Exception {
+        when(sh.getPM()).thenReturn(mock(PersistenceManager.class));
+        when(sh.commitDBTransactionWithStatus()).thenReturn(true);
+    }
+
+    @AfterEach void closeLock() {
+        advisoryLock.close();
+    }
+
     @BeforeEach void setUp()
     throws IOException {
+        advisoryLock = mockStatic(AdvisoryLock.class, CALLS_REAL_METHODS);
+        advisoryLock.when(() -> AdvisoryLock.tryXact(any(), anyLong())).thenReturn(true);
         mockRequest = mock(HttpServletRequest.class);
         mockResponse = mock(HttpServletResponse.class);
         mockPMF = mock(PersistenceManagerFactory.class);
@@ -171,6 +190,7 @@ class BulkImagesTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -209,6 +229,7 @@ class BulkImagesTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -247,6 +268,7 @@ class BulkImagesTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -289,6 +311,7 @@ class BulkImagesTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -403,6 +426,7 @@ class BulkImagesTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);

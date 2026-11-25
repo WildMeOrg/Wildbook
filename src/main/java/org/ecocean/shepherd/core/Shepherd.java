@@ -530,6 +530,19 @@ public class Shepherd {
         return tempEnc;
     }
 
+    /**
+     * The ImportTask with this id, or null when there is none. Unlike getImportTask, any
+     * failure other than "not found" propagates instead of reading as "no task".
+     */
+    public ImportTask findImportTask(String id)
+    throws Exception {
+        try {
+            return (ImportTask)pm.getObjectById(pm.newObjectIdInstance(ImportTask.class, id), true);
+        } catch (JDOObjectNotFoundException notFound) {
+            return null;
+        }
+    }
+
     public void storeNewImportTask(ImportTask itask) {
         try {
             pm.makePersistent(itask);
