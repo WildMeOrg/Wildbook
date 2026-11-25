@@ -63,13 +63,21 @@ class EncounterPatchValidatorTest {
         namesCache().putAll(savedNamesCache);
     }
 
-    private JSONObject individualIdPatch(String value) {
+    private JSONObject individualIdPatch(Object value) {
         JSONObject patch = new JSONObject();
 
         patch.put("op", "replace");
         patch.put("path", "individualId");
         patch.put("value", value);
         return patch;
+    }
+
+    private JSONObject newIndividualNamePatch(String name) {
+        JSONObject value = new JSONObject();
+
+        value.put("type", "name");
+        value.put("value", name);
+        return individualIdPatch(value);
     }
 
     @Test void typedNameAttachesExistingIndividual()
@@ -155,6 +163,74 @@ class EncounterPatchValidatorTest {
             mockedIndiv.verify(() -> MarkedIndividual.findByExactName(any(Shepherd.class),
                 anyString(), any(), any()), never());
             verify(mockEnc).applyPatchOp(eq("individualId"), same(existing), eq("replace"));
+            verify(mockPM, never()).makePersistent(any(MarkedIndividual.class));
+        }
+    }
+
+    @Test void newNameRejectsNameInUse()
+    throws ApiException {
+        MarkedIndividual existing = mock(MarkedIndividual.class);
+
+        when(mockShepherd.getMarkedIndividual("GNS-2620")).thenReturn(null);
+        try (MockedStatic<MarkedIndividual> mockedIndiv = mockStatic(MarkedIndividual.class,
+                CALLS_REAL_METHODS)) {
+            mockedIndiv.when(() -> MarkedIndividual.findByExactName(mockShepherd, "GNS-2620",
+                "Carcharodon", "carcharias")).thenReturn(new ArrayList<>(Arrays.asList(existing)));
+            ApiException ex = assertThrows(ApiException.class, () -> {
+                EncounterPatchValidator.applyPatch(mockEnc, newIndividualNamePatch("GNS-2620"),
+                mockUser, mockShepherd);
+            });
+            assertEquals(ApiException.ERROR_RETURN_CODE_DUPLICATE,
+                ex.getErrors().getJSONObject(0).getString("code"));
+            verify(mockEnc, never()).applyPatchOp(anyString(), any(), anyString());
+            verify(mockPM, never()).makePersistent(any(MarkedIndividual.class));
+        }
+    }
+
+    @Test void newNameRejectsIdInUse()
+    throws ApiException {
+        MarkedIndividual existing = mock(MarkedIndividual.class);
+
+        when(mockShepherd.getMarkedIndividual("aaaa1111-2222-3333-4444-555555555555")).thenReturn(
+            existing);
+        try (MockedStatic<MarkedIndividual> mockedIndiv = mockStatic(MarkedIndividual.class,
+                CALLS_REAL_METHODS)) {
+            ApiException ex = assertThrows(ApiException.class, () -> {
+                EncounterPatchValidator.applyPatch(mockEnc,
+                newIndividualNamePatch("aaaa1111-2222-3333-4444-555555555555"), mockUser,
+                mockShepherd);
+            });
+            assertEquals(ApiException.ERROR_RETURN_CODE_DUPLICATE,
+                ex.getErrors().getJSONObject(0).getString("code"));
+            verify(mockPM, never()).makePersistent(any(MarkedIndividual.class));
+        }
+    }
+
+    @Test void newNameCreatesIndividual()
+    throws ApiException {
+        when(mockShepherd.getMarkedIndividual("GNS-9999")).thenReturn(null);
+        try (MockedStatic<MarkedIndividual> mockedIndiv = mockStatic(MarkedIndividual.class,
+                CALLS_REAL_METHODS)) {
+            mockedIndiv.when(() -> MarkedIndividual.findByExactName(any(Shepherd.class),
+                anyString(), any(), any())).thenReturn(new ArrayList<MarkedIndividual>());
+            JSONObject res = EncounterPatchValidator.applyPatch(mockEnc,
+                newIndividualNamePatch(" GNS-9999 "), mockUser, mockShepherd);
+            ArgumentCaptor<Object> persisted = ArgumentCaptor.forClass(Object.class);
+            verify(mockPM).makePersistent(persisted.capture());
+            MarkedIndividual created = (MarkedIndividual)persisted.getValue();
+            assertTrue(created.hasName("GNS-9999"));
+            assertNotNull(res.optString("individualId", null));
+        }
+    }
+
+    @Test void newNameRequiresValue()
+    throws ApiException {
+        try (MockedStatic<MarkedIndividual> mockedIndiv = mockStatic(MarkedIndividual.class,
+                CALLS_REAL_METHODS)) {
+            assertThrows(ApiException.class, () -> {
+                EncounterPatchValidator.applyPatch(mockEnc, newIndividualNamePatch("  "), mockUser,
+                mockShepherd);
+            });
             verify(mockPM, never()).makePersistent(any(MarkedIndividual.class));
         }
     }

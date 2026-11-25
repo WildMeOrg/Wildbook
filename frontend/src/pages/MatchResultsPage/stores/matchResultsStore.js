@@ -685,7 +685,15 @@ export default class MatchResultsStore {
           },
         ];
       } else {
-        patchOps = [{ op: "replace", path: "individualId", value: newName }];
+        // type "name" always creates a new individual and fails if the name
+        // is already in use, while a plain string would reuse that individual
+        patchOps = [
+          {
+            op: "replace",
+            path: "individualId",
+            value: { type: "name", value: newName },
+          },
+        ];
       }
 
       if (selectedRemark && selectedRemark.trim() !== "") {
@@ -717,6 +725,15 @@ export default class MatchResultsStore {
       const firstResult = await doPatch(firstId, patchOps);
 
       if (firstResult.status !== "fulfilled") {
+        const errors = firstResult.error?.response?.data?.errors;
+        if (
+          Array.isArray(errors) &&
+          errors.some((e) => e?.code === "DUPLICATE")
+        ) {
+          this._matchRequestError = "INDIVIDUAL_ID_IN_USE";
+          toast.error(`The individual ID "${newName}" is already in use`);
+          return { ok: false, error: "INDIVIDUAL_ID_IN_USE" };
+        }
         // no individual was created; don't retry the same ops per-encounter
         this._matchRequestError = "CREATE_NEW_INDIVIDUAL_FAILED";
         toast.error("Failed to create new individual");

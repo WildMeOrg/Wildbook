@@ -359,8 +359,22 @@ public class EncounterPatchValidator {
             // exists with getMarkedIndividual() first
             JSONObject nameData = (JSONObject)value;
             String type = nameData.optString("type", "NO_TYPE_GIVEN");
-            // right now we only support type=locationId, but may expand later
-            if (type.equals("locationId")) {
+            // type=name always creates a new individual with the given name, unlike a
+            // plain string value which reuses an existing individual with that name
+            if (type.equals("name")) {
+                idOrName = nameData.optString("value", "").trim();
+                if (idOrName.isEmpty())
+                    throw new ApiException("a name is required for a new individual",
+                            ApiException.ERROR_RETURN_CODE_REQUIRED);
+                if (idOrName.contains(";"))
+                    throw new ApiException("individualId may not contain ';'",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
+                if ((myShepherd.getMarkedIndividual(idOrName) != null) ||
+                    !MarkedIndividual.findByExactName(myShepherd, idOrName, enc.getGenus(),
+                    enc.getSpecificEpithet()).isEmpty())
+                    throw new ApiException("individual name '" + idOrName + "' is already in use",
+                            ApiException.ERROR_RETURN_CODE_DUPLICATE);
+            } else if (type.equals("locationId")) {
                 String locationId = nameData.optString("value", null);
                 try {
                     idOrName = MarkedIndividual.nextNameByLocationId(locationId);

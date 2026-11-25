@@ -7,6 +7,7 @@ public class ApiException extends Exception {
     public static String ERROR_RETURN_CODE_REQUIRED = "REQUIRED";
     public static String ERROR_RETURN_CODE_INVALID = "INVALID";
     public static String ERROR_RETURN_CODE_FORBIDDEN = "FORBIDDEN";
+    public static String ERROR_RETURN_CODE_DUPLICATE = "DUPLICATE";
     public static String ERROR_RETURN_CODE_UNKNOWN = "UNKNOWN";
 
     protected JSONArray errors = null;

@@ -966,9 +966,12 @@ describe("MatchResultsStore — handleCreateNewIndividual", () => {
     expect(axios.patch).toHaveBeenCalledTimes(2);
     const firstOps = axios.patch.mock.calls[0][1];
     const secondOps = axios.patch.mock.calls[1][1];
-    expect(firstOps.find((op) => op.path === "individualId").value).toBe(
-      "Nemo",
-    );
+    // the typed name must be sent as a strict create, not a plain name that
+    // the backend would resolve to an existing individual (issue 1875)
+    expect(firstOps.find((op) => op.path === "individualId").value).toEqual({
+      type: "name",
+      value: "Nemo",
+    });
     // the second encounter must reference the individual by uuid, not name,
     // so parallel creates cannot mint duplicates (issue 1318)
     expect(secondOps.find((op) => op.path === "individualId").value).toBe(
@@ -986,6 +989,29 @@ describe("MatchResultsStore — handleCreateNewIndividual", () => {
       ok: false,
       error: "CREATE_NEW_INDIVIDUAL_FAILED",
     });
+    expect(axios.patch).toHaveBeenCalledTimes(1);
+  });
+
+  test("reports an individual ID that is already in use", async () => {
+    store.setNewIndividualName("Nemo");
+    store.setSelectedMatch(true, "k1", "enc-a", null, null);
+    store.setSelectedMatch(true, "k2", "enc-b", null, null);
+    axios.patch.mockRejectedValueOnce({
+      response: {
+        status: 400,
+        data: {
+          errors: [
+            {
+              code: "DUPLICATE",
+              details: "individual name 'Nemo' is already in use",
+            },
+          ],
+        },
+      },
+    });
+    const result = await store.handleCreateNewIndividual(null);
+    expect(result).toEqual({ ok: false, error: "INDIVIDUAL_ID_IN_USE" });
+    expect(store.matchRequestError).toBe("INDIVIDUAL_ID_IN_USE");
     expect(axios.patch).toHaveBeenCalledTimes(1);
   });
 
