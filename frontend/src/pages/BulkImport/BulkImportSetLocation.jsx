@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { observer } from "mobx-react-lite";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import { useContext, useCallback } from "react";
 import ThemeContext from "../../ThemeColorProvider";
 import MainButton from "../../components/MainButton";
@@ -39,6 +39,7 @@ function getAllDescendantValues(node) {
 
 export const BulkImportSetLocation = observer(({ store }) => {
   const theme = useContext(ThemeContext);
+  const intl = useIntl();
   const { submit, isLoading } = usePostBulkImport();
   const submissionId = store.submissionId || uuidv4();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -128,6 +129,13 @@ export const BulkImportSetLocation = observer(({ store }) => {
         setShowFailureModal(true);
       }
     } catch (err) {
+      if (err.response?.status === 409) {
+        store.setSubmissionTransportError(
+          intl.formatMessage({ id: "BULK_IMPORT_ALREADY_SUBMITTED" }),
+        );
+        setShowFailureModal(true);
+        return;
+      }
       const errors = err.response?.data?.errors;
       if (errors) {
         store.setSubmissionErrors(errors);
@@ -283,7 +291,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
           window.scrollTo(0, document.body.scrollHeight);
           setShowFailureModal(false);
         }}
-        errorMessage={store.submissionErrors}
+        errorMessage={store.submissionTransportError ?? store.submissionErrors}
       />
     </div>
   );

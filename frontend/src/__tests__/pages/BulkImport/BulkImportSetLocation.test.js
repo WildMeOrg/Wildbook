@@ -2,6 +2,9 @@ import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { BulkImportSetLocation } from "../../../pages/BulkImport/BulkImportSetLocation";
 import usePostBulkImport from "../../../models/bulkImport/usePostBulkImport";
+import { BulkImportStore } from "../../../pages/BulkImport/BulkImportStore";
+import { allRequiredColumns } from "../../../pages/BulkImport/BulkImportConstants";
+import { BulkImportTableReview } from "../../../pages/BulkImport/BulkImportTableReview";
 
 jest.mock("../../../models/bulkImport/usePostBulkImport");
 jest.mock("antd/es/tree-select", () => {
@@ -35,16 +38,29 @@ jest.mock("../../../pages/BulkImport/BulkImportSuccessModal", () => {
 });
 
 jest.mock("../../../pages/BulkImport/BulkImportFailureModal", () => {
-  const FailureModalMock = ({ show, errorMessage }) =>
+  const FailureModalMock = ({ show, errorMessage, onHide }) =>
     show ? (
-      <div data-testid="failure-modal">Failure: {errorMessage}</div>
+      <div data-testid="failure-modal">
+        Failure: {errorMessage}
+        <button onClick={onHide}>Review Data</button>
+      </div>
     ) : null;
 
   FailureModalMock.displayName = "BulkImportFailureModal";
   return FailureModalMock;
 });
 
-jest.mock("dayjs", () => () => ({ format: () => "2025-07-14" }));
+jest.mock("../../../pages/BulkImport/EditableDataTable", () => {
+  const EditableDataTable = () => <div data-testid="editable-table" />;
+  EditableDataTable.displayName = "EditableDataTable";
+  return EditableDataTable;
+});
+
+jest.mock("dayjs", () => {
+  const dayjs = () => ({ format: () => "2025-07-14" });
+  dayjs.extend = () => {};
+  return dayjs;
+});
 
 describe("BulkImportSetLocation", () => {
   let store;
@@ -193,5 +209,63 @@ describe("BulkImportSetLocation", () => {
     const startLoading = loadingElements[1];
     expect(startLoading).toBeInTheDocument();
     expect(startLoading.closest("button")).toBeDisabled();
+  });
+});
+
+describe("BulkImportSetLocation duplicate submission (409)", () => {
+  const ALREADY =
+    "This upload was already submitted. Start a new upload to import again.";
+  let store;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+    store = new BulkImportStore();
+    store._rawColumns = ["col1"];
+    store._columnsDef = [...allRequiredColumns];
+    store._spreadsheetUploadProgress = 100;
+    store._rawData = [["data1"]];
+    store.setActiveStep(3);
+    store.saveState();
+    usePostBulkImport.mockReturnValue({
+      submit: jest.fn().mockRejectedValue({
+        response: {
+          status: 409,
+          data: { errors: [{ type: "DUPLICATE_IMPORT" }] },
+        },
+      }),
+      isLoading: false,
+    });
+  });
+
+  const clickStart = async () => {
+    render(<BulkImportSetLocation store={store} />);
+    await act(async () => {
+      fireEvent.click(screen.getByText(/START_BULK_IMPORT/));
+    });
+  };
+
+  it("shows already-submitted message on 409", async () => {
+    await clickStart();
+
+    expect(await screen.findByTestId("failure-modal")).toHaveTextContent(
+      ALREADY,
+    );
+    expect(store.submissionTransportError).toBe(ALREADY);
+    expect(typeof store.submissionErrors).not.toBe("string");
+    expect(localStorage.getItem("BulkImportStore")).not.toBeNull();
+  });
+
+  it("dismissing the 409 modal shows review with the draft", async () => {
+    const rawBefore = JSON.stringify(store.rawData);
+    await clickStart();
+
+    fireEvent.click(await screen.findByText("Review Data"));
+    expect(store.activeStep).toBe(2);
+
+    expect(() =>
+      render(<BulkImportTableReview store={store} />),
+    ).not.toThrow();
+    expect(JSON.stringify(store.rawData)).toBe(rawBefore);
   });
 });

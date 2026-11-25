@@ -63,6 +63,7 @@ export class BulkImportStore {
     uploadProgress: this._spreadsheetUploadProgress,
   };
   _submissionErrors = {};
+  _submissionTransportError = null;
   _showInstructions = false;
   _isSavingDraft = false;
   _lastSavedAt = null;
@@ -434,6 +435,10 @@ export class BulkImportStore {
     return this._submissionErrors;
   }
 
+  get submissionTransportError() {
+    return this._submissionTransportError;
+  }
+
   get failedImages() {
     return this._failedImages;
   }
@@ -769,6 +774,10 @@ export class BulkImportStore {
     this._submissionErrors = errors;
   }
 
+  setSubmissionTransportError(message) {
+    this._submissionTransportError = message;
+  }
+
   setFailedImages(image) {
     this._failedImages.push(image);
   }
@@ -913,6 +922,7 @@ export class BulkImportStore {
 
   clearSubmissionErrors() {
     this._submissionErrors = {};
+    this._submissionTransportError = null;
   }
 
   resetToDefaults() {
