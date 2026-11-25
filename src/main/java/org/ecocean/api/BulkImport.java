@@ -986,6 +986,8 @@ public class BulkImport extends ApiBase {
     void reserveImportTask(String context, String id, User user, JSONObject payload,
         String status, boolean annotationsImported)
     throws Exception {
+        if ((user == null) || (user.getId() == null))
+            throw new IllegalStateException("reservation needs a user with an id");
         Shepherd sh = Shepherd.newActiveShepherd(context, "BulkImport.reserveImportTask");
         try {
             if (sh.findImportTask(id) != null) throw new DuplicateImport(id);
@@ -1005,7 +1007,12 @@ public class BulkImport extends ApiBase {
             if (!sh.commitDBTransactionWithStatus())
                 throw new IOException("could not reserve ImportTask " + id);
         } catch (Exception ex) {
-            sh.rollbackAndClose();
+            try {
+                sh.rollbackAndClose();
+            } catch (Exception rollbackEx) { // the original failure is the one to report
+                System.out.println("reserveImportTask(" + id + ") rollback failed: " + rollbackEx);
+                rollbackEx.printStackTrace();
+            }
             throw ex;
         }
         sh.closeDBTransaction();

@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
@@ -115,6 +116,8 @@ class BulkImportDuplicateGuardTest {
         Answer<ImportTask> reserveLookup = inv -> null; // second findImportTask (the reservation's)
         boolean reserveCommits = true;                 // commitDBTransactionWithStatus
         boolean runWorker = false;                     // launcher runs the background Runnable too
+        String userId = "00000000-0000-4000-8000-0000000000aa"; // the request user's id
+        boolean rollbackFails = false;                 // Shepherd.rollbackAndClose throws
 
         final List<String> events = Collections.synchronizedList(new ArrayList<String>());
         final List<Runnable> launched = new ArrayList<Runnable>();
@@ -152,7 +155,7 @@ class BulkImportDuplicateGuardTest {
             if (c.runWorker) r.run();
         };
         User user = mock(User.class);
-        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa");
+        when(user.getId()).thenReturn(c.userId);
         when(user.getUsername()).thenReturn("fake-username");
         Occurrence occ = mock(Occurrence.class);
         PersistenceManager pm = mock(PersistenceManager.class);
@@ -196,6 +199,7 @@ class BulkImportDuplicateGuardTest {
                      return c.reserveCommits;
                  });
                  when(mock.getContext()).thenReturn(context instanceof String ? (String)context : "context0");
+                 if (c.rollbackFails) doThrow(new RuntimeException("rollback failed")).when(mock).rollbackAndClose();
              });
              MockedStatic<AdvisoryLock> lock = mockStatic(AdvisoryLock.class, CALLS_REAL_METHODS);
              MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class, CALLS_REAL_METHODS);
@@ -363,6 +367,28 @@ class BulkImportDuplicateGuardTest {
         assertTrue(c.persisted.isEmpty());
         assertTrue(c.launched.isEmpty());
         assertEquals(0, c.importers);
+    }
+
+    @Test void reservationWithoutUserIdIs500() throws Exception {
+        Call c = new Call(background());
+        c.userId = null;
+        post(c);
+        assertEquals(500, c.status());
+        assertTrue(c.persisted.isEmpty(), "no creatorless task");
+        assertEquals(1, c.lookups, "refused before the reservation Shepherd opens");
+        assertTrue(c.launched.isEmpty());
+        assertEquals(0, c.importers);
+    }
+
+    @Test void rollbackFailureKeepsDuplicateRefusal() throws Exception {
+        Call c = new Call(background());
+        c.reserveLookup = inv -> existing("processing-background");
+        c.rollbackFails = true;
+        post(c);
+        assertEquals(409, c.status());
+        assertEquals("DUPLICATE_IMPORT", c.firstError().getString("type"));
+        assertTrue(c.persisted.isEmpty());
+        assertTrue(c.launched.isEmpty());
     }
 
     @Test void backgroundReservationCommittedBeforeLaunch() throws Exception {
