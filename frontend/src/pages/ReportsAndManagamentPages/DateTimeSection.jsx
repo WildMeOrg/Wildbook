@@ -5,7 +5,7 @@ import { observer } from "mobx-react-lite";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import ThemeContext from "../../ThemeColorProvider";
-import { parseReportDateTime } from "./reportDateTime";
+import { parseReportDateTime, toReportDateTimeValue } from "./reportDateTime";
 
 export const DateTimeSection = observer(({ store }) => {
   const theme = useContext(ThemeContext);
@@ -27,6 +27,15 @@ export const DateTimeSection = observer(({ store }) => {
         <Datetime
           inputProps={{
             placeholder: "YYYY-MM-DD",
+            // react-datetime only displays values it can parse with its own
+            // format; a partial date (e.g. "2024-03") restored after login
+            // would otherwise render as an empty field.
+            ...(typeof store.dateTimeSection.value === "string" && {
+              value: store.dateTimeSection.value,
+            }),
+            // Update the store before react-datetime re-renders so a
+            // store-controlled value never lags the input (caret position).
+            onChange: (e) => store.setDateTimeSectionValue(e.target.value),
             onBlur: (e) => {
               const inputDate = e.target.value;
               if (inputDate === "") {
@@ -75,7 +84,7 @@ export const DateTimeSection = observer(({ store }) => {
             id="exifDateTime"
             onChange={(e) => {
               const inputDate = e.target.value;
-              store.setDateTimeSectionValue(parseReportDateTime(inputDate));
+              store.setDateTimeSectionValue(toReportDateTimeValue(inputDate));
             }}
           >
             <option value="">

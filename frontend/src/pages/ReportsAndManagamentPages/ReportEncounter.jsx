@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { useSiteSettings } from "../../SiteSettingsContext";
 import {
   formatReportDateTime,
-  parseReportDateTime,
+  toReportDateTimeValue,
 } from "./reportDateTime";
 import "./recaptcha.css";
 
@@ -76,7 +76,7 @@ const ReportEncounter = observer(() => {
       });
     localStorage.getItem("datetime") &&
       store.setDateTimeSectionValue(
-        parseReportDateTime(localStorage.getItem("datetime")),
+        toReportDateTimeValue(localStorage.getItem("datetime")),
       );
     localStorage.getItem("exifDateTime") &&
       store.setExifDateTime(localStorage.getItem("exifDateTime"));
