@@ -91,21 +91,6 @@ context=ServletUtilities.getContext(request);
       <table width="600" border="1">
         <tr>
           <td>
-            <p><font size="+1">Expose all approved encounters to the
-              GBIF. </font></p>
-
-            <form name="exposeGBIF" method="post" action="../MassExposeGBIF">
-
-              <input name="Expose to GBIF" type="submit" id="Expose to GBIF"
-                     value="Expose to GBIF">
-              </p></form>
-          </td>
-        </tr>
-      </table>
-      <p>&nbsp;</p>
-      <table width="600" border="1">
-        <tr>
-          <td>
             <p><font size="+1">Set the location code for all encounters
               matching a string</font></p>
 

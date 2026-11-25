@@ -211,8 +211,10 @@ public class Encounter extends Base implements java.io.Serializable {
     private String gpsLongitude = "", gpsLatitude = "";
     private String gpsEndLongitude = "", gpsEndLatitude = "";
 
-    // Indicates whether this record can be exposed via TapirLink
-    private boolean okExposeViaTapirLink = false;
+    // Unused: the TapirLink/GBIF exposure feature was removed (#356, #401). The field stays only
+    // because legacy ENCOUNTER tables can have "OKEXPOSEVIATAPIRLINK" as NOT NULL with no database
+    // default; removing it would make new encounter inserts fail there until a migration drops it.
+    @SuppressWarnings("unused") private boolean okExposeViaTapirLink = false;
 
     public String spotImageFileName = "";
 
@@ -1867,14 +1869,6 @@ public class Encounter extends Base implements java.io.Serializable {
             return Double.toString(decimalLongitude);
         }
         return null;
-    }
-
-    public boolean getOKExposeViaTapirLink() {
-        return okExposeViaTapirLink;
-    }
-
-    public void setOKExposeViaTapirLink(boolean ok) {
-        okExposeViaTapirLink = ok;
     }
 
     public void setAlternateID(String newID) {
