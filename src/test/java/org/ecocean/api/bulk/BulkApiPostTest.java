@@ -109,6 +109,7 @@ class BulkApiPostTest {
     @Test void apiPostNoBulkImportId()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = "{}";
 
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
@@ -132,6 +133,7 @@ class BulkApiPostTest {
     @Test void apiPostNoRowsError()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = basePayload().toString();
 
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
@@ -308,6 +310,7 @@ class BulkApiPostTest {
     @Test void apiPostDuplicateSynonyms()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = getInvalidPayloadArraysSynonyms();
 
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
@@ -341,6 +344,7 @@ class BulkApiPostTest {
     @Test void apiPostDuplicateSynonymsNonArrays()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getInvalidPayloadNonArraysSynonyms();
 
@@ -380,6 +384,7 @@ class BulkApiPostTest {
     @Test void apiPostDuplicateActualDuplicates()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = getInvalidPayloadArraysSynonyms();
         JSONObject tmp = new JSONObject(requestBody);
 
@@ -417,6 +422,7 @@ class BulkApiPostTest {
     @Test void apiPostBadMatchingLocations()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = getValidPayloadArrays();
         JSONObject tmp = new JSONObject(requestBody);
 
@@ -457,6 +463,7 @@ class BulkApiPostTest {
     @Test void apiPostRowsBadFieldNames()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = getBadFieldNamesPayload();
 
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
@@ -491,6 +498,7 @@ class BulkApiPostTest {
     @Test void defaultUnknownFieldPolicyRemainsWarningOnly()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         when(user.getUsername()).thenReturn("test-user");
         JSONObject payload = new JSONObject(getValidPayloadNonArrays());
         payload.put("validateOnly", true);
@@ -522,6 +530,7 @@ class BulkApiPostTest {
     @Test void explicitEncounterIdGroupsRowsAndRetainsYearOnlyPrecision()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occurrence = mock(Occurrence.class);
         JSONObject payload = new JSONObject(getValidPayloadNonArrays());
         JSONObject row = payload.getJSONArray("rows").getJSONObject(0);
@@ -562,6 +571,7 @@ class BulkApiPostTest {
     @Test void apiPostValidNonArrays()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadNonArrays();
 
@@ -596,6 +606,7 @@ class BulkApiPostTest {
     @Test void apiPostValidArrays()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadArrays();
 
@@ -637,6 +648,7 @@ class BulkApiPostTest {
     @Test void apiPostValidArraysNullInt()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadArrays();
 
@@ -673,6 +685,7 @@ class BulkApiPostTest {
     @Test void apiPostValidMeasurements()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = getValidPayloadArrays();
 
         requestBody = addToRows(requestBody, "Encounter.measurement0", 12.345);
@@ -714,6 +727,7 @@ class BulkApiPostTest {
     @Test void apiPostInvalidCountry()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = getValidPayloadArrays();
 
         requestBody = addToRows(requestBody, "Encounter.country", "fail-country");
@@ -746,6 +760,7 @@ class BulkApiPostTest {
     @Test void apiPostValidAdditionalFields()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = new Occurrence();
         String requestBody = getValidPayloadArrays();
 

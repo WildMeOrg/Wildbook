@@ -182,6 +182,7 @@ class BulkImagesTest {
     @Test void apiPostMissingFiles()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadArrays();
 
@@ -221,6 +222,7 @@ class BulkImagesTest {
     @Test void apiFilesFoundButInvalid()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getPayloadBadImageFilenames();
 
@@ -260,6 +262,7 @@ class BulkImagesTest {
     @Test void apiPostInvalidImage()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getPayloadInvalidImages();
 
@@ -303,6 +306,7 @@ class BulkImagesTest {
     @Test void apiPostMediaAssetCreationFail()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadArrays();
 
@@ -418,6 +422,7 @@ class BulkImagesTest {
     @Test void apiPostValid()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadArrays();
 
