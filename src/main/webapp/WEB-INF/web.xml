@@ -236,7 +236,6 @@
 				/EncounterSetCountry = authc, roles[researcher]
 				/EncounterSetTissueSample = authc, roles[researcher]
 				/EncounterSetSubmitterID = authc, roles[researcher]
-				/EncounterSetTapirLinkExposure = authc, roles[researcher]
 				/EncounterRemoveTissueSample = authc, roles[researcher]
 				/EncounterRemoveImage = authc, roles[researcher]
 				/EncounterSetGenusSpecies = authc, roles[researcher]
@@ -392,7 +391,6 @@
 
 				# ===== Mass Operations =====
 				#/MassSetInformOthers = authc, roles[admin]
-				/MassExposeGBIF = authc, roles[admin]
 				/MassSetLocationCodeFromLocationString = authc, roles[admin]
 				/MassSwapLocationCode = authc, roles[admin]
 
@@ -1133,14 +1131,6 @@
 		<url-pattern>/EncounterRemoveTissueSample</url-pattern>
 	</servlet-mapping>
 	<servlet>
-		<servlet-name>EncounterSetTapirLinkExposure</servlet-name>
-		<servlet-class>org.ecocean.servlet.EncounterSetTapirLinkExposure</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>EncounterSetTapirLinkExposure</servlet-name>
-		<url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
-	</servlet-mapping>
-	<servlet>
 		<servlet-name>EncounterSetLocation</servlet-name>
 		<servlet-class>org.ecocean.servlet.EncounterSetLocation</servlet-class>
 	</servlet>
@@ -1866,14 +1856,6 @@
 	<servlet-mapping>
 		<servlet-name>MassSwapLocationCode</servlet-name>
 		<url-pattern>/MassSwapLocationCode</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>MassExposeGBIF</servlet-name>
-		<servlet-class>org.ecocean.servlet.MassExposeGBIF</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>MassExposeGBIF</servlet-name>
-		<url-pattern>/MassExposeGBIF</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
