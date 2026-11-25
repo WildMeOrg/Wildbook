@@ -145,6 +145,27 @@
 			"locationID": []
 		},
 		{
+			"name": "Canada",
+			"id": "Canada",
+			"locationID":[
+				{
+					"name": "British Columbia",
+					"id": "British Columbia",
+					"locationID":[
+						{
+							"name": "Cherry Meadows - Sparrowhawk Farm",
+							"id": "Cherry Meadows - Sparrowhawk Farm",
+							"geospatialInfo":{
+								"lat": 49.679798,
+								"long": -115.771557
+							},
+							"locationID":[]
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Croatia",
 			"id": "Croatia",
 			"locationID": []
