@@ -42,6 +42,7 @@ const parse = (store, csv, rows) =>
 // what handleStartImport does: write back, then post the submittable columns
 const submit = async (store) => {
   client.post.mockResolvedValue({ status: 200 });
+  const before = client.post.mock.calls.length;
   store.updateRawFromNormalizedRow();
   const { result } = renderHook(() => usePostBulkImport());
   await act(() =>
@@ -55,7 +56,8 @@ const submit = async (store) => {
       false,
     ),
   );
-  const payload = client.post.mock.calls[0][1];
+  // this submit's own call, never a late post from an earlier test
+  const payload = client.post.mock.calls[before][1];
   const at = (r, f) => payload.rows[r][payload.fieldNames.indexOf(f)];
   return { payload, at };
 };
@@ -96,6 +98,9 @@ const nextButton = () => {
   expect(next).not.toBeNull();
   return next;
 };
+
+// every test parses through the real spreadsheet step, slow on a loaded build
+jest.setTimeout(30000);
 
 describe("bulk-import dates on submit", () => {
   beforeEach(() => {
