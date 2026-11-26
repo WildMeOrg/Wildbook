@@ -3,6 +3,7 @@ package org.ecocean.api.bulk;
 
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
@@ -15,7 +16,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
 import org.ecocean.api.ApiException;
+import javax.jdo.Query;
 import org.ecocean.Base;
+import org.ecocean.Encounter;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.Taxonomy;
@@ -495,6 +498,34 @@ public class BulkImportUtil {
         Project proj = sh.getProjectByProjectIdPrefix(prefix);
         if (proj == null) proj = sh.getProjectByProjectIdPrefixPrefix(prefix);
         return proj;
+    }
+
+    static final int ID_LOOKUP_CHUNK = 1000;
+
+    /**
+     * The given lowercase encounter IDs that already exist in the database, compared
+     * case-insensitively against the stored catalogNumber and returned lowercase. Queried in
+     * chunks of 1000. Throws when the database cannot be read (the caller reports it).
+     */
+    public static Set<String> encounterIdsInUse(Collection<String> lowercaseIds, Shepherd sh)
+    throws Exception {
+        Set<String> found = new HashSet<String>();
+        List<String> all = new ArrayList<String>(new LinkedHashSet<String>(lowercaseIds));
+        for (int i = 0; i < all.size(); i += ID_LOOKUP_CHUNK) {
+            List<String> chunk = new ArrayList<String>(all.subList(i,
+                Math.min(all.size(), i + ID_LOOKUP_CHUNK)));
+            Query query = sh.getPM().newQuery(Encounter.class);
+            try {
+                query.setFilter(":ids.contains(this.catalogNumber.toLowerCase())");
+                query.setResult("catalogNumber");
+                for (Object o : (Collection)query.execute(chunk)) {
+                    if (o != null) found.add(o.toString().toLowerCase());
+                }
+            } finally {
+                query.closeAll();
+            }
+        }
+        return found;
     }
 
     // possibly could be moved to OpenSearch or something, but lets test in bulk context first

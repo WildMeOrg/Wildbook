@@ -6,7 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
@@ -57,6 +61,7 @@ class GroupCollapseTest {
 
     Shepherd sh;
     MockedStatic<LocationID> locationIds;
+    MockedStatic<BulkImportUtil> bulkUtil;
     List<String> savedMeasurements;
     Map<String, Set<String> > savedKeywords;
 
@@ -66,6 +71,9 @@ class GroupCollapseTest {
         when(sh.getUser(anyString())).thenReturn(mock(User.class));
         locationIds = mockStatic(LocationID.class);
         locationIds.when(() -> LocationID.isValidLocationID(anyString())).thenReturn(true);
+        bulkUtil = mockStatic(BulkImportUtil.class, CALLS_REAL_METHODS);
+        bulkUtil.when(() -> BulkImportUtil.encounterIdsInUse(anyCollection(), any())).thenReturn(
+            new HashSet<String>());
         savedMeasurements = BulkImportUtil.measurementValues;
         savedKeywords = BulkImportUtil.labeledKeywordMap;
         BulkImportUtil.measurementValues = new ArrayList<String>(List.of("length"));
@@ -75,6 +83,7 @@ class GroupCollapseTest {
     @AfterEach void tearDown() {
         TestIAJsonPropertiesUtil.override(null);
         locationIds.close();
+        bulkUtil.close();
         BulkImportUtil.measurementValues = savedMeasurements;
         BulkImportUtil.labeledKeywordMap = savedKeywords;
     }
@@ -1386,5 +1395,77 @@ class GroupCollapseTest {
         assertEquals(List.of(cell(0, O0), cell(1, O0)), issueCells(g, BulkValidatorException.TYPE_REQUIRED_VALUE));
         verify(sh, times(1)).getProjectByProjectIdPrefix("P");
         verify(sh, times(1)).getProjectByProjectIdPrefixPrefix("P");
+    }
+
+    // ---- Task 6: encounter IDs on grouped rows must be unique and unused ----
+
+    static final String ID_A = "3f2504e0-4f89-11d3-9a0c-0305e82c3301";
+    static final String ID_B = "3f2504e0-4f89-11d3-9a0c-0305e82c3302";
+
+    @Test void idInTwoGroupsConflicts() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.id", ID_A),
+            full("H", "b.jpg", "Encounter.catalogNumber", ID_A.toUpperCase()),
+            full("I", "c.jpg", "Encounter.id", ID_B));
+        assertEquals(List.of(cell(0, "Encounter.id"), cell(1, "Encounter.catalogNumber")),
+            issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
+        assertEquals(2, g.issues().size(), g.issues().toString());
+        assertTrue(g.hasGroupErrors());
+    }
+
+    @Test void idInGroupAndUngroupedRowConflicts() {
+        JSONObject ungrouped = obj("Encounter.genus", "Genus", "Encounter.specificEpithet",
+            "species", "Encounter.year", 2020, "Encounter.mediaAsset0", "u.jpg",
+            "Encounter.catalogNumber", ID_A.toUpperCase());
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.id", ID_A), ungrouped);
+        assertEquals(List.of(cell(0, "Encounter.id"), cell(1, "Encounter.catalogNumber")),
+            issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
+        assertEquals(2, g.issues().size(), g.issues().toString());
+        // the ungrouped row's value is left as typed
+        assertEquals(ID_A.toUpperCase(), mergedValue(g, 1, "Encounter.catalogNumber"));
+    }
+
+    @Test void idInUseRejected() {
+        bulkUtil.when(() -> BulkImportUtil.encounterIdsInUse(anyCollection(), any())).thenReturn(
+            new HashSet<String>(List.of(ID_A)));
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.id", ID_A.toUpperCase()),
+            bare("G", "b.jpg", "Encounter.catalogNumber", ID_A), full("H", "c.jpg",
+            "Encounter.id", ID_B));
+        assertEquals(List.of(cell(0, "Encounter.id"), cell(1, "Encounter.catalogNumber")),
+            issueCells(g, BulkValidatorException.TYPE_ID_UNAVAILABLE));
+        assertEquals(2, g.issues().size(), g.issues().toString());
+        assertEquals("Encounter ID unavailable", g.issues().get(0).error.getMessage());
+    }
+
+    @Test void idLookupFailureIsError() {
+        bulkUtil.when(() -> BulkImportUtil.encounterIdsInUse(anyCollection(), any())).thenThrow(
+            new RuntimeException("db down"));
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.id", ID_A),
+            full("H", "b.jpg", "Encounter.id", ID_B));
+        assertEquals(List.of(cell(0, "Encounter.id"), cell(1, "Encounter.id")),
+            issueCells(g, BulkValidatorException.TYPE_INVALID_VALUE));
+        assertEquals(2, g.issues().size(), g.issues().toString());
+        assertEquals("Could not check whether this Encounter ID is available",
+            g.issues().get(0).error.getMessage());
+    }
+
+    @Test void noLookupWhenAllIdsBlank() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.id", "  "),
+            full("H", "b.jpg", "Encounter.catalogNumber", JSONObject.NULL), full("I", "c.jpg"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        bulkUtil.verify(() -> BulkImportUtil.encounterIdsInUse(anyCollection(), any()), never());
+    }
+
+    @Test void poisonedIdGetsNoSecondIssue() {
+        bulkUtil.when(() -> BulkImportUtil.encounterIdsInUse(anyCollection(), any())).thenReturn(
+            new HashSet<String>(List.of(ID_A)));
+        // a non-UUID cell: only its own failure; and a group whose ID cells disagree: only the
+        // conflict, never also "unavailable"
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.id", "1-1-1-1-1"),
+            full("H", "b.jpg", "Encounter.id", ID_A), bare("H", "c.jpg", "Encounter.id", ID_B));
+        assertEquals(3, g.issues().size(), g.issues().toString());
+        assertEquals(List.of(cell(0, "Encounter.id")),
+            issueCells(g, BulkValidatorException.TYPE_INVALID_VALUE));
+        assertEquals(List.of(cell(1, "Encounter.id"), cell(2, "Encounter.id")),
+            issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
     }
 }

@@ -63,6 +63,23 @@ public final class GroupCollapse {
         }
     }
 
+    // one group's agreed encounter ID (lowercase) and the cells that supplied it; the merged row
+    // and raw map are kept so a failure can drop the ID from them
+    static final class GroupId {
+        final String id;
+        final List<Entry> cells;
+        final Map<String, Object> merged;
+        final Map<String, Object> raw;
+
+        GroupId(String id, List<Entry> cells, Map<String, Object> merged,
+            Map<String, Object> raw) {
+            this.id = id;
+            this.cells = cells;
+            this.merged = merged;
+            this.raw = raw;
+        }
+    }
+
     // what collapse() accumulates across groups
     static final class State {
         final List<JSONObject> rows;
@@ -76,6 +93,7 @@ public final class GroupCollapse {
         final int maxPhotos;
         // project prefix -> whether an existing project answers it; looked up once per upload
         final Map<String, Boolean> projectExists = new HashMap<String, Boolean>();
+        final List<GroupId> groupIds = new ArrayList<GroupId>();
         boolean exactSlotMode = false;
 
         State(List<JSONObject> rows, Shepherd sh, boolean identificationSkipped, int maxPhotos) {
@@ -157,6 +175,9 @@ public final class GroupCollapse {
             members.set(m, Collections.unmodifiableList(members.get(m)));
         }
 
+        // 6. encounter IDs: unique across groups and ungrouped rows, and unused in the database
+        checkGroupIds(st, members, grouped, mergedRows, mergedRaw);
+
         // 8. issues and warnings in (row, field) order
         Comparator<GroupedRows.Issue> byCell = Comparator.comparingInt(
             (GroupedRows.Issue i) -> i.row).thenComparing(i -> i.field);
@@ -184,6 +205,84 @@ public final class GroupCollapse {
             if (v != null) values.put(e.getKey(), v);
         }
         st.sourceValues.set(r, Collections.unmodifiableMap(values));
+    }
+
+    private static final String ID_FAMILY = "Encounter.id";
+
+    // a grouped ID that is no longer usable: the issue went on its source cells, and the merged
+    // row loses the value (as for any other poisoned name)
+    private static void failId(State st, GroupId gid, String message, String type, String code) {
+        for (Entry e : gid.cells)
+            st.issue(e.cell.row, e.cell.field, new BulkValidatorException(message, code, type,
+                e.cell.field));
+        gid.merged.remove(ID_FAMILY);
+        gid.raw.remove(ID_FAMILY);
+    }
+
+    /**
+     * Grouped encounter IDs (lowercase, already canonical): one group each, none shared with an
+     * ungrouped row's ID (compared lowercased, the row's value left as typed), none already in
+     * the database. A cell that already holds an Issue is never given a second one.
+     */
+    private static void checkGroupIds(State st, List<List<Integer> > members, Set<Integer> grouped,
+        List<Map<String, Object> > mergedRows, List<Map<String, Object> > mergedRaw) {
+        if (st.groupIds.isEmpty()) return;
+        Map<String, List<GroupedRows.Cell> > ungroupedUse =
+            new HashMap<String, List<GroupedRows.Cell> >();
+        for (int m = 0; m < members.size(); m++) {
+            if (grouped.contains(m)) continue;
+            int r = members.get(m).get(0);
+            JSONObject row = st.rows.get(r);
+            for (String k : new TreeSet<String>(row.keySet())) {
+                if (!ID_FAMILY.equals(BulkValidator.canonicalFieldName(k)) || isAbsent(row.opt(k)))
+                    continue;
+                ungroupedUse.computeIfAbsent(row.get(k).toString().toLowerCase(),
+                    x -> new ArrayList<GroupedRows.Cell>()).add(new GroupedRows.Cell(r, k));
+            }
+        }
+        Map<String, Integer> groupsUsing = new HashMap<String, Integer>();
+        for (GroupId gid : st.groupIds) groupsUsing.merge(gid.id, 1, Integer::sum);
+
+        Set<String> conflicted = new HashSet<String>();
+        List<GroupId> live = new ArrayList<GroupId>();
+        for (GroupId gid : st.groupIds) {
+            if ((groupsUsing.get(gid.id) > 1) || ungroupedUse.containsKey(gid.id)) {
+                failId(st, gid, "this Encounter ID is also used by another group or row",
+                    BulkValidatorException.TYPE_GROUP_CONFLICT,
+                    ApiException.ERROR_RETURN_CODE_INVALID);
+                conflicted.add(gid.id);
+            } else {
+                live.add(gid);
+            }
+        }
+        for (String id : conflicted) {
+            for (GroupedRows.Cell c : ungroupedUse.getOrDefault(id,
+                Collections.<GroupedRows.Cell>emptyList()))
+                st.issue(c.row, c.field, new BulkValidatorException(
+                    "this Encounter ID is also used by a group of rows",
+                    ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_GROUP_CONFLICT, c.field));
+        }
+        if (live.isEmpty()) return;
+
+        Set<String> lookup = new LinkedHashSet<String>();
+        for (GroupId gid : live) lookup.add(gid.id);
+        Set<String> inUse;
+        try {
+            inUse = BulkImportUtil.encounterIdsInUse(lookup, st.sh);
+        } catch (Exception ex) {
+            for (GroupId gid : live)
+                failId(st, gid, "Could not check whether this Encounter ID is available",
+                    BulkValidatorException.TYPE_INVALID_VALUE,
+                    ApiException.ERROR_RETURN_CODE_INVALID);
+            return;
+        }
+        for (GroupId gid : live) {
+            if (inUse.contains(gid.id))
+                failId(st, gid, "Encounter ID unavailable",
+                    BulkValidatorException.TYPE_ID_UNAVAILABLE,
+                    ApiException.ERROR_RETURN_CODE_INVALID);
+        }
     }
 
     private static void collapseGroup(State st, List<Integer> rows, Map<String, Object> merged,
@@ -411,6 +510,8 @@ public final class GroupCollapse {
                     BulkValidatorException.TYPE_GROUP_CONFLICT, e.cell.field));
             bad = true;
         }
+        if (isId && !bad && !valid.isEmpty())
+            st.groupIds.add(new GroupId(distinct.iterator().next(), valid, merged, raw));
         for (Entry e : entries) {
             String name = emitName(e.cell.field);
             if (bad) {
