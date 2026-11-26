@@ -12,7 +12,11 @@ import {
   hasBoxColumns,
   isPhotoSlotColumn,
 } from "./bulkImportSlots";
-import { findHeaderCollision, normalizeHeader } from "./bulkImportHeaders";
+import {
+  findHeaderCollision,
+  hasAnyValue,
+  normalizeHeader,
+} from "./bulkImportHeaders";
 
 const TEXT_BOX_SUFFIXES = ["bbox", "iaClass", "bboxSource"];
 
@@ -98,14 +102,19 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             }),
           );
         }
-        const allJsonData = allJsonDataRaw.map((row) => {
-          const normalizedRow = {};
-          for (const key in row) {
-            const newKey = normalizeHeader(key);
-            normalizedRow[newKey] = row[key];
-          }
-          return normalizedRow;
-        });
+        // whitespace-only rows are dropped here, once, so rawData and
+        // spreadsheetData stay index-aligned
+        const allJsonData = allJsonDataRaw
+          .map((row) => {
+            const normalizedRow = {};
+            for (const key in row) {
+              const newKey = normalizeHeader(key);
+              normalizedRow[newKey] = row[key];
+            }
+            return normalizedRow;
+          })
+          .filter(hasAnyValue);
+        const processRows = allJsonData.length;
 
         store.setRawData(allJsonData || []);
         const processedData = [];
@@ -312,9 +321,9 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             currentIndex += CHUNK_SIZE;
 
             store.setSpreadsheetUploadProgress(
-              Math.min(100, Math.round((currentIndex / totalRows) * 100)),
+              Math.min(100, Math.round((currentIndex / processRows) * 100)),
             );
-            if (currentIndex < totalRows) {
+            if (currentIndex < processRows) {
               setTimeout(processChunk, 0);
             } else {
               if (store && store.setSpreadsheetData) {

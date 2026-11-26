@@ -15,3 +15,7 @@ export const findHeaderCollision = (headers) => {
   }
   return null;
 };
+
+// A row with at least one non-blank cell (blank = empty or whitespace only).
+export const hasAnyValue = (row) =>
+  Object.values(row).some((v) => String(v ?? "").trim() !== "");

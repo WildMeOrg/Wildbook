@@ -18,7 +18,7 @@ const A0 = "Encounter.mediaAsset0";
 const A1 = "Encounter.mediaAsset1";
 const A2 = "Encounter.mediaAsset2";
 
-const upload = async (csv) => {
+const upload = async (csv, rows = 1) => {
   const store = new BulkImportStore();
   store.setIndexableFields([
     "Encounter.mediaAsset#",
@@ -28,7 +28,7 @@ const upload = async (csv) => {
   fireEvent.change(screen.getByTestId("spreadsheet-input"), {
     target: { files: [new File([csv], "sheet.csv", { type: "text/csv" })] },
   });
-  await waitFor(() => expect(store.spreadsheetData.length).toBe(1));
+  await waitFor(() => expect(store.spreadsheetData.length).toBe(rows));
   return store;
 };
 
@@ -152,5 +152,16 @@ describe("BulkImportSpreadsheet photo slots", () => {
     expect(store.spreadsheetData).toEqual([]);
     expect(store.rawData).toEqual([]);
     alertSpy.mockRestore();
+  });
+
+  test("editAfterBlankRowLandsOnSameRawRow", async () => {
+    const store = await upload(
+      `Encounter.sex,${A0}\nmale,a.jpg\n , \nfemale,b.jpg\n`,
+      2,
+    );
+    expect(store.rawData.length).toBe(2);
+    store.updateCellValue(1, "Encounter.sex", "unknown");
+    expect(store.rawData[1]["Encounter.sex"]).toBe("unknown");
+    expect(store.rawData[0]["Encounter.sex"]).toBe("male");
   });
 });

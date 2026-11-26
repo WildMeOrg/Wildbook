@@ -921,4 +921,12 @@ describe("BulkImportStore file-tree and triggerUpload branches", () => {
     expect(store._rawData[0]["Sighting.decimalLatitude"]).toBe("1.2");
     expect(store._rawData[0]["Sighting.decimalLongitude"]).toBe("3.4");
   });
+
+  test("clearingARowKeepsIndicesAligned", () => {
+    store.setSpreadsheetData([
+      { "Encounter.sex": "male" },
+      { "Encounter.sex": "" },
+    ]);
+    expect(store.spreadsheetData.length).toBe(2);
+  });
 });

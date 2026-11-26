@@ -674,10 +674,7 @@ export class BulkImportStore {
   }
 
   setSpreadsheetData(data) {
-    const filtered = data.filter((row) =>
-      Object.values(row).some((val) => String(val ?? "").trim() !== ""),
-    );
-    this._spreadsheetData = filtered;
+    this._spreadsheetData = data;
     this.invalidateValidation();
   }
 
