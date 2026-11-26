@@ -67,6 +67,7 @@ const createMockStore = (overrides = {}) => ({
   validationErrors: {},
   spreadsheetUploadProgress: 100,
   spreadsheetData: [{ "Encounter.genus": "Tursiops" }],
+  rawData: [{ "Encounter.genus": "Tursiops" }],
   setActiveStep: jest.fn(),
   ...overrides,
 });

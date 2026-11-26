@@ -28,7 +28,7 @@ import {
   DATE_PARTS,
   dateDisplayMapFor,
   datePrefixOf,
-  hasAnyValue,
+  isNonEmpty,
   YEAR_COLUMNS,
 } from "./bulkImportHeaders";
 
@@ -40,7 +40,6 @@ const MILLIS_COLUMNS = [
 ];
 // never sent: the server's date has no seconds part
 const UNSENT_COLUMNS = ["Encounter.seconds", "Sighting.seconds"];
-const isNonEmpty = (v) => v != null && String(v).trim() !== "";
 // the server reads a millis cell with Java Long.valueOf: a signed whole number in
 // [Long.MIN_VALUE, now]; compared as BigInt, since Number loses precision past 2^53
 const LONG_MIN = BigInt("-9223372036854775808");
@@ -48,43 +47,6 @@ const isValidMillisText = (str) =>
   /^[-+]?\d+$/.test(str) &&
   BigInt(str) >= LONG_MIN &&
   BigInt(str) <= BigInt(Date.now());
-
-// a whole cell that is empty or whitespace only
-const isBlankRow = (row) => row == null || !hasAnyValue(row);
-// a raw row and a grid row are the same record: both blank, or both share a non-blank
-// cell with the same text
-const sameRecord = (raw, grid) => {
-  if (isBlankRow(raw) || isBlankRow(grid)) {
-    return isBlankRow(raw) && isBlankRow(grid);
-  }
-  return Object.keys(raw).some(
-    (k) =>
-      isNonEmpty(raw[k]) &&
-      k in grid &&
-      String(raw[k]).trim() === String(grid[k] ?? "").trim(),
-  );
-};
-
-// old drafts: the old parser dropped whitespace-only rows from the grid but kept them
-// in rawData. Drops exactly the surplus blank raw rows that have no grid row, walking
-// both lists; returns null (leave the draft as it is) when that does not line up.
-const alignLegacyRawRows = (rawRows, gridRows) => {
-  let surplus = rawRows.length - gridRows.length;
-  if (surplus <= 0) return null;
-  const kept = [];
-  let g = 0;
-  for (const raw of rawRows) {
-    if (g < gridRows.length && sameRecord(raw, gridRows[g])) {
-      kept.push(raw);
-      g++;
-    } else if (isBlankRow(raw) && surplus > 0) {
-      surplus--;
-    } else {
-      return null;
-    }
-  }
-  return g === gridRows.length && kept.length === gridRows.length ? kept : null;
-};
 
 // a date cell (FLEXIBLE_DATE_RE, the same strings write-back reads) that is a real,
 // non-future date
@@ -458,7 +420,7 @@ export class BulkImportStore {
   // the server needs a year or a millis value on every row: with no calendar year
   // column, each row's millis cell is required, a whole number, and not in the future
   millisRule() {
-    const blank = (val) => String(val ?? "").trim() === "";
+    const blank = (val) => !isNonEmpty(val);
     return {
       required: false,
       validate: (val) => {
@@ -975,7 +937,10 @@ export class BulkImportStore {
     return { errors, warnings };
   }
 
+  // returns true when the saved spreadsheet could not be restored and was cleared
+  // (images are kept): the user uploads the spreadsheet again
   hydrate(state) {
+    let spreadsheetCleared = false;
     runInAction(() => {
       Object.entries(state).forEach(([key, value]) => {
         const field = `_${key}`;
@@ -988,18 +953,16 @@ export class BulkImportStore {
       if (Array.isArray(state.rawColumns)) {
         this._rawColumns = [...new Set(this._rawColumns)];
       }
-      // ...and dropped whitespace-only rows from the grid but not from rawData
+      // ...and dropped whitespace-only rows from the grid but not from rawData, so its
+      // edits could land on the wrong record: such a draft's spreadsheet is cleared
       if (
-        Array.isArray(state.rawData) &&
-        Array.isArray(state.spreadsheetData)
+        (this._rawData?.length ?? 0) !== (this._spreadsheetData?.length ?? 0)
       ) {
-        const aligned = alignLegacyRawRows(
-          this._rawData,
-          this._spreadsheetData,
-        );
-        if (aligned) this._rawData = aligned;
+        this.resetSpreadsheet();
+        spreadsheetCleared = true;
       }
     });
+    return spreadsheetCleared;
   }
 
   clearSubmissionErrors() {

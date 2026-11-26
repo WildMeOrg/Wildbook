@@ -62,18 +62,13 @@ describe("BulkImportSpreadsheet photo slots", () => {
   });
 
   test("box text survives across rows with blanks; theta stays a number", async () => {
-    const store = boxStore();
-    renderWithProviders(<BulkImportSpreadsheet store={store} />);
     const csv =
       `${A0},${A0}.bbox,${A0}.theta,${A0}.bboxSource\n` +
       `a.jpg,"362,285,296,342",0.3,00123\n` +
       `,,,\n` +
       `b.jpg,,,\n` +
       `c.jpg,"40,34,514,695",,\n`;
-    fireEvent.change(screen.getByTestId("spreadsheet-input"), {
-      target: { files: [new File([csv], "sheet.csv", { type: "text/csv" })] },
-    });
-    await waitFor(() => expect(store.spreadsheetData.length).toBe(3));
+    const store = await uploadCsv(csv, 3);
     const rows = store.spreadsheetData;
     expect(rows.map((r) => r[`${A0}.bbox`])).toEqual([
       "362,285,296,342",

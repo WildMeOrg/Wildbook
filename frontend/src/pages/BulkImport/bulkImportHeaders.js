@@ -16,9 +16,11 @@ export const findHeaderCollision = (headers) => {
   return null;
 };
 
-// A row with at least one non-blank cell (blank = empty or whitespace only).
-export const hasAnyValue = (row) =>
-  Object.values(row).some((v) => String(v ?? "").trim() !== "");
+// a cell that is not empty or whitespace only
+export const isNonEmpty = (v) => v != null && String(v).trim() !== "";
+
+// A row with at least one non-blank cell.
+export const hasAnyValue = (row) => Object.values(row).some(isNonEmpty);
 
 export const DATE_PARTS = ["year", "month", "day", "hour", "minutes"];
 // the calendar year columns; each is also the display column of its prefix's date

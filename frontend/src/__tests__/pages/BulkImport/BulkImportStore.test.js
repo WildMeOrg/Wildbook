@@ -1237,83 +1237,67 @@ describe("BulkImportStore dates keep their source columns", () => {
     });
   });
 
-  test("old two-row draft with a blank raw row: an edit lands on its own row", () => {
-    // the old parser dropped the blank row from the grid only, and spliced
-    // Encounter.year into the columns once per row
-    const rowA = { "Encounter.year": 2020, "Encounter.sex": "male" };
-    const rowB = { "Encounter.year": 2021, "Encounter.sex": "female" };
-    store.hydrate({
-      rawColumns: ["Encounter.year", "Encounter.year", "Encounter.sex"],
-      columnsDef: ["Encounter.year", "Encounter.year", "Encounter.sex"],
-      rawData: [rowA, { "Encounter.year": " ", "Encounter.sex": "" }, rowB],
-      spreadsheetData: [
-        { "Encounter.year": "2020", "Encounter.sex": "male" },
-        { "Encounter.year": "2021", "Encounter.sex": "female" },
-      ],
-    });
+  // old drafts whose rawData and grid row counts differ (the old parser dropped
+  // whitespace-only rows from the grid only) cannot be repaired safely
+  const legacyDraft = (rawData, spreadsheetData) => ({
+    submissionId: "S",
+    uploadedImages: ["a.jpg", "b.jpg"],
+    imageSectionFileNames: ["a.jpg", "b.jpg"],
+    spreadsheetFileName: "old.csv",
+    spreadsheetUploadProgress: 100,
+    rawColumns: ["Encounter.year", "Encounter.year", "Encounter.sex"],
+    columnsDef: ["Encounter.year", "Encounter.year", "Encounter.sex"],
+    rawData,
+    spreadsheetData,
+  });
+  const A = { "Encounter.year": 2020, "Encounter.sex": "male" };
+  const B = { "Encounter.year": 2021, "Encounter.sex": "female" };
+  const C = { "Encounter.year": 2022, "Encounter.sex": "male" };
+  const blank = { "Encounter.year": " ", "Encounter.sex": "" };
+  const grid = (row) => ({
+    ...row,
+    "Encounter.year": String(row["Encounter.year"]),
+  });
+
+  const expectSpreadsheetCleared = (cleared) => {
+    expect(cleared).toBe(true);
+    expect(store.rawData).toEqual([]);
+    expect(store.spreadsheetData).toEqual([]);
+    expect(store.rawColumns).toEqual([]);
+    expect(store.columnsDef).toEqual([]);
+    expect(store.spreadsheetUploadProgress).toBe(0);
+    expect(store.spreadsheetFileName).toBe("");
+    // the images and the submission are kept
+    expect(store.uploadedImages).toEqual(["a.jpg", "b.jpg"]);
+    expect(store.imageSectionFileNames).toEqual(["a.jpg", "b.jpg"]);
+    expect(store.submissionId).toBe("S");
+  };
+
+  test("old [A, blank, B] / [A, B] draft: spreadsheet cleared, images kept", () => {
+    const cleared = store.hydrate(
+      legacyDraft([A, blank, B], [grid(A), grid(B)]),
+    );
+    expectSpreadsheetCleared(cleared);
+  });
+
+  test("old [A, B, C, blank] / [A, B, C] draft with B cleared: spreadsheet cleared", () => {
+    const clearedB = { "Encounter.year": "", "Encounter.sex": "" };
+    const cleared = store.hydrate(
+      legacyDraft([A, clearedB, C, blank], [grid(A), clearedB, grid(C)]),
+    );
+    expectSpreadsheetCleared(cleared);
+  });
+
+  test("an equal-length draft is restored untouched, apart from repeated columns", () => {
+    const cleared = store.hydrate(legacyDraft([A, B], [grid(A), grid(B)]));
+    expect(cleared).toBe(false);
+    expect(store.rawData).toEqual([A, B]);
+    expect(store.spreadsheetData).toEqual([grid(A), grid(B)]);
     expect(store.columnsDef).toEqual(["Encounter.year", "Encounter.sex"]);
     expect(store.rawColumns).toEqual(["Encounter.year", "Encounter.sex"]);
-    expect(store.rawData.length).toBe(2);
+    expect(store.spreadsheetFileName).toBe("old.csv");
     store.updateCellValue(1, "Encounter.sex", "unknown");
-    store.updateCellValue(1, "Encounter.year", "2022");
-    store.updateRawFromNormalizedRow();
-    expect(store.rawData[1]).toMatchObject({
-      "Encounter.year": 2022,
-      "Encounter.sex": "unknown",
-    });
-    expect(store.rawData[0]).toMatchObject({
-      "Encounter.year": 2020,
-      "Encounter.sex": "male",
-    });
-  });
-
-  test("old four-row draft: a row cleared in the grid is kept, only the surplus blank goes", () => {
-    // B was cleared in the grid (and so in rawData); the old parser had already dropped
-    // the trailing whitespace row from the grid only
-    store.hydrate({
-      rawColumns: ["Encounter.year", "Encounter.sex"],
-      columnsDef: ["Encounter.year", "Encounter.sex"],
-      rawData: [
-        { "Encounter.year": 2020, "Encounter.sex": "male" },
-        { "Encounter.year": "", "Encounter.sex": "" },
-        { "Encounter.year": 2022, "Encounter.sex": "female" },
-        { "Encounter.year": " ", "Encounter.sex": "" },
-      ],
-      spreadsheetData: [
-        { "Encounter.year": "2020", "Encounter.sex": "male" },
-        { "Encounter.year": "", "Encounter.sex": "" },
-        { "Encounter.year": "2022", "Encounter.sex": "female" },
-      ],
-    });
-    expect(store.rawData.length).toBe(3);
-    expect(store.rawData[2]["Encounter.sex"]).toBe("female");
-    store.updateCellValue(1, "Encounter.sex", "unknown");
-    store.updateCellValue(2, "Encounter.year", "2023");
-    expect(() => store.updateRawFromNormalizedRow()).not.toThrow();
     expect(store.rawData[1]["Encounter.sex"]).toBe("unknown");
-    expect(store.rawData[2]).toMatchObject({
-      "Encounter.year": 2023,
-      "Encounter.sex": "female",
-    });
-  });
-
-  test("an old draft whose rows do not line up is left as it is", () => {
-    const rawData = [
-      { "Encounter.sex": "male" },
-      { "Encounter.sex": "female" },
-      { "Encounter.sex": " " },
-    ];
-    store.hydrate({
-      rawData,
-      spreadsheetData: [{ "Encounter.sex": "x" }, { "Encounter.sex": "y" }],
-    });
-    expect(store.rawData.length).toBe(3);
-    // write-back on a grid row with no raw record does not throw
-    store.hydrate({
-      rawData: [{ "Encounter.sex": "x" }],
-      spreadsheetData: [{ "Encounter.sex": "x" }, { "Encounter.year": "2020" }],
-    });
-    expect(() => store.updateRawFromNormalizedRow()).not.toThrow();
   });
 
   test("millis cells: required without a year column, whole, not in the future", () => {

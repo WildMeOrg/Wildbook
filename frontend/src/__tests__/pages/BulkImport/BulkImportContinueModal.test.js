@@ -79,6 +79,16 @@ describe("BulkImportContinueModal", () => {
     expect(storeMock.fetchAndApplyUploaded).toHaveBeenCalled();
   });
 
+  test("a draft whose spreadsheet was cleared resumes on the spreadsheet step", () => {
+    storeMock.hydrate.mockReturnValue(true);
+    renderModal();
+    fireEvent.click(screen.getByText("Resume"));
+    expect(storeMock.hydrate).toHaveBeenCalledWith(draftData);
+    expect(storeMock.setActiveStep).toHaveBeenCalledWith(1);
+    expect(storeMock.setActiveStep).not.toHaveBeenCalledWith(0);
+    expect(storeMock.fetchAndApplyUploaded).toHaveBeenCalled();
+  });
+
   test('clicking "Start New Import" clears draft and reloads', () => {
     renderModal();
     fireEvent.click(screen.getByText("Start New Import"));

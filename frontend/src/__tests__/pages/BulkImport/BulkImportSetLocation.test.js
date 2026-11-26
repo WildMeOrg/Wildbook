@@ -134,6 +134,24 @@ describe("BulkImportSetLocation", () => {
     expect(localStorage.getItem("lastBulkImportTask")).toBe("123");
   });
 
+  it("does not submit when the grid and source rows differ", async () => {
+    store.spreadsheetData = [
+      { "Encounter.locationID": "loc1" },
+      { "Encounter.locationID": "loc1" },
+    ];
+    store.rawData = [{ "Encounter.locationID": "loc1" }];
+    localStorage.setItem("BulkImportStore", "{}");
+    render(<BulkImportSetLocation store={store} />);
+    const startBtn = screen.getByText(/START_BULK_IMPORT/).closest("button");
+    expect(startBtn).toBeDisabled();
+    await act(async () => {
+      fireEvent.click(startBtn);
+    });
+    expect(submitMock).not.toHaveBeenCalled();
+    expect(localStorage.getItem("BulkImportStore")).toBe("{}");
+    localStorage.removeItem("BulkImportStore");
+  });
+
   it("submits import and shows failure modal on status 400", async () => {
     submitMock.mockResolvedValue({
       status: 400,
