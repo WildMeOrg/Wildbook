@@ -75,6 +75,13 @@ class GroupCollapseTest {
         bulkUtil = mockStatic(BulkImportUtil.class, CALLS_REAL_METHODS);
         bulkUtil.when(() -> BulkImportUtil.encounterIdsInUse(anyCollection(), any())).thenReturn(
             new HashSet<String>());
+        // the isolated lookup, answered by the mocked request Shepherd as findExistingProject would
+        bulkUtil.when(() -> BulkImportUtil.projectExists(anyString(), any())).thenAnswer(inv -> {
+            String prefix = inv.getArgument(0);
+            Shepherd s = inv.getArgument(1);
+            return (s.getProjectByProjectIdPrefix(prefix) != null) ||
+                (s.getProjectByProjectIdPrefixPrefix(prefix) != null);
+        });
         savedMeasurements = BulkImportUtil.measurementValues;
         savedKeywords = BulkImportUtil.labeledKeywordMap;
         BulkImportUtil.measurementValues = new ArrayList<String>(List.of("length"));

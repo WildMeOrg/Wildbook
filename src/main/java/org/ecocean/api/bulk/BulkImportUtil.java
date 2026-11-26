@@ -507,6 +507,24 @@ public class BulkImportUtil {
         return proj;
     }
 
+    /**
+     * Whether an existing project answers the prefix (findExistingProject), looked up in its own
+     * short-lived Shepherd and transaction for requestShepherd's context, as encounterIdsInUse
+     * is: a failed query (on Postgres, one that aborts its transaction) cannot leave the
+     * request's transaction unusable or touch its locks. Throws when the database cannot be read
+     * (the caller reports it).
+     */
+    public static boolean projectExists(String prefix, Shepherd requestShepherd) {
+        Shepherd projectShepherd = new Shepherd(requestShepherd.getContext());
+        projectShepherd.setAction("BulkImportUtil.projectExists");
+        try {
+            projectShepherd.beginDBTransaction();
+            return findExistingProject(prefix, projectShepherd) != null;
+        } finally {
+            projectShepherd.rollbackAndClose();
+        }
+    }
+
     static final int ID_LOOKUP_CHUNK = 1000;
 
     /**

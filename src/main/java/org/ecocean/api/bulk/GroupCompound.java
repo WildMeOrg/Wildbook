@@ -366,13 +366,13 @@ final class GroupCompound {
         }
     }
 
-    // whether an existing project answers the prefix, looked up once per upload; null when the
-    // lookup failed (the caller reports that on the prefix cell)
+    // whether an existing project answers the prefix, looked up once per upload outside the
+    // request's transaction; null when the lookup failed (the caller reports that on the prefix)
     private static Boolean projectExists(GroupCollapse.State st, String prefix) {
         if (st.projectExists.containsKey(prefix)) return st.projectExists.get(prefix);
         Boolean exists;
         try {
-            exists = BulkImportUtil.findExistingProject(prefix, st.sh) != null;
+            exists = BulkImportUtil.projectExists(prefix, st.sh);
         } catch (RuntimeException ex) {
             exists = null;
         }
