@@ -1399,6 +1399,7 @@ export class BulkImportStore {
 
   updateRawFromNormalizedRow() {
     const dateEntries = Object.entries(this.dateDisplayMap);
+    const datePrefixes = [...new Set(Object.values(this.dateDisplayMap))];
 
     this._spreadsheetData.forEach((_, rowIndex) => {
       const raw = this._rawData[rowIndex];
@@ -1462,9 +1463,11 @@ export class BulkImportStore {
       });
     });
 
-    // a date part is sent only if the sheet had it or a row now has a value for it
+    // a date part of a mapped prefix is sent only if the sheet had it or a row now has
+    // a value for it; an unmapped prefix is never added (an old draft's rawData can still
+    // hold Sighting.* values its rawColumns dropped, and sending both is a synonym error)
     runInAction(() => {
-      ["Encounter", "Sighting"].forEach((prefix) => {
+      datePrefixes.forEach((prefix) => {
         DATE_PARTS.forEach((part) => {
           const col = `${prefix}.${part}`;
           if (

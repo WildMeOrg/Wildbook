@@ -4,6 +4,7 @@ import BulkImportStore from "../../../pages/BulkImport/BulkImportStore";
 import { BulkImportSpreadsheet } from "../../../pages/BulkImport/BulkImportSpreadsheet";
 import { dateDisplayMapFor } from "../../../pages/BulkImport/bulkImportHeaders";
 import { renderWithProviders } from "../../../utils/utils";
+import { PRODUCTION_SYNONYMS } from "../../../__fixtures__/productionSynonyms";
 
 jest.mock("@flowjs/flow.js", () => {
   return jest.fn().mockImplementation(() => ({
@@ -967,45 +968,6 @@ describe("BulkImportStore file-tree and triggerUpload branches", () => {
   });
 });
 
-// production synonym groups, copied from
-// src/main/java/org/ecocean/api/bulk/BulkValidator.java FIELD_NAME_SYNONYMS
-const PRODUCTION_SYNONYMS = [
-  ["Encounter.id", "Encounter.catalogNumber"],
-  ["Encounter.sightingID", "Sighting.sightingID"],
-  ["Encounter.individualID", "MarkedIndividual.individualID"],
-  [
-    "Encounter.latitude",
-    "Encounter.decimalLatitude",
-    "Sighting.decimalLatitude",
-  ],
-  [
-    "Encounter.longitude",
-    "Encounter.decimalLongitude",
-    "Sighting.decimalLongitude",
-  ],
-  [
-    "Sighting.dateInMilliseconds",
-    "Sighting.millis",
-    "Encounter.dateInMilliseconds",
-    "Encounter.year",
-    "Sighting.year",
-  ],
-  ["Sighting.year", "Encounter.year"],
-  ["Sighting.month", "Encounter.month"],
-  ["Sighting.day", "Encounter.day"],
-  ["Sighting.hour", "Encounter.hour"],
-  ["Sighting.minutes", "Encounter.minutes"],
-  ["MarkedIndividual.nickName", "MarkedIndividual.nickname"],
-  ["Sighting.fieldSurveyCode", "Survey.id"],
-  ["Sighting.seaSurfaceTemp", "Sighting.seaSurfaceTemperature"],
-  ["Survey.vessel", "SurveyTrack.vesselID"],
-  [
-    "TissueSample.sampleID",
-    "MicrosatelliteMarkersAnalysis.analysisID",
-    "SexAnalysis.processingLabTaskID",
-  ],
-];
-
 const SYNONYM_ERROR = "BULKIMPORT_ERROR_INVALID_SYNONYMFIELDS";
 
 describe("BulkImportStore dates keep their source columns", () => {
@@ -1193,5 +1155,60 @@ describe("BulkImportStore dates keep their source columns", () => {
     expect(errors[0]["Sighting.year"].id).toBe(SYNONYM_ERROR);
     expect(errors[0]).not.toHaveProperty("Encounter.month");
     expect(errors[0]).not.toHaveProperty("Sighting.month");
+  });
+  test("old Sighting-date draft submits only the mapped Encounter prefix", () => {
+    // the old parser spliced Encounter.year into rawColumns (once per row) and dropped
+    // Sighting.* from it, but rawData kept the Sighting.* values
+    store.hydrate({
+      rawColumns: [
+        "Encounter.year",
+        "Encounter.year",
+        "Encounter.genus",
+        "Encounter.mediaAsset0",
+      ],
+      columnsDef: [
+        "Encounter.mediaAsset0",
+        "Encounter.year",
+        "Encounter.genus",
+      ],
+      rawData: [
+        {
+          "Sighting.year": 2021,
+          "Sighting.month": 3,
+          "Sighting.day": 4,
+          "Encounter.genus": "Tursiops",
+          "Encounter.mediaAsset0": "a.jpg",
+        },
+      ],
+      spreadsheetData: [
+        {
+          "Encounter.year": "2021-03-04",
+          "Encounter.genus": "Tursiops",
+          "Encounter.mediaAsset0": "a.jpg",
+        },
+      ],
+    });
+    expect(store.dateDisplayMap).toEqual({ "Encounter.year": "Encounter" });
+    store.updateRawFromNormalizedRow();
+    expect(
+      store.submittableColumns.filter((c) => c.startsWith("Sighting.")),
+    ).toEqual([]);
+    expect(store.dateDisplayMap).toEqual({ "Encounter.year": "Encounter" });
+    expect(
+      store.submittableColumns.filter((c) => c === "Encounter.year"),
+    ).toEqual(["Encounter.year"]);
+    expect(store.submittableColumns.slice(0, 3)).toEqual([
+      "Encounter.year",
+      "Encounter.genus",
+      "Encounter.mediaAsset0",
+    ]);
+    expect(store.submittableColumns).toEqual(
+      expect.arrayContaining(["Encounter.month", "Encounter.day"]),
+    );
+    expect(store._rawData[0]).toMatchObject({
+      "Encounter.year": 2021,
+      "Encounter.month": 3,
+      "Encounter.day": 4,
+    });
   });
 });

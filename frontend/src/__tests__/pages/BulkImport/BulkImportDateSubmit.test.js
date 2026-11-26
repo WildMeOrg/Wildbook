@@ -13,6 +13,7 @@ import usePostBulkImport from "../../../models/bulkImport/usePostBulkImport";
 import { client } from "../../../api/client";
 import { renderWithProviders } from "../../../utils/utils";
 import { useSiteSettings } from "../../../SiteSettingsContext";
+import { PRODUCTION_SYNONYMS } from "../../../__fixtures__/productionSynonyms";
 
 jest.mock("@flowjs/flow.js", () =>
   jest.fn().mockImplementation(() => ({
@@ -29,45 +30,6 @@ jest.mock("../../../SiteSettingsContext", () => ({
 }));
 
 const A0 = "Encounter.mediaAsset0";
-
-// production synonym groups, copied from
-// src/main/java/org/ecocean/api/bulk/BulkValidator.java FIELD_NAME_SYNONYMS
-const PRODUCTION_SYNONYMS = [
-  ["Encounter.id", "Encounter.catalogNumber"],
-  ["Encounter.sightingID", "Sighting.sightingID"],
-  ["Encounter.individualID", "MarkedIndividual.individualID"],
-  [
-    "Encounter.latitude",
-    "Encounter.decimalLatitude",
-    "Sighting.decimalLatitude",
-  ],
-  [
-    "Encounter.longitude",
-    "Encounter.decimalLongitude",
-    "Sighting.decimalLongitude",
-  ],
-  [
-    "Sighting.dateInMilliseconds",
-    "Sighting.millis",
-    "Encounter.dateInMilliseconds",
-    "Encounter.year",
-    "Sighting.year",
-  ],
-  ["Sighting.year", "Encounter.year"],
-  ["Sighting.month", "Encounter.month"],
-  ["Sighting.day", "Encounter.day"],
-  ["Sighting.hour", "Encounter.hour"],
-  ["Sighting.minutes", "Encounter.minutes"],
-  ["MarkedIndividual.nickName", "MarkedIndividual.nickname"],
-  ["Sighting.fieldSurveyCode", "Survey.id"],
-  ["Sighting.seaSurfaceTemp", "Sighting.seaSurfaceTemperature"],
-  ["Survey.vessel", "SurveyTrack.vesselID"],
-  [
-    "TissueSample.sampleID",
-    "MicrosatelliteMarkersAnalysis.analysisID",
-    "SexAnalysis.processingLabTaskID",
-  ],
-];
 
 const DATE_PART_RE = /\.(year|month|day|hour|minutes|seconds)$/;
 
@@ -213,10 +175,16 @@ describe("bulk-import dates on submit", () => {
         "2022,5,6,Tursiops,truncatus,L1\n",
       2,
     );
-    renderWithProviders(<BulkImportTableReview store={store} />);
-    expect(store.synonymFields).toEqual(PRODUCTION_SYNONYMS);
-    // the table revalidates 500 ms after site settings arrive
-    await act(() => new Promise((r) => setTimeout(r, 700)));
+    // the table revalidates 500 ms after site settings arrive; run that timer
+    jest.useFakeTimers();
+    try {
+      store.setValidationErrors({ stale: { x: "y" } });
+      renderWithProviders(<BulkImportTableReview store={store} />);
+      expect(store.synonymFields).toEqual(PRODUCTION_SYNONYMS);
+      act(() => jest.advanceTimersByTime(500));
+    } finally {
+      jest.useRealTimers();
+    }
     expect(store.columnsDef).toContain("Encounter.year");
     expect(store.columnsDef).not.toContain("Sighting.year");
     expect(store.missingRequiredColumns).toEqual([]);
