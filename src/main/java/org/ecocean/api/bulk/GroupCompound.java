@@ -2,6 +2,7 @@ package org.ecocean.api.bulk;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -124,18 +125,23 @@ final class GroupCompound {
 
     /**
      * C4 for one group. byRow holds each grouped row's validated compound cells, in field-name
-     * order. A group with a compound cell that already failed (its own validation, a header check
-     * or a duplicate offset) is not compared further: its failures are already Issues. Otherwise
-     * two or more distinct sets are a GROUP_CONFLICT on every compound cell of every supplying row;
-     * one set is merged once (from the first supplier) and checked for completeness.
+     * order. A row with a compound cell that already failed (its own validation, a header check
+     * or a duplicate offset) is left out of the comparison: its failures are already Issues. Two
+     * or more distinct sets among the other supplying rows are a GROUP_CONFLICT on every compound
+     * cell of those rows. When no row failed and there is one set, it is merged once (from the
+     * first supplier) and checked for completeness.
      */
     static void merge(GroupCollapse.State st, List<Integer> rows,
         Map<Integer, List<GroupCollapse.Entry> > byRow, Map<String, Object> merged,
         Map<String, List<GroupedRows.Cell> > contrib, Map<String, Object> raw, Set<String> poisoned) {
         for (int r : rows) checkOffsets(st, byRow.get(r));
+        boolean anyFailed = false;
         List<Integer> suppliers = new ArrayList<Integer>();
+        List<Integer> compared = new ArrayList<Integer>();
         List<Map<String, String> > sets = new ArrayList<Map<String, String> >();
         for (int r : rows) {
+            boolean failed = st.compoundIssueRows.contains(r);
+            anyFailed |= failed;
             Map<String, String> set = new HashMap<String, String>();
             for (GroupCollapse.Entry e : byRow.get(r)) {
                 set.put(e.cell.field, e.bv.getValueString());
@@ -143,22 +149,24 @@ final class GroupCompound {
             }
             if (set.isEmpty()) continue;
             suppliers.add(r);
+            if (failed) continue;
+            compared.add(r);
             sets.add(set);
         }
         if (suppliers.isEmpty()) return;
-        if (st.groupCompoundIssue) { // an Issue already on a compound cell of this group
-            for (int r : suppliers) poisonAll(byRow.get(r), poisoned);
-            return;
-        }
-        if (new LinkedHashSet<Map<String, String> >(sets).size() > 1) {
-            String msg = conflictMessage(suppliers, sets);
-            for (int r : suppliers) {
+        boolean conflict = new HashSet<Map<String, String> >(sets).size() > 1;
+        if (conflict) {
+            String msg = conflictMessage(compared, sets);
+            for (int r : compared) {
                 for (GroupCollapse.Entry e : byRow.get(r))
                     st.issue(r, e.cell.field, new BulkValidatorException(msg,
                         ApiException.ERROR_RETURN_CODE_INVALID,
                         BulkValidatorException.TYPE_GROUP_CONFLICT, e.cell.field));
-                poisonAll(byRow.get(r), poisoned);
             }
+        }
+        // a conflict, or a row whose compound data failed (so it cannot be compared): no merge
+        if (anyFailed || conflict) {
+            for (int r : suppliers) poisonAll(byRow.get(r), poisoned);
             return;
         }
         Map<String, GroupCollapse.Entry> set = new LinkedHashMap<String, GroupCollapse.Entry>();
@@ -268,7 +276,8 @@ final class GroupCompound {
         }
     }
 
-    // Encounter.submitter#: the importer creates a submitter only from an email address
+    // Encounter.submitter#: the importer creates a submitter only from an email address, once
+    // per address (the first slot's full name and affiliation; a later slot's are dropped)
     private static void checkSubmitters(Check c) {
         List<String> emails = BulkImportUtil.findIndexedFieldNames(c.keys,
             "Encounter.submitter.emailAddress");
@@ -276,14 +285,39 @@ final class GroupCompound {
             "Encounter.submitter.fullName");
         List<String> affiliations = BulkImportUtil.findIndexedFieldNames(c.keys,
             "Encounter.submitter.affiliation");
-        for (int i = 0; i < Math.max(names.size(), affiliations.size()); i++) {
-            if (at(emails, i) != null) continue;
-            String present = (at(names, i) != null) ? at(names, i) : at(affiliations, i);
-            if (present != null) c.require(partner(present, "emailAddress"), present);
+        Map<String, String> nameByEmail = new HashMap<String, String>();
+        Map<String, String> affiliationByEmail = new HashMap<String, String>();
+        for (int i = 0; i < Math.max(emails.size(), Math.max(names.size(), affiliations.size()));
+            i++) {
+            String email = at(emails, i);
+            if (email == null) {
+                String present = (at(names, i) != null) ? at(names, i) : at(affiliations, i);
+                if (present != null) c.require(partner(present, "emailAddress"), present);
+                continue;
+            }
+            String address = c.value(email);
+            sameAsFirst(c, nameByEmail, address, at(names, i), "submitter " +
+                GroupCollapse.clip(address) + " already has the full name ");
+            sameAsFirst(c, affiliationByEmail, address, at(affiliations, i), "submitter " +
+                GroupCollapse.clip(address) + " already has the affiliation ");
         }
     }
 
-    // Encounter.project#: prefix and name in pairs, an owner for a new project, one definition per prefix
+    /**
+     * One stored object's property, given in several slots of the set: the first slot that gives
+     * it (key -> its value in first) defines it; a later slot giving another value is INVALID on
+     * that slot's column. field may be null (the slot does not give the property).
+     */
+    private static void sameAsFirst(Check c, Map<String, String> first, String key, String field,
+        String message) {
+        if (field == null) return;
+        String earlier = first.putIfAbsent(key, c.value(field));
+        if ((earlier != null) && !earlier.equals(c.value(field)))
+            c.invalid(field, message + GroupCollapse.clip(earlier) + " in this group");
+    }
+
+    // Encounter.project#: prefix and name in pairs, an owner for a new project, one definition per
+    // prefix (the importer caches the first definition and silently reuses it)
     private static void checkProjects(GroupCollapse.State st, Check c) {
         List<String> prefixes = BulkImportUtil.findIndexedFieldNames(c.keys,
             "Encounter.project.projectIdPrefix");
@@ -292,7 +326,8 @@ final class GroupCompound {
         List<String> owners = BulkImportUtil.findIndexedFieldNames(c.keys,
             "Encounter.project.ownerUsername");
         int n = Math.max(prefixes.size(), Math.max(names.size(), owners.size()));
-        Map<String, Integer> firstByPrefix = new HashMap<String, Integer>();
+        Map<String, String> nameByPrefix = new HashMap<String, String>();
+        Map<String, String> ownerByPrefix = new HashMap<String, String>();
         for (int i = 0; i < n; i++) {
             String p = at(prefixes, i);
             String nm = at(names, i);
@@ -313,25 +348,34 @@ final class GroupCompound {
                 continue;
             }
             String prefix = c.value(p);
-            Integer earlier = firstByPrefix.putIfAbsent(prefix, i);
-            if (earlier != null) {
-                // the importer caches the first definition and silently reuses it
-                if (!c.value(nm).equals(c.value(names.get(earlier))))
-                    c.invalid(nm, "project " + prefix + " is already named " +
-                        c.value(names.get(earlier)) + " in this group");
-                String earlierOwner = at(owners, earlier);
-                if ((o != null) && (earlierOwner != null) &&
-                    !c.value(o).equals(c.value(earlierOwner)))
-                    c.invalid(o, "project " + prefix + " already has the owner " +
-                        c.value(earlierOwner) + " in this group");
-                continue;
-            }
-            if ((o == null) && !st.projectExists.computeIfAbsent(prefix,
-                k -> BulkImportUtil.findExistingProject(k, st.sh) != null))
-                c.fail(partner(p, "ownerUsername"), "project " + prefix +
+            boolean repeat = nameByPrefix.containsKey(prefix);
+            String shown = "project " + GroupCollapse.clip(prefix);
+            sameAsFirst(c, nameByPrefix, prefix, nm, shown + " is already named ");
+            sameAsFirst(c, ownerByPrefix, prefix, o, shown + " already has the owner ");
+            if (repeat || (o != null)) continue;
+            Boolean exists = projectExists(st, prefix);
+            if (exists == null) {
+                c.invalid(p, "Could not check whether this project exists");
+            } else if (!exists) {
+                c.fail(partner(p, "ownerUsername"), shown +
                     " does not exist yet; an owner username is required to create it",
                     BulkValidatorException.TYPE_REQUIRED_VALUE);
+            }
         }
+    }
+
+    // whether an existing project answers the prefix, looked up once per upload; null when the
+    // lookup failed (the caller reports that on the prefix cell)
+    private static Boolean projectExists(GroupCollapse.State st, String prefix) {
+        if (st.projectExists.containsKey(prefix)) return st.projectExists.get(prefix);
+        Boolean exists;
+        try {
+            exists = BulkImportUtil.findExistingProject(prefix, st.sh) != null;
+        } catch (RuntimeException ex) {
+            exists = null;
+        }
+        st.projectExists.put(prefix, exists);
+        return exists;
     }
 
     // a sampling protocol is imported only with its measurement

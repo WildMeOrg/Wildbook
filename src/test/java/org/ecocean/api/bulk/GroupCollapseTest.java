@@ -1163,6 +1163,55 @@ class GroupCollapseTest {
         assertTrue(g.issues().isEmpty(), g.issues().toString());
     }
 
+    @Test void sameEmailWithDifferentSubmitterDetailsRejected() {
+        String e0 = "Encounter.submitter0.emailAddress";
+        String e1 = "Encounter.submitter1.emailAddress";
+        String f1 = "Encounter.submitter1.fullName";
+        // the importer creates one user per address, from the first slot only
+        GroupedRows g = collapse(full("G", "a.jpg", e0, "ann@example.org",
+            "Encounter.submitter0.fullName", "Ann", e1, "ann@example.org", f1, "Anne"));
+        assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE, List.of(cell(0, f1)));
+        assertEquals("submitter ann@example.org already has the full name Ann in this group",
+            g.issues().get(0).error.getMessage());
+        // compared with the first slot that gives a value, not the first slot
+        g = collapse(full("G", "a.jpg", e0, "ann@example.org", e1, "ann@example.org",
+            "Encounter.submitter1.affiliation", "Org A", "Encounter.submitter2.emailAddress",
+            "ann@example.org", "Encounter.submitter2.affiliation", "Org B"));
+        assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE,
+            List.of(cell(0, "Encounter.submitter2.affiliation")));
+        // the same details, or another address, are fine
+        g = collapse(full("G", "a.jpg", e0, "ann@example.org", "Encounter.submitter0.fullName",
+            "Ann", e1, "ann@example.org", f1, "Ann", "Encounter.submitter2.emailAddress",
+            "bob@example.org", "Encounter.submitter2.fullName", "Bob"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+    }
+
+    @Test void prefixOwnersComparedWithFirstGivenOwner() {
+        projectsExist();
+        String o1 = "Encounter.project1.ownerUsername";
+        String o2 = "Encounter.project2.ownerUsername";
+        GroupedRows g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj",
+            "Encounter.project1.projectIdPrefix", "P", "Encounter.project1.researchProjectName",
+            "Proj", o1, "alice", "Encounter.project2.projectIdPrefix", "P",
+            "Encounter.project2.researchProjectName", "Proj", o2, "bob"));
+        assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE, List.of(cell(0, o2)));
+        assertEquals("project P already has the owner alice in this group",
+            g.issues().get(0).error.getMessage());
+    }
+
+    @Test void projectLookupFailureIsReportedOnThePrefix() {
+        when(sh.getProjectByProjectIdPrefix(anyString())).thenThrow(new RuntimeException("db down"));
+        GroupedRows g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj"),
+            bare("G", "b.jpg", P0, "P", N0, "Proj"));
+        assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE, List.of(cell(0, P0), cell(1, P0)));
+        assertEquals("Could not check whether this project exists",
+            g.issues().get(0).error.getMessage());
+        // an owner means no lookup is needed
+        g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj", O0, "bob"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+    }
+
     @Test void compoundConflictBlamesEveryRow() {
         projectsExist();
         Object[] a = { P0, "P", N0, "A" };
@@ -1452,15 +1501,29 @@ class GroupCollapseTest {
             g.contributorsOf(0, "Sighting.numAdultMales"));
     }
 
-    @Test void compoundFailureOnOneRowSkipsComparison() {
+    @Test void compoundFailureOnOneRowStillComparesOthers() {
         projectsExist();
         GroupedRows g = collapse(full("G", "a.jpg", "Encounter.submitter0.emailAddress", "not-an-email"),
             bare("G", "b.jpg", P0, "P", N0, "Proj"), bare("G", "c.jpg", "Encounter.measurement0", 2.5));
-        // the rows' sets differ, but the failed cell is the only report (the email validator's
-        // own exception carries no type)
-        assertOnly(g, null, List.of(cell(0, "Encounter.submitter0.emailAddress")));
+        // both independent findings: the failed cell (the email validator's own exception carries
+        // no type), and the conflict between the rows whose compound cells all validated
+        List<GroupedRows.Cell> conflicts = List.of(cell(1, P0), cell(1, N0),
+            cell(2, "Encounter.measurement0"));
+        List<GroupedRows.Cell> all = new ArrayList<GroupedRows.Cell>();
+        all.add(cell(0, "Encounter.submitter0.emailAddress"));
+        all.addAll(conflicts);
+        assertEquals(all, issueCells(g, null), g.issues().toString());
+        assertEquals(conflicts, issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
+        assertEquals(all.size(), failureCount(g), g.mergedRows().toString());
+        assertTrue(g.issues().get(1).error.getMessage().startsWith("rows 1, 2 of this group"),
+            g.issues().get(1).error.getMessage());
         assertFalse(g.mergedRows().get(0).containsKey(P0));
         assertFalse(g.mergedRows().get(0).containsKey("Encounter.measurement0"));
+        // the other rows agree: the failed cell is the only report, and nothing is merged
+        g = collapse(full("G", "a.jpg", "Encounter.submitter0.emailAddress", "not-an-email"),
+            bare("G", "b.jpg", P0, "P", N0, "Proj"), bare("G", "c.jpg", P0, "P", N0, "Proj"));
+        assertOnly(g, null, List.of(cell(0, "Encounter.submitter0.emailAddress")));
+        assertFalse(g.mergedRows().get(0).containsKey(P0));
     }
 
     @Test void sharedPrefixLookedUpOnce() {

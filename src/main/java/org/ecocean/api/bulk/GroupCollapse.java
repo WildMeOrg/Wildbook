@@ -126,8 +126,8 @@ public final class GroupCollapse {
         final Map<String, Boolean> projectExists = new HashMap<String, Boolean>();
         final List<GroupId> groupIds = new ArrayList<GroupId>();
         boolean exactSlotMode = false;
-        // an Issue on a compound cell of the group being collapsed (reset per group)
-        boolean groupCompoundIssue = false;
+        // the source rows with an Issue on a compound cell
+        final Set<Integer> compoundIssueRows = new HashSet<Integer>();
 
         State(List<JSONObject> rows, Shepherd sh, boolean identificationSkipped, int maxPhotos) {
             this.rows = rows;
@@ -141,7 +141,7 @@ public final class GroupCollapse {
 
         void issue(int row, String field, BulkValidatorException ex) {
             issues.add(new GroupedRows.Issue(row, field, ex, keyAsTyped[row]));
-            if (GroupCompound.isCompound(field)) groupCompoundIssue = true;
+            if (GroupCompound.isCompound(field)) compoundIssueRows.add(row);
         }
     }
 
@@ -335,8 +335,6 @@ public final class GroupCollapse {
         Map<String, List<Entry> > families = new LinkedHashMap<String, List<Entry> >();
         Map<Integer, List<Entry> > compound = new HashMap<Integer, List<Entry> >();
         List<GroupPhotos.RowPhotos> photos = new ArrayList<GroupPhotos.RowPhotos>();
-        // a group's own cells get their Issues below; the membership pass gives only key Issues
-        st.groupCompoundIssue = false;
 
         for (int r : rows) {
             Map<String, Object> values = new LinkedHashMap<String, Object>();
