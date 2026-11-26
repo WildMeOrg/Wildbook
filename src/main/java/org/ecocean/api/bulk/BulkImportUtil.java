@@ -1,6 +1,7 @@
 // basic bulk import utilities
 package org.ecocean.api.bulk;
 
+import java.time.Year;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -419,7 +420,13 @@ public class BulkImportUtil {
         Object dateM = getValue(map, mkey);
         Object dateD = getValue(map, dkey);
 
-        if ((dateY != null) && (dateM != null) && (dateD != null)) {
+        if ((dateY != null) && (dateM != null) && (dateD != null) &&
+            ((Integer)dateY > Year.MAX_VALUE)) {
+            // java.time cannot hold it: rejected here, on the year, rather than thrown below
+            putIfClean(map, ykey, new BulkValidatorException("year value too large",
+                ApiException.ERROR_RETURN_CODE_INVALID, BulkValidatorException.TYPE_INVALID_VALUE,
+                ykey));
+        } else if ((dateY != null) && (dateM != null) && (dateD != null)) {
             YearMonth yearMonth = YearMonth.of((Integer)dateY, (Integer)dateM);
             if (!yearMonth.isValidDay((Integer)dateD))
                 putIfClean(map, dkey,

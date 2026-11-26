@@ -807,6 +807,44 @@ class GroupCollapseTest {
         assertEquals(1, failureCount(g));
     }
 
+    @Test void labeledKeywordIndexOverflowingIntRejected() {
+        BulkImportUtil.labeledKeywordMap.put("colour", new LinkedHashSet<String>(List.of("red")));
+        String col = "Encounter.mediaAsset99999999999.colour";
+        // a blank cell under a configured label: an invalid index (fatal), not an unknown header
+        GroupedRows g = collapse(full("G", "a.jpg", col, ""), blankBboxRow());
+        assertEquals(List.of(cell(0, col)), issueCells(g, BulkValidatorException.TYPE_INVALID_VALUE));
+        assertTrue(g.warnings().isEmpty(), g.warnings().toString());
+        assertTrue(GroupedErrors.collect(g, true).fatal());
+        // an unknown label under the same index is still an unknown (blank, so tolerated) header
+        g = collapse(full("G", "a.jpg", "Encounter.mediaAsset99999999999.shade", ""), blankBboxRow());
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertEquals(1, g.warnings().size(), g.warnings().toString());
+    }
+
+    @Test void yearBeyondJavaTimeIsACellError() {
+        // split across a group: the year cell is blamed, nothing throws
+        GroupedRows g = collapse(obj(KEY, "G", "Encounter.genus", "Genus",
+            "Encounter.specificEpithet", "species", "Encounter.year", 1000000000,
+            "Encounter.mediaAsset0", "a.jpg"), bare("G", "b.jpg", "Encounter.month", 1),
+            bare("G", "c.jpg", "Encounter.day", 1));
+        assertEquals("year value too large", mergedError(g, 0, "Encounter.year").getMessage());
+        assertEquals(List.of(cell(0, "Encounter.year")), g.cellsFor(0, "Encounter.year"));
+        assertEquals(1, failureCount(g), g.mergedRows().toString());
+        GroupedErrors ge = GroupedErrors.collect(g, true);
+        assertTrue(ge.fatal());
+        assertEquals(1, ge.errors().size(), ge.errors().toString());
+        assertEquals("Encounter.year", ge.errors().get(0).getString("fieldName"));
+        // shared fix: an ungrouped row with the same date was a 500, now the same cell error
+        g = collapse(obj("Encounter.genus", "Genus", "Encounter.specificEpithet", "species",
+            "Encounter.year", 1000000000, "Encounter.month", 1, "Encounter.day", 1));
+        assertEquals("year value too large", mergedError(g, 0, "Encounter.year").getMessage());
+        assertEquals(1, failureCount(g), g.mergedRows().toString());
+        // without month and day it stays today's "date is in the future"
+        g = collapse(obj("Encounter.genus", "Genus", "Encounter.specificEpithet", "species",
+            "Encounter.year", 1000000000));
+        assertEquals("date is in the future", mergedError(g, 0, "Encounter.year").getMessage());
+    }
+
     @Test void rowWithoutPhotoIsError() {
         GroupedRows g = collapse(full("G", "a.jpg"), obj(KEY, "G", "Encounter.mediaAsset0", ""),
             obj(KEY, "G", "Encounter.sex", "male"));

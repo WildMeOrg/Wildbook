@@ -433,14 +433,19 @@ public final class GroupCollapse {
         Set<String> ok = new TreeSet<String>();
         for (String k : keys) {
             try {
-                BulkValidator.indexIntValue(k); // unknown name, or an index above MAX_INDEX
-                if (BulkImportUtil.getLabeledKeywordOffset(k) > BulkValidator.MAX_INDEX)
+                // a configured label is known whatever its index: one too large for an int is
+                // an invalid index, never an unknown (blank, so tolerated) header
+                // (getLabeledKeywordOffset is -3 for a configured label whose index overflows)
+                int kwOffset = BulkImportUtil.getLabeledKeywordOffset(k);
+                if (kwOffset != -3) BulkValidator.indexIntValue(k); // unknown, or index > MAX_INDEX
+                if ((kwOffset > BulkValidator.MAX_INDEX) || (kwOffset == -3))
                     throw new BulkValidatorException("index in " + k + " is above the maximum of " +
                         BulkValidator.MAX_INDEX, ApiException.ERROR_RETURN_CODE_INVALID,
                         BulkValidatorException.TYPE_INVALID_VALUE, k);
                 ok.add(k);
             } catch (BulkValidatorException ex) {
-                if (!BulkValidator.isValidFieldName(k) && isAbsent(row.opt(k))) {
+                if (ex.isType(BulkValidatorException.TYPE_UNKNOWN_FIELDNAME) &&
+                    isAbsent(row.opt(k))) {
                     st.warnings.add(new GroupedRows.Issue(r, k, ex, st.keyAsTyped[r]));
                 } else {
                     st.issue(r, k, ex);
