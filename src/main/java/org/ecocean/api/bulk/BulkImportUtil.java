@@ -60,6 +60,16 @@ public class BulkImportUtil {
 
     public static Map<String, Object> validateRow(JSONObject row, Shepherd myShepherd,
         boolean identificationSkipped) {
+        Map<String, Object> rtn = validateFields(row, myShepherd);
+
+        if (row == null) return rtn;
+        validateDependent(rtn, row.keySet(), myShepherd, identificationSkipped);
+        return rtn;
+    }
+
+    // the per-field half of row validation: synonym columns and each field's own value check.
+    // NOTE removes synonym columns from row (row.keySet() is a live view), as validateRow always has
+    public static Map<String, Object> validateFields(JSONObject row, Shepherd myShepherd) {
         Map<String, Object> rtn = new HashMap<String, Object>();
 
         if (row == null) return rtn;
@@ -77,9 +87,6 @@ public class BulkImportUtil {
                 }
             }
         }
-        // try to make sure we set date *somehow*
-        String hasDateMillis = null;
-        String hasDateYear = null;
         for (String fieldName : fieldNames) {
             try {
                 // FIXME -- how do we handle get() and type returned? TBD
@@ -94,16 +101,29 @@ public class BulkImportUtil {
             } catch (Exception ex) {
                 rtn.put(fieldName, ex);
             }
-            if (fieldName.toLowerCase().contains("millis") && (getValue(rtn, fieldName) != null))
-                hasDateMillis = fieldName;
-            if (fieldName.endsWith(".year") && (getValue(rtn, fieldName) != null))
+        }
+        return rtn;
+    }
+
+    // the cross-field half of row validation, run over validateFields() results. A dependent
+    // error never overwrites an error the field already has (putIfClean).
+    public static void validateDependent(Map<String, Object> rtn, Set<String> fieldNames,
+        Shepherd myShepherd, boolean identificationSkipped) {
+        // try to make sure we set date *somehow*; labeled keyword columns never count
+        String hasDateMillis = null;
+        String hasDateYear = null;
+        for (String fieldName : fieldNames) {
+            if (getValue(rtn, fieldName) == null) continue;
+            if (BulkValidator.DATE_MILLIS_FIELDS.contains(fieldName)) hasDateMillis = fieldName;
+            if (fieldName.equals("Encounter.year") || fieldName.equals("Sighting.year"))
                 hasDateYear = fieldName;
         }
         // now we do inter-dependent validations
         checkYMD(rtn, "Encounter.year", "Encounter.month", "Encounter.day");
         checkYMD(rtn, "Sighting.year", "Sighting.month", "Sighting.day");
         // (only) one of these is required, so cannot add both to FIELD_NAMES_REQUIRED
-        // we set Encounter.year as the field we complain about
+        // we set Encounter.year as the field we complain about (replacing an invalid year value:
+        // a year that did not validate is the same as no date)
         if ((hasDateMillis == null) && (hasDateYear == null))
             rtn.put("Encounter.year",
                 new BulkValidatorException("required value (year or millis)",
@@ -111,16 +131,16 @@ public class BulkImportUtil {
                 BulkValidatorException.TYPE_REQUIRED_VALUE));
         // case where we have both, we complain about the fields we actually had set
         if ((hasDateMillis != null) && (hasDateYear != null)) {
-            rtn.put(hasDateMillis,
+            putIfClean(rtn, hasDateMillis,
                 new BulkValidatorException("cannot have both date year and millis",
                 ApiException.ERROR_RETURN_CODE_INVALID));
-            rtn.put(hasDateYear,
+            putIfClean(rtn, hasDateYear,
                 new BulkValidatorException("cannot have both date year and millis",
                 ApiException.ERROR_RETURN_CODE_INVALID));
         }
         for (String reqFieldName : BulkValidator.FIELD_NAMES_REQUIRED) {
             if (!rtn.containsKey(reqFieldName)) {
-                rtn.put(reqFieldName,
+                putIfClean(rtn, reqFieldName,
                     new BulkValidatorException("required value",
                     ApiException.ERROR_RETURN_CODE_REQUIRED,
                     BulkValidatorException.TYPE_REQUIRED_VALUE));
@@ -128,7 +148,7 @@ public class BulkImportUtil {
                 BulkValidator bv = (BulkValidator)rtn.get(reqFieldName);
                 // has a bv, but value cannot be null
                 if (bv.getValue() == null) {
-                    rtn.put(reqFieldName,
+                    putIfClean(rtn, reqFieldName,
                         new BulkValidatorException("required value",
                         ApiException.ERROR_RETURN_CODE_REQUIRED,
                         BulkValidatorException.TYPE_REQUIRED_VALUE));
@@ -145,10 +165,10 @@ public class BulkImportUtil {
         if ((taxG != null) && (taxS != null)) {
             String sciName = Util.taxonomyString(taxG.toString(), taxS.toString());
             if (!myShepherd.isValidTaxonomyName(sciName)) {
-                rtn.put("Encounter.genus",
+                putIfClean(rtn, "Encounter.genus",
                     new BulkValidatorException("invalid taxonomy value",
                     ApiException.ERROR_RETURN_CODE_INVALID));
-                rtn.put("Encounter.specificEpithet",
+                putIfClean(rtn, "Encounter.specificEpithet",
                     new BulkValidatorException("invalid taxonomy value",
                     ApiException.ERROR_RETURN_CODE_INVALID));
             }
@@ -167,19 +187,17 @@ public class BulkImportUtil {
             if ((pname == null) && (pprefix == null)) continue;
             if ((pname != null) && (pprefix != null)) continue;
             if (pname == null)
-                rtn.put(pnameKey,
+                putIfClean(rtn, pnameKey,
                     new BulkValidatorException("must have researchProjectName if given projectIdPrefix",
                     ApiException.ERROR_RETURN_CODE_REQUIRED));
             if (pprefix == null)
-                rtn.put(pprefixKey,
+                putIfClean(rtn, pprefixKey,
                     new BulkValidatorException("must have projectIdPrefix if given researchProjectName",
                     ApiException.ERROR_RETURN_CODE_REQUIRED));
         }
 
         // bulk-import boxes (spec 4.2 row layer): per-slot pairing, class, duplicate photos
         checkBoxSlots(rtn, fieldNames, identificationSkipped);
-
-        return rtn;
     }
 
     /**
@@ -342,6 +360,17 @@ public class BulkImportUtil {
         return null;
     }
 
+    // true when any of the columns is an Encounter.mediaAsset{N}.bbox box column
+    public static boolean hasBboxColumn(java.util.Collection<String> fieldNames) {
+        if (fieldNames == null) return false;
+        // findIndexedFieldNames swallows the unknown-field exception a tolerated column raises
+        for (String name : findIndexedFieldNames(new HashSet<String>(fieldNames),
+            "Encounter.mediaAsset.bbox")) {
+            if (name != null) return true;
+        }
+        return false;
+    }
+
     // sets a validation exception unless the field already holds one
     public static void putIfClean(Map<String, Object> map, String fieldName,
         BulkValidatorException ex) {
@@ -357,17 +386,17 @@ public class BulkImportUtil {
         if ((dateY != null) && (dateM != null) && (dateD != null)) {
             YearMonth yearMonth = YearMonth.of((Integer)dateY, (Integer)dateM);
             if (!yearMonth.isValidDay((Integer)dateD))
-                map.put(dkey,
+                putIfClean(map, dkey,
                     new BulkValidatorException("day is out of range for month",
                     ApiException.ERROR_RETURN_CODE_INVALID));
         }
         if ((dateM == null) && (dateD != null))
-            map.put(mkey,
+            putIfClean(map, mkey,
                 new BulkValidatorException("must supply a valid month along with day",
                 ApiException.ERROR_RETURN_CODE_REQUIRED,
                 BulkValidatorException.TYPE_REQUIRED_VALUE));
         if (Util.dateIsInFuture((Integer)dateY, (Integer)dateM, (Integer)dateD))
-            map.put(ykey,
+            putIfClean(map, ykey,
                 new BulkValidatorException("date is in the future",
                 ApiException.ERROR_RETURN_CODE_INVALID));
     }

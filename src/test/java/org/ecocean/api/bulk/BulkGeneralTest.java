@@ -817,4 +817,88 @@ class BulkGeneralTest {
         assertEquals("\u00c9a", GroupCollapse.foldKey("\u00c9A"));
         assertEquals("\uD801\uDD70", GroupCollapse.foldKey("\uD801\uDD70")); // U+10570 unchanged
     }
+
+    // today's literal synonym table, copied before FIELD_NAME_SYNONYMS became derived
+    private static final String[][] SYNONYMS_BEFORE = {
+        { "Encounter.id", "Encounter.catalogNumber" },
+        { "Encounter.sightingID", "Sighting.sightingID" },
+        { "Encounter.individualID", "MarkedIndividual.individualID" },
+        { "Encounter.latitude", "Encounter.decimalLatitude", "Sighting.decimalLatitude" },
+        { "Encounter.longitude", "Encounter.decimalLongitude", "Sighting.decimalLongitude" },
+        { "Sighting.dateInMilliseconds", "Sighting.millis", "Encounter.dateInMilliseconds",
+          "Encounter.year", "Sighting.year" },
+        { "Sighting.year", "Encounter.year" },
+        { "Sighting.month", "Encounter.month" },
+        { "Sighting.day", "Encounter.day" },
+        { "Sighting.hour", "Encounter.hour" },
+        { "Sighting.minutes", "Encounter.minutes" },
+        { "MarkedIndividual.nickName", "MarkedIndividual.nickname" },
+        { "Sighting.fieldSurveyCode", "Survey.id" },
+        { "Sighting.seaSurfaceTemp", "Sighting.seaSurfaceTemperature" },
+        { "Survey.vessel", "SurveyTrack.vesselID" },
+        { "TissueSample.sampleID", "MicrosatelliteMarkersAnalysis.analysisID",
+          "SexAnalysis.processingLabTaskID" }
+    };
+
+    private static Set<Set<String> > asSetOfSets(String[][] table) {
+        Set<Set<String> > out = new HashSet<Set<String> >();
+        for (String[] row : table) out.add(new HashSet<String>(java.util.Arrays.asList(row)));
+        return out;
+    }
+
+    @Test void synonymMembershipUnchanged() {
+        assertEquals(asSetOfSets(SYNONYMS_BEFORE), asSetOfSets(BulkValidator.FIELD_NAME_SYNONYMS));
+    }
+
+    @Test void canonicalNames() {
+        assertEquals("Encounter.id", BulkValidator.canonicalFieldName("Encounter.catalogNumber"));
+        assertEquals("Encounter.decimalLatitude",
+            BulkValidator.canonicalFieldName("Sighting.decimalLatitude"));
+        assertEquals("Encounter.dateInMilliseconds",
+            BulkValidator.canonicalFieldName("Sighting.millis"));
+        assertEquals("Encounter.year", BulkValidator.canonicalFieldName("Sighting.year"));
+        assertEquals("Encounter.year", BulkValidator.canonicalFieldName("Encounter.year"));
+        assertEquals("Encounter.genus", BulkValidator.canonicalFieldName("Encounter.genus"));
+    }
+
+    @Test void reboundKeepsValueChangesSlot() throws Exception {
+        BulkValidator src = new BulkValidator("Encounter.mediaAsset3", "a.jpg", null);
+        BulkValidator out = BulkValidator.rebound(src, "Encounter.mediaAsset0");
+
+        assertEquals("Encounter.mediaAsset0", out.getFieldName());
+        assertEquals(0, out.getIndexInt());
+        assertEquals("Encounter.mediaAsset", out.getIndexPrefix());
+        assertEquals("a.jpg", out.getValue());
+    }
+
+    private static boolean hasRequiredOnYear(Map<String, Object> res) {
+        Object o = res.get("Encounter.year");
+        return (o instanceof BulkValidatorException) &&
+               ((BulkValidatorException)o).isType(BulkValidatorException.TYPE_REQUIRED_VALUE);
+    }
+
+    @Test void labeledKeywordNamedMillisDoesNotSatisfyDate() {
+        Map<String, Set<String> > saved = BulkImportUtil.labeledKeywordMap;
+        try {
+            Map<String, Set<String> > kw = new java.util.LinkedHashMap<String, Set<String> >();
+            kw.put("millis", new HashSet<String>(java.util.Arrays.asList("x")));
+            BulkImportUtil.labeledKeywordMap = kw;
+            JSONObject row = new JSONObject();
+            row.put("Encounter.mediaAsset0.millis", "x");
+            row.put("Encounter.genus", "Genus");
+            row.put("Encounter.specificEpithet", "species");
+            Map<String, Object> res = BulkImportUtil.validateRow(row, mock(Shepherd.class));
+            assertTrue(res.get("Encounter.mediaAsset0.millis") instanceof BulkValidator);
+            assertTrue(hasRequiredOnYear(res));
+        } finally {
+            BulkImportUtil.labeledKeywordMap = saved;
+        }
+    }
+
+    @Test void monthWithoutYearIsRequiredYear() {
+        JSONObject row = new JSONObject();
+        row.put("Encounter.month", 3);
+        Map<String, Object> res = BulkImportUtil.validateRow(row, mock(Shepherd.class));
+        assertTrue(hasRequiredOnYear(res));
+    }
 }

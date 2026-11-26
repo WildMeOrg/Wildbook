@@ -112,11 +112,7 @@ public class BulkImporter {
     private static boolean hasBboxColumn(List<Map<String, Object> > rows) {
         if (rows == null) return false;
         for (Map<String, Object> row : rows) {
-            // findIndexedFieldNames swallows the unknown-field exception a tolerated column raises
-            for (String name : BulkImportUtil.findIndexedFieldNames(row.keySet(),
-                "Encounter.mediaAsset.bbox")) {
-                if (name != null) return true;
-            }
+            if (BulkImportUtil.hasBboxColumn(row.keySet())) return true;
         }
         return false;
     }
