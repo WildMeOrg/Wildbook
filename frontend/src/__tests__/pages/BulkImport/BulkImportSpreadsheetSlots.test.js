@@ -19,8 +19,6 @@ const A0 = "Encounter.mediaAsset0";
 const A1 = "Encounter.mediaAsset1";
 const A2 = "Encounter.mediaAsset2";
 
-const upload = uploadCsv;
-
 describe("BulkImportSpreadsheet photo slots", () => {
   test("a sheet dropped before site settings load is ignored, then parses with slots", async () => {
     const store = new BulkImportStore();
@@ -45,7 +43,7 @@ describe("BulkImportSpreadsheet photo slots", () => {
   });
 
   test("a boxed sheet keeps numbered photo columns unmerged", async () => {
-    const store = await upload(
+    const store = await uploadCsv(
       `${A0},${A2},${A0}.bbox\na.jpg,c.jpg,"1,2,3,4"\n`,
     );
     expect(store.columnsDef).toEqual(expect.arrayContaining([A0, A2]));
@@ -54,7 +52,7 @@ describe("BulkImportSpreadsheet photo slots", () => {
   });
 
   test("a box with three-digit groups stays text, not a thousands number", async () => {
-    const store = await upload(
+    const store = await uploadCsv(
       `${A0},${A0}.bbox,${A0}.theta\na.jpg,"362,285,296,342",0.3\n`,
     );
     expect(store.spreadsheetData[0][`${A0}.bbox`]).toBe("362,285,296,342");
@@ -102,7 +100,7 @@ describe("BulkImportSpreadsheet photo slots", () => {
   });
 
   test("an un-boxed sheet still merges photos into slot 0", async () => {
-    const store = await upload(`${A0},${A1}\na.jpg,b.jpg\n`);
+    const store = await uploadCsv(`${A0},${A1}\na.jpg,b.jpg\n`);
     expect(store.columnsDef).toContain(A0);
     expect(store.columnsDef).not.toContain(A1);
     expect(store.spreadsheetData[0][A0]).toBe("a.jpg, b.jpg");
@@ -110,7 +108,7 @@ describe("BulkImportSpreadsheet photo slots", () => {
 
   test("occurrenceAndSightingColumnsCollide", async () => {
     const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
-    const store = await upload(`${A0},Encounter.sex\na.jpg,male\n`);
+    const store = await uploadCsv(`${A0},Encounter.sex\na.jpg,male\n`);
     expect(store.spreadsheetData.length).toBe(1);
     // the drop zone returns once progress is back at 0; stale data stays
     act(() => store.setSpreadsheetUploadProgress(0));
@@ -160,7 +158,7 @@ describe("BulkImportSpreadsheet photo slots", () => {
   });
 
   test("a sheet whose rows are all blank keeps its headers", async () => {
-    const store = await upload(`Occurrence.comments,${A0}\n , \n`, 0);
+    const store = await uploadCsv(`Occurrence.comments,${A0}\n , \n`, 0);
     expect(store.rawColumns).toEqual(["Sighting.comments", A0]);
     expect(store.columnsDef).toEqual(
       expect.arrayContaining(["Sighting.comments", A0]),
@@ -168,7 +166,7 @@ describe("BulkImportSpreadsheet photo slots", () => {
   });
 
   test("editAfterBlankRowLandsOnSameRawRow", async () => {
-    const store = await upload(
+    const store = await uploadCsv(
       `Encounter.sex,${A0}\nmale,a.jpg\n , \nfemale,b.jpg\n`,
       2,
     );

@@ -1252,7 +1252,6 @@ describe("BulkImportStore dates keep their source columns", () => {
   });
   const A = { "Encounter.year": 2020, "Encounter.sex": "male" };
   const B = { "Encounter.year": 2021, "Encounter.sex": "female" };
-  const C = { "Encounter.year": 2022, "Encounter.sex": "male" };
   const blank = { "Encounter.year": " ", "Encounter.sex": "" };
   const grid = (row) => ({
     ...row,
@@ -1280,11 +1279,8 @@ describe("BulkImportStore dates keep their source columns", () => {
     expectSpreadsheetCleared(cleared);
   });
 
-  test("old [A, B, C, blank] / [A, B, C] draft with B cleared: spreadsheet cleared", () => {
-    const clearedB = { "Encounter.year": "", "Encounter.sex": "" };
-    const cleared = store.hydrate(
-      legacyDraft([A, clearedB, C, blank], [grid(A), clearedB, grid(C)]),
-    );
+  test("a draft with fewer source rows than grid rows: spreadsheet cleared", () => {
+    const cleared = store.hydrate(legacyDraft([A], [grid(A), grid(B)]));
     expectSpreadsheetCleared(cleared);
   });
 

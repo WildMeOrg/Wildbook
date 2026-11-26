@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import BulkImportStore from "../../../pages/BulkImport/BulkImportStore";
 import usePostBulkImport from "../../../models/bulkImport/usePostBulkImport";
 import { client } from "../../../api/client";
+import { CAPABLE } from "../../../__fixtures__/bulkImportUpload";
 
 jest.mock("@flowjs/flow.js", () =>
   jest.fn().mockImplementation(() => ({
@@ -15,7 +16,6 @@ jest.mock("../../../api/client", () => ({ client: { post: jest.fn() } }));
 
 const A0 = "Encounter.mediaAsset0";
 const A2 = "Encounter.mediaAsset2";
-const CAPABLE = ["Encounter.mediaAsset#", "Encounter.mediaAsset#.bbox"];
 
 const boxedStore = (rows, extraCols = []) => {
   const store = new BulkImportStore();

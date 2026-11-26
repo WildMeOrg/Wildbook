@@ -5,13 +5,13 @@ import { BulkImportSpreadsheet } from "../pages/BulkImport/BulkImportSpreadsheet
 import BulkImportStore from "../pages/BulkImport/BulkImportStore";
 import { renderWithProviders } from "../utils/utils";
 
+// site settings' indexable fields that allow photo slots and boxes
+export const CAPABLE = ["Encounter.mediaAsset#", "Encounter.mediaAsset#.bbox"];
+
 // a store whose site settings allow photo slots and boxes
 export const boxStore = () => {
   const store = new BulkImportStore();
-  store.setIndexableFields([
-    "Encounter.mediaAsset#",
-    "Encounter.mediaAsset#.bbox",
-  ]);
+  store.setIndexableFields(CAPABLE);
   return store;
 };
 

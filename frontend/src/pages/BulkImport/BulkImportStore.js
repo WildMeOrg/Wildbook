@@ -940,8 +940,7 @@ export class BulkImportStore {
   // returns true when the saved spreadsheet could not be restored and was cleared
   // (images are kept): the user uploads the spreadsheet again
   hydrate(state) {
-    let spreadsheetCleared = false;
-    runInAction(() => {
+    return runInAction(() => {
       Object.entries(state).forEach(([key, value]) => {
         const field = `_${key}`;
         if (field in this) this[field] = value;
@@ -955,14 +954,11 @@ export class BulkImportStore {
       }
       // ...and dropped whitespace-only rows from the grid but not from rawData, so its
       // edits could land on the wrong record: such a draft's spreadsheet is cleared
-      if (
-        (this._rawData?.length ?? 0) !== (this._spreadsheetData?.length ?? 0)
-      ) {
-        this.resetSpreadsheet();
-        spreadsheetCleared = true;
-      }
+      const mismatch =
+        (this._rawData?.length ?? 0) !== (this._spreadsheetData?.length ?? 0);
+      if (mismatch) this.resetSpreadsheet();
+      return mismatch;
     });
-    return spreadsheetCleared;
   }
 
   clearSubmissionErrors() {
