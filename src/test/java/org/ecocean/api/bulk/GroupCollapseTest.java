@@ -1475,4 +1475,71 @@ class GroupCollapseTest {
         bulkUtil.verify(() -> BulkImportUtil.encounterIdsInUse(
             org.mockito.ArgumentMatchers.eq(new LinkedHashSet<String>(List.of(ID_B))), any()));
     }
+
+    // Important 1 (final review): a conflict message is bounded whatever the group's size
+    static final int MESSAGE_BOUND = 500;
+
+    static void assertBoundedMessages(GroupedRows g) {
+        assertFalse(g.issues().isEmpty());
+        for (GroupedRows.Issue is : g.issues())
+            assertTrue(is.error.getMessage().length() < MESSAGE_BOUND, is.error.getMessage());
+    }
+
+    @Test void conflictMessageListsThreeValuesThenCount() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.behavior", "a"),
+            bare("G", "b.jpg", "Encounter.behavior", "b"), bare("G", "c.jpg", "Encounter.behavior", "c"),
+            bare("G", "d.jpg", "Encounter.behavior", "d"));
+        assertEquals(4, g.issues().size(), g.issues().toString());
+        for (GroupedRows.Issue is : g.issues())
+            assertEquals("rows of this group disagree on Encounter.behavior: \"a\", \"b\", \"c\" " +
+                "and 1 more.", is.error.getMessage());
+    }
+
+    @Test void largeGroupDistinctRemarksBounded() {
+        String filler = "x".repeat(1000); // each value is cut in the message
+        JSONObject[] rows = new JSONObject[200];
+        for (int i = 0; i < rows.length; i++)
+            rows[i] = (i == 0) ? full("G", "p0.jpg", "Encounter.researcherComments", i + filler) :
+                bare("G", "p" + i + ".jpg", "Encounter.researcherComments", i + filler);
+        GroupedRows g = collapse(rows);
+        assertBoundedMessages(g);
+        int conflicts = 0;
+        for (GroupedRows.Issue is : g.issues()) {
+            if (!is.error.isType(BulkValidatorException.TYPE_GROUP_CONFLICT)) continue;
+            conflicts++;
+            assertTrue(is.error.getMessage().contains(" and 197 more."), is.error.getMessage());
+            assertTrue(is.error.getMessage().endsWith(
+                "Put encounter remarks on one row of the group, or make them identical."),
+                is.error.getMessage());
+        }
+        assertEquals(200, conflicts, g.issues().toString());
+    }
+
+    @Test void largeGroupDistinctSexLikeValuesBounded() {
+        JSONObject[] rows = new JSONObject[200];
+        for (int i = 0; i < rows.length; i++)
+            rows[i] = (i == 0) ? full("G", "p0.jpg", "Encounter.behavior", "b" + i) :
+                bare("G", "p" + i + ".jpg", "Encounter.behavior", "b" + i);
+        GroupedRows g = collapse(rows);
+        assertBoundedMessages(g);
+        assertEquals(200, issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT).size());
+    }
+
+    @Test void largeGroupCompoundConflictBounded() {
+        projectsExist();
+        JSONObject[] rows = new JSONObject[200];
+        for (int i = 0; i < rows.length; i++)
+            rows[i] = (i == 0) ? full("G", "p0.jpg", P0, "P" + i, N0, "Proj") :
+                bare("G", "p" + i + ".jpg", P0, "P" + i, N0, "Proj");
+        GroupedRows g = collapse(rows);
+        assertBoundedMessages(g);
+        int conflicts = 0;
+        for (GroupedRows.Issue is : g.issues()) {
+            if (!is.error.isType(BulkValidatorException.TYPE_GROUP_CONFLICT)) continue;
+            conflicts++;
+            assertTrue(is.error.getMessage().startsWith("rows 0, 1, 2 and 197 more of this group"),
+                is.error.getMessage());
+        }
+        assertEquals(400, conflicts, g.issues().toString());
+    }
 }

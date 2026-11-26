@@ -31,6 +31,9 @@ final class GroupCompound {
     static final Set<String> SAMPLE_IDS = Set.of(SAMPLE_ID,
         "MicrosatelliteMarkersAnalysis.analysisID", "SexAnalysis.processingLabTaskID");
 
+    // a conflict message names at most this many differing columns, then "and N more"
+    static final int DIFFERING_LIMIT = 5;
+
     private GroupCompound() {}
 
     /**
@@ -212,10 +215,13 @@ final class GroupCompound {
             }
             if (missing || (values.size() > 1)) differing.add(col);
         }
-        StringBuilder rowList = new StringBuilder();
-        for (int r : suppliers) rowList.append((rowList.length() == 0) ? "" : ", ").append(r);
-        return "rows " + rowList + " of this group give different project, submitter, name, " +
-                   "measurement or sample data (differing: " + String.join(", ", differing) +
+        // bounded whatever the group's size: every compound cell of every supplier carries it
+        List<String> rowList = new ArrayList<String>();
+        for (int r : suppliers) rowList.add(Integer.toString(r));
+        return "rows " + GroupCollapse.firstFew(rowList, GroupCollapse.LIST_LIMIT) +
+                   " of this group give different project, submitter, name, " +
+                   "measurement or sample data (differing: " +
+                   GroupCollapse.firstFew(differing, DIFFERING_LIMIT) +
                    "); every row that gives any of it must give the same columns with the same values.";
     }
 

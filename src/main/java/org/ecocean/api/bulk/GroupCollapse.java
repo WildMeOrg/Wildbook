@@ -1,6 +1,7 @@
 package org.ecocean.api.bulk;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -37,7 +38,30 @@ public final class GroupCollapse {
     static final String SOCIAL_UNIT = "SocialUnit.socialUnitName";
     static final String ROLE = "Membership.role";
 
+    // a conflict message names at most this many values (or rows), then "and N more"
+    static final int LIST_LIMIT = 3;
+    // a value quoted in a conflict message is cut to this many characters
+    static final int VALUE_CLIP = 60;
+
     private GroupCollapse() {}
+
+    // the first limit items, comma-separated, then " and N more" for the rest
+    static String firstFew(Collection<String> items, int limit) {
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        for (String s : items) {
+            if (i == limit) break;
+            sb.append((i == 0) ? "" : ", ").append(s);
+            i++;
+        }
+        if (items.size() > limit) sb.append(" and ").append(items.size() - limit).append(" more");
+        return sb.toString();
+    }
+
+    // a value as quoted in a message: at most VALUE_CLIP characters, "..." marking a cut
+    static String clip(String v) {
+        return (v.length() <= VALUE_CLIP) ? v : v.substring(0, VALUE_CLIP) + "...";
+    }
 
     // ASCII-only case fold: A-Z -> a-z on UTF-16 units; every other character is unchanged
     public static String foldKey(String trimmedKey) {
@@ -496,14 +520,12 @@ public final class GroupCollapse {
         if (distinct.size() > 1) {
             Set<Integer> rowsSeen = new HashSet<Integer>();
             for (Entry e : valid) rowsSeen.add(e.cell.row);
+            // bounded whatever the group's size: every contributing cell carries this message
+            List<String> quoted = new ArrayList<String>();
+            for (String v : distinct) quoted.add('"' + clip(v) + '"');
             StringBuilder msg = new StringBuilder(((rowsSeen.size() > 1) ?
-                "rows of this group disagree on " : "these columns disagree on ") + family + ":");
-            String sep = " ";
-            for (String v : distinct) {
-                msg.append(sep).append('"').append(v).append('"');
-                sep = ", ";
-            }
-            msg.append('.');
+                "rows of this group disagree on " : "these columns disagree on ") + family + ": " +
+                firstFew(quoted, LIST_LIMIT) + ".");
             if (REMARKS_FAMILIES.contains(family)) msg.append(' ').append(REMARKS_HINT);
             for (Entry e : valid)
                 st.issue(e.cell.row, e.cell.field, new BulkValidatorException(msg.toString(),
