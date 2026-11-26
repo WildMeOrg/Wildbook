@@ -13,7 +13,7 @@ function normalizeOptions(options = []) {
   return options.map((opt) =>
     typeof opt === "string"
       ? { value: opt, label: opt }
-      : { value: String(opt.value), label: opt.label },
+      : { ...opt, value: String(opt.value), label: opt.label },
   );
 }
 
