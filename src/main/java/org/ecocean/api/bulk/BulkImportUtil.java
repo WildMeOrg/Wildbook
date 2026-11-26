@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import org.ecocean.api.ApiException;
 import javax.jdo.Query;
 import org.ecocean.Base;
@@ -125,6 +126,16 @@ public class BulkImportUtil {
     // error never overwrites an error the field already has (putIfClean).
     public static void validateDependent(Map<String, Object> rtn, Set<String> fieldNames,
         Shepherd myShepherd, boolean identificationSkipped) {
+        validateDependent(rtn, fieldNames, myShepherd, identificationSkipped,
+            UnaryOperator.identity());
+    }
+
+    /**
+     * As above; sourceName gives the name a message uses for a field of rtn (a grouped row's
+     * merged field names its source column; identity for an ungrouped row).
+     */
+    public static void validateDependent(Map<String, Object> rtn, Set<String> fieldNames,
+        Shepherd myShepherd, boolean identificationSkipped, UnaryOperator<String> sourceName) {
         // try to make sure we set date *somehow*; labeled keyword columns never count
         String hasDateMillis = null;
         String hasDateYear = null;
@@ -213,7 +224,7 @@ public class BulkImportUtil {
         }
 
         // bulk-import boxes (spec 4.2 row layer): per-slot pairing, class, duplicate photos
-        checkBoxSlots(rtn, fieldNames, identificationSkipped);
+        checkBoxSlots(rtn, fieldNames, identificationSkipped, sourceName);
     }
 
     /**
@@ -231,7 +242,7 @@ public class BulkImportUtil {
      * boxed slot needs them.
      */
     private static void checkBoxSlots(Map<String, Object> rtn, Set<String> fieldNames,
-        boolean identificationSkipped) {
+        boolean identificationSkipped, UnaryOperator<String> sourceName) {
         List<String> bareSlots = findIndexedFieldNames(fieldNames, "Encounter.mediaAsset");
         Map<String, List<String> > boxFields = boxFieldNames(fieldNames);
         int numSlots = bareSlots.size();
@@ -261,7 +272,8 @@ public class BulkImportUtil {
                         String name = boxFieldName(boxFields, suffix, n);
                         if (getValue(rtn, name) != null)
                             putIfClean(rtn, name,
-                                new BulkValidatorException(name + " needs a box in " + bboxName,
+                                new BulkValidatorException(sourceName.apply(name) +
+                                " needs a box in " + sourceName.apply(bboxName),
                                 ApiException.ERROR_RETURN_CODE_REQUIRED,
                                 BulkValidatorException.TYPE_REQUIRED_VALUE, name));
                     }
@@ -277,7 +289,8 @@ public class BulkImportUtil {
                 if (cls == null) {
                     String where = rtn.containsKey(classNm) ? classNm : bboxName;
                     putIfClean(rtn, where,
-                        new BulkValidatorException("a box needs an iaClass in " + classNm,
+                        new BulkValidatorException("a box needs an iaClass in " +
+                        sourceName.apply(classNm),
                         ApiException.ERROR_RETURN_CODE_REQUIRED,
                         BulkValidatorException.TYPE_REQUIRED_VALUE, where));
                 } else if (sciName != null) {

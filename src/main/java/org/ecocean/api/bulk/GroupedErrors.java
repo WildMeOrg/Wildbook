@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.UnaryOperator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -15,7 +14,7 @@ import org.json.JSONObject;
  * The field errors of a collapsed upload, reported on source cells in source-row order, and the
  * rule that makes a request fatal. Each failure is reported once: a source-cell failure from
  * GroupedRows.issues(), a dependent failure from the merged map it lives in (mapped back through
- * cellsFor(), its text through sourceText()). Any error on a grouped row, any issue, and any bad
+ * cellsFor(); its text is copied as it is, the messages already naming source columns). Any error on a grouped row, any issue, and any bad
  * photo of a group make the request fatal, whatever the tolerance. Ungrouped rows report exactly
  * as before grouping existed.
  */
@@ -61,11 +60,11 @@ public final class GroupedErrors {
         List<Entry> entries = new ArrayList<Entry>();
 
         for (GroupedRows.Issue i : g.issues())
-            entries.add(new Entry(i.row, json(i.row, i.field, i.error, i.groupKey, null), false,
+            entries.add(new Entry(i.row, json(i.row, i.field, i.error, i.groupKey, false), false,
                 null));
         for (GroupedRows.Issue w : g.warnings()) {
             boolean warning = w.error.treatAsWarning(badFieldnamesAreWarnings);
-            entries.add(new Entry(w.row, json(w.row, w.field, w.error, w.groupKey, null), warning,
+            entries.add(new Entry(w.row, json(w.row, w.field, w.error, w.groupKey, false), warning,
                 w.error.toString()));
         }
         List<Map<String, Object> > merged = g.mergedRows();
@@ -76,13 +75,13 @@ public final class GroupedErrors {
                 BulkValidatorException bve = (BulkValidatorException)f.getValue();
                 if (!grouped) {
                     int row = g.membersOf(m).get(0);
-                    entries.add(new Entry(row, json(row, f.getKey(), bve, null, null),
+                    entries.add(new Entry(row, json(row, f.getKey(), bve, null, false),
                         bve.treatAsWarning(badFieldnamesAreWarnings), bve.toString()));
                     continue;
                 }
                 for (GroupedRows.Cell c : g.cellsFor(m, f.getKey()))
                     entries.add(new Entry(c.row, json(c.row, c.field, bve,
-                        g.groupKeyAsTyped(c.row), mergedText(g, m)), false, null));
+                        g.groupKeyAsTyped(c.row), true), false, null));
             }
         }
         entries.sort(Comparator.comparingInt((Entry e) -> e.row)); // stable: in-row order kept
@@ -104,27 +103,23 @@ public final class GroupedErrors {
         return ge;
     }
 
-    // rewrites a merged-row text to source names
-    private static UnaryOperator<String> mergedText(GroupedRows g, int m) {
-        return text -> g.sourceText(m, text);
-    }
-
+    // merged: a merged-row diagnostic, whose nested errors name the source cell
     private static JSONObject json(int row, String field, BulkValidatorException bve,
-        String groupKey, UnaryOperator<String> text) {
+        String groupKey, boolean merged) {
         JSONObject err = new JSONObject();
         err.put("rowNumber", row);
         err.put("fieldName", field);
         err.put("type", bve.getType());
         JSONArray errs = bve.getErrors();
-        if ((text != null) && (errs != null)) {
-            errs = new JSONArray(text.apply(errs.toString()));
+        if (merged && (errs != null)) {
+            errs = new JSONArray(errs.toString()); // a copy: the exception is shared by its cells
             for (int i = 0; i < errs.length(); i++) {
                 JSONObject one = errs.optJSONObject(i);
                 if ((one != null) && one.has("fieldName")) one.put("fieldName", field);
             }
         }
         err.put("errors", errs);
-        err.put("details", (text == null) ? bve.toString() : text.apply(bve.toString()));
+        err.put("details", bve.toString());
         if (groupKey != null) err.put("groupKey", groupKey);
         return err;
     }

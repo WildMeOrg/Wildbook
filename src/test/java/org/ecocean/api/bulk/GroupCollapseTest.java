@@ -983,39 +983,51 @@ class GroupCollapseTest {
         assertEquals(3, ge.numberRowsValid());
     }
 
-    @Test void sourceTextNamesSourceSlot() {
+    @Test void boxMessagesNameSourceColumns() {
         GroupedRows g = collapse(full("G", "a.jpg"), obj(KEY, "G", "Encounter.mediaAsset7", "b.jpg",
-            "Encounter.mediaAsset7.iaClass", "body"), obj("Encounter.mediaAsset0", "d.jpg"));
-        assertEquals("in Encounter.mediaAsset7.iaClass", g.sourceText(0, "in Encounter.mediaAsset1.iaClass"));
-        assertEquals("Encounter.mediaAsset7 and Encounter.mediaAsset0",
-            g.sourceText(0, "Encounter.mediaAsset1 and Encounter.mediaAsset0"));
-        // a packed field with no contributor maps through its photo; an unknown slot is unchanged
-        assertEquals("in Encounter.mediaAsset7.bbox", g.sourceText(0, "in Encounter.mediaAsset1.bbox"));
-        assertEquals("Encounter.mediaAsset9.bbox", g.sourceText(0, "Encounter.mediaAsset9.bbox"));
+            "Encounter.mediaAsset7.iaClass", "body"), obj("Encounter.mediaAsset0", "d.jpg",
+            "Encounter.mediaAsset1", "e.jpg", "Encounter.mediaAsset1.iaClass", "body"));
         // the importer's box message on the merged row names the source columns
         BulkValidatorException ex = mergedError(g, 0, "Encounter.mediaAsset1.iaClass");
         assertNotNull(ex, g.mergedRows().toString());
         assertEquals(List.of(cell(1, "Encounter.mediaAsset7.iaClass")),
             g.cellsFor(0, "Encounter.mediaAsset1.iaClass"));
         assertEquals("Encounter.mediaAsset7.iaClass needs a box in Encounter.mediaAsset7.bbox",
-            g.sourceText(0, ex.getMessage()));
-        // an ungrouped row is unchanged
-        assertEquals("in Encounter.mediaAsset1.iaClass", g.sourceText(1, "in Encounter.mediaAsset1.iaClass"));
+            ex.getMessage());
+        // an ungrouped row's message is today's
+        assertEquals("Encounter.mediaAsset1.iaClass needs a box in Encounter.mediaAsset1.bbox",
+            mergedError(g, 1, "Encounter.mediaAsset1.iaClass").getMessage());
     }
 
-    @Test void sourceTextKeepsFilenamesThatLookLikeFields() {
-        // a file named like a field, in source slot 7, packed to slot 0
-        GroupedRows g = collapse(obj(KEY, "G", "Encounter.genus", "Genus",
-            "Encounter.specificEpithet", "species", "Encounter.year", 2020,
-            "Encounter.mediaAsset7", "Encounter.mediaAsset0.jpg"),
-            bare("G", "Encounter.mediaAsset1"));
-        assertEquals(List.of(cell(0, "Encounter.mediaAsset7")), g.contributorsOf(0, "Encounter.mediaAsset0"));
-        assertEquals("photo Encounter.mediaAsset0.jpg is missing",
-            g.sourceText(0, "photo Encounter.mediaAsset0.jpg is missing"));
-        // and the JSON-escaped serialized form, while real field names are still rewritten
-        assertEquals("{\"details\":\"Encounter.mediaAsset1 in Encounter.mediaAsset7\"}",
-            g.sourceText(0, "{\"details\":\"Encounter.mediaAsset1 in Encounter.mediaAsset0\"}"));
-        assertEquals("in Encounter.mediaAsset7.bbox", g.sourceText(0, "in Encounter.mediaAsset0.bbox"));
+    // Codex r2 #2: a photo named like a field, or "0", in source slot 7 packed to slot 0
+    @Test void filenamesAreNeverRewritten() {
+        for (String photo : new String[] { "Encounter.mediaAsset0", "0" }) {
+            GroupedRows g = collapse(obj(KEY, "G", "Encounter.genus", "Genus",
+                "Encounter.specificEpithet", "species", "Encounter.year", 2020,
+                "Encounter.mediaAsset7", photo, "Encounter.mediaAsset7.iaClass", "body"),
+                bare("G", "b.jpg"));
+            assertEquals(List.of(cell(0, "Encounter.mediaAsset7")),
+                g.contributorsOf(0, "Encounter.mediaAsset0"), photo);
+            assertEquals("Encounter.mediaAsset7.iaClass needs a box in Encounter.mediaAsset7.bbox",
+                mergedError(g, 0, "Encounter.mediaAsset0.iaClass").getMessage(), photo);
+            // a servlet finding that quotes the filename (as checkBoxedFiles writes it into the
+            // merged row) reaches the response verbatim, on the source cell
+            String quoted = "photo " + photo + " has a box on row 3 but none here";
+            g.mergedRows().get(0).put("Encounter.mediaAsset0", new BulkValidatorException(quoted,
+                ApiException.ERROR_RETURN_CODE_INVALID, BulkValidatorException.TYPE_INVALID_VALUE,
+                "Encounter.mediaAsset0"));
+            JSONObject err = null;
+            for (JSONObject e : GroupedErrors.collect(g, true).errors()) {
+                if (e.getString("details").contains("has a box")) err = e;
+            }
+            assertNotNull(err, photo);
+            assertEquals("Encounter.mediaAsset7", err.getString("fieldName"), photo);
+            assertTrue(err.getString("details").endsWith(quoted), err.toString());
+            assertEquals(quoted, err.getJSONArray("errors").getJSONObject(0).getString("details"),
+                err.toString());
+            assertEquals("Encounter.mediaAsset7",
+                err.getJSONArray("errors").getJSONObject(0).getString("fieldName"));
+        }
     }
 
     @Test void positionalSparseOrdinal() {

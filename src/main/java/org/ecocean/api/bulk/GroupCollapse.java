@@ -412,7 +412,7 @@ public final class GroupCollapse {
         for (String p : poisoned) merged.put(p, placeholder);
         Set<String> checked = new HashSet<String>(merged.keySet());
         BulkImportUtil.validateDependent(merged, new HashSet<String>(checked), st.sh,
-            st.identificationSkipped);
+            st.identificationSkipped, name -> sourceName(contrib, name));
         merged.values().removeIf(v -> v == placeholder);
         // project pairing on a grouped row is C4's (by index, so project00 pairs with project0)
         merged.keySet().removeIf(k -> !checked.contains(k) && GroupCompound.isCompound(k));
@@ -606,6 +606,21 @@ public final class GroupCollapse {
         Map<String, Object> raw, String name, Entry e) {
         contrib.computeIfAbsent(name, k -> new ArrayList<GroupedRows.Cell>()).add(e.cell);
         raw.putIfAbsent(name, e.raw);
+    }
+
+    /**
+     * The source column a message names for a merged field: its single contributor; else, for a
+     * packed photo's field (Encounter.mediaAsset{k}.bbox, ...), that photo's source column plus
+     * the same suffix; else the merged name itself.
+     */
+    static String sourceName(Map<String, List<GroupedRows.Cell> > contrib, String merged) {
+        List<GroupedRows.Cell> own = contrib.get(merged);
+        if ((own != null) && (own.size() == 1)) return own.get(0).field;
+        BulkImportUtil.Slot slot = BulkImportUtil.slotOf(merged);
+        if ((slot == null) || !slot.prefix.startsWith(GroupPhotos.PHOTO)) return merged;
+        List<GroupedRows.Cell> photo = contrib.get(GroupPhotos.PHOTO + slot.index);
+        if ((photo == null) || (photo.size() != 1)) return merged;
+        return photo.get(0).field + slot.prefix.substring(GroupPhotos.PHOTO.length());
     }
 
     // absent on a grouped row: null, JSON null, or text that is empty after trim()
