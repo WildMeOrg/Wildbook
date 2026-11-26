@@ -276,7 +276,9 @@ describe("BulkImportSetLocation duplicate submission (409)", () => {
     store._rawColumns = ["col1"];
     store._columnsDef = [...allRequiredColumns];
     store._spreadsheetUploadProgress = 100;
-    store._rawData = [["data1"]];
+    store._rawData = [{ col1: "data1" }];
+    // one grid row per stored row, so Start Import is enabled
+    store._spreadsheetData = [{ col1: "data1" }];
     store.setActiveStep(3);
     store.saveState();
     usePostBulkImport.mockReturnValue({
