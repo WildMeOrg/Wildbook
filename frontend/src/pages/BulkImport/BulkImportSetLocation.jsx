@@ -130,12 +130,6 @@ export const BulkImportSetLocation = observer(({ store }) => {
         );
         setLastEditedDate(dayjs().format("YYYY-MM-DD"));
         setShowSuccessModal(true);
-      } else if (result?.status === 400) {
-        console.error(
-          "Bulk import failed with status 400:",
-          result.data?.errors,
-        );
-        showFailure(result.data, "Unknown error");
       } else {
         console.error("Bulk import failed with unexpected status:", result);
         showFailure(null, "Unexpected error during import");

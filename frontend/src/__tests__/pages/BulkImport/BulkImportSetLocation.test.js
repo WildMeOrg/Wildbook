@@ -149,9 +149,8 @@ describe("BulkImportSetLocation", () => {
   });
 
   it("submits import and shows failure modal on status 400", async () => {
-    submitMock.mockResolvedValue({
-      status: 400,
-      data: { errors: "error occurred" },
+    submitMock.mockRejectedValue({
+      response: { status: 400, data: { errors: "error occurred" } },
     });
     render(<BulkImportSetLocation store={store} />);
 
@@ -168,7 +167,9 @@ describe("BulkImportSetLocation", () => {
 
   it("a 400 with a list of errors clears any earlier message", async () => {
     const errors = [{ rowNumber: 0, fieldName: "Encounter.genus" }];
-    submitMock.mockResolvedValue({ status: 400, data: { errors } });
+    submitMock.mockRejectedValue({
+      response: { status: 400, data: { errors } },
+    });
     render(<BulkImportSetLocation store={store} />);
 
     await act(async () => {
@@ -285,9 +286,7 @@ describe("BulkImportSetLocation duplicate submission (409)", () => {
     fireEvent.click(await screen.findByText("Review Data"));
     expect(store.activeStep).toBe(2);
 
-    expect(() =>
-      render(<BulkImportTableReview store={store} />),
-    ).not.toThrow();
+    expect(() => render(<BulkImportTableReview store={store} />)).not.toThrow();
     expect(JSON.stringify(store.rawData)).toBe(rawBefore);
   });
 
@@ -308,9 +307,7 @@ describe("BulkImportSetLocation duplicate submission (409)", () => {
     );
     expect(typeof store.submissionErrors).not.toBe("string");
     fireEvent.click(await screen.findByText("Review Data"));
-    expect(() =>
-      render(<BulkImportTableReview store={store} />),
-    ).not.toThrow();
+    expect(() => render(<BulkImportTableReview store={store} />)).not.toThrow();
   });
 
   it("a 409 that is not DUPLICATE_IMPORT is not 'already submitted'", async () => {
