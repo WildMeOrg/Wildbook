@@ -19,7 +19,7 @@
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
 
     <geotools.version>23.0</geotools.version>
-    <log4j2.version>2.24.1</log4j2.version>
+    <log4j2.version>2.25.4</log4j2.version>
     <junit.version>5.11.0</junit.version>
     <mockito.version>4.11.0</mockito.version>
     <testcontainers.version>2.0.3</testcontainers.version>
