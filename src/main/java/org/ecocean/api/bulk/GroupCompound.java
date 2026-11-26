@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -197,30 +196,33 @@ final class GroupCompound {
         for (GroupCollapse.Entry e : entries) poisoned.add(mergedName(e.cell.field));
     }
 
-    // which rows supply the set, and which columns differ between them
+    // which rows supply the set, and which columns differ between them (each name clipped: a
+    // zero-padded index makes a legal column name arbitrarily long)
     private static String conflictMessage(List<Integer> suppliers, List<Map<String, String> > sets) {
-        Set<String> columns = new TreeSet<String>();
-        for (Map<String, String> s : sets) columns.addAll(s.keySet());
-        List<String> differing = new ArrayList<String>();
-        for (String col : columns) {
-            Set<String> values = new LinkedHashSet<String>();
-            boolean missing = false;
-            for (Map<String, String> s : sets) {
-                if (s.containsKey(col)) {
-                    values.add(s.get(col));
-                } else {
-                    missing = true;
-                }
+        // one pass over the supplied cells: each column's first value, how many sets give it, and
+        // whether any gives another value
+        Map<String, String> first = new HashMap<String, String>();
+        Map<String, Integer> count = new HashMap<String, Integer>();
+        Set<String> differing = new TreeSet<String>();
+        for (Map<String, String> s : sets) {
+            for (Map.Entry<String, String> cell : s.entrySet()) {
+                String earlier = first.putIfAbsent(cell.getKey(), cell.getValue());
+                count.merge(cell.getKey(), 1, Integer::sum);
+                if ((earlier != null) && !earlier.equals(cell.getValue())) differing.add(cell.getKey());
             }
-            if (missing || (values.size() > 1)) differing.add(col);
         }
+        for (Map.Entry<String, Integer> c : count.entrySet()) {
+            if (c.getValue() < sets.size()) differing.add(c.getKey());
+        }
+        List<String> shown = new ArrayList<String>();
+        for (String col : differing) shown.add(GroupCollapse.clip(col));
         // bounded whatever the group's size: every compound cell of every supplier carries it
         List<String> rowList = new ArrayList<String>();
         for (int r : suppliers) rowList.add(Integer.toString(r));
         return "rows " + GroupCollapse.firstFew(rowList, GroupCollapse.LIST_LIMIT) +
                    " of this group give different project, submitter, name, " +
                    "measurement or sample data (differing: " +
-                   GroupCollapse.firstFew(differing, DIFFERING_LIMIT) +
+                   GroupCollapse.firstFew(shown, DIFFERING_LIMIT) +
                    "); every row that gives any of it must give the same columns with the same values.";
     }
 
@@ -435,21 +437,19 @@ final class GroupCompound {
         String[][] tokens = new String[3][];
         for (int i = 0; i < 3; i++) tokens[i] = c.value(trio[i]).split(",", -1);
         String problem = null;
-        List<String> canonical = new ArrayList<String>(List.of("", "", ""));
         if ((tokens[0].length != tokens[1].length) || (tokens[1].length != tokens[2].length)) {
             problem = "they list different numbers of loci";
         } else {
+            // each token is normalised in place (trimmed name, integer alleles), joined once below
             for (int locus = 0; (locus < tokens[0].length) && (problem == null); locus++) {
-                String sep = (locus == 0) ? "" : ",";
-                String name = tokens[0][locus].trim();
-                if (name.isEmpty()) problem = "locus " + (locus + 1) + " has no name";
-                canonical.set(0, canonical.get(0) + sep + name);
+                tokens[0][locus] = tokens[0][locus].trim();
+                if (tokens[0][locus].isEmpty()) problem = "locus " + (locus + 1) + " has no name";
                 for (int a = 1; (a < 3) && (problem == null); a++) {
                     Integer v = parseAllele(tokens[a][locus]);
                     if (v == null) {
                         problem = "allele \"" + tokens[a][locus] + "\" is not an integer";
                     } else {
-                        canonical.set(a, canonical.get(a) + sep + Integer.toString(v));
+                        tokens[a][locus] = Integer.toString(v);
                     }
                 }
             }
@@ -462,9 +462,9 @@ final class GroupCompound {
         }
         for (int i = 0; i < 3; i++) {
             try {
-                merged.put(literal[i], new BulkValidator(literal[i], canonical.get(i), st.sh));
+                merged.put(literal[i], new BulkValidator(literal[i], String.join(",", tokens[i]), st.sh));
             } catch (BulkValidatorException ex) {
-                throw new IllegalStateException("canonical genotype rejected: " + canonical, ex);
+                throw new IllegalStateException("canonical genotype rejected: " + literal[i], ex);
             }
         }
     }

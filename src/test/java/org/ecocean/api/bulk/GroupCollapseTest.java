@@ -1679,4 +1679,23 @@ class GroupCollapseTest {
         }
         assertEquals(400, conflicts, g.issues().toString());
     }
+
+    @Test void longZeroPaddedHeaderClippedInConflictMessage() {
+        projectsExist();
+        String longPrefix = "Encounter.project" + "0".repeat(5000) + ".projectIdPrefix";
+        JSONObject[] rows = new JSONObject[50];
+        for (int i = 0; i < rows.length; i++)
+            rows[i] = (i == 0) ? full("G", "p0.jpg", longPrefix, "P", N0, "Proj") :
+                bare("G", "p" + i + ".jpg", (i % 2 == 0) ? longPrefix : P0, "P", N0, "Proj");
+        GroupedRows g = collapse(rows);
+        assertBoundedMessages(g);
+        assertEquals(100, issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT).size());
+        // each error keeps its own exact source column (row 0's issues: N0, then the long prefix)
+        GroupedRows.Issue onLong = g.issues().get(1);
+        assertTrue(longPrefix.equals(onLong.field), "not the long column");
+        assertTrue(longPrefix.equals(onLong.error.getErrors().getJSONObject(0)
+            .getString("fieldName")), "not the long column");
+        String msg = onLong.error.getMessage();
+        assertTrue(msg.contains("(differing: " + P0 + ", Encounter.project000"), msg);
+    }
 }
