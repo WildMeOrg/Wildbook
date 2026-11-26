@@ -82,26 +82,20 @@ Properties props= ShepherdProperties.getProperties("users.properties", langCode,
             			</tr>
             	</table>
 <%
-
-	myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
-
 }
 else{
 %>
 <%=props.getProperty("notEnough") %>
 <%
 }
-%>
-
-    	
-    </div>
-   
- <%
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
-%>   
- 
+%>
+
+
+    </div>
+
+
       <jsp:include page="footer.jsp" flush="true"/>
  
 
