@@ -461,6 +461,7 @@ public class BulkValidator {
 
         // generic (can be negative) ints
         case "Sighting.seaState":
+        case "Sighting.wp":
         case "Sighting.visibilityIndex":
             return tryInteger(value);
 
