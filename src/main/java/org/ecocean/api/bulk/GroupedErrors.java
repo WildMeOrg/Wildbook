@@ -22,6 +22,7 @@ import org.json.JSONObject;
 public final class GroupedErrors {
     private final GroupedRows g;
     private final List<JSONObject> errors = new ArrayList<JSONObject>();
+    private final List<JSONObject> warnings = new ArrayList<JSONObject>();
     private final Set<Integer> invalidRows = new HashSet<Integer>();
     private boolean fatal;
 
@@ -45,14 +46,16 @@ public final class GroupedErrors {
     }
 
     /**
-     * Collects every error and warning of g's rows (call after the servlet has written its file
-     * and box findings into the merged maps). A warning (treatAsWarning) goes to dataWarnings,
-     * one per distinct exception text as before; issues and every finding on a grouped row are
-     * errors. Only BulkValidatorException values of the merged maps are read.
+     * Collects every error and warning of g's rows. Call it after the servlet has written its
+     * file and box findings into the merged maps, and before anything else is put into them: an
+     * ungrouped row's errors are reported in its map's iteration order, which a further put can
+     * change (a resize). A warning (treatAsWarning) is kept once per distinct exception text, as
+     * before; issues and every finding on a grouped row are errors. Only BulkValidatorException
+     * values of the merged maps are read.
      */
-    public static GroupedErrors collect(GroupedRows g, boolean badFieldnamesAreWarnings,
-        JSONArray dataWarnings, Set<String> warningDuplicate) {
+    public static GroupedErrors collect(GroupedRows g, boolean badFieldnamesAreWarnings) {
         GroupedErrors ge = new GroupedErrors(g);
+        Set<String> warningDuplicate = new HashSet<String>();
         List<Entry> entries = new ArrayList<Entry>();
 
         for (GroupedRows.Issue i : g.issues())
@@ -84,7 +87,7 @@ public final class GroupedErrors {
         for (Entry e : entries) {
             if (e.warning) {
                 // hackily prevents multiple identical warnings (like bad fieldname x N rows)
-                if (warningDuplicate.add(e.dedupe)) dataWarnings.put(e.json);
+                if (warningDuplicate.add(e.dedupe)) ge.warnings.add(e.json);
                 continue;
             }
             ge.errors.add(e.json);
@@ -148,6 +151,11 @@ public final class GroupedErrors {
     /** The field errors, in source-row order. */
     public List<JSONObject> errors() {
         return Collections.unmodifiableList(errors);
+    }
+
+    /** The field warnings, in source-row order, one per distinct exception text. */
+    public List<JSONObject> warnings() {
+        return Collections.unmodifiableList(warnings);
     }
 
     public boolean fatal() {

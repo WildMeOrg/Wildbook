@@ -336,13 +336,19 @@ public class BulkImport extends ApiBase {
             List<BulkValidator> validFields = new ArrayList<BulkValidator>();
             JSONArray dataErrors = new JSONArray();
             JSONArray dataWarnings = new JSONArray();
-            Set<String> warningDuplicate = new HashSet<String>();
             // bulk-import boxes (spec 4.2 import layer): the checks that need the uploaded files or
             // other rows, in both modes, written into the row maps so the aggregation below reports
             // them like any other field error; validity and dimensions are read once per file
             Map<String, Boolean> fileValid = new HashMap<String, Boolean>();
             Map<String, int[]> fileDims = new HashMap<String, int[]>();
             boxedImport = checkBoxedFiles(grouped, fileByName, dataWarnings, fileValid, fileDims);
+            // every field error on its source cell, in source-row order. Collected before the
+            // default submitter is put into the rows: that put can resize a row's map and change
+            // the order its errors are reported in
+            GroupedErrors fieldErrors = GroupedErrors.collect(grouped,
+                toleranceBadFieldnamesAreWarnings);
+            for (JSONObject warn : fieldErrors.warnings()) dataWarnings.put(warn);
+            for (JSONObject err : fieldErrors.errors()) dataErrors.put(err);
             for (int rowNum = 0; rowNum < validatedRows.size(); rowNum++) {
                 Map<String, Object> rowResult = validatedRows.get(rowNum);
                 // a rejected submitter keeps its error; only a missing column gets the default
@@ -378,10 +384,6 @@ public class BulkImport extends ApiBase {
                 // tolerance, where processRow threw "no value for Encounter.submitterID" without it
                 if (!hasSubmitterColumn) rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
             }
-            // every field error on its source cell, in source-row order; warnings deduplicated
-            GroupedErrors fieldErrors = GroupedErrors.collect(grouped,
-                toleranceBadFieldnamesAreWarnings, dataWarnings, warningDuplicate);
-            for (JSONObject err : fieldErrors.errors()) dataErrors.put(err);
             int numFieldErrors = dataErrors.length();
             List<File> validFiles = new ArrayList<File>();
             // now we only do "lightweight" (fast) file validation, as the MediaAsset creation

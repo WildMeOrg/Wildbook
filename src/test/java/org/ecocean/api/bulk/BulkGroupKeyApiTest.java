@@ -696,6 +696,15 @@ class BulkGroupKeyApiTest {
     /** the requests whose responses the golden file holds, as recorded before grouping existed */
     JSONObject ungroupedRequest(String name) {
         switch (name) {
+        case "objectTwelveFieldsNoSubmitter":
+            // exactly 12 validated fields and no submitter column: the default submitter is the
+            // 13th entry, which resizes the row map; the errors keep the order before that put
+            return validateOnly(objects(obj("Encounter.genus", "Genus", "Encounter.specificEpithet", "species",
+                "Encounter.year", 2020, "Encounter.sex", "x", "Encounter.hour", "x",
+                "Encounter.verbatimLocality", "text", "Encounter.submitterName", "text",
+                "Encounter.submitterOrganization", "text", "Encounter.otherCatalogNumbers", "text",
+                "Encounter.alternateID", "text", "Encounter.distinguishingScar", "text",
+                "Encounter.patterningCode", "text")));
         case "objectTolerantInvalidFile":
             invalidFiles.add("c.jpg");
             return tolerant(objects(

@@ -16,35 +16,41 @@
         "details": "org.ecocean.api.bulk.BulkValidatorException: photo a.jpg has a box on row 0 but none here",
         "rowNumber": 1,
         "type": "INVALID_VALUE",
-        "errors": [{
-          "code": "INVALID",
-          "fieldName": "Encounter.mediaAsset0",
-          "details": "photo a.jpg has a box on row 0 but none here",
-          "type": "INVALID_VALUE"
-        }]
+        "errors": [
+          {
+            "code": "INVALID",
+            "fieldName": "Encounter.mediaAsset0",
+            "details": "photo a.jpg has a box on row 0 but none here",
+            "type": "INVALID_VALUE"
+          }
+        ]
       },
       {
         "fieldName": "Encounter.year",
         "details": "org.ecocean.api.bulk.BulkValidatorException: required value (year or millis)",
         "rowNumber": 2,
         "type": "REQUIRED_VALUE",
-        "errors": [{
-          "code": "REQUIRED",
-          "details": "required value (year or millis)",
-          "type": "REQUIRED_VALUE"
-        }]
+        "errors": [
+          {
+            "code": "REQUIRED",
+            "details": "required value (year or millis)",
+            "type": "REQUIRED_VALUE"
+          }
+        ]
       },
       {
         "fieldName": "Encounter.mediaAsset0.bbox",
         "details": "org.ecocean.api.bulk.BulkValidatorException: box 1,1,500,5 exceeds image 200x150",
         "rowNumber": 2,
         "type": "INVALID_VALUE",
-        "errors": [{
-          "code": "INVALID",
-          "fieldName": "Encounter.mediaAsset0.bbox",
-          "details": "box 1,1,500,5 exceeds image 200x150",
-          "type": "INVALID_VALUE"
-        }]
+        "errors": [
+          {
+            "code": "INVALID",
+            "fieldName": "Encounter.mediaAsset0.bbox",
+            "details": "box 1,1,500,5 exceeds image 200x150",
+            "type": "INVALID_VALUE"
+          }
+        ]
       }
     ],
     "numberFieldsValid": 18,
@@ -84,21 +90,25 @@
         "fieldName": "Encounter.sex",
         "details": "org.ecocean.api.bulk.BulkValidatorException: invalid sex value: x",
         "rowNumber": 0,
-        "errors": [{
-          "code": "INVALID",
-          "fieldName": "Encounter.sex",
-          "details": "invalid sex value: x"
-        }]
+        "errors": [
+          {
+            "code": "INVALID",
+            "fieldName": "Encounter.sex",
+            "details": "invalid sex value: x"
+          }
+        ]
       },
       {
         "filename": "c.jpg",
         "details": "c.jpg is not a valid file",
         "type": "INVALID_IMAGE",
-        "errors": [{
-          "code": "INVALID",
-          "details": "c.jpg is not a valid file",
-          "type": "INVALID_IMAGE"
-        }]
+        "errors": [
+          {
+            "code": "INVALID",
+            "details": "c.jpg is not a valid file",
+            "type": "INVALID_IMAGE"
+          }
+        ]
       }
     ],
     "numberFieldsValid": 8,
@@ -109,18 +119,22 @@
     "numberFilenamesReferenced": 3,
     "numberMediaAssetsCreated": 3,
     "annotationsImported": false,
-    "warnings": [{
-      "fieldName": "Bogus.field",
-      "details": "org.ecocean.api.bulk.BulkValidatorException: invalid fieldName: Bogus.field",
-      "rowNumber": 0,
-      "type": "UNKNOWN_FIELDNAME",
-      "errors": [{
-        "code": "INVALID",
+    "warnings": [
+      {
         "fieldName": "Bogus.field",
-        "details": "invalid fieldName: Bogus.field",
-        "type": "UNKNOWN_FIELDNAME"
-      }]
-    }],
+        "details": "org.ecocean.api.bulk.BulkValidatorException: invalid fieldName: Bogus.field",
+        "rowNumber": 0,
+        "type": "UNKNOWN_FIELDNAME",
+        "errors": [
+          {
+            "code": "INVALID",
+            "fieldName": "Bogus.field",
+            "details": "invalid fieldName: Bogus.field",
+            "type": "UNKNOWN_FIELDNAME"
+          }
+        ]
+      }
+    ],
     "numberFieldsWarning": 1,
     "numberFilesValid": 3,
     "processInBackground": false,
@@ -135,21 +149,25 @@
         "details": "org.ecocean.api.bulk.BulkValidatorException: file 'missing.jpg' not found in uploaded files",
         "rowNumber": 1,
         "type": "REQUIRED_VALUE",
-        "errors": [{
-          "code": "REQUIRED",
-          "details": "file 'missing.jpg' not found in uploaded files",
-          "type": "REQUIRED_VALUE"
-        }]
+        "errors": [
+          {
+            "code": "REQUIRED",
+            "details": "file 'missing.jpg' not found in uploaded files",
+            "type": "REQUIRED_VALUE"
+          }
+        ]
       },
       {
         "fieldName": "Encounter.sex",
         "details": "org.ecocean.api.bulk.BulkValidatorException: invalid sex value: x",
         "rowNumber": 1,
-        "errors": [{
-          "code": "INVALID",
-          "fieldName": "Encounter.sex",
-          "details": "invalid sex value: x"
-        }]
+        "errors": [
+          {
+            "code": "INVALID",
+            "fieldName": "Encounter.sex",
+            "details": "invalid sex value: x"
+          }
+        ]
       }
     ],
     "numberFieldsValid": 13,
@@ -159,18 +177,22 @@
     "numberRowsValid": 1,
     "numberFilenamesReferenced": 3,
     "annotationsImported": false,
-    "warnings": [{
-      "fieldName": "Bogus.field",
-      "details": "org.ecocean.api.bulk.BulkValidatorException: invalid fieldName: Bogus.field",
-      "rowNumber": 0,
-      "type": "UNKNOWN_FIELDNAME",
-      "errors": [{
-        "code": "INVALID",
+    "warnings": [
+      {
         "fieldName": "Bogus.field",
-        "details": "invalid fieldName: Bogus.field",
-        "type": "UNKNOWN_FIELDNAME"
-      }]
-    }],
+        "details": "org.ecocean.api.bulk.BulkValidatorException: invalid fieldName: Bogus.field",
+        "rowNumber": 0,
+        "type": "UNKNOWN_FIELDNAME",
+        "errors": [
+          {
+            "code": "INVALID",
+            "fieldName": "Bogus.field",
+            "details": "invalid fieldName: Bogus.field",
+            "type": "UNKNOWN_FIELDNAME"
+          }
+        ]
+      }
+    ],
     "validateOnly": true,
     "numberFieldsWarning": 1,
     "numberFilesValid": 0,
@@ -185,45 +207,95 @@
         "details": "org.ecocean.api.bulk.BulkValidatorException: file 'missing.jpg' not found in uploaded files",
         "rowNumber": 1,
         "type": "REQUIRED_VALUE",
-        "errors": [{
-          "code": "REQUIRED",
-          "details": "file 'missing.jpg' not found in uploaded files",
-          "type": "REQUIRED_VALUE"
-        }]
+        "errors": [
+          {
+            "code": "REQUIRED",
+            "details": "file 'missing.jpg' not found in uploaded files",
+            "type": "REQUIRED_VALUE"
+          }
+        ]
       },
       {
         "fieldName": "Encounter.sex",
         "details": "org.ecocean.api.bulk.BulkValidatorException: invalid sex value: x",
         "rowNumber": 1,
-        "errors": [{
-          "code": "INVALID",
-          "fieldName": "Encounter.sex",
-          "details": "invalid sex value: x"
-        }]
+        "errors": [
+          {
+            "code": "INVALID",
+            "fieldName": "Encounter.sex",
+            "details": "invalid sex value: x"
+          }
+        ]
       },
       {
         "fieldName": "Encounter.submitterID",
         "details": "org.ecocean.api.bulk.BulkValidatorException: invalid username: nobody",
         "rowNumber": 2,
-        "errors": [{
-          "code": "INVALID",
-          "fieldName": "Encounter.submitterID",
-          "details": "invalid username: nobody"
-        }]
+        "errors": [
+          {
+            "code": "INVALID",
+            "fieldName": "Encounter.submitterID",
+            "details": "invalid username: nobody"
+          }
+        ]
       },
       {
         "fieldName": "Encounter.year",
         "details": "org.ecocean.api.bulk.BulkValidatorException: required value (year or millis)",
         "rowNumber": 3,
         "type": "REQUIRED_VALUE",
-        "errors": [{
-          "code": "REQUIRED",
-          "details": "required value (year or millis)",
-          "type": "REQUIRED_VALUE"
-        }]
+        "errors": [
+          {
+            "code": "REQUIRED",
+            "details": "required value (year or millis)",
+            "type": "REQUIRED_VALUE"
+          }
+        ]
       }
     ],
     "numberFieldsValid": 15,
+    "statusCode": 200
+  },
+  "objectTwelveFieldsNoSubmitter": {
+    "numberRowsValid": 0,
+    "numberFilenamesReferenced": 0,
+    "annotationsImported": false,
+    "validateOnly": true,
+    "numberFieldsWarning": 0,
+    "numberFilesValid": 0,
+    "success": false,
+    "numberFilesUploaded": 5,
+    "bulkImportId": "00000000-0000-0000-0000-00000000a789",
+    "numberFieldsError": 2,
+    "numberRows": 1,
+    "errors": [
+      {
+        "fieldName": "Encounter.hour",
+        "details": "org.ecocean.api.bulk.BulkValidatorException: error parsing integer: java.lang.NumberFormatException: For input string: \"x\"",
+        "rowNumber": 0,
+        "type": "INVALID_VALUE",
+        "errors": [
+          {
+            "code": "INVALID",
+            "details": "error parsing integer: java.lang.NumberFormatException: For input string: \"x\"",
+            "type": "INVALID_VALUE"
+          }
+        ]
+      },
+      {
+        "fieldName": "Encounter.sex",
+        "details": "org.ecocean.api.bulk.BulkValidatorException: invalid sex value: x",
+        "rowNumber": 0,
+        "errors": [
+          {
+            "code": "INVALID",
+            "fieldName": "Encounter.sex",
+            "details": "invalid sex value: x"
+          }
+        ]
+      }
+    ],
+    "numberFieldsValid": 10,
     "statusCode": 200
   }
 }
