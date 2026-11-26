@@ -733,7 +733,12 @@ class BulkApiPostTest {
         requestBody = addToRows(requestBody, "Sighting.numSubMales", 4);
         requestBody = addToRows(requestBody, "Sighting.numSubFemales", 5);
         requestBody = addToRows(requestBody, "Sighting.numSubAdults", 6);
-        requestBody = addToRows(requestBody, "Sighting.wp", 7);
+        // wp as text: the server converts it to an Integer
+        requestBody = addToRows(requestBody, "Sighting.wp", "7");
+        requestBody = addToRows(requestBody, "Sighting.numAdults", 8);
+        requestBody = addToRows(requestBody, "Sighting.seaState", 3);
+        requestBody = addToRows(requestBody, "Sighting.observer", "obs-1");
+        requestBody = addToRows(requestBody, "Sighting.visibilityIndex", "4");
 
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
@@ -769,61 +774,11 @@ class BulkApiPostTest {
                     assertTrue(occ.getNumSubFemales() == 5);
                     assertTrue(occ.getNumSubAdults() == 6);
                     assertTrue(occ.getWp() == 7);
-                }
-            }
-        }
-    }
-
-    @Test void apiPostSightingCountsGoToTheirOwnFields()
-    throws ServletException, IOException {
-        User user = mock(User.class);
-        Occurrence occ = new Occurrence();
-        String requestBody = getValidPayloadArrays();
-
-        // addToRows() only affects row[0] so lets kill the rest
-        JSONObject tmpObj = new JSONObject(requestBody);
-        JSONArray tmpArr = new JSONArray();
-
-        tmpArr.put(tmpObj.getJSONArray("rows").getJSONArray(0));
-        tmpObj.put("rows", tmpArr);
-        requestBody = tmpObj.toString();
-
-        // now we alter our only row
-        requestBody = addToRows(requestBody, "Sighting.numAdults", 8);
-        requestBody = addToRows(requestBody, "Sighting.seaState", 3);
-        requestBody = addToRows(requestBody, "Sighting.observer", "obs-1");
-        requestBody = addToRows(requestBody, "Sighting.wp", "7");
-        requestBody = addToRows(requestBody, "Sighting.visibilityIndex", "4");
-
-        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
-        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
-
-        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-                (mock, context) -> {
-            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-            when(mock.getUser(any(String.class))).thenReturn(user);
-            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
-            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
-            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
-        })) {
-            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
-                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
-                    any(String.class))).thenReturn(emptyFiles);
-                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
-                        mockPMF);
-                    apiServlet.doPost(mockRequest, mockResponse);
-                    responseOut.flush();
-                    JSONObject jout = new JSONObject(responseOut.toString());
-                    verify(mockResponse).setStatus(200);
-                    assertTrue(jout.getBoolean("success"));
-                    assertEquals(jout.getJSONArray("encounters").length(), 1);
-                    assertEquals(jout.getJSONArray("sightings").length(), 1);
+                    assertEquals(Integer.valueOf(7), occ.getWp());
                     assertEquals(Integer.valueOf(8), occ.getNumAdults());
                     assertNull(occ.getIndividualCount());
                     assertEquals("3", occ.getSeaState());
                     assertEquals("obs-1", occ.getObserver());
-                    assertEquals(Integer.valueOf(7), occ.getWp());
                     assertEquals(Double.valueOf(4.0), occ.getVisibilityIndex());
                 }
             }
