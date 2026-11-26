@@ -114,6 +114,8 @@ public final class GroupCollapse {
         final List<GroupedRows.Issue> warnings = new ArrayList<GroupedRows.Issue>();
         final List<Map<String, Object> > sourceValues;
         final Set<String> groupedFilenames = new LinkedHashSet<String>();
+        // a grouped photo filename -> the grouped source rows naming it in a bare photo column
+        final Map<String, Set<Integer> > rowsByGroupedFile = new HashMap<String, Set<Integer> >();
         final int maxPhotos;
         // project prefix -> whether an existing project answers it; looked up once per upload
         final Map<String, Boolean> projectExists = new HashMap<String, Boolean>();
@@ -209,7 +211,7 @@ public final class GroupCollapse {
         st.warnings.sort(byCell);
         return new GroupedRows(n, mergedRows, mergedIndexOf, members, grouped, st.keyAsTyped,
                 contributors, st.sourceValues, mergedRaw, st.issues, st.warnings, sourceRows,
-                st.exactSlotMode, st.groupedFilenames);
+                st.exactSlotMode, st.groupedFilenames, st.rowsByGroupedFile);
     }
 
     // 2. an ungrouped row is exactly validateRow() of (a copy of) itself: that very map, so its
@@ -328,6 +330,10 @@ public final class GroupCollapse {
                 values.put(e.cell.field, e.bv.getValue());
                 if (GroupPhotos.PHOTO.equals(e.bv.getIndexPrefix()))
                     st.groupedFilenames.add(e.bv.getValueString());
+                BulkImportUtil.Slot slot = BulkImportUtil.slotOf(e.cell.field);
+                if ((slot != null) && GroupPhotos.PHOTO.equals(slot.prefix))
+                    st.rowsByGroupedFile.computeIfAbsent(String.valueOf(e.bv.getValue()),
+                        x -> new TreeSet<Integer>()).add(r);
                 if (GroupPhotos.photoPrefix(e.cell.field) != null) {
                     photoEntries.add(e);
                 } else if (isScalar(e.cell.field)) {

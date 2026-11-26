@@ -38,6 +38,7 @@ import org.ecocean.api.bulk.BulkImportUtil;
 import org.ecocean.api.bulk.BulkValidator;
 import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.api.bulk.GroupCollapse;
+import org.ecocean.api.bulk.GroupedErrors;
 import org.ecocean.api.bulk.GroupedRows;
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
@@ -856,6 +857,26 @@ class GroupCollapseTest {
             obj("Encounter.mediaAsset0", "d.jpg", "Encounter.genus", "Genus"));
         assertEquals(Set.of("a.jpg", "b.jpg", "c.jpg"), g.groupedFilenames());
         assertFalse(g.exactSlotMode());
+    }
+
+    @Test void groupedFileFailureInvalidatesEveryGroupedRowUsingIt() {
+        GroupedRows g = collapse(full("G", "a.jpg"), bare("G", "b.jpg"),
+            full("H", "x.jpg", "Encounter.mediaAsset7", "a.jpg"),
+            obj("Encounter.mediaAsset0", "a.jpg", "Encounter.genus", "Genus",
+                "Encounter.specificEpithet", "species", "Encounter.year", 2020),
+            obj("Encounter.mediaAsset0", "d.jpg", "Encounter.genus", "Genus",
+                "Encounter.specificEpithet", "species", "Encounter.year", 2020));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertEquals(Set.of(0, 2), g.sourceRowsUsing("a.jpg"), "ungrouped row 3 is not listed");
+        assertEquals(Set.of(), g.sourceRowsUsing("d.jpg"));
+        GroupedErrors ge = GroupedErrors.collect(g, false);
+        assertEquals(5, ge.numberRowsValid());
+        ge.fileFailed("d.jpg"); // an ungrouped file: nothing here
+        assertFalse(ge.fatal());
+        assertEquals(5, ge.numberRowsValid());
+        ge.fileFailed("a.jpg");
+        assertTrue(ge.fatal());
+        assertEquals(3, ge.numberRowsValid());
     }
 
     @Test void sourceTextNamesSourceSlot() {

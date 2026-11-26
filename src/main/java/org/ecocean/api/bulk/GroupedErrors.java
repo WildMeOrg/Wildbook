@@ -135,17 +135,7 @@ public final class GroupedErrors {
     public void fileFailed(String filename) {
         if (!isGroupedFile(filename)) return;
         fatal = true;
-        for (int r = 0; r < g.sourceRowCount(); r++) {
-            if (!g.isGroupedRow(r)) continue;
-            for (Map.Entry<String, Object> e : g.sourceValues(r).entrySet()) {
-                BulkImportUtil.Slot slot = BulkImportUtil.slotOf(e.getKey());
-                if ((slot != null) && GroupPhotos.PHOTO.equals(slot.prefix) &&
-                    filename.equals(String.valueOf(e.getValue()))) {
-                    invalidRows.add(r);
-                    break;
-                }
-            }
-        }
+        invalidRows.addAll(g.sourceRowsUsing(filename));
     }
 
     /** The field errors, in source-row order. */
