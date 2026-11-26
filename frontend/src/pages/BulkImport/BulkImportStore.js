@@ -23,6 +23,21 @@ import {
   javaTrim,
 } from "./bulkImportSlots";
 import { toast } from "react-toastify";
+import {
+  DATE_PARTS,
+  dateDisplayMapFor,
+  datePrefixOf,
+} from "./bulkImportHeaders";
+
+// date-in-milliseconds columns: each stands in for the calendar date
+const MILLIS_COLUMNS = [
+  "Encounter.dateInMilliseconds",
+  "Sighting.dateInMilliseconds",
+  "Sighting.millis",
+];
+// never sent: the server's date has no seconds part
+const UNSENT_COLUMNS = ["Encounter.seconds", "Sighting.seconds"];
+const isNonEmpty = (v) => v != null && String(v).trim() !== "";
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
@@ -414,6 +429,41 @@ export class BulkImportStore {
     return this._rawColumns;
   }
 
+  // which display column shows which prefix's date; derived from the source headers only
+  get dateDisplayMap() {
+    return dateDisplayMapFor(this._rawColumns);
+  }
+
+  get dateDisplaySource() {
+    return this.dateDisplayMap["Encounter.year"] ?? null;
+  }
+
+  // the display column showing a <prefix>.year|month|day|hour|minutes field, else null
+  dateDisplayColumnFor(field) {
+    const prefix = datePrefixOf(field);
+    if (!prefix) return null;
+    const hit = Object.entries(this.dateDisplayMap).find(
+      ([, p]) => p === prefix,
+    );
+    return hit ? hit[0] : null;
+  }
+
+  // the columns sent on submit: rawColumns once each, never Encounter/Sighting.seconds
+  get submittableColumns() {
+    return [...new Set(this._rawColumns)].filter(
+      (col) => !UNSENT_COLUMNS.includes(col),
+    );
+  }
+
+  // the combined date cell is not editable next to a millis column: an edit would add
+  // calendar columns that the server rejects as synonyms of the millis column
+  isReadOnlyColumn(col) {
+    return (
+      col === "Encounter.year" &&
+      this._columnsDef.some((c) => MILLIS_COLUMNS.includes(c))
+    );
+  }
+
   get submissionId() {
     return this._submissionId;
   }
@@ -462,7 +512,15 @@ export class BulkImportStore {
   }
 
   get missingRequiredColumns() {
-    return allRequiredColumns.filter((col) => !this._columnsDef.includes(col));
+    const has = (col) => this._columnsDef.includes(col);
+    return allRequiredColumns.filter((col) => {
+      if (col === "Encounter.year") {
+        return !["Encounter.year", "Sighting.year", ...MILLIS_COLUMNS].some(
+          has,
+        );
+      }
+      return !has(col);
+    });
   }
 
   get synonymFields() {
@@ -1340,35 +1398,18 @@ export class BulkImportStore {
   }
 
   updateRawFromNormalizedRow() {
-    runInAction(() => {
-      [
-        "Encounter.year",
-        "Encounter.month",
-        "Encounter.day",
-        "Encounter.hour",
-        "Encounter.minutes",
-        "Encounter.seconds",
-      ].forEach((col) => {
-        if (!this._rawColumns.includes(col)) {
-          this._rawColumns.push(col);
-        }
-      });
-    });
+    const dateEntries = Object.entries(this.dateDisplayMap);
 
     this._spreadsheetData.forEach((_, rowIndex) => {
       const raw = this._rawData[rowIndex];
       const norm = this._spreadsheetData[rowIndex];
 
       runInAction(() => {
-        if (norm["Encounter.year"]) {
-          const val = norm["Encounter.year"];
-          parseEncounterDateString("Encounter", val, raw);
-        }
-
-        if (norm["Sighting.year"]) {
-          const val = norm["Sighting.year"];
-          parseEncounterDateString("Sighting", val, raw);
-        }
+        dateEntries.forEach(([displayCol, prefix]) => {
+          if (norm[displayCol]) {
+            parseEncounterDateString(prefix, norm[displayCol], raw);
+          }
+        });
 
         if (norm["Encounter.genus"] != null) {
           const val = norm["Encounter.genus"].trim();
@@ -1418,6 +1459,21 @@ export class BulkImportStore {
           raw["Sighting.decimalLatitude"] = m ? m[1] : "";
           raw["Sighting.decimalLongitude"] = m ? m[2] : "";
         }
+      });
+    });
+
+    // a date part is sent only if the sheet had it or a row now has a value for it
+    runInAction(() => {
+      ["Encounter", "Sighting"].forEach((prefix) => {
+        DATE_PARTS.forEach((part) => {
+          const col = `${prefix}.${part}`;
+          if (
+            !this._rawColumns.includes(col) &&
+            this._rawData.some((row) => isNonEmpty(row?.[col]))
+          ) {
+            this._rawColumns.push(col);
+          }
+        });
       });
     });
   }
@@ -1742,22 +1798,6 @@ export class BulkImportStore {
           return;
         }
 
-        this._synonymFields.forEach((group) => {
-          const present = group.filter((col) => col in row);
-
-          if (present.length > 1) {
-            if (!errors[rowIndex]) errors[rowIndex] = {};
-            present.forEach((col) => {
-              errors[rowIndex][col] = {
-                id: "BULKIMPORT_ERROR_INVALID_SYNONYMFIELDS",
-                values: {
-                  list: group.join(", "),
-                },
-              };
-            });
-          }
-        });
-
         const isKnown = knownColumnCache[col];
         const value = String(row[col] ?? "");
         const rules = this._validationRules[col];
@@ -1804,6 +1844,27 @@ export class BulkImportStore {
           if (!errors[rowIndex]) errors[rowIndex] = {};
           errors[rowIndex][col] = error;
         }
+      });
+    });
+
+    // synonym columns: checked once against the uploaded headers (rawColumns), so a
+    // display-only Encounter.year built from Sighting.* is not a second date column;
+    // each conflicting column is marked on its display cell in every row
+    const sourceColumns = new Set(this._rawColumns);
+    this._synonymFields.forEach((group) => {
+      const present = group.filter((col) => sourceColumns.has(col));
+      if (present.length < 2) return;
+      const cells = [
+        ...new Set(present.map((col) => this.dateDisplayColumnFor(col) ?? col)),
+      ];
+      this._spreadsheetData.forEach((_, rowIndex) => {
+        if (!errors[rowIndex]) errors[rowIndex] = {};
+        cells.forEach((cell) => {
+          errors[rowIndex][cell] = {
+            id: "BULKIMPORT_ERROR_INVALID_SYNONYMFIELDS",
+            values: { list: group.join(", ") },
+          };
+        });
       });
     });
 

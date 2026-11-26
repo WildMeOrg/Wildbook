@@ -13,6 +13,8 @@ import {
   isPhotoSlotColumn,
 } from "./bulkImportSlots";
 import {
+  DATE_PARTS,
+  dateDisplayMapFor,
   findHeaderCollision,
   hasAnyValue,
   normalizeHeader,
@@ -136,7 +138,28 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           userUploadedCols.has(col),
         );
 
-        store.setColumnsDef([...includedSpecified, ...remaining]);
+        // dates: one display column per prefix (dateDisplayMapFor, the same mapping the
+        // store derives from rawColumns); the source date parts are hidden, never removed
+        const dateDisplayMap = dateDisplayMapFor(rowKeys);
+        const dateEntries = Object.entries(dateDisplayMap);
+        const displayCols = Object.keys(dateDisplayMap);
+        const datePartCols = new Set(
+          dateEntries.flatMap(([, prefix]) =>
+            DATE_PARTS.map((part) => `${prefix}.${part}`),
+          ),
+        );
+        const tableCols = [...includedSpecified, ...remaining];
+        dateEntries.forEach(([displayCol, prefix]) => {
+          if (tableCols.includes(displayCol)) return;
+          const at = tableCols.indexOf(`${prefix}.year`);
+          if (at !== -1) tableCols.splice(at, 0, displayCol);
+          else tableCols.unshift(displayCol);
+        });
+        store.setColumnsDef(
+          tableCols.filter(
+            (col) => displayCols.includes(col) || !datePartCols.has(col),
+          ),
+        );
         if (
           !store.columnsDef.includes("Encounter.mediaAsset0") &&
           mediaAssetsCols.length > 0
@@ -243,67 +266,15 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
                   Sighting_decimalLatitude;
               }
 
-              const formattedEncounterDate = formatDate(
-                row["Encounter.year"] ?? "",
-                row["Encounter.month"] ?? "",
-                row["Encounter.day"] ?? "",
-                row["Encounter.hour"] ?? "",
-                row["Encounter.minutes"] ?? "",
-              );
-              const formattedSightingDate = formatDate(
-                row["Sighting.year"] ?? "",
-                row["Sighting.month"] ?? "",
-                row["Sighting.day"] ?? "",
-                row["Sighting.hour"] ?? "",
-                row["Sighting.minutes"] ?? "",
-              );
-
-              if (
-                formattedEncounterDate &&
-                formattedEncounterDate !== "undefined"
-              ) {
-                normalizedRow["Encounter.year"] = formattedEncounterDate;
-              } else if (
-                formattedSightingDate &&
-                formattedSightingDate !== "undefined"
-              ) {
-                store.columnsDef.splice(1, 0, "Encounter.year");
-                store.rawColumns.splice(1, 0, "Encounter.year");
-                normalizedRow["Encounter.year"] = formattedSightingDate;
-                delete normalizedRow["Sighting.year"];
-                delete normalizedRow["Sighting.month"];
-                delete normalizedRow["Sighting.day"];
-                delete normalizedRow["Sighting.hour"];
-                delete normalizedRow["Sighting.minutes"];
-                store.setColumnsDef(
-                  store.columnsDef.filter(
-                    (col) =>
-                      col !== "Sighting.year" &&
-                      col !== "Sighting.month" &&
-                      col !== "Sighting.day" &&
-                      col !== "Sighting.hour" &&
-                      col !== "Sighting.minutes",
-                  ),
+              dateEntries.forEach(([displayCol, prefix]) => {
+                normalizedRow[displayCol] = formatDate(
+                  row[`${prefix}.year`] ?? "",
+                  row[`${prefix}.month`] ?? "",
+                  row[`${prefix}.day`] ?? "",
+                  row[`${prefix}.hour`] ?? "",
+                  row[`${prefix}.minutes`] ?? "",
                 );
-                store.setRawColumns(
-                  store.rawColumns.filter(
-                    (col) =>
-                      col !== "Sighting.year" &&
-                      col !== "Sighting.month" &&
-                      col !== "Sighting.day" &&
-                      col !== "Sighting.hour" &&
-                      col !== "Sighting.minutes",
-                  ),
-                );
-              }
-              if (
-                formattedEncounterDate &&
-                formattedEncounterDate !== "undefined" &&
-                formattedSightingDate &&
-                formattedSightingDate !== "undefined"
-              ) {
-                normalizedRow["Sighting.year"] = formattedSightingDate;
-              }
+              });
 
               const genus = String(row["Encounter.genus"] ?? "").trim();
               const specific = String(

@@ -62,6 +62,7 @@ describe("BulkImportSetLocation", () => {
       updateRawFromNormalizedRow: jest.fn(),
       clearSubmissionErrors: jest.fn(),
       rawColumns: ["col1"],
+      submittableColumns: ["col1"],
       rawData: [["data1"]],
       spreadsheetFileName: "test.xlsx",
       skipDetection: false,

@@ -99,7 +99,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
     try {
       const result = await submit(
         submissionId,
-        store.rawColumns,
+        store.submittableColumns,
         store.rawData,
         store.spreadsheetFileName,
         store.locationID,
