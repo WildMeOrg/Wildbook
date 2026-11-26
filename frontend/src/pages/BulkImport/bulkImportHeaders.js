@@ -21,6 +21,8 @@ export const hasAnyValue = (row) =>
   Object.values(row).some((v) => String(v ?? "").trim() !== "");
 
 export const DATE_PARTS = ["year", "month", "day", "hour", "minutes"];
+// the calendar year columns; each is also the display column of its prefix's date
+export const YEAR_COLUMNS = ["Encounter.year", "Sighting.year"];
 const DATE_PART_RE = new RegExp(
   `^(Encounter|Sighting)\\.(${DATE_PARTS.join("|")})$`,
 );

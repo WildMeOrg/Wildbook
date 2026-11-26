@@ -10,6 +10,7 @@ import { FaImage } from "react-icons/fa";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { FinishedIcon } from "../../components/FinishedIcon";
 import { FormattedMessage } from "react-intl";
+import { isReadyToImport } from "./bulkImportReady";
 
 export const BulkImportUploadProgress = observer(({ store }) => {
   const theme = React.useContext(ThemeColorContext);
@@ -145,9 +146,7 @@ export const BulkImportUploadProgress = observer(({ store }) => {
             fontSize: "20px",
           }}
         >
-          {Object.keys(store.validationErrors).length === 0 &&
-          store.spreadsheetUploadProgress === 100 &&
-          store.missingRequiredColumns.length === 0 ? (
+          {isReadyToImport(store) ? (
             <FinishedIcon />
           ) : (
             <i className="bi bi-eye"></i>
@@ -163,11 +162,7 @@ export const BulkImportUploadProgress = observer(({ store }) => {
         style={{ minWidth: 150 }}
         className="d-flex flex-column align-items-center"
         onClick={() => {
-          if (
-            store.spreadsheetUploadProgress === 100 &&
-            Object.keys(store.validationErrors).length === 0 &&
-            store.missingRequiredColumns.length === 0
-          ) {
+          if (isReadyToImport(store)) {
             store.setActiveStep(3);
           }
         }}

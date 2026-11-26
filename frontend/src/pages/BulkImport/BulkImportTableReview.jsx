@@ -11,6 +11,7 @@ import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
 import ErrorSummaryBar from "./BulkImportErrorSummaryBar";
 import { useIntl } from "react-intl";
 import { boxSuffixOf, isPhotoSlotColumn } from "./bulkImportSlots";
+import { isReadyToImport } from "./bulkImportReady";
 
 // the server's reason for a photo or box error (e.g. "box 1000,0,296,342 exceeds image
 // 1152x768") says what to fix in the spreadsheet, since those cells cannot be edited here
@@ -101,11 +102,7 @@ export const BulkImportTableReview = observer(({ store }) => {
           onClick={() => {
             store.setActiveStep(3);
           }}
-          disabled={
-            store.spreadsheetUploadProgress !== 100 ||
-            Object.keys(store.validationErrors).length > 0 ||
-            store.missingRequiredColumns.length > 0
-          }
+          disabled={!isReadyToImport(store)}
           backgroundColor={theme.wildMeColors.cyan700}
           color={theme.defaultColors.white}
           noArrow={true}

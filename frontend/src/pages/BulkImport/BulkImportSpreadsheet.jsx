@@ -17,10 +17,10 @@ import {
   findHeaderCollision,
   hasAnyValue,
   normalizeHeader,
+  YEAR_COLUMNS,
 } from "./bulkImportHeaders";
 
 const TEXT_BOX_SUFFIXES = ["bbox", "iaClass", "bboxSource"];
-const YEAR_COLUMNS = ["Encounter.year", "Sighting.year"];
 
 export const BulkImportSpreadsheet = observer(({ store }) => {
   const theme = useContext(ThemeContext);

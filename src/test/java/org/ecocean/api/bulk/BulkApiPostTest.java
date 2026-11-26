@@ -773,7 +773,6 @@ class BulkApiPostTest {
                     assertTrue(occ.getNumSubMales() == 4);
                     assertTrue(occ.getNumSubFemales() == 5);
                     assertTrue(occ.getNumSubAdults() == 6);
-                    assertTrue(occ.getWp() == 7);
                     assertEquals(Integer.valueOf(7), occ.getWp());
                     assertEquals(Integer.valueOf(8), occ.getNumAdults());
                     assertNull(occ.getIndividualCount());

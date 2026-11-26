@@ -166,7 +166,6 @@ describe("BulkImportSpreadsheet photo slots", () => {
 
   test("a sheet whose rows are all blank keeps its headers", async () => {
     const store = await upload(`Occurrence.comments,${A0}\n , \n`, 0);
-    await waitFor(() => expect(store.spreadsheetUploadProgress).toBe(100));
     expect(store.rawColumns).toEqual(["Sighting.comments", A0]);
     expect(store.columnsDef).toEqual(
       expect.arrayContaining(["Sighting.comments", A0]),

@@ -1,10 +1,7 @@
-import React from "react";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
 import BulkImportStore from "../../../pages/BulkImport/BulkImportStore";
-import { BulkImportSpreadsheet } from "../../../pages/BulkImport/BulkImportSpreadsheet";
 import { dateDisplayMapFor } from "../../../pages/BulkImport/bulkImportHeaders";
-import { renderWithProviders } from "../../../utils/utils";
 import { PRODUCTION_SYNONYMS } from "../../../__fixtures__/productionSynonyms";
+import { uploadCsv } from "../../../__fixtures__/bulkImportUpload";
 
 jest.mock("@flowjs/flow.js", () => {
   return jest.fn().mockImplementation(() => ({
@@ -1126,17 +1123,13 @@ describe("BulkImportStore dates keep their source columns", () => {
   test("sightingDateSheetHasNoSynonymError", async () => {
     store.setSynonymFields(PRODUCTION_SYNONYMS);
     store.setIndexableFields(["Encounter.mediaAsset#"]);
-    renderWithProviders(<BulkImportSpreadsheet store={store} />);
-    const csv =
+    await uploadCsv(
       "Sighting.year,Sighting.month,Sighting.day,Encounter.genus\n" +
-      "2021,3,4,Tursiops\n" +
-      "2022,5,6,Tursiops\n";
-    fireEvent.change(screen.getByTestId("spreadsheet-input"), {
-      target: { files: [new File([csv], "sheet.csv", { type: "text/csv" })] },
-    });
-    await waitFor(() => expect(store.spreadsheetData.length).toBe(2), {
-      timeout: 5000,
-    });
+        "2021,3,4,Tursiops\n" +
+        "2022,5,6,Tursiops\n",
+      2,
+      store,
+    );
     // the display row carries Encounter.year (display) and Sighting.year (source)
     expect(store.spreadsheetData[0]["Encounter.year"]).toBe("2021-03-04");
     expect(store.spreadsheetData[0]["Sighting.year"]).toBe(2021);
@@ -1274,6 +1267,55 @@ describe("BulkImportStore dates keep their source columns", () => {
     });
   });
 
+  test("old four-row draft: a row cleared in the grid is kept, only the surplus blank goes", () => {
+    // B was cleared in the grid (and so in rawData); the old parser had already dropped
+    // the trailing whitespace row from the grid only
+    store.hydrate({
+      rawColumns: ["Encounter.year", "Encounter.sex"],
+      columnsDef: ["Encounter.year", "Encounter.sex"],
+      rawData: [
+        { "Encounter.year": 2020, "Encounter.sex": "male" },
+        { "Encounter.year": "", "Encounter.sex": "" },
+        { "Encounter.year": 2022, "Encounter.sex": "female" },
+        { "Encounter.year": " ", "Encounter.sex": "" },
+      ],
+      spreadsheetData: [
+        { "Encounter.year": "2020", "Encounter.sex": "male" },
+        { "Encounter.year": "", "Encounter.sex": "" },
+        { "Encounter.year": "2022", "Encounter.sex": "female" },
+      ],
+    });
+    expect(store.rawData.length).toBe(3);
+    expect(store.rawData[2]["Encounter.sex"]).toBe("female");
+    store.updateCellValue(1, "Encounter.sex", "unknown");
+    store.updateCellValue(2, "Encounter.year", "2023");
+    expect(() => store.updateRawFromNormalizedRow()).not.toThrow();
+    expect(store.rawData[1]["Encounter.sex"]).toBe("unknown");
+    expect(store.rawData[2]).toMatchObject({
+      "Encounter.year": 2023,
+      "Encounter.sex": "female",
+    });
+  });
+
+  test("an old draft whose rows do not line up is left as it is", () => {
+    const rawData = [
+      { "Encounter.sex": "male" },
+      { "Encounter.sex": "female" },
+      { "Encounter.sex": " " },
+    ];
+    store.hydrate({
+      rawData,
+      spreadsheetData: [{ "Encounter.sex": "x" }, { "Encounter.sex": "y" }],
+    });
+    expect(store.rawData.length).toBe(3);
+    // write-back on a grid row with no raw record does not throw
+    store.hydrate({
+      rawData: [{ "Encounter.sex": "x" }],
+      spreadsheetData: [{ "Encounter.sex": "x" }, { "Encounter.year": "2020" }],
+    });
+    expect(() => store.updateRawFromNormalizedRow()).not.toThrow();
+  });
+
   test("millis cells: required without a year column, whole, not in the future", () => {
     const rule = store._validationRules;
     store._rawColumns = ["Sighting.millis"];
@@ -1291,6 +1333,10 @@ describe("BulkImportStore dates keep their source columns", () => {
       expect(rule[col].validate("1700000000000.5")).toBe(false);
       expect(rule[col].validate("1e12")).toBe(false);
       expect(rule[col].validate(String(Date.now() + 86400000))).toBe(false);
+      // Java long range, compared exactly
+      expect(rule[col].validate("-9223372036854775808")).toBe(true);
+      expect(rule[col].validate("-9223372036854775809")).toBe(false);
+      expect(rule[col].validate("9223372036854775807")).toBe(false);
       expect(rule[col].message("x")).toBe(
         "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
       );

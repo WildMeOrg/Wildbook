@@ -209,6 +209,59 @@ describe("bulk-import dates on submit", () => {
     expect(nextButton()).toBeDisabled();
   });
 
+  test("a millis cell typed with spaces is posted trimmed", async () => {
+    const store = newStore();
+    await parse(
+      store,
+      `Encounter.dateInMilliseconds,Encounter.genus,${A0}\n` +
+        "1600000000000,Tursiops,a.jpg\n",
+      1,
+    );
+    store.updateCellValue(0, "Encounter.dateInMilliseconds", " 1700000000000 ");
+    expect(store.validateRow(0).errors).not.toHaveProperty(
+      "Encounter.dateInMilliseconds",
+    );
+    const { at } = await submit(store);
+    // Long.valueOf on the server rejects surrounding spaces
+    expect(at(0, "Encounter.dateInMilliseconds")).toBe("1700000000000");
+  });
+
+  test("a millis cell below Java Long.MIN_VALUE is rejected", async () => {
+    const store = newStore();
+    await parse(
+      store,
+      `Encounter.dateInMilliseconds,Encounter.genus,${A0}\n` +
+        "1600000000000,Tursiops,a.jpg\n",
+      1,
+    );
+    store.updateCellValue(
+      0,
+      "Encounter.dateInMilliseconds",
+      "-9223372036854775809",
+    );
+    expect(store.validateRow(0).errors["Encounter.dateInMilliseconds"]).toBe(
+      "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
+    );
+  });
+
+  test("a header-only sheet does not enable Next", async () => {
+    const store = await reviewSheet(
+      "Encounter.year,Encounter.genus,Encounter.specificEpithet,Encounter.locationID\n" +
+        " , , , \n",
+      0,
+    );
+    // the headers are kept, nothing is missing or invalid, but there is no row
+    expect(store.rawColumns).toEqual([
+      "Encounter.year",
+      "Encounter.genus",
+      "Encounter.specificEpithet",
+      "Encounter.locationID",
+    ]);
+    expect(store.missingRequiredColumns).toEqual([]);
+    expect(store.validationErrors).toEqual({});
+    expect(nextButton()).toBeDisabled();
+  });
+
   test("an edited Sighting date with a one-digit hour posts that hour", async () => {
     const store = newStore();
     await parse(

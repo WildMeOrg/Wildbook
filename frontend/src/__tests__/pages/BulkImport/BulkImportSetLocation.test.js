@@ -190,6 +190,13 @@ describe("BulkImportSetLocation", () => {
     expect(startBtn).toBeDisabled();
   });
 
+  it("disables START button for a sheet with no data rows", () => {
+    store.spreadsheetData = [];
+    render(<BulkImportSetLocation store={store} />);
+    const startBtn = screen.getByText(/START_BULK_IMPORT/).closest("button");
+    expect(startBtn).toBeDisabled();
+  });
+
   it("shows loading state on START button when isLoading is true", () => {
     usePostBulkImport.mockReturnValue({ submit: submitMock, isLoading: true });
     render(<BulkImportSetLocation store={store} />);

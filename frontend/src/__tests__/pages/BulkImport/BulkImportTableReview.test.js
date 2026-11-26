@@ -66,6 +66,7 @@ const createMockStore = (overrides = {}) => ({
   missingRequiredColumns: [],
   validationErrors: {},
   spreadsheetUploadProgress: 100,
+  spreadsheetData: [{ "Encounter.genus": "Tursiops" }],
   setActiveStep: jest.fn(),
   ...overrides,
 });
@@ -110,6 +111,13 @@ describe("BulkImportTableReview", () => {
     const store = createMockStore({
       validationErrors: { 1: { someField: "Invalid" } },
     });
+
+    render(<BulkImportTableReview store={store} />);
+    expect(screen.getByRole("button", { name: "NEXT" })).toBeDisabled();
+  });
+
+  it("disables NEXT button for a sheet with no data rows", () => {
+    const store = createMockStore({ spreadsheetData: [] });
 
     render(<BulkImportTableReview store={store} />);
     expect(screen.getByRole("button", { name: "NEXT" })).toBeDisabled();

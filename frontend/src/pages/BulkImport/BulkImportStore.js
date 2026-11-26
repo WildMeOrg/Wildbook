@@ -29,6 +29,7 @@ import {
   dateDisplayMapFor,
   datePrefixOf,
   hasAnyValue,
+  YEAR_COLUMNS,
 } from "./bulkImportHeaders";
 
 // date-in-milliseconds columns: each stands in for the calendar date
@@ -40,8 +41,50 @@ const MILLIS_COLUMNS = [
 // never sent: the server's date has no seconds part
 const UNSENT_COLUMNS = ["Encounter.seconds", "Sighting.seconds"];
 const isNonEmpty = (v) => v != null && String(v).trim() !== "";
-// calendar year columns: a sheet with neither dates every row by its millis cell
-const CALENDAR_YEAR_COLUMNS = ["Encounter.year", "Sighting.year"];
+// the server reads a millis cell with Java Long.valueOf: a signed whole number in
+// [Long.MIN_VALUE, now]; compared as BigInt, since Number loses precision past 2^53
+const LONG_MIN = BigInt("-9223372036854775808");
+const isValidMillisText = (str) =>
+  /^[-+]?\d+$/.test(str) &&
+  BigInt(str) >= LONG_MIN &&
+  BigInt(str) <= BigInt(Date.now());
+
+// a whole cell that is empty or whitespace only
+const isBlankRow = (row) => row == null || !hasAnyValue(row);
+// a raw row and a grid row are the same record: both blank, or both share a non-blank
+// cell with the same text
+const sameRecord = (raw, grid) => {
+  if (isBlankRow(raw) || isBlankRow(grid)) {
+    return isBlankRow(raw) && isBlankRow(grid);
+  }
+  return Object.keys(raw).some(
+    (k) =>
+      isNonEmpty(raw[k]) &&
+      k in grid &&
+      String(raw[k]).trim() === String(grid[k] ?? "").trim(),
+  );
+};
+
+// old drafts: the old parser dropped whitespace-only rows from the grid but kept them
+// in rawData. Drops exactly the surplus blank raw rows that have no grid row, walking
+// both lists; returns null (leave the draft as it is) when that does not line up.
+const alignLegacyRawRows = (rawRows, gridRows) => {
+  let surplus = rawRows.length - gridRows.length;
+  if (surplus <= 0) return null;
+  const kept = [];
+  let g = 0;
+  for (const raw of rawRows) {
+    if (g < gridRows.length && sameRecord(raw, gridRows[g])) {
+      kept.push(raw);
+      g++;
+    } else if (isBlankRow(raw) && surplus > 0) {
+      surplus--;
+    } else {
+      return null;
+    }
+  }
+  return g === gridRows.length && kept.length === gridRows.length ? kept : null;
+};
 
 // a date cell (FLEXIBLE_DATE_RE, the same strings write-back reads) that is a real,
 // non-future date
@@ -162,7 +205,7 @@ export class BulkImportStore {
     },
     "Encounter.year": {
       required: true,
-      validate: (val) => isValidDateCell(val),
+      validate: isValidDateCell,
       message: "BULKIMPORT_ERROR_INVALID_DATEFORMAT",
     },
 
@@ -404,8 +447,7 @@ export class BulkImportStore {
   // prefix that a row now has a value for (an edited date), each once; never
   // Encounter/Sighting.seconds. rawColumns itself is never changed by an edit.
   get submittableColumns() {
-    const prefixes = [...new Set(Object.values(this.dateDisplayMap))];
-    const populated = prefixes
+    const populated = Object.values(this.dateDisplayMap)
       .flatMap((prefix) => DATE_PARTS.map((part) => `${prefix}.${part}`))
       .filter((col) => this._rawData.some((row) => isNonEmpty(row?.[col])));
     return [...new Set([...this._rawColumns, ...populated])].filter(
@@ -421,12 +463,10 @@ export class BulkImportStore {
       required: false,
       validate: (val) => {
         if (blank(val)) {
-          return this._rawColumns.some((c) =>
-            CALENDAR_YEAR_COLUMNS.includes(c),
-          );
+          return this._rawColumns.some((c) => YEAR_COLUMNS.includes(c));
         }
-        const str = String(val).trim();
-        return /^[-+]?\d+$/.test(str) && Number(str) <= Date.now();
+        // write-back trims the posted millis cell, so the trimmed text is what is sent
+        return isValidMillisText(String(val).trim());
       },
       message: (val) =>
         blank(val)
@@ -495,9 +535,7 @@ export class BulkImportStore {
     const has = (col) => this._columnsDef.includes(col);
     return allRequiredColumns.filter((col) => {
       if (col === "Encounter.year") {
-        return !["Encounter.year", "Sighting.year", ...MILLIS_COLUMNS].some(
-          has,
-        );
+        return ![...YEAR_COLUMNS, ...MILLIS_COLUMNS].some(has);
       }
       return !has(col);
     });
@@ -953,12 +991,13 @@ export class BulkImportStore {
       // ...and dropped whitespace-only rows from the grid but not from rawData
       if (
         Array.isArray(state.rawData) &&
-        Array.isArray(state.spreadsheetData) &&
-        state.rawData.length !== state.spreadsheetData.length
+        Array.isArray(state.spreadsheetData)
       ) {
-        this._rawData = this._rawData.filter(
-          (row) => row != null && hasAnyValue(row),
+        const aligned = alignLegacyRawRows(
+          this._rawData,
+          this._spreadsheetData,
         );
+        if (aligned) this._rawData = aligned;
       }
     });
   }
@@ -1400,12 +1439,18 @@ export class BulkImportStore {
     this._spreadsheetData.forEach((_, rowIndex) => {
       const raw = this._rawData[rowIndex];
       const norm = this._spreadsheetData[rowIndex];
+      if (!raw) return; // a misaligned old draft: no raw record to write into
 
       runInAction(() => {
         dateEntries.forEach(([displayCol, prefix]) => {
           if (norm[displayCol]) {
             parseEncounterDateString(prefix, norm[displayCol], raw);
           }
+        });
+
+        // post the millis text that was validated (trimmed)
+        MILLIS_COLUMNS.forEach((col) => {
+          if (typeof raw[col] === "string") raw[col] = raw[col].trim();
         });
 
         if (norm["Encounter.genus"] != null) {

@@ -15,8 +15,8 @@ export const boxStore = () => {
   return store;
 };
 
-// parses a CSV through the real spreadsheet step and waits for its rows;
-// unmount: true removes the spreadsheet step afterwards
+// parses a CSV through the real spreadsheet step and waits for the parse to finish
+// (progress 100) with that many rows; unmount: true removes the spreadsheet step after
 export const uploadCsv = async (
   csv,
   rows = 1,
@@ -27,9 +27,13 @@ export const uploadCsv = async (
   fireEvent.change(screen.getByTestId("spreadsheet-input"), {
     target: { files: [new File([csv], "sheet.csv", { type: "text/csv" })] },
   });
-  await waitFor(() => expect(store.spreadsheetData.length).toBe(rows), {
-    timeout: 5000,
-  });
+  await waitFor(
+    () => {
+      expect(store.spreadsheetUploadProgress).toBe(100);
+      expect(store.spreadsheetData.length).toBe(rows);
+    },
+    { timeout: 5000 },
+  );
   if (unmount) view.unmount();
   return store;
 };
