@@ -92,10 +92,24 @@ public class BulkImporter {
     // bulk-import boxes (spec 4.1): when any row carries an Encounter.mediaAsset#.bbox field,
     // EVERY row reads its per-slot metadata by exact slot number instead of positionally
     private final boolean exactSlotMode;
+    // merged rows that each stand for a group of source rows (Encounter.groupKey)
+    private final java.util.Set<Integer> groupedRowIndexes;
     private FeatureType bboxFeatureType = null;
 
     public BulkImporter(String id, List<Map<String, Object> > rows, Map<String, MediaAsset> maMap,
         User user, Shepherd myShepherd) {
+        this(id, rows, maMap, user, myShepherd, hasBboxColumn(rows),
+            java.util.Collections.<Integer>emptySet());
+    }
+
+    /**
+     * exactSlotMode comes from the upload's original rows (a blank .bbox column counts, though the
+     * merged rows drop it); groupedRowIndexes are the rows that each collapse a group of source
+     * rows (Encounter.groupKey).
+     */
+    public BulkImporter(String id, List<Map<String, Object> > rows, Map<String, MediaAsset> maMap,
+        User user, Shepherd myShepherd, boolean exactSlotMode,
+        java.util.Set<Integer> groupedRowIndexes) {
         this.dataRows = rows;
         if (maMap == null) {
             this.mediaAssetMap = new HashMap<String, MediaAsset>();
@@ -106,7 +120,9 @@ public class BulkImporter {
         this.importTaskId = id;
         this.myShepherd = myShepherd;
         this.startTime = System.currentTimeMillis();
-        this.exactSlotMode = hasBboxColumn(rows);
+        this.exactSlotMode = exactSlotMode;
+        this.groupedRowIndexes = (groupedRowIndexes == null) ?
+            java.util.Collections.<Integer>emptySet() : groupedRowIndexes;
     }
 
     private static boolean hasBboxColumn(List<Map<String, Object> > rows) {

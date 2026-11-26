@@ -167,7 +167,7 @@ public final class GroupCollapse {
             if (grouped.contains(m)) {
                 collapseGroup(st, members.get(m), merged, contrib, raw);
             } else {
-                passUngrouped(st, members.get(m).get(0), merged, raw);
+                merged = passUngrouped(st, members.get(m).get(0), raw);
             }
             mergedRows.add(merged);
             contributors.add(contrib);
@@ -188,16 +188,17 @@ public final class GroupCollapse {
                 st.exactSlotMode, st.groupedFilenames);
     }
 
-    // 2. an ungrouped row is exactly validateRow() of (a copy of) itself
-    private static void passUngrouped(State st, int r, Map<String, Object> merged,
-        Map<String, Object> raw) {
+    // 2. an ungrouped row is exactly validateRow() of (a copy of) itself: that very map, so its
+    // iteration order (the order its errors are reported in) is today's
+    private static Map<String, Object> passUngrouped(State st, int r, Map<String, Object> raw) {
         JSONObject row = st.rows.get(r);
         JSONObject copy = new JSONObject();
         for (String k : row.keySet()) {
             copy.put(k, row.get(k));
             raw.put(k, row.get(k));
         }
-        merged.putAll(BulkImportUtil.validateRow(copy, st.sh, st.identificationSkipped));
+        Map<String, Object> merged = BulkImportUtil.validateRow(copy, st.sh,
+            st.identificationSkipped);
         Map<String, Object> values = new HashMap<String, Object>();
         for (Map.Entry<String, Object> e : merged.entrySet()) {
             if (!(e.getValue() instanceof BulkValidator)) continue;
@@ -205,6 +206,7 @@ public final class GroupCollapse {
             if (v != null) values.put(e.getKey(), v);
         }
         st.sourceValues.set(r, Collections.unmodifiableMap(values));
+        return merged;
     }
 
     private static final String ID_FAMILY = "Encounter.id";
