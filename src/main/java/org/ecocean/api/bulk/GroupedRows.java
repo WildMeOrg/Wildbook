@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.json.JSONObject;
 
 /**
@@ -200,9 +202,33 @@ public final class GroupedRows {
         return rtn;
     }
 
-    /** Names in text rewritten to source names; nothing is packed yet, so unchanged. */
+    private static final Pattern SLOT_FIELD = Pattern.compile(
+        "Encounter\\.(mediaAsset|keyword|quality)(\\d+)((\\.[A-Za-z]+)?)");
+
+    /**
+     * text (a merged-row diagnostic) with each packed field name rewritten to its source cell's
+     * name: the field's single contributor, else, for an Encounter.mediaAsset{k}... name, its
+     * packed photo's source column plus the same suffix. Other names are unchanged, as is the
+     * text of an ungrouped row.
+     */
     public String sourceText(int mergedIndex, String text) {
-        return text;
+        if ((text == null) || !isGrouped(mergedIndex)) return text;
+        Matcher m = SLOT_FIELD.matcher(text);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            String token = m.group();
+            String rtn = token;
+            List<Cell> own = contributorsOf(mergedIndex, token);
+            if (own.size() == 1) {
+                rtn = own.get(0).field;
+            } else if (m.group(1).equals("mediaAsset")) {
+                List<Cell> photo = contributorsOf(mergedIndex, "Encounter.mediaAsset" + m.group(2));
+                if (photo.size() == 1) rtn = photo.get(0).field + m.group(3);
+            }
+            m.appendReplacement(sb, Matcher.quoteReplacement(rtn));
+        }
+        m.appendTail(sb);
+        return sb.toString();
     }
 
     /** A .bbox column on any original row, blanks included. */

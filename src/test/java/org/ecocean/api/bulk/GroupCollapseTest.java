@@ -23,7 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.ecocean.IAJsonProperties;
 import org.ecocean.LocationID;
+import org.ecocean.TestIAJsonPropertiesUtil;
 import org.ecocean.User;
 import org.ecocean.api.bulk.BulkImportUtil;
 import org.ecocean.api.bulk.BulkValidator;
@@ -41,7 +43,8 @@ import org.mockito.MockedStatic;
 /**
  * Bulk import groupKey (#1789), Task 3: GroupCollapse core. Rows sharing an Encounter.groupKey
  * become one merged row; blanks abstain; each source-cell failure is an Issue; dependent failures
- * stay in the merged map and are mapped back through cellsFor.
+ * stay in the merged map and are mapped back through cellsFor. Task 4: photos of a group are
+ * packed into consecutive slots, each with its own metadata (C2), plus the C8 and repeat rules.
  */
 class GroupCollapseTest {
     static final String KEY = "Encounter.groupKey";
@@ -65,6 +68,7 @@ class GroupCollapseTest {
     }
 
     @AfterEach void tearDown() {
+        TestIAJsonPropertiesUtil.override(null);
         locationIds.close();
         BulkImportUtil.measurementValues = savedMeasurements;
         BulkImportUtil.labeledKeywordMap = savedKeywords;
@@ -593,14 +597,270 @@ class GroupCollapseTest {
         }
     }
 
-    @Test void interimPhotoHelpers() {
-        GroupedRows g = collapse(full("G", "a.jpg"), bare("G", "b.jpg"),
-            obj("Encounter.mediaAsset0", "c.jpg", "Encounter.genus", "Genus"));
-        assertEquals(Set.of("a.jpg", "b.jpg"), g.groupedFilenames());
+    // IA.json where "body" is a matchable class of Genus species
+    static void boxClasses() {
+        JSONObject idConf = new JSONObject().put("_id_conf",
+            new JSONArray().put(new JSONObject().put("default", true)));
+        IAJsonProperties iac = IAJsonProperties.iaConfig();
+        assertNotNull(iac);
+        iac.setJson(new JSONObject().put("Genus", new JSONObject().put("species",
+            new JSONObject().put("body", idConf))));
+        TestIAJsonPropertiesUtil.override(iac);
+    }
+
+    // every failure of the collapse: issues plus exceptions left in the merged rows
+    static int failureCount(GroupedRows g) {
+        int n = g.issues().size();
+        for (Map<String, Object> m : g.mergedRows()) {
+            for (Object o : m.values()) {
+                if (o instanceof Exception) n++;
+            }
+        }
+        return n;
+    }
+
+    // an ungrouped row with a blank .bbox column: the upload is in exact-slot mode
+    static JSONObject blankBboxRow() {
+        return obj("Encounter.genus", "Genus", "Encounter.specificEpithet", "species",
+            "Encounter.year", 2020, "Encounter.mediaAsset0", "z.jpg", "Encounter.mediaAsset0.bbox", "");
+    }
+
+    @Test void photosPackInSheetOrderWithOwnMetadata() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.keyword0", "k1"),
+            bare("G", "b.jpg", "Encounter.keyword0", "k2"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
         assertFalse(g.exactSlotMode());
-        assertEquals("in Encounter.mediaAsset1.iaClass", g.sourceText(0, "in Encounter.mediaAsset1.iaClass"));
-        // a .bbox column anywhere, even blank, means exact-slot mode
-        g = collapse(full("G", "a.jpg"), obj("Encounter.mediaAsset0.bbox", "", "Encounter.genus", "Genus"));
+        assertEquals("a.jpg", mergedValue(g, 0, "Encounter.mediaAsset0"));
+        assertEquals("k1", mergedValue(g, 0, "Encounter.keyword0"));
+        assertEquals("b.jpg", mergedValue(g, 0, "Encounter.mediaAsset1"));
+        assertEquals("k2", mergedValue(g, 0, "Encounter.keyword1"));
+        BulkValidator bv = (BulkValidator)g.mergedRows().get(0).get("Encounter.mediaAsset1");
+        assertEquals("Encounter.mediaAsset1", bv.getFieldName());
+        assertEquals(1, bv.getIndexInt());
+        assertEquals("Encounter.keyword1",
+            ((BulkValidator)g.mergedRows().get(0).get("Encounter.keyword1")).getFieldName());
+        assertEquals(List.of(cell(1, "Encounter.keyword0")), g.contributorsOf(0, "Encounter.keyword1"));
+        assertEquals(List.of(cell(1, "Encounter.mediaAsset0")),
+            g.contributorsOf(0, "Encounter.mediaAsset1"));
+        assertEquals(List.of(cell(0, "Encounter.keyword0")), g.contributorsOf(0, "Encounter.keyword0"));
+        assertEquals("b.jpg", g.mergedRaw(0).get("Encounter.mediaAsset1"));
+    }
+
+    @Test void exactSlotModeFollowsIndexNotOrdinal() {
+        GroupedRows g = collapse(obj(KEY, "G", "Encounter.genus", "Genus", "Encounter.specificEpithet",
+            "species", "Encounter.year", 2020, "Encounter.mediaAsset2", "a.jpg", "Encounter.keyword2", "k"),
+            blankBboxRow());
         assertTrue(g.exactSlotMode());
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertEquals("a.jpg", mergedValue(g, 0, "Encounter.mediaAsset0"));
+        assertEquals("k", mergedValue(g, 0, "Encounter.keyword0"));
+        assertEquals(List.of(cell(0, "Encounter.keyword2")), g.contributorsOf(0, "Encounter.keyword0"));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.mediaAsset2"));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.keyword2"));
+    }
+
+    @Test void blankBboxColumnStillSelectsExactSlotMode() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.mediaAsset0.bbox", ""));
+        assertTrue(g.exactSlotMode());
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.mediaAsset0.bbox"));
+    }
+
+    @Test void positionalModeFollowsOrdinal() {
+        JSONObject row = obj(KEY, "G", "Encounter.genus", "Genus", "Encounter.specificEpithet",
+            "species", "Encounter.year", 2020, "Encounter.mediaAsset2", "a.jpg", "Encounter.keyword0", "k");
+        GroupedRows g = collapse(row);
+        assertFalse(g.exactSlotMode());
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertEquals("k", mergedValue(g, 0, "Encounter.keyword0"));
+        assertEquals(List.of(cell(0, "Encounter.keyword0")), g.contributorsOf(0, "Encounter.keyword0"));
+        // the same row in exact-slot mode: keyword0 has no photo in slot 0
+        g = collapse(row, blankBboxRow());
+        assertEquals(List.of(cell(0, "Encounter.keyword0")), issueCells(g, null));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.keyword0"));
+    }
+
+    @Test void boxStaysWithItsPhoto() {
+        boxClasses();
+        GroupedRows g = collapse(full("G", "a.jpg"), bare("G", "b.jpg",
+            "Encounter.mediaAsset0.bbox", "1,2,3,4", "Encounter.mediaAsset0.iaClass", "body"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+        Map<String, Object> m = g.mergedRows().get(0);
+        assertFalse(m.containsKey("Encounter.mediaAsset0.bbox"));
+        assertTrue(m.containsKey("Encounter.mediaAsset1.bbox"));
+        assertEquals("body", mergedValue(g, 0, "Encounter.mediaAsset1.iaClass"));
+        assertEquals("Encounter.mediaAsset1.bbox",
+            ((BulkValidator)m.get("Encounter.mediaAsset1.bbox")).getFieldName());
+        assertEquals(List.of(cell(1, "Encounter.mediaAsset0.bbox")),
+            g.contributorsOf(0, "Encounter.mediaAsset1.bbox"));
+    }
+
+    @Test void failedPhotoFieldBlocksOnlyItsSlot() {
+        boxClasses();
+        GroupedRows g = collapse(
+            full("G", "a.jpg", "Encounter.mediaAsset0.bbox", "1,2,3,4", "Encounter.mediaAsset0.iaClass", "body"),
+            bare("G", "b.jpg", "Encounter.mediaAsset0.bbox", "nonsense",
+                "Encounter.mediaAsset0.iaClass", "body"));
+        assertEquals(List.of(cell(1, "Encounter.mediaAsset0.bbox")), issueCells(g, null));
+        assertEquals(1, failureCount(g), g.mergedRows().toString());
+        Map<String, Object> m = g.mergedRows().get(0);
+        assertTrue(m.get("Encounter.mediaAsset0.bbox") instanceof BulkValidator);
+        assertFalse(m.containsKey("Encounter.mediaAsset1.bbox"));
+        assertEquals("b.jpg", mergedValue(g, 0, "Encounter.mediaAsset1"));
+    }
+
+    @Test void labeledKeywordInPositionalModeRejected() {
+        BulkImportUtil.labeledKeywordMap.put("colour", new LinkedHashSet<String>(List.of("red")));
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.mediaAsset0.colour", "red"),
+            bare("G", "b.jpg", "Encounter.mediaAsset0.colour", ""));
+        assertEquals(List.of(cell(0, "Encounter.mediaAsset0.colour")), issueCells(g, null));
+        assertEquals("labeled keywords need a .bbox column", g.issues().get(0).error.getMessage());
+        assertTrue(g.issues().get(0).error.isType(BulkValidatorException.TYPE_INVALID_VALUE));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.mediaAsset0.colour"));
+        assertNoMergedErrors(g, 0);
+        // in exact-slot mode the labeled keyword follows its photo
+        g = collapse(full("G", "a.jpg"), bare("G", "b.jpg", "Encounter.mediaAsset0.colour", "red"),
+            blankBboxRow());
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertEquals("red", mergedValue(g, 0, "Encounter.mediaAsset1.colour"));
+        assertEquals(List.of(cell(1, "Encounter.mediaAsset0.colour")),
+            g.contributorsOf(0, "Encounter.mediaAsset1.colour"));
+    }
+
+    @Test void labeledKeywordOffsetBeyondMaxRejected() {
+        BulkImportUtil.labeledKeywordMap.put("colour", new LinkedHashSet<String>(List.of("red")));
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.mediaAsset250.colour", ""), blankBboxRow());
+        assertEquals(List.of(cell(0, "Encounter.mediaAsset250.colour")), issueCells(g, null));
+        assertTrue(g.issues().get(0).error.isType(BulkValidatorException.TYPE_INVALID_VALUE));
+        g = collapse(full("G", "a.jpg", "Encounter.mediaAsset250.colour", "red"));
+        assertEquals(List.of(cell(0, "Encounter.mediaAsset250.colour")), issueCells(g, null));
+        assertEquals(1, failureCount(g));
+    }
+
+    @Test void rowWithoutPhotoIsError() {
+        GroupedRows g = collapse(full("G", "a.jpg"), obj(KEY, "G", "Encounter.mediaAsset0", ""),
+            obj(KEY, "G", "Encounter.sex", "male"));
+        assertEquals(List.of(cell(1, "Encounter.mediaAsset0"), cell(2, "Encounter.mediaAsset0")),
+            issueCells(g, BulkValidatorException.TYPE_REQUIRED_VALUE));
+        assertEquals(2, g.issues().size());
+        assertEquals("G", g.issues().get(0).groupKey);
+        assertTrue(g.hasGroupErrors());
+    }
+
+    @Test void repeatedFilenameInGroupIsError() {
+        GroupedRows g = collapse(full("G", "a.jpg"), bare("G", "a.jpg", "Encounter.keyword0", "k"));
+        assertEquals(List.of(cell(1, "Encounter.mediaAsset0")),
+            issueCells(g, BulkValidatorException.TYPE_INVALID_DUPLICATE));
+        assertEquals(1, g.issues().size());
+        String msg = g.issues().get(0).error.getMessage();
+        assertTrue(msg.contains("row 0") && msg.contains("Encounter.mediaAsset0"), msg);
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.mediaAsset1"));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.keyword0"));
+        // within one row too
+        g = collapse(full("G", "a.jpg", "Encounter.mediaAsset1", "a.jpg"));
+        assertEquals(List.of(cell(0, "Encounter.mediaAsset1")),
+            issueCells(g, BulkValidatorException.TYPE_INVALID_DUPLICATE));
+        assertEquals(1, failureCount(g));
+    }
+
+    @Test void repeatedBoxedPhotoReportedOnce() {
+        boxClasses();
+        GroupedRows g = collapse(
+            full("G", "a.jpg", "Encounter.mediaAsset0.bbox", "1,2,3,4", "Encounter.mediaAsset0.iaClass", "body"),
+            bare("G", "a.jpg", "Encounter.mediaAsset0.bbox", "5,6,7,8", "Encounter.mediaAsset0.iaClass", "body"));
+        assertEquals(1, failureCount(g), g.issues() + " " + g.mergedRows());
+        assertEquals(List.of(cell(1, "Encounter.mediaAsset0")),
+            issueCells(g, BulkValidatorException.TYPE_INVALID_DUPLICATE));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.mediaAsset1"));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.mediaAsset1.bbox"));
+        // the same photo boxed twice on one row
+        g = collapse(full("G", "a.jpg", "Encounter.mediaAsset0.bbox", "1,2,3,4",
+            "Encounter.mediaAsset0.iaClass", "body", "Encounter.mediaAsset1", "a.jpg",
+            "Encounter.mediaAsset1.bbox", "5,6,7,8", "Encounter.mediaAsset1.iaClass", "body"));
+        assertEquals(1, failureCount(g), g.issues() + " " + g.mergedRows());
+        assertEquals(List.of(cell(0, "Encounter.mediaAsset1")),
+            issueCells(g, BulkValidatorException.TYPE_INVALID_DUPLICATE));
+    }
+
+    @Test void photoCapCheckedBeforePacking() {
+        GroupedRows g = GroupCollapse.collapse(Arrays.asList(
+            full("G", "a.jpg", "Encounter.mediaAsset1", "b.jpg"),
+            bare("G", "c.jpg", "Encounter.mediaAsset1", "d.jpg", "Encounter.keyword1", "k")),
+            sh, false, 3);
+        assertEquals(List.of(cell(1, "Encounter.mediaAsset1")),
+            issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
+        assertEquals(1, g.issues().size());
+        Map<String, Object> m = g.mergedRows().get(0);
+        assertEquals("c.jpg", mergedValue(g, 0, "Encounter.mediaAsset2"));
+        assertFalse(m.containsKey("Encounter.mediaAsset3"));
+        assertFalse(m.containsKey("Encounter.keyword3"));
+        assertFalse(m.containsKey("Encounter.keyword1"));
+    }
+
+    @Test void orphanBoxMetadataRejected() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.mediaAsset1.bbox", "1,2,3,4",
+            "Encounter.mediaAsset1.iaClass", "body"), bare("G", "b.jpg", "Encounter.keyword1", "k"));
+        assertEquals(List.of(cell(0, "Encounter.mediaAsset1.bbox"), cell(0, "Encounter.mediaAsset1.iaClass"),
+            cell(1, "Encounter.keyword1")), issueCells(g, BulkValidatorException.TYPE_INVALID_VALUE));
+        assertEquals(3, failureCount(g), g.mergedRows().toString());
+        Map<String, Object> m = g.mergedRows().get(0);
+        assertFalse(m.containsKey("Encounter.mediaAsset1.bbox"));
+        assertFalse(m.containsKey("Encounter.mediaAsset0.bbox"));
+        // positional orphans: more metadata than photos on the row
+        g = collapse(full("G", "a.jpg", "Encounter.quality1", 0.5, "Encounter.mediaAsset1.keywords", "x"));
+        assertEquals(List.of(cell(0, "Encounter.mediaAsset1.keywords"), cell(0, "Encounter.quality1")),
+            issueCells(g, null));
+        // a box column on a positional row with no photo in its slot
+        g = collapse(full("G", "a.jpg", "Encounter.mediaAsset1.viewpoint", "left"));
+        assertEquals(List.of(cell(0, "Encounter.mediaAsset1.viewpoint")), issueCells(g, null));
+        assertEquals(1, failureCount(g));
+    }
+
+    @Test void indexAliasInGroupedObjectRowRejected() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.mediaAsset01", "b.jpg",
+            "Encounter.mediaAsset1", "c.jpg"));
+        assertEquals(List.of(cell(0, "Encounter.mediaAsset1")),
+            issueCells(g, BulkValidatorException.TYPE_INVALID_DUPLICATE));
+        assertEquals(1, g.issues().size());
+        assertEquals("b.jpg", mergedValue(g, 0, "Encounter.mediaAsset1"));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.mediaAsset2"));
+    }
+
+    @Test void filenameKeptVerbatim() {
+        GroupedRows g = collapse(full("G", " a.jpg"), bare("G", "b.jpg "));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertEquals(" a.jpg", mergedValue(g, 0, "Encounter.mediaAsset0"));
+        assertEquals("b.jpg ", mergedValue(g, 0, "Encounter.mediaAsset1"));
+        assertEquals(Set.of(" a.jpg", "b.jpg "), g.groupedFilenames());
+    }
+
+    @Test void groupedFilenamesListed() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.mediaAsset1", "b.jpg",
+            "Encounter.mediaAsset2", ""), bare("g", "c.jpg"),
+            obj("Encounter.mediaAsset0", "d.jpg", "Encounter.genus", "Genus"));
+        assertEquals(Set.of("a.jpg", "b.jpg", "c.jpg"), g.groupedFilenames());
+        assertFalse(g.exactSlotMode());
+    }
+
+    @Test void sourceTextNamesSourceSlot() {
+        GroupedRows g = collapse(full("G", "a.jpg"), obj(KEY, "G", "Encounter.mediaAsset7", "b.jpg",
+            "Encounter.mediaAsset7.iaClass", "body"), obj("Encounter.mediaAsset0", "d.jpg"));
+        assertEquals("in Encounter.mediaAsset7.iaClass", g.sourceText(0, "in Encounter.mediaAsset1.iaClass"));
+        assertEquals("Encounter.mediaAsset7 and Encounter.mediaAsset0",
+            g.sourceText(0, "Encounter.mediaAsset1 and Encounter.mediaAsset0"));
+        // a packed field with no contributor maps through its photo; an unknown slot is unchanged
+        assertEquals("in Encounter.mediaAsset7.bbox", g.sourceText(0, "in Encounter.mediaAsset1.bbox"));
+        assertEquals("Encounter.mediaAsset9.bbox", g.sourceText(0, "Encounter.mediaAsset9.bbox"));
+        // the importer's box message on the merged row names the source columns
+        BulkValidatorException ex = mergedError(g, 0, "Encounter.mediaAsset1.iaClass");
+        assertNotNull(ex, g.mergedRows().toString());
+        assertEquals(List.of(cell(1, "Encounter.mediaAsset7.iaClass")),
+            g.cellsFor(0, "Encounter.mediaAsset1.iaClass"));
+        assertEquals("Encounter.mediaAsset7.iaClass needs a box in Encounter.mediaAsset7.bbox",
+            g.sourceText(0, ex.getMessage()));
+        // an ungrouped row is unchanged
+        assertEquals("in Encounter.mediaAsset1.iaClass", g.sourceText(1, "in Encounter.mediaAsset1.iaClass"));
     }
 }
