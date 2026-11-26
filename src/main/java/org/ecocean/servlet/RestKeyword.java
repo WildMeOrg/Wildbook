@@ -1,6 +1,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.Annotation;
+import org.ecocean.Encounter;
 import org.ecocean.ia.IA;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.Keyword;
@@ -109,6 +110,7 @@ public class RestKeyword extends HttpServlet {
                         System.out.println("INFO: RestKeyword toRemove = " + toRemove.toString());
 
                         JSONObject jassigned = new JSONObject();
+                        List<MediaAsset> changed = new ArrayList<MediaAsset>();
                         for (MediaAsset ma : mas) {
                             ArrayList<Keyword> mine = ma.getKeywords();
                             System.out.println("mine -> " + mine);
@@ -141,6 +143,8 @@ public class RestKeyword extends HttpServlet {
                                 if (!toRemove.contains(mine.get(i).getIndexname()))
                                     newList.add(mine.get(i));
                             }
+                            // unchanged keywords keep their order, so equal lists = no change
+                            if (!newList.equals(mine)) changed.add(ma);
                             System.out.println(ma + " ----------> " + newList);
                             JSONObject mj = new JSONObject();
                             for (Keyword k : newList) {
@@ -155,6 +159,8 @@ public class RestKeyword extends HttpServlet {
                             jassigned.put(Integer.toString(ma.getIdInt()), mj);
                             MediaAssetFactory.save(ma, myShepherd);
                         }
+                        // the encounter search document carries its assets' keywords (#1291)
+                        Encounter.touchEncountersOf(changed, myShepherd);
                         jout.put("results", jassigned);
                         jout.put("success", true);
                         myShepherd.commitDBTransaction();

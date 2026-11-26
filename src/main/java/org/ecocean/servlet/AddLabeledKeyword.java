@@ -1,5 +1,6 @@
 package org.ecocean.servlet;
 
+import org.ecocean.Encounter;
 import org.ecocean.Keyword;
 import org.ecocean.LabeledKeyword;
 import org.ecocean.media.MediaAsset;
@@ -15,6 +16,7 @@ import javax.servlet.ServletException;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 
 // handles operations to sharks. possible operations include, create new, add encounter, remove encounter from
 public class AddLabeledKeyword extends HttpServlet {
@@ -77,7 +79,19 @@ public class AddLabeledKeyword extends HttpServlet {
         // if the method above succeeded, then it ended on a commit in a store method, so now need to beginDBTRansaction again
         myShepherd.beginDBTransaction();
 
+        boolean hadKeyword = ma.hasKeyword(lkw);
         ma.addKeyword(lkw);
+        if (!hadKeyword) {
+            // the encounter search document carries its assets' keywords (#1291)
+            try {
+                Encounter.touchEncountersOf(Collections.singletonList(ma), myShepherd);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                errorAndClose("Could not update the encounters of MediaAsset " + mid, response,
+                    myShepherd);
+                return;
+            }
+        }
         if (ma.hasKeyword(lkw)) {
             // construct jout to conform with RestKeyword
             jout.put("success", true);
@@ -111,11 +125,11 @@ public class AddLabeledKeyword extends HttpServlet {
     }
 
     private void errorAndClose(String msg, HttpServletResponse response, Shepherd myShepherd) {
+        myShepherd.rollbackAndClose();
+        // status before writing: closing the writer can commit the response as 200
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         jout.put("error", msg);
         out.println(jout);
         out.close();
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
     }
 }
