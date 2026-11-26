@@ -901,4 +901,23 @@ class BulkGeneralTest {
         Map<String, Object> res = BulkImportUtil.validateRow(row, mock(Shepherd.class));
         assertTrue(hasRequiredOnYear(res));
     }
+
+    @Test void dependentValidationKeepsExistingError() {
+        JSONObject row = new JSONObject();
+        row.put("Encounter.year", 2000);
+        row.put("Encounter.month", 99);
+        row.put("Encounter.day", 5);
+        Map<String, Object> res = BulkImportUtil.validateRow(row, mock(Shepherd.class));
+        Object month = res.get("Encounter.month");
+        assertTrue(month instanceof BulkValidatorException);
+        assertFalse(month.toString().contains("must supply a valid month"));
+    }
+
+    @Test void hasBboxColumnCollection() {
+        assertTrue(BulkImportUtil.hasBboxColumn(
+            java.util.Arrays.asList("Encounter.mediaAsset0", "Encounter.mediaAsset0.bbox")));
+        assertFalse(BulkImportUtil.hasBboxColumn(
+            java.util.Arrays.asList("Encounter.mediaAsset0", "Encounter.year")));
+        assertFalse(BulkImportUtil.hasBboxColumn(null));
+    }
 }

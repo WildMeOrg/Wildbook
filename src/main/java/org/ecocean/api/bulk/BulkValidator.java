@@ -28,8 +28,9 @@ public class BulkValidator {
         "Encounter.country", "Encounter.dateInMilliseconds", "Encounter.day",
         "Encounter.decimalLatitude", "Encounter.decimalLongitude", "Encounter.depth",
         "Encounter.distinguishingScar", "Encounter.elevation", "Encounter.genus",
-        "Encounter.groupKey", "Encounter.groupRole", "Encounter.hour", "Encounter.id", "Encounter.identificationRemarks",
-        "Encounter.individualID", "Encounter.latitude", "Encounter.lifeStage",
+        "Encounter.groupKey", "Encounter.groupRole", "Encounter.hour", "Encounter.id",
+        "Encounter.identificationRemarks", "Encounter.individualID", "Encounter.latitude",
+        "Encounter.lifeStage",
         "Encounter.livingStatus", "Encounter.locationID", "Encounter.longitude",
         "Encounter.minutes", "Encounter.month", "Encounter.sightingID", "Encounter.sightingRemarks",
         "Encounter.otherCatalogNumbers", "Encounter.patterningCode", "Encounter.project",
@@ -157,7 +158,7 @@ public class BulkValidator {
     static {
         List<String[]> rows = new ArrayList<String[]>();
         for (String[] alias : FIELD_ALIASES) {
-            if (alias[0].equals("Encounter.dateInMilliseconds")) continue;
+            if (DATE_MILLIS_FIELDS.contains(alias[0])) continue;
             rows.add(alias);
         }
         rows.add(DATE_EXCLUSIVE);
