@@ -1,7 +1,6 @@
 package org.ecocean.shepherd.core;
 
 import java.util.Properties;
-import org.ecocean.CommonConfiguration;
 import org.ecocean.api.submission.SubmissionJson;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,25 +11,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 class AdvisoryLockDbTest {
     @Container static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine");
+    private static TestPostgresContext db;
     private static Properties properties;
-    private static java.util.Map<String, Properties> configCache;
-    private static Properties priorConfig;
 
     @BeforeAll static void setup() throws Exception {
-        TestPMFUtil.closePMF("context0");
-        java.lang.reflect.Field field = CommonConfiguration.class.getDeclaredField("contextToPropsCache"); field.setAccessible(true);
-        configCache = (java.util.Map<String, Properties>)field.get(null); priorConfig = configCache.get("context0");
-        CommonConfiguration.initialize("context0", new Properties());
-        properties = new Properties();
-        properties.setProperty("datanucleus.ConnectionUserName", postgres.getUsername());
-        properties.setProperty("datanucleus.ConnectionPassword", postgres.getPassword());
-        properties.setProperty("datanucleus.ConnectionDriverName", postgres.getDriverClassName());
-        properties.setProperty("datanucleus.ConnectionURL", postgres.getJdbcUrl());
-        properties.setProperty("datanucleus.schema.autoCreateAll", "true");
+        db = TestPostgresContext.open(postgres);
+        properties = db.properties;
     }
     @AfterAll static void cleanup() {
-        TestPMFUtil.closePMF("context0");
-        if (configCache != null) { if (priorConfig == null) configCache.remove("context0"); else configCache.put("context0", priorConfig); }
+        if (db != null) db.close();
     }
 
     private static Shepherd begin() {
