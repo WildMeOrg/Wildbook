@@ -4656,39 +4656,28 @@ public class Shepherd {
 
     public Map<String,
         Integer> getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(long startTime) {
-        Map<String, Integer> matchingUsers = new HashMap<String, Integer>();
-        String filter = "submitterID != null && dwcDateAddedLong >= " + startTime;
-        // System.out.println("     My filter is: "+filter);
-        Extent encClass = pm.getExtent(Encounter.class, true);
-        Query q = pm.newQuery(encClass, filter);
-
-        q.setResult("distinct submitterID");
-        Collection c = (Collection)(q.execute());
-        ArrayList<String> allUsers = new ArrayList<String>(c);
-        q.closeAll();
-
-        int numAllUsers = allUsers.size();
-        // System.out.println("     All users: "+numAllUsers);
-        QueryCache qc = QueryCacheFactory.getQueryCache(getContext());
-        for (int i = 0; i < numAllUsers; i++) {
-            String thisUser = allUsers.get(i);
-            if ((!thisUser.trim().equals("")) && (getUser(thisUser) != null)) {
-                if (qc.getQueryByName(("numRecentEncounters_" + thisUser)) != null) {
-                    CachedQuery cq = qc.getQueryByName(("numRecentEncounters_" + thisUser));
-                    matchingUsers.put(thisUser, (cq.executeCountQuery(this)));
-                } else {
-                    String userFilter =
-                        "SELECT FROM org.ecocean.Encounter WHERE submitterID == \"" + thisUser +
-                        "\" && dwcDateAddedLong >= " + startTime;
-                    // update rankings hourly
-                    CachedQuery cq = new CachedQuery(("numRecentEncounters_" + thisUser),
-                        userFilter, 3600000);
-                    qc.addCachedQuery(cq);
-                    matchingUsers.put(thisUser, (cq.executeCountQuery(this)));
+        // One grouped count, ordered in the query. Do not count by loading Encounters: that
+        // also bulk-fetches their annotations (default fetch group), and the old per-user
+        // CachedQuery kept the startTime from when it was first created.
+        Map<String, Integer> matchingUsers = new LinkedHashMap<>();
+        Query q = pm.newQuery(Encounter.class);
+        try {
+            q.setFilter("submitterID != null && dwcDateAddedLong >= :start");
+            q.setResult("submitterID, count(this)");
+            q.setGrouping("submitterID");
+            q.setOrdering("count(this) descending, submitterID ascending");
+            Collection c = (Collection)q.execute(startTime);
+            for (Object o : c) {
+                Object[] row = (Object[])o;
+                String thisUser = (String)row[0];
+                if (!thisUser.trim().isEmpty() && (getUser(thisUser) != null)) {
+                    matchingUsers.put(thisUser, Math.toIntExact(((Number)row[1]).longValue()));
                 }
             }
+        } finally {
+            q.closeAll();
         }
-        return sortByValues(matchingUsers);
+        return matchingUsers;
     }
 
     public Map<String, Integer> getTopSubmittersSinceTimeInDescendingOrder(long startTime,
