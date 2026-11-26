@@ -174,7 +174,7 @@ public class BulkImporter {
             }
             trace("createImport() row=" + rowNum);
             try {
-                Encounter resolved = processRow(fields);
+                Encounter resolved = processRow(fields, groupedRowIndexes.contains(rowNum));
                 if (rowCollector != null) rowCollector.accept(rowNum, resolved);
             } catch (Exception ex) {
                 // TODO we could allow this some leeway with a tolerance setting
@@ -299,7 +299,7 @@ public class BulkImporter {
     }
 
     // this assumes all values have been validated, so just go for it! set data with values. good luck!
-    private Encounter processRow(List<BulkValidator> fields) {
+    private Encounter processRow(List<BulkValidator> fields, boolean groupedRow) {
         // some fields we do on a subsequent pass, as they require special care
         // handy for these subsequent passes
         Map<String, BulkValidator> fmap = new HashMap<String, BulkValidator>();
@@ -803,6 +803,12 @@ public class BulkImporter {
         }
         // fields done
         trace("+ populated data on " + enc);
+        // a grouped row's encounter only has its sex and taxonomy now, so derive the individual's
+        // from it (sex only when unset); ungrouped rows keep today's behavior
+        if (groupedRow && (indiv != null)) {
+            indiv.setSexFromEncounters();
+            indiv.setTaxonomyFromEncounters(true);
+        }
         // now attach annotations
         String tx = enc.getTaxonomyString();
         List<Annotation> annots = new ArrayList<Annotation>();
