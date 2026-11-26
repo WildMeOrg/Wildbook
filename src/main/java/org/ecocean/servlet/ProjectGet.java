@@ -98,10 +98,9 @@ public class ProjectGet extends HttpServlet {
                         projectIdPrefix.trim());
                     if (project != null) {
                         ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId);
-                        List<Encounter> encs = project.getEncounters();
                         for (Annotation ann : anns) {
                             Encounter enc = ann.findEncounter(myShepherd);
-                            if (encs.contains(enc)) {
+                            if (project.containsEncounter(enc)) {
                                 res.put("inProject", "true");
                                 break;
                             }
