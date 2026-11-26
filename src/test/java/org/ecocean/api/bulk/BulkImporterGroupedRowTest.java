@@ -3,6 +3,7 @@ package org.ecocean.api;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyCollection;
@@ -70,6 +71,7 @@ class BulkImporterGroupedRowTest {
     PersistenceManagerFactory mockPMF = mock(PersistenceManagerFactory.class);
     User user = mock(User.class);
     Occurrence occ = mock(Occurrence.class);
+    MarkedIndividual existingByName = null;   // what the importer's name lookup returns
     final Map<String, MediaAsset> maMap = new HashMap<String, MediaAsset>();
 
     @BeforeEach void fixture() {
@@ -134,7 +136,8 @@ class BulkImporterGroupedRowTest {
             ft.when(() -> FeatureType.load(eq("org.ecocean.boundingBox"), any(Shepherd.class))).thenReturn(new FeatureType("org.ecocean.boundingBox"));
             media.when(() -> MediaAsset.updateStandardChildrenBackground(anyString(), any(List.class), any(Runnable.class)))
                 .thenAnswer(inv -> { ((Runnable)inv.getArgument(2)).run(); return null; });
-            mi.when(() -> MarkedIndividual.withName(any(Shepherd.class), anyString(), any(), any())).thenReturn(null);
+            mi.when(() -> MarkedIndividual.withName(any(Shepherd.class), anyString(), any(), any()))
+                .thenAnswer(inv -> existingByName);
             util.when(() -> BulkImportUtil.bulkOpensearchIndex(any(List.class))).thenAnswer(inv -> null);
             util.when(() -> BulkImportUtil.encounterIdsInUse(anyCollection(), any())).thenReturn(new HashSet<String>());
             Shepherd sh = new Shepherd("context0");
@@ -247,5 +250,15 @@ class BulkImporterGroupedRowTest {
         MarkedIndividual indiv = imp.getEncounters().get(0).getIndividual();
         assertNotNull(indiv);
         assertEquals("X", indiv.getName("alias"));
+    }
+
+    @Test void existingIndividualSexPreserved() throws Exception {
+        MarkedIndividual existing = new MarkedIndividual();
+        existing.setSex("male");
+        existingByName = existing;
+        BulkImporter imp = run(rows(src("p.jpg", cat(BASE, "Encounter.sex", "female")), src("q.jpg"),
+            src("r.jpg", "Encounter.individualID", "indA")));
+        assertSame(existing, imp.getEncounters().get(0).getIndividual());
+        assertEquals("male", existing.getSex());
     }
 }
