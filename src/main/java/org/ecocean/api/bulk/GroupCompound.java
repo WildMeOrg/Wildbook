@@ -37,16 +37,18 @@ final class GroupCompound {
     private GroupCompound() {}
 
     /**
-     * A compound cell: a numbered field that is not per-photo (project#, submitter#, informOther#,
-     * photographer#, MarkedIndividual.name#, MicrosatelliteMarkersAnalysis.alleles#), a measurement
-     * or sampling protocol, or a sample/genetics field.
+     * A compound cell: a numbered field (with any index) that is not per-photo (project#,
+     * submitter#, informOther#, photographer#, MarkedIndividual.name#,
+     * MicrosatelliteMarkersAnalysis.alleles#), a measurement or sampling protocol, or a
+     * sample/genetics field.
      */
     static boolean isCompound(String field) {
         if (SAMPLE_FIELDS.contains(field) || BulkValidator.isMeasurementFieldName(field))
             return true;
-        if (GroupPhotos.photoPrefix(field) != null) return false;
+        // by its numbered family, whether or not its index is valid (project200 is a project)
         try {
-            return BulkValidator.indexIntValue(field) >= 0;
+            String prefix = BulkValidator.indexPrefixValue(field);
+            return (prefix != null) && !GroupPhotos.isPhotoPrefix(prefix);
         } catch (BulkValidatorException ex) {
             return false;
         }

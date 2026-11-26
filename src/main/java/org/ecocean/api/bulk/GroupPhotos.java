@@ -45,11 +45,13 @@ final class GroupPhotos {
     static String photoPrefix(String field) {
         BulkImportUtil.Slot slot = BulkImportUtil.slotOf(field);
         if (slot == null) return null;
-        String prefix = slot.prefix;
-        if (prefix.equals(PHOTO) || prefix.startsWith(PHOTO + ".") ||
-            ORDINAL_PREFIXES.contains(prefix))
-            return prefix;
-        return null;
+        return isPhotoPrefix(slot.prefix) ? slot.prefix : null;
+    }
+
+    // the index prefix of a per-photo field family (the photo, its box and keyword columns)
+    static boolean isPhotoPrefix(String prefix) {
+        return prefix.equals(PHOTO) || prefix.startsWith(PHOTO + ".") ||
+                   ORDINAL_PREFIXES.contains(prefix);
     }
 
     // the source index of a per-photo field (a labeled keyword's offset)

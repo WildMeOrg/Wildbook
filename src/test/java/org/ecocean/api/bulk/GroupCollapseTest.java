@@ -1604,6 +1604,17 @@ class GroupCollapseTest {
         assertFalse(g.mergedRows().get(0).containsKey(P0));
     }
 
+    // Codex r2 #3: an index error on a compound header leaves its row out of the comparison
+    @Test void compoundHeaderWithBadIndexSkipsComparison() {
+        projectsExist();
+        String p200 = "Encounter.project200.projectIdPrefix";
+        GroupedRows g = collapse(full("G", "a.jpg", p200, "P", N0, "Proj"),
+            bare("G", "b.jpg", P0, "P", N0, "Proj"));
+        assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE, List.of(cell(0, p200)));
+        assertTrue(issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT).isEmpty());
+        assertFalse(g.mergedRows().get(0).containsKey(P0));
+    }
+
     @Test void sharedPrefixLookedUpOnce() {
         GroupedRows g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj"),
             full("H", "b.jpg", P0, "P", N0, "Proj"));
