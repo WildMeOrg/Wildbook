@@ -486,10 +486,11 @@ public class BulkImport extends ApiBase {
                     final boolean bgBoxedImport = boxedImport;
                     final String currentUsername = currentUser.getUsername();
                     final String bgContext = myShepherd.getContext();
-                    final AtomicBoolean workerStarted = new AtomicBoolean(false);
+                    // the worker and a launch-failure undo each claim the reservation; only one wins
+                    final AtomicBoolean claimed = new AtomicBoolean(false);
                     Runnable r = new Runnable() {
                         public void run() {
-                            workerStarted.set(true);
+                            if (!claimed.compareAndSet(false, true)) return; // the reservation was undone
                             // make our background thread safely use our own Shepherd
                             Shepherd bgShepherd = new Shepherd(bgContext);
                             bgShepherd.setAction("api.Bulk.processBackground");
@@ -616,9 +617,16 @@ public class BulkImport extends ApiBase {
                     try {
                         launcher.accept(r);
                     } catch (RuntimeException | Error launchFailure) {
-                        // the worker never started, and this request still holds the lock: free
-                        // the ID so the same upload can be submitted again
-                        if (!workerStarted.get()) undoReservation(context, bulkImportId);
+                        // the worker has not claimed the task, and this request still holds the
+                        // lock: free the ID so the same upload can be submitted again. The launch
+                        // failure is what the request reports, whatever the cleanup does.
+                        if (claimed.compareAndSet(false, true)) {
+                            try {
+                                undoReservation(context, bulkImportId);
+                            } catch (Throwable cleanupFailure) {
+                                launchFailure.addSuppressed(cleanupFailure);
+                            }
+                        }
                         throw launchFailure;
                     }
                     rtn.put("processingTime", System.currentTimeMillis() - startProcess);
@@ -1003,8 +1011,8 @@ public class BulkImport extends ApiBase {
         if ((user == null) || (user.getId() == null))
             throw new IllegalStateException("reservation needs a user with an id");
         Shepherd sh = new Shepherd(context);
-        sh.setAction("BulkImport.reserveImportTask");
         try {
+            sh.setAction("BulkImport.reserveImportTask");
             sh.beginDBTransaction();
             if (!sh.isDBTransactionActive())
                 throw new IllegalStateException("database transaction unavailable");
@@ -1042,11 +1050,12 @@ public class BulkImport extends ApiBase {
 
     // Removes the task reserveImportTask committed, when the worker could not be started. Called
     // while the request still holds the lock, so the task is still this request's own. A failure
-    // here is logged; the caller reports the launch failure.
-    void undoReservation(String context, String id) {
+    // propagates (after the Shepherd is closed); the caller attaches it to the launch failure.
+    void undoReservation(String context, String id)
+    throws Exception {
         Shepherd sh = new Shepherd(context);
-        sh.setAction("BulkImport.undoReservation");
         try {
+            sh.setAction("BulkImport.undoReservation");
             sh.beginDBTransaction();
             if (!sh.isDBTransactionActive())
                 throw new IllegalStateException("database transaction unavailable");
@@ -1055,14 +1064,12 @@ public class BulkImport extends ApiBase {
             if (!sh.commitDBTransactionWithStatus())
                 throw new IOException("could not remove reserved ImportTask " + id);
         } catch (Exception ex) {
-            System.out.println("undoReservation(" + id + ") failed: " + ex);
-            ex.printStackTrace();
             try {
                 sh.rollbackAndClose();
             } catch (Exception rollbackEx) {
-                System.out.println("undoReservation(" + id + ") rollback failed: " + rollbackEx);
+                ex.addSuppressed(rollbackEx);
             }
-            return;
+            throw ex;
         }
         sh.closeDBTransaction();
         Util.mark("undoReservation(" + id + ")");

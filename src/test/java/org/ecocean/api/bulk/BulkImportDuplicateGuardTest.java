@@ -149,6 +149,8 @@ class BulkImportDuplicateGuardTest {
         Set<Integer> inactive = new HashSet<Integer>();   // Shepherd numbers whose transaction is not active
         Set<Integer> beginFails = new HashSet<Integer>(); // Shepherd numbers whose beginDBTransaction throws
         Map<String, ImportTask> table = null;          // when set: lookups read it, persist adds, delete removes
+        Set<Integer> constructFails = new HashSet<Integer>(); // Shepherd numbers whose construction throws
+        Runnable afterDoPost = null;                   // runs after doPost, still inside this call's mocks
 
         final List<String> events = Collections.synchronizedList(new ArrayList<String>());
         final List<Runnable> launched = new ArrayList<Runnable>();
@@ -233,6 +235,7 @@ class BulkImportDuplicateGuardTest {
              });
              MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (mock, ctx) -> {
                  int n = ctx.getCount();
+                 if (c.constructFails.contains(n)) throw new IllegalStateException("cannot build Shepherd " + n);
                  Object context = ctx.arguments().isEmpty() ? null : ctx.arguments().get(0);
                  c.shepherdContexts.add(context);
                  c.shepherds.add(mock);
@@ -300,6 +303,7 @@ class BulkImportDuplicateGuardTest {
             ia.when(() -> IA.getBaseURL(anyString())).thenReturn("https://base.test");
             media.when(() -> MediaAsset.updateStandardChildrenBackground(anyString(), any(List.class), any(Runnable.class))).thenAnswer(inv -> null);
             servlet.doPost(request, response);
+            if (c.afterDoPost != null) c.afterDoPost.run();
             out.flush();
             c.response = new JSONObject(out.toString());
             return c;
@@ -449,8 +453,38 @@ class BulkImportDuplicateGuardTest {
         // a launcher that runs the worker, then fails: the task is the worker's now
         post(c, r -> { r.run(); throw new IllegalStateException("after the worker ran"); });
         assertEquals(500, c.status());
+        assertEquals(1, c.importers, "the worker claimed the task first and imported");
         assertTrue(c.deleted.isEmpty(), "a started worker's task is not removed");
         assertEquals(1, table.size());
+    }
+
+    @Test void queuedWorkerAfterUndoDoesNothing() throws Exception {
+        Map<String, ImportTask> table = new HashMap<String, ImportTask>();
+        Call c = new Call(withFile());
+        c.table = table;
+        List<Runnable> queue = new ArrayList<Runnable>();
+        // the launcher queues the worker, then fails; the queued worker runs after the undo
+        c.afterDoPost = () -> queue.get(0).run();
+        post(c, r -> { queue.add(r); throw new IllegalStateException("queue rejected the start"); });
+        assertEquals(500, c.status());
+        assertEquals(1, queue.size());
+        assertEquals(1, c.deleted.size(), "the undo claimed the task and removed it");
+        assertTrue(table.isEmpty());
+        assertEquals(0, c.importers, "the worker lost the claim and imported nothing");
+        assertEquals(0, c.mediaCreated);
+        assertEquals(3, c.shepherds.size(), "request, reservation and undo; the worker built none: " + c.shepherdContexts);
+    }
+
+    @Test void undoSetupFailureKeepsTheLaunchFailure() throws Exception {
+        Call c = new Call(background());
+        c.launchFails = true;
+        c.constructFails.add(3);   // the undo's Shepherd cannot be built
+        post(c);
+        assertEquals(500, c.status());
+        String error = c.response.getString("error");
+        assertTrue(error.contains("cannot start a thread"), "the launch failure is reported: " + error);
+        assertTrue(c.launched.isEmpty());
+        assertEquals(0, c.importers);
     }
 
     @Test void inactiveRequestTransactionIs500() throws Exception {
@@ -533,8 +567,11 @@ class BulkImportDuplicateGuardTest {
         InOrder order = inOrder(reservation, request);
         order.verify(reservation).commitDBTransactionWithStatus();
         order.verify(request).commitDBTransaction();
-        // that commit is the request transaction's only end, so none came before the reservation's
+        order.verify(request).closeDBTransaction();
+        // that commit and close are the request transaction's only end, so none came before the reservation's
         verify(request, times(1)).commitDBTransaction();
+        verify(request, times(1)).closeDBTransaction();
+        verify(request, never()).updateDBTransaction();
         verify(request, never()).commitDBTransactionWithStatus();
         verify(request, never()).rollbackDBTransaction();
         verify(request, never()).rollbackAndClose();

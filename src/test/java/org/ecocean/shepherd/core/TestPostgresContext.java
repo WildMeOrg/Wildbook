@@ -27,19 +27,20 @@ public final class TestPostgresContext {
     @SuppressWarnings("unchecked")
     public static TestPostgresContext open(PostgreSQLContainer<?> postgres)
     throws Exception {
-        TestPMFUtil.closePMF(CONTEXT);
-        java.lang.reflect.Field field = CommonConfiguration.class.getDeclaredField(
-            "contextToPropsCache");
-        field.setAccessible(true);
-        Map<String, Properties> configCache = (Map<String, Properties>)field.get(null);
-        Properties priorConfig = configCache.get(CONTEXT);
-        CommonConfiguration.initialize(CONTEXT, new Properties());
+        // everything that can fail runs before the global configuration is replaced
         Properties properties = new Properties();
         properties.setProperty("datanucleus.ConnectionUserName", postgres.getUsername());
         properties.setProperty("datanucleus.ConnectionPassword", postgres.getPassword());
         properties.setProperty("datanucleus.ConnectionDriverName", postgres.getDriverClassName());
         properties.setProperty("datanucleus.ConnectionURL", postgres.getJdbcUrl());
         properties.setProperty("datanucleus.schema.autoCreateAll", "true");
+        java.lang.reflect.Field field = CommonConfiguration.class.getDeclaredField(
+            "contextToPropsCache");
+        field.setAccessible(true);
+        Map<String, Properties> configCache = (Map<String, Properties>)field.get(null);
+        Properties priorConfig = configCache.get(CONTEXT);
+        TestPMFUtil.closePMF(CONTEXT);
+        CommonConfiguration.initialize(CONTEXT, new Properties());
         return new TestPostgresContext(properties, configCache, priorConfig);
     }
 
