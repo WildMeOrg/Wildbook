@@ -506,8 +506,25 @@ public class BulkImportUtil {
      * The given lowercase encounter IDs that already exist in the database, compared
      * case-insensitively against the stored catalogNumber and returned lowercase. Queried in
      * chunks of 1000. Throws when the database cannot be read (the caller reports it).
+     * The lookup runs in its own short-lived Shepherd and transaction for requestShepherd's
+     * context, so a failed query (on Postgres, one that aborts its transaction) cannot leave the
+     * request's transaction unusable; requestShepherd itself is never queried.
      */
-    public static Set<String> encounterIdsInUse(Collection<String> lowercaseIds, Shepherd sh)
+    public static Set<String> encounterIdsInUse(Collection<String> lowercaseIds,
+        Shepherd requestShepherd)
+    throws Exception {
+        Shepherd idShepherd = new Shepherd(requestShepherd.getContext());
+        idShepherd.setAction("BulkImportUtil.encounterIdsInUse");
+        try {
+            idShepherd.beginDBTransaction();
+            return queryEncounterIdsInUse(lowercaseIds, idShepherd);
+        } finally {
+            idShepherd.rollbackAndClose();
+        }
+    }
+
+    // encounterIdsInUse's query, on the given Shepherd's open transaction
+    static Set<String> queryEncounterIdsInUse(Collection<String> lowercaseIds, Shepherd sh)
     throws Exception {
         Set<String> found = new HashSet<String>();
         List<String> all = new ArrayList<String>(new LinkedHashSet<String>(lowercaseIds));

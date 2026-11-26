@@ -37,6 +37,8 @@ public final class GroupCollapse {
     static final String NICKNAME = "MarkedIndividual.nickName";
     static final String SOCIAL_UNIT = "SocialUnit.socialUnitName";
     static final String ROLE = "Membership.role";
+    // a longer trimmed groupKey is invalid (its row is a group of its own, so the issue is fatal)
+    static final int MAX_KEY_LENGTH = 256;
 
     // a conflict message names at most this many values (or rows), then "and N more"
     static final int LIST_LIMIT = 3;
@@ -121,6 +123,8 @@ public final class GroupCollapse {
         final Map<String, Boolean> projectExists = new HashMap<String, Boolean>();
         final List<GroupId> groupIds = new ArrayList<GroupId>();
         boolean exactSlotMode = false;
+        // an Issue on a compound cell of the group being collapsed (reset per group)
+        boolean groupCompoundIssue = false;
 
         State(List<JSONObject> rows, Shepherd sh, boolean identificationSkipped, int maxPhotos) {
             this.rows = rows;
@@ -134,6 +138,7 @@ public final class GroupCollapse {
 
         void issue(int row, String field, BulkValidatorException ex) {
             issues.add(new GroupedRows.Issue(row, field, ex, keyAsTyped[row]));
+            if (GroupCompound.isCompound(field)) groupCompoundIssue = true;
         }
     }
 
@@ -160,7 +165,14 @@ public final class GroupCollapse {
             String membership = null;
             if ((raw instanceof String) && !((String)raw).trim().isEmpty()) {
                 st.keyAsTyped[r] = ((String)raw).trim();
-                membership = foldKey(st.keyAsTyped[r]);
+                if (st.keyAsTyped[r].length() > MAX_KEY_LENGTH) {
+                    membership = "\u0000" + r; // a group of its own, so the issue is fatal
+                    st.issue(r, GROUP_KEY, new BulkValidatorException("groupKey must be at most " +
+                        MAX_KEY_LENGTH + " characters", ApiException.ERROR_RETURN_CODE_INVALID,
+                        BulkValidatorException.TYPE_INVALID_VALUE, GROUP_KEY));
+                } else {
+                    membership = foldKey(st.keyAsTyped[r]);
+                }
             } else if ((raw != null) && (raw != JSONObject.NULL) && !(raw instanceof String)) {
                 st.keyAsTyped[r] = raw.toString();
                 membership = "\u0000" + r; // a group of its own, so the issue is fatal
@@ -318,6 +330,8 @@ public final class GroupCollapse {
         Map<String, List<Entry> > families = new LinkedHashMap<String, List<Entry> >();
         Map<Integer, List<Entry> > compound = new HashMap<Integer, List<Entry> >();
         List<GroupPhotos.RowPhotos> photos = new ArrayList<GroupPhotos.RowPhotos>();
+        // a group's own cells get their Issues below; the membership pass gives only key Issues
+        st.groupCompoundIssue = false;
 
         for (int r : rows) {
             Map<String, Object> values = new LinkedHashMap<String, Object>();

@@ -244,7 +244,7 @@ public final class GroupedRows {
         return groupedFilenames;
     }
 
-    /** The grouped source rows that name filename in a bare photo column, ascending (empty when none). */
+    /** The grouped source rows naming filename in a bare photo column, ascending; empty when none. */
     public Set<Integer> sourceRowsUsing(String filename) {
         Set<Integer> rows = rowsByGroupedFile.get(filename);
         return (rows == null) ? Set.of() : Collections.unmodifiableSet(rows);

@@ -459,6 +459,26 @@ class GroupCollapseTest {
         assertTrue(g.hasGroupErrors());
     }
 
+    @Test void overlongGroupKeyIsFatal() {
+        String max = "k".repeat(256);
+        String over = "K".repeat(257);
+        // a 256-character key groups as usual (trimmed first); 257 is invalid, on rows that
+        // would otherwise share it: each is a one-row group of its own
+        GroupedRows g = collapse(full("  " + max + "  ", "a.jpg"), bare(max, "b.jpg"),
+            full(over, "c.jpg"), full(over.toLowerCase(), "d.jpg"));
+        assertEquals(3, g.mergedRows().size());
+        assertEquals(List.of(0, 1), g.membersOf(0));
+        assertEquals(List.of(2), g.membersOf(1));
+        assertEquals(List.of(3), g.membersOf(2));
+        assertTrue(g.isGroupedRow(2));
+        assertTrue(g.isGroupedRow(3));
+        assertEquals(List.of(cell(2, KEY), cell(3, KEY)),
+            issueCells(g, BulkValidatorException.TYPE_INVALID_VALUE));
+        assertEquals(2, g.issues().size(), g.issues().toString());
+        assertEquals("groupKey must be at most 256 characters", g.issues().get(0).error.getMessage());
+        assertTrue(g.hasGroupErrors());
+    }
+
     @Test void remarksConflictMessageTellsHowToFix() {
         GroupedRows g = collapse(full("G", "a.jpg", "Encounter.researcherComments", "one"),
             bare("G", "b.jpg", "Encounter.researcherComments", "two"));

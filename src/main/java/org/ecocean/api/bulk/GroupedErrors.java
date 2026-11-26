@@ -24,6 +24,8 @@ public final class GroupedErrors {
     private final List<JSONObject> errors = new ArrayList<JSONObject>();
     private final List<JSONObject> warnings = new ArrayList<JSONObject>();
     private final Set<Integer> invalidRows = new HashSet<Integer>();
+    // the source cells of grouped rows that an error names
+    private final Set<GroupedRows.Cell> groupedErrorCells = new HashSet<GroupedRows.Cell>();
     private boolean fatal;
 
     // one candidate entry: a JSON error/warning for one source row
@@ -92,7 +94,11 @@ public final class GroupedErrors {
             }
             ge.errors.add(e.json);
             ge.invalidRows.add(e.row);
-            if (g.isGroupedRow(e.row)) ge.fatal = true;
+            if (g.isGroupedRow(e.row)) {
+                ge.fatal = true;
+                ge.groupedErrorCells.add(new GroupedRows.Cell(e.row,
+                    e.json.optString("fieldName", null)));
+            }
         }
         if (g.hasGroupErrors()) ge.fatal = true;
         return ge;
@@ -150,6 +156,21 @@ public final class GroupedErrors {
 
     public boolean fatal() {
         return fatal;
+    }
+
+    /**
+     * Valid source cells on grouped rows: each validated non-absent cell (the key included) that
+     * no field error names. The same unit as the field errors, which name source cells.
+     */
+    public int numberGroupedCellsValid() {
+        int n = 0;
+        for (int r = 0; r < g.sourceRowCount(); r++) {
+            if (!g.isGroupedRow(r)) continue;
+            for (String field : g.sourceValues(r).keySet()) {
+                if (!groupedErrorCells.contains(new GroupedRows.Cell(r, field))) n++;
+            }
+        }
+        return n;
     }
 
     /** Source rows that no error names (and, for a grouped row, whose photos all passed). */

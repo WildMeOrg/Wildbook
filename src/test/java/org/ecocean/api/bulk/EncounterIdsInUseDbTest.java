@@ -1,6 +1,7 @@
 package org.ecocean.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * BulkImportUtil.encounterIdsInUse through real DataNucleus and Postgres (#1789): a stored
- * catalogNumber is found case-insensitively from a lowercase query, and the lookup is chunked.
+ * catalogNumber is found case-insensitively from a lookup of its lowercase form, the lookup is
+ * chunked, and it runs in its own transaction rather than the request's.
  */
 @Testcontainers
 class EncounterIdsInUseDbTest {
@@ -86,6 +88,29 @@ class EncounterIdsInUseDbTest {
         for (int i = 0; i < 1000; i++) ids.add(UUID.randomUUID().toString());
         ids.add(stored); // 1001st, so it lands in the second chunk
         assertEquals(Set.of(stored), lookup(ids));
+    }
+
+    // the request's transaction aborted by a failed statement
+    private static void abortTransaction(Shepherd sh) {
+        assertThrows(Exception.class, () -> sh.getPM().newQuery("javax.jdo.query.SQL",
+            "SELECT * FROM no_such_table_1789").execute());
+        assertThrows(Exception.class, () -> sh.getPM().newQuery("javax.jdo.query.SQL",
+            "SELECT 1").execute(), "Postgres refuses every statement in an aborted transaction");
+    }
+
+    @Test void lookupRunsOutsideTheRequestTransaction() throws Exception {
+        // the lookup never touches the request's transaction: it answers even when that
+        // transaction is already aborted, so a failed lookup cannot abort the request's either
+        String id = UUID.randomUUID().toString();
+        store(id);
+        Shepherd request = new Shepherd("context0", props);
+        request.beginDBTransaction();
+        try {
+            abortTransaction(request);
+            assertEquals(Set.of(id), BulkImportUtil.encounterIdsInUse(List.of(id), request));
+        } finally {
+            request.rollbackAndClose();
+        }
     }
 
     @Test void duplicateInputsReturnedOnceAndEmptyInputEmpty() throws Exception {

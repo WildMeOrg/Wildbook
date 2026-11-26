@@ -43,6 +43,9 @@ class ProjectPrefixLookupDbTest {
             sh.storeNewProject(new Project("FOO-", "Foo project"));
             sh.storeNewProject(new Project("Bar-B", "Bar B"));
             sh.storeNewProject(new Project("bar-a", "Bar A"));
+            sh.storeNewProject(new Project("NOAA_X", "Noaa underscore"));
+            sh.storeNewProject(new Project("NOAAZX", "Noaa z"));
+            sh.storeNewProject(new Project("NOABZQ", "Noab z"));
         } finally {
             sh.closeDBTransaction();
         }
@@ -63,6 +66,22 @@ class ProjectPrefixLookupDbTest {
             // ordered by the lowercased prefix
             assertEquals("bar-a", sh.getProjectByProjectIdPrefixPrefix(" BAR").getProjectIdPrefix());
             assertNull(sh.getProjectByProjectIdPrefixPrefix(null));
+        } finally {
+            sh.rollbackDBTransaction();
+            sh.closeDBTransaction();
+        }
+    }
+
+    @Test void likeWildcardsInPrefixAreLiteral() {
+        // startsWith on a parameter is a LIKE whose pattern DataNucleus escapes, as it did for the
+        // old inline literal: _ and % match only themselves
+        Shepherd sh = new Shepherd("context0");
+        sh.beginDBTransaction();
+        try {
+            assertEquals("NOAA_X", sh.getProjectByProjectIdPrefixPrefix("NOAA_").getProjectIdPrefix());
+            assertNull(sh.getProjectByProjectIdPrefixPrefix("NOAB_"), "_ is not a one-character wildcard");
+            assertNull(sh.getProjectByProjectIdPrefixPrefix("NO%Q"), "% is not a wildcard");
+            assertNull(sh.getProjectByProjectIdPrefixPrefix("NOAA\\"), "backslash is just a value");
         } finally {
             sh.rollbackDBTransaction();
             sh.closeDBTransaction();

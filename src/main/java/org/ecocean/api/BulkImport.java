@@ -365,7 +365,8 @@ public class BulkImport extends ApiBase {
                                 bv = defaultSubmitterIDBV;
                             }
                         }
-                        validFields.add(bv);
+                        // a grouped row's valid cells are counted on its source rows below
+                        if (!grouped.isGrouped(rowNum)) validFields.add(bv);
                     } else if (fieldObj instanceof BulkValidatorException) {
                         System.out.println("[INFO] rowResult[" + rowNum + ", " + rowFieldName +
                             "]: " + fieldObj);
@@ -430,7 +431,9 @@ public class BulkImport extends ApiBase {
             rtn.put("numberRowsValid", fieldErrors.numberRowsValid());
             rtn.put("numberFieldsWarning", dataWarnings.length());
             rtn.put("numberFieldsError", numFieldErrors);
-            rtn.put("numberFieldsValid", validFields.size());
+            // in the unit of numberFieldsError: merged fields of ungrouped rows (one per source
+            // cell, as before grouping existed) plus the valid source cells of grouped rows
+            rtn.put("numberFieldsValid", validFields.size() + fieldErrors.numberGroupedCellsValid());
             if ((numFieldErrors > 0) || (fatal && (dataErrors.length() > 0)))
                 rtn.put("errors", dataErrors);
             rtn.put("numberFilenamesReferenced", filenamesNeeded.size());

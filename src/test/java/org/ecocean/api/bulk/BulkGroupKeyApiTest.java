@@ -458,6 +458,24 @@ class BulkGroupKeyApiTest {
         assertEquals(4, res.getInt("numberRowsValid"));
     }
 
+    @Test void groupedFieldCountsAreSourceCells() throws Exception {
+        // five cells a row (key, genus, epithet, year, photo), counted per source row
+        JSONObject res = post(validateOnly(objects(
+            row(KEY, "G", "Encounter.mediaAsset0", "a.jpg"),
+            row(KEY, "G", "Encounter.mediaAsset0", "b.jpg"),
+            row(KEY, "G", "Encounter.mediaAsset0", "c.jpg"))));
+        assertTrue(res.getBoolean("success"), res.toString());
+        assertEquals(0, res.getInt("numberFieldsError"));
+        assertEquals(15, res.getInt("numberFieldsValid"), res.toString());
+        // a conflict: the two sex cells are errors, the other ten cells are valid
+        setUp();
+        res = post(validateOnly(objects(
+            row(KEY, "G", "Encounter.sex", "male", "Encounter.mediaAsset0", "a.jpg"),
+            row(KEY, "G", "Encounter.sex", "female", "Encounter.mediaAsset0", "b.jpg"))));
+        assertEquals(2, res.getInt("numberFieldsError"), res.toString());
+        assertEquals(10, res.getInt("numberFieldsValid"), res.toString());
+    }
+
     @Test void errorsInSourceOrderForInterleavedGroups() throws Exception {
         JSONObject res = post(validateOnly(objects(
             row(KEY, "G1", "Encounter.sex", "male", "Encounter.mediaAsset0", "a.jpg"),

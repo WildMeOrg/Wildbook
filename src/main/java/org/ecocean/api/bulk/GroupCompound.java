@@ -146,7 +146,7 @@ final class GroupCompound {
             sets.add(set);
         }
         if (suppliers.isEmpty()) return;
-        if (hasCompoundIssue(st, rows)) {
+        if (st.groupCompoundIssue) { // an Issue already on a compound cell of this group
             for (int r : suppliers) poisonAll(byRow.get(r), poisoned);
             return;
         }
@@ -187,15 +187,6 @@ final class GroupCompound {
 
     private static void poisonAll(List<GroupCollapse.Entry> entries, Set<String> poisoned) {
         for (GroupCollapse.Entry e : entries) poisoned.add(mergedName(e.cell.field));
-    }
-
-    // an Issue already on a compound cell of this group
-    private static boolean hasCompoundIssue(GroupCollapse.State st, List<Integer> rows) {
-        Set<Integer> members = new LinkedHashSet<Integer>(rows);
-        for (GroupedRows.Issue is : st.issues) {
-            if (members.contains(is.row) && isCompound(is.field)) return true;
-        }
-        return false;
     }
 
     // which rows supply the set, and which columns differ between them
