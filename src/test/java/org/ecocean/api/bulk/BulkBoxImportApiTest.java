@@ -6,9 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
@@ -50,6 +52,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetMetadata;
 import org.ecocean.servlet.IAGateway;
 import org.ecocean.servlet.importer.ImportTask;
+import org.ecocean.shepherd.core.AdvisoryLock;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
 import org.json.JSONArray;
@@ -121,6 +124,9 @@ class BulkBoxImportApiTest {
         when(user.getUsername()).thenReturn("fake-username");
         occ = mock(Occurrence.class);
         held = new ImportTask(null, BULK_ID);
+        // the request reserves (persists) the task; later lookups read the reserved one
+        doAnswer(inv -> { held = inv.getArgument(0); return held; }).when(mockPM).makePersistent(any(ImportTask.class));
+        when(mockPM.getObjectById(eq(User.class), any())).thenReturn(user);   // the reservation's creator
         assets.clear();
         handoffs.clear();
         corrupt.clear();
@@ -234,10 +240,14 @@ class BulkBoxImportApiTest {
                  when(mock.isValidTaxonomyName(any(String.class))).thenAnswer(inv -> !"Genus nope".equals(inv.getArgument(0)));
                  when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
                  when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
-                 when(mock.getImportTask(any(String.class))).thenReturn(held);
+                 when(mock.findImportTask(any())).thenReturn(null);   // guard and reservation: no prior task
+                 when(mock.getImportTask(any(String.class))).thenAnswer(inv -> held);
+                 when(mock.isDBTransactionActive()).thenReturn(true);
+                 when(mock.commitDBTransactionWithStatus()).thenReturn(true);
                  when(mock.getPM()).thenReturn(mockPM);
                  when(mock.getContext()).thenReturn("context0");
              });
+             MockedStatic<AdvisoryLock> lock = mockStatic(AdvisoryLock.class, CALLS_REAL_METHODS);
              MockedStatic<UploadedFiles> files = mockStatic(UploadedFiles.class, CALLS_REAL_METHODS);
              MockedStatic<ShepherdPMF> pmf = mockStatic(ShepherdPMF.class);
              MockedStatic<FeatureType> ft = mockStatic(FeatureType.class);
@@ -246,6 +256,7 @@ class BulkBoxImportApiTest {
              MockedStatic<MediaAsset> media = mockStatic(MediaAsset.class, CALLS_REAL_METHODS);   // a full static mock would also stub the enhancer's dnGet* accessors
              MockedStatic<AssetStore> stores = mockStatic(AssetStore.class, CALLS_REAL_METHODS);
              MockedStatic<org.ecocean.Util> util = mockStatic(org.ecocean.Util.class, CALLS_REAL_METHODS)) {
+            lock.when(() -> AdvisoryLock.tryXact(any(), anyLong())).thenReturn(true);
             util.when(() -> org.ecocean.Util.fastFileValidation(any(File.class))).thenAnswer(inv -> { fastValidated.add(((File)inv.getArgument(0)).getName()); return inv.callRealMethod(); });
             util.when(() -> org.ecocean.Util.fastImageDimensions(any(File.class))).thenAnswer(inv -> { dimensionsRead.add(((File)inv.getArgument(0)).getName()); return inv.callRealMethod(); });
             files.when(() -> UploadedFiles.getUploadDir(any(HttpServletRequest.class), any(String.class))).thenReturn(uploadDir.toFile());

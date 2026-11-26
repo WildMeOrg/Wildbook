@@ -518,16 +518,26 @@ public class Shepherd {
         return tempEnc;
     }
 
+    // null when there is no such task or the lookup fails; see findImportTask to tell them apart
     public ImportTask getImportTask(String num) {
-        ImportTask tempEnc = null;
-
         try {
-            tempEnc = ((ImportTask)(pm.getObjectById(pm.newObjectIdInstance(ImportTask.class,
-                num.trim()), true)));
+            return findImportTask(num.trim());
         } catch (Exception nsoe) {
             return null;
         }
-        return tempEnc;
+    }
+
+    /**
+     * The ImportTask with this id, or null when there is none. Unlike getImportTask, any
+     * failure other than "not found" propagates instead of reading as "no task".
+     */
+    public ImportTask findImportTask(String id)
+    throws Exception {
+        try {
+            return (ImportTask)pm.getObjectById(pm.newObjectIdInstance(ImportTask.class, id), true);
+        } catch (JDOObjectNotFoundException notFound) {
+            return null;
+        }
     }
 
     public void storeNewImportTask(ImportTask itask) {

@@ -10,6 +10,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,6 +27,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.IAGateway;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.AdvisoryLock;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
@@ -33,6 +36,16 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class BulkImport extends ApiBase {
+    // starts the background import; tests replace it to capture or run the worker
+    Consumer<Runnable> launcher = r -> new Thread(r).start();
+
+    /** A bulkImportId that has already been submitted (or is being submitted right now). */
+    private static class DuplicateImport extends Exception {
+        DuplicateImport(String id) {
+            super("bulkImportId " + id + " has already been submitted");
+        }
+    }
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
@@ -146,6 +159,8 @@ public class BulkImport extends ApiBase {
         JSONObject matchingSetFilter = new JSONObject();
         JSONObject encAssets = null;
         String dupId = null; // gets set as bulkImporId to be used in finally block
+        JSONObject payload = null; // archived at the response tail, unless refused
+        boolean refused = false; // a duplicate bulkImportId: nothing archived
         // GH-1514: hoisted so the finally block can queue a post-commit deep
         // reindex of individuals the foreground importer touched.
         BulkImporter fgImporter = null;
@@ -164,14 +179,31 @@ public class BulkImport extends ApiBase {
                 response.getWriter().write(rtn.toString()); // success:false, annotationsImported:false
                 return;
             }
-            JSONObject payload = ServletUtilities.jsonFromHttpServletRequest(request);
+            payload = ServletUtilities.jsonFromHttpServletRequest(request);
             if (payload == null) throw new ServletException("empty payload");
             JSONArray rows = payload.optJSONArray("rows");
             if (rows == null) throw new ServletException("no rows in payload");
             String bulkImportId = payload.optString("bulkImportId", null);
             if (bulkImportId == null) throw new ServletException("bulkImportId is required");
             rtn.put("bulkImportId", bulkImportId);
-            archiveBulkJson(payload, "payload");
+            // one identical string for the lock key, task lookup, new ImportTask and upload dir
+            if (bulkImportId.isEmpty() || !bulkImportId.equals(bulkImportId.trim())) {
+                JSONObject idErr = new JSONObject();
+                idErr.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                idErr.put("fieldName", "bulkImportId");
+                idErr.put("details", "bulkImportId must be non-empty, without surrounding spaces");
+                throw new ApiException("invalid bulkImportId", idErr);
+            }
+            // an upload is imported once: refuse an ID another request holds or that has a task
+            if (!payload.optBoolean("validateOnly", false)) {
+                // the lock lasts as long as the request transaction, so it needs one
+                if (!myShepherd.isDBTransactionActive())
+                    throw new IllegalStateException("database transaction unavailable");
+                if (!AdvisoryLock.tryXact(myShepherd, AdvisoryLock.key("bulk-import:" + bulkImportId)))
+                    throw new DuplicateImport(bulkImportId);
+                if (myShepherd.findImportTask(bulkImportId) != null)
+                    throw new DuplicateImport(bulkImportId);
+            }
             dupId = bulkImportId;
 
             JSONObject tolerance = payload.optJSONObject("tolerance");
@@ -443,6 +475,9 @@ public class BulkImport extends ApiBase {
 
                 BulkImporter.logProgress(bulkImportId, "doPost: fg/bg split", startTime);
                 rtn.put("processInBackground", processInBackground);
+                reserveImportTask(context, bulkImportId, currentUser, payload,
+                    processInBackground ? "processing-background" : "processing-foreground",
+                    boxedImport);
                 if (processInBackground) {
                     // these need to be final
                     final boolean bgToleranceFailImportOnError = toleranceFailImportOnError;
@@ -451,12 +486,14 @@ public class BulkImport extends ApiBase {
                     final boolean bgBoxedImport = boxedImport;
                     final String currentUsername = currentUser.getUsername();
                     final String bgContext = myShepherd.getContext();
+                    // the worker and a launch-failure undo each claim the reservation; only one wins
+                    final AtomicBoolean claimed = new AtomicBoolean(false);
                     Runnable r = new Runnable() {
                         public void run() {
+                            if (!claimed.compareAndSet(false, true)) return; // the reservation was undone
                             // make our background thread safely use our own Shepherd
                             Shepherd bgShepherd = new Shepherd(bgContext);
                             bgShepherd.setAction("api.Bulk.processBackground");
-                            bgShepherd.beginDBTransaction();
 
                             JSONObject bgEncAssets = null;
                             boolean success = false;
@@ -464,9 +501,8 @@ public class BulkImport extends ApiBase {
                             // post-commit deep reindex of touched individuals.
                             BulkImporter bgImporter = null;
                             try {
+                                bgShepherd.beginDBTransaction(); // inside the try: finally closes it
                                 User bgUser = bgShepherd.getUser(currentUsername);
-                                initializeImportTask(bulkImportId, bgUser, payload,
-                                    "processing-background", bgBoxedImport);
                                 int numNewErrors = dataErrors.length();
                                 BulkImporter.logProgress(bulkImportId,
                                     "doPost: bg pre-createMediaAssets()", startTime);
@@ -578,15 +614,27 @@ public class BulkImport extends ApiBase {
                             BulkImporter.logProgress(bulkImportId, "doPost: bg DONE", startTime);
                         }
                     };
-                    new Thread(r).start();
+                    try {
+                        launcher.accept(r);
+                    } catch (RuntimeException | Error launchFailure) {
+                        // the worker has not claimed the task, and this request still holds the
+                        // lock: free the ID so the same upload can be submitted again. The launch
+                        // failure is what the request reports, whatever the cleanup does.
+                        if (claimed.compareAndSet(false, true)) {
+                            try {
+                                undoReservation(context, bulkImportId);
+                            } catch (Throwable cleanupFailure) {
+                                launchFailure.addSuppressed(cleanupFailure);
+                            }
+                        }
+                        throw launchFailure;
+                    }
                     rtn.put("processingTime", System.currentTimeMillis() - startProcess);
                     rtn.put("backgrounded", true);
                     rtn.put("success", true);
                     statusCode = 200;
                 } else {
                     // foreground processing
-                    initializeImportTask(bulkImportId, currentUser, payload,
-                        "processing-foreground", boxedImport);
                     int numNewErrors = dataErrors.length();
                     BulkImporter.logProgress(bulkImportId, "doPost: fg pre-createMediaAssets()",
                         startTime);
@@ -656,7 +704,18 @@ public class BulkImport extends ApiBase {
         } catch (ServletException ex) { // should just be thrown, not caught (below)
             System.out.println("BulkImport.doPost() threw " + ex);
             ex.printStackTrace();
+            if (payload != null) archiveBulkJson(payload, "payload");
             throw ex;
+        } catch (DuplicateImport dup) {
+            statusCode = 409;
+            refused = true;
+            rtn.put("annotationsImported", false); // validation may have set it; nothing was imported
+            System.out.println("BulkImport.doPost() returning 409: " + dup.getMessage());
+            JSONObject err = new JSONObject();
+            err.put("type", "DUPLICATE_IMPORT");
+            err.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+            err.put("details", dup.getMessage());
+            rtn.put("errors", new JSONArray().put(err));
         } catch (ApiException apiEx) {
             statusCode = 400;
             System.out.println("BulkImport.doPost() returning 400 due to " + apiEx + " errors=" +
@@ -689,7 +748,10 @@ public class BulkImport extends ApiBase {
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(rtn.toString());
-        archiveBulkJson(rtn, "return" + statusCode);
+        if (!refused) {
+            if (payload != null) archiveBulkJson(payload, "payload");
+            archiveBulkJson(rtn, "return" + statusCode);
+        }
         BulkImporter.logProgress(rtn.optString("bulkImportId", "(unknown)"), "doPost: fg EXIT",
             startTime);
     }
@@ -939,52 +1001,78 @@ public class BulkImport extends ApiBase {
         return maMap;
     }
 
-    // annotationsImported is the server's own predicate (bulk-import boxes, spec 4.5) and is
-    // written on every import, so a client cannot supply it in the payload
-    private void initializeImportTask(String id, User passedUser, JSONObject payload,
-        String status, boolean annotationsImported) {
-        if ((passedUser == null) || (passedUser.getId() == null)) {
-            System.out.println("[WARNING] initializeImportTask(" + id + ") got null user: " +
-                passedUser);
-            return;
-        }
-        Shepherd taskShepherd = new Shepherd("context0");
-
-        taskShepherd.setAction("BulkImport.initializeImportTask");
-        taskShepherd.beginDBTransaction();
+    // Reserves the ImportTask for this upload, committed before it returns (so the row guards the
+    // ID while the request still holds its advisory lock). An existing task is a duplicate; any
+    // other failure propagates and nothing is imported. annotationsImported is the server's own
+    // predicate (bulk-import boxes, spec 4.5), so a client cannot supply it in the payload.
+    void reserveImportTask(String context, String id, User user, JSONObject payload,
+        String status, boolean annotationsImported)
+    throws Exception {
+        if ((user == null) || (user.getId() == null))
+            throw new IllegalStateException("reservation needs a user with an id");
+        Shepherd sh = new Shepherd(context);
         try {
-            User user = taskShepherd.getUserByUUID(passedUser.getId()); // needs to be on our shepherd
-            ImportTask itask = taskShepherd.getImportTask(id);
-            if (itask != null) {
-                itask.addLog(
-                    "WARNING! BulkImport api POST passed EXISTING bulkImportId, reusing this ImportTask");
-                System.out.println(
-                    "WARNING: BulkImport api POST passed EXISTING bulkImportId, reusing this ImportTask ***************** "
-                    + itask);
-            } else {
-                itask = new ImportTask(user, id);
-            }
-            itask.setIATask(null);
-            itask.setProcessingProgress(0.0D);
-            itask.setEncounters(null);
-            itask.setErrors(null);
-            itask.setStatus(status);
+            sh.setAction("BulkImport.reserveImportTask");
+            sh.beginDBTransaction();
+            if (!sh.isDBTransactionActive())
+                throw new IllegalStateException("database transaction unavailable");
+            if (sh.findImportTask(id) != null) throw new DuplicateImport(id);
+            // loaded on our shepherd; a user that cannot be loaded throws instead of reading as null
+            User creator = sh.getPM().getObjectById(User.class, user.getId());
+            if (creator == null)
+                throw new IllegalStateException("reservation could not load user " + user.getId());
+            ImportTask task = new ImportTask(creator, id);
+            task.setProcessingProgress(0.0D);
+            task.setStatus(status);
+            task.setEncounters(new ArrayList<Encounter>()); // readable and deletable before the import
             JSONObject passedParams = new JSONObject();
             for (String k : payload.keySet()) {
                 if (k.equals("rows") || k.equals("fieldNames")) continue; // skip the data, basically
                 passedParams.put(k, payload.get(k));
             }
             passedParams.put(ImportTask.PARAM_ANNOTATIONS_IMPORTED, annotationsImported);
-            itask.setPassedParameters(passedParams);
-            taskShepherd.storeNewImportTask(itask);
-            taskShepherd.commitDBTransaction();
+            task.setPassedParameters(passedParams);
+            sh.getPM().makePersistent(task);
+            if (!sh.commitDBTransactionWithStatus())
+                throw new IOException("could not reserve ImportTask " + id);
         } catch (Exception ex) {
-            ex.printStackTrace();
-            taskShepherd.rollbackDBTransaction();
-        } finally {
-            taskShepherd.closeDBTransaction();
+            try {
+                sh.rollbackAndClose();
+            } catch (Exception rollbackEx) { // the original failure is the one to report
+                System.out.println("reserveImportTask(" + id + ") rollback failed: " + rollbackEx);
+                rollbackEx.printStackTrace();
+            }
+            throw ex;
         }
-        Util.mark("initializeImportTask(" + id + ", " + status + ")");
+        sh.closeDBTransaction();
+        Util.mark("reserveImportTask(" + id + ", " + status + ")");
+    }
+
+    // Removes the task reserveImportTask committed, when the worker could not be started. Called
+    // while the request still holds the lock, so the task is still this request's own. A failure
+    // propagates (after the Shepherd is closed); the caller attaches it to the launch failure.
+    void undoReservation(String context, String id)
+    throws Exception {
+        Shepherd sh = new Shepherd(context);
+        try {
+            sh.setAction("BulkImport.undoReservation");
+            sh.beginDBTransaction();
+            if (!sh.isDBTransactionActive())
+                throw new IllegalStateException("database transaction unavailable");
+            ImportTask task = sh.findImportTask(id);
+            if (task != null) sh.getPM().deletePersistent(task);
+            if (!sh.commitDBTransactionWithStatus())
+                throw new IOException("could not remove reserved ImportTask " + id);
+        } catch (Exception ex) {
+            try {
+                sh.rollbackAndClose();
+            } catch (Exception rollbackEx) {
+                ex.addSuppressed(rollbackEx);
+            }
+            throw ex;
+        }
+        sh.closeDBTransaction();
+        Util.mark("undoReservation(" + id + ")");
     }
 
     // this assumes task was created! and: we always ignore nulls

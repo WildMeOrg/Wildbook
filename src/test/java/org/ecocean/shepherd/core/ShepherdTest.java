@@ -181,6 +181,26 @@ public class ShepherdTest {
         assertEquals(0, ShepherdState.getAllShepherdStates().size());
     }
 
+    // getImportTask is findImportTask on the trimmed id, with any failure read as "no task"
+    @Test public void testGetImportTaskUsesFindImportTask() throws Exception {
+        Shepherd testShepherd = spy(new Shepherd("testContext"));
+        org.ecocean.servlet.importer.ImportTask task =
+            new org.ecocean.servlet.importer.ImportTask(null, "abc");
+        doReturn(task).when(testShepherd).findImportTask("abc");
+
+        assertSame(task, testShepherd.getImportTask(" abc "));
+        verify(testShepherd).findImportTask("abc");
+    }
+
+    @Test public void testGetImportTaskReadsFailureAsNull() throws Exception {
+        Shepherd testShepherd = spy(new Shepherd("testContext"));
+        doThrow(new JDODataStoreException("database unavailable")).when(testShepherd).findImportTask(
+            "abc");
+
+        assertNull(testShepherd.getImportTask("abc"));
+        assertNull(testShepherd.getImportTask(null));
+    }
+
     @Test public void testSetAction() {
         Shepherd testShepherd = new Shepherd("testContext");
         String action = "testAction";

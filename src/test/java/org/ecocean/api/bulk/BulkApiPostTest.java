@@ -13,6 +13,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.LocationID;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.ReCAPTCHA;
+import org.ecocean.shepherd.core.AdvisoryLock;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.User;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,8 +40,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -57,8 +61,26 @@ class BulkApiPostTest {
     StringWriter responseOut;
     List<File> emptyFiles = new ArrayList<File>();
 
+    MockedStatic<AdvisoryLock> advisoryLock;
+
+    // the import path takes the bulkImportId lock and reserves its ImportTask on a Shepherd of its own
+    static void reservable(Shepherd sh)
+    throws Exception {
+        PersistenceManager pm = mock(PersistenceManager.class);
+        when(pm.getObjectById(eq(User.class), any())).thenReturn(mock(User.class));   // the reservation's creator
+        when(sh.getPM()).thenReturn(pm);
+        when(sh.isDBTransactionActive()).thenReturn(true);
+        when(sh.commitDBTransactionWithStatus()).thenReturn(true);
+    }
+
+    @AfterEach void closeLock() {
+        advisoryLock.close();
+    }
+
     @BeforeEach void setUp()
     throws IOException {
+        advisoryLock = mockStatic(AdvisoryLock.class, CALLS_REAL_METHODS);
+        advisoryLock.when(() -> AdvisoryLock.tryXact(any(), anyLong())).thenReturn(true);
         mockRequest = mock(HttpServletRequest.class);
         mockResponse = mock(HttpServletResponse.class);
         mockPMF = mock(PersistenceManagerFactory.class);
@@ -73,6 +95,7 @@ class BulkApiPostTest {
     throws ServletException, IOException {
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             doNothing().when(mock).beginDBTransaction();
         })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
@@ -89,6 +112,7 @@ class BulkApiPostTest {
     @Test void apiPostNoBulkImportId()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = "{}";
 
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
@@ -96,6 +120,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
@@ -111,6 +136,7 @@ class BulkApiPostTest {
     @Test void apiPostNoRowsError()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = basePayload().toString();
 
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
@@ -118,6 +144,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
@@ -286,6 +313,7 @@ class BulkApiPostTest {
     @Test void apiPostDuplicateSynonyms()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = getInvalidPayloadArraysSynonyms();
 
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
@@ -293,6 +321,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
@@ -318,6 +347,7 @@ class BulkApiPostTest {
     @Test void apiPostDuplicateSynonymsNonArrays()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getInvalidPayloadNonArraysSynonyms();
 
@@ -326,6 +356,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -356,6 +387,7 @@ class BulkApiPostTest {
     @Test void apiPostDuplicateActualDuplicates()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = getInvalidPayloadArraysSynonyms();
         JSONObject tmp = new JSONObject(requestBody);
 
@@ -367,6 +399,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
@@ -392,6 +425,7 @@ class BulkApiPostTest {
     @Test void apiPostBadMatchingLocations()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = getValidPayloadArrays();
         JSONObject tmp = new JSONObject(requestBody);
 
@@ -403,6 +437,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
@@ -431,6 +466,7 @@ class BulkApiPostTest {
     @Test void apiPostRowsBadFieldNames()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = getBadFieldNamesPayload();
 
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
@@ -438,6 +474,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
@@ -464,6 +501,7 @@ class BulkApiPostTest {
     @Test void defaultUnknownFieldPolicyRemainsWarningOnly()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         when(user.getUsername()).thenReturn("test-user");
         JSONObject payload = new JSONObject(getValidPayloadNonArrays());
         payload.put("validateOnly", true);
@@ -471,6 +509,7 @@ class BulkApiPostTest {
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload.toString())));
         try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                 reservable(mock);
                  when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
                  when(mock.getUser(any(String.class))).thenReturn(user);
                  when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -494,6 +533,7 @@ class BulkApiPostTest {
     @Test void explicitEncounterIdGroupsRowsAndRetainsYearOnlyPrecision()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occurrence = mock(Occurrence.class);
         JSONObject payload = new JSONObject(getValidPayloadNonArrays());
         JSONObject row = payload.getJSONArray("rows").getJSONObject(0);
@@ -503,6 +543,7 @@ class BulkApiPostTest {
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload.toString())));
         try (MockedConstruction<Shepherd> sh = mockConstruction(Shepherd.class, (mock, ctx) -> {
+                 reservable(mock);
                  when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
                  when(mock.getUser(any(String.class))).thenReturn(user);
                  when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -533,6 +574,7 @@ class BulkApiPostTest {
     @Test void apiPostValidNonArrays()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadNonArrays();
 
@@ -541,6 +583,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -566,6 +609,7 @@ class BulkApiPostTest {
     @Test void apiPostValidArrays()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadArrays();
 
@@ -577,6 +621,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -606,6 +651,7 @@ class BulkApiPostTest {
     @Test void apiPostValidArraysNullInt()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadArrays();
 
@@ -616,6 +662,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -641,6 +688,7 @@ class BulkApiPostTest {
     @Test void apiPostValidMeasurements()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = getValidPayloadArrays();
 
         requestBody = addToRows(requestBody, "Encounter.measurement0", 12.345);
@@ -653,6 +701,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
         })) {
@@ -681,6 +730,7 @@ class BulkApiPostTest {
     @Test void apiPostInvalidCountry()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         String requestBody = getValidPayloadArrays();
 
         requestBody = addToRows(requestBody, "Encounter.country", "fail-country");
@@ -690,6 +740,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
@@ -712,6 +763,7 @@ class BulkApiPostTest {
     @Test void apiPostValidAdditionalFields()
     throws ServletException, IOException {
         User user = mock(User.class);
+        when(user.getId()).thenReturn("00000000-0000-4000-8000-0000000000aa"); // a persisted user always has one
         Occurrence occ = new Occurrence();
         String requestBody = getValidPayloadArrays();
 
@@ -745,6 +797,7 @@ class BulkApiPostTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
+            reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);

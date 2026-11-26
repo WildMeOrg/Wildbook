@@ -1,13 +1,11 @@
 package org.ecocean.api.submission;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 import javax.jdo.Query;
-import javax.jdo.datastore.JDOConnection;
+import org.ecocean.shepherd.core.AdvisoryLock;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.submission.Submission;
 import org.json.JSONArray;
@@ -201,18 +199,12 @@ public class SubmissionStore {
     protected void tryLock(Shepherd sh, String value) { lock(sh, value, true); }
     protected void lock(Shepherd sh, String value) { lock(sh, value, false); }
     private void lock(Shepherd sh, String value, boolean immediate) {
-        JDOConnection connection = sh.getPM().getDataStoreConnection();
         try {
-            long key = Long.parseUnsignedLong(SubmissionJson.hash(value).substring(0, 16), 16);
-            try (PreparedStatement statement = ((Connection)connection.getNativeConnection())
-                    .prepareStatement(immediate ? "SELECT pg_try_advisory_xact_lock(?)" : "SELECT pg_advisory_xact_lock(?)")) {
-                statement.setLong(1, key); statement.setQueryTimeout(10);
-                try (java.sql.ResultSet result = statement.executeQuery()) {
-                    if (immediate && (!result.next() || !result.getBoolean(1))) throw new SubmissionException(429, "LIMIT_EXCEEDED", "Draft busy; retry after five seconds");
-                }
-            }
+            long key = AdvisoryLock.key(value);
+            if (!immediate) AdvisoryLock.xact(sh, key);
+            else if (!AdvisoryLock.tryXact(sh, key)) throw new SubmissionException(429, "LIMIT_EXCEEDED", "Draft busy; retry after five seconds");
         } catch (java.sql.SQLException ex) {
             throw new SubmissionException(503, "CAPABILITY_UNAVAILABLE", "Submission lock unavailable");
-        } finally { connection.close(); }
+        }
     }
 }
