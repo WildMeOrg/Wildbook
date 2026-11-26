@@ -13,7 +13,6 @@ import {
   isPhotoSlotColumn,
 } from "./bulkImportSlots";
 import {
-  DATE_PARTS,
   dateDisplayMapFor,
   findHeaderCollision,
   hasAnyValue,
@@ -21,6 +20,7 @@ import {
 } from "./bulkImportHeaders";
 
 const TEXT_BOX_SUFFIXES = ["bbox", "iaClass", "bboxSource"];
+const YEAR_COLUMNS = ["Encounter.year", "Sighting.year"];
 
 export const BulkImportSpreadsheet = observer(({ store }) => {
   const theme = useContext(ThemeContext);
@@ -34,15 +34,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
     reader.onerror = (error) => {
       alert(`Error reading file: ${error.message}`);
-      store.setSpreadsheetUploadProgress(0);
-      store.setSpreadsheetFileName("");
-      store.setRawData([]);
-      store.setRawColumns([]);
-      store.setColumnsDef([]);
-      store.setWorksheetInfo(0, [], 0, 0, "");
-      store.setValidationErrors({});
-      store.setValidationWarnings({});
-      store.clearSubmissionErrors();
+      store.resetSpreadsheet();
     };
 
     const failParse = (error) => {
@@ -58,7 +50,13 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
         const sheetStats = sheetNames.map((name) => {
           const ws = workbook.Sheets[name];
-          const arr = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+          // raw: false reads headers as the cells show them, the same text the
+          // object-mode read below uses for its keys
+          const arr = XLSX.utils.sheet_to_json(ws, {
+            header: 1,
+            defval: "",
+            raw: false,
+          });
           const colCount = arr[0]?.length || 0;
           const rowCount = arr.length - 1;
           return { name, rowCount, colCount, header: arr[0] || [] };
@@ -122,7 +120,14 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         const processedData = [];
         let currentIndex = 0;
 
-        const rowKeys = Object.keys(allJsonData[0] || {});
+        // a sheet whose rows are all blank still keeps its headers
+        const rowKeys =
+          allJsonData.length > 0
+            ? Object.keys(allJsonData[0])
+            : (sheetStats[0]?.header || [])
+                .map((h) => String(h ?? ""))
+                .filter((h) => h !== "")
+                .map(normalizeHeader);
         store.setRawColumns(rowKeys);
         // a sheet with box columns keeps every numbered photo slot (no merge, spec 4.6)
         const boxed = hasBoxColumns(rowKeys, store.indexableFields);
@@ -133,33 +138,19 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           .filter((k) => !removedColumns.includes(k))
           .filter((k) => !mediaAssetsCols.includes(k));
 
-        const userUploadedCols = new Set(rowKeys);
-        const includedSpecified = specifiedColumns.filter((col) =>
-          userUploadedCols.has(col),
-        );
-
         // dates: one display column per prefix (dateDisplayMapFor, the same mapping the
-        // store derives from rawColumns); the source date parts are hidden, never removed
+        // store derives from rawColumns). The year entries of specifiedColumns are shown
+        // by that map, every other specified column by upload; removedColumns already
+        // hides the other date parts, which stay in the source data.
         const dateDisplayMap = dateDisplayMapFor(rowKeys);
         const dateEntries = Object.entries(dateDisplayMap);
-        const displayCols = Object.keys(dateDisplayMap);
-        const datePartCols = new Set(
-          dateEntries.flatMap(([, prefix]) =>
-            DATE_PARTS.map((part) => `${prefix}.${part}`),
-          ),
+        const userUploadedCols = new Set(rowKeys);
+        const includedSpecified = specifiedColumns.filter((col) =>
+          YEAR_COLUMNS.includes(col)
+            ? col in dateDisplayMap
+            : userUploadedCols.has(col),
         );
-        const tableCols = [...includedSpecified, ...remaining];
-        dateEntries.forEach(([displayCol, prefix]) => {
-          if (tableCols.includes(displayCol)) return;
-          const at = tableCols.indexOf(`${prefix}.year`);
-          if (at !== -1) tableCols.splice(at, 0, displayCol);
-          else tableCols.unshift(displayCol);
-        });
-        store.setColumnsDef(
-          tableCols.filter(
-            (col) => displayCols.includes(col) || !datePartCols.has(col),
-          ),
-        );
+        store.setColumnsDef([...includedSpecified, ...remaining]);
         if (
           !store.columnsDef.includes("Encounter.mediaAsset0") &&
           mediaAssetsCols.length > 0

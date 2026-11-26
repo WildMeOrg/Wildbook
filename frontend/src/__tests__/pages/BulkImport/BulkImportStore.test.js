@@ -749,12 +749,17 @@ describe("BulkImportStore tests part 1", () => {
   test("saveState writes to localStorage and toggles draft flag", () => {
     store._submissionId = "T";
     store._rawData = [{ a: 1 }];
-    store.saveState();
-    expect(store.isSavingDraft).toBe(true);
-    setTimeout(() => {
-      expect(store.isSavingDraft).toBe(false);
+    // fake timers: a real 800 ms timer outlived this test and failed a later one
+    jest.useFakeTimers();
+    try {
+      store.saveState();
+      expect(store.isSavingDraft).toBe(true);
       expect(localStorage.getItem("BulkImportStore")).toBeTruthy();
-    }, 800);
+      jest.advanceTimersByTime(800);
+      expect(store.isSavingDraft).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test("initializeFlow and removePreview", () => {
@@ -1008,7 +1013,7 @@ describe("BulkImportStore dates keep their source columns", () => {
 
   test("edited datetime adds hour and minutes, never seconds", () => {
     store._rawColumns = ["Encounter.year"];
-    store._spreadsheetData = [{ "Encounter.year": "2022-05-10T14:30:05" }];
+    store._spreadsheetData = [{ "Encounter.year": "2022-05-10T14:30" }];
     store._rawData = [{ "Encounter.year": 2022 }];
     store.updateRawFromNormalizedRow();
     expect(store.submittableColumns).toEqual(
@@ -1021,6 +1026,27 @@ describe("BulkImportStore dates keep their source columns", () => {
     );
     expect(store.submittableColumns).not.toContain("Encounter.seconds");
     expect(store._rawData[0]["Encounter.seconds"]).toBeUndefined();
+  });
+
+  test("an edit that is undone leaves no date column behind", () => {
+    store._rawColumns = ["Encounter.year", "Encounter.genus"];
+    store._spreadsheetData = [{ "Encounter.year": "2021" }];
+    store._rawData = [{ "Encounter.year": 2021, "Encounter.genus": "T" }];
+    store.updateCellValue(0, "Encounter.year", "2021-03");
+    store.updateRawFromNormalizedRow();
+    expect(store.submittableColumns).toEqual([
+      "Encounter.year",
+      "Encounter.genus",
+      "Encounter.month",
+    ]);
+    // e.g. the POST failed; the user changes the date back and retries
+    store.updateCellValue(0, "Encounter.year", "2021");
+    store.updateRawFromNormalizedRow();
+    expect(store.submittableColumns).toEqual([
+      "Encounter.year",
+      "Encounter.genus",
+    ]);
+    expect(store.rawColumns).toEqual(["Encounter.year", "Encounter.genus"]);
   });
 
   test("millis column satisfies date requirement", () => {
@@ -1081,11 +1107,17 @@ describe("BulkImportStore dates keep their source columns", () => {
     store._rawData = [
       { "Encounter.year": 2020, "Sighting.year": 2021, "Sighting.month": 3 },
     ];
+    // each display cell is edited; each edit lands on its own prefix only
+    store.updateCellValue(0, "Encounter.year", "2019-07-08");
+    store.updateCellValue(0, "Sighting.year", "2018-02");
     store.updateRawFromNormalizedRow();
     expect(store._rawData[0]).toMatchObject({
-      "Encounter.year": 2020,
-      "Sighting.year": 2021,
-      "Sighting.month": 3,
+      "Encounter.year": 2019,
+      "Encounter.month": 7,
+      "Encounter.day": 8,
+      "Sighting.year": 2018,
+      "Sighting.month": 2,
+      "Sighting.day": "",
     });
     expect(store.dateDisplayColumnFor("Sighting.month")).toBe("Sighting.year");
     expect(store.dateDisplayColumnFor("Encounter.day")).toBe("Encounter.year");
@@ -1128,7 +1160,7 @@ describe("BulkImportStore dates keep their source columns", () => {
     ).not.toContain(SYNONYM_ERROR);
   });
 
-  test("real synonym conflict still reported", () => {
+  test("real synonym conflict still reported (regression)", () => {
     store.setSynonymFields(PRODUCTION_SYNONYMS);
     store._rawColumns = ["Encounter.year", "Sighting.year"];
     store._columnsDef = ["Encounter.year", "Sighting.year"];
@@ -1210,5 +1242,60 @@ describe("BulkImportStore dates keep their source columns", () => {
       "Encounter.month": 3,
       "Encounter.day": 4,
     });
+  });
+
+  test("old two-row draft with a blank raw row: an edit lands on its own row", () => {
+    // the old parser dropped the blank row from the grid only, and spliced
+    // Encounter.year into the columns once per row
+    const rowA = { "Encounter.year": 2020, "Encounter.sex": "male" };
+    const rowB = { "Encounter.year": 2021, "Encounter.sex": "female" };
+    store.hydrate({
+      rawColumns: ["Encounter.year", "Encounter.year", "Encounter.sex"],
+      columnsDef: ["Encounter.year", "Encounter.year", "Encounter.sex"],
+      rawData: [rowA, { "Encounter.year": " ", "Encounter.sex": "" }, rowB],
+      spreadsheetData: [
+        { "Encounter.year": "2020", "Encounter.sex": "male" },
+        { "Encounter.year": "2021", "Encounter.sex": "female" },
+      ],
+    });
+    expect(store.columnsDef).toEqual(["Encounter.year", "Encounter.sex"]);
+    expect(store.rawColumns).toEqual(["Encounter.year", "Encounter.sex"]);
+    expect(store.rawData.length).toBe(2);
+    store.updateCellValue(1, "Encounter.sex", "unknown");
+    store.updateCellValue(1, "Encounter.year", "2022");
+    store.updateRawFromNormalizedRow();
+    expect(store.rawData[1]).toMatchObject({
+      "Encounter.year": 2022,
+      "Encounter.sex": "unknown",
+    });
+    expect(store.rawData[0]).toMatchObject({
+      "Encounter.year": 2020,
+      "Encounter.sex": "male",
+    });
+  });
+
+  test("millis cells: required without a year column, whole, not in the future", () => {
+    const rule = store._validationRules;
+    store._rawColumns = ["Sighting.millis"];
+    [
+      "Encounter.dateInMilliseconds",
+      "Sighting.dateInMilliseconds",
+      "Sighting.millis",
+    ].forEach((col) => {
+      expect(rule[col].validate("")).toBe(false);
+      expect(rule[col].message("")).toBe(
+        "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD",
+      );
+      expect(rule[col].validate("1700000000000")).toBe(true);
+      expect(rule[col].validate("-1000")).toBe(true);
+      expect(rule[col].validate("1700000000000.5")).toBe(false);
+      expect(rule[col].validate("1e12")).toBe(false);
+      expect(rule[col].validate(String(Date.now() + 86400000))).toBe(false);
+      expect(rule[col].message("x")).toBe(
+        "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
+      );
+    });
+    store._rawColumns = ["Sighting.year", "Sighting.millis"];
+    expect(rule["Sighting.millis"].validate("")).toBe(true);
   });
 });

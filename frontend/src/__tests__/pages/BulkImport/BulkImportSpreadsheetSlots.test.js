@@ -3,6 +3,7 @@ import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { BulkImportSpreadsheet } from "../../../pages/BulkImport/BulkImportSpreadsheet";
 import BulkImportStore from "../../../pages/BulkImport/BulkImportStore";
 import { renderWithProviders } from "../../../utils/utils";
+import { boxStore, uploadCsv } from "../../../__fixtures__/bulkImportUpload";
 import * as XLSX from "xlsx";
 
 jest.mock("@flowjs/flow.js", () =>
@@ -18,19 +19,7 @@ const A0 = "Encounter.mediaAsset0";
 const A1 = "Encounter.mediaAsset1";
 const A2 = "Encounter.mediaAsset2";
 
-const upload = async (csv, rows = 1) => {
-  const store = new BulkImportStore();
-  store.setIndexableFields([
-    "Encounter.mediaAsset#",
-    "Encounter.mediaAsset#.bbox",
-  ]);
-  renderWithProviders(<BulkImportSpreadsheet store={store} />);
-  fireEvent.change(screen.getByTestId("spreadsheet-input"), {
-    target: { files: [new File([csv], "sheet.csv", { type: "text/csv" })] },
-  });
-  await waitFor(() => expect(store.spreadsheetData.length).toBe(rows));
-  return store;
-};
+const upload = uploadCsv;
 
 describe("BulkImportSpreadsheet photo slots", () => {
   test("a sheet dropped before site settings load is ignored, then parses with slots", async () => {
@@ -73,11 +62,7 @@ describe("BulkImportSpreadsheet photo slots", () => {
   });
 
   test("box text survives across rows with blanks; theta stays a number", async () => {
-    const store = new BulkImportStore();
-    store.setIndexableFields([
-      "Encounter.mediaAsset#",
-      "Encounter.mediaAsset#.bbox",
-    ]);
+    const store = boxStore();
     renderWithProviders(<BulkImportSpreadsheet store={store} />);
     const csv =
       `${A0},${A0}.bbox,${A0}.theta,${A0}.bboxSource\n` +
@@ -109,11 +94,7 @@ describe("BulkImportSpreadsheet photo slots", () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "S");
     const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" });
-    const store = new BulkImportStore();
-    store.setIndexableFields([
-      "Encounter.mediaAsset#",
-      "Encounter.mediaAsset#.bbox",
-    ]);
+    const store = boxStore();
     renderWithProviders(<BulkImportSpreadsheet store={store} />);
     fireEvent.change(screen.getByTestId("spreadsheet-input"), {
       target: { files: [new File([buf], "sheet.xlsx")] },
@@ -152,6 +133,44 @@ describe("BulkImportSpreadsheet photo slots", () => {
     expect(store.spreadsheetData).toEqual([]);
     expect(store.rawData).toEqual([]);
     alertSpy.mockRestore();
+  });
+
+  test("an Excel header shown as Occurrence.comments collides with Sighting.comments", async () => {
+    // the first header cell holds the number 1, formatted to show
+    // "Occurrence.comments"; the object-mode read keys that column by the shown text
+    const ws = XLSX.utils.aoa_to_sheet([
+      [1, "Sighting.comments", A0],
+      ["x", "y", "a.jpg"],
+    ]);
+    ws.A1.z = '"Occurrence.comments"';
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "S");
+    const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" });
+    const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+    const store = boxStore();
+    renderWithProviders(<BulkImportSpreadsheet store={store} />);
+    fireEvent.change(screen.getByTestId("spreadsheet-input"), {
+      target: { files: [new File([buf], "formatted.xlsx")] },
+    });
+    await waitFor(() =>
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '"Occurrence.comments" and "Sighting.comments"',
+        ),
+      ),
+    );
+    expect(store.spreadsheetData).toEqual([]);
+    expect(store.rawData).toEqual([]);
+    alertSpy.mockRestore();
+  });
+
+  test("a sheet whose rows are all blank keeps its headers", async () => {
+    const store = await upload(`Occurrence.comments,${A0}\n , \n`, 0);
+    await waitFor(() => expect(store.spreadsheetUploadProgress).toBe(100));
+    expect(store.rawColumns).toEqual(["Sighting.comments", A0]);
+    expect(store.columnsDef).toEqual(
+      expect.arrayContaining(["Sighting.comments", A0]),
+    );
   });
 
   test("editAfterBlankRowLandsOnSameRawRow", async () => {

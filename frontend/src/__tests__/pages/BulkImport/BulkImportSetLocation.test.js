@@ -61,7 +61,7 @@ describe("BulkImportSetLocation", () => {
       setLocationID: jest.fn(),
       updateRawFromNormalizedRow: jest.fn(),
       clearSubmissionErrors: jest.fn(),
-      rawColumns: ["col1"],
+      rawColumns: ["col1", "Encounter.seconds"],
       submittableColumns: ["col1"],
       rawData: [["data1"]],
       spreadsheetFileName: "test.xlsx",
@@ -122,6 +122,9 @@ describe("BulkImportSetLocation", () => {
 
     expect(store.updateRawFromNormalizedRow).toHaveBeenCalled();
     expect(store.clearSubmissionErrors).toHaveBeenCalled();
+    // the button posts the submittable columns, not the uploaded headers
+    expect(submitMock).toHaveBeenCalledTimes(1);
+    expect(submitMock.mock.calls[0][1]).toEqual(["col1"]);
 
     expect(await screen.findByTestId("success-modal")).toBeInTheDocument();
     const modal = await screen.findByTestId("success-modal");

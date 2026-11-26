@@ -12,6 +12,7 @@ import {
   allColumns,
   latlongRule,
   parseEncounterDateString,
+  FLEXIBLE_DATE_RE,
 } from "./BulkImportConstants";
 import { defaultMaxMediaSize } from "../../constants/photoUpload.js";
 import {
@@ -27,6 +28,7 @@ import {
   DATE_PARTS,
   dateDisplayMapFor,
   datePrefixOf,
+  hasAnyValue,
 } from "./bulkImportHeaders";
 
 // date-in-milliseconds columns: each stands in for the calendar date
@@ -38,6 +40,38 @@ const MILLIS_COLUMNS = [
 // never sent: the server's date has no seconds part
 const UNSENT_COLUMNS = ["Encounter.seconds", "Sighting.seconds"];
 const isNonEmpty = (v) => v != null && String(v).trim() !== "";
+// calendar year columns: a sheet with neither dates every row by its millis cell
+const CALENDAR_YEAR_COLUMNS = ["Encounter.year", "Sighting.year"];
+
+// a date cell (FLEXIBLE_DATE_RE, the same strings write-back reads) that is a real,
+// non-future date
+const isValidDateCell = (val) => {
+  const m = String(val ?? "")
+    .trim()
+    .match(FLEXIBLE_DATE_RE);
+  if (!m) return false;
+  const [, year, month, day, hour, minute] = m;
+  let normalized = year;
+  let format = "YYYY";
+  if (month !== undefined) {
+    normalized += "-" + month.padStart(2, "0");
+    format += "-MM";
+  }
+  if (day !== undefined) {
+    normalized += "-" + day.padStart(2, "0");
+    format += "-DD";
+  }
+  if (hour !== undefined) {
+    normalized += "T" + hour.padStart(2, "0");
+    format += "[T]HH";
+  }
+  if (minute !== undefined) {
+    normalized += ":" + minute.padStart(2, "0");
+    format += ":mm";
+  }
+  const parsed = dayjs(normalized, format, true);
+  return parsed.isValid() && !parsed.isAfter(dayjs());
+};
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
@@ -128,59 +162,13 @@ export class BulkImportStore {
     },
     "Encounter.year": {
       required: true,
-      validate: (val) => {
-        if (val == null) return false;
-        const FLEXIBLE_DATE_RE =
-          /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2})(?:T(\d{1,2})(?::(\d{1,2}))?)?)?)?$/;
-
-        const str = String(val).trim();
-        if (!str) return false;
-
-        const m = str.match(FLEXIBLE_DATE_RE);
-        if (!m) {
-          return false;
-        }
-
-        const [, year, month, day, hour, minute] = m;
-
-        let normalized = year;
-        let format = "YYYY";
-
-        if (month !== undefined) {
-          normalized += "-" + month.padStart(2, "0");
-          format += "-MM";
-        }
-
-        if (day !== undefined) {
-          normalized += "-" + day.padStart(2, "0");
-          format += "-DD";
-        }
-
-        if (hour !== undefined) {
-          normalized += "T" + hour.padStart(2, "0");
-          format += "[T]HH";
-        }
-
-        if (minute !== undefined) {
-          normalized += ":" + minute.padStart(2, "0");
-          format += ":mm";
-        }
-        const parsed = dayjs(normalized, format, true);
-        return parsed.isValid() && !parsed.isAfter(dayjs());
-      },
+      validate: (val) => isValidDateCell(val),
       message: "BULKIMPORT_ERROR_INVALID_DATEFORMAT",
     },
 
     "Sighting.year": {
       required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        const FORMATS = ["YYYY", "YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH:mm"];
-        const parsed = dayjs(val, FORMATS, true);
-        return parsed.isValid() && !parsed.isAfter(dayjs());
-      },
+      validate: (val) => !val || isValidDateCell(val),
       message: "BULKIMPORT_ERROR_INVALID_DATEFORMAT",
     },
     "Encounter.genus": {
@@ -194,19 +182,7 @@ export class BulkImportStore {
     "Encounter.latitude": latlongRule,
     "Sighting.decimalLatitude": latlongRule,
 
-    "Sighting.dateInMilliseconds": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        const num = Number(val);
-        if (isNaN(num)) return false;
-        const dt = new Date(num);
-        return !isNaN(dt.getTime());
-      },
-      message: "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
-    },
+    "Sighting.dateInMilliseconds": this.millisRule(),
     "Encounter.locationID": {
       required: true,
       validate: (value) => {
@@ -299,33 +275,9 @@ export class BulkImportStore {
       },
       message: "BULKIMPORT_ERROR_INVALID_INVALIDEAMILADDRESS",
     },
-    "Encounter.dateInMilliseconds": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        const num = Number(val);
-        if (isNaN(num)) return false;
-        const dt = new Date(num);
-        return !isNaN(dt.getTime());
-      },
-      message: "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
-    },
+    "Encounter.dateInMilliseconds": this.millisRule(),
 
-    "Sighting.millis": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        const num = Number(val);
-        if (isNaN(num)) return false;
-        const dt = new Date(num);
-        return !isNaN(dt.getTime());
-      },
-      message: "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
-    },
+    "Sighting.millis": this.millisRule(),
   };
 
   constructor() {
@@ -448,11 +400,39 @@ export class BulkImportStore {
     return hit ? hit[0] : null;
   }
 
-  // the columns sent on submit: rawColumns once each, never Encounter/Sighting.seconds
+  // the columns sent on submit: the uploaded headers, then any part of a mapped date
+  // prefix that a row now has a value for (an edited date), each once; never
+  // Encounter/Sighting.seconds. rawColumns itself is never changed by an edit.
   get submittableColumns() {
-    return [...new Set(this._rawColumns)].filter(
+    const prefixes = [...new Set(Object.values(this.dateDisplayMap))];
+    const populated = prefixes
+      .flatMap((prefix) => DATE_PARTS.map((part) => `${prefix}.${part}`))
+      .filter((col) => this._rawData.some((row) => isNonEmpty(row?.[col])));
+    return [...new Set([...this._rawColumns, ...populated])].filter(
       (col) => !UNSENT_COLUMNS.includes(col),
     );
+  }
+
+  // the server needs a year or a millis value on every row: with no calendar year
+  // column, each row's millis cell is required, a whole number, and not in the future
+  millisRule() {
+    const blank = (val) => String(val ?? "").trim() === "";
+    return {
+      required: false,
+      validate: (val) => {
+        if (blank(val)) {
+          return this._rawColumns.some((c) =>
+            CALENDAR_YEAR_COLUMNS.includes(c),
+          );
+        }
+        const str = String(val).trim();
+        return /^[-+]?\d+$/.test(str) && Number(str) <= Date.now();
+      },
+      message: (val) =>
+        blank(val)
+          ? "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD"
+          : "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
+    };
   }
 
   // the combined date cell is not editable next to a millis column: an edit would add
@@ -963,6 +943,23 @@ export class BulkImportStore {
         const field = `_${key}`;
         if (field in this) this[field] = value;
       });
+      // old drafts: the old parser could repeat a column (once per row)...
+      if (Array.isArray(state.columnsDef)) {
+        this._columnsDef = [...new Set(this._columnsDef)];
+      }
+      if (Array.isArray(state.rawColumns)) {
+        this._rawColumns = [...new Set(this._rawColumns)];
+      }
+      // ...and dropped whitespace-only rows from the grid but not from rawData
+      if (
+        Array.isArray(state.rawData) &&
+        Array.isArray(state.spreadsheetData) &&
+        state.rawData.length !== state.spreadsheetData.length
+      ) {
+        this._rawData = this._rawData.filter(
+          (row) => row != null && hasAnyValue(row),
+        );
+      }
     });
   }
 
@@ -1399,7 +1396,6 @@ export class BulkImportStore {
 
   updateRawFromNormalizedRow() {
     const dateEntries = Object.entries(this.dateDisplayMap);
-    const datePrefixes = [...new Set(Object.values(this.dateDisplayMap))];
 
     this._spreadsheetData.forEach((_, rowIndex) => {
       const raw = this._rawData[rowIndex];
@@ -1460,23 +1456,6 @@ export class BulkImportStore {
           raw["Sighting.decimalLatitude"] = m ? m[1] : "";
           raw["Sighting.decimalLongitude"] = m ? m[2] : "";
         }
-      });
-    });
-
-    // a date part of a mapped prefix is sent only if the sheet had it or a row now has
-    // a value for it; an unmapped prefix is never added (an old draft's rawData can still
-    // hold Sighting.* values its rawColumns dropped, and sending both is a synonym error)
-    runInAction(() => {
-      datePrefixes.forEach((prefix) => {
-        DATE_PARTS.forEach((part) => {
-          const col = `${prefix}.${part}`;
-          if (
-            !this._rawColumns.includes(col) &&
-            this._rawData.some((row) => isNonEmpty(row?.[col]))
-          ) {
-            this._rawColumns.push(col);
-          }
-        });
       });
     });
   }

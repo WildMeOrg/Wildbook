@@ -1,19 +1,13 @@
 import React from "react";
-import {
-  act,
-  fireEvent,
-  renderHook,
-  screen,
-  waitFor,
-} from "@testing-library/react";
-import { BulkImportSpreadsheet } from "../../../pages/BulkImport/BulkImportSpreadsheet";
+import { act, renderHook } from "@testing-library/react";
 import { BulkImportTableReview } from "../../../pages/BulkImport/BulkImportTableReview";
 import BulkImportStore from "../../../pages/BulkImport/BulkImportStore";
 import usePostBulkImport from "../../../models/bulkImport/usePostBulkImport";
 import { client } from "../../../api/client";
-import { renderWithProviders } from "../../../utils/utils";
 import { useSiteSettings } from "../../../SiteSettingsContext";
 import { PRODUCTION_SYNONYMS } from "../../../__fixtures__/productionSynonyms";
+import { renderWithProviders } from "../../../utils/utils";
+import { uploadCsv } from "../../../__fixtures__/bulkImportUpload";
 
 jest.mock("@flowjs/flow.js", () =>
   jest.fn().mockImplementation(() => ({
@@ -42,16 +36,8 @@ const newStore = (setup) => {
 };
 
 // the real parser, as on the page
-const parse = async (store, csv, rows) => {
-  const view = renderWithProviders(<BulkImportSpreadsheet store={store} />);
-  fireEvent.change(screen.getByTestId("spreadsheet-input"), {
-    target: { files: [new File([csv], "sheet.csv", { type: "text/csv" })] },
-  });
-  await waitFor(() => expect(store.spreadsheetData.length).toBe(rows), {
-    timeout: 5000,
-  });
-  view.unmount();
-};
+const parse = (store, csv, rows) =>
+  uploadCsv(csv, rows, store, { unmount: true });
 
 // what handleStartImport does: write back, then post the submittable columns
 const submit = async (store) => {
@@ -75,6 +61,41 @@ const submit = async (store) => {
 };
 
 const count = (list, x) => list.filter((v) => v === x).length;
+
+// a parsed sheet on the review step, with the page's site settings (production
+// synonym groups); the table revalidates 500 ms after settings arrive
+const reviewSheet = async (csv, rows) => {
+  useSiteSettings.mockReturnValue({
+    data: {
+      bulkImportMinimalFields: {},
+      locationData: { locationID: [{ id: "L1" }] },
+      users: [],
+      siteTaxonomies: [{ scientificName: "Tursiops truncatus" }],
+      bulkImportFieldNameSynonyms: PRODUCTION_SYNONYMS,
+    },
+  });
+  const store = newStore((s) => {
+    s.setValidSpecies(["Tursiops truncatus"]);
+    s.setValidLocationIDs(["L1"]);
+  });
+  await parse(store, csv, rows);
+  jest.useFakeTimers();
+  try {
+    store.setValidationErrors({ stale: { x: "y" } });
+    renderWithProviders(<BulkImportTableReview store={store} />);
+    expect(store.synonymFields).toEqual(PRODUCTION_SYNONYMS);
+    act(() => jest.advanceTimersByTime(500));
+  } finally {
+    jest.useRealTimers();
+  }
+  return store;
+};
+
+const nextButton = () => {
+  const next = document.getElementById("table-review-next-button");
+  expect(next).not.toBeNull();
+  return next;
+};
 
 describe("bulk-import dates on submit", () => {
   beforeEach(() => {
@@ -154,43 +175,64 @@ describe("bulk-import dates on submit", () => {
   });
 
   test("sightingDateSheetNextEnabled", async () => {
-    // the page's site settings, with the production synonym groups
-    useSiteSettings.mockReturnValue({
-      data: {
-        bulkImportMinimalFields: {},
-        locationData: { locationID: [{ id: "L1" }] },
-        users: [],
-        siteTaxonomies: [{ scientificName: "Tursiops truncatus" }],
-        bulkImportFieldNameSynonyms: PRODUCTION_SYNONYMS,
-      },
-    });
-    const store = newStore((s) => {
-      s.setValidSpecies(["Tursiops truncatus"]);
-      s.setValidLocationIDs(["L1"]);
-    });
-    await parse(
-      store,
+    const store = await reviewSheet(
       "Sighting.year,Sighting.month,Sighting.day,Encounter.genus,Encounter.specificEpithet,Encounter.locationID\n" +
         "2021,3,4,Tursiops,truncatus,L1\n" +
         "2022,5,6,Tursiops,truncatus,L1\n",
       2,
     );
-    // the table revalidates 500 ms after site settings arrive; run that timer
-    jest.useFakeTimers();
-    try {
-      store.setValidationErrors({ stale: { x: "y" } });
-      renderWithProviders(<BulkImportTableReview store={store} />);
-      expect(store.synonymFields).toEqual(PRODUCTION_SYNONYMS);
-      act(() => jest.advanceTimersByTime(500));
-    } finally {
-      jest.useRealTimers();
-    }
+    // the source date stays in the display row and the headers (the old parser
+    // deleted Sighting.year from both, which also avoided the synonym error)
+    expect(store.spreadsheetData[0]["Sighting.year"]).toBe(2021);
+    expect(store.spreadsheetData[0]["Encounter.year"]).toBe("2021-03-04");
+    expect(store.rawColumns).toContain("Sighting.year");
+    expect(store.dateDisplaySource).toBe("Sighting");
     expect(store.columnsDef).toContain("Encounter.year");
     expect(store.columnsDef).not.toContain("Sighting.year");
     expect(store.missingRequiredColumns).toEqual([]);
     expect(store.validationErrors).toEqual({});
-    const next = document.getElementById("table-review-next-button");
-    expect(next).not.toBeNull();
-    expect(next).toBeEnabled();
+    expect(nextButton()).toBeEnabled();
+  });
+
+  test("a millis-only row with a blank millis cell disables Next", async () => {
+    const store = await reviewSheet(
+      "Encounter.dateInMilliseconds,Encounter.genus,Encounter.specificEpithet,Encounter.locationID\n" +
+        "1700000000000,Tursiops,truncatus,L1\n" +
+        ",Tursiops,truncatus,L1\n",
+      2,
+    );
+    expect(store.missingRequiredColumns).toEqual([]);
+    expect(store.validationErrors[0]).toBeUndefined();
+    expect(store.validationErrors[1]["Encounter.dateInMilliseconds"]).toBe(
+      "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD",
+    );
+    expect(nextButton()).toBeDisabled();
+  });
+
+  test("an edited Sighting date with a one-digit hour posts that hour", async () => {
+    const store = newStore();
+    await parse(
+      store,
+      `Sighting.year,Sighting.month,Sighting.day,Encounter.genus,${A0}\n` +
+        "2020,1,2,Tursiops,a.jpg\n",
+      1,
+    );
+    store.updateCellValue(0, "Encounter.year", "2021-03-04T9");
+    // the date cell accepts it...
+    expect(store.validateRow(0).errors).not.toHaveProperty("Encounter.year");
+    const { payload, at } = await submit(store);
+    // ...and write-back reads the same parts
+    expect(store.rawData[0]).toMatchObject({
+      "Sighting.year": 2021,
+      "Sighting.month": 3,
+      "Sighting.day": 4,
+      "Sighting.hour": 9,
+    });
+    expect(at(0, "Sighting.year")).toBe(2021);
+    expect(at(0, "Sighting.month")).toBe(3);
+    expect(at(0, "Sighting.day")).toBe(4);
+    expect(at(0, "Sighting.hour")).toBe(9);
+    expect(payload.fieldNames).not.toContain("Sighting.minutes");
+    expect(payload.fieldNames).not.toContain("Encounter.year");
   });
 });
