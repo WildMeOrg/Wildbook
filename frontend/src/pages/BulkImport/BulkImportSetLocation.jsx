@@ -95,6 +95,20 @@ export const BulkImportSetLocation = observer(({ store }) => {
   };
 
   const handleStartImport = useCallback(async () => {
+    // A list of errors goes to the review table; anything else (a message, or a body such as
+    // {error: ...}) is shown as one message, so submissionErrors never holds a string.
+    const showFailure = (data, fallback) => {
+      const errors = data?.errors;
+      if (Array.isArray(errors)) {
+        store.setSubmissionTransportError(null);
+        store.setSubmissionErrors(errors);
+      } else {
+        store.setSubmissionTransportError(
+          typeof errors === "string" && errors ? errors : fallback,
+        );
+      }
+      setShowFailureModal(true);
+    };
     store.updateRawFromNormalizedRow();
     store.clearSubmissionErrors();
     try {
@@ -108,6 +122,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
         store.skipIdentification,
       );
       if (result?.status === 200) {
+        store.setSubmissionTransportError(null);
         localStorage.removeItem("BulkImportStore");
         localStorage.setItem(
           "lastBulkImportTask",
@@ -118,31 +133,26 @@ export const BulkImportSetLocation = observer(({ store }) => {
       } else if (result?.status === 400) {
         console.error(
           "Bulk import failed with status 400:",
-          result.data.errors,
+          result.data?.errors,
         );
-        store.setSubmissionErrors(result.data.errors || "Unknown error");
-
-        setShowFailureModal(true);
+        showFailure(result.data, "Unknown error");
       } else {
         console.error("Bulk import failed with unexpected status:", result);
-        store.setSubmissionErrors("Unexpected error during import");
-        setShowFailureModal(true);
+        showFailure(null, "Unexpected error during import");
       }
     } catch (err) {
-      if (err.response?.status === 409) {
+      const data = err.response?.data;
+      if (
+        err.response?.status === 409 &&
+        data?.errors?.[0]?.type === "DUPLICATE_IMPORT"
+      ) {
         store.setSubmissionTransportError(
           intl.formatMessage({ id: "BULK_IMPORT_ALREADY_SUBMITTED" }),
         );
         setShowFailureModal(true);
         return;
       }
-      const errors = err.response?.data?.errors;
-      if (errors) {
-        store.setSubmissionErrors(errors);
-      } else {
-        store.setSubmissionErrors("An unexpected error occurred during import");
-      }
-      setShowFailureModal(true);
+      showFailure(data, "An unexpected error occurred during import");
     }
   });
 

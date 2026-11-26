@@ -927,7 +927,7 @@ export class BulkImportStore {
 
   resetToDefaults() {
     runInAction(() => {
-      this._submissionErrors = {};
+      this.clearSubmissionErrors();
       this._submissionId = null;
       this._imagePreview = [];
       this._imageSectionFileNames = [];

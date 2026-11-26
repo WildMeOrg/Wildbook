@@ -41,7 +41,8 @@ jest.mock("../../../pages/BulkImport/BulkImportFailureModal", () => {
   const FailureModalMock = ({ show, errorMessage, onHide }) =>
     show ? (
       <div data-testid="failure-modal">
-        Failure: {errorMessage}
+        {/* as the real modal: a string is shown, a list gets a generic line */}
+        Failure: {typeof errorMessage === "string" ? errorMessage : null}
         <button onClick={onHide}>Review Data</button>
       </div>
     ) : null;
@@ -89,6 +90,7 @@ describe("BulkImportSetLocation", () => {
       missingRequiredColumns: [],
       setActiveStep: jest.fn(),
       setSubmissionErrors: jest.fn(),
+      setSubmissionTransportError: jest.fn(),
     };
 
     submitMock = jest.fn();
@@ -157,8 +159,27 @@ describe("BulkImportSetLocation", () => {
       fireEvent.click(screen.getByText(/START_BULK_IMPORT/));
     });
 
-    expect(store.setSubmissionErrors).toHaveBeenCalledWith("error occurred");
+    expect(store.setSubmissionTransportError).toHaveBeenCalledWith(
+      "error occurred",
+    );
+    expect(store.setSubmissionErrors).not.toHaveBeenCalled();
     expect(await screen.findByTestId("failure-modal")).toBeInTheDocument();
+  });
+
+  it("a 400 with a list of errors clears any earlier message", async () => {
+    const errors = [{ rowNumber: 0, fieldName: "Encounter.genus" }];
+    submitMock.mockResolvedValue({ status: 400, data: { errors } });
+    render(<BulkImportSetLocation store={store} />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByText(/START_BULK_IMPORT/));
+    });
+
+    expect(store.setSubmissionErrors).toHaveBeenCalledWith(errors);
+    expect(store.setSubmissionTransportError).toHaveBeenCalledWith(null);
+    expect(store.setSubmissionTransportError).not.toHaveBeenCalledWith(
+      expect.any(String),
+    );
   });
 
   it("handles unexpected error and shows failure modal", async () => {
@@ -169,9 +190,10 @@ describe("BulkImportSetLocation", () => {
       fireEvent.click(screen.getByText(/START_BULK_IMPORT/));
     });
 
-    expect(store.setSubmissionErrors).toHaveBeenCalledWith(
+    expect(store.setSubmissionTransportError).toHaveBeenCalledWith(
       "An unexpected error occurred during import",
     );
+    expect(store.setSubmissionErrors).not.toHaveBeenCalled();
     expect(await screen.findByTestId("failure-modal")).toBeInTheDocument();
   });
   it("initially sets location based on spreadsheetData via reaction", () => {
@@ -267,5 +289,52 @@ describe("BulkImportSetLocation duplicate submission (409)", () => {
       render(<BulkImportTableReview store={store} />),
     ).not.toThrow();
     expect(JSON.stringify(store.rawData)).toBe(rawBefore);
+  });
+
+  it("a 500 with an {error} body does not break the review table", async () => {
+    usePostBulkImport.mockReturnValue({
+      submit: jest.fn().mockRejectedValue({
+        response: {
+          status: 500,
+          data: { error: "java.lang.IllegalStateException: x" },
+        },
+      }),
+      isLoading: false,
+    });
+    await clickStart();
+
+    expect(await screen.findByTestId("failure-modal")).toHaveTextContent(
+      "An unexpected error occurred during import",
+    );
+    expect(typeof store.submissionErrors).not.toBe("string");
+    fireEvent.click(await screen.findByText("Review Data"));
+    expect(() =>
+      render(<BulkImportTableReview store={store} />),
+    ).not.toThrow();
+  });
+
+  it("a 409 that is not DUPLICATE_IMPORT is not 'already submitted'", async () => {
+    const errors = [{ type: "SOMETHING_ELSE", code: "INVALID" }];
+    usePostBulkImport.mockReturnValue({
+      submit: jest.fn().mockRejectedValue({
+        response: { status: 409, data: { errors } },
+      }),
+      isLoading: false,
+    });
+    await clickStart();
+
+    expect(await screen.findByTestId("failure-modal")).not.toHaveTextContent(
+      ALREADY,
+    );
+    expect(store.submissionTransportError).toBeNull();
+    expect(store.submissionErrors).toEqual(errors);
+  });
+
+  it("resetToDefaults clears the already-submitted message", async () => {
+    await clickStart();
+    expect(store.submissionTransportError).toBe(ALREADY);
+
+    store.resetToDefaults();
+    expect(store.submissionTransportError).toBeNull();
   });
 });
