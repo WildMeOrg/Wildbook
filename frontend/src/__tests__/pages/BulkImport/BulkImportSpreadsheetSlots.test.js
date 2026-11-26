@@ -131,4 +131,26 @@ describe("BulkImportSpreadsheet photo slots", () => {
     expect(store.columnsDef).not.toContain(A1);
     expect(store.spreadsheetData[0][A0]).toBe("a.jpg, b.jpg");
   });
+
+  test("occurrenceAndSightingColumnsCollide", async () => {
+    const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+    const store = await upload(`${A0},Encounter.sex\na.jpg,male\n`);
+    expect(store.spreadsheetData.length).toBe(1);
+    // the drop zone returns once progress is back at 0; stale data stays
+    act(() => store.setSpreadsheetUploadProgress(0));
+    const csv = `Occurrence.comments,Sighting.comments,${A0}\nx,y,a.jpg\n`;
+    fireEvent.change(screen.getByTestId("spreadsheet-input"), {
+      target: { files: [new File([csv], "bad.csv", { type: "text/csv" })] },
+    });
+    await waitFor(() =>
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '"Occurrence.comments" and "Sighting.comments"',
+        ),
+      ),
+    );
+    expect(store.spreadsheetData).toEqual([]);
+    expect(store.rawData).toEqual([]);
+    alertSpy.mockRestore();
+  });
 });
