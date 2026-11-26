@@ -41,6 +41,12 @@ public class BulkImportUtil {
     public static Map<String, Object> validateRow(Set<String> fieldNames, JSONArray rowValues,
         Shepherd myShepherd, boolean identificationSkipped) {
         if ((fieldNames == null) || (rowValues == null)) return new HashMap<String, Object>();
+        return validateRow(rowFromPositional(fieldNames, rowValues), myShepherd,
+                identificationSkipped);
+    }
+
+    // a positional row as an object row keyed by fieldNames; missing trailing values are JSON null
+    public static JSONObject rowFromPositional(Set<String> fieldNames, JSONArray rowValues) {
         JSONObject row = new JSONObject();
         int i = 0;
         for (String fieldName : fieldNames) {
@@ -51,7 +57,7 @@ public class BulkImportUtil {
             }
             i++;
         }
-        return validateRow(row, myShepherd, identificationSkipped);
+        return row;
     }
 
     public static Map<String, Object> validateRow(JSONObject row, Shepherd myShepherd) {
