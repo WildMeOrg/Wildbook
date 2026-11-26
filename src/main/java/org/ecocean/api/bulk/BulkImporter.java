@@ -813,9 +813,9 @@ public class BulkImporter {
         Map<Integer, List<String> > labeledBySlot = new HashMap<Integer, List<String> >();
         if (exactSlotMode) {
             for (String key : fmap.keySet()) {
-                if (BulkImportUtil.getLabeledKeywordLabel(key) == null) continue;
-                labeledBySlot.computeIfAbsent(BulkImportUtil.getLabeledKeywordOffset(key),
-                    k -> new ArrayList<String>()).add(key);
+                int offset = BulkImportUtil.getLabeledKeywordOffset(key);
+                if (offset >= 0)
+                    labeledBySlot.computeIfAbsent(offset, k -> new ArrayList<String>()).add(key);
             }
         }
         // now attach annotations

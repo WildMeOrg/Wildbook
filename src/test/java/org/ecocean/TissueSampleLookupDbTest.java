@@ -64,8 +64,7 @@ class TissueSampleLookupDbTest {
             assertNull(sh.getTissueSample("S1", "other"));
             assertNull(sh.getTissueSample("s1", ENC), "the match is exact");
         } finally {
-            sh.rollbackDBTransaction();
-            sh.closeDBTransaction();
+            sh.rollbackAndClose();
         }
     }
 
@@ -80,8 +79,7 @@ class TissueSampleLookupDbTest {
                 assertNull(assertDoesNotThrow(() -> sh.getTissueSample("S1", id)), id);
             }
         } finally {
-            sh.rollbackDBTransaction();
-            sh.closeDBTransaction();
+            sh.rollbackAndClose();
         }
     }
 }

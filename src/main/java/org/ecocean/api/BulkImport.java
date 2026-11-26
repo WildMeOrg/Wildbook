@@ -360,10 +360,8 @@ public class BulkImport extends ApiBase {
                         // either we have passed a (valid) owner, or we have the field, but no value
                         // in latter case we set to the default
                         if (rowFieldName.equals(submitterIDFieldName)) {
-                            if (bv.getValue() == null) {
+                            if (bv.getValue() == null)
                                 rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
-                                bv = defaultSubmitterIDBV;
-                            }
                         }
                         // a grouped row's valid cells are counted on its source rows below
                         if (!grouped.isGrouped(rowNum)) numberFieldsValid++;
