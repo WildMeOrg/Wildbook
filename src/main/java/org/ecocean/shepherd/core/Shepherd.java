@@ -1423,28 +1423,21 @@ public class Shepherd {
         return getUser(username);
     }
 
+    // both values are query parameters; null is compared as the text "null", as it always was
     public TissueSample getTissueSample(String sampleID, String encounterNumber) {
-        TissueSample tempEnc = null;
-        String filter = "this.sampleID == \"" + sampleID +
-            "\" && this.correspondingEncounterNumber == \"" + encounterNumber + "\"";
-        Extent encClass = pm.getExtent(TissueSample.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-
+        Query query = pm.newQuery("SELECT FROM org.ecocean.genetics.TissueSample WHERE " +
+            "sampleID == sid && correspondingEncounterNumber == encNum " +
+            "PARAMETERS String sid, String encNum");
         try {
-            Collection c = (Collection)(acceptedEncounters.execute());
-            Iterator it = c.iterator();
-            while (it.hasNext()) {
-                TissueSample ts = (TissueSample)it.next();
-                acceptedEncounters.closeAll();
-                return ts;
-            }
+            Iterator it = ((Collection)query.execute(String.valueOf(sampleID),
+                String.valueOf(encounterNumber))).iterator();
+            return it.hasNext() ? (TissueSample)it.next() : null;
         } catch (Exception nsoe) {
             nsoe.printStackTrace();
-            acceptedEncounters.closeAll();
             return null;
+        } finally {
+            query.closeAll();
         }
-        acceptedEncounters.closeAll();
-        return null;
     }
 
     public MitochondrialDNAAnalysis getMitochondrialDNAAnalysis(String sampleID,
