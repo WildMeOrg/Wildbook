@@ -71,13 +71,6 @@ class BulkImagesTest {
 
     MockedStatic<AdvisoryLock> advisoryLock;
 
-    // the import path takes the bulkImportId lock and reserves its ImportTask on a Shepherd of its own
-    static void reservable(Shepherd sh)
-    throws Exception {
-        when(sh.getPM()).thenReturn(mock(PersistenceManager.class));
-        when(sh.commitDBTransactionWithStatus()).thenReturn(true);
-    }
-
     @AfterEach void closeLock() {
         advisoryLock.close();
     }
@@ -91,6 +84,7 @@ class BulkImagesTest {
         mockPMF = mock(PersistenceManagerFactory.class);
         apiServlet = new BulkImport();
         mockMediaAsset = mock(MediaAsset.class);
+        when(mockPM.getObjectById(eq(User.class), any())).thenReturn(mock(User.class));   // the reservation's creator
 
         responseOut = new StringWriter();
         PrintWriter writer = new PrintWriter(responseOut);
@@ -191,7 +185,7 @@ class BulkImagesTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
-            reservable(mock);
+            BulkApiPostTest.reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -231,7 +225,7 @@ class BulkImagesTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
-            reservable(mock);
+            BulkApiPostTest.reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -271,7 +265,7 @@ class BulkImagesTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
-            reservable(mock);
+            BulkApiPostTest.reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -315,7 +309,7 @@ class BulkImagesTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
-            reservable(mock);
+            BulkApiPostTest.reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -431,7 +425,7 @@ class BulkImagesTest {
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
-            reservable(mock);
+            BulkApiPostTest.reservable(mock);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);

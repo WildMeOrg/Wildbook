@@ -10,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import javax.servlet.http.HttpServletRequest;
@@ -195,6 +196,9 @@ public class BulkImport extends ApiBase {
             }
             // an upload is imported once: refuse an ID another request holds or that has a task
             if (!payload.optBoolean("validateOnly", false)) {
+                // the lock lasts as long as the request transaction, so it needs one
+                if (!myShepherd.isDBTransactionActive())
+                    throw new IllegalStateException("database transaction unavailable");
                 if (!AdvisoryLock.tryXact(myShepherd, AdvisoryLock.key("bulk-import:" + bulkImportId)))
                     throw new DuplicateImport(bulkImportId);
                 if (myShepherd.findImportTask(bulkImportId) != null)
@@ -482,12 +486,13 @@ public class BulkImport extends ApiBase {
                     final boolean bgBoxedImport = boxedImport;
                     final String currentUsername = currentUser.getUsername();
                     final String bgContext = myShepherd.getContext();
+                    final AtomicBoolean workerStarted = new AtomicBoolean(false);
                     Runnable r = new Runnable() {
                         public void run() {
+                            workerStarted.set(true);
                             // make our background thread safely use our own Shepherd
                             Shepherd bgShepherd = new Shepherd(bgContext);
                             bgShepherd.setAction("api.Bulk.processBackground");
-                            bgShepherd.beginDBTransaction();
 
                             JSONObject bgEncAssets = null;
                             boolean success = false;
@@ -495,6 +500,7 @@ public class BulkImport extends ApiBase {
                             // post-commit deep reindex of touched individuals.
                             BulkImporter bgImporter = null;
                             try {
+                                bgShepherd.beginDBTransaction(); // inside the try: finally closes it
                                 User bgUser = bgShepherd.getUser(currentUsername);
                                 int numNewErrors = dataErrors.length();
                                 BulkImporter.logProgress(bulkImportId,
@@ -607,7 +613,14 @@ public class BulkImport extends ApiBase {
                             BulkImporter.logProgress(bulkImportId, "doPost: bg DONE", startTime);
                         }
                     };
-                    launcher.accept(r);
+                    try {
+                        launcher.accept(r);
+                    } catch (RuntimeException | Error launchFailure) {
+                        // the worker never started, and this request still holds the lock: free
+                        // the ID so the same upload can be submitted again
+                        if (!workerStarted.get()) undoReservation(context, bulkImportId);
+                        throw launchFailure;
+                    }
                     rtn.put("processingTime", System.currentTimeMillis() - startProcess);
                     rtn.put("backgrounded", true);
                     rtn.put("success", true);
@@ -688,6 +701,7 @@ public class BulkImport extends ApiBase {
         } catch (DuplicateImport dup) {
             statusCode = 409;
             refused = true;
+            rtn.put("annotationsImported", false); // validation may have set it; nothing was imported
             System.out.println("BulkImport.doPost() returning 409: " + dup.getMessage());
             JSONObject err = new JSONObject();
             err.put("type", "DUPLICATE_IMPORT");
@@ -988,10 +1002,17 @@ public class BulkImport extends ApiBase {
     throws Exception {
         if ((user == null) || (user.getId() == null))
             throw new IllegalStateException("reservation needs a user with an id");
-        Shepherd sh = Shepherd.newActiveShepherd(context, "BulkImport.reserveImportTask");
+        Shepherd sh = new Shepherd(context);
+        sh.setAction("BulkImport.reserveImportTask");
         try {
+            sh.beginDBTransaction();
+            if (!sh.isDBTransactionActive())
+                throw new IllegalStateException("database transaction unavailable");
             if (sh.findImportTask(id) != null) throw new DuplicateImport(id);
-            User creator = sh.getUserByUUID(user.getId()); // needs to be on our shepherd
+            // loaded on our shepherd; a user that cannot be loaded throws instead of reading as null
+            User creator = sh.getPM().getObjectById(User.class, user.getId());
+            if (creator == null)
+                throw new IllegalStateException("reservation could not load user " + user.getId());
             ImportTask task = new ImportTask(creator, id);
             task.setProcessingProgress(0.0D);
             task.setStatus(status);
@@ -1017,6 +1038,34 @@ public class BulkImport extends ApiBase {
         }
         sh.closeDBTransaction();
         Util.mark("reserveImportTask(" + id + ", " + status + ")");
+    }
+
+    // Removes the task reserveImportTask committed, when the worker could not be started. Called
+    // while the request still holds the lock, so the task is still this request's own. A failure
+    // here is logged; the caller reports the launch failure.
+    void undoReservation(String context, String id) {
+        Shepherd sh = new Shepherd(context);
+        sh.setAction("BulkImport.undoReservation");
+        try {
+            sh.beginDBTransaction();
+            if (!sh.isDBTransactionActive())
+                throw new IllegalStateException("database transaction unavailable");
+            ImportTask task = sh.findImportTask(id);
+            if (task != null) sh.getPM().deletePersistent(task);
+            if (!sh.commitDBTransactionWithStatus())
+                throw new IOException("could not remove reserved ImportTask " + id);
+        } catch (Exception ex) {
+            System.out.println("undoReservation(" + id + ") failed: " + ex);
+            ex.printStackTrace();
+            try {
+                sh.rollbackAndClose();
+            } catch (Exception rollbackEx) {
+                System.out.println("undoReservation(" + id + ") rollback failed: " + rollbackEx);
+            }
+            return;
+        }
+        sh.closeDBTransaction();
+        Util.mark("undoReservation(" + id + ")");
     }
 
     // this assumes task was created! and: we always ignore nulls

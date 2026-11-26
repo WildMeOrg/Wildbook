@@ -14,6 +14,10 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
@@ -26,21 +30,25 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.IAJsonProperties;
+import org.ecocean.ImageFixtures;
 import org.ecocean.Occurrence;
 import org.ecocean.TestIAJsonPropertiesUtil;
 import org.ecocean.User;
@@ -58,9 +66,11 @@ import org.ecocean.shepherd.core.ShepherdPMF;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InOrder;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.stubbing.Answer;
@@ -78,6 +88,10 @@ class BulkImportDuplicateGuardTest {
     static final String BULK_ID = BulkBoxImportApiTest.BULK_ID;
     static final String[] FIELDS = BulkBoxImportApiTest.BASE;
     @TempDir static Path uploadDir;
+
+    @BeforeAll static void fixtures() throws Exception {
+        ImageFixtures.write(ImageFixtures.noise(200, 150, 42), "jpeg", uploadDir.resolve("a.jpg").toFile(), false);
+    }
 
     @BeforeEach void setUp() {
         JSONObject json = new JSONObject().put("Genus", new JSONObject().put("species", new JSONObject()
@@ -101,6 +115,18 @@ class BulkImportDuplicateGuardTest {
         return valid().put("processInBackground", true);
     }
 
+    /** One row referencing the uploaded a.jpg, so a media-creation count means something. */
+    static JSONObject withFile() {
+        return BulkBoxImportApiTest.payload(new String[] { "Encounter.mediaAsset0" }, new Object[] { "a.jpg" })
+            .put("skipDetection", true).put("processInBackground", true);
+    }
+
+    /** One row with a box on a.jpg: validation sets annotationsImported true. */
+    static JSONObject boxed() {
+        return BulkBoxImportApiTest.payload(BulkBoxImportApiTest.BOXED, new Object[] { "a.jpg", "10,10,50,50", "body" })
+            .put("skipDetection", true).put("processInBackground", true);
+    }
+
     static ImportTask existing(String status) {
         ImportTask t = new ImportTask(null, BULK_ID);
         t.setStatus(status);
@@ -118,12 +144,21 @@ class BulkImportDuplicateGuardTest {
         boolean runWorker = false;                     // launcher runs the background Runnable too
         String userId = "00000000-0000-4000-8000-0000000000aa"; // the request user's id
         boolean rollbackFails = false;                 // Shepherd.rollbackAndClose throws
+        boolean launchFails = false;                   // the launcher throws before the worker starts
+        boolean creatorMissing = false;                // the reservation cannot load the request user
+        Set<Integer> inactive = new HashSet<Integer>();   // Shepherd numbers whose transaction is not active
+        Set<Integer> beginFails = new HashSet<Integer>(); // Shepherd numbers whose beginDBTransaction throws
+        Map<String, ImportTask> table = null;          // when set: lookups read it, persist adds, delete removes
 
         final List<String> events = Collections.synchronizedList(new ArrayList<String>());
         final List<Runnable> launched = new ArrayList<Runnable>();
         final List<ImportTask> persisted = new ArrayList<ImportTask>();
         final List<String> archived = new ArrayList<String>();   // archive file paths written
         final List<Object> shepherdContexts = new ArrayList<Object>();
+        final List<Shepherd> shepherds = Collections.synchronizedList(new ArrayList<Shepherd>());   // in construction order
+        final List<Long> lockKeys = new ArrayList<Long>();
+        final List<Object> lockShepherds = new ArrayList<Object>();
+        final List<ImportTask> deleted = new ArrayList<ImportTask>();
         int lockCalls, lookups, fileListings, mediaCreated, importers;
         ImportTask held;
         JSONObject response;
@@ -142,6 +177,11 @@ class BulkImportDuplicateGuardTest {
     }
 
     Call post(Call c) throws Exception {
+        return post(c, null);
+    }
+
+    /** {@code launcher}, when given, replaces the recording launcher. */
+    Call post(Call c, Consumer<Runnable> launcher) throws Exception {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         StringWriter out = new StringWriter();
@@ -150,10 +190,12 @@ class BulkImportDuplicateGuardTest {
         when(request.getReader()).thenReturn(new BufferedReader(new StringReader(c.payload.toString())));
         BulkImport servlet = new BulkImport();
         servlet.launcher = r -> {
+            if (c.launchFails) throw new IllegalStateException("cannot start a thread");
             c.events.add("launch");
             c.launched.add(r);
             if (c.runWorker) r.run();
         };
+        if (launcher != null) servlet.launcher = launcher;
         User user = mock(User.class);
         when(user.getId()).thenReturn(c.userId);
         when(user.getUsername()).thenReturn("fake-username");
@@ -165,8 +207,20 @@ class BulkImportDuplicateGuardTest {
             c.events.add("persist:" + t.getStatus());
             c.persisted.add(t);
             c.held = t;
+            if (c.table != null) c.table.put(t.getId(), t);
             return t;
         }).when(pm).makePersistent(any(ImportTask.class));
+        doAnswer(inv -> {
+            ImportTask t = inv.getArgument(0);
+            c.events.add("delete");
+            c.deleted.add(t);
+            if (c.table != null) c.table.remove(t.getId());
+            return null;
+        }).when(pm).deletePersistent(any(ImportTask.class));
+        doAnswer(inv -> {
+            if (c.creatorMissing) throw new JDOObjectNotFoundException("no such user");
+            return user;
+        }).when(pm).getObjectById(eq(User.class), any());
         AtomicInteger lookupNumber = new AtomicInteger();
 
         // registered before the static mocks and closed after them (Mockito resolves mocks in LIFO order)
@@ -181,15 +235,19 @@ class BulkImportDuplicateGuardTest {
                  int n = ctx.getCount();
                  Object context = ctx.arguments().isEmpty() ? null : ctx.arguments().get(0);
                  c.shepherdContexts.add(context);
+                 c.shepherds.add(mock);
+                 when(mock.isDBTransactionActive()).thenAnswer(inv -> !c.inactive.contains(n));
+                 if (c.beginFails.contains(n)) doThrow(new RuntimeException("cannot begin")).when(mock).beginDBTransaction();
                  when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
                  when(mock.getUser(any(String.class))).thenReturn(user);
-                 when(mock.getUserByUUID(any(String.class))).thenReturn(user);
+                 when(mock.getUserByUUID(any(String.class))).thenAnswer(inv -> c.creatorMissing ? null : user);
                  when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
                  when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
                  when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
                  when(mock.findImportTask(any())).thenAnswer(inv -> {
                      c.lookups++;
                      c.events.add("find:" + n);
+                     if (c.table != null) return c.table.get((String)inv.getArgument(0));
                      return (lookupNumber.incrementAndGet() == 1 ? c.guardLookup : c.reserveLookup).answer(inv);
                  });
                  when(mock.getImportTask(any())).thenAnswer(inv -> c.held);
@@ -214,6 +272,8 @@ class BulkImportDuplicateGuardTest {
             lock.when(() -> AdvisoryLock.tryXact(any(), anyLong())).thenAnswer(inv -> {
                 c.lockCalls++;
                 c.events.add("lock");
+                c.lockShepherds.add(inv.getArgument(0));
+                c.lockKeys.add(inv.getArgument(1));
                 return c.lock.answer(inv);
             });
             if (c.requestContext != null)
@@ -346,13 +406,149 @@ class BulkImportDuplicateGuardTest {
     }
 
     @Test void reservationCommitFailureIs500AndNothingLaunched() throws Exception {
-        Call c = new Call(background());
+        Call c = new Call(withFile());   // a.jpg would become a MediaAsset if the worker ran
         c.reserveCommits = false;
         post(c);
         assertEquals(500, c.status());
+        assertEquals(1, c.response.getInt("numberFilesValid"), "the payload's file passed validation");
         assertTrue(c.launched.isEmpty());
         assertEquals(0, c.mediaCreated);
         assertEquals(0, c.importers);
+    }
+
+    @Test void launchFailureFreesTheId() throws Exception {
+        Map<String, ImportTask> table = new HashMap<String, ImportTask>();
+        Call first = new Call(background());
+        first.table = table;
+        first.launchFails = true;
+        post(first);
+        assertEquals(500, first.status());
+        assertEquals(1, first.persisted.size(), "the task was reserved");
+        assertEquals(first.persisted, first.deleted, "and removed again when the worker could not start");
+        assertTrue(table.isEmpty());
+        // removed on its own Shepherd while the request transaction (and its lock) was still open
+        Shepherd request = first.shepherds.get(0);
+        Shepherd undo = first.shepherds.get(2);
+        InOrder order = inOrder(undo, request);
+        order.verify(undo).commitDBTransactionWithStatus();
+        order.verify(request).rollbackDBTransaction();
+        verify(undo).closeDBTransaction();
+
+        Call retry = new Call(background());
+        retry.table = table;
+        post(retry);
+        assertEquals(200, retry.status(), retry.response.toString());
+        assertEquals(1, retry.launched.size());
+        assertEquals(1, table.size());
+    }
+
+    @Test void launchFailureAfterTheWorkerStartedKeepsTheTask() throws Exception {
+        Map<String, ImportTask> table = new HashMap<String, ImportTask>();
+        Call c = new Call(background());
+        c.table = table;
+        // a launcher that runs the worker, then fails: the task is the worker's now
+        post(c, r -> { r.run(); throw new IllegalStateException("after the worker ran"); });
+        assertEquals(500, c.status());
+        assertTrue(c.deleted.isEmpty(), "a started worker's task is not removed");
+        assertEquals(1, table.size());
+    }
+
+    @Test void inactiveRequestTransactionIs500() throws Exception {
+        Call c = new Call(background());
+        c.inactive.add(1);
+        post(c);
+        assertEquals(500, c.status());
+        assertEquals(0, c.lockCalls, "no lock without a transaction to hold it");
+        assertEquals(0, c.lookups);
+        assertEquals(0, c.fileListings);
+        assertTrue(c.persisted.isEmpty());
+        assertTrue(c.launched.isEmpty());
+        assertEquals(0, c.importers);
+    }
+
+    @Test void inactiveReservationTransactionIs500() throws Exception {
+        Call c = new Call(background());
+        c.inactive.add(2);
+        post(c);
+        assertEquals(500, c.status());
+        assertTrue(c.persisted.isEmpty());
+        assertTrue(c.launched.isEmpty());
+        verify(c.shepherds.get(1)).rollbackAndClose();
+    }
+
+    @Test void reservationBeginFailureClosesItsShepherd() throws Exception {
+        Call c = new Call(background());
+        c.beginFails.add(2);
+        post(c);
+        assertEquals(500, c.status());
+        assertTrue(c.persisted.isEmpty());
+        assertTrue(c.launched.isEmpty());
+        verify(c.shepherds.get(1)).rollbackAndClose();
+    }
+
+    @Test void workerBeginFailureClosesItsShepherd() throws Exception {
+        Call c = new Call(background());
+        c.runWorker = true;
+        c.beginFails.add(3);
+        post(c);
+        assertEquals(200, c.status(), "the request was accepted before the worker ran");
+        assertEquals(3, c.shepherds.size(), c.shepherdContexts.toString());
+        verify(c.shepherds.get(2)).closeDBTransaction();
+        assertEquals(0, c.importers);
+    }
+
+    @Test void creatorNotLoadableIs500() throws Exception {
+        Call c = new Call(background());
+        c.creatorMissing = true;   // the user has an id, but the reservation cannot load it
+        post(c);
+        assertEquals(500, c.status());
+        assertTrue(c.persisted.isEmpty(), "no creatorless task");
+        assertTrue(c.launched.isEmpty());
+        assertEquals(0, c.importers);
+        verify(c.shepherds.get(1)).rollbackAndClose();
+    }
+
+    @Test void sameIdSameLockKeyOnTheRequestTransaction() throws Exception {
+        Call a = new Call(background());
+        post(a);
+        Call b = new Call(background());
+        b.guardLookup = inv -> existing("processing-background");
+        post(b);
+        String other = "00000000-0000-0000-0000-00000000c0c0";
+        Call c = new Call(background().put("bulkImportId", other));
+        post(c);
+        long expected = AdvisoryLock.key("bulk-import:" + BULK_ID);
+        assertEquals(Arrays.asList(expected), a.lockKeys);
+        assertEquals(a.lockKeys, b.lockKeys, "two requests for one upload contend for one lock");
+        assertEquals(Arrays.asList(AdvisoryLock.key("bulk-import:" + other)), c.lockKeys);
+        assertFalse(c.lockKeys.equals(a.lockKeys));
+        assertEquals(1, a.lockShepherds.size());
+        assertTrue(a.lockShepherds.get(0) == a.shepherds.get(0), "the lock is taken on the request's transaction");
+        assertTrue(b.lockShepherds.get(0) == b.shepherds.get(0));
+    }
+
+    void assertReservedBeforeRequestTransactionEnds(Call c) {
+        Shepherd request = c.shepherds.get(0);
+        Shepherd reservation = c.shepherds.get(1);
+        InOrder order = inOrder(reservation, request);
+        order.verify(reservation).commitDBTransactionWithStatus();
+        order.verify(request).commitDBTransaction();
+        // that commit is the request transaction's only end, so none came before the reservation's
+        verify(request, times(1)).commitDBTransaction();
+        verify(request, never()).commitDBTransactionWithStatus();
+        verify(request, never()).rollbackDBTransaction();
+        verify(request, never()).rollbackAndClose();
+    }
+
+    @Test void reservationCommitsBeforeTheRequestTransactionEnds() throws Exception {
+        Call fg = new Call(valid());
+        post(fg);
+        assertEquals(200, fg.status());
+        assertReservedBeforeRequestTransactionEnds(fg);
+        Call bg = new Call(background());
+        post(bg);
+        assertEquals(200, bg.status());
+        assertReservedBeforeRequestTransactionEnds(bg);
     }
 
     @Test void reservationRaceIs409() throws Exception {
@@ -367,6 +563,22 @@ class BulkImportDuplicateGuardTest {
         assertTrue(c.persisted.isEmpty());
         assertTrue(c.launched.isEmpty());
         assertEquals(0, c.importers);
+    }
+
+    @Test void boxedReservationRaceReportsNoAnnotations() throws Exception {
+        Call c = new Call(boxed());
+        c.reserveLookup = inv -> existing("processing-background");
+        post(c);
+        assertEquals(409, c.status(), c.response.toString());
+        assertEquals("DUPLICATE_IMPORT", c.firstError().getString("type"));
+        assertFalse(c.response.getBoolean("annotationsImported"), "this request imported nothing");
+        assertTrue(c.persisted.isEmpty());
+        assertTrue(c.launched.isEmpty());
+
+        Call ok = new Call(boxed());   // the same payload, not refused: validation does set it
+        post(ok);
+        assertEquals(200, ok.status(), ok.response.toString());
+        assertTrue(ok.response.getBoolean("annotationsImported"));
     }
 
     @Test void reservationWithoutUserIdIs500() throws Exception {
@@ -430,12 +642,13 @@ class BulkImportDuplicateGuardTest {
     }
 
     @Test void reservationUsesRequestContext() throws Exception {
-        Call c = new Call(background());
+        Call c = new Call(withFile());
         c.requestContext = "context1";
         c.runWorker = true;
         post(c);
         assertEquals(200, c.status());
         assertEquals(1, c.importers, "the worker ran");
+        assertEquals(1, c.mediaCreated, "and created the file's MediaAsset");
         assertTrue(c.shepherdContexts.size() >= 3, "request, reservation and worker: " + c.shepherdContexts);
         for (Object context : c.shepherdContexts) assertEquals("context1", context, c.shepherdContexts.toString());
     }

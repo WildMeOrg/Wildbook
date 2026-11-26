@@ -518,16 +518,13 @@ public class Shepherd {
         return tempEnc;
     }
 
+    // null when there is no such task or the lookup fails; see findImportTask to tell them apart
     public ImportTask getImportTask(String num) {
-        ImportTask tempEnc = null;
-
         try {
-            tempEnc = ((ImportTask)(pm.getObjectById(pm.newObjectIdInstance(ImportTask.class,
-                num.trim()), true)));
+            return findImportTask(num.trim());
         } catch (Exception nsoe) {
             return null;
         }
-        return tempEnc;
     }
 
     /**

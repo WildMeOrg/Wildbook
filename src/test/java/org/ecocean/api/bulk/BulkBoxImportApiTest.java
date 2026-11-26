@@ -126,6 +126,7 @@ class BulkBoxImportApiTest {
         held = new ImportTask(null, BULK_ID);
         // the request reserves (persists) the task; later lookups read the reserved one
         doAnswer(inv -> { held = inv.getArgument(0); return held; }).when(mockPM).makePersistent(any(ImportTask.class));
+        when(mockPM.getObjectById(eq(User.class), any())).thenReturn(user);   // the reservation's creator
         assets.clear();
         handoffs.clear();
         corrupt.clear();
@@ -241,6 +242,7 @@ class BulkBoxImportApiTest {
                  when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
                  when(mock.findImportTask(any())).thenReturn(null);   // guard and reservation: no prior task
                  when(mock.getImportTask(any(String.class))).thenAnswer(inv -> held);
+                 when(mock.isDBTransactionActive()).thenReturn(true);
                  when(mock.commitDBTransactionWithStatus()).thenReturn(true);
                  when(mock.getPM()).thenReturn(mockPM);
                  when(mock.getContext()).thenReturn("context0");

@@ -66,7 +66,10 @@ class BulkApiPostTest {
     // the import path takes the bulkImportId lock and reserves its ImportTask on a Shepherd of its own
     static void reservable(Shepherd sh)
     throws Exception {
-        when(sh.getPM()).thenReturn(mock(PersistenceManager.class));
+        PersistenceManager pm = mock(PersistenceManager.class);
+        when(pm.getObjectById(eq(User.class), any())).thenReturn(mock(User.class));   // the reservation's creator
+        when(sh.getPM()).thenReturn(pm);
+        when(sh.isDBTransactionActive()).thenReturn(true);
         when(sh.commitDBTransactionWithStatus()).thenReturn(true);
     }
 
