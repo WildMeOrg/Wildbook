@@ -153,15 +153,14 @@ public class BulkValidator {
         { "Sighting.comments", "Survey.comments" }
     };
 
-    // every FIELD_ALIASES row except the millis row (covered by DATE_EXCLUSIVE), then DATE_EXCLUSIVE
+    // the FIELD_ALIASES rows, with DATE_EXCLUSIVE in place of the millis row. Order matters: a
+    // row's synonym error is the last set that names its column (validateFields puts them in
+    // this order), so DATE_EXCLUSIVE comes before the year row, as it always has
     public static final String[][] FIELD_NAME_SYNONYMS;
     static {
         List<String[]> rows = new ArrayList<String[]>();
-        for (String[] alias : FIELD_ALIASES) {
-            if (DATE_MILLIS_FIELDS.contains(alias[0])) continue;
-            rows.add(alias);
-        }
-        rows.add(DATE_EXCLUSIVE);
+        for (String[] alias : FIELD_ALIASES)
+            rows.add(DATE_MILLIS_FIELDS.contains(alias[0]) ? DATE_EXCLUSIVE : alias);
         FIELD_NAME_SYNONYMS = rows.toArray(new String[0][]);
     }
 

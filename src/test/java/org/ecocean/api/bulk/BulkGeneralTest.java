@@ -850,6 +850,19 @@ class BulkGeneralTest {
         assertEquals(asSetOfSets(SYNONYMS_BEFORE), asSetOfSets(BulkValidator.FIELD_NAME_SYNONYMS));
     }
 
+    // a row's synonym error is the last set naming its column: that set is today's for every column
+    private static Map<String, Set<String> > lastSetOf(String[][] table) {
+        Map<String, Set<String> > out = new HashMap<String, Set<String> >();
+        for (String[] row : table) {
+            for (String f : row) out.put(f, new HashSet<String>(java.util.Arrays.asList(row)));
+        }
+        return out;
+    }
+
+    @Test void synonymPrecedenceUnchanged() {
+        assertEquals(lastSetOf(SYNONYMS_BEFORE), lastSetOf(BulkValidator.FIELD_NAME_SYNONYMS));
+    }
+
     @Test void canonicalNames() {
         assertEquals("Encounter.id", BulkValidator.canonicalFieldName("Encounter.catalogNumber"));
         assertEquals("Encounter.decimalLatitude",

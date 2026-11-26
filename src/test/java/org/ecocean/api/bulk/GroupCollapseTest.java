@@ -1736,4 +1736,31 @@ class GroupCollapseTest {
         String msg = onLong.error.getMessage();
         assertTrue(msg.contains("(differing: " + P0 + ", Encounter.project000"), msg);
     }
+
+    // Codex r1 #9: today's precedence, derived from base (87984faa7e) validateRow: synonym sets are
+    // put in table order, last write wins, and the date set precedes the year pair; then the
+    // required-date check (no date column survives) overwrites Encounter.year
+    @Test void ungroupedYearPairAndMillisKeepBasePrecedence() {
+        GroupedRows g = collapse(obj("Encounter.genus", "Genus", "Encounter.specificEpithet",
+            "species", "Encounter.year", 2020, "Sighting.year", 2020, "Sighting.millis", 1000L));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        BulkValidatorException sYear = mergedError(g, 0, "Sighting.year");
+        assertTrue(sYear.isType(BulkValidatorException.TYPE_INVALID_SYNONYM));
+        assertEquals("synonym columns: Encounter.year, Sighting.year", sYear.getMessage());
+        BulkValidatorException millis = mergedError(g, 0, "Sighting.millis");
+        assertEquals("synonym columns: Sighting.millis, Encounter.year, Sighting.year",
+            millis.getMessage());
+        BulkValidatorException eYear = mergedError(g, 0, "Encounter.year");
+        assertTrue(eYear.isType(BulkValidatorException.TYPE_REQUIRED_VALUE), eYear.getMessage());
+        assertEquals(3, failureCount(g), g.mergedRows().toString());
+    }
+
+    @Test void groupedYearPairReportedOncePerCell() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Sighting.year", 2020), bare("G", "b.jpg"));
+        assertEquals(List.of(cell(0, "Encounter.year"), cell(0, "Sighting.year")),
+            issueCells(g, BulkValidatorException.TYPE_INVALID_SYNONYM));
+        assertEquals(2, g.issues().size(), g.issues().toString());
+        for (GroupedRows.Issue is : g.issues())
+            assertEquals("synonym columns: Encounter.year, Sighting.year", is.error.getMessage());
+    }
 }

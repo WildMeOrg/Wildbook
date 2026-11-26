@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import org.ecocean.api.ApiException;
 import org.ecocean.shepherd.core.Shepherd;
@@ -459,14 +460,18 @@ public final class GroupCollapse {
                 BulkValidatorException.TYPE_INVALID_DUPLICATE, alias[1]));
             ok.remove(alias[1]);
         }
+        // one issue per cell: as on an ungrouped row, the last synonym set naming it wins
         List<List<String> > syn = BulkValidator.findSynonyms(ok);
         if (syn != null) {
+            Map<String, List<String> > setOf = new TreeMap<String, List<String> >();
             for (List<String> syns : syn) {
-                for (String dup : syns) {
-                    st.issue(r, dup, BulkImportUtil.synonymException(syns, dup));
-                    markFailed(dup, poisoned, failedPhotoFields);
-                    ok.remove(dup);
-                }
+                for (String dup : syns) setOf.put(dup, syns);
+            }
+            for (Map.Entry<String, List<String> > dup : setOf.entrySet()) {
+                st.issue(r, dup.getKey(), BulkImportUtil.synonymException(dup.getValue(),
+                    dup.getKey()));
+                markFailed(dup.getKey(), poisoned, failedPhotoFields);
+                ok.remove(dup.getKey());
             }
         }
         JSONObject cells = new JSONObject();
