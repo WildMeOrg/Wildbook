@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
@@ -1365,5 +1367,24 @@ class GroupCollapseTest {
         assertEquals(2, mergedValue(g, 0, "Sighting.numSubFemales"));
         assertEquals(List.of(cell(0, "Sighting.numAdultMales"), cell(1, "Sighting.numAdultMales")),
             g.contributorsOf(0, "Sighting.numAdultMales"));
+    }
+
+    @Test void compoundFailureOnOneRowSkipsComparison() {
+        projectsExist();
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.submitter0.emailAddress", "not-an-email"),
+            bare("G", "b.jpg", P0, "P", N0, "Proj"), bare("G", "c.jpg", "Encounter.measurement0", 2.5));
+        // the rows' sets differ, but the failed cell is the only report (the email validator's
+        // own exception carries no type)
+        assertOnly(g, null, List.of(cell(0, "Encounter.submitter0.emailAddress")));
+        assertFalse(g.mergedRows().get(0).containsKey(P0));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.measurement0"));
+    }
+
+    @Test void sharedPrefixLookedUpOnce() {
+        GroupedRows g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj"),
+            full("H", "b.jpg", P0, "P", N0, "Proj"));
+        assertEquals(List.of(cell(0, O0), cell(1, O0)), issueCells(g, BulkValidatorException.TYPE_REQUIRED_VALUE));
+        verify(sh, times(1)).getProjectByProjectIdPrefix("P");
+        verify(sh, times(1)).getProjectByProjectIdPrefixPrefix("P");
     }
 }

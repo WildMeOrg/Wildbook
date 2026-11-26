@@ -74,6 +74,8 @@ public final class GroupCollapse {
         final List<Map<String, Object> > sourceValues;
         final Set<String> groupedFilenames = new LinkedHashSet<String>();
         final int maxPhotos;
+        // project prefix -> whether an existing project answers it; looked up once per upload
+        final Map<String, Boolean> projectExists = new HashMap<String, Boolean>();
         boolean exactSlotMode = false;
 
         State(List<JSONObject> rows, Shepherd sh, boolean identificationSkipped, int maxPhotos) {
@@ -459,8 +461,7 @@ public final class GroupCollapse {
      */
     private static void checkIndividualDependents(State st, Map<String, Object> merged,
         Map<String, List<GroupedRows.Cell> > contrib, Set<String> poisoned) {
-        if (!poisoned.contains(GroupCompound.INDIVIDUAL) &&
-            !(merged.get(GroupCompound.INDIVIDUAL) instanceof BulkValidator)) {
+        if (GroupCompound.noIndividual(merged, poisoned)) {
             requireOnSuppliers(st, NICKNAME, GroupCompound.INDIVIDUAL, merged, contrib, poisoned);
             requireOnSuppliers(st, SOCIAL_UNIT, GroupCompound.INDIVIDUAL, merged, contrib, poisoned);
         }

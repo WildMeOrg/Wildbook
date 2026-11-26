@@ -49,6 +49,15 @@ final class GroupCompound {
         }
     }
 
+    /**
+     * True when the group gives no Encounter.individualID family value, so the importer has no
+     * individual for individual-dependent values. False when that family failed: its failure is
+     * already an Issue, and nothing is piled on the values that depend on it.
+     */
+    static boolean noIndividual(Map<String, Object> merged, Set<String> poisoned) {
+        return !poisoned.contains(INDIVIDUAL) && !(merged.get(INDIVIDUAL) instanceof BulkValidator);
+    }
+
     // the genotype allele columns handleSamples() reads by their literal names
     private static int alleleIndex(String field) {
         BulkImportUtil.Slot slot = BulkImportUtil.slotOf(field);
@@ -156,9 +165,7 @@ final class GroupCompound {
             merged.put(name, BulkValidator.rebound(e.bv, name));
         }
         Check c = new Check(set);
-        boolean noIndividual = !poisoned.contains(INDIVIDUAL) &&
-            !(merged.get(INDIVIDUAL) instanceof BulkValidator);
-        checkNames(c, noIndividual);
+        checkNames(c, noIndividual(merged, poisoned));
         checkSubmitters(c);
         checkProjects(st, c);
         checkMeasurements(c);
@@ -322,7 +329,8 @@ final class GroupCompound {
                         c.value(earlierOwner) + " in this group");
                 continue;
             }
-            if ((o == null) && (BulkImportUtil.findExistingProject(prefix, st.sh) == null))
+            if ((o == null) && !st.projectExists.computeIfAbsent(prefix,
+                k -> BulkImportUtil.findExistingProject(k, st.sh) != null))
                 c.fail(partner(p, "ownerUsername"), "project " + prefix +
                     " does not exist yet; an owner username is required to create it",
                     BulkValidatorException.TYPE_REQUIRED_VALUE);
