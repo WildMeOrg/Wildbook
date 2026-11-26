@@ -8,6 +8,7 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import org.ecocean.Util;
 
 /** Credential format: wbsvc_&lt;keyId&gt;.&lt;secret&gt;; the secret is 32 random bytes, base64url. */
 public final class ServiceKeyCredential {
@@ -46,7 +47,7 @@ public final class ServiceKeyCredential {
             if (dot <= 0 || dot == rest.length() - 1) return Optional.empty();
             String keyId = rest.substring(0, dot);
             String secret = rest.substring(dot + 1);
-            if (!UUID.fromString(keyId).toString().equals(keyId.toLowerCase())) return Optional.empty();
+            if (!Util.isCanonicalUUID(keyId)) return Optional.empty();
             if (Base64.getUrlDecoder().decode(secret).length != SECRET_BYTES) return Optional.empty();
             return Optional.of(new String[] { keyId, secret });
         } catch (RuntimeException e) {

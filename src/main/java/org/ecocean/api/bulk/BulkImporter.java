@@ -782,6 +782,8 @@ public class BulkImporter {
             //case "Sighting.numAdultMales":
             //case "Sighting.numSubFemales":
  */
+            case "Encounter.groupKey": // consumed by GroupCollapse, nothing to set here
+                break;
             default:
                 trace("[INFO] processRow() ignored a field [" + fieldName +
                     "] that was flagged valid");

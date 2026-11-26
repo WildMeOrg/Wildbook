@@ -792,4 +792,29 @@ class BulkGeneralTest {
         row.put("_BulkImporter", imp);
         return row;
     }
+
+    @Test void canonicalUuid() {
+        assertTrue(Util.isCanonicalUUID("3f2504e0-4f89-11d3-9a0c-0305e82c3301"));
+        assertTrue(Util.isCanonicalUUID("3F2504E0-4F89-11D3-9A0C-0305E82C3301"));
+        assertFalse(Util.isCanonicalUUID("1-1-1-1-1"));
+        assertFalse(Util.isCanonicalUUID(null));
+        assertFalse(Util.isCanonicalUUID("not-a-uuid"));
+    }
+
+    @Test void groupKeyValidation() throws Exception {
+        assertEquals("A1", BulkValidator.validateValue("Encounter.groupKey", "  A1 ", null));
+        assertNull(BulkValidator.validateValue("Encounter.groupKey", "   ", null));
+        assertNull(BulkValidator.validateValue("Encounter.groupKey", null, null));
+        assertThrows(BulkValidatorException.class,
+            () -> BulkValidator.validateValue("Encounter.groupKey", new JSONArray(), null));
+        assertThrows(BulkValidatorException.class,
+            () -> BulkValidator.validateValue("Encounter.groupKey", 7, null));
+    }
+
+    @Test void foldKeyIsAsciiOnly() {
+        assertEquals("a1", GroupCollapse.foldKey("A1"));
+        assertEquals("001", GroupCollapse.foldKey("001"));
+        assertEquals("\u00c9a", GroupCollapse.foldKey("\u00c9A"));
+        assertEquals("\uD801\uDD70", GroupCollapse.foldKey("\uD801\uDD70")); // U+10570 unchanged
+    }
 }

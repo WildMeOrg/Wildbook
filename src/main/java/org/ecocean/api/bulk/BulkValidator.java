@@ -27,7 +27,7 @@ public class BulkValidator {
         "Encounter.country", "Encounter.dateInMilliseconds", "Encounter.day",
         "Encounter.decimalLatitude", "Encounter.decimalLongitude", "Encounter.depth",
         "Encounter.distinguishingScar", "Encounter.elevation", "Encounter.genus",
-        "Encounter.groupRole", "Encounter.hour", "Encounter.id", "Encounter.identificationRemarks",
+        "Encounter.groupKey", "Encounter.groupRole", "Encounter.hour", "Encounter.id", "Encounter.identificationRemarks",
         "Encounter.individualID", "Encounter.latitude", "Encounter.lifeStage",
         "Encounter.livingStatus", "Encounter.locationID", "Encounter.longitude",
         "Encounter.minutes", "Encounter.month", "Encounter.sightingID", "Encounter.sightingRemarks",
@@ -83,7 +83,8 @@ public class BulkValidator {
     // this is for frontend, and it contains "minimally supported" fields: those which will NOT be
     // validated, but just accepted as-is and set on appropriate object
     public static final Set<String> MINIMAL_FIELD_NAMES_STRING = new HashSet<>(Arrays.asList(
-        "Encounter.alternateID", "Encounter.distinguishingScar", "Encounter.groupRole",
+        "Encounter.alternateID", "Encounter.distinguishingScar", "Encounter.groupKey",
+        "Encounter.groupRole",
         "Encounter.identificationRemarks", "Encounter.individualID", "Encounter.sightingID",
         "Encounter.sightingRemarks", "Encounter.otherCatalogNumbers", "Encounter.patterningCode",
         "Encounter.submitterName", "Encounter.submitterOrganization", "MarkedIndividual.name",
@@ -290,6 +291,13 @@ public class BulkValidator {
                     ApiException.ERROR_RETURN_CODE_INVALID,
                     BulkValidatorException.TYPE_UNKNOWN_FIELDNAME, fieldName);
         switch (fieldName) {
+        case "Encounter.groupKey":
+            if (value == null) return null;
+            if (!(value instanceof String))
+                throw new BulkValidatorException("groupKey must be text",
+                        ApiException.ERROR_RETURN_CODE_INVALID,
+                        BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+            return blankToNull(value);
         case "Encounter.id":
         case "Encounter.catalogNumber":
             if (value == null) return null;
