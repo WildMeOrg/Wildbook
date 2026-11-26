@@ -77,6 +77,21 @@ public class IAJsonProperties extends JsonProperties {
         return hasIA(taxy);
     }
 
+    /** No default fallback: a mobile pack must name the exact feature class it exports. */
+    public org.ecocean.export.MobilePackConfiguration getMobilePackConfiguration(
+        Taxonomy taxonomy, String featureClass) {
+        Object configured = get(taxonomyKey(taxonomy) + "._mobile_packs");
+        if (!(configured instanceof JSONObject))
+            throw new IllegalArgumentException("No mobile packs configured for this taxonomy");
+        JSONObject profile = ((JSONObject)configured).optJSONObject(featureClass);
+        if (profile == null) throw new IllegalArgumentException("No mobile pipeline for this feature class");
+        org.ecocean.export.MobilePackConfiguration result =
+            new org.ecocean.export.MobilePackConfiguration(profile);
+        if (!featureClass.equals(result.featureClass()))
+            throw new IllegalArgumentException("Mobile feature class does not match its configuration key");
+        return result;
+    }
+
     // Detection methods
     public static String detectionKey(Taxonomy taxy) {
         return taxonomyKey(taxy) + "._detect_conf";

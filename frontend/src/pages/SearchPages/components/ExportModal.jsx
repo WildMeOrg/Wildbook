@@ -1,3 +1,4 @@
+import MobilePackExport from "./MobilePackExport";
 import React from "react";
 import {
   Modal,
@@ -113,6 +114,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
       </Modal.Header>
 
       <Modal.Body style={{ minHeight: "500px" }}>
+        <MobilePackExport searchQueryId={searchQueryId} />
         {error && (
           <Alert
             variant="danger"

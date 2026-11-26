@@ -336,6 +336,11 @@ public class StartupWildbook implements ServletContextListener {
                 return true;
             }
         }
+        try {
+            org.ecocean.export.MobilePackJobs.start(context);
+        } catch (Exception ex) {
+            System.err.println("Mobile pack export queue could not start: " + ex);
+        }
         if (!IBEISIA.iaEnabled()) {
             System.out.println("+ INFO: IA not enabled; IA queue service not started");
             return;
