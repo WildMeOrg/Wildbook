@@ -76,7 +76,6 @@ public final class GroupedRows {
     private final List<Issue> warnings;
     private final List<List<String> > sortedKeys; // each source row's keys, sorted
     private final boolean exactSlotMode;
-    private final Set<String> groupedFilenames;
     private final Map<String, Set<Integer> > rowsByGroupedFile;
 
     // built only by GroupCollapse, which hands over collections it no longer touches
@@ -84,7 +83,7 @@ public final class GroupedRows {
         List<List<Integer> > members, Set<Integer> groupedMergedIndexes, String[] keyAsTyped,
         List<Map<String, List<Cell> > > contributors, List<Map<String, Object> > sourceValues,
         List<Map<String, Object> > mergedRaw, List<Issue> issues, List<Issue> warnings,
-        List<JSONObject> sourceRows, boolean exactSlotMode, Set<String> groupedFilenames,
+        List<JSONObject> sourceRows, boolean exactSlotMode,
         Map<String, Set<Integer> > rowsByGroupedFile) {
         this.sourceRowCount = sourceRowCount;
         this.mergedRows = Collections.unmodifiableList(mergedRows);
@@ -102,7 +101,6 @@ public final class GroupedRows {
             keys.add(List.copyOf(new TreeSet<String>(row.keySet())));
         this.sortedKeys = keys;
         this.exactSlotMode = exactSlotMode;
-        this.groupedFilenames = Collections.unmodifiableSet(groupedFilenames);
         this.rowsByGroupedFile = rowsByGroupedFile;
     }
 
@@ -275,7 +273,7 @@ public final class GroupedRows {
 
     /** The non-absent bare Encounter.mediaAsset# values on grouped rows. */
     public Set<String> groupedFilenames() {
-        return groupedFilenames;
+        return Collections.unmodifiableSet(rowsByGroupedFile.keySet());
     }
 
     /** The grouped source rows naming filename in a bare photo column, ascending; empty when none. */

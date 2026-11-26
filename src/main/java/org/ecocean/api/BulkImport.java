@@ -333,7 +333,7 @@ public class BulkImport extends ApiBase {
                 defaultSubmitterIDBV = new BulkValidator(submitterIDFieldName,
                     currentUser.getUsername(), myShepherd);
             }
-            List<BulkValidator> validFields = new ArrayList<BulkValidator>();
+            int numberFieldsValid = 0; // merged fields of ungrouped rows
             JSONArray dataErrors = new JSONArray();
             JSONArray dataWarnings = new JSONArray();
             // bulk-import boxes (spec 4.2 import layer): the checks that need the uploaded files or
@@ -366,7 +366,7 @@ public class BulkImport extends ApiBase {
                             }
                         }
                         // a grouped row's valid cells are counted on its source rows below
-                        if (!grouped.isGrouped(rowNum)) validFields.add(bv);
+                        if (!grouped.isGrouped(rowNum)) numberFieldsValid++;
                     } else if (fieldObj instanceof BulkValidatorException) {
                         System.out.println("[INFO] rowResult[" + rowNum + ", " + rowFieldName +
                             "]: " + fieldObj);
@@ -433,7 +433,7 @@ public class BulkImport extends ApiBase {
             rtn.put("numberFieldsError", numFieldErrors);
             // in the unit of numberFieldsError: merged fields of ungrouped rows (one per source
             // cell, as before grouping existed) plus the valid source cells of grouped rows
-            rtn.put("numberFieldsValid", validFields.size() + fieldErrors.numberGroupedCellsValid());
+            rtn.put("numberFieldsValid", numberFieldsValid + fieldErrors.numberGroupedCellsValid());
             if ((numFieldErrors > 0) || (fatal && (dataErrors.length() > 0)))
                 rtn.put("errors", dataErrors);
             rtn.put("numberFilenamesReferenced", filenamesNeeded.size());
