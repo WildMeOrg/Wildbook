@@ -87,4 +87,11 @@ class EncounterIdsInUseDbTest {
         ids.add(stored); // 1001st, so it lands in the second chunk
         assertEquals(Set.of(stored), lookup(ids));
     }
+
+    @Test void duplicateInputsReturnedOnceAndEmptyInputEmpty() throws Exception {
+        String id = UUID.randomUUID().toString();
+        store(id);
+        assertEquals(Set.of(id), lookup(List.of(id, id)));
+        assertEquals(Set.of(), lookup(List.of()));
+    }
 }

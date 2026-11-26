@@ -1456,8 +1456,6 @@ class GroupCollapseTest {
     }
 
     @Test void poisonedIdGetsNoSecondIssue() {
-        bulkUtil.when(() -> BulkImportUtil.encounterIdsInUse(anyCollection(), any())).thenReturn(
-            new HashSet<String>(List.of(ID_A)));
         // a non-UUID cell: only its own failure; and a group whose ID cells disagree: only the
         // conflict, never also "unavailable"
         GroupedRows g = collapse(full("G", "a.jpg", "Encounter.id", "1-1-1-1-1"),
@@ -1467,5 +1465,14 @@ class GroupCollapseTest {
             issueCells(g, BulkValidatorException.TYPE_INVALID_VALUE));
         assertEquals(List.of(cell(1, "Encounter.id"), cell(2, "Encounter.id")),
             issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
+        bulkUtil.verify(() -> BulkImportUtil.encounterIdsInUse(anyCollection(), any()), never());
+    }
+
+    @Test void conflictedIdExcludedFromLookup() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.id", ID_A),
+            full("H", "b.jpg", "Encounter.id", ID_A), full("I", "c.jpg", "Encounter.id", ID_B));
+        assertEquals(2, g.issues().size(), g.issues().toString());
+        bulkUtil.verify(() -> BulkImportUtil.encounterIdsInUse(
+            org.mockito.ArgumentMatchers.eq(new LinkedHashSet<String>(List.of(ID_B))), any()));
     }
 }

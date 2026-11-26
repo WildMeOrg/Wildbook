@@ -176,7 +176,7 @@ public final class GroupCollapse {
         }
 
         // 6. encounter IDs: unique across groups and ungrouped rows, and unused in the database
-        checkGroupIds(st, members, grouped, mergedRows, mergedRaw);
+        checkGroupIds(st, members, grouped);
 
         // 8. issues and warnings in (row, field) order
         Comparator<GroupedRows.Issue> byCell = Comparator.comparingInt(
@@ -224,8 +224,7 @@ public final class GroupCollapse {
      * ungrouped row's ID (compared lowercased, the row's value left as typed), none already in
      * the database. A cell that already holds an Issue is never given a second one.
      */
-    private static void checkGroupIds(State st, List<List<Integer> > members, Set<Integer> grouped,
-        List<Map<String, Object> > mergedRows, List<Map<String, Object> > mergedRaw) {
+    private static void checkGroupIds(State st, List<List<Integer> > members, Set<Integer> grouped) {
         if (st.groupIds.isEmpty()) return;
         Map<String, List<GroupedRows.Cell> > ungroupedUse =
             new HashMap<String, List<GroupedRows.Cell> >();
@@ -510,6 +509,7 @@ public final class GroupCollapse {
                     BulkValidatorException.TYPE_GROUP_CONFLICT, e.cell.field));
             bad = true;
         }
+        // a group with a poisoned ID cell skips the ID checks: that group already fails
         if (isId && !bad && !valid.isEmpty())
             st.groupIds.add(new GroupId(distinct.iterator().next(), valid, merged, raw));
         for (Entry e : entries) {
