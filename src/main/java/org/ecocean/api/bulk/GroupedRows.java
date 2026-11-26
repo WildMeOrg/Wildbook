@@ -212,26 +212,60 @@ public final class GroupedRows {
      * text (a merged-row diagnostic) with each packed field name rewritten to its source cell's
      * name: the field's single contributor, else, for an Encounter.mediaAsset{k}... name, its
      * packed photo's source column plus the same suffix. Other names are unchanged, as is the
-     * text of an ungrouped row.
+     * text of an ungrouped row, and so is any part of the text that is one of the group's photo
+     * filenames (a file may be named like a field: "Encounter.mediaAsset0.jpg").
      */
     public String sourceText(int mergedIndex, String text) {
         if ((text == null) || !isGrouped(mergedIndex)) return text;
         Matcher m = SLOT_FIELD.matcher(text);
         StringBuffer sb = new StringBuffer();
+        List<int[]> literal = null;
         while (m.find()) {
             String token = m.group();
             String rtn = token;
-            List<Cell> own = contributorsOf(mergedIndex, token);
-            if (own.size() == 1) {
-                rtn = own.get(0).field;
-            } else if (m.group(1).equals("mediaAsset")) {
-                List<Cell> photo = contributorsOf(mergedIndex, "Encounter.mediaAsset" + m.group(2));
-                if (photo.size() == 1) rtn = photo.get(0).field + m.group(3);
+            if (literal == null) literal = filenameSpans(mergedIndex, text);
+            if (!overlaps(literal, m.start(), m.end())) {
+                List<Cell> own = contributorsOf(mergedIndex, token);
+                if (own.size() == 1) {
+                    rtn = own.get(0).field;
+                } else if (m.group(1).equals("mediaAsset")) {
+                    List<Cell> photo = contributorsOf(mergedIndex,
+                        "Encounter.mediaAsset" + m.group(2));
+                    if (photo.size() == 1) rtn = photo.get(0).field + m.group(3);
+                }
             }
             m.appendReplacement(sb, Matcher.quoteReplacement(rtn));
         }
         m.appendTail(sb);
         return sb.toString();
+    }
+
+    // where the merged row's photo filenames (as given, and JSON-escaped) occur in text
+    private List<int[]> filenameSpans(int mergedIndex, String text) {
+        List<int[]> spans = new ArrayList<int[]>();
+        for (int row : members.get(mergedIndex)) {
+            for (Map.Entry<String, Object> e : sourceValues.get(row).entrySet()) {
+                BulkImportUtil.Slot slot = BulkImportUtil.slotOf(e.getKey());
+                if ((slot == null) || !GroupPhotos.PHOTO.equals(slot.prefix) ||
+                    (e.getValue() == null))
+                    continue;
+                String name = e.getValue().toString();
+                String quoted = JSONObject.quote(name);
+                for (String form : new String[] { name, quoted.substring(1, quoted.length() - 1) }) {
+                    if (form.isEmpty()) continue;
+                    for (int i = text.indexOf(form); i >= 0; i = text.indexOf(form, i + 1))
+                        spans.add(new int[] { i, i + form.length() });
+                }
+            }
+        }
+        return spans;
+    }
+
+    private static boolean overlaps(List<int[]> spans, int start, int end) {
+        for (int[] s : spans) {
+            if ((start < s[1]) && (end > s[0])) return true;
+        }
+        return false;
     }
 
     /** A .bbox column on any original row, blanks included. */

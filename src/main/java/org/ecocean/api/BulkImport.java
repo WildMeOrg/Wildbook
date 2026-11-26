@@ -853,6 +853,8 @@ public class BulkImport extends ApiBase {
                 dupErr.put("details", aliases[0] + " and " + aliases[1] +
                     " are the same numbered column");
                 dupErr.put("fieldName", aliases[1]);
+                String key = GroupCollapse.echoKey(row.opt(GroupCollapse.GROUP_KEY));
+                if (key != null) dupErr.put("groupKey", key);
                 throw new ApiException("duplicate columns: " + aliases[0] + ", " + aliases[1],
                         dupErr);
             }

@@ -618,6 +618,18 @@ class BulkGroupKeyApiTest {
         assertEquals(0, e.getInt("rowNumber"));
         assertTrue(Set.of("Encounter.mediaAsset01", "Encounter.mediaAsset1").contains(e.getString("fieldName")));
         assertNothingCreated(res);
+        assertFalse(e.has("groupKey"), e.toString());
+        // a grouped row's rejection carries its key, as typed (trimmed) and clipped when too long
+        setUp();
+        res = post(tolerant(objects(row(KEY, "  Ab ", "Encounter.mediaAsset01", "a.jpg",
+            "Encounter.mediaAsset1", "b.jpg"))));
+        assertEquals(400, res.getInt("statusCode"), res.toString());
+        assertEquals("Ab", res.getJSONArray("errors").getJSONObject(0).getString("groupKey"));
+        setUp();
+        res = post(tolerant(objects(row(KEY, "k".repeat(300), "Encounter.mediaAsset01", "a.jpg",
+            "Encounter.mediaAsset1", "b.jpg"))));
+        assertEquals("k".repeat(60) + "...",
+            res.getJSONArray("errors").getJSONObject(0).getString("groupKey"));
     }
 
     @Test void blankUnknownColumnOnGroupDefaultIsWarning() throws Exception {

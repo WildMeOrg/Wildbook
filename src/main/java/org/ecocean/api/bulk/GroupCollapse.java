@@ -69,6 +69,19 @@ public final class GroupCollapse {
         return v.substring(0, end) + "...";
     }
 
+    /**
+     * The groupKey as echoed on the errors of its row: trimmed, clipped when longer than
+     * MAX_KEY_LENGTH; a non-text value's text, clipped; null when the row is ungrouped (null,
+     * JSON null, or blank text).
+     */
+    public static String echoKey(Object raw) {
+        if ((raw == null) || (raw == JSONObject.NULL)) return null;
+        if (!(raw instanceof String)) return clip(raw.toString());
+        String key = ((String)raw).trim();
+        if (key.isEmpty()) return null;
+        return (key.length() > MAX_KEY_LENGTH) ? clip(key) : key;
+    }
+
     // ASCII-only case fold: A-Z -> a-z on UTF-16 units; every other character is unchanged
     public static String foldKey(String trimmedKey) {
         StringBuilder sb = new StringBuilder(trimmedKey.length());
@@ -167,11 +180,10 @@ public final class GroupCollapse {
             if (BulkImportUtil.hasBboxColumn(row.keySet())) st.exactSlotMode = true;
             Object raw = row.opt(GROUP_KEY);
             String membership = null;
-            if ((raw instanceof String) && !((String)raw).trim().isEmpty()) {
-                st.keyAsTyped[r] = ((String)raw).trim();
-                if (st.keyAsTyped[r].length() > MAX_KEY_LENGTH) {
-                    // the echo is copied onto every error of the row, so it is clipped
-                    st.keyAsTyped[r] = clip(st.keyAsTyped[r]);
+            // the echo is copied onto every error of the row, so a long or non-text key is clipped
+            st.keyAsTyped[r] = echoKey(raw);
+            if ((raw instanceof String) && (st.keyAsTyped[r] != null)) {
+                if (((String)raw).trim().length() > MAX_KEY_LENGTH) {
                     membership = "\u0000" + r; // a group of its own, so the issue is fatal
                     st.issue(r, GROUP_KEY, new BulkValidatorException("groupKey must be at most " +
                         MAX_KEY_LENGTH + " characters", ApiException.ERROR_RETURN_CODE_INVALID,
@@ -179,8 +191,7 @@ public final class GroupCollapse {
                 } else {
                     membership = foldKey(st.keyAsTyped[r]);
                 }
-            } else if ((raw != null) && (raw != JSONObject.NULL) && !(raw instanceof String)) {
-                st.keyAsTyped[r] = clip(raw.toString()); // echoed on every error of the row
+            } else if (st.keyAsTyped[r] != null) { // not text
                 membership = "\u0000" + r; // a group of its own, so the issue is fatal
                 st.issue(r, GROUP_KEY, new BulkValidatorException("groupKey must be text",
                     ApiException.ERROR_RETURN_CODE_INVALID,
@@ -552,12 +563,17 @@ public final class GroupCollapse {
         }
         if (distinct.size() > 1) {
             Set<Integer> rowsSeen = new HashSet<Integer>();
-            for (Entry e : valid) rowsSeen.add(e.cell.row);
+            Set<String> columns = new TreeSet<String>(); // the source columns, never the family
+            for (Entry e : valid) {
+                rowsSeen.add(e.cell.row);
+                columns.add(e.cell.field);
+            }
             // bounded whatever the group's size: every contributing cell carries this message
             List<String> quoted = new ArrayList<String>();
             for (String v : distinct) quoted.add('"' + clip(v) + '"');
             StringBuilder msg = new StringBuilder(((rowsSeen.size() > 1) ?
-                "rows of this group disagree on " : "these columns disagree on ") + family + ": " +
+                "rows of this group disagree on " : "these columns disagree on ") +
+                String.join(", ", columns) + ": " +
                 firstFew(quoted, LIST_LIMIT) + ".");
             if (REMARKS_FAMILIES.contains(family)) msg.append(' ').append(REMARKS_HINT);
             for (Entry e : valid)

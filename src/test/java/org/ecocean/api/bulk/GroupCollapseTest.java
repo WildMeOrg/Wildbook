@@ -323,6 +323,10 @@ class GroupCollapseTest {
             bare("G", "b.jpg", "Sighting.decimalLatitude", 2.0));
         assertEquals(List.of(cell(0, "Encounter.latitude"), cell(1, "Sighting.decimalLatitude")),
             issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
+        // the message names the source columns, not the family's canonical name
+        for (GroupedRows.Issue is : g.issues())
+            assertTrue(is.error.getMessage().startsWith("rows of this group disagree on " +
+                "Encounter.latitude, Sighting.decimalLatitude: "), is.error.getMessage());
     }
 
     @Test void sameTargetPairCompared() {
@@ -331,14 +335,16 @@ class GroupCollapseTest {
         assertEquals(List.of(cell(0, "Encounter.behavior"), cell(1, "Sighting.groupBehavior")),
             issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
         assertTrue(g.issues().get(0).error.getMessage().startsWith(
-            "rows of this group disagree on Encounter.behavior:"), g.issues().get(0).error.getMessage());
+            "rows of this group disagree on Encounter.behavior, Sighting.groupBehavior:"),
+            g.issues().get(0).error.getMessage());
         // the pair on one grouped row: the message does not claim the rows disagree
         g = collapse(full("G", "a.jpg", "Encounter.behavior", "a", "Sighting.groupBehavior", "b"),
             bare("G", "b.jpg"));
         assertEquals(List.of(cell(0, "Encounter.behavior"), cell(0, "Sighting.groupBehavior")),
             issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
         for (GroupedRows.Issue is : g.issues())
-            assertEquals("these columns disagree on Encounter.behavior: \"a\", \"b\".",
+            assertEquals("these columns disagree on Encounter.behavior, Sighting.groupBehavior: " +
+                "\"a\", \"b\".",
                 is.error.getMessage());
         g = collapse(full("G", "a.jpg", "Encounter.behavior", "a"),
             bare("G", "b.jpg", "Sighting.groupBehavior", "a"));
@@ -988,6 +994,21 @@ class GroupCollapseTest {
             g.sourceText(0, ex.getMessage()));
         // an ungrouped row is unchanged
         assertEquals("in Encounter.mediaAsset1.iaClass", g.sourceText(1, "in Encounter.mediaAsset1.iaClass"));
+    }
+
+    @Test void sourceTextKeepsFilenamesThatLookLikeFields() {
+        // a file named like a field, in source slot 7, packed to slot 0
+        GroupedRows g = collapse(obj(KEY, "G", "Encounter.genus", "Genus",
+            "Encounter.specificEpithet", "species", "Encounter.year", 2020,
+            "Encounter.mediaAsset7", "Encounter.mediaAsset0.jpg"),
+            bare("G", "Encounter.mediaAsset1"));
+        assertEquals(List.of(cell(0, "Encounter.mediaAsset7")), g.contributorsOf(0, "Encounter.mediaAsset0"));
+        assertEquals("photo Encounter.mediaAsset0.jpg is missing",
+            g.sourceText(0, "photo Encounter.mediaAsset0.jpg is missing"));
+        // and the JSON-escaped serialized form, while real field names are still rewritten
+        assertEquals("{\"details\":\"Encounter.mediaAsset1 in Encounter.mediaAsset7\"}",
+            g.sourceText(0, "{\"details\":\"Encounter.mediaAsset1 in Encounter.mediaAsset0\"}"));
+        assertEquals("in Encounter.mediaAsset7.bbox", g.sourceText(0, "in Encounter.mediaAsset0.bbox"));
     }
 
     @Test void positionalSparseOrdinal() {
