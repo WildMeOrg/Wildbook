@@ -20,6 +20,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.Taxonomy;
 import org.ecocean.OpenSearch;
+import org.ecocean.Project;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 import org.json.JSONArray;
@@ -483,6 +484,17 @@ public class BulkImportUtil {
             rtn.set(index, fn);
         }
         return rtn;
+    }
+
+    /**
+     * The existing project a bulk-import project prefix names, looked up as BulkImporter does: the
+     * exact prefix first, then a project whose prefix starts with it (case-insensitive). Null when
+     * neither finds one, in which case the importer would have to create the project.
+     */
+    static Project findExistingProject(String prefix, Shepherd sh) {
+        Project proj = sh.getProjectByProjectIdPrefix(prefix);
+        if (proj == null) proj = sh.getProjectByProjectIdPrefixPrefix(prefix);
+        return proj;
     }
 
     // possibly could be moved to OpenSearch or something, but lets test in bulk context first

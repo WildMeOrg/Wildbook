@@ -1168,16 +1168,17 @@ public class BulkImporter {
         String projectOwnerUsername) {
         if (Util.stringIsEmptyOrNull(projectPrefix)) return null;
         Project proj = projectCache.get(projectPrefix);
-        if (proj == null) proj = myShepherd.getProjectByProjectIdPrefix(projectPrefix);
 /*
         if exact match fails, we get a little more lax and let user 'foo-' match things
         like 'FOO-###'. note: this could be way too lax if the users passes no dash in there,
         as 'foo' would match 'foobar-###' so we might want to make further restrictions on when
         to do this fuzzy matching, depending on user behavior and how forgiving we are.
+        (grouped-row validation looks projects up the same way, through findExistingProject)
  */
         if (proj == null) {
-            proj = myShepherd.getProjectByProjectIdPrefixPrefix(projectPrefix);
-            if (proj != null)
+            proj = BulkImportUtil.findExistingProject(projectPrefix, myShepherd);
+            // the exact lookup matches the trimmed prefix; anything else was the fuzzy match
+            if ((proj != null) && !projectPrefix.trim().equals(proj.getProjectIdPrefix()))
                 trace(
                     "[INFO] BulkImporter.getOrCreateProject() fuzzy-matched projectPrefix '" +
                     projectPrefix + "' to " + proj);

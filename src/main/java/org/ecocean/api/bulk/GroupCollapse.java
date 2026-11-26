@@ -19,6 +19,9 @@ import org.json.JSONObject;
 // groups bulk-import rows that share an Encounter.groupKey into one encounter
 public final class GroupCollapse {
     public static final String GROUP_KEY = "Encounter.groupKey";
+    // accepted by validation but never imported (no live reference in BulkImporter)
+    public static final Set<String> GROUP_IGNORED_FIELDS = Set.of("Encounter.project",
+        "MarkedIndividual.name", "Survey.type");
 
     static final String REMARKS_HINT =
         "Put encounter remarks on one row of the group, or make them identical.";
@@ -30,11 +33,9 @@ public final class GroupCollapse {
         "Encounter.hour", "Encounter.minutes");
     static final String MILLIS = "Encounter.dateInMilliseconds";
     static final String YEAR = "Encounter.year";
-    // sample/tissue fields: compound (C4) data, not scalar families
-    static final Set<String> SAMPLE_FIELDS = Set.of("TissueSample.sampleID",
-        "TissueSample.tissueType", "MicrosatelliteMarkersAnalysis.analysisID",
-        "MicrosatelliteMarkersAnalysis.alleleNames", "SexAnalysis.processingLabTaskID",
-        "SexAnalysis.sex", "MitochondrialDNAAnalysis.haplotype");
+    static final String NICKNAME = "MarkedIndividual.nickName";
+    static final String SOCIAL_UNIT = "SocialUnit.socialUnitName";
+    static final String ROLE = "Membership.role";
 
     private GroupCollapse() {}
 
@@ -187,7 +188,7 @@ public final class GroupCollapse {
         Map<String, List<GroupedRows.Cell> > contrib, Map<String, Object> raw) {
         Set<String> poisoned = new HashSet<String>(); // merged names whose failure is an Issue
         Map<String, List<Entry> > families = new LinkedHashMap<String, List<Entry> >();
-        List<Entry> passThrough = new ArrayList<Entry>();
+        Map<Integer, List<Entry> > compound = new HashMap<Integer, List<Entry> >();
         List<GroupPhotos.RowPhotos> photos = new ArrayList<GroupPhotos.RowPhotos>();
 
         for (int r : rows) {
@@ -196,6 +197,7 @@ public final class GroupCollapse {
             Set<String> present = new TreeSet<String>();
             Set<String> failedPhotoFields = new TreeSet<String>();
             List<Entry> photoEntries = new ArrayList<Entry>();
+            compound.put(r, new ArrayList<Entry>());
             for (Entry e : validateGroupedRow(st, r, poisoned, present, failedPhotoFields)) {
                 values.put(e.cell.field, e.bv.getValue());
                 if (GroupPhotos.PHOTO.equals(e.bv.getIndexPrefix()))
@@ -206,7 +208,7 @@ public final class GroupCollapse {
                     families.computeIfAbsent(familyKey(e.cell.field),
                         k -> new ArrayList<Entry>()).add(e);
                 } else {
-                    passThrough.add(e);
+                    compound.get(r).add(e);
                 }
             }
             st.sourceValues.set(r, Collections.unmodifiableMap(values));
@@ -239,19 +241,22 @@ public final class GroupCollapse {
         for (Map.Entry<String, List<Entry> > fam : families.entrySet())
             mergeFamily(st, fam.getKey(), fam.getValue(), merged, contrib, raw, poisoned);
 
-        // compound cells: first contributor, under its own name (for now)
-        for (Entry e : passThrough) {
-            addContributor(contrib, raw, e.cell.field, e);
-            if (!merged.containsKey(e.cell.field)) merged.put(e.cell.field, e.bv);
-        }
+        // values the importer skips silently without an individual or a social unit
+        checkIndividualDependents(st, merged, contrib, poisoned);
+
+        // C4: compound encounter data, one identical set per supplying row
+        GroupCompound.merge(st, rows, compound, merged, contrib, raw, poisoned);
 
         // 7. dependent checks; a poisoned name holds a placeholder so nothing is piled on it
         BulkValidatorException placeholder = new BulkValidatorException(
             "already reported on a source cell", ApiException.ERROR_RETURN_CODE_INVALID);
         for (String p : poisoned) merged.put(p, placeholder);
-        BulkImportUtil.validateDependent(merged, new HashSet<String>(merged.keySet()), st.sh,
+        Set<String> checked = new HashSet<String>(merged.keySet());
+        BulkImportUtil.validateDependent(merged, new HashSet<String>(checked), st.sh,
             st.identificationSkipped);
         merged.values().removeIf(v -> v == placeholder);
+        // project pairing on a grouped row is C4's (by index, so project00 pairs with project0)
+        merged.keySet().removeIf(k -> !checked.contains(k) && GroupCompound.isCompound(k));
         // the required-date error replaces whatever the year holds, placeholder included: a
         // poisoned year or millis family was supplied, and its failure is already an Issue
         Object year = merged.get(YEAR);
@@ -313,6 +318,13 @@ public final class GroupCollapse {
         JSONObject cells = new JSONObject();
         for (String k : ok) {
             if (isAbsent(row.opt(k))) continue;
+            if (GROUP_IGNORED_FIELDS.contains(k)) {
+                st.issue(r, k, new BulkValidatorException(
+                    "not imported; remove this column from grouped rows",
+                    ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_INVALID_VALUE, k));
+                continue;
+            }
             // the importer applies labeled keywords only in exact-slot mode (BulkImporter.processRow)
             if (!st.exactSlotMode && (BulkImportUtil.getLabeledKeywordOffset(k) >= 0)) {
                 st.issue(r, k, new BulkValidatorException("labeled keywords need a .bbox column",
@@ -428,16 +440,44 @@ public final class GroupCollapse {
                    ((v instanceof String) && ((String)v).trim().isEmpty());
     }
 
-    // scalar = not a photo, per-photo, labeled keyword, numbered, measurement or sample field
+    // scalar = not a photo, per-photo, labeled keyword or compound (C4) field
     static boolean isScalar(String field) {
         try {
             if (BulkValidator.indexIntValue(field) >= 0) return false;
         } catch (BulkValidatorException ex) {
             return false;
         }
-        if (BulkValidator.isMeasurementFieldName(field)) return false;
         if (BulkImportUtil.getLabeledKeywordOffset(field) >= 0) return false;
-        return !SAMPLE_FIELDS.contains(field);
+        return !GroupCompound.isCompound(field);
+    }
+
+    /**
+     * Scalar-family completeness on the merged values: without an individual the importer drops
+     * a nickname and a social unit, and without a social unit a membership role. REQUIRED on each
+     * cell that supplied the dropped value. Nothing is added when the family it depends on
+     * already failed (its failure is an Issue).
+     */
+    private static void checkIndividualDependents(State st, Map<String, Object> merged,
+        Map<String, List<GroupedRows.Cell> > contrib, Set<String> poisoned) {
+        if (!poisoned.contains(GroupCompound.INDIVIDUAL) &&
+            !(merged.get(GroupCompound.INDIVIDUAL) instanceof BulkValidator)) {
+            requireOnSuppliers(st, NICKNAME, GroupCompound.INDIVIDUAL, merged, contrib, poisoned);
+            requireOnSuppliers(st, SOCIAL_UNIT, GroupCompound.INDIVIDUAL, merged, contrib, poisoned);
+        }
+        if (!poisoned.contains(SOCIAL_UNIT) && !(merged.get(SOCIAL_UNIT) instanceof BulkValidator))
+            requireOnSuppliers(st, ROLE, SOCIAL_UNIT, merged, contrib, poisoned);
+    }
+
+    private static void requireOnSuppliers(State st, String name, String needs,
+        Map<String, Object> merged, Map<String, List<GroupedRows.Cell> > contrib,
+        Set<String> poisoned) {
+        if (!(merged.get(name) instanceof BulkValidator)) return;
+        for (GroupedRows.Cell c : contrib.get(name))
+            st.issue(c.row, c.field, new BulkValidatorException(c.field + " needs " + needs +
+                " in the group", ApiException.ERROR_RETURN_CODE_REQUIRED,
+                BulkValidatorException.TYPE_REQUIRED_VALUE, c.field));
+        merged.remove(name);
+        poisoned.add(name);
     }
 
     // the merged name a cell's value is emitted under: its alias row's canonical name for scalars

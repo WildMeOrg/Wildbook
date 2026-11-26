@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.ecocean.IAJsonProperties;
 import org.ecocean.LocationID;
+import org.ecocean.Project;
 import org.ecocean.TestIAJsonPropertiesUtil;
 import org.ecocean.User;
 import org.ecocean.api.bulk.BulkImportUtil;
@@ -45,6 +46,8 @@ import org.mockito.MockedStatic;
  * become one merged row; blanks abstain; each source-cell failure is an Issue; dependent failures
  * stay in the merged map and are mapped back through cellsFor. Task 4: photos of a group are
  * packed into consecutive slots, each with its own metadata (C2), plus the C8 and repeat rules.
+ * Task 5: compound encounter data (C4) must be one identical set per supplying row, complete
+ * and unambiguous; ignored fields are rejected on grouped rows.
  */
 class GroupCollapseTest {
     static final String KEY = "Encounter.groupKey";
@@ -903,5 +906,464 @@ class GroupCollapseTest {
         assertEquals(List.of(cell(1, "Encounter.mediaAsset0"), cell(2, "Encounter.mediaAsset0")),
             issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
         assertEquals(2, g.issues().size());
+    }
+
+    // ---- Task 5: compound encounter data (C4), completeness, ignored fields
+
+    static final String P0 = "Encounter.project0.projectIdPrefix";
+    static final String N0 = "Encounter.project0.researchProjectName";
+    static final String O0 = "Encounter.project0.ownerUsername";
+    static final String MS = "MicrosatelliteMarkersAnalysis.";
+    static final String NAMES = MS + "alleleNames";
+    static final String A0 = MS + "alleles0";
+    static final String A1 = MS + "alleles1";
+
+    // every project prefix resolves to an existing project
+    void projectsExist() {
+        when(sh.getProjectByProjectIdPrefix(anyString())).thenReturn(mock(Project.class));
+    }
+
+    static JSONObject withCells(JSONObject row, JSONObject cells) {
+        for (String k : cells.keySet()) row.put(k, cells.get(k));
+        return row;
+    }
+
+    // a grouped row with a sample ID and the three genotype cells
+    static JSONObject geno(String photo, String names, String a0, String a1) {
+        return full("G", photo, "TissueSample.sampleID", "S1", NAMES, names, A0, a0, A1, a1);
+    }
+
+    static List<GroupedRows.Cell> genoCells(int row) {
+        return List.of(cell(row, NAMES), cell(row, A0), cell(row, A1));
+    }
+
+    static void assertOnly(GroupedRows g, String type, List<GroupedRows.Cell> cells) {
+        assertEquals(cells, issueCells(g, null), g.issues().toString());
+        assertEquals(cells, issueCells(g, type), g.issues().toString());
+        assertEquals(cells.size(), failureCount(g), g.mergedRows().toString());
+    }
+
+    @Test void identicalCompoundSetRepeatedIsFine() {
+        projectsExist();
+        Object[] set = { P0, "P", N0, "Proj", "Encounter.measurement0", 2.5 };
+        GroupedRows g = collapse(full("G", "a.jpg", set), bare("G", "b.jpg", set),
+            bare("G", "c.jpg", "Encounter.measurement0", "2.5", P0, "P", N0, "Proj"),
+            bare("G", "d.jpg"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+        assertEquals("P", mergedValue(g, 0, P0));
+        assertEquals("Proj", mergedValue(g, 0, N0));
+        assertEquals(2.5, mergedValue(g, 0, "Encounter.measurement0"));
+        assertEquals(List.of(cell(0, P0), cell(1, P0), cell(2, P0)), g.contributorsOf(0, P0));
+    }
+
+    @Test void differentCompoundSetsConflict() {
+        projectsExist();
+        GroupedRows g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj"),
+            bare("G", "b.jpg", "Encounter.measurement0", 2.5));
+        assertOnly(g, BulkValidatorException.TYPE_GROUP_CONFLICT,
+            List.of(cell(0, P0), cell(0, N0), cell(1, "Encounter.measurement0")));
+        assertFalse(g.mergedRows().get(0).containsKey(P0));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.measurement0"));
+        assertTrue(g.hasGroupErrors());
+    }
+
+    @Test void measurementSpellingsAreDifferentColumns() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.measurement0", 2.5),
+            bare("G", "b.jpg", "Encounter.measurement.length", 2.5));
+        assertOnly(g, BulkValidatorException.TYPE_GROUP_CONFLICT,
+            List.of(cell(0, "Encounter.measurement0"), cell(1, "Encounter.measurement.length")));
+    }
+
+    @Test void differingProjectsConflict() {
+        projectsExist();
+        GroupedRows g = collapse(full("G", "a.jpg", P0, "P1", N0, "Proj"),
+            bare("G", "b.jpg", P0, "P2", N0, "Proj"));
+        assertOnly(g, BulkValidatorException.TYPE_GROUP_CONFLICT,
+            List.of(cell(0, P0), cell(0, N0), cell(1, P0), cell(1, N0)));
+        assertTrue(g.issues().get(0).error.getMessage().contains(P0), g.issues().toString());
+        assertFalse(g.issues().get(0).error.getMessage().contains(N0), g.issues().toString());
+    }
+
+    @Test void partialRepeatConflicts() {
+        projectsExist();
+        GroupedRows g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj"),
+            bare("G", "b.jpg", P0, "P"));
+        // the conflict is the only report: no completeness check on a set that is not agreed
+        assertOnly(g, BulkValidatorException.TYPE_GROUP_CONFLICT,
+            List.of(cell(0, P0), cell(0, N0), cell(1, P0)));
+    }
+
+    @Test void nameLabelWithoutValueRequired() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.individualID", "ind1",
+            "MarkedIndividual.name0.label", "alias"),
+            bare("G", "b.jpg", "MarkedIndividual.name0.label", "alias"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE,
+            List.of(cell(0, "MarkedIndividual.name0.value"), cell(1, "MarkedIndividual.name0.value")));
+        g = collapse(full("G", "a.jpg", "Encounter.individualID", "ind1",
+            "MarkedIndividual.name03.value", "X"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE,
+            List.of(cell(0, "MarkedIndividual.name03.label")));
+        g = collapse(full("G", "a.jpg", "Encounter.individualID", "ind1",
+            "MarkedIndividual.name0.label", "alias", "MarkedIndividual.name0.value", "X"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+    }
+
+    @Test void submitterNameWithoutEmailRequired() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.submitter0.fullName", "Ann"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE,
+            List.of(cell(0, "Encounter.submitter0.emailAddress")));
+        g = collapse(full("G", "a.jpg", "Encounter.submitter1.affiliation", "Org"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE,
+            List.of(cell(0, "Encounter.submitter1.emailAddress")));
+        g = collapse(full("G", "a.jpg", "Encounter.submitter0.fullName", "Ann",
+            "Encounter.submitter0.emailAddress", "ann@example.org"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+    }
+
+    @Test void projectOwnerWithoutProjectRequired() {
+        GroupedRows g = collapse(full("G", "a.jpg", O0, "bob"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE, List.of(cell(0, P0), cell(0, N0)));
+        // a prefix without a name, a name without a prefix
+        projectsExist();
+        g = collapse(full("G", "a.jpg", P0, "P"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE, List.of(cell(0, N0)));
+        g = collapse(full("G", "a.jpg", N0, "Proj"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE, List.of(cell(0, P0)));
+    }
+
+    @Test void loneZeroPaddedPrefixPairedByIndex() {
+        projectsExist();
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.project00.projectIdPrefix", "P"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE,
+            List.of(cell(0, "Encounter.project00.researchProjectName")));
+        // differently padded partners pair by index, as the importer pairs them
+        g = collapse(full("G", "a.jpg", "Encounter.project00.projectIdPrefix", "P", N0, "Proj"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+    }
+
+    @Test void newProjectWithoutOwnerRequired() {
+        GroupedRows g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE, List.of(cell(0, O0)));
+        g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj", O0, "bob"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+    }
+
+    @Test void existingProjectWithoutOwnerIsFine() {
+        when(sh.getProjectByProjectIdPrefix("P")).thenReturn(mock(Project.class));
+        GroupedRows g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+        // the importer's fuzzy fallback finds it too
+        when(sh.getProjectByProjectIdPrefixPrefix("Q-")).thenReturn(mock(Project.class));
+        g = collapse(full("G", "a.jpg", P0, "Q-", N0, "Proj"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+    }
+
+    @Test void conflictingDefinitionsForOnePrefixRejected() {
+        projectsExist();
+        String p1 = "Encounter.project1.projectIdPrefix";
+        String n1 = "Encounter.project1.researchProjectName";
+        GroupedRows g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj A", p1, "P", n1, "Proj B"));
+        assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE, List.of(cell(0, n1)));
+        g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj A", O0, "ann", p1, "P", n1, "Proj A",
+            "Encounter.project1.ownerUsername", "bob"));
+        assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE,
+            List.of(cell(0, "Encounter.project1.ownerUsername")));
+        g = collapse(full("G", "a.jpg", P0, "P", N0, "Proj A", p1, "P", n1, "Proj A"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+    }
+
+    @Test void compoundConflictBlamesEveryRow() {
+        projectsExist();
+        Object[] a = { P0, "P", N0, "A" };
+        Object[] b = { P0, "P", N0, "B" };
+        List<GroupedRows.Cell> all = List.of(cell(0, P0), cell(0, N0), cell(1, P0), cell(1, N0),
+            cell(2, P0), cell(2, N0));
+        GroupedRows g = collapse(full("G", "a.jpg", a), bare("G", "b.jpg", a), bare("G", "c.jpg", b));
+        assertOnly(g, BulkValidatorException.TYPE_GROUP_CONFLICT, all);
+        assertTrue(g.issues().get(0).error.getMessage().contains("rows 0, 1, 2"),
+            g.issues().get(0).error.getMessage());
+        g = collapse(full("G", "a.jpg", b), bare("G", "b.jpg", a), bare("G", "c.jpg", a));
+        assertOnly(g, BulkValidatorException.TYPE_GROUP_CONFLICT, all);
+    }
+
+    @Test void protocolWithoutMeasurementRequired() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.measurement0.samplingProtocol", "x"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE,
+            List.of(cell(0, "Encounter.measurement0")));
+        g = collapse(full("G", "a.jpg", "Encounter.length.samplingProtocol", "x"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE, List.of(cell(0, "Encounter.length")));
+        g = collapse(full("G", "a.jpg", "Encounter.length.samplingProtocol", "x",
+            "Encounter.measurement0", 3));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+    }
+
+    @Test void sampleFieldsNeedSampleId() {
+        for (String f : List.of("TissueSample.tissueType", "SexAnalysis.sex",
+            "MitochondrialDNAAnalysis.haplotype")) {
+            GroupedRows g = collapse(full("G", "a.jpg", f, "v"), bare("G", "b.jpg", f, "v"));
+            assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE,
+                List.of(cell(0, "TissueSample.sampleID"), cell(1, "TissueSample.sampleID")));
+        }
+        GroupedRows g = collapse(full("G", "a.jpg", "SexAnalysis.processingLabTaskID", "S1",
+            "SexAnalysis.sex", "male"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+    }
+
+    @Test void thirdAlleleColumnRejected() {
+        GroupedRows g = collapse(full("G", "a.jpg", "TissueSample.sampleID", "S1", MS + "alleles2", "1"));
+        assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE, List.of(cell(0, MS + "alleles2")));
+    }
+
+    @Test void genotypeListsValidatedTogether() {
+        String[][] bad = { { "A,B", "1,x", "1,2" }, { "A,B", "1", "1,2" }, { "A,,B", "1,2,3", "1,2,3" },
+            { "A,B,", "1,2,", "3,4," }, { "A,B", "1,2,", "3,4" } };
+        for (String[] c : bad) {
+            GroupedRows g = collapse(geno("a.jpg", c[0], c[1], c[2]));
+            assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE, genoCells(0));
+            assertFalse(g.mergedRows().get(0).containsKey(A0));
+        }
+        // the three are given together
+        GroupedRows g = collapse(full("G", "a.jpg", "TissueSample.sampleID", "S1", NAMES, "A", A0, "1"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE, List.of(cell(0, A1)));
+        g = collapse(geno("a.jpg", "A,B", "1,2", "3,4"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+    }
+
+    @Test void genotypeBoundCanonically() {
+        GroupedRows g = collapse(geno("a.jpg", " A ,B", "1, 2", " 07,3"),
+            geno("b.jpg", " A ,B", "1, 2", " 07,3"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+        assertEquals("A,B", mergedValue(g, 0, NAMES));
+        assertEquals("1,2", mergedValue(g, 0, A0));
+        assertEquals("7,3", mergedValue(g, 0, A1));
+        assertEquals(A0, ((BulkValidator)g.mergedRows().get(0).get(A0)).getFieldName());
+        assertEquals(List.of(cell(0, A0), cell(1, A0)), g.contributorsOf(0, A0));
+        // the source values stay as typed
+        assertEquals("1, 2", g.sourceValues(0).get(A0));
+    }
+
+    @Test void alleleTokensMustBeIntegers() {
+        for (String t : List.of("1.5", "1e2", "x", "2147483648")) {
+            GroupedRows g = collapse(geno("a.jpg", "A", t, "1"));
+            assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE, genoCells(0));
+        }
+    }
+
+    @Test void sharedAlleleTokenCases()
+    throws Exception {
+        JSONArray cases = fixtureCases();
+        int seen = 0;
+        for (int i = 0; i < cases.length(); i++) {
+            JSONObject c = cases.getJSONObject(i);
+            if (!"alleleToken".equals(c.getString("kind"))) continue;
+            seen++;
+            String name = c.getString("name");
+            // a second locus, so an empty token is a cell that is not blank
+            GroupedRows g = collapse(geno("a.jpg", "A,B", "1," + c.getString("token"), "1,2"));
+            if (c.getBoolean("valid")) {
+                assertTrue(g.issues().isEmpty(), name + ": " + g.issues());
+                assertEquals("1," + c.getString("canonical"), mergedValue(g, 0, A0), name);
+            } else {
+                assertEquals(genoCells(0), issueCells(g, BulkValidatorException.TYPE_INVALID_VALUE),
+                    name);
+            }
+        }
+        assertEquals(8, seen);
+    }
+
+    @Test void paddedAlleleColumnsBoundToLiteralNames() {
+        String a00 = MS + "alleles00";
+        String a01 = MS + "alleles01";
+        GroupedRows g = collapse(full("G", "a.jpg", "TissueSample.sampleID", "S1", NAMES, "A",
+            a00, "1", a01, "2"), bare("G", "b.jpg", "TissueSample.sampleID", "S1", NAMES, "A",
+            a00, "1", a01, "2"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+        Map<String, Object> m = g.mergedRows().get(0);
+        assertFalse(m.containsKey(a00));
+        assertFalse(m.containsKey(a01));
+        assertEquals("1", mergedValue(g, 0, A0));
+        assertEquals("2", mergedValue(g, 0, A1));
+        assertEquals(A1, ((BulkValidator)m.get(A1)).getFieldName());
+        assertEquals(List.of(cell(0, a00), cell(1, a00)), g.contributorsOf(0, A0));
+        assertEquals(List.of(cell(0, a01), cell(1, a01)), g.contributorsOf(0, A1));
+        // a failure names the original column
+        g = collapse(full("G", "a.jpg", "TissueSample.sampleID", "S1", NAMES, "A", a00, "x", a01, "2"));
+        assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE,
+            List.of(cell(0, NAMES), cell(0, a00), cell(0, a01)));
+    }
+
+    @Test void conflictingValuesForOneNameLabelRejected() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.individualID", "ind1",
+            "MarkedIndividual.name0.label", "alias", "MarkedIndividual.name0.value", "X",
+            "MarkedIndividual.name1.label", "alias", "MarkedIndividual.name1.value", "Y"));
+        assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE,
+            List.of(cell(0, "MarkedIndividual.name1.value")));
+        g = collapse(full("G", "a.jpg", "Encounter.individualID", "ind1",
+            "MarkedIndividual.name0.label", "alias", "MarkedIndividual.name0.value", "X",
+            "MarkedIndividual.name1.label", "alias", "MarkedIndividual.name1.value", "X"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+    }
+
+    @Test void namesWithoutIndividualRequired() {
+        GroupedRows g = collapse(full("G", "a.jpg", "MarkedIndividual.name0.label", "alias",
+            "MarkedIndividual.name0.value", "X"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE,
+            List.of(cell(0, "MarkedIndividual.name0.label"), cell(0, "MarkedIndividual.name0.value")));
+        // the individual may come from another row, under either spelling
+        g = collapse(full("G", "a.jpg", "MarkedIndividual.name0.label", "alias",
+            "MarkedIndividual.name0.value", "X"), bare("G", "b.jpg", "MarkedIndividual.individualID", "i"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+    }
+
+    @Test void nicknameWithoutIndividualRequired() {
+        GroupedRows g = collapse(full("G", "a.jpg", "MarkedIndividual.nickName", "Nick"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE,
+            List.of(cell(0, "MarkedIndividual.nickName")));
+        g = collapse(full("G", "a.jpg"), bare("G", "b.jpg", "MarkedIndividual.nickname", "Nick"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE,
+            List.of(cell(1, "MarkedIndividual.nickname")));
+        g = collapse(full("G", "a.jpg", "MarkedIndividual.nickName", "Nick",
+            "Encounter.individualID", "ind1"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        // a conflicting individual is already reported: nothing is added on the nickname
+        g = collapse(full("G", "a.jpg", "MarkedIndividual.nickName", "Nick",
+            "Encounter.individualID", "ind1"), bare("G", "b.jpg", "Encounter.individualID", "ind2"));
+        assertOnly(g, BulkValidatorException.TYPE_GROUP_CONFLICT,
+            List.of(cell(0, "Encounter.individualID"), cell(1, "Encounter.individualID")));
+    }
+
+    @Test void socialUnitWithoutIndividualRequired() {
+        GroupedRows g = collapse(full("G", "a.jpg", "SocialUnit.socialUnitName", "Pod"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE,
+            List.of(cell(0, "SocialUnit.socialUnitName")));
+        g = collapse(full("G", "a.jpg", "SocialUnit.socialUnitName", "Pod",
+            "Encounter.individualID", "ind1", "Membership.role", "lead"));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+    }
+
+    @Test void membershipRoleWithoutSocialUnitRequired() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.individualID", "ind1"),
+            bare("G", "b.jpg", "Membership.role", "lead"));
+        assertOnly(g, BulkValidatorException.TYPE_REQUIRED_VALUE, List.of(cell(1, "Membership.role")));
+    }
+
+    JSONArray fixtureCases()
+    throws Exception {
+        try (InputStream in = getClass().getResourceAsStream(
+                "/bulk-import/group-equality-cases.json")) {
+            assertNotNull(in, "fixture on the test classpath");
+            return new JSONObject(new String(in.readAllBytes(), StandardCharsets.UTF_8))
+                       .getJSONArray("cases");
+        }
+    }
+
+    @Test void sharedCompoundEqualityCases()
+    throws Exception {
+        projectsExist();
+        JSONArray cases = fixtureCases();
+        int pairs = 0;
+        int groups = 0;
+        for (int i = 0; i < cases.length(); i++) {
+            JSONObject c = cases.getJSONObject(i);
+            String name = c.getString("name");
+            if ("compound".equals(c.getString("kind"))) {
+                pairs++;
+                JSONObject a = c.getJSONObject("rowA");
+                JSONObject b = c.getJSONObject("rowB");
+                GroupedRows g = collapse(withCells(full("G", "a.jpg"), a),
+                    withCells(bare("G", "b.jpg"), b));
+                List<GroupedRows.Cell> expected = new ArrayList<GroupedRows.Cell>();
+                if (!c.getBoolean("equal")) {
+                    for (String k : new java.util.TreeSet<String>(a.keySet())) expected.add(cell(0, k));
+                    for (String k : new java.util.TreeSet<String>(b.keySet())) expected.add(cell(1, k));
+                }
+                assertEquals(expected, issueCells(g, null), name + ": " + g.issues());
+                assertEquals(expected, issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT), name);
+            } else if ("compoundGroup".equals(c.getString("kind"))) {
+                groups++;
+                JSONArray rows = c.getJSONArray("rows");
+                JSONObject[] src = new JSONObject[rows.length()];
+                for (int r = 0; r < rows.length(); r++)
+                    src[r] = withCells((r == 0) ? full("G", "p" + r + ".jpg") :
+                        bare("G", "p" + r + ".jpg"), rows.getJSONObject(r));
+                GroupedRows g = collapse(src);
+                List<GroupedRows.Cell> expected = new ArrayList<GroupedRows.Cell>();
+                JSONArray blamed = c.getJSONArray("blamed");
+                for (int k = 0; k < blamed.length(); k++)
+                    expected.add(cell(blamed.getJSONArray(k).getInt(0),
+                        blamed.getJSONArray(k).getString(1)));
+                assertEquals(expected, issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT), name);
+                assertEquals(expected.size(), g.issues().size(), name);
+            }
+        }
+        assertEquals(3, pairs);
+        assertEquals(2, groups);
+    }
+
+    @Test void sameMeasurementOffsetTwiceRejected() {
+        // within one row: the later column (in name order) is the duplicate
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.measurement0", 2.5,
+            "Encounter.length", 2.5));
+        assertOnly(g, BulkValidatorException.TYPE_INVALID_DUPLICATE,
+            List.of(cell(0, "Encounter.measurement0")));
+        g = collapse(full("G", "a.jpg", "Encounter.measurement0", 2.5,
+            "Encounter.measurement0.samplingProtocol", "x", "Encounter.length.samplingProtocol", "y"));
+        assertOnly(g, BulkValidatorException.TYPE_INVALID_DUPLICATE,
+            List.of(cell(0, "Encounter.measurement0.samplingProtocol")));
+        // across rows: two different columns, a set conflict only
+        g = collapse(full("G", "a.jpg", "Encounter.measurement0", 2.5),
+            bare("G", "b.jpg", "Encounter.length", 2.5));
+        assertOnly(g, BulkValidatorException.TYPE_GROUP_CONFLICT,
+            List.of(cell(0, "Encounter.measurement0"), cell(1, "Encounter.length")));
+        // an ungrouped row keeps today's behaviour
+        g = collapse(obj("Encounter.genus", "Genus", "Encounter.specificEpithet", "species",
+            "Encounter.year", 2020, "Encounter.measurement0", 2.5, "Encounter.length", 2.5));
+        assertTrue(g.issues().isEmpty());
+        assertNoMergedErrors(g, 0);
+    }
+
+    @Test void ignoredFieldOnGroupedRowRejected() {
+        assertEquals(Set.of("Encounter.project", "MarkedIndividual.name", "Survey.type"),
+            GroupCollapse.GROUP_IGNORED_FIELDS);
+        for (String f : GroupCollapse.GROUP_IGNORED_FIELDS) {
+            GroupedRows g = collapse(full("G", "a.jpg", f, "x"), bare("G", "b.jpg", f, ""));
+            assertOnly(g, BulkValidatorException.TYPE_INVALID_VALUE, List.of(cell(0, f)));
+            assertEquals("not imported; remove this column from grouped rows",
+                g.issues().get(0).error.getMessage());
+            assertFalse(g.mergedRows().get(0).containsKey(f));
+        }
+        // an ungrouped row: today's behaviour
+        JSONObject row = obj("Encounter.genus", "Genus", "Encounter.specificEpithet", "species",
+            "Encounter.year", 2020, "Survey.type", "x");
+        GroupedRows g = collapse(row);
+        assertTrue(g.issues().isEmpty());
+        assertNoMergedErrors(g, 0);
+        assertEquals("x", mergedValue(g, 0, "Survey.type"));
+        assertEquals(BulkImportUtil.validateRow(copy(row), sh, false).keySet(),
+            g.mergedRows().get(0).keySet());
+    }
+
+    @Test void numAdultMalesIsAnOrdinaryScalar() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Sighting.numAdultMales", 3,
+            "Sighting.numSubFemales", "2"), bare("G", "b.jpg", "Sighting.numAdultMales", "3",
+            "Sighting.numSubFemales", 2));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+        assertEquals(3, mergedValue(g, 0, "Sighting.numAdultMales"));
+        assertEquals(2, mergedValue(g, 0, "Sighting.numSubFemales"));
+        assertEquals(List.of(cell(0, "Sighting.numAdultMales"), cell(1, "Sighting.numAdultMales")),
+            g.contributorsOf(0, "Sighting.numAdultMales"));
     }
 }
