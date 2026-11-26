@@ -284,9 +284,7 @@ public final class GroupCollapse {
         if (syn != null) {
             for (List<String> syns : syn) {
                 for (String dup : syns) {
-                    st.issue(r, dup, new BulkValidatorException("synonym columns: " +
-                        String.join(", ", syns), ApiException.ERROR_RETURN_CODE_INVALID,
-                        BulkValidatorException.TYPE_INVALID_SYNONYM, dup));
+                    st.issue(r, dup, BulkImportUtil.synonymException(syns, dup));
                     poisoned.add(emitName(dup));
                     ok.remove(dup);
                 }
@@ -306,7 +304,13 @@ public final class GroupCollapse {
                 continue;
             }
             BulkValidator bv = (BulkValidator)o;
-            if (bv.getValue() == null) continue;
+            if (bv.getValue() == null) { // a non-absent cell that validated to nothing
+                st.issue(r, k, new BulkValidatorException("cannot read a value from " + k +
+                    ": " + row.get(k), ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_INVALID_VALUE, k));
+                poisoned.add(emitName(k));
+                continue;
+            }
             rtn.add(new Entry(new GroupedRows.Cell(r, k), bv, row.get(k)));
         }
         return rtn;
@@ -339,8 +343,10 @@ public final class GroupCollapse {
             valid.add(e);
         }
         if (distinct.size() > 1) {
-            StringBuilder msg = new StringBuilder("rows of this group disagree on " + family +
-                ":");
+            Set<Integer> rowsSeen = new HashSet<Integer>();
+            for (Entry e : valid) rowsSeen.add(e.cell.row);
+            StringBuilder msg = new StringBuilder(((rowsSeen.size() > 1) ?
+                "rows of this group disagree on " : "these columns disagree on ") + family + ":");
             String sep = " ";
             for (String v : distinct) {
                 msg.append(sep).append('"').append(v).append('"');

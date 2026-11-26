@@ -84,9 +84,7 @@ public class BulkImportUtil {
         // we set errors for fields which are duplicates, and remove from fieldNames (for below)
         if (syn != null) {
             for (List<String> syns : syn) {
-                BulkValidatorException bv = new BulkValidatorException("synonym columns: " +
-                    String.join(", ", syns), ApiException.ERROR_RETURN_CODE_INVALID,
-                    BulkValidatorException.TYPE_INVALID_SYNONYM);
+                BulkValidatorException bv = synonymException(syns, null);
                 for (String dup : syns) {
                     rtn.put(dup, bv);
                     fieldNames.remove(dup);
@@ -109,6 +107,13 @@ public class BulkImportUtil {
             }
         }
         return rtn;
+    }
+
+    // the error for synonym columns found together on one row; fieldName may be null
+    public static BulkValidatorException synonymException(List<String> syns, String fieldName) {
+        return new BulkValidatorException("synonym columns: " + String.join(", ", syns),
+                ApiException.ERROR_RETURN_CODE_INVALID, BulkValidatorException.TYPE_INVALID_SYNONYM,
+                fieldName);
     }
 
     // the cross-field half of row validation, run over validateFields() results. A dependent

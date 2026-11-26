@@ -311,6 +311,16 @@ class GroupCollapseTest {
             bare("G", "b.jpg", "Sighting.groupBehavior", "b"));
         assertEquals(List.of(cell(0, "Encounter.behavior"), cell(1, "Sighting.groupBehavior")),
             issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
+        assertTrue(g.issues().get(0).error.getMessage().startsWith(
+            "rows of this group disagree on Encounter.behavior:"), g.issues().get(0).error.getMessage());
+        // the pair on one grouped row: the message does not claim the rows disagree
+        g = collapse(full("G", "a.jpg", "Encounter.behavior", "a", "Sighting.groupBehavior", "b"),
+            bare("G", "b.jpg"));
+        assertEquals(List.of(cell(0, "Encounter.behavior"), cell(0, "Sighting.groupBehavior")),
+            issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
+        for (GroupedRows.Issue is : g.issues())
+            assertEquals("these columns disagree on Encounter.behavior: \"a\", \"b\".",
+                is.error.getMessage());
         g = collapse(full("G", "a.jpg", "Encounter.behavior", "a"),
             bare("G", "b.jpg", "Sighting.groupBehavior", "a"));
         assertTrue(g.issues().isEmpty(), g.issues().toString());
@@ -318,6 +328,38 @@ class GroupCollapseTest {
         assertEquals("a", mergedValue(g, 0, "Sighting.groupBehavior"));
         assertEquals(List.of(cell(1, "Sighting.groupBehavior")),
             g.contributorsOf(0, "Sighting.groupBehavior"));
+    }
+
+    @Test void unparseableGroupedCellIsInvalid() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.year", 2021),
+            bare("G", "b.jpg", "Encounter.year", "2O20"));
+        assertEquals(List.of(cell(1, "Encounter.year")), issueCells(g, null));
+        assertTrue(g.issues().get(0).error.isType(BulkValidatorException.TYPE_INVALID_VALUE));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.year"));
+        assertNoMergedErrors(g, 0);
+        assertTrue(g.hasGroupErrors());
+    }
+
+    @Test void aliasFamilyWithOneInvalidCellDropsFamily() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.decimalLatitude", 45,
+            "Encounter.decimalLongitude", 10), bare("G", "b.jpg", "Sighting.decimalLatitude", 200));
+        assertEquals(List.of(cell(1, "Sighting.decimalLatitude")), issueCells(g, null));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.decimalLatitude"));
+        // no REQUIRED on the partner longitude, no error left in the merged row
+        assertNoMergedErrors(g, 0);
+        assertEquals(10.0, mergedValue(g, 0, "Encounter.decimalLongitude"));
+    }
+
+    @Test void yearAndMillisAcrossRowsRejected() {
+        GroupedRows g = collapse(full("G", "a.jpg"),
+            bare("G", "b.jpg", "Encounter.dateInMilliseconds", 1000000L));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNotNull(mergedError(g, 0, "Encounter.year"));
+        assertNotNull(mergedError(g, 0, "Encounter.dateInMilliseconds"));
+        assertEquals(List.of(cell(0, "Encounter.year")), g.cellsFor(0, "Encounter.year"));
+        assertEquals(List.of(cell(1, "Encounter.dateInMilliseconds")),
+            g.cellsFor(0, "Encounter.dateInMilliseconds"));
+        assertTrue(g.hasGroupErrors());
     }
 
     @Test void millisWithCalendarComponentConflicts() {

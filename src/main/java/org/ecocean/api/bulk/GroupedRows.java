@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import org.json.JSONObject;
 
 /**
@@ -71,7 +72,7 @@ public final class GroupedRows {
     private final List<Map<String, Object> > mergedRaw;
     private final List<Issue> issues;
     private final List<Issue> warnings;
-    private final List<JSONObject> sourceRows;
+    private final List<List<String> > sortedKeys; // each source row's keys, sorted
     private final boolean exactSlotMode;
     private final Set<String> groupedFilenames;
 
@@ -92,7 +93,10 @@ public final class GroupedRows {
         this.mergedRaw = mergedRaw;
         this.issues = Collections.unmodifiableList(issues);
         this.warnings = Collections.unmodifiableList(warnings);
-        this.sourceRows = sourceRows;
+        List<List<String> > keys = new ArrayList<List<String> >();
+        for (JSONObject row : sourceRows)
+            keys.add(List.copyOf(new TreeSet<String>(row.keySet())));
+        this.sortedKeys = keys;
         this.exactSlotMode = exactSlotMode;
         this.groupedFilenames = Collections.unmodifiableSet(groupedFilenames);
     }
@@ -127,7 +131,10 @@ public final class GroupedRows {
         return groupedMergedIndexes;
     }
 
-    /** The trimmed key as typed on that row; null when the row is ungrouped. */
+    /**
+     * The trimmed key as typed on that row; null when the row is ungrouped. A non-String key
+     * (an error) returns raw.toString().
+     */
     public String groupKeyAsTyped(int sourceRow) {
         return keyAsTyped[sourceRow];
     }
@@ -156,7 +163,7 @@ public final class GroupedRows {
         List<Cell> rtn = new ArrayList<Cell>();
         for (int row : members.get(mergedIndex)) {
             String own = null;
-            for (String k : new java.util.TreeSet<String>(sourceRows.get(row).keySet())) {
+            for (String k : sortedKeys.get(row)) {
                 if (BulkValidator.canonicalFieldName(k).equals(family)) {
                     own = k;
                     break;
