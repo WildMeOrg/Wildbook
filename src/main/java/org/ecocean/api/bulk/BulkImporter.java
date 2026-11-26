@@ -809,6 +809,15 @@ public class BulkImporter {
             indiv.setSexFromEncounters();
             indiv.setTaxonomyFromEncounters(true);
         }
+        // labeled keyword columns by slot, found once per row (applied in exact-slot mode only)
+        Map<Integer, List<String> > labeledBySlot = new HashMap<Integer, List<String> >();
+        if (exactSlotMode) {
+            for (String key : fmap.keySet()) {
+                if (BulkImportUtil.getLabeledKeywordLabel(key) == null) continue;
+                labeledBySlot.computeIfAbsent(BulkImportUtil.getLabeledKeywordOffset(key),
+                    k -> new ArrayList<String>()).add(key);
+            }
+        }
         // now attach annotations
         String tx = enc.getTaxonomyString();
         List<Annotation> annots = new ArrayList<Annotation>();
@@ -850,7 +859,8 @@ public class BulkImporter {
                 if (multi != null) kws.addAll(Arrays.asList(multi.split("_")));
             }
             handleKeywords(ma, kws);
-            if (exactSlotMode) handleLabeledKeywords(ma, slot, fmap);
+            if (exactSlotMode)
+                handleLabeledKeywords(ma, labeledBySlot.getOrDefault(slot, List.of()), fmap);
             Double quality = null;
             if ((metaIndex < maQuality.size()) && (maQuality.get(metaIndex) != null))
                 quality = fmap.get(maQuality.get(metaIndex)).getValueDouble();
@@ -947,13 +957,13 @@ public class BulkImporter {
     }
 
     // bulk-import boxes (spec 4.1): labeled keywords Encounter.mediaAsset{N}.<label>, by exact
-    // slot (exact-slot mode only; positional imports keep validating and dropping them, as before)
-    private void handleLabeledKeywords(MediaAsset ma, int slot, Map<String, BulkValidator> fmap) {
-        for (Map.Entry<String, BulkValidator> e : fmap.entrySet()) {
-            String label = BulkImportUtil.getLabeledKeywordLabel(e.getKey());
-            if ((label == null) || (BulkImportUtil.getLabeledKeywordOffset(e.getKey()) != slot))
-                continue;
-            String value = e.getValue().getValueString();
+    // slot (exact-slot mode only; positional imports keep validating and dropping them, as before);
+    // keys are the slot's labeled keyword columns, in the row's field order
+    private void handleLabeledKeywords(MediaAsset ma, List<String> keys,
+        Map<String, BulkValidator> fmap) {
+        for (String key : keys) {
+            String label = BulkImportUtil.getLabeledKeywordLabel(key);
+            String value = fmap.get(key).getValueString();
             if (value == null) continue;
             List<String> cacheKey = List.of(label, value);
             LabeledKeyword lk = labeledKeywordCache.get(cacheKey);
