@@ -10,7 +10,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import org.ecocean.api.ApiException;
 import org.ecocean.shepherd.core.Shepherd;
@@ -36,10 +35,6 @@ public final class GroupCollapse {
         "TissueSample.tissueType", "MicrosatelliteMarkersAnalysis.analysisID",
         "MicrosatelliteMarkersAnalysis.alleleNames", "SexAnalysis.processingLabTaskID",
         "SexAnalysis.sex", "MitochondrialDNAAnalysis.haplotype");
-    static final String PHOTO = "Encounter.mediaAsset";
-    // per-photo metadata the importer reads by the photo's ordinal in positional mode
-    static final Set<String> ORDINAL_PREFIXES = Set.of("Encounter.keyword", "Encounter.quality",
-        "Encounter.mediaAsset.keywords");
 
     private GroupCollapse() {}
 
@@ -54,7 +49,7 @@ public final class GroupCollapse {
     }
 
     // one validated, non-absent source cell
-    private static final class Entry {
+    static final class Entry {
         final GroupedRows.Cell cell;
         final BulkValidator bv;
         final Object raw;
@@ -68,7 +63,7 @@ public final class GroupCollapse {
     }
 
     // what collapse() accumulates across groups
-    private static final class State {
+    static final class State {
         final List<JSONObject> rows;
         final Shepherd sh;
         final boolean identificationSkipped;
@@ -193,7 +188,7 @@ public final class GroupCollapse {
         Set<String> poisoned = new HashSet<String>(); // merged names whose failure is an Issue
         Map<String, List<Entry> > families = new LinkedHashMap<String, List<Entry> >();
         List<Entry> passThrough = new ArrayList<Entry>();
-        List<RowPhotos> photos = new ArrayList<RowPhotos>();
+        List<GroupPhotos.RowPhotos> photos = new ArrayList<GroupPhotos.RowPhotos>();
 
         for (int r : rows) {
             Map<String, Object> values = new LinkedHashMap<String, Object>();
@@ -203,9 +198,9 @@ public final class GroupCollapse {
             List<Entry> photoEntries = new ArrayList<Entry>();
             for (Entry e : validateGroupedRow(st, r, poisoned, present, failedPhotoFields)) {
                 values.put(e.cell.field, e.bv.getValue());
-                if (PHOTO.equals(e.bv.getIndexPrefix()))
+                if (GroupPhotos.PHOTO.equals(e.bv.getIndexPrefix()))
                     st.groupedFilenames.add(e.bv.getValueString());
-                if (photoPrefix(e.cell.field) != null) {
+                if (GroupPhotos.photoPrefix(e.cell.field) != null) {
                     photoEntries.add(e);
                 } else if (isScalar(e.cell.field)) {
                     families.computeIfAbsent(familyKey(e.cell.field),
@@ -215,11 +210,11 @@ public final class GroupCollapse {
                 }
             }
             st.sourceValues.set(r, Collections.unmodifiableMap(values));
-            photos.add(resolvePhotos(st, r, present, photoEntries, failedPhotoFields));
+            photos.add(GroupPhotos.resolvePhotos(st, r, present, photoEntries, failedPhotoFields));
         }
 
         // photos: C8, repeats and the cap, then packing into slots 0..n-1
-        packPhotos(st, photos, merged, contrib, raw, poisoned);
+        GroupPhotos.packPhotos(st, photos, merged, contrib, raw, poisoned);
 
         // 5. epoch millis may not be combined with calendar components
         List<Entry> millis = families.getOrDefault(MILLIS, List.of());
@@ -351,170 +346,11 @@ public final class GroupCollapse {
     }
 
     private static void markFailed(String field, Set<String> poisoned, Set<String> failedPhotoFields) {
-        if (photoPrefix(field) != null) {
+        if (GroupPhotos.photoPrefix(field) != null) {
             failedPhotoFields.add(field);
         } else {
             poisoned.add(emitName(field));
         }
-    }
-
-    // one source row's photos, by source index, each with the metadata the importer would read
-    private static final class RowPhotos {
-        final int row;
-        final TreeMap<Integer, String> photoFields = new TreeMap<Integer, String>(); // non-absent
-        final Map<Integer, Entry> validPhotos = new HashMap<Integer, Entry>();
-        final Map<Integer, List<Entry> > metadata = new HashMap<Integer, List<Entry> >();
-        final Map<Integer, List<String> > failedMetadata = new HashMap<Integer, List<String> >();
-
-        RowPhotos(int row) {
-            this.row = row;
-        }
-    }
-
-    /**
-     * The index prefix of a per-photo field (Encounter.mediaAsset, Encounter.mediaAsset.bbox,
-     * Encounter.keyword, Encounter.quality, Encounter.mediaAsset.keywords, ...), with
-     * "Encounter.mediaAsset.<label>" for a labeled keyword; null for any other field.
-     */
-    static String photoPrefix(String field) {
-        String prefix = null;
-        try {
-            prefix = BulkValidator.indexPrefixValue(field);
-        } catch (BulkValidatorException ex) {
-            return null;
-        }
-        if (prefix != null) {
-            if (prefix.equals(PHOTO) || prefix.startsWith(PHOTO + ".") ||
-                ORDINAL_PREFIXES.contains(prefix))
-                return prefix;
-            return null;
-        }
-        String label = BulkImportUtil.getLabeledKeywordLabel(field);
-        return (label == null) ? null : PHOTO + "." + label;
-    }
-
-    // the source index of a per-photo field (a labeled keyword's offset)
-    private static int photoIndex(String field) {
-        int offset = BulkImportUtil.getLabeledKeywordOffset(field);
-        if (offset >= 0) return offset;
-        try {
-            return BulkValidator.indexIntValue(field);
-        } catch (BulkValidatorException ex) {
-            throw new IllegalStateException("not a per-photo field: " + field, ex);
-        }
-    }
-
-    // a per-photo field's name in packed slot k
-    static String packedName(String prefix, int k) {
-        if (prefix.startsWith(PHOTO + ".")) return PHOTO + k + prefix.substring(PHOTO.length());
-        return prefix + k;
-    }
-
-    /**
-     * 3-4. One source row's photos and the metadata processRow() would read for each: by the same
-     * index in exact-slot mode (and always for box columns and labeled keywords), by the photo's
-     * occupied-photo ordinal otherwise. Metadata whose photo is absent is an orphan (INVALID).
-     */
-    private static RowPhotos resolvePhotos(State st, int r, Set<String> present,
-        List<Entry> photoEntries, Set<String> failedPhotoFields) {
-        RowPhotos rp = new RowPhotos(r);
-        for (String k : present) {
-            if (PHOTO.equals(photoPrefix(k))) rp.photoFields.put(photoIndex(k), k);
-        }
-        List<Integer> byOrdinal = new ArrayList<Integer>(rp.photoFields.keySet());
-        Map<String, Entry> valid = new LinkedHashMap<String, Entry>();
-        for (Entry e : photoEntries) {
-            if (PHOTO.equals(photoPrefix(e.cell.field))) {
-                rp.validPhotos.put(photoIndex(e.cell.field), e);
-            } else {
-                valid.put(e.cell.field, e);
-            }
-        }
-        Set<String> metadata = new TreeSet<String>(valid.keySet());
-        for (String k : failedPhotoFields) {
-            if (!PHOTO.equals(photoPrefix(k))) metadata.add(k);
-        }
-        for (String k : metadata) {
-            String prefix = photoPrefix(k);
-            int index = photoIndex(k);
-            boolean ordinal = !st.exactSlotMode && ORDINAL_PREFIXES.contains(prefix);
-            Integer photo = null;
-            if (ordinal) {
-                if (index < byOrdinal.size()) photo = byOrdinal.get(index);
-            } else if (rp.photoFields.containsKey(index)) {
-                photo = index;
-            }
-            Entry e = valid.get(k);
-            if (photo != null) {
-                if (e != null) {
-                    rp.metadata.computeIfAbsent(photo, x -> new ArrayList<Entry>()).add(e);
-                } else {
-                    rp.failedMetadata.computeIfAbsent(photo, x -> new ArrayList<String>()).add(k);
-                }
-            } else if (e != null) { // a failed orphan is already an Issue
-                int n = byOrdinal.size();
-                String msg = ordinal ? (k + " has no photo to go with: this row has " + n +
-                    " photo" + ((n == 1) ? "" : "s")) : (k + " has no photo in " + PHOTO + index);
-                st.issue(r, k, new BulkValidatorException(msg,
-                    ApiException.ERROR_RETURN_CODE_INVALID,
-                    BulkValidatorException.TYPE_INVALID_VALUE, k));
-            }
-        }
-        return rp;
-    }
-
-    /**
-     * 5-7. Every grouped row needs a photo; a filename may appear once per group (the later
-     * occurrence is an Issue and is not packed, with its metadata); photos beyond the cap are a
-     * GROUP_CONFLICT and are not packed. The rest are packed in sheet order, then index order,
-     * into slots 0..n-1, each with its own metadata; a failed metadata cell poisons its packed name.
-     */
-    private static void packPhotos(State st, List<RowPhotos> photos, Map<String, Object> merged,
-        Map<String, List<GroupedRows.Cell> > contrib, Map<String, Object> raw,
-        Set<String> poisoned) {
-        Map<String, GroupedRows.Cell> seen = new HashMap<String, GroupedRows.Cell>();
-        int slot = 0;
-        for (RowPhotos rp : photos) {
-            if (rp.photoFields.isEmpty())
-                st.issue(rp.row, PHOTO + "0", new BulkValidatorException(
-                    "each row of a group needs at least one photo",
-                    ApiException.ERROR_RETURN_CODE_REQUIRED,
-                    BulkValidatorException.TYPE_REQUIRED_VALUE, PHOTO + "0"));
-            for (int index : rp.photoFields.keySet()) {
-                Entry photo = rp.validPhotos.get(index);
-                if (photo == null) continue; // its own failure is already an Issue
-                String filename = photo.bv.getValueString();
-                GroupedRows.Cell first = seen.putIfAbsent(filename, photo.cell);
-                if (first != null) {
-                    st.issue(rp.row, photo.cell.field, new BulkValidatorException("photo " +
-                        filename + " is already in this group at row " + first.row + ", " +
-                        first.field + "; a photo may appear only once in a group",
-                        ApiException.ERROR_RETURN_CODE_INVALID,
-                        BulkValidatorException.TYPE_INVALID_DUPLICATE, photo.cell.field));
-                    continue;
-                }
-                if (slot >= st.maxPhotos) {
-                    st.issue(rp.row, photo.cell.field, new BulkValidatorException(
-                        "a group can have at most " + st.maxPhotos + " photos",
-                        ApiException.ERROR_RETURN_CODE_INVALID,
-                        BulkValidatorException.TYPE_GROUP_CONFLICT, photo.cell.field));
-                    continue;
-                }
-                pack(photo, PHOTO, slot, merged, contrib, raw);
-                for (Entry e : rp.metadata.getOrDefault(index, List.of()))
-                    pack(e, photoPrefix(e.cell.field), slot, merged, contrib, raw);
-                for (String k : rp.failedMetadata.getOrDefault(index, List.of()))
-                    poisoned.add(packedName(photoPrefix(k), slot));
-                slot++;
-            }
-        }
-    }
-
-    private static void pack(Entry e, String prefix, int slot, Map<String, Object> merged,
-        Map<String, List<GroupedRows.Cell> > contrib, Map<String, Object> raw) {
-        String name = packedName(prefix, slot);
-        addContributor(contrib, raw, name, e);
-        merged.put(name, BulkValidator.rebound(e.bv, name));
     }
 
     // 4. one scalar family: one distinct stored value is merged, several are a conflict
@@ -580,7 +416,7 @@ public final class GroupCollapse {
         }
     }
 
-    private static void addContributor(Map<String, List<GroupedRows.Cell> > contrib,
+    static void addContributor(Map<String, List<GroupedRows.Cell> > contrib,
         Map<String, Object> raw, String name, Entry e) {
         contrib.computeIfAbsent(name, k -> new ArrayList<GroupedRows.Cell>()).add(e.cell);
         raw.putIfAbsent(name, e.raw);

@@ -863,4 +863,45 @@ class GroupCollapseTest {
         // an ungrouped row is unchanged
         assertEquals("in Encounter.mediaAsset1.iaClass", g.sourceText(1, "in Encounter.mediaAsset1.iaClass"));
     }
+
+    @Test void positionalSparseOrdinal() {
+        GroupedRows g = collapse(full("G", "a.jpg", "Encounter.mediaAsset3", "b.jpg",
+            "Encounter.keyword1", "k"));
+        assertFalse(g.exactSlotMode());
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        // keyword1 is the second occupied photo's: b.jpg in source slot 3, packed slot 1
+        assertEquals("b.jpg", mergedValue(g, 0, "Encounter.mediaAsset1"));
+        assertEquals("k", mergedValue(g, 0, "Encounter.keyword1"));
+        assertEquals(List.of(cell(0, "Encounter.keyword1")), g.contributorsOf(0, "Encounter.keyword1"));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.keyword0"));
+    }
+
+    @Test void perPhotoKeywordsAndQualityPacked() {
+        GroupedRows g = collapse(full("G", "a.jpg"), bare("G", "b.jpg",
+            "Encounter.mediaAsset0.keywords", "x_y", "Encounter.quality0", 0.5));
+        assertTrue(g.issues().isEmpty(), g.issues().toString());
+        assertNoMergedErrors(g, 0);
+        assertEquals("x_y", mergedValue(g, 0, "Encounter.mediaAsset1.keywords"));
+        assertEquals(0.5, mergedValue(g, 0, "Encounter.quality1"));
+        assertEquals(List.of(cell(1, "Encounter.mediaAsset0.keywords")),
+            g.contributorsOf(0, "Encounter.mediaAsset1.keywords"));
+        assertEquals(List.of(cell(1, "Encounter.quality0")), g.contributorsOf(0, "Encounter.quality1"));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.quality0"));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.mediaAsset0.keywords"));
+    }
+
+    @Test void repeatConsumesNoSlot() {
+        GroupedRows g = GroupCollapse.collapse(Arrays.asList(full("G", "a.jpg"),
+            bare("G", "a.jpg"), bare("G", "b.jpg")), sh, false, 2);
+        assertEquals(List.of(cell(1, "Encounter.mediaAsset0")), issueCells(g, null));
+        assertTrue(g.issues().get(0).error.isType(BulkValidatorException.TYPE_INVALID_DUPLICATE));
+        assertEquals("b.jpg", mergedValue(g, 0, "Encounter.mediaAsset1"));
+        assertFalse(g.mergedRows().get(0).containsKey("Encounter.mediaAsset2"));
+        // a photo over the cap is not packed, so a later copy of it is over the cap too, not a repeat
+        g = GroupCollapse.collapse(Arrays.asList(full("G", "a.jpg"), bare("G", "b.jpg"),
+            bare("G", "b.jpg")), sh, false, 1);
+        assertEquals(List.of(cell(1, "Encounter.mediaAsset0"), cell(2, "Encounter.mediaAsset0")),
+            issueCells(g, BulkValidatorException.TYPE_GROUP_CONFLICT));
+        assertEquals(2, g.issues().size());
+    }
 }

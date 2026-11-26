@@ -351,24 +351,45 @@ public class BulkImportUtil {
     public static String[] findIndexAliases(Set<String> fieldNames) {
         Map<String, String> seen = new HashMap<String, String>();
         for (String fn : fieldNames) {
-            String key;
-            try {
-                String prefix = BulkValidator.indexPrefixValue(fn);
-                int index = (prefix == null) ? -1 : BulkValidator.indexIntValue(fn);
-                if (index < 0) {   // not a numbered column, unless it is a slot's labeled keyword
-                    prefix = getLabeledKeywordLabel(fn);
-                    index = (prefix == null) ? -1 : getLabeledKeywordOffset(fn);
-                    if (index < 0) continue;
-                    prefix = "Encounter.mediaAsset." + prefix;
-                }
-                key = prefix + "#" + index;
-            } catch (BulkValidatorException ex) {
-                continue;
-            }
-            String other = seen.put(key, fn);
+            Slot slot = slotOf(fn);
+            if (slot == null) continue;
+            String other = seen.put(slot.prefix + "#" + slot.index, fn);
             if (other != null) return new String[] { other, fn };
         }
         return null;
+    }
+
+    /** A numbered column's index prefix and index, however the index is spelled. */
+    public static final class Slot {
+        public final String prefix;
+        public final int index;
+
+        Slot(String prefix, int index) {
+            this.prefix = prefix;
+            this.index = index;
+        }
+    }
+
+    /**
+     * The numbered column fn is ("Encounter.mediaAsset01.bbox" is Encounter.mediaAsset.bbox, 1);
+     * a slot's labeled keyword ("Encounter.mediaAsset3.<label>") is Encounter.mediaAsset.<label>
+     * at its offset. Null for an unknown name, an index above MAX_INDEX, or a field that is not
+     * numbered.
+     */
+    public static Slot slotOf(String fn) {
+        try {
+            String prefix = BulkValidator.indexPrefixValue(fn);
+            int index = (prefix == null) ? -1 : BulkValidator.indexIntValue(fn);
+            if (index < 0) {   // not a numbered column, unless it is a slot's labeled keyword
+                prefix = getLabeledKeywordLabel(fn);
+                index = (prefix == null) ? -1 : getLabeledKeywordOffset(fn);
+                if (index < 0) return null;
+                prefix = "Encounter.mediaAsset." + prefix;
+            }
+            return new Slot(prefix, index);
+        } catch (BulkValidatorException ex) {
+            return null;
+        }
     }
 
     // true when any of the columns is an Encounter.mediaAsset{N}.bbox box column
