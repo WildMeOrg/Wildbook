@@ -80,6 +80,7 @@ class ProjectPrefixLookupDbTest {
         try {
             assertEquals("NOAA_X", sh.getProjectByProjectIdPrefixPrefix("NOAA_").getProjectIdPrefix());
             assertNull(sh.getProjectByProjectIdPrefixPrefix("NOAB_"), "_ is not a one-character wildcard");
+            assertNull(sh.getProjectByProjectIdPrefixPrefix("NOAA_Z"), "NOAAZX is not NOAA_Z...");
             assertNull(sh.getProjectByProjectIdPrefixPrefix("NO%Q"), "% is not a wildcard");
             assertNull(sh.getProjectByProjectIdPrefixPrefix("NOAA\\"), "backslash is just a value");
         } finally {

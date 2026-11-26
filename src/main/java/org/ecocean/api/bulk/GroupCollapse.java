@@ -61,8 +61,11 @@ public final class GroupCollapse {
     }
 
     // a value as quoted in a message: at most VALUE_CLIP characters, "..." marking a cut
+    // never splits a surrogate pair: a cut that would end on a high surrogate ends one earlier
     static String clip(String v) {
-        return (v.length() <= VALUE_CLIP) ? v : v.substring(0, VALUE_CLIP) + "...";
+        if (v.length() <= VALUE_CLIP) return v;
+        int end = Character.isHighSurrogate(v.charAt(VALUE_CLIP - 1)) ? VALUE_CLIP - 1 : VALUE_CLIP;
+        return v.substring(0, end) + "...";
     }
 
     // ASCII-only case fold: A-Z -> a-z on UTF-16 units; every other character is unchanged
@@ -166,6 +169,8 @@ public final class GroupCollapse {
             if ((raw instanceof String) && !((String)raw).trim().isEmpty()) {
                 st.keyAsTyped[r] = ((String)raw).trim();
                 if (st.keyAsTyped[r].length() > MAX_KEY_LENGTH) {
+                    // the echo is copied onto every error of the row, so it is clipped
+                    st.keyAsTyped[r] = clip(st.keyAsTyped[r]);
                     membership = "\u0000" + r; // a group of its own, so the issue is fatal
                     st.issue(r, GROUP_KEY, new BulkValidatorException("groupKey must be at most " +
                         MAX_KEY_LENGTH + " characters", ApiException.ERROR_RETURN_CODE_INVALID,
@@ -174,7 +179,7 @@ public final class GroupCollapse {
                     membership = foldKey(st.keyAsTyped[r]);
                 }
             } else if ((raw != null) && (raw != JSONObject.NULL) && !(raw instanceof String)) {
-                st.keyAsTyped[r] = raw.toString();
+                st.keyAsTyped[r] = clip(raw.toString()); // echoed on every error of the row
                 membership = "\u0000" + r; // a group of its own, so the issue is fatal
                 st.issue(r, GROUP_KEY, new BulkValidatorException("groupKey must be text",
                     ApiException.ERROR_RETURN_CODE_INVALID,

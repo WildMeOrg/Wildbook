@@ -479,6 +479,39 @@ class GroupCollapseTest {
         assertTrue(g.hasGroupErrors());
     }
 
+    @Test void invalidKeyEchoIsClipped() {
+        String huge = "k".repeat(10000);
+        JSONArray arrayKey = new JSONArray().put("e".repeat(10000));
+        // a bad photo cell on each row, so the row has issues besides its key
+        GroupedRows g = collapse(full(huge, "a.jpg", "Encounter.sex", "x", "Encounter.year", "y"),
+            full("ok", "b.jpg"), obj(KEY, arrayKey, "Encounter.genus", "Genus",
+                "Encounter.specificEpithet", "species", "Encounter.year", "y",
+                "Encounter.mediaAsset0", "c.jpg", "Encounter.sex", "x"));
+        List<GroupedRows.Cell> keyIssues = new ArrayList<GroupedRows.Cell>();
+        for (GroupedRows.Issue is : g.issues()) {
+            if (is.field.equals(KEY)) keyIssues.add(cell(is.row, is.field));
+        }
+        assertEquals(List.of(cell(0, KEY), cell(2, KEY)), keyIssues);
+        assertTrue(g.issues().size() > 2, g.issues().toString());
+        for (GroupedRows.Issue is : g.issues()) {
+            assertNotNull(is.groupKey);
+            assertTrue(is.groupKey.length() <= 63, is.groupKey);
+        }
+        assertEquals("k".repeat(60) + "...", g.groupKeyAsTyped(0));
+        assertTrue(g.groupKeyAsTyped(2).startsWith("[\"eee"), g.groupKeyAsTyped(2));
+        assertTrue(g.groupKeyAsTyped(2).endsWith("..."), g.groupKeyAsTyped(2));
+        assertEquals("ok", g.groupKeyAsTyped(1));
+    }
+
+    @Test void clippedKeyEchoKeepsSurrogatePairsWhole() {
+        String face = "\uD83D\uDE00"; // one code point, two UTF-16 units
+        // over 256 characters; a cut at 60 would split the pair at 59-60
+        GroupedRows g = collapse(full("a".repeat(59) + face + "b".repeat(300), "a.jpg"),
+            full("b".repeat(61) + "c".repeat(300), "b.jpg"));
+        assertEquals("a".repeat(59) + "...", g.groupKeyAsTyped(0));
+        assertEquals("b".repeat(60) + "...", g.groupKeyAsTyped(1));
+    }
+
     @Test void remarksConflictMessageTellsHowToFix() {
         GroupedRows g = collapse(full("G", "a.jpg", "Encounter.researcherComments", "one"),
             bare("G", "b.jpg", "Encounter.researcherComments", "two"));
