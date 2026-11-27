@@ -523,6 +523,7 @@
   "BULK_IMPORT_SAVING_AS_DRAFT": "Enregistrement en tant que brouillon...",
   "BULK_IMPORT_STARTED_AT": "Démarré à",
   "BULK_IMPORT_ERROR_MESSAGE": "Il y a des problèmes avec vos données. Veuillez consulter les messages d’erreur affichés sous le tableau.",
+  "BULK_IMPORT_ALREADY_SUBMITTED": "This upload was already submitted. Start a new upload to import again.",
   "BULKIMPORT_ERROR_INVALID_DATEFORMAT": "Données invalides. La date doit être au format \"YYYY\", \"YYYY-MM\", \"YYYY-MM-DD\", \"YYYY-MM-DDTHH\" ou \"YYYY-MM-DDTHH:mm\" et ne peut pas être dans le futur.",
   "BULKIMPORT_ERROR_INVALID_INVALIDCOUNTRYID": "Identifiant de pays invalide.",
   "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS": "Données invalides. Doit être une date valide en millisecondes.",

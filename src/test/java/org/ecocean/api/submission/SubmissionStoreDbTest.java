@@ -3,9 +3,9 @@ package org.ecocean.api.submission;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.*;
-import org.ecocean.CommonConfiguration;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.TestPMFUtil;
+import org.ecocean.shepherd.core.TestPostgresContext;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
@@ -17,28 +17,18 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 class SubmissionStoreDbTest {
     @Container static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine");
+    private static TestPostgresContext db;
     private static Properties properties;
     private static SubmissionStore store;
-    private static java.util.Map<String, Properties> configCache;
-    private static Properties priorConfig;
     @BeforeAll static void setup() throws Exception {
-        TestPMFUtil.closePMF("context0");
-        java.lang.reflect.Field field = CommonConfiguration.class.getDeclaredField("contextToPropsCache"); field.setAccessible(true);
-        configCache = (java.util.Map<String, Properties>)field.get(null); priorConfig = configCache.get("context0");
-        CommonConfiguration.initialize("context0", new Properties());
-        properties = new Properties();
-        properties.setProperty("datanucleus.ConnectionUserName", postgres.getUsername());
-        properties.setProperty("datanucleus.ConnectionPassword", postgres.getPassword());
-        properties.setProperty("datanucleus.ConnectionDriverName", postgres.getDriverClassName());
-        properties.setProperty("datanucleus.ConnectionURL", postgres.getJdbcUrl());
-        properties.setProperty("datanucleus.schema.autoCreateAll", "true");
+        db = TestPostgresContext.open(postgres);
+        properties = db.properties;
         store = new SubmissionStore(() -> new Shepherd("context0", properties));
         // Pre-create metadata/tables before testing concurrent requests.
         store.create("context0", UUID.randomUUID().toString(), "bootstrap", create());
     }
     @AfterAll static void cleanup() {
-        TestPMFUtil.closePMF("context0");
-        if (configCache != null) { if (priorConfig == null) configCache.remove("context0"); else configCache.put("context0", priorConfig); }
+        if (db != null) db.close();
     }
     private static JSONObject create() { return new JSONObject().put("contractVersion", "1").put("source", new JSONObject().put("name", "test")); }
     private JSONObject rows(int year) { return new JSONObject().put("rows", new JSONArray().put(new JSONObject()
@@ -871,7 +861,7 @@ class SubmissionStoreDbTest {
         Run run = attributedImport(o.svcId, createFor("public"), root, () -> {}, () -> {});
         assertEquals("imported", store.get("context0", o.svcId, run.id, false, false).getString("state"));
         String encId = encounterId(o.svcId, run.id), task = taskId(o.svcId, run.id);
-        Properties config = configCache.get("context0"); Object before = config.get("collaborationSecurityEnabled");
+        Properties config = db.configuration(); Object before = config.get("collaborationSecurityEnabled");
         config.setProperty("collaborationSecurityEnabled", "true");
         try {
             read(sh -> {
@@ -889,7 +879,7 @@ class SubmissionStoreDbTest {
         Org o = org();
         Run run = attributedImport(o.svcId, createFor(o.member), root, () -> {}, () -> {});
         String encId = encounterId(o.svcId, run.id);
-        Properties config = configCache.get("context0"); Object before = config.get("collaborationSecurityEnabled");
+        Properties config = db.configuration(); Object before = config.get("collaborationSecurityEnabled");
         config.setProperty("collaborationSecurityEnabled", "true");
         try {
             boolean publiclyReadable = SubmissionStoreDbTest.<Boolean>read(sh -> sh.getEncounter(encId).opensearchAclFields(sh).getBoolean("publiclyReadable"));

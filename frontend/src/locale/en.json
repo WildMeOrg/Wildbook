@@ -521,6 +521,7 @@
     "BULK_IMPORT_SAVING_AS_DRAFT": "Saving as Draft",
     "BULK_IMPORT_STARTED_AT": "Started at",
     "BULK_IMPORT_ERROR_MESSAGE": "There are issues with your data. Please see the error messages displayed below the table.",
+    "BULK_IMPORT_ALREADY_SUBMITTED": "This upload was already submitted. Start a new upload to import again.",
     "BULKIMPORT_ERROR_INVALID_DATEFORMAT": "Invalid data. Date must be \"YYYY\", \"YYYY-MM\", \"YYYY-MM-DD\", \"YYYY-MM-DDTHH\", or \"YYYY-MM-DDTHH:mm\" and cannot be in the future.",
     "BULKIMPORT_ERROR_INVALID_INVALIDCOUNTRYID": "Invalid country ID.",
     "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS": "Invalid data. Must be a valid date in milliseconds.",

@@ -523,6 +523,7 @@
   "BULK_IMPORT_SAVING_AS_DRAFT": "Guardando como borrador...",
   "BULK_IMPORT_STARTED_AT": "Importación iniciada en",
   "BULK_IMPORT_ERROR_MESSAGE": "Hay problemas con sus datos. Por favor, consulte los mensajes de error que se muestran debajo de la tabla.",
+  "BULK_IMPORT_ALREADY_SUBMITTED": "This upload was already submitted. Start a new upload to import again.",
   "BULKIMPORT_ERROR_INVALID_DATEFORMAT": "Datos inválidos. La fecha debe tener el formato \"YYYY\", \"YYYY-MM\", \"YYYY-MM-DD\", \"YYYY-MM-DDTHH\" o \"YYYY-MM-DDTHH:mm\" y no puede estar en el futuro.",
   "BULKIMPORT_ERROR_INVALID_INVALIDCOUNTRYID": "ID de país no válido.",
   "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS": "Datos inválidos. Debe ser una fecha válida en milisegundos.",
