@@ -153,6 +153,10 @@ class BulkImportDuplicateGuardTest {
         Runnable afterDoPost = null;                   // runs after doPost, still inside this call's mocks
         Throwable mediaFailure = null;                 // UploadedFiles.makeMediaAsset throws this
         Set<Integer> commitFails = new HashSet<Integer>(); // Shepherd numbers whose commitDBTransactionWithStatus is false
+        Answer<ImportTask> finalLookup = inv -> this.held;  // getImportTask (the import's final task update)
+        Answer<ImportTask> failLookup = inv -> (this.table != null) ? this.table.get((String)inv.getArgument(0)) : this.held; // the failure writer's lookup
+        final Map<Shepherd, String> actions = new java.util.concurrent.ConcurrentHashMap<Shepherd, String>(); // setAction per Shepherd
+        HttpServletResponse httpResponse;
 
         final List<String> events = Collections.synchronizedList(new ArrayList<String>());
         final List<Runnable> launched = new ArrayList<Runnable>();
@@ -168,6 +172,18 @@ class BulkImportDuplicateGuardTest {
         JSONObject response;
 
         Call(JSONObject payload) { this.payload = payload; }
+
+        /** The one Shepherd that set this action. */
+        Shepherd byAction(String action) {
+            Shepherd found = null;
+            for (Map.Entry<Shepherd, String> e : actions.entrySet()) {
+                if (!action.equals(e.getValue())) continue;
+                assertTrue(found == null, "one Shepherd for " + action + ": " + actions.values());
+                found = e.getKey();
+            }
+            assertNotNull(found, "a Shepherd for " + action + ": " + actions.values());
+            return found;
+        }
 
         int status() { return response.getInt("statusCode"); }
         boolean archivedAny() {
@@ -188,6 +204,7 @@ class BulkImportDuplicateGuardTest {
     Call post(Call c, Consumer<Runnable> launcher) throws Exception {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
+        c.httpResponse = response;
         StringWriter out = new StringWriter();
         when(response.getWriter()).thenReturn(new PrintWriter(out));
         when(request.getRequestURI()).thenReturn("/api/v3/bulk-import");
@@ -241,6 +258,10 @@ class BulkImportDuplicateGuardTest {
                  Object context = ctx.arguments().isEmpty() ? null : ctx.arguments().get(0);
                  c.shepherdContexts.add(context);
                  c.shepherds.add(mock);
+                 doAnswer(inv -> {
+                     c.actions.put(mock, inv.getArgument(0));
+                     return null;
+                 }).when(mock).setAction(any());
                  when(mock.isDBTransactionActive()).thenAnswer(inv -> !c.inactive.contains(n));
                  if (c.beginFails.contains(n)) doThrow(new RuntimeException("cannot begin")).when(mock).beginDBTransaction();
                  when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
@@ -250,19 +271,25 @@ class BulkImportDuplicateGuardTest {
                  when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
                  when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
                  when(mock.findImportTask(any())).thenAnswer(inv -> {
+                     if ("BulkImport.markReservedFailed".equals(c.actions.get(mock))) return c.failLookup.answer(inv);
                      c.lookups++;
                      c.events.add("find:" + n);
                      if (c.table != null) return c.table.get((String)inv.getArgument(0));
                      return (lookupNumber.incrementAndGet() == 1 ? c.guardLookup : c.reserveLookup).answer(inv);
                  });
-                 when(mock.getImportTask(any())).thenAnswer(inv -> c.held);
+                 when(mock.getImportTask(any())).thenAnswer(inv -> c.finalLookup.answer(inv));
                  when(mock.getPM()).thenReturn(pm);
                  when(mock.commitDBTransactionWithStatus()).thenAnswer(inv -> {
                      c.events.add("commit:" + n);
                      return c.reserveCommits && !c.commitFails.contains(n);
                  });
                  when(mock.getContext()).thenReturn(context instanceof String ? (String)context : "context0");
-                 if (c.rollbackFails) doThrow(new RuntimeException("rollback failed")).when(mock).rollbackAndClose();
+                 // the reservation's rollback (other Shepherds close as usual)
+                 doAnswer(inv -> {
+                     if (c.rollbackFails && "BulkImport.reserveImportTask".equals(c.actions.get(mock)))
+                         throw new RuntimeException("rollback failed");
+                     return null;
+                 }).when(mock).rollbackAndClose();
              });
              MockedStatic<AdvisoryLock> lock = mockStatic(AdvisoryLock.class, CALLS_REAL_METHODS);
              MockedStatic<ServletUtilities> su = mockStatic(ServletUtilities.class, CALLS_REAL_METHODS);
@@ -444,7 +471,7 @@ class BulkImportDuplicateGuardTest {
         Shepherd undo = first.shepherds.get(2);
         InOrder order = inOrder(undo, request);
         order.verify(undo).commitDBTransactionWithStatus();
-        order.verify(request).rollbackDBTransaction();
+        order.verify(request).rollbackAndClose();
         verify(undo).closeDBTransaction();
 
         Call retry = new Call(background());
@@ -535,9 +562,7 @@ class BulkImportDuplicateGuardTest {
         c.beginFails.add(3);
         post(c);
         assertEquals(200, c.status(), "the request was accepted before the worker ran");
-        // request, reservation, worker, and the one that marks the task failed
-        assertEquals(4, c.shepherds.size(), c.shepherdContexts.toString());
-        verify(c.shepherds.get(2)).closeDBTransaction();
+        verify(c.byAction("api.Bulk.processBackground")).rollbackAndClose();
         assertEquals(0, c.importers);
         assertEquals("failed", c.held.getStatus(), "a worker that could not begin leaves no processing task");
     }
@@ -739,6 +764,7 @@ class BulkImportDuplicateGuardTest {
 
     @Test void workerRuntimeFailureMarksTheTaskFailed() throws Exception {
         Call c = new Call(withFile());
+        c.requestContext = "context1";
         c.runWorker = true;
         c.mediaFailure = new IllegalStateException("media store unavailable");
         post(c);
@@ -746,6 +772,8 @@ class BulkImportDuplicateGuardTest {
         assertEquals(1, c.mediaCreated);
         assertEquals(0, c.importers);
         assertEquals("failed", c.held.getStatus());
+        c.byAction("BulkImport.markReservedFailed");
+        for (Object context : c.shepherdContexts) assertEquals("context1", context, "the failure is written on the request's context");
     }
 
     @Test void workerErrorMarksTheTaskFailed() throws Exception {
@@ -778,7 +806,7 @@ class BulkImportDuplicateGuardTest {
         assertFalse(c.response.getBoolean("success"));
         assertEquals(1, c.persisted.size(), "the task was reserved");
         assertEquals("failed", c.held.getStatus());
-        verify(c.shepherds.get(0)).rollbackDBTransaction();
+        verify(c.shepherds.get(0)).rollbackAndClose();
     }
 
     @Test void foregroundBlockedByMediaErrorsIs400AndTaskFailedOnce() throws Exception {
@@ -794,12 +822,76 @@ class BulkImportDuplicateGuardTest {
     @Test void foregroundCommitFailureIs500AndTaskFailed() throws Exception {
         Call c = new Call(valid());
         c.commitFails.add(1);   // the request's own transaction
+        ImportTask row = existing("processing-foreground");   // the row as the rollback left it
+        c.failLookup = inv -> row;
         post(c);
         assertEquals(500, c.status());
+        verify(c.httpResponse).setStatus(500);
         assertFalse(c.response.getBoolean("success"));
         assertEquals("import could not be saved", c.response.getString("error"));
         assertEquals(1, c.importers);
+        assertEquals(0, c.deepReindexes);
+        assertEquals("failed", row.getStatus());
+        Shepherd request = c.shepherds.get(0);
+        InOrder order = inOrder(request);
+        order.verify(request).commitDBTransactionWithStatus();
+        order.verify(request).rollbackAndClose();
+        verify(request, never()).closeDBTransaction();
+    }
+
+    @Test void failureWriterLeavesAFinishedTaskAlone() throws Exception {
+        Call c = new Call(valid());
+        c.commitFails.add(1);
+        ImportTask done = existing("complete");   // finished (or replaced) since the reservation
+        c.failLookup = inv -> done;
+        post(c);
+        assertEquals(500, c.status());
+        assertEquals("complete", done.getStatus());
+        assertEquals(0, countLog(done, "status: failed"));
+        Shepherd writer = c.byAction("BulkImport.markReservedFailed");
+        verify(writer, never()).commitDBTransactionWithStatus();
+        verify(writer).rollbackAndClose();
+    }
+
+    @Test void workerMissingTaskAfterImportIsFailed() throws Exception {
+        Call c = new Call(background());
+        c.runWorker = true;
+        c.finalLookup = inv -> null;   // the import ran, the task's final update cannot load it
+        post(c);
+        assertEquals(200, c.status());
+        assertEquals(1, c.importers);
+        Shepherd worker = c.byAction("api.Bulk.processBackground");
+        verify(worker, never()).commitDBTransactionWithStatus();
+        verify(worker).rollbackAndClose();
         assertEquals("failed", c.held.getStatus());
+        assertEquals(0, c.deepReindexes);
+    }
+
+    @Test void foregroundMissingTaskAfterImportIs500AndFailed() throws Exception {
+        Call c = new Call(valid());
+        c.finalLookup = inv -> null;
+        post(c);
+        assertEquals(500, c.status());
+        verify(c.httpResponse).setStatus(500);
+        assertFalse(c.response.getBoolean("success"));
+        assertEquals(1, c.importers);
+        Shepherd request = c.shepherds.get(0);
+        verify(request, never()).commitDBTransactionWithStatus();
+        verify(request).rollbackAndClose();
+        assertEquals("failed", c.held.getStatus());
+        assertEquals(0, c.deepReindexes);
+    }
+
+    @Test void failedUndoAfterLaunchFailureMarksTheTaskFailed() throws Exception {
+        Call c = new Call(background());
+        c.launchFails = true;
+        c.commitFails.add(3);   // the undo cannot commit its delete
+        post(c);
+        assertEquals(500, c.status());
+        String error = c.response.getString("error");
+        assertTrue(error.contains("cannot start a thread"), "the launch failure is reported: " + error);
+        assertEquals(0, c.importers);
+        assertEquals("failed", c.held.getStatus(), "the task that could not be removed is not left processing");
     }
 
     @Test void foregroundDuplicateLeavesTheExistingTaskAlone() throws Exception {
@@ -818,12 +910,13 @@ class BulkImportDuplicateGuardTest {
         Call c = new Call(background());
         c.runWorker = true;
         c.commitFails.add(3);   // the worker's own transaction; the request and reservation commit
+        ImportTask row = existing("processing-background");   // the row as the rollback left it
+        c.failLookup = inv -> row;
         post(c);
         assertEquals(200, c.status(), "the request was accepted before the worker ran");
         assertEquals(1, c.importers, "the worker imported");
-        verify(c.shepherds.get(2)).rollbackDBTransaction();
-        verify(c.shepherds.get(2)).closeDBTransaction();
-        assertEquals("failed", c.held.getStatus(), "the unsaved import is not left complete or processing");
+        verify(c.byAction("api.Bulk.processBackground")).rollbackAndClose();
+        assertEquals("failed", row.getStatus(), "the unsaved import is not left processing");
         assertEquals(0, c.deepReindexes, "nothing saved, nothing reindexed");
         assertTrue(c.archived.stream().anyMatch(a -> a.contains("backgroundComplete_failed")), c.archived.toString());
         assertFalse(c.archived.stream().anyMatch(a -> a.contains("backgroundComplete_success")), c.archived.toString());
@@ -834,8 +927,10 @@ class BulkImportDuplicateGuardTest {
         c.runWorker = true;
         post(c);
         assertEquals(200, c.status());
-        verify(c.shepherds.get(2)).commitDBTransactionWithStatus();
-        verify(c.shepherds.get(2), never()).rollbackDBTransaction();
+        Shepherd worker = c.byAction("api.Bulk.processBackground");
+        verify(worker).commitDBTransactionWithStatus();
+        verify(worker, never()).rollbackAndClose();
+        verify(worker).closeDBTransaction();
         assertEquals("complete", c.held.getStatus());
         assertEquals(1, c.deepReindexes);
         assertTrue(c.archived.stream().anyMatch(a -> a.contains("backgroundComplete_success")), c.archived.toString());
@@ -852,21 +947,8 @@ class BulkImportDuplicateGuardTest {
         Shepherd request = c.shepherds.get(0);
         InOrder order = inOrder(request);
         order.verify(request).commitDBTransactionWithStatus();
-        order.verify(request).rollbackDBTransaction();
-        order.verify(request).closeDBTransaction();
-    }
-
-    @Test void foregroundCommitFailureRollsBackBeforeClose() throws Exception {
-        Call c = new Call(valid());
-        c.commitFails.add(1);
-        post(c);
-        assertEquals(500, c.status());
-        assertEquals(0, c.deepReindexes);
-        Shepherd request = c.shepherds.get(0);
-        InOrder order = inOrder(request);
-        order.verify(request).commitDBTransactionWithStatus();
-        order.verify(request).rollbackDBTransaction();
-        order.verify(request).closeDBTransaction();
+        order.verify(request).rollbackAndClose();
+        verify(c.httpResponse).setStatus(200);
     }
 
     static int countLog(ImportTask t, String text) {

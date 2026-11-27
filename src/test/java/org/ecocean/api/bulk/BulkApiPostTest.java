@@ -14,6 +14,7 @@ import org.ecocean.LocationID;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.shepherd.core.AdvisoryLock;
+import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.User;
@@ -71,6 +72,8 @@ class BulkApiPostTest {
         when(sh.getPM()).thenReturn(pm);
         when(sh.isDBTransactionActive()).thenReturn(true);
         when(sh.commitDBTransactionWithStatus()).thenReturn(true);
+        // the foreground import's final task update loads the reserved task
+        when(sh.getImportTask(any())).thenReturn(new ImportTask(null, "reserved"));
     }
 
     @AfterEach void closeLock() {
