@@ -164,6 +164,9 @@ public class BulkImport extends ApiBase {
         // GH-1514: hoisted so the finally block can queue a post-commit deep
         // reindex of individuals the foreground importer touched.
         BulkImporter fgImporter = null;
+        // set once this request has reserved a foreground task: the finally marks it failed
+        // unless the import commits (a background task is the worker's, or the launch undo's)
+        boolean fgReserved = false;
         long startProcess = System.currentTimeMillis();
         Shepherd myShepherd = null;
 
@@ -478,6 +481,7 @@ public class BulkImport extends ApiBase {
                 reserveImportTask(context, bulkImportId, currentUser, payload,
                     processInBackground ? "processing-background" : "processing-foreground",
                     boxedImport);
+                if (!processInBackground) fgReserved = true;
                 if (processInBackground) {
                     // these need to be final
                     final boolean bgToleranceFailImportOnError = toleranceFailImportOnError;
@@ -576,9 +580,6 @@ public class BulkImport extends ApiBase {
                                         }
                                         bgShepherd.storeNewImportTask(itask);
                                     }
-                                } else {
-                                    // i think errors will be set on task at this point
-                                    importTaskSet(bulkImportId, "failed", null, null);
                                 }
                                 // taskShepherd.storeNewImportTask(bgTask);
                             } catch (Exception ex) {
@@ -587,12 +588,18 @@ public class BulkImport extends ApiBase {
                                     bulkImportId + "failed with: " + ex);
                                 ex.printStackTrace();
                             } finally {
-                                if (success) {
-                                    bgShepherd.commitDBTransaction();
-                                } else {
-                                    bgShepherd.rollbackDBTransaction();
+                                try {
+                                    if (success) {
+                                        bgShepherd.commitDBTransaction();
+                                    } else {
+                                        bgShepherd.rollbackDBTransaction();
+                                    }
+                                    bgShepherd.closeDBTransaction();
+                                } finally {
+                                    // any ending without success (an exception, an Error, blocked
+                                    // by media errors) leaves the reserved task failed, not processing
+                                    if (!success) importTaskSet(bulkImportId, "failed", null, null);
                                 }
-                                bgShepherd.closeDBTransaction();
                                 // GH-1514: post-commit, queue deep reindex of touched
                                 // individuals so sibling encounters pick up refreshed
                                 // individualNumberEncounters. The bulkOpensearchIndex
@@ -652,7 +659,8 @@ public class BulkImport extends ApiBase {
                     }
                     rtn.put("numberMediaAssetsCreated", maMap.size());
                     if (blockedByMAErrors) {
-                        importTaskSet(bulkImportId, "failed", null, dataErrors);
+                        // the errors only: the finally marks the task failed
+                        importTaskSet(bulkImportId, null, null, dataErrors);
                         rtn.put("success", false);
                         statusCode = 400;
                     } else {
@@ -726,14 +734,24 @@ public class BulkImport extends ApiBase {
             statusCode = 500;
             ex.printStackTrace();
         } finally {
+            boolean committed = false;
             if (myShepherd != null) {
                 if ((statusCode == 200) && !validateOnly) {
-                    myShepherd.commitDBTransaction();
+                    committed = myShepherd.commitDBTransactionWithStatus();
+                    if (!committed) {
+                        // the import (and the task's final status) was not saved
+                        myShepherd.rollbackDBTransaction();
+                        statusCode = 500;
+                        rtn.put("success", false);
+                        rtn.put("error", "import could not be saved");
+                    }
                 } else {
                     myShepherd.rollbackDBTransaction();
                 }
                 myShepherd.closeDBTransaction();
             }
+            // a foreground task this request reserved: anything but a saved import is a failure
+            if (fgReserved && !committed) importTaskSet(dupId, "failed", null, null);
             // GH-1514: post-commit, queue deep reindex of individuals touched by
             // the foreground import so sibling encounters refresh individualNumberEncounters.
             if ((statusCode == 200) && !validateOnly && (fgImporter != null)) {

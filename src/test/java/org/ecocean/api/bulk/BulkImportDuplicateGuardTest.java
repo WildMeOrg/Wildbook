@@ -151,6 +151,8 @@ class BulkImportDuplicateGuardTest {
         Map<String, ImportTask> table = null;          // when set: lookups read it, persist adds, delete removes
         Set<Integer> constructFails = new HashSet<Integer>(); // Shepherd numbers whose construction throws
         Runnable afterDoPost = null;                   // runs after doPost, still inside this call's mocks
+        Throwable mediaFailure = null;                 // UploadedFiles.makeMediaAsset throws this
+        Set<Integer> commitFails = new HashSet<Integer>(); // Shepherd numbers whose commitDBTransactionWithStatus is false
 
         final List<String> events = Collections.synchronizedList(new ArrayList<String>());
         final List<Runnable> launched = new ArrayList<Runnable>();
@@ -257,7 +259,7 @@ class BulkImportDuplicateGuardTest {
                  when(mock.getPM()).thenReturn(pm);
                  when(mock.commitDBTransactionWithStatus()).thenAnswer(inv -> {
                      c.events.add("commit:" + n);
-                     return c.reserveCommits;
+                     return c.reserveCommits && !c.commitFails.contains(n);
                  });
                  when(mock.getContext()).thenReturn(context instanceof String ? (String)context : "context0");
                  if (c.rollbackFails) doThrow(new RuntimeException("rollback failed")).when(mock).rollbackAndClose();
@@ -293,6 +295,7 @@ class BulkImportDuplicateGuardTest {
             });
             files.when(() -> UploadedFiles.makeMediaAsset(any(String.class), any(File.class), any(Shepherd.class))).thenAnswer(inv -> {
                 c.mediaCreated++;
+                if (c.mediaFailure != null) throw c.mediaFailure;
                 return null;
             });
             stores.when(() -> AssetStore.getDefault(any(Shepherd.class))).thenReturn(mock(AssetStore.class));
@@ -526,9 +529,11 @@ class BulkImportDuplicateGuardTest {
         c.beginFails.add(3);
         post(c);
         assertEquals(200, c.status(), "the request was accepted before the worker ran");
-        assertEquals(3, c.shepherds.size(), c.shepherdContexts.toString());
+        // request, reservation, worker, and the one that marks the task failed
+        assertEquals(4, c.shepherds.size(), c.shepherdContexts.toString());
         verify(c.shepherds.get(2)).closeDBTransaction();
         assertEquals(0, c.importers);
+        assertEquals("failed", c.held.getStatus(), "a worker that could not begin leaves no processing task");
     }
 
     @Test void creatorNotLoadableIs500() throws Exception {
@@ -566,13 +571,13 @@ class BulkImportDuplicateGuardTest {
         Shepherd reservation = c.shepherds.get(1);
         InOrder order = inOrder(reservation, request);
         order.verify(reservation).commitDBTransactionWithStatus();
-        order.verify(request).commitDBTransaction();
+        order.verify(request).commitDBTransactionWithStatus();
         order.verify(request).closeDBTransaction();
         // that commit and close are the request transaction's only end, so none came before the reservation's
-        verify(request, times(1)).commitDBTransaction();
+        verify(request, times(1)).commitDBTransactionWithStatus();
         verify(request, times(1)).closeDBTransaction();
         verify(request, never()).updateDBTransaction();
-        verify(request, never()).commitDBTransactionWithStatus();
+        verify(request, never()).commitDBTransaction();
         verify(request, never()).rollbackDBTransaction();
         verify(request, never()).rollbackAndClose();
     }
@@ -649,7 +654,7 @@ class BulkImportDuplicateGuardTest {
         List<String> order = new ArrayList<String>();
         for (String e : c.events) if (!e.startsWith("archive:")) order.add(e);
         // shepherd 1 is the request's; shepherd 2 is the reservation's own
-        assertEquals(Arrays.asList("lock", "find:1", "find:2", "persist:processing-background", "commit:2", "launch"), order);
+        assertEquals(Arrays.asList("lock", "find:1", "find:2", "persist:processing-background", "commit:2", "launch", "commit:1"), order);
         ImportTask t = c.persisted.get(0);
         assertEquals(BULK_ID, t.getId());
         assertEquals("processing-background", t.getStatus());
@@ -719,5 +724,94 @@ class BulkImportDuplicateGuardTest {
         assertEquals(200, a.status());
         assertEquals(1, a.launched.size());
         assertEquals(1, a.persisted.size());
+    }
+
+    /** withFile(), processed in the request (foreground). */
+    static JSONObject foregroundWithFile() {
+        return withFile().put("processInBackground", false);
+    }
+
+    @Test void workerRuntimeFailureMarksTheTaskFailed() throws Exception {
+        Call c = new Call(withFile());
+        c.runWorker = true;
+        c.mediaFailure = new IllegalStateException("media store unavailable");
+        post(c);
+        assertEquals(200, c.status(), "the request was accepted before the worker ran");
+        assertEquals(1, c.mediaCreated);
+        assertEquals(0, c.importers);
+        assertEquals("failed", c.held.getStatus());
+    }
+
+    @Test void workerErrorMarksTheTaskFailed() throws Exception {
+        Call c = new Call(withFile());
+        c.mediaFailure = new OutOfMemoryError("worker ran out of memory");
+        AtomicReference<Throwable> thrown = new AtomicReference<Throwable>();
+        post(c, r -> {
+            try { r.run(); } catch (Error e) { thrown.set(e); }
+        });
+        assertEquals(200, c.status());
+        assertTrue(thrown.get() instanceof OutOfMemoryError, "the Error left the worker: " + thrown.get());
+        assertEquals("failed", c.held.getStatus());
+    }
+
+    @Test void workerBlockedByMediaErrorsMarksTheTaskFailedOnce() throws Exception {
+        Call c = new Call(withFile());
+        c.runWorker = true;
+        c.mediaFailure = new ApiException("bad image", new JSONObject().put("code", "INVALID"));
+        post(c);
+        assertEquals(200, c.status());
+        assertEquals("failed", c.held.getStatus());
+        assertEquals(1, countLog(c.held, "status: failed"), c.held.getLog().toString());
+    }
+
+    @Test void foregroundRuntimeFailureIs500AndTaskFailed() throws Exception {
+        Call c = new Call(foregroundWithFile());
+        c.mediaFailure = new IllegalStateException("media store unavailable");
+        post(c);
+        assertEquals(500, c.status());
+        assertFalse(c.response.getBoolean("success"));
+        assertEquals(1, c.persisted.size(), "the task was reserved");
+        assertEquals("failed", c.held.getStatus());
+        verify(c.shepherds.get(0)).rollbackDBTransaction();
+    }
+
+    @Test void foregroundBlockedByMediaErrorsIs400AndTaskFailedOnce() throws Exception {
+        Call c = new Call(foregroundWithFile());
+        c.mediaFailure = new ApiException("bad image", new JSONObject().put("code", "INVALID"));
+        post(c);
+        assertEquals(400, c.status());
+        assertEquals("failed", c.held.getStatus());
+        assertEquals(1, countLog(c.held, "status: failed"), c.held.getLog().toString());
+        assertNotNull(c.held.getErrors(), "the media errors are on the task");
+    }
+
+    @Test void foregroundCommitFailureIs500AndTaskFailed() throws Exception {
+        Call c = new Call(valid());
+        c.commitFails.add(1);   // the request's own transaction
+        post(c);
+        assertEquals(500, c.status());
+        assertFalse(c.response.getBoolean("success"));
+        assertEquals("import could not be saved", c.response.getString("error"));
+        assertEquals(1, c.importers);
+        assertEquals("failed", c.held.getStatus());
+    }
+
+    @Test void foregroundDuplicateLeavesTheExistingTaskAlone() throws Exception {
+        Call c = new Call(valid());
+        ImportTask other = existing("processing-foreground");
+        c.reserveLookup = inv -> other;
+        c.held = other;   // what any later getImportTask would load
+        post(c);
+        assertEquals(409, c.status());
+        assertEquals("processing-foreground", other.getStatus());
+        assertEquals(0, countLog(other, "status: failed"));
+        assertEquals(0, c.importers);
+    }
+
+    static int countLog(ImportTask t, String text) {
+        int n = 0;
+        if (t.getLog() == null) return 0;
+        for (Object entry : t.getLog()) if (String.valueOf(entry).contains(text)) n++;
+        return n;
     }
 }
