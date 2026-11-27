@@ -733,7 +733,12 @@ class BulkApiPostTest {
         requestBody = addToRows(requestBody, "Sighting.numSubMales", 4);
         requestBody = addToRows(requestBody, "Sighting.numSubFemales", 5);
         requestBody = addToRows(requestBody, "Sighting.numSubAdults", 6);
-        requestBody = addToRows(requestBody, "Sighting.wp", 7);
+        // wp as text: the server converts it to an Integer
+        requestBody = addToRows(requestBody, "Sighting.wp", "7");
+        requestBody = addToRows(requestBody, "Sighting.numAdults", 8);
+        requestBody = addToRows(requestBody, "Sighting.seaState", 3);
+        requestBody = addToRows(requestBody, "Sighting.observer", "obs-1");
+        requestBody = addToRows(requestBody, "Sighting.visibilityIndex", "4");
 
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
@@ -768,7 +773,12 @@ class BulkApiPostTest {
                     assertTrue(occ.getNumSubMales() == 4);
                     assertTrue(occ.getNumSubFemales() == 5);
                     assertTrue(occ.getNumSubAdults() == 6);
-                    assertTrue(occ.getWp() == 7);
+                    assertEquals(Integer.valueOf(7), occ.getWp());
+                    assertEquals(Integer.valueOf(8), occ.getNumAdults());
+                    assertNull(occ.getIndividualCount());
+                    assertEquals("3", occ.getSeaState());
+                    assertEquals("obs-1", occ.getObserver());
+                    assertEquals(Double.valueOf(4.0), occ.getVisibilityIndex());
                 }
             }
         }

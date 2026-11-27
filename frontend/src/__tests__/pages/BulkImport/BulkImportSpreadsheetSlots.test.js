@@ -3,6 +3,7 @@ import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { BulkImportSpreadsheet } from "../../../pages/BulkImport/BulkImportSpreadsheet";
 import BulkImportStore from "../../../pages/BulkImport/BulkImportStore";
 import { renderWithProviders } from "../../../utils/utils";
+import { boxStore, uploadCsv } from "../../../__fixtures__/bulkImportUpload";
 import * as XLSX from "xlsx";
 
 jest.mock("@flowjs/flow.js", () =>
@@ -18,19 +19,7 @@ const A0 = "Encounter.mediaAsset0";
 const A1 = "Encounter.mediaAsset1";
 const A2 = "Encounter.mediaAsset2";
 
-const upload = async (csv) => {
-  const store = new BulkImportStore();
-  store.setIndexableFields([
-    "Encounter.mediaAsset#",
-    "Encounter.mediaAsset#.bbox",
-  ]);
-  renderWithProviders(<BulkImportSpreadsheet store={store} />);
-  fireEvent.change(screen.getByTestId("spreadsheet-input"), {
-    target: { files: [new File([csv], "sheet.csv", { type: "text/csv" })] },
-  });
-  await waitFor(() => expect(store.spreadsheetData.length).toBe(1));
-  return store;
-};
+jest.setTimeout(30000);
 
 describe("BulkImportSpreadsheet photo slots", () => {
   test("a sheet dropped before site settings load is ignored, then parses with slots", async () => {
@@ -56,7 +45,7 @@ describe("BulkImportSpreadsheet photo slots", () => {
   });
 
   test("a boxed sheet keeps numbered photo columns unmerged", async () => {
-    const store = await upload(
+    const store = await uploadCsv(
       `${A0},${A2},${A0}.bbox\na.jpg,c.jpg,"1,2,3,4"\n`,
     );
     expect(store.columnsDef).toEqual(expect.arrayContaining([A0, A2]));
@@ -65,7 +54,7 @@ describe("BulkImportSpreadsheet photo slots", () => {
   });
 
   test("a box with three-digit groups stays text, not a thousands number", async () => {
-    const store = await upload(
+    const store = await uploadCsv(
       `${A0},${A0}.bbox,${A0}.theta\na.jpg,"362,285,296,342",0.3\n`,
     );
     expect(store.spreadsheetData[0][`${A0}.bbox`]).toBe("362,285,296,342");
@@ -73,22 +62,13 @@ describe("BulkImportSpreadsheet photo slots", () => {
   });
 
   test("box text survives across rows with blanks; theta stays a number", async () => {
-    const store = new BulkImportStore();
-    store.setIndexableFields([
-      "Encounter.mediaAsset#",
-      "Encounter.mediaAsset#.bbox",
-    ]);
-    renderWithProviders(<BulkImportSpreadsheet store={store} />);
     const csv =
       `${A0},${A0}.bbox,${A0}.theta,${A0}.bboxSource\n` +
       `a.jpg,"362,285,296,342",0.3,00123\n` +
       `,,,\n` +
       `b.jpg,,,\n` +
       `c.jpg,"40,34,514,695",,\n`;
-    fireEvent.change(screen.getByTestId("spreadsheet-input"), {
-      target: { files: [new File([csv], "sheet.csv", { type: "text/csv" })] },
-    });
-    await waitFor(() => expect(store.spreadsheetData.length).toBe(3));
+    const store = await uploadCsv(csv, 3);
     const rows = store.spreadsheetData;
     expect(rows.map((r) => r[`${A0}.bbox`])).toEqual([
       "362,285,296,342",
@@ -109,11 +89,7 @@ describe("BulkImportSpreadsheet photo slots", () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "S");
     const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" });
-    const store = new BulkImportStore();
-    store.setIndexableFields([
-      "Encounter.mediaAsset#",
-      "Encounter.mediaAsset#.bbox",
-    ]);
+    const store = boxStore();
     renderWithProviders(<BulkImportSpreadsheet store={store} />);
     fireEvent.change(screen.getByTestId("spreadsheet-input"), {
       target: { files: [new File([buf], "sheet.xlsx")] },
@@ -126,9 +102,79 @@ describe("BulkImportSpreadsheet photo slots", () => {
   });
 
   test("an un-boxed sheet still merges photos into slot 0", async () => {
-    const store = await upload(`${A0},${A1}\na.jpg,b.jpg\n`);
+    const store = await uploadCsv(`${A0},${A1}\na.jpg,b.jpg\n`);
     expect(store.columnsDef).toContain(A0);
     expect(store.columnsDef).not.toContain(A1);
     expect(store.spreadsheetData[0][A0]).toBe("a.jpg, b.jpg");
+  });
+
+  test("occurrenceAndSightingColumnsCollide", async () => {
+    const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+    const store = await uploadCsv(`${A0},Encounter.sex\na.jpg,male\n`);
+    expect(store.spreadsheetData.length).toBe(1);
+    // the drop zone returns once progress is back at 0; stale data stays
+    act(() => store.setSpreadsheetUploadProgress(0));
+    const csv = `Occurrence.comments,Sighting.comments,${A0}\nx,y,a.jpg\n`;
+    fireEvent.change(screen.getByTestId("spreadsheet-input"), {
+      target: { files: [new File([csv], "bad.csv", { type: "text/csv" })] },
+    });
+    await waitFor(() =>
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '"Occurrence.comments" and "Sighting.comments"',
+        ),
+      ),
+    );
+    expect(store.spreadsheetData).toEqual([]);
+    expect(store.rawData).toEqual([]);
+    alertSpy.mockRestore();
+  });
+
+  test("an Excel header shown as Occurrence.comments collides with Sighting.comments", async () => {
+    // the first header cell holds the number 1, formatted to show
+    // "Occurrence.comments"; the object-mode read keys that column by the shown text
+    const ws = XLSX.utils.aoa_to_sheet([
+      [1, "Sighting.comments", A0],
+      ["x", "y", "a.jpg"],
+    ]);
+    ws.A1.z = '"Occurrence.comments"';
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "S");
+    const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" });
+    const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+    const store = boxStore();
+    renderWithProviders(<BulkImportSpreadsheet store={store} />);
+    fireEvent.change(screen.getByTestId("spreadsheet-input"), {
+      target: { files: [new File([buf], "formatted.xlsx")] },
+    });
+    await waitFor(() =>
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '"Occurrence.comments" and "Sighting.comments"',
+        ),
+      ),
+    );
+    expect(store.spreadsheetData).toEqual([]);
+    expect(store.rawData).toEqual([]);
+    alertSpy.mockRestore();
+  });
+
+  test("a sheet whose rows are all blank keeps its headers", async () => {
+    const store = await uploadCsv(`Occurrence.comments,${A0}\n , \n`, 0);
+    expect(store.rawColumns).toEqual(["Sighting.comments", A0]);
+    expect(store.columnsDef).toEqual(
+      expect.arrayContaining(["Sighting.comments", A0]),
+    );
+  });
+
+  test("editAfterBlankRowLandsOnSameRawRow", async () => {
+    const store = await uploadCsv(
+      `Encounter.sex,${A0}\nmale,a.jpg\n , \nfemale,b.jpg\n`,
+      2,
+    );
+    expect(store.rawData.length).toBe(2);
+    store.updateCellValue(1, "Encounter.sex", "unknown");
+    expect(store.rawData[1]["Encounter.sex"]).toBe("unknown");
+    expect(store.rawData[0]["Encounter.sex"]).toBe("male");
   });
 });

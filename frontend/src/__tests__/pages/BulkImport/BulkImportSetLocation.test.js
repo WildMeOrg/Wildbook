@@ -61,7 +61,8 @@ describe("BulkImportSetLocation", () => {
       setLocationID: jest.fn(),
       updateRawFromNormalizedRow: jest.fn(),
       clearSubmissionErrors: jest.fn(),
-      rawColumns: ["col1"],
+      rawColumns: ["col1", "Encounter.seconds"],
+      submittableColumns: ["col1"],
       rawData: [["data1"]],
       spreadsheetFileName: "test.xlsx",
       skipDetection: false,
@@ -121,6 +122,9 @@ describe("BulkImportSetLocation", () => {
 
     expect(store.updateRawFromNormalizedRow).toHaveBeenCalled();
     expect(store.clearSubmissionErrors).toHaveBeenCalled();
+    // the button posts the submittable columns, not the uploaded headers
+    expect(submitMock).toHaveBeenCalledTimes(1);
+    expect(submitMock.mock.calls[0][1]).toEqual(["col1"]);
 
     expect(await screen.findByTestId("success-modal")).toBeInTheDocument();
     const modal = await screen.findByTestId("success-modal");
@@ -128,6 +132,24 @@ describe("BulkImportSetLocation", () => {
     expect(modal).toHaveTextContent("2025-07-14");
 
     expect(localStorage.getItem("lastBulkImportTask")).toBe("123");
+  });
+
+  it("does not submit when the grid and source rows differ", async () => {
+    store.spreadsheetData = [
+      { "Encounter.locationID": "loc1" },
+      { "Encounter.locationID": "loc1" },
+    ];
+    store.rawData = [{ "Encounter.locationID": "loc1" }];
+    localStorage.setItem("BulkImportStore", "{}");
+    render(<BulkImportSetLocation store={store} />);
+    const startBtn = screen.getByText(/START_BULK_IMPORT/).closest("button");
+    expect(startBtn).toBeDisabled();
+    await act(async () => {
+      fireEvent.click(startBtn);
+    });
+    expect(submitMock).not.toHaveBeenCalled();
+    expect(localStorage.getItem("BulkImportStore")).toBe("{}");
+    localStorage.removeItem("BulkImportStore");
   });
 
   it("submits import and shows failure modal on status 400", async () => {
@@ -181,6 +203,13 @@ describe("BulkImportSetLocation", () => {
 
   it("disables START button when validation errors exist", () => {
     store.validationErrors = [{}];
+    render(<BulkImportSetLocation store={store} />);
+    const startBtn = screen.getByText(/START_BULK_IMPORT/).closest("button");
+    expect(startBtn).toBeDisabled();
+  });
+
+  it("disables START button for a sheet with no data rows", () => {
+    store.spreadsheetData = [];
     render(<BulkImportSetLocation store={store} />);
     const startBtn = screen.getByText(/START_BULK_IMPORT/).closest("button");
     expect(startBtn).toBeDisabled();

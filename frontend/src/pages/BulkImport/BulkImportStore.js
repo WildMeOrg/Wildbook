@@ -12,6 +12,7 @@ import {
   allColumns,
   latlongRule,
   parseEncounterDateString,
+  FLEXIBLE_DATE_RE,
 } from "./BulkImportConstants";
 import { defaultMaxMediaSize } from "../../constants/photoUpload.js";
 import {
@@ -23,6 +24,59 @@ import {
   javaTrim,
 } from "./bulkImportSlots";
 import { toast } from "react-toastify";
+import {
+  DATE_PARTS,
+  dateDisplayMapFor,
+  datePrefixOf,
+  isNonEmpty,
+  YEAR_COLUMNS,
+} from "./bulkImportHeaders";
+
+// date-in-milliseconds columns: each stands in for the calendar date
+const MILLIS_COLUMNS = [
+  "Encounter.dateInMilliseconds",
+  "Sighting.dateInMilliseconds",
+  "Sighting.millis",
+];
+// never sent: the server's date has no seconds part
+const UNSENT_COLUMNS = ["Encounter.seconds", "Sighting.seconds"];
+// the server reads a millis cell with Java Long.valueOf: a signed whole number in
+// [Long.MIN_VALUE, now]; compared as BigInt, since Number loses precision past 2^53
+const LONG_MIN = BigInt("-9223372036854775808");
+const isValidMillisText = (str) =>
+  /^[-+]?\d+$/.test(str) &&
+  BigInt(str) >= LONG_MIN &&
+  BigInt(str) <= BigInt(Date.now());
+
+// a date cell (FLEXIBLE_DATE_RE, the same strings write-back reads) that is a real,
+// non-future date
+const isValidDateCell = (val) => {
+  const m = String(val ?? "")
+    .trim()
+    .match(FLEXIBLE_DATE_RE);
+  if (!m) return false;
+  const [, year, month, day, hour, minute] = m;
+  let normalized = year;
+  let format = "YYYY";
+  if (month !== undefined) {
+    normalized += "-" + month.padStart(2, "0");
+    format += "-MM";
+  }
+  if (day !== undefined) {
+    normalized += "-" + day.padStart(2, "0");
+    format += "-DD";
+  }
+  if (hour !== undefined) {
+    normalized += "T" + hour.padStart(2, "0");
+    format += "[T]HH";
+  }
+  if (minute !== undefined) {
+    normalized += ":" + minute.padStart(2, "0");
+    format += ":mm";
+  }
+  const parsed = dayjs(normalized, format, true);
+  return parsed.isValid() && !parsed.isAfter(dayjs());
+};
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
@@ -113,59 +167,13 @@ export class BulkImportStore {
     },
     "Encounter.year": {
       required: true,
-      validate: (val) => {
-        if (val == null) return false;
-        const FLEXIBLE_DATE_RE =
-          /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2})(?:T(\d{1,2})(?::(\d{1,2}))?)?)?)?$/;
-
-        const str = String(val).trim();
-        if (!str) return false;
-
-        const m = str.match(FLEXIBLE_DATE_RE);
-        if (!m) {
-          return false;
-        }
-
-        const [, year, month, day, hour, minute] = m;
-
-        let normalized = year;
-        let format = "YYYY";
-
-        if (month !== undefined) {
-          normalized += "-" + month.padStart(2, "0");
-          format += "-MM";
-        }
-
-        if (day !== undefined) {
-          normalized += "-" + day.padStart(2, "0");
-          format += "-DD";
-        }
-
-        if (hour !== undefined) {
-          normalized += "T" + hour.padStart(2, "0");
-          format += "[T]HH";
-        }
-
-        if (minute !== undefined) {
-          normalized += ":" + minute.padStart(2, "0");
-          format += ":mm";
-        }
-        const parsed = dayjs(normalized, format, true);
-        return parsed.isValid() && !parsed.isAfter(dayjs());
-      },
+      validate: isValidDateCell,
       message: "BULKIMPORT_ERROR_INVALID_DATEFORMAT",
     },
 
     "Sighting.year": {
       required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        const FORMATS = ["YYYY", "YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH:mm"];
-        const parsed = dayjs(val, FORMATS, true);
-        return parsed.isValid() && !parsed.isAfter(dayjs());
-      },
+      validate: (val) => !val || isValidDateCell(val),
       message: "BULKIMPORT_ERROR_INVALID_DATEFORMAT",
     },
     "Encounter.genus": {
@@ -179,19 +187,7 @@ export class BulkImportStore {
     "Encounter.latitude": latlongRule,
     "Sighting.decimalLatitude": latlongRule,
 
-    "Sighting.dateInMilliseconds": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        const num = Number(val);
-        if (isNaN(num)) return false;
-        const dt = new Date(num);
-        return !isNaN(dt.getTime());
-      },
-      message: "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
-    },
+    "Sighting.dateInMilliseconds": this.millisRule(),
     "Encounter.locationID": {
       required: true,
       validate: (value) => {
@@ -284,33 +280,9 @@ export class BulkImportStore {
       },
       message: "BULKIMPORT_ERROR_INVALID_INVALIDEAMILADDRESS",
     },
-    "Encounter.dateInMilliseconds": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        const num = Number(val);
-        if (isNaN(num)) return false;
-        const dt = new Date(num);
-        return !isNaN(dt.getTime());
-      },
-      message: "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
-    },
+    "Encounter.dateInMilliseconds": this.millisRule(),
 
-    "Sighting.millis": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        const num = Number(val);
-        if (isNaN(num)) return false;
-        const dt = new Date(num);
-        return !isNaN(dt.getTime());
-      },
-      message: "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
-    },
+    "Sighting.millis": this.millisRule(),
   };
 
   constructor() {
@@ -414,6 +386,66 @@ export class BulkImportStore {
     return this._rawColumns;
   }
 
+  // which display column shows which prefix's date; derived from the source headers only
+  get dateDisplayMap() {
+    return dateDisplayMapFor(this._rawColumns);
+  }
+
+  get dateDisplaySource() {
+    return this.dateDisplayMap["Encounter.year"] ?? null;
+  }
+
+  // the display column showing a <prefix>.year|month|day|hour|minutes field, else null
+  dateDisplayColumnFor(field) {
+    const prefix = datePrefixOf(field);
+    if (!prefix) return null;
+    const hit = Object.entries(this.dateDisplayMap).find(
+      ([, p]) => p === prefix,
+    );
+    return hit ? hit[0] : null;
+  }
+
+  // the columns sent on submit: the uploaded headers, then any part of a mapped date
+  // prefix that a row now has a value for (an edited date), each once; never
+  // Encounter/Sighting.seconds. rawColumns itself is never changed by an edit.
+  get submittableColumns() {
+    const populated = Object.values(this.dateDisplayMap)
+      .flatMap((prefix) => DATE_PARTS.map((part) => `${prefix}.${part}`))
+      .filter((col) => this._rawData.some((row) => isNonEmpty(row?.[col])));
+    return [...new Set([...this._rawColumns, ...populated])].filter(
+      (col) => !UNSENT_COLUMNS.includes(col),
+    );
+  }
+
+  // the server needs a year or a millis value on every row: with no calendar year
+  // column, each row's millis cell is required, a whole number, and not in the future
+  millisRule() {
+    const blank = (val) => !isNonEmpty(val);
+    return {
+      required: false,
+      validate: (val) => {
+        if (blank(val)) {
+          return this._rawColumns.some((c) => YEAR_COLUMNS.includes(c));
+        }
+        // write-back trims the posted millis cell, so the trimmed text is what is sent
+        return isValidMillisText(String(val).trim());
+      },
+      message: (val) =>
+        blank(val)
+          ? "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD"
+          : "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
+    };
+  }
+
+  // the combined date cell is not editable next to a millis column: an edit would add
+  // calendar columns that the server rejects as synonyms of the millis column
+  isReadOnlyColumn(col) {
+    return (
+      col === "Encounter.year" &&
+      this._columnsDef.some((c) => MILLIS_COLUMNS.includes(c))
+    );
+  }
+
   get submissionId() {
     return this._submissionId;
   }
@@ -462,7 +494,13 @@ export class BulkImportStore {
   }
 
   get missingRequiredColumns() {
-    return allRequiredColumns.filter((col) => !this._columnsDef.includes(col));
+    const has = (col) => this._columnsDef.includes(col);
+    return allRequiredColumns.filter((col) => {
+      if (col === "Encounter.year") {
+        return ![...YEAR_COLUMNS, ...MILLIS_COLUMNS].some(has);
+      }
+      return !has(col);
+    });
   }
 
   get synonymFields() {
@@ -674,10 +712,7 @@ export class BulkImportStore {
   }
 
   setSpreadsheetData(data) {
-    const filtered = data.filter((row) =>
-      Object.values(row).some((val) => String(val ?? "").trim() !== ""),
-    );
-    this._spreadsheetData = filtered;
+    this._spreadsheetData = data;
     this.invalidateValidation();
   }
 
@@ -902,12 +937,27 @@ export class BulkImportStore {
     return { errors, warnings };
   }
 
+  // returns true when the saved spreadsheet could not be restored and was cleared
+  // (images are kept): the user uploads the spreadsheet again
   hydrate(state) {
-    runInAction(() => {
+    return runInAction(() => {
       Object.entries(state).forEach(([key, value]) => {
         const field = `_${key}`;
         if (field in this) this[field] = value;
       });
+      // old drafts: the old parser could repeat a column (once per row)...
+      if (Array.isArray(state.columnsDef)) {
+        this._columnsDef = [...new Set(this._columnsDef)];
+      }
+      if (Array.isArray(state.rawColumns)) {
+        this._rawColumns = [...new Set(this._rawColumns)];
+      }
+      // ...and dropped whitespace-only rows from the grid but not from rawData, so its
+      // edits could land on the wrong record: such a draft's spreadsheet is cleared
+      const mismatch =
+        (this._rawData?.length ?? 0) !== (this._spreadsheetData?.length ?? 0);
+      if (mismatch) this.resetSpreadsheet();
+      return mismatch;
     });
   }
 
@@ -1343,35 +1393,24 @@ export class BulkImportStore {
   }
 
   updateRawFromNormalizedRow() {
-    runInAction(() => {
-      [
-        "Encounter.year",
-        "Encounter.month",
-        "Encounter.day",
-        "Encounter.hour",
-        "Encounter.minutes",
-        "Encounter.seconds",
-      ].forEach((col) => {
-        if (!this._rawColumns.includes(col)) {
-          this._rawColumns.push(col);
-        }
-      });
-    });
+    const dateEntries = Object.entries(this.dateDisplayMap);
 
     this._spreadsheetData.forEach((_, rowIndex) => {
       const raw = this._rawData[rowIndex];
       const norm = this._spreadsheetData[rowIndex];
+      if (!raw) return; // a misaligned old draft: no raw record to write into
 
       runInAction(() => {
-        if (norm["Encounter.year"]) {
-          const val = norm["Encounter.year"];
-          parseEncounterDateString("Encounter", val, raw);
-        }
+        dateEntries.forEach(([displayCol, prefix]) => {
+          if (norm[displayCol]) {
+            parseEncounterDateString(prefix, norm[displayCol], raw);
+          }
+        });
 
-        if (norm["Sighting.year"]) {
-          const val = norm["Sighting.year"];
-          parseEncounterDateString("Sighting", val, raw);
-        }
+        // post the millis text that was validated (trimmed)
+        MILLIS_COLUMNS.forEach((col) => {
+          if (typeof raw[col] === "string") raw[col] = raw[col].trim();
+        });
 
         if (norm["Encounter.genus"] != null) {
           const val = norm["Encounter.genus"].trim();
@@ -1745,22 +1784,6 @@ export class BulkImportStore {
           return;
         }
 
-        this._synonymFields.forEach((group) => {
-          const present = group.filter((col) => col in row);
-
-          if (present.length > 1) {
-            if (!errors[rowIndex]) errors[rowIndex] = {};
-            present.forEach((col) => {
-              errors[rowIndex][col] = {
-                id: "BULKIMPORT_ERROR_INVALID_SYNONYMFIELDS",
-                values: {
-                  list: group.join(", "),
-                },
-              };
-            });
-          }
-        });
-
         const isKnown = knownColumnCache[col];
         const value = String(row[col] ?? "");
         const rules = this._validationRules[col];
@@ -1807,6 +1830,27 @@ export class BulkImportStore {
           if (!errors[rowIndex]) errors[rowIndex] = {};
           errors[rowIndex][col] = error;
         }
+      });
+    });
+
+    // synonym columns: checked once against the uploaded headers (rawColumns), so a
+    // display-only Encounter.year built from Sighting.* is not a second date column;
+    // each conflicting column is marked on its display cell in every row
+    const sourceColumns = new Set(this._rawColumns);
+    this._synonymFields.forEach((group) => {
+      const present = group.filter((col) => sourceColumns.has(col));
+      if (present.length < 2) return;
+      const cells = [
+        ...new Set(present.map((col) => this.dateDisplayColumnFor(col) ?? col)),
+      ];
+      this._spreadsheetData.forEach((_, rowIndex) => {
+        if (!errors[rowIndex]) errors[rowIndex] = {};
+        cells.forEach((cell) => {
+          errors[rowIndex][cell] = {
+            id: "BULKIMPORT_ERROR_INVALID_SYNONYMFIELDS",
+            values: { list: group.join(", ") },
+          };
+        });
       });
     });
 

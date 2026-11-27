@@ -30,6 +30,8 @@ const createMockStore = (overrides = {}) => ({
   uploadedImages: [],
   validationErrors: {},
   missingRequiredColumns: [],
+  spreadsheetData: [{ "Encounter.genus": "Tursiops" }],
+  rawData: [{ "Encounter.genus": "Tursiops" }],
   setActiveStep: jest.fn(),
   ...overrides,
 });
@@ -125,6 +127,19 @@ describe("BulkImportUploadProgress", () => {
     );
     fireEvent.click(eye);
     expect(store.setActiveStep).not.toHaveBeenCalledWith(2);
+  });
+
+  test("step 4 is not clickable for a sheet with no data rows", () => {
+    const store = createMockStore({
+      spreadsheetUploadProgress: 100,
+      spreadsheetData: [],
+    });
+    renderWithProviders(<BulkImportUploadProgress store={store} />);
+    const crosshair = screen.getByText((_, node) =>
+      node?.classList.contains("bi-crosshair"),
+    );
+    fireEvent.click(crosshair);
+    expect(store.setActiveStep).not.toHaveBeenCalledWith(3);
   });
 
   test("clicking step 4 triggers setActiveStep(3) if spreadsheetUploadProgress === 100", () => {

@@ -665,7 +665,7 @@ public class BulkImporter {
                 break;
 
             case "Sighting.numAdults":
-                occ.setIndividualCount(bv.getValueInteger());
+                occ.setNumAdults(bv.getValueInteger());
                 break;
 
             case "Sighting.numCalves":
@@ -681,7 +681,7 @@ public class BulkImporter {
                 break;
 
             case "Sighting.seaState":
-                occ.setObserver(bv.getValueString());
+                occ.setSeaState(bv.getValueString());
                 break;
 
             case "Sighting.seaSurfaceTemp":
@@ -702,7 +702,9 @@ public class BulkImporter {
                 break;
 
             case "Sighting.visibilityIndex":
-                occ.setVisibilityIndex(bv.getValueDouble());
+                // the validator returns an Integer, so read it as one
+                Integer visIdx = bv.getValueInteger();
+                occ.setVisibilityIndex(visIdx == null ? null : visIdx.doubleValue());
                 break;
 
             case "SatelliteTag.serialNumber":

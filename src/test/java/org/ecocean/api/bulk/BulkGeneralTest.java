@@ -94,6 +94,15 @@ class BulkGeneralTest {
         assertTrue(ex.getMessage().contains("invalid fieldName"));
     }
 
+    @Test void waypointAcceptsTextIntegers() throws Exception {
+        assertEquals(7, BulkValidator.validateValue("Sighting.wp", "7", null));
+        assertEquals(7, BulkValidator.validateValue("Sighting.wp", 7, null));
+        assertEquals(-3, BulkValidator.validateValue("Sighting.wp", "-3", null));
+        assertNull(BulkValidator.validateValue("Sighting.wp", null, null));
+        assertThrows(BulkValidatorException.class,
+            () -> BulkValidator.validateValue("Sighting.wp", "x", null));
+    }
+
     @Test void basicUtilTests() {
         Set<String> fields = new HashSet<String>();
 

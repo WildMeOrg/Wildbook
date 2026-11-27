@@ -12,6 +12,7 @@ import { useState } from "react";
 import dayjs from "dayjs";
 import FailureModal from "./BulkImportFailureModal";
 import { Suspense, lazy } from "react";
+import { isReadyToImport } from "./bulkImportReady";
 
 const TreeSelect = lazy(() => import("antd/es/tree-select"));
 
@@ -99,7 +100,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
     try {
       const result = await submit(
         submissionId,
-        store.rawColumns,
+        store.submittableColumns,
         store.rawData,
         store.spreadsheetFileName,
         store.locationID,
@@ -246,12 +247,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
             onClick={() => {
               handleStartImport();
             }}
-            disabled={
-              isLoading ||
-              store.spreadsheetUploadProgress !== 100 ||
-              Object.keys(store.validationErrors).length > 0 ||
-              store.missingRequiredColumns.length > 0
-            }
+            disabled={isLoading || !isReadyToImport(store)}
             backgroundColor={theme.wildMeColors.cyan700}
             color={theme.defaultColors.white}
             noArrow={true}
