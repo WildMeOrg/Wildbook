@@ -516,14 +516,12 @@ public class BulkImport extends ApiBase {
                                 BulkImporter.logProgress(bulkImportId,
                                     "doPost: bg post-createMediaAssets()", startTime);
                                 numNewErrors = dataErrors.length() - numNewErrors;
-                                boolean blockedByMAErrors = false;
                                 if (numNewErrors > 0) {
                                     System.out.println(bulkImportId +
                                         " background createMediaAssets() failed: " + dataErrors);
                                     rtn.put("errors", dataErrors);
                                     if (bgToleranceFailImportOnError) {
-                                        blockedByMAErrors = true;
-                                        bgFailErrors = dataErrors;
+                                        bgFailErrors = dataErrors; // blocks the import
                                     } else {
                                         importTaskSet(context, bulkImportId, null, dataErrors);
                                     }
@@ -533,7 +531,7 @@ public class BulkImport extends ApiBase {
                                     validatedRows, maMap, bgUser, bgShepherd);
                                 bgImporter = importer;
                                 JSONObject results = null;
-                                if (!blockedByMAErrors) {
+                                if (bgFailErrors == null) {
                                     try {
                                         BulkImporter.logProgress(bulkImportId,
                                             "doPost: bg pre-createImport()", startTime);

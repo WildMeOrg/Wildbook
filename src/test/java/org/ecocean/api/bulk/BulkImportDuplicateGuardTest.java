@@ -3,6 +3,7 @@ package org.ecocean.api;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -158,6 +159,7 @@ class BulkImportDuplicateGuardTest {
         Set<Integer> constructFails = new HashSet<Integer>(); // Shepherd numbers whose construction throws
         Runnable afterDoPost = null;                   // runs after doPost, still inside this call's mocks
         Throwable mediaFailure = null;                 // UploadedFiles.makeMediaAsset throws this
+        Throwable importFailure = null;                // BulkImporter.createImport throws this
         Set<String> commitFails = new HashSet<String>(); // Shepherd actions whose commitDBTransactionWithStatus is false
         boolean iaEligible = false;                    // the importer returns one encounter with a MediaAsset
         Answer<ImportTask> finalLookup = inv -> this.held;  // getImportTask (the import's final task update)
@@ -170,7 +172,6 @@ class BulkImportDuplicateGuardTest {
         final List<ImportTask> persisted = new ArrayList<ImportTask>();
         final List<String> archived = new ArrayList<String>();   // archive file paths written
         final List<Object> shepherdContexts = new ArrayList<Object>();
-        final List<Shepherd> shepherds = Collections.synchronizedList(new ArrayList<Shepherd>());   // in construction order
         final List<Long> lockKeys = new ArrayList<Long>();
         final List<Object> lockShepherds = new ArrayList<Object>();
         final List<ImportTask> deleted = new ArrayList<ImportTask>();
@@ -255,7 +256,10 @@ class BulkImportDuplicateGuardTest {
         try (MockedConstruction<BulkImporter> importer = mockConstruction(BulkImporter.class, (mock, ctx) -> {
                  c.importers++;
                  c.events.add("import");
-                 when(mock.createImport()).thenReturn(new JSONObject());
+                 when(mock.createImport()).thenAnswer(inv -> {
+                     if (c.importFailure != null) throw c.importFailure;
+                     return new JSONObject();
+                 });
                  List<org.ecocean.Encounter> encs = new ArrayList<org.ecocean.Encounter>();
                  if (c.iaEligible) {
                      MediaAsset ma = mock(MediaAsset.class);
@@ -273,7 +277,6 @@ class BulkImportDuplicateGuardTest {
                  if (c.constructFails.contains(n)) throw new IllegalStateException("cannot build Shepherd " + n);
                  Object context = ctx.arguments().isEmpty() ? null : ctx.arguments().get(0);
                  c.shepherdContexts.add(context);
-                 c.shepherds.add(mock);
                  doAnswer(inv -> {
                      c.actions.put(mock, inv.getArgument(0));
                      return null;
@@ -923,7 +926,7 @@ class BulkImportDuplicateGuardTest {
         JSONObject actual = new JSONObject(c.response.toString());
         expected.remove("processingTime");
         actual.remove("processingTime");
-        assertEquals(expected.toString(), actual.toString(), "the response does not change");
+        assertTrue(expected.similar(actual), "the response does not change: " + expected + " vs " + actual);
     }
 
     @Test void workerMissingTaskAfterImportIsFailed() throws Exception {
@@ -1024,6 +1027,39 @@ class BulkImportDuplicateGuardTest {
         order.verify(request).commitDBTransactionWithStatus();
         order.verify(request).rollbackAndClose();
         verify(c.httpResponse).setStatus(200);
+    }
+
+    @Test void workerShepherdConstructionFailureMarksTheTaskFailed() throws Exception {
+        Call c = new Call(background());
+        c.runWorker = true;
+        c.constructFails.add(3);   // request, reservation, then the worker's (built before it has an action)
+        post(c);
+        assertEquals(200, c.status(), "the request was accepted before the worker ran");
+        assertEquals(0, c.importers);
+        assertFalse(c.actions.containsValue(WORKER), "the worker's Shepherd was never built: " + c.actions.values());
+        assertEquals("failed", c.held.getStatus());
+        c.byAction(WRITER);
+    }
+
+    @Test void foregroundImportErrorPropagatesAndTaskFailed() throws Exception {
+        Call c = new Call(valid());
+        c.importFailure = new OutOfMemoryError("import ran out of memory");
+        assertThrows(OutOfMemoryError.class, () -> post(c));
+        assertEquals(1, c.importers);
+        assertEquals("failed", c.held.getStatus());
+        verify(c.byAction(REQUEST)).rollbackAndClose();
+        verify(c.byAction(REQUEST), never()).commitDBTransactionWithStatus();
+    }
+
+    @Test void foregroundImportServletExceptionPropagatesAndTaskFailed() throws Exception {
+        Call c = new Call(valid());
+        c.importFailure = new javax.servlet.ServletException("import refused");
+        javax.servlet.ServletException thrown = assertThrows(javax.servlet.ServletException.class, () -> post(c));
+        assertEquals("import refused", thrown.getMessage());
+        assertEquals(1, c.importers);
+        assertEquals("failed", c.held.getStatus());
+        verify(c.byAction(REQUEST)).rollbackAndClose();
+        verify(c.byAction(REQUEST), never()).commitDBTransactionWithStatus();
     }
 
     static int countLog(ImportTask t, String text) {
