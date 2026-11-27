@@ -163,7 +163,7 @@ class BulkImportDuplicateGuardTest {
         final List<Long> lockKeys = new ArrayList<Long>();
         final List<Object> lockShepherds = new ArrayList<Object>();
         final List<ImportTask> deleted = new ArrayList<ImportTask>();
-        int lockCalls, lookups, fileListings, mediaCreated, importers;
+        int lockCalls, lookups, fileListings, mediaCreated, importers, deepReindexes;
         ImportTask held;
         JSONObject response;
 
@@ -273,7 +273,13 @@ class BulkImportDuplicateGuardTest {
              MockedStatic<IA> ia = mockStatic(IA.class);
              MockedStatic<MediaAsset> media = mockStatic(MediaAsset.class, CALLS_REAL_METHODS);
              MockedStatic<AssetStore> stores = mockStatic(AssetStore.class, CALLS_REAL_METHODS);
-             MockedStatic<org.ecocean.Util> util = mockStatic(org.ecocean.Util.class, CALLS_REAL_METHODS)) {
+             MockedStatic<org.ecocean.Util> util = mockStatic(org.ecocean.Util.class, CALLS_REAL_METHODS);
+             MockedStatic<org.ecocean.IndexingManager> indexing = mockStatic(org.ecocean.IndexingManager.class, CALLS_REAL_METHODS)) {
+            indexing.when(() -> org.ecocean.IndexingManager.queueIndividualsByIdForDeepReindex(any(), any())).thenAnswer(inv -> {
+                c.deepReindexes++;
+                c.events.add("deepReindex");
+                return null;
+            });
             lock.when(() -> AdvisoryLock.tryXact(any(), anyLong())).thenAnswer(inv -> {
                 c.lockCalls++;
                 c.events.add("lock");
@@ -806,6 +812,61 @@ class BulkImportDuplicateGuardTest {
         assertEquals("processing-foreground", other.getStatus());
         assertEquals(0, countLog(other, "status: failed"));
         assertEquals(0, c.importers);
+    }
+
+    @Test void workerCommitFailureMarksTheTaskFailed() throws Exception {
+        Call c = new Call(background());
+        c.runWorker = true;
+        c.commitFails.add(3);   // the worker's own transaction; the request and reservation commit
+        post(c);
+        assertEquals(200, c.status(), "the request was accepted before the worker ran");
+        assertEquals(1, c.importers, "the worker imported");
+        verify(c.shepherds.get(2)).rollbackDBTransaction();
+        verify(c.shepherds.get(2)).closeDBTransaction();
+        assertEquals("failed", c.held.getStatus(), "the unsaved import is not left complete or processing");
+        assertEquals(0, c.deepReindexes, "nothing saved, nothing reindexed");
+        assertTrue(c.archived.stream().anyMatch(a -> a.contains("backgroundComplete_failed")), c.archived.toString());
+        assertFalse(c.archived.stream().anyMatch(a -> a.contains("backgroundComplete_success")), c.archived.toString());
+    }
+
+    @Test void workerSuccessCommitsAndReindexes() throws Exception {
+        Call c = new Call(background());
+        c.runWorker = true;
+        post(c);
+        assertEquals(200, c.status());
+        verify(c.shepherds.get(2)).commitDBTransactionWithStatus();
+        verify(c.shepherds.get(2), never()).rollbackDBTransaction();
+        assertEquals("complete", c.held.getStatus());
+        assertEquals(1, c.deepReindexes);
+        assertTrue(c.archived.stream().anyMatch(a -> a.contains("backgroundComplete_success")), c.archived.toString());
+    }
+
+    @Test void backgroundRequestCommitFailureKeeps200() throws Exception {
+        Call c = new Call(background());
+        c.commitFails.add(1);   // the request's own transaction (it holds only the lock)
+        post(c);
+        assertEquals(200, c.status(), "the worker owns the task: " + c.response);
+        assertTrue(c.response.getBoolean("success"));
+        assertEquals(1, c.launched.size());
+        assertEquals("processing-background", c.held.getStatus(), "the request does not touch the worker's task");
+        Shepherd request = c.shepherds.get(0);
+        InOrder order = inOrder(request);
+        order.verify(request).commitDBTransactionWithStatus();
+        order.verify(request).rollbackDBTransaction();
+        order.verify(request).closeDBTransaction();
+    }
+
+    @Test void foregroundCommitFailureRollsBackBeforeClose() throws Exception {
+        Call c = new Call(valid());
+        c.commitFails.add(1);
+        post(c);
+        assertEquals(500, c.status());
+        assertEquals(0, c.deepReindexes);
+        Shepherd request = c.shepherds.get(0);
+        InOrder order = inOrder(request);
+        order.verify(request).commitDBTransactionWithStatus();
+        order.verify(request).rollbackDBTransaction();
+        order.verify(request).closeDBTransaction();
     }
 
     static int countLog(ImportTask t, String text) {

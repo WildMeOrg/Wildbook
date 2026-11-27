@@ -589,11 +589,12 @@ public class BulkImport extends ApiBase {
                                 ex.printStackTrace();
                             } finally {
                                 try {
-                                    if (success) {
-                                        bgShepherd.commitDBTransaction();
-                                    } else {
-                                        bgShepherd.rollbackDBTransaction();
-                                    }
+                                    // an import that is not saved is not a success: no reindex,
+                                    // no IA, archived as failed, and the task marked failed below
+                                    boolean imported = success;
+                                    success = false;
+                                    if (imported) success = bgShepherd.commitDBTransactionWithStatus();
+                                    if (!success) bgShepherd.rollbackDBTransaction();
                                     bgShepherd.closeDBTransaction();
                                 } finally {
                                     // any ending without success (an exception, an Error, blocked
@@ -739,11 +740,15 @@ public class BulkImport extends ApiBase {
                 if ((statusCode == 200) && !validateOnly) {
                     committed = myShepherd.commitDBTransactionWithStatus();
                     if (!committed) {
-                        // the import (and the task's final status) was not saved
                         myShepherd.rollbackDBTransaction();
-                        statusCode = 500;
-                        rtn.put("success", false);
-                        rtn.put("error", "import could not be saved");
+                        // a foreground import (and its task's final status) was not saved; a
+                        // background request's transaction holds only the lock, and the worker
+                        // owns the task, so that request keeps its 200
+                        if (fgReserved) {
+                            statusCode = 500;
+                            rtn.put("success", false);
+                            rtn.put("error", "import could not be saved");
+                        }
                     }
                 } else {
                     myShepherd.rollbackDBTransaction();
