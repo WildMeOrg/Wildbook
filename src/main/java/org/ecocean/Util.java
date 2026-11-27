@@ -155,6 +155,16 @@ public class Util {
         return (uuid.substring(0, 8) + "...");
     }
 
+    // true only for the canonical 8-4-4-4-12 form (UUID.fromString alone also accepts "1-1-1-1-1")
+    public static boolean isCanonicalUUID(String s) {
+        if (s == null) return false;
+        try {
+            return UUID.fromString(s).toString().equals(s.toLowerCase());
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
     public static boolean isUUID(String s) {
         if (s == null) return false;
         boolean ok = true;

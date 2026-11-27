@@ -9,7 +9,7 @@ import {
   isValidTheta,
 } from "../../../pages/BulkImport/bulkImportSlots";
 
-const CAPABLE = ["Encounter.mediaAsset#", "Encounter.mediaAsset#.bbox"];
+import { CAPABLE } from "../../../__fixtures__/bulkImportUpload";
 
 describe("bulkImportSlots", () => {
   test("bbox accepts what the server's parseBbox accepts", () => {

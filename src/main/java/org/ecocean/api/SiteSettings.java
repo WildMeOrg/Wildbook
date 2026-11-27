@@ -176,6 +176,13 @@ public class SiteSettings extends ApiBase {
             settings.put("behaviorOptions", new JSONObject(myShepherd.getTaxonomicBehaviors()));
 
             settings.put("bulkImportFieldNameSynonyms", BulkValidator.fieldNameSynonymsJson());
+            settings.put("bulkImportFieldAliases", new JSONArray(BulkValidator.FIELD_ALIASES));
+            settings.put("bulkImportSameTargetFields",
+                new JSONArray(BulkValidator.SAME_TARGET_FIELDS));
+            settings.put("bulkImportDateMillisFields",
+                Util.asSortedList(BulkValidator.DATE_MILLIS_FIELDS));
+            settings.put("bulkImportDateCalendarFields",
+                Util.asSortedList(BulkValidator.DATE_CALENDAR_FIELDS));
 
             // kwId maps Keyword name to id so we can build the id-list *after we sort* by name
             // this hackily assumes no duplicate names (some data backs this up?)... but i will

@@ -1,3 +1,5 @@
+import { DATE_PARTS } from "./bulkImportHeaders";
+
 const allRequiredColumns = [
   "Encounter.year",
   "Encounter.genus",
@@ -286,72 +288,20 @@ const latlongRule = {
   message: "BULKIMPORT_ERROR_INVALID_INVALIDLATLONG",
 };
 
+// the date strings the date cell accepts: YYYY[-M[-D[TH[:m]]]]; shared by validation
+// and write-back so both read a cell the same way
+const FLEXIBLE_DATE_RE =
+  /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2})(?:T(\d{1,2})(?::(\d{1,2}))?)?)?)?$/;
+
+// writes the captured parts of a date cell into raw[<field>.<part>]; parts the cell
+// does not give are blanked; a string the validator rejects changes nothing
 const parseEncounterDateString = (field, val, raw) => {
-  if (!val) return;
-
-  const set = (suffix, value) => {
-    raw[`${field}.${suffix}`] = value;
-  };
-
-  if (/^\d{4}$/.test(val)) {
-    set("year", Number(val));
-    set("month", "");
-    set("day", "");
-    set("hour", "");
-    set("minutes", "");
-  } else if (/^\d{4}-\d{2}$/.test(val)) {
-    const [y, m] = val.split("-").map(Number);
-    set("year", y);
-    set("month", m);
-    set("day", "");
-    set("hour", "");
-    set("minutes", "");
-  } else if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
-    const [y, m, d] = val.split("-").map(Number);
-    set("year", y);
-    set("month", m);
-    set("day", d);
-    set("hour", "");
-    set("minutes", "");
-  } else if (/^\d{4}-\d{2}-\d{2}T\d{2}$/.test(val)) {
-    const [datePart, hour] = val.split("T");
-    const [y, m, d] = datePart.split("-").map(Number);
-    set("year", y);
-    set("month", m);
-    set("day", d);
-    set("hour", Number(hour));
-    set("minutes", "");
-  } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) {
-    const [datePart, timePart] = val.split("T");
-    const [y, m, d] = datePart.split("-").map(Number);
-    const [hh, mm] = timePart.split(":").map(Number);
-    set("year", y);
-    set("month", m);
-    set("day", d);
-    set("hour", hh);
-    set("minutes", mm);
-    set("seconds", 0);
-  } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(val)) {
-    const [datePart, timePart] = val.split("T");
-    const [y, m, d] = datePart.split("-").map(Number);
-    const [hh, mm, ss] = timePart.split(":").map(Number);
-    set("year", y);
-    set("month", m);
-    set("day", d);
-    set("hour", hh);
-    set("minutes", mm);
-    set("seconds", ss);
-  } else {
-    const dt = new Date(val);
-    if (!isNaN(dt)) {
-      set("year", dt.getFullYear());
-      set("month", dt.getMonth() + 1);
-      set("day", dt.getDate());
-      set("hour", dt.getHours());
-      set("minutes", dt.getMinutes());
-      set("seconds", dt.getSeconds());
-    }
-  }
+  const m = FLEXIBLE_DATE_RE.exec(String(val ?? "").trim());
+  if (!m) return;
+  DATE_PARTS.forEach((part, i) => {
+    const captured = m[i + 1];
+    raw[`${field}.${part}`] = captured === undefined ? "" : Number(captured);
+  });
 };
 
 export {
@@ -367,4 +317,5 @@ export {
   allColumns,
   latlongRule,
   parseEncounterDateString,
+  FLEXIBLE_DATE_RE,
 };

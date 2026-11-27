@@ -29,9 +29,10 @@ export const BulkImportContinueModal = observer(({ store, setRenderMode1 }) => {
     const submissionId = savedStore?.submissionId;
     if (submissionId) {
       setRenderMode1("list");
-      store.hydrate(savedStore);
+      // an old draft whose rows no longer line up comes back without its spreadsheet
+      const spreadsheetCleared = store.hydrate(savedStore);
       if (reuploadSpreadsheet) store.resetSpreadsheet();
-      store.setActiveStep(0);
+      store.setActiveStep(spreadsheetCleared ? 1 : 0);
       store.fetchAndApplyUploaded();
     }
     setShow(false);

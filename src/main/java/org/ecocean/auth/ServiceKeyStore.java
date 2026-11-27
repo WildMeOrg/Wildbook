@@ -1,11 +1,6 @@
 package org.ecocean.auth;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,11 +12,11 @@ import java.util.function.Supplier;
 import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
-import javax.jdo.datastore.JDOConnection;
 
 import org.ecocean.Organization;
 import org.ecocean.User;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.AdvisoryLock;
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -314,25 +309,10 @@ public final class ServiceKeyStore {
 
     /** pg_advisory_xact_lock on a stable 64-bit hash of {@code value}; released at commit or rollback. */
     private static void lock(Shepherd sh, String value) {
-        JDOConnection connection = sh.getPM().getDataStoreConnection();
-        try (PreparedStatement statement = ((Connection)connection.getNativeConnection())
-                .prepareStatement("SELECT pg_advisory_xact_lock(?)")) {
-            statement.setLong(1, lockKey(value));
-            statement.setQueryTimeout(10);
-            statement.executeQuery().close();
+        try {
+            AdvisoryLock.xact(sh, AdvisoryLock.key(value));
         } catch (SQLException ex) {
             throw new ServiceKeyException(503, "service key lock unavailable");
-        } finally { connection.close(); }
-    }
-
-    static long lockKey(String value) {
-        try {
-            byte[] d = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
-            long key = 0;
-            for (int i = 0; i < 8; i++) key = (key << 8) | (d[i] & 0xffL);
-            return key;
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e);
         }
     }
 }

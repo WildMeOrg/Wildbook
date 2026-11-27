@@ -1,4 +1,7 @@
 import BulkImportStore from "../../../pages/BulkImport/BulkImportStore";
+import { dateDisplayMapFor } from "../../../pages/BulkImport/bulkImportHeaders";
+import { PRODUCTION_SYNONYMS } from "../../../__fixtures__/productionSynonyms";
+import { uploadCsv } from "../../../__fixtures__/bulkImportUpload";
 
 jest.mock("@flowjs/flow.js", () => {
   return jest.fn().mockImplementation(() => ({
@@ -13,6 +16,8 @@ jest.mock("@flowjs/flow.js", () => {
     resume: jest.fn(),
   }));
 });
+
+jest.setTimeout(30000);
 
 describe("BulkImportStore tests part 1", () => {
   let store;
@@ -334,6 +339,13 @@ describe("BulkImportStore tests part 1", () => {
   });
 
   test("updateRawFromNormalizedRow handles date year only", () => {
+    store._rawColumns = [
+      "Encounter.year",
+      "Encounter.month",
+      "Encounter.day",
+      "Encounter.hour",
+      "Encounter.minutes",
+    ];
     store._spreadsheetData = [{ "Encounter.year": "2025" }];
     store._rawData = [
       {
@@ -530,6 +542,13 @@ describe("BulkImportStore tests part 1", () => {
   });
 
   test("updateRawFromNormalizedRow handles year, genus, mediaAsset0, decimalLatitude", () => {
+    store._rawColumns = [
+      "Encounter.year",
+      "Encounter.month",
+      "Encounter.day",
+      "Encounter.hour",
+      "Encounter.minutes",
+    ];
     store._spreadsheetData = [{ "Encounter.year": "2025" }];
     store._rawData = [
       {
@@ -570,7 +589,15 @@ describe("BulkImportStore tests part 1", () => {
   });
 
   test("handles Sighting.year with full datetime down to seconds", () => {
-    store._spreadsheetData = [{ "Sighting.year": "2022-05-10T14:30" }];
+    store._rawColumns = [
+      "Sighting.year",
+      "Sighting.month",
+      "Sighting.day",
+      "Sighting.hour",
+      "Sighting.minutes",
+      "Sighting.seconds",
+    ];
+    store._spreadsheetData = [{ "Encounter.year": "2022-05-10T14:30" }];
     store._rawData = [
       {
         "Sighting.year": 0,
@@ -588,6 +615,7 @@ describe("BulkImportStore tests part 1", () => {
     expect(raw["Sighting.day"]).toBe(10);
     expect(raw["Sighting.hour"]).toBe(14);
     expect(raw["Sighting.minutes"]).toBe(30);
+    expect(store.submittableColumns).not.toContain("Sighting.seconds");
   });
 
   test("stateSnapshot returns deep copy", () => {
@@ -625,6 +653,13 @@ describe("BulkImportStore tests part 1", () => {
   });
 
   test("updateRawFromNormalizedRow various transforms", () => {
+    store._rawColumns = [
+      "Encounter.year",
+      "Encounter.month",
+      "Encounter.day",
+      "Encounter.hour",
+      "Encounter.minutes",
+    ];
     store._spreadsheetData = [{ "Encounter.year": "2020" }];
     store._rawData = [
       {
@@ -713,12 +748,17 @@ describe("BulkImportStore tests part 1", () => {
   test("saveState writes to localStorage and toggles draft flag", () => {
     store._submissionId = "T";
     store._rawData = [{ a: 1 }];
-    store.saveState();
-    expect(store.isSavingDraft).toBe(true);
-    setTimeout(() => {
-      expect(store.isSavingDraft).toBe(false);
+    // fake timers: a real 800 ms timer outlived this test and failed a later one
+    jest.useFakeTimers();
+    try {
+      store.saveState();
+      expect(store.isSavingDraft).toBe(true);
       expect(localStorage.getItem("BulkImportStore")).toBeTruthy();
-    }, 800);
+      jest.advanceTimersByTime(800);
+      expect(store.isSavingDraft).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test("initializeFlow and removePreview", () => {
@@ -777,6 +817,7 @@ describe("BulkImportStore tests part 2", () => {
 
   test("validateSpreadsheet flags synonym field conflicts", () => {
     store._columnsDef = ["A", "B", "C"];
+    store._rawColumns = ["A", "B", "C"];
     store._spreadsheetData = [{ A: "x", B: "y", C: "z" }];
     store._synonymFields = [["A", "B", "C"]];
     const { errors } = store.validateSpreadsheet();
@@ -920,5 +961,369 @@ describe("BulkImportStore file-tree and triggerUpload branches", () => {
     store.updateRawFromNormalizedRow();
     expect(store._rawData[0]["Sighting.decimalLatitude"]).toBe("1.2");
     expect(store._rawData[0]["Sighting.decimalLongitude"]).toBe("3.4");
+  });
+
+  test("clearingARowKeepsIndicesAligned", () => {
+    store.setSpreadsheetData([
+      { "Encounter.sex": "male" },
+      { "Encounter.sex": "" },
+    ]);
+    expect(store.spreadsheetData.length).toBe(2);
+  });
+});
+
+const SYNONYM_ERROR = "BULKIMPORT_ERROR_INVALID_SYNONYMFIELDS";
+
+describe("BulkImportStore dates keep their source columns", () => {
+  let store;
+  beforeEach(() => {
+    store = new BulkImportStore();
+  });
+
+  test("millisSheetSubmitsNoCalendarColumns", () => {
+    store._rawColumns = ["Encounter.dateInMilliseconds", "Encounter.genus"];
+    store._spreadsheetData = [
+      {
+        "Encounter.dateInMilliseconds": "1700000000000",
+        "Encounter.genus": "Tursiops truncatus",
+      },
+    ];
+    store._rawData = [
+      {
+        "Encounter.dateInMilliseconds": "1700000000000",
+        "Encounter.genus": "Tursiops",
+      },
+    ];
+    store.updateRawFromNormalizedRow();
+    expect(
+      store.submittableColumns.filter((c) =>
+        /\.(year|month|day|hour|minutes|seconds)$/.test(c),
+      ),
+    ).toEqual([]);
+  });
+
+  test("year-only sheet adds no month or seconds columns", () => {
+    store._rawColumns = ["Encounter.year"];
+    store._spreadsheetData = [{ "Encounter.year": "2025" }];
+    store._rawData = [{ "Encounter.year": 2025 }];
+    store.updateRawFromNormalizedRow();
+    expect(store.submittableColumns).toEqual(["Encounter.year"]);
+  });
+
+  test("edited datetime adds hour and minutes, never seconds", () => {
+    store._rawColumns = ["Encounter.year"];
+    store._spreadsheetData = [{ "Encounter.year": "2022-05-10T14:30" }];
+    store._rawData = [{ "Encounter.year": 2022 }];
+    store.updateRawFromNormalizedRow();
+    expect(store.submittableColumns).toEqual(
+      expect.arrayContaining([
+        "Encounter.month",
+        "Encounter.day",
+        "Encounter.hour",
+        "Encounter.minutes",
+      ]),
+    );
+    expect(store.submittableColumns).not.toContain("Encounter.seconds");
+    expect(store._rawData[0]["Encounter.seconds"]).toBeUndefined();
+  });
+
+  test("an edit that is undone leaves no date column behind", () => {
+    store._rawColumns = ["Encounter.year", "Encounter.genus"];
+    store._spreadsheetData = [{ "Encounter.year": "2021" }];
+    store._rawData = [{ "Encounter.year": 2021, "Encounter.genus": "T" }];
+    store.updateCellValue(0, "Encounter.year", "2021-03");
+    store.updateRawFromNormalizedRow();
+    expect(store.submittableColumns).toEqual([
+      "Encounter.year",
+      "Encounter.genus",
+      "Encounter.month",
+    ]);
+    // e.g. the POST failed; the user changes the date back and retries
+    store.updateCellValue(0, "Encounter.year", "2021");
+    store.updateRawFromNormalizedRow();
+    expect(store.submittableColumns).toEqual([
+      "Encounter.year",
+      "Encounter.genus",
+    ]);
+    expect(store.rawColumns).toEqual(["Encounter.year", "Encounter.genus"]);
+  });
+
+  test("millis column satisfies date requirement", () => {
+    store._columnsDef = [
+      "Encounter.dateInMilliseconds",
+      "Encounter.genus",
+      "Encounter.specificEpithet",
+    ];
+    expect(store.missingRequiredColumns).not.toContain("Encounter.year");
+  });
+
+  test("Sighting.year and Sighting.millis also satisfy the date requirement", () => {
+    store._columnsDef = ["Sighting.year"];
+    expect(store.missingRequiredColumns).not.toContain("Encounter.year");
+    store._columnsDef = ["Sighting.millis"];
+    expect(store.missingRequiredColumns).not.toContain("Encounter.year");
+    store._columnsDef = ["Encounter.genus"];
+    expect(store.missingRequiredColumns).toContain("Encounter.year");
+  });
+
+  test("date cell is read-only on a millis sheet", () => {
+    store._columnsDef = ["Encounter.dateInMilliseconds"];
+    expect(store.isReadOnlyColumn("Encounter.year")).toBe(true);
+    expect(store.isReadOnlyColumn("Encounter.genus")).toBe(false);
+    store._columnsDef = ["Encounter.year"];
+    expect(store.isReadOnlyColumn("Encounter.year")).toBe(false);
+  });
+
+  test("dateDisplayMapFor derives the map from headers", () => {
+    expect(dateDisplayMapFor(["Encounter.year", "Encounter.month"])).toEqual({
+      "Encounter.year": "Encounter",
+    });
+    expect(dateDisplayMapFor(["Sighting.year", "Sighting.day"])).toEqual({
+      "Encounter.year": "Sighting",
+    });
+    expect(dateDisplayMapFor(["Encounter.year", "Sighting.month"])).toEqual({
+      "Encounter.year": "Encounter",
+      "Sighting.year": "Sighting",
+    });
+    expect(dateDisplayMapFor(["Encounter.dateInMilliseconds"])).toEqual({});
+  });
+
+  test("store.dateDisplayMap and dateDisplaySource follow rawColumns", () => {
+    store._rawColumns = ["Sighting.year", "Sighting.month"];
+    expect(store.dateDisplayMap).toEqual({ "Encounter.year": "Sighting" });
+    expect(store.dateDisplaySource).toBe("Sighting");
+    expect(store.stateSnapshot).not.toHaveProperty("dateDisplayMap");
+    store._rawColumns = ["Encounter.dateInMilliseconds"];
+    expect(store.dateDisplaySource).toBeNull();
+    expect(store.dateDisplayColumnFor("Encounter.year")).toBeNull();
+  });
+
+  test("both prefixes get their own display column and write-back", () => {
+    store._rawColumns = ["Encounter.year", "Sighting.year", "Sighting.month"];
+    store._spreadsheetData = [
+      { "Encounter.year": "2020", "Sighting.year": "2021-03" },
+    ];
+    store._rawData = [
+      { "Encounter.year": 2020, "Sighting.year": 2021, "Sighting.month": 3 },
+    ];
+    // each display cell is edited; each edit lands on its own prefix only
+    store.updateCellValue(0, "Encounter.year", "2019-07-08");
+    store.updateCellValue(0, "Sighting.year", "2018-02");
+    store.updateRawFromNormalizedRow();
+    expect(store._rawData[0]).toMatchObject({
+      "Encounter.year": 2019,
+      "Encounter.month": 7,
+      "Encounter.day": 8,
+      "Sighting.year": 2018,
+      "Sighting.month": 2,
+      "Sighting.day": "",
+    });
+    expect(store.dateDisplayColumnFor("Sighting.month")).toBe("Sighting.year");
+    expect(store.dateDisplayColumnFor("Encounter.day")).toBe("Encounter.year");
+  });
+
+  test("sightingDateSheetHasNoSynonymError", async () => {
+    store.setSynonymFields(PRODUCTION_SYNONYMS);
+    store.setIndexableFields(["Encounter.mediaAsset#"]);
+    await uploadCsv(
+      "Sighting.year,Sighting.month,Sighting.day,Encounter.genus\n" +
+        "2021,3,4,Tursiops\n" +
+        "2022,5,6,Tursiops\n",
+      2,
+      store,
+    );
+    // the display row carries Encounter.year (display) and Sighting.year (source)
+    expect(store.spreadsheetData[0]["Encounter.year"]).toBe("2021-03-04");
+    expect(store.spreadsheetData[0]["Sighting.year"]).toBe(2021);
+    expect(store.rawColumns).toEqual([
+      "Sighting.year",
+      "Sighting.month",
+      "Sighting.day",
+      "Encounter.genus",
+    ]);
+    store.revalidate();
+    expect(
+      Object.values(store.validationErrors)
+        .flatMap(Object.values)
+        .map((e) => e.id ?? e),
+    ).not.toContain(SYNONYM_ERROR);
+    const { errors } = store.validateSpreadsheet();
+    expect(
+      Object.values(errors)
+        .flatMap(Object.values)
+        .map((e) => e.id ?? e),
+    ).not.toContain(SYNONYM_ERROR);
+  });
+
+  test("real synonym conflict still reported (regression)", () => {
+    store.setSynonymFields(PRODUCTION_SYNONYMS);
+    store._rawColumns = ["Encounter.year", "Sighting.year"];
+    store._columnsDef = ["Encounter.year", "Sighting.year"];
+    store._spreadsheetData = [
+      { "Encounter.year": "2020", "Sighting.year": "2020" },
+      { "Encounter.year": "2021", "Sighting.year": "2021" },
+    ];
+    const { errors } = store.validateSpreadsheet();
+    [0, 1].forEach((row) => {
+      expect(errors[row]["Encounter.year"].id).toBe(SYNONYM_ERROR);
+      expect(errors[row]["Sighting.year"].id).toBe(SYNONYM_ERROR);
+    });
+  });
+
+  test("a conflicting date part is marked on its prefix's display cell", () => {
+    store.setSynonymFields(PRODUCTION_SYNONYMS);
+    store._rawColumns = ["Encounter.month", "Sighting.month"];
+    store._columnsDef = ["Encounter.year", "Sighting.year"];
+    store._spreadsheetData = [
+      { "Encounter.year": "2020-01", "Sighting.year": "2020-01" },
+    ];
+    const { errors } = store.validateSpreadsheet();
+    expect(errors[0]["Encounter.year"].id).toBe(SYNONYM_ERROR);
+    expect(errors[0]["Sighting.year"].id).toBe(SYNONYM_ERROR);
+    expect(errors[0]).not.toHaveProperty("Encounter.month");
+    expect(errors[0]).not.toHaveProperty("Sighting.month");
+  });
+  test("old Sighting-date draft submits only the mapped Encounter prefix", () => {
+    // the old parser spliced Encounter.year into rawColumns (once per row) and dropped
+    // Sighting.* from it, but rawData kept the Sighting.* values
+    store.hydrate({
+      rawColumns: [
+        "Encounter.year",
+        "Encounter.year",
+        "Encounter.genus",
+        "Encounter.mediaAsset0",
+      ],
+      columnsDef: [
+        "Encounter.mediaAsset0",
+        "Encounter.year",
+        "Encounter.genus",
+      ],
+      rawData: [
+        {
+          "Sighting.year": 2021,
+          "Sighting.month": 3,
+          "Sighting.day": 4,
+          "Encounter.genus": "Tursiops",
+          "Encounter.mediaAsset0": "a.jpg",
+        },
+      ],
+      spreadsheetData: [
+        {
+          "Encounter.year": "2021-03-04",
+          "Encounter.genus": "Tursiops",
+          "Encounter.mediaAsset0": "a.jpg",
+        },
+      ],
+    });
+    expect(store.dateDisplayMap).toEqual({ "Encounter.year": "Encounter" });
+    store.updateRawFromNormalizedRow();
+    expect(
+      store.submittableColumns.filter((c) => c.startsWith("Sighting.")),
+    ).toEqual([]);
+    expect(store.dateDisplayMap).toEqual({ "Encounter.year": "Encounter" });
+    expect(
+      store.submittableColumns.filter((c) => c === "Encounter.year"),
+    ).toEqual(["Encounter.year"]);
+    expect(store.submittableColumns.slice(0, 3)).toEqual([
+      "Encounter.year",
+      "Encounter.genus",
+      "Encounter.mediaAsset0",
+    ]);
+    expect(store.submittableColumns).toEqual(
+      expect.arrayContaining(["Encounter.month", "Encounter.day"]),
+    );
+    expect(store._rawData[0]).toMatchObject({
+      "Encounter.year": 2021,
+      "Encounter.month": 3,
+      "Encounter.day": 4,
+    });
+  });
+
+  // old drafts whose rawData and grid row counts differ (the old parser dropped
+  // whitespace-only rows from the grid only) cannot be repaired safely
+  const legacyDraft = (rawData, spreadsheetData) => ({
+    submissionId: "S",
+    uploadedImages: ["a.jpg", "b.jpg"],
+    imageSectionFileNames: ["a.jpg", "b.jpg"],
+    spreadsheetFileName: "old.csv",
+    spreadsheetUploadProgress: 100,
+    rawColumns: ["Encounter.year", "Encounter.year", "Encounter.sex"],
+    columnsDef: ["Encounter.year", "Encounter.year", "Encounter.sex"],
+    rawData,
+    spreadsheetData,
+  });
+  const A = { "Encounter.year": 2020, "Encounter.sex": "male" };
+  const B = { "Encounter.year": 2021, "Encounter.sex": "female" };
+  const blank = { "Encounter.year": " ", "Encounter.sex": "" };
+  const grid = (row) => ({
+    ...row,
+    "Encounter.year": String(row["Encounter.year"]),
+  });
+
+  const expectSpreadsheetCleared = (cleared) => {
+    expect(cleared).toBe(true);
+    expect(store.rawData).toEqual([]);
+    expect(store.spreadsheetData).toEqual([]);
+    expect(store.rawColumns).toEqual([]);
+    expect(store.columnsDef).toEqual([]);
+    expect(store.spreadsheetUploadProgress).toBe(0);
+    expect(store.spreadsheetFileName).toBe("");
+    // the images and the submission are kept
+    expect(store.uploadedImages).toEqual(["a.jpg", "b.jpg"]);
+    expect(store.imageSectionFileNames).toEqual(["a.jpg", "b.jpg"]);
+    expect(store.submissionId).toBe("S");
+  };
+
+  test("old [A, blank, B] / [A, B] draft: spreadsheet cleared, images kept", () => {
+    const cleared = store.hydrate(
+      legacyDraft([A, blank, B], [grid(A), grid(B)]),
+    );
+    expectSpreadsheetCleared(cleared);
+  });
+
+  test("a draft with fewer source rows than grid rows: spreadsheet cleared", () => {
+    const cleared = store.hydrate(legacyDraft([A], [grid(A), grid(B)]));
+    expectSpreadsheetCleared(cleared);
+  });
+
+  test("an equal-length draft is restored untouched, apart from repeated columns", () => {
+    const cleared = store.hydrate(legacyDraft([A, B], [grid(A), grid(B)]));
+    expect(cleared).toBe(false);
+    expect(store.rawData).toEqual([A, B]);
+    expect(store.spreadsheetData).toEqual([grid(A), grid(B)]);
+    expect(store.columnsDef).toEqual(["Encounter.year", "Encounter.sex"]);
+    expect(store.rawColumns).toEqual(["Encounter.year", "Encounter.sex"]);
+    expect(store.spreadsheetFileName).toBe("old.csv");
+    store.updateCellValue(1, "Encounter.sex", "unknown");
+    expect(store.rawData[1]["Encounter.sex"]).toBe("unknown");
+  });
+
+  test("millis cells: required without a year column, whole, not in the future", () => {
+    const rule = store._validationRules;
+    store._rawColumns = ["Sighting.millis"];
+    [
+      "Encounter.dateInMilliseconds",
+      "Sighting.dateInMilliseconds",
+      "Sighting.millis",
+    ].forEach((col) => {
+      expect(rule[col].validate("")).toBe(false);
+      expect(rule[col].message("")).toBe(
+        "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD",
+      );
+      expect(rule[col].validate("1700000000000")).toBe(true);
+      expect(rule[col].validate("-1000")).toBe(true);
+      expect(rule[col].validate("1700000000000.5")).toBe(false);
+      expect(rule[col].validate("1e12")).toBe(false);
+      expect(rule[col].validate(String(Date.now() + 86400000))).toBe(false);
+      // Java long range, compared exactly
+      expect(rule[col].validate("-9223372036854775808")).toBe(true);
+      expect(rule[col].validate("-9223372036854775809")).toBe(false);
+      expect(rule[col].validate("9223372036854775807")).toBe(false);
+      expect(rule[col].message("x")).toBe(
+        "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
+      );
+    });
+    store._rawColumns = ["Sighting.year", "Sighting.millis"];
+    expect(rule["Sighting.millis"].validate("")).toBe(true);
   });
 });

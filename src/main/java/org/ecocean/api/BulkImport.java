@@ -3,6 +3,8 @@ package org.ecocean.api;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -10,6 +12,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,14 +29,26 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.IAGateway;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.AdvisoryLock;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class BulkImport extends ApiBase {
+    // starts the background import; tests replace it to capture or run the worker
+    Consumer<Runnable> launcher = r -> new Thread(r).start();
+
+    /** A bulkImportId that has already been submitted (or is being submitted right now). */
+    private static class DuplicateImport extends Exception {
+        DuplicateImport(String id) {
+            super("bulkImportId " + id + " has already been submitted");
+        }
+    }
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
@@ -146,6 +162,8 @@ public class BulkImport extends ApiBase {
         JSONObject matchingSetFilter = new JSONObject();
         JSONObject encAssets = null;
         String dupId = null; // gets set as bulkImporId to be used in finally block
+        JSONObject payload = null; // archived at the response tail, unless refused
+        boolean refused = false; // a duplicate bulkImportId: nothing archived
         // GH-1514: hoisted so the finally block can queue a post-commit deep
         // reindex of individuals the foreground importer touched.
         BulkImporter fgImporter = null;
@@ -164,14 +182,35 @@ public class BulkImport extends ApiBase {
                 response.getWriter().write(rtn.toString()); // success:false, annotationsImported:false
                 return;
             }
-            JSONObject payload = ServletUtilities.jsonFromHttpServletRequest(request);
+            try {
+                payload = ServletUtilities.jsonFromHttpServletRequest(request);
+            } catch (JSONException ex) { // not JSON, or a key given twice in one object
+                throw new ApiException("malformed request", malformedRow(null, ex.getMessage()));
+            }
             if (payload == null) throw new ServletException("empty payload");
             JSONArray rows = payload.optJSONArray("rows");
             if (rows == null) throw new ServletException("no rows in payload");
             String bulkImportId = payload.optString("bulkImportId", null);
             if (bulkImportId == null) throw new ServletException("bulkImportId is required");
             rtn.put("bulkImportId", bulkImportId);
-            archiveBulkJson(payload, "payload");
+            // one identical string for the lock key, task lookup, new ImportTask and upload dir
+            if (bulkImportId.isEmpty() || !bulkImportId.equals(bulkImportId.trim())) {
+                JSONObject idErr = new JSONObject();
+                idErr.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                idErr.put("fieldName", "bulkImportId");
+                idErr.put("details", "bulkImportId must be non-empty, without surrounding spaces");
+                throw new ApiException("invalid bulkImportId", idErr);
+            }
+            // an upload is imported once: refuse an ID another request holds or that has a task
+            if (!payload.optBoolean("validateOnly", false)) {
+                // the lock lasts as long as the request transaction, so it needs one
+                if (!myShepherd.isDBTransactionActive())
+                    throw new IllegalStateException("database transaction unavailable");
+                if (!AdvisoryLock.tryXact(myShepherd, AdvisoryLock.key("bulk-import:" + bulkImportId)))
+                    throw new DuplicateImport(bulkImportId);
+                if (myShepherd.findImportTask(bulkImportId) != null)
+                    throw new DuplicateImport(bulkImportId);
+            }
             dupId = bulkImportId;
 
             JSONObject tolerance = payload.optJSONObject("tolerance");
@@ -229,19 +268,7 @@ public class BulkImport extends ApiBase {
                             dupErr);
                 }
                 List<List<String> > syn = BulkValidator.findSynonyms(fieldNames);
-                if (syn != null) {
-                    JSONArray synErrs = new JSONArray();
-                    for (List<String> syns : syn) {
-                        JSONObject err = new JSONObject();
-                        err.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
-                        err.put("type", BulkValidatorException.TYPE_INVALID_SYNONYM);
-                        err.put("details", "synonym columns: " + String.join(", ", syns));
-                        err.put("fieldNames", syns);
-                        synErrs.put(err);
-                    }
-                    throw new ApiException("duplicate columns due to synonyms in field names",
-                            synErrs);
-                }
+                if (syn != null) throw synonymColumns(syn);
             }
             // we might grow matchingSetFilter stuff later, but for now we only have locationIds from ui
             JSONArray mloc = payload.optJSONArray("matchingLocations");
@@ -260,33 +287,21 @@ public class BulkImport extends ApiBase {
             skipDetection = payload.optBoolean("skipDetection", false);
             // if you skipDetection, you cant do identification, so:
             skipIdentification = skipDetection || payload.optBoolean("skipIdentification", false);
-            Set<String> filenamesNeeded = new HashSet<String>();
-            final List<Map<String, Object> > validatedRows = new ArrayList<Map<String, Object> >();
+            // every row as an object row, in sheet order; a row of the wrong shape is refused
+            List<JSONObject> sourceRows = sourceRows(rows, fieldNames);
+            if (fieldNames == null) checkGroupedDateColumns(sourceRows);
             BulkImporter.logProgress(bulkImportId,
                 "doPost: pre-validated [" + rows.length() + " rows]", startTime);
-            for (int i = 0; i < rows.length(); i++) {
-                if (i % 200 == 1)
-                    BulkImporter.logProgress(bulkImportId, "doPost: validating=" + i, startTime);
-                Map<String, Object> vrow = null;
-                if (fieldNames == null) {
-                    JSONObject rowData = rows.optJSONObject(i);
-                    if (rowData == null) {
-                        System.out.println("null rowData on row " + i + " of bulk import");
-                        continue;
-                    }
-                    vrow = BulkImportUtil.validateRow(rowData, myShepherd, skipIdentification);
-                } else {
-                    JSONArray rowArr = rows.optJSONArray(i);
-                    if (rowArr == null) {
-                        System.out.println("null rowArr on row " + i + " of bulk import");
-                        continue;
-                    }
-                    vrow = BulkImportUtil.validateRow(fieldNames, rowArr, myShepherd,
-                        skipIdentification);
-                }
-                validatedRows.add(vrow);
-                // now we check if we actually have all the mediaAssets we need
-                for (String fieldName : vrow.keySet()) {
+            // rows sharing an Encounter.groupKey become one row; every other row is validated as is
+            final GroupedRows grouped = GroupCollapse.collapse(sourceRows, myShepherd,
+                skipIdentification, BulkValidator.MAX_INDEX + 1);
+            final List<Map<String, Object> > validatedRows = grouped.mergedRows();
+            Map<String, File> fileByName = new HashMap<String, File>();
+            for (File f : files) fileByName.put(f.getName(), f);
+            Set<String> filenamesNeeded = new HashSet<String>();
+            // now we check if we actually have all the mediaAssets we need
+            for (Map<String, Object> vrow : validatedRows) {
+                for (String fieldName : new ArrayList<String>(vrow.keySet())) {
                     if (!BulkValidator.isValidFieldName(fieldName)) continue;
                     String prefix = BulkValidator.indexPrefixValue(fieldName);
                     if (!"Encounter.mediaAsset".equals(prefix)) continue;
@@ -294,7 +309,7 @@ public class BulkImport extends ApiBase {
                     BulkValidator bv = (BulkValidator)vrow.get(fieldName);
                     if (bv.getValue() == null) continue;
                     String filename = bv.getValue().toString();
-                    if (Util.containsFilename(files, filename)) {
+                    if (fileByName.containsKey(filename)) {
                         filenamesNeeded.add(filename);
                     } else {
                         System.out.println(bv.getValue() + " not found in uploaded files");
@@ -318,19 +333,23 @@ public class BulkImport extends ApiBase {
                 defaultSubmitterIDBV = new BulkValidator(submitterIDFieldName,
                     currentUser.getUsername(), myShepherd);
             }
-            int numRowsValid = 0;
-            List<BulkValidator> validFields = new ArrayList<BulkValidator>();
+            int numberFieldsValid = 0; // merged fields of ungrouped rows
             JSONArray dataErrors = new JSONArray();
             JSONArray dataWarnings = new JSONArray();
-            Set<String> warningDuplicate = new HashSet<String>();
             // bulk-import boxes (spec 4.2 import layer): the checks that need the uploaded files or
             // other rows, in both modes, written into the row maps so the aggregation below reports
             // them like any other field error; validity and dimensions are read once per file
             Map<String, Boolean> fileValid = new HashMap<String, Boolean>();
             Map<String, int[]> fileDims = new HashMap<String, int[]>();
-            boxedImport = checkBoxedFiles(validatedRows, files, dataWarnings, fileValid, fileDims);
+            boxedImport = checkBoxedFiles(grouped, fileByName, dataWarnings, fileValid, fileDims);
+            // every field error on its source cell, in source-row order. Collected before the
+            // default submitter is put into the rows: that put can resize a row's map and change
+            // the order its errors are reported in
+            GroupedErrors fieldErrors = GroupedErrors.collect(grouped,
+                toleranceBadFieldnamesAreWarnings);
+            for (JSONObject warn : fieldErrors.warnings()) dataWarnings.put(warn);
+            for (JSONObject err : fieldErrors.errors()) dataErrors.put(err);
             for (int rowNum = 0; rowNum < validatedRows.size(); rowNum++) {
-                boolean rowValid = true;
                 Map<String, Object> rowResult = validatedRows.get(rowNum);
                 // a rejected submitter keeps its error; only a missing column gets the default
                 boolean hasSubmitterColumn = rowResult.containsKey(submitterIDFieldName);
@@ -341,32 +360,14 @@ public class BulkImport extends ApiBase {
                         // either we have passed a (valid) owner, or we have the field, but no value
                         // in latter case we set to the default
                         if (rowFieldName.equals(submitterIDFieldName)) {
-                            if (bv.getValue() == null) {
+                            if (bv.getValue() == null)
                                 rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
-                                bv = defaultSubmitterIDBV;
-                            }
                         }
-                        validFields.add(bv);
+                        // a grouped row's valid cells are counted on its source rows below
+                        if (!grouped.isGrouped(rowNum)) numberFieldsValid++;
                     } else if (fieldObj instanceof BulkValidatorException) {
-                        JSONObject err = new JSONObject();
-                        err.put("rowNumber", rowNum);
-                        err.put("fieldName", rowFieldName);
-                        BulkValidatorException bve = (BulkValidatorException)fieldObj;
-                        err.put("type", bve.getType());
-                        err.put("errors", bve.getErrors());
-                        err.put("details", bve.toString());
-                        if (bve.treatAsWarning(toleranceBadFieldnamesAreWarnings)) {
-                            // hackily prevents multiple identical warnings (like bad fieldname x N rows)
-                            if (!warningDuplicate.contains(bve.toString())) {
-                                dataWarnings.put(err);
-                                warningDuplicate.add(bve.toString());
-                            }
-                        } else {
-                            dataErrors.put(err);
-                            rowValid = false;
-                        }
                         System.out.println("[INFO] rowResult[" + rowNum + ", " + rowFieldName +
-                            "]: " + bve);
+                            "]: " + fieldObj);
                     } else {
                         System.out.println(
                             "[ERROR] Non-bulk exception (or something weird) for rowNum=" + rowNum +
@@ -377,63 +378,72 @@ public class BulkImport extends ApiBase {
                                 rowFieldName + "]: " + fieldObj);
                     }
                 }
-                if (rowValid) numRowsValid++;
                 // case where we simply didnt have the column for submitter, we add it now; for an
                 // invalid row too (bulk-import boxes): such rows reach the importer only under
                 // tolerance, where processRow threw "no value for Encounter.submitterID" without it
                 if (!hasSubmitterColumn) rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
             }
-            rtn.put("numberRows", validatedRows.size());
-            rtn.put("annotationsImported", boxedImport);
-            rtn.put("numberRowsValid", numRowsValid);
-            rtn.put("numberFieldsWarning", dataWarnings.length());
-            rtn.put("numberFieldsError", dataErrors.length());
-            rtn.put("numberFieldsValid", validFields.size());
-            if (dataErrors.length() > 0) rtn.put("errors", dataErrors);
+            int numFieldErrors = dataErrors.length();
             List<File> validFiles = new ArrayList<File>();
             // now we only do "lightweight" (fast) file validation, as the MediaAsset creation
             // takes too long, and therefore we do that later in the background (if applicable)
             // bulk-import boxes: a tolerant import (failImportOnError false) now validates and creates
             // its files despite row errors (the boxed-file pass above adds row errors before this
             // loop; previously a tolerant import with any row error created no media at all); a file
-            // that pass already rejected is skipped here without a second error
-            if (!validateOnly && ((dataErrors.length() == 0) || !toleranceFailImportOnError)) {
-                for (File file : files) {
-                    String filename = file.getName();
-                    if (!filenamesNeeded.contains(filename)) continue; // uploaded, but not referenced :(
-                    Boolean cachedValid = fileValid.get(filename);
-                    if (Boolean.FALSE.equals(cachedValid)) continue;
-                    // this takes about 30 sec for 1000 images :(
-                    // if (!AssetStore.isValidImage(file))
-                    // ... but this new method is less than 1 sec :)
-                    if ((cachedValid == null) && !Util.fastFileValidation(file)) {
-                        // we mimic the ApiException type errors here, but special type for frontend
-                        JSONObject err = new JSONObject();
-                        err.put("type", "INVALID_IMAGE");
-                        err.put("details", filename + " is not a valid file");
-                        JSONArray errArr = new JSONArray();
-                        // this internal one is nearly a duplicate of the outside json
-                        JSONObject singleErr = new JSONObject(err.toString());
-                        singleErr.put("code", "INVALID");
-                        errArr.put(singleErr);
-                        err.put("errors", errArr);
-                        err.put("filename", filename);
-                        dataErrors.put(err);
-                        System.out.println("[ERROR] image validation failed on " + filename);
-                        continue;
-                    }
-                    validFiles.add(file);
+            // that pass already rejected is skipped here without a second error. A group's photo is
+            // checked in every mode, validate-only included: a bad one fails the whole request.
+            boolean checkUngroupedFiles = !validateOnly &&
+                ((numFieldErrors == 0) || !toleranceFailImportOnError);
+            for (File file : files) {
+                String filename = file.getName();
+                if (!filenamesNeeded.contains(filename)) continue; // uploaded, but not referenced :(
+                if (!checkUngroupedFiles && !fieldErrors.isGroupedFile(filename)) continue;
+                Boolean cachedValid = fileValid.get(filename);
+                if (Boolean.FALSE.equals(cachedValid)) continue;
+                // this takes about 30 sec for 1000 images :(
+                // if (!AssetStore.isValidImage(file))
+                // ... but this new method is less than 1 sec :)
+                if ((cachedValid == null) && !Util.fastFileValidation(file)) {
+                    // we mimic the ApiException type errors here, but special type for frontend
+                    JSONObject err = new JSONObject();
+                    err.put("type", "INVALID_IMAGE");
+                    err.put("details", filename + " is not a valid file");
+                    JSONArray errArr = new JSONArray();
+                    // this internal one is nearly a duplicate of the outside json
+                    JSONObject singleErr = new JSONObject(err.toString());
+                    singleErr.put("code", "INVALID");
+                    errArr.put(singleErr);
+                    err.put("errors", errArr);
+                    err.put("filename", filename);
+                    dataErrors.put(err);
+                    fieldErrors.fileFailed(filename);
+                    System.out.println("[ERROR] image validation failed on " + filename);
+                    continue;
                 }
+                validFiles.add(file);
             }
+            // counted after the file pass: a group's bad photo invalidates the rows naming it
+            final boolean fatal = fieldErrors.fatal();
+            rtn.put("numberRows", grouped.sourceRowCount());
+            rtn.put("annotationsImported", boxedImport);
+            rtn.put("numberRowsValid", fieldErrors.numberRowsValid());
+            rtn.put("numberFieldsWarning", dataWarnings.length());
+            rtn.put("numberFieldsError", numFieldErrors);
+            // in the unit of numberFieldsError: merged fields of ungrouped rows (one per source
+            // cell, as before grouping existed) plus the valid source cells of grouped rows
+            rtn.put("numberFieldsValid", numberFieldsValid + fieldErrors.numberGroupedCellsValid());
+            if ((numFieldErrors > 0) || (fatal && (dataErrors.length() > 0)))
+                rtn.put("errors", dataErrors);
             rtn.put("numberFilenamesReferenced", filenamesNeeded.size());
             rtn.put("numberFilesUploaded", files.size());
             rtn.put("numberFilesValid", validFiles.size());
             if (dataWarnings.length() > 0) rtn.put("warnings", dataWarnings);
             if (validateOnly) {
                 rtn.put("validateOnly", true);
-                rtn.put("success", (dataErrors.length() == 0));
+                rtn.put("success", (dataErrors.length() == 0) && !fatal);
                 statusCode = 200;
-            } else if ((dataErrors.length() > 0) && toleranceFailImportOnError) {
+            } else if (fatal || ((dataErrors.length() > 0) && toleranceFailImportOnError)) {
+                // an error on a grouped row is never tolerated: the group would lose data
                 statusCode = 400;
                 rtn.put("errors", dataErrors);
             } else {
@@ -443,6 +453,9 @@ public class BulkImport extends ApiBase {
 
                 BulkImporter.logProgress(bulkImportId, "doPost: fg/bg split", startTime);
                 rtn.put("processInBackground", processInBackground);
+                reserveImportTask(context, bulkImportId, currentUser, payload,
+                    processInBackground ? "processing-background" : "processing-foreground",
+                    boxedImport);
                 if (processInBackground) {
                     // these need to be final
                     final boolean bgToleranceFailImportOnError = toleranceFailImportOnError;
@@ -451,12 +464,14 @@ public class BulkImport extends ApiBase {
                     final boolean bgBoxedImport = boxedImport;
                     final String currentUsername = currentUser.getUsername();
                     final String bgContext = myShepherd.getContext();
+                    // the worker and a launch-failure undo each claim the reservation; only one wins
+                    final AtomicBoolean claimed = new AtomicBoolean(false);
                     Runnable r = new Runnable() {
                         public void run() {
+                            if (!claimed.compareAndSet(false, true)) return; // the reservation was undone
                             // make our background thread safely use our own Shepherd
                             Shepherd bgShepherd = new Shepherd(bgContext);
                             bgShepherd.setAction("api.Bulk.processBackground");
-                            bgShepherd.beginDBTransaction();
 
                             JSONObject bgEncAssets = null;
                             boolean success = false;
@@ -464,9 +479,8 @@ public class BulkImport extends ApiBase {
                             // post-commit deep reindex of touched individuals.
                             BulkImporter bgImporter = null;
                             try {
+                                bgShepherd.beginDBTransaction(); // inside the try: finally closes it
                                 User bgUser = bgShepherd.getUser(currentUsername);
-                                initializeImportTask(bulkImportId, bgUser, payload,
-                                    "processing-background", bgBoxedImport);
                                 int numNewErrors = dataErrors.length();
                                 BulkImporter.logProgress(bulkImportId,
                                     "doPost: bg pre-createMediaAssets()", startTime);
@@ -474,8 +488,10 @@ public class BulkImport extends ApiBase {
                                     validFiles, dataErrors, bgShepherd, startTime);
                                 BulkImporter.logProgress(bulkImportId,
                                     "doPost: bg post-createMediaAssets()", startTime);
+                                // a group never loses a photo, whatever the tolerance
+                                boolean blockedByMAErrors = missingGroupedAssets(grouped, maMap,
+                                    dataErrors, numNewErrors);
                                 numNewErrors = dataErrors.length() - numNewErrors;
-                                boolean blockedByMAErrors = false;
                                 if (numNewErrors > 0) {
                                     System.out.println(bulkImportId +
                                         " background createMediaAssets() failed: " + dataErrors);
@@ -484,11 +500,13 @@ public class BulkImport extends ApiBase {
                                     if (bgToleranceFailImportOnError) blockedByMAErrors = true;
                                 }
                                 rtn.put("numberMediaAssetsCreated", maMap.size());
-                                BulkImporter importer = new BulkImporter(bulkImportId,
-                                    validatedRows, maMap, bgUser, bgShepherd);
-                                bgImporter = importer;
+                                BulkImporter importer = null;
                                 JSONObject results = null;
                                 if (!blockedByMAErrors) {
+                                    importer = new BulkImporter(bulkImportId, validatedRows, maMap,
+                                        bgUser, bgShepherd, grouped.exactSlotMode(),
+                                        grouped.groupedMergedIndexes());
+                                    bgImporter = importer;
                                     try {
                                         BulkImporter.logProgress(bulkImportId,
                                             "doPost: bg pre-createImport()", startTime);
@@ -578,15 +596,27 @@ public class BulkImport extends ApiBase {
                             BulkImporter.logProgress(bulkImportId, "doPost: bg DONE", startTime);
                         }
                     };
-                    new Thread(r).start();
+                    try {
+                        launcher.accept(r);
+                    } catch (RuntimeException | Error launchFailure) {
+                        // the worker has not claimed the task, and this request still holds the
+                        // lock: free the ID so the same upload can be submitted again. The launch
+                        // failure is what the request reports, whatever the cleanup does.
+                        if (claimed.compareAndSet(false, true)) {
+                            try {
+                                undoReservation(context, bulkImportId);
+                            } catch (Throwable cleanupFailure) {
+                                launchFailure.addSuppressed(cleanupFailure);
+                            }
+                        }
+                        throw launchFailure;
+                    }
                     rtn.put("processingTime", System.currentTimeMillis() - startProcess);
                     rtn.put("backgrounded", true);
                     rtn.put("success", true);
                     statusCode = 200;
                 } else {
                     // foreground processing
-                    initializeImportTask(bulkImportId, currentUser, payload,
-                        "processing-foreground", boxedImport);
                     int numNewErrors = dataErrors.length();
                     BulkImporter.logProgress(bulkImportId, "doPost: fg pre-createMediaAssets()",
                         startTime);
@@ -594,8 +624,10 @@ public class BulkImport extends ApiBase {
                         dataErrors, myShepherd, startTime);
                     BulkImporter.logProgress(bulkImportId, "doPost: fg post-createMediaAssets()",
                         startTime);
+                    // a group never loses a photo, whatever the tolerance
+                    boolean blockedByMAErrors = missingGroupedAssets(grouped, maMap, dataErrors,
+                        numNewErrors);
                     numNewErrors = dataErrors.length() - numNewErrors;
-                    boolean blockedByMAErrors = false;
                     if (numNewErrors > 0) {
                         System.out.println(bulkImportId +
                             " foreground createMediaAssets() failed: " + dataErrors);
@@ -609,7 +641,8 @@ public class BulkImport extends ApiBase {
                         statusCode = 400;
                     } else {
                         BulkImporter importer = new BulkImporter(bulkImportId, validatedRows, maMap,
-                            currentUser, myShepherd);
+                            currentUser, myShepherd, grouped.exactSlotMode(),
+                            grouped.groupedMergedIndexes());
                         fgImporter = importer;
                         BulkImporter.logProgress(bulkImportId, "doPost: fg pre-createImport()",
                             startTime);
@@ -656,7 +689,18 @@ public class BulkImport extends ApiBase {
         } catch (ServletException ex) { // should just be thrown, not caught (below)
             System.out.println("BulkImport.doPost() threw " + ex);
             ex.printStackTrace();
+            if (payload != null) archiveBulkJson(payload, "payload");
             throw ex;
+        } catch (DuplicateImport dup) {
+            statusCode = 409;
+            refused = true;
+            rtn.put("annotationsImported", false); // validation may have set it; nothing was imported
+            System.out.println("BulkImport.doPost() returning 409: " + dup.getMessage());
+            JSONObject err = new JSONObject();
+            err.put("type", "DUPLICATE_IMPORT");
+            err.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+            err.put("details", dup.getMessage());
+            rtn.put("errors", new JSONArray().put(err));
         } catch (ApiException apiEx) {
             statusCode = 400;
             System.out.println("BulkImport.doPost() returning 400 due to " + apiEx + " errors=" +
@@ -689,7 +733,10 @@ public class BulkImport extends ApiBase {
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(rtn.toString());
-        archiveBulkJson(rtn, "return" + statusCode);
+        if (!refused) {
+            if (payload != null) archiveBulkJson(payload, "payload");
+            archiveBulkJson(rtn, "return" + statusCode);
+        }
         BulkImporter.logProgress(rtn.optString("bulkImportId", "(unknown)"), "doPost: fg EXIT",
             startTime);
     }
@@ -748,16 +795,143 @@ public class BulkImport extends ApiBase {
         response.getWriter().write(rtn.toString());
     }
 
-    // files should already be validated and "needed"
-    // one reference to an uploaded file from a photo slot of a validated row
+    // a MALFORMED_ROW error; rowNumber may be null (the request itself could not be read)
+    static JSONObject malformedRow(Integer rowNumber, String details) {
+        JSONObject err = new JSONObject();
+        err.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+        err.put("type", BulkValidatorException.TYPE_MALFORMED_ROW);
+        if (rowNumber != null) err.put("rowNumber", rowNumber);
+        err.put("details", details);
+        return err;
+    }
+
+    // the request-level error for synonym columns (one entry per synonym set)
+    static ApiException synonymColumns(List<List<String> > syn) {
+        JSONArray synErrs = new JSONArray();
+        for (List<String> syns : syn) {
+            JSONObject err = new JSONObject();
+            err.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+            err.put("type", BulkValidatorException.TYPE_INVALID_SYNONYM);
+            err.put("details", "synonym columns: " + String.join(", ", syns));
+            err.put("fieldNames", syns);
+            synErrs.put(err);
+        }
+        return new ApiException("duplicate columns due to synonyms in field names", synErrs);
+    }
+
+    /**
+     * The request's rows as object rows, in sheet order: a positional request's rows must be
+     * arrays, an object request's rows objects; anything else (null included) is a MALFORMED_ROW.
+     * An object row holding one numbered column under two spellings ("Encounter.mediaAsset01" and
+     * "Encounter.mediaAsset1") is refused whatever the tolerance, as the positional header check
+     * refuses it.
+     */
+    static List<JSONObject> sourceRows(JSONArray rows, Set<String> fieldNames)
+    throws ApiException {
+        List<JSONObject> rtn = new ArrayList<JSONObject>(rows.length());
+        for (int i = 0; i < rows.length(); i++) {
+            Object raw = rows.opt(i);
+            if (fieldNames != null) {
+                if (!(raw instanceof JSONArray))
+                    throw new ApiException("malformed row " + i, malformedRow(i,
+                            "row " + i + " is not a list of values"));
+                rtn.add(BulkImportUtil.rowFromPositional(fieldNames, (JSONArray)raw));
+                continue;
+            }
+            if (!(raw instanceof JSONObject))
+                throw new ApiException("malformed row " + i, malformedRow(i,
+                        "row " + i + " is not an object"));
+            JSONObject row = (JSONObject)raw;
+            String[] aliases = BulkImportUtil.findIndexAliases(new HashSet<String>(row.keySet()));
+            if (aliases != null) {
+                JSONObject dupErr = new JSONObject();
+                dupErr.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                dupErr.put("type", BulkValidatorException.TYPE_INVALID_DUPLICATE);
+                dupErr.put("rowNumber", i);
+                dupErr.put("details", aliases[0] + " and " + aliases[1] +
+                    " are the same numbered column");
+                dupErr.put("fieldName", aliases[1]);
+                String key = GroupCollapse.echoKey(row.opt(GroupCollapse.GROUP_KEY));
+                if (key != null) dupErr.put("groupKey", key);
+                throw new ApiException("duplicate columns: " + aliases[0] + ", " + aliases[1],
+                        dupErr);
+            }
+            rtn.add(row);
+        }
+        return rtn;
+    }
+
+    /**
+     * An object request with any grouped row: a year column and a millis column anywhere on the
+     * sheet (blank cells and ungrouped rows included) are refused once, as the positional header
+     * check refuses them. Object requests without a grouped row keep their per-row check.
+     */
+    static void checkGroupedDateColumns(List<JSONObject> rows)
+    throws ApiException {
+        boolean anyGrouped = false;
+        Set<String> names = new HashSet<String>();
+        for (JSONObject row : rows) {
+            names.addAll(row.keySet());
+            Object key = row.opt(GroupCollapse.GROUP_KEY);
+            if ((key != null) && (key != JSONObject.NULL) &&
+                (!(key instanceof String) || !((String)key).trim().isEmpty()))
+                anyGrouped = true;
+        }
+        if (!anyGrouped) return;
+        boolean year = names.contains("Encounter.year") || names.contains("Sighting.year");
+        if (!year || Collections.disjoint(names, BulkValidator.DATE_MILLIS_FIELDS)) return;
+        List<String> syns = new ArrayList<String>();
+        for (String f : BulkValidator.DATE_EXCLUSIVE) {
+            if (names.contains(f)) syns.add(f);
+        }
+        throw synonymColumns(List.of(syns));
+    }
+
+    /**
+     * After createMediaAssets: every photo of a group must have its MediaAsset. A grouped photo
+     * without one (and without the creation error createMediaAssets already reported since
+     * errorsBefore) gets an INVALID_IMAGE error. True when any is missing: the import is blocked
+     * whatever the tolerance.
+     */
+    static boolean missingGroupedAssets(GroupedRows g, Map<String, MediaAsset> maMap,
+        JSONArray dataErrors, int errorsBefore) {
+        boolean missing = false;
+        Set<String> reported = new HashSet<String>();
+        for (int i = errorsBefore; i < dataErrors.length(); i++) {
+            JSONObject err = dataErrors.optJSONObject(i);
+            if ((err != null) && err.has("filename")) reported.add(err.optString("filename"));
+        }
+        for (String filename : g.groupedFilenames()) {
+            if (maMap.get(filename) != null) continue;
+            missing = true;
+            if (reported.contains(filename)) continue;
+            JSONObject err = new JSONObject();
+            err.put("type", "INVALID_IMAGE");
+            err.put("details", filename + " could not be imported");
+            JSONObject singleErr = new JSONObject(err.toString());
+            singleErr.put("code", "INVALID");
+            err.put("errors", new JSONArray().put(singleErr));
+            err.put("filename", filename);
+            dataErrors.put(err);
+            System.out.println("[ERROR] grouped photo " + filename + " has no MediaAsset");
+        }
+        return missing;
+    }
+
+    // one reference to an uploaded file from a photo slot of a validated (merged) row
     private static class SlotRef {
-        int row;
+        int row;          // merged row
+        int sourceRow;    // the source row and slot the photo came from, for ordering and messages
+        int sourceSlot;
         String bareField;
         String bboxField;
         int[] box;     // null when the slot is not boxed
         double theta;
         boolean thetaRejected;   // its angle failed validation: the box will not be imported
     }
+
+    private static final Comparator<SlotRef> SOURCE_ORDER = Comparator.comparingInt(
+        (SlotRef r) -> r.sourceRow).thenComparingInt(r -> r.sourceSlot);
 
     /**
      * Bulk-import boxes (spec 4.2 import layer), both modes. The boxed-import predicate is read
@@ -768,12 +942,15 @@ public class BulkImport extends ApiBase {
      * invalid for the later file loop so it is never created); every box must lie within the
      * image (long arithmetic, the edge equal to the image size allowed) and no identical box
      * (x,y,width,height,theta; -0.0 counts as 0.0) may appear twice on one file. Filenames are
-     * matched exactly as uploaded (only a blank cell counts as empty). Findings are written into
-     * the row maps under the slot's field so the aggregation reports them with rowNumber. Un-boxed
-     * photos of a boxed import get one UNBOXED_PHOTOS warning. Returns the predicate.
+     * matched exactly as uploaded (only a blank cell counts as empty). References are taken in
+     * source order (source row, then source slot), so the later one in the sheet is the one
+     * blamed, and messages name source rows. Findings are written into the merged row maps under
+     * the slot's field; the aggregation maps them back to source cells. Un-boxed photos of a
+     * boxed import get one UNBOXED_PHOTOS warning. Returns the predicate.
      */
-    private boolean checkBoxedFiles(List<Map<String, Object> > validatedRows, List<File> files,
+    private boolean checkBoxedFiles(GroupedRows g, Map<String, File> fileByName,
         JSONArray dataWarnings, Map<String, Boolean> fileValid, Map<String, int[]> fileDims) {
+        List<Map<String, Object> > validatedRows = g.mergedRows();
         boolean anyBox = false;
         for (Map<String, Object> row : validatedRows) {
             for (String name : BulkImportUtil.findIndexedFieldNames(row.keySet(),
@@ -784,8 +961,6 @@ public class BulkImport extends ApiBase {
             }
         }
         if (!anyBox) return false;
-        Map<String, File> fileByName = new HashMap<String, File>();
-        for (File f : files) fileByName.put(f.getName(), f);
         Map<String, List<SlotRef> > boxedRefs = new LinkedHashMap<String, List<SlotRef> >();
         Map<String, List<SlotRef> > plainRefs = new LinkedHashMap<String, List<SlotRef> >();
         for (int r = 0; r < validatedRows.size(); r++) {
@@ -802,6 +977,17 @@ public class BulkImport extends ApiBase {
                 if ((filename == null) || filename.trim().isEmpty()) continue;
                 SlotRef ref = new SlotRef();
                 ref.row = r;
+                ref.sourceRow = g.membersOf(r).get(0);
+                ref.sourceSlot = n;
+                if (g.isGrouped(r)) {
+                    List<GroupedRows.Cell> cells = g.contributorsOf(r, bareName);
+                    BulkImportUtil.Slot slot = cells.isEmpty() ? null :
+                        BulkImportUtil.slotOf(cells.get(0).field);
+                    if (slot != null) {
+                        ref.sourceRow = cells.get(0).row;
+                        ref.sourceSlot = slot.index;
+                    }
+                }
                 ref.bareField = bareName;
                 ref.bboxField = BulkImportUtil.boxFieldName(boxFields, "bbox", n);
                 Object bboxObj = row.get(ref.bboxField);
@@ -829,6 +1015,9 @@ public class BulkImport extends ApiBase {
                 }
             }
         }
+        // before any decision: which reference is first decides which later one is blamed
+        for (List<SlotRef> refs : boxedRefs.values()) refs.sort(SOURCE_ORDER);
+        for (List<SlotRef> refs : plainRefs.values()) refs.sort(SOURCE_ORDER);
         for (Map.Entry<String, List<SlotRef> > e : boxedRefs.entrySet()) {
             String filename = e.getKey();
             List<SlotRef> refs = e.getValue();
@@ -837,7 +1026,7 @@ public class BulkImport extends ApiBase {
                 for (SlotRef ref : plain) {
                     BulkImportUtil.putIfClean(validatedRows.get(ref.row), ref.bareField,
                         new BulkValidatorException("photo " + filename + " has a box on row " +
-                        refs.get(0).row + " but none here",
+                        refs.get(0).sourceRow + " but none here",
                         ApiException.ERROR_RETURN_CODE_INVALID,
                         BulkValidatorException.TYPE_INVALID_VALUE, ref.bareField));
                 }
@@ -939,52 +1128,78 @@ public class BulkImport extends ApiBase {
         return maMap;
     }
 
-    // annotationsImported is the server's own predicate (bulk-import boxes, spec 4.5) and is
-    // written on every import, so a client cannot supply it in the payload
-    private void initializeImportTask(String id, User passedUser, JSONObject payload,
-        String status, boolean annotationsImported) {
-        if ((passedUser == null) || (passedUser.getId() == null)) {
-            System.out.println("[WARNING] initializeImportTask(" + id + ") got null user: " +
-                passedUser);
-            return;
-        }
-        Shepherd taskShepherd = new Shepherd("context0");
-
-        taskShepherd.setAction("BulkImport.initializeImportTask");
-        taskShepherd.beginDBTransaction();
+    // Reserves the ImportTask for this upload, committed before it returns (so the row guards the
+    // ID while the request still holds its advisory lock). An existing task is a duplicate; any
+    // other failure propagates and nothing is imported. annotationsImported is the server's own
+    // predicate (bulk-import boxes, spec 4.5), so a client cannot supply it in the payload.
+    void reserveImportTask(String context, String id, User user, JSONObject payload,
+        String status, boolean annotationsImported)
+    throws Exception {
+        if ((user == null) || (user.getId() == null))
+            throw new IllegalStateException("reservation needs a user with an id");
+        Shepherd sh = new Shepherd(context);
         try {
-            User user = taskShepherd.getUserByUUID(passedUser.getId()); // needs to be on our shepherd
-            ImportTask itask = taskShepherd.getImportTask(id);
-            if (itask != null) {
-                itask.addLog(
-                    "WARNING! BulkImport api POST passed EXISTING bulkImportId, reusing this ImportTask");
-                System.out.println(
-                    "WARNING: BulkImport api POST passed EXISTING bulkImportId, reusing this ImportTask ***************** "
-                    + itask);
-            } else {
-                itask = new ImportTask(user, id);
-            }
-            itask.setIATask(null);
-            itask.setProcessingProgress(0.0D);
-            itask.setEncounters(null);
-            itask.setErrors(null);
-            itask.setStatus(status);
+            sh.setAction("BulkImport.reserveImportTask");
+            sh.beginDBTransaction();
+            if (!sh.isDBTransactionActive())
+                throw new IllegalStateException("database transaction unavailable");
+            if (sh.findImportTask(id) != null) throw new DuplicateImport(id);
+            // loaded on our shepherd; a user that cannot be loaded throws instead of reading as null
+            User creator = sh.getPM().getObjectById(User.class, user.getId());
+            if (creator == null)
+                throw new IllegalStateException("reservation could not load user " + user.getId());
+            ImportTask task = new ImportTask(creator, id);
+            task.setProcessingProgress(0.0D);
+            task.setStatus(status);
+            task.setEncounters(new ArrayList<Encounter>()); // readable and deletable before the import
             JSONObject passedParams = new JSONObject();
             for (String k : payload.keySet()) {
                 if (k.equals("rows") || k.equals("fieldNames")) continue; // skip the data, basically
                 passedParams.put(k, payload.get(k));
             }
             passedParams.put(ImportTask.PARAM_ANNOTATIONS_IMPORTED, annotationsImported);
-            itask.setPassedParameters(passedParams);
-            taskShepherd.storeNewImportTask(itask);
-            taskShepherd.commitDBTransaction();
+            task.setPassedParameters(passedParams);
+            sh.getPM().makePersistent(task);
+            if (!sh.commitDBTransactionWithStatus())
+                throw new IOException("could not reserve ImportTask " + id);
         } catch (Exception ex) {
-            ex.printStackTrace();
-            taskShepherd.rollbackDBTransaction();
-        } finally {
-            taskShepherd.closeDBTransaction();
+            try {
+                sh.rollbackAndClose();
+            } catch (Exception rollbackEx) { // the original failure is the one to report
+                System.out.println("reserveImportTask(" + id + ") rollback failed: " + rollbackEx);
+                rollbackEx.printStackTrace();
+            }
+            throw ex;
         }
-        Util.mark("initializeImportTask(" + id + ", " + status + ")");
+        sh.closeDBTransaction();
+        Util.mark("reserveImportTask(" + id + ", " + status + ")");
+    }
+
+    // Removes the task reserveImportTask committed, when the worker could not be started. Called
+    // while the request still holds the lock, so the task is still this request's own. A failure
+    // propagates (after the Shepherd is closed); the caller attaches it to the launch failure.
+    void undoReservation(String context, String id)
+    throws Exception {
+        Shepherd sh = new Shepherd(context);
+        try {
+            sh.setAction("BulkImport.undoReservation");
+            sh.beginDBTransaction();
+            if (!sh.isDBTransactionActive())
+                throw new IllegalStateException("database transaction unavailable");
+            ImportTask task = sh.findImportTask(id);
+            if (task != null) sh.getPM().deletePersistent(task);
+            if (!sh.commitDBTransactionWithStatus())
+                throw new IOException("could not remove reserved ImportTask " + id);
+        } catch (Exception ex) {
+            try {
+                sh.rollbackAndClose();
+            } catch (Exception rollbackEx) {
+                ex.addSuppressed(rollbackEx);
+            }
+            throw ex;
+        }
+        sh.closeDBTransaction();
+        Util.mark("undoReservation(" + id + ")");
     }
 
     // this assumes task was created! and: we always ignore nulls

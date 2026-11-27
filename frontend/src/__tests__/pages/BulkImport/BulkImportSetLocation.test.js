@@ -2,6 +2,9 @@ import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { BulkImportSetLocation } from "../../../pages/BulkImport/BulkImportSetLocation";
 import usePostBulkImport from "../../../models/bulkImport/usePostBulkImport";
+import { BulkImportStore } from "../../../pages/BulkImport/BulkImportStore";
+import { allRequiredColumns } from "../../../pages/BulkImport/BulkImportConstants";
+import { BulkImportTableReview } from "../../../pages/BulkImport/BulkImportTableReview";
 
 jest.mock("../../../models/bulkImport/usePostBulkImport");
 jest.mock("antd/es/tree-select", () => {
@@ -35,16 +38,30 @@ jest.mock("../../../pages/BulkImport/BulkImportSuccessModal", () => {
 });
 
 jest.mock("../../../pages/BulkImport/BulkImportFailureModal", () => {
-  const FailureModalMock = ({ show, errorMessage }) =>
+  const FailureModalMock = ({ show, errorMessage, onHide }) =>
     show ? (
-      <div data-testid="failure-modal">Failure: {errorMessage}</div>
+      <div data-testid="failure-modal">
+        {/* as the real modal: a string is shown, a list gets a generic line */}
+        Failure: {typeof errorMessage === "string" ? errorMessage : null}
+        <button onClick={onHide}>Review Data</button>
+      </div>
     ) : null;
 
   FailureModalMock.displayName = "BulkImportFailureModal";
   return FailureModalMock;
 });
 
-jest.mock("dayjs", () => () => ({ format: () => "2025-07-14" }));
+jest.mock("../../../pages/BulkImport/EditableDataTable", () => {
+  const EditableDataTable = () => <div data-testid="editable-table" />;
+  EditableDataTable.displayName = "EditableDataTable";
+  return EditableDataTable;
+});
+
+jest.mock("dayjs", () => {
+  const dayjs = () => ({ format: () => "2025-07-14" });
+  dayjs.extend = () => {};
+  return dayjs;
+});
 
 describe("BulkImportSetLocation", () => {
   let store;
@@ -61,7 +78,8 @@ describe("BulkImportSetLocation", () => {
       setLocationID: jest.fn(),
       updateRawFromNormalizedRow: jest.fn(),
       clearSubmissionErrors: jest.fn(),
-      rawColumns: ["col1"],
+      rawColumns: ["col1", "Encounter.seconds"],
+      submittableColumns: ["col1"],
       rawData: [["data1"]],
       spreadsheetFileName: "test.xlsx",
       skipDetection: false,
@@ -73,6 +91,7 @@ describe("BulkImportSetLocation", () => {
       missingRequiredColumns: [],
       setActiveStep: jest.fn(),
       setSubmissionErrors: jest.fn(),
+      setSubmissionTransportError: jest.fn(),
     };
 
     submitMock = jest.fn();
@@ -121,6 +140,9 @@ describe("BulkImportSetLocation", () => {
 
     expect(store.updateRawFromNormalizedRow).toHaveBeenCalled();
     expect(store.clearSubmissionErrors).toHaveBeenCalled();
+    // the button posts the submittable columns, not the uploaded headers
+    expect(submitMock).toHaveBeenCalledTimes(1);
+    expect(submitMock.mock.calls[0][1]).toEqual(["col1"]);
 
     expect(await screen.findByTestId("success-modal")).toBeInTheDocument();
     const modal = await screen.findByTestId("success-modal");
@@ -130,10 +152,27 @@ describe("BulkImportSetLocation", () => {
     expect(localStorage.getItem("lastBulkImportTask")).toBe("123");
   });
 
+  it("does not submit when the grid and source rows differ", async () => {
+    store.spreadsheetData = [
+      { "Encounter.locationID": "loc1" },
+      { "Encounter.locationID": "loc1" },
+    ];
+    store.rawData = [{ "Encounter.locationID": "loc1" }];
+    localStorage.setItem("BulkImportStore", "{}");
+    render(<BulkImportSetLocation store={store} />);
+    const startBtn = screen.getByText(/START_BULK_IMPORT/).closest("button");
+    expect(startBtn).toBeDisabled();
+    await act(async () => {
+      fireEvent.click(startBtn);
+    });
+    expect(submitMock).not.toHaveBeenCalled();
+    expect(localStorage.getItem("BulkImportStore")).toBe("{}");
+    localStorage.removeItem("BulkImportStore");
+  });
+
   it("submits import and shows failure modal on status 400", async () => {
-    submitMock.mockResolvedValue({
-      status: 400,
-      data: { errors: "error occurred" },
+    submitMock.mockRejectedValue({
+      response: { status: 400, data: { errors: "error occurred" } },
     });
     render(<BulkImportSetLocation store={store} />);
 
@@ -141,8 +180,29 @@ describe("BulkImportSetLocation", () => {
       fireEvent.click(screen.getByText(/START_BULK_IMPORT/));
     });
 
-    expect(store.setSubmissionErrors).toHaveBeenCalledWith("error occurred");
+    expect(store.setSubmissionTransportError).toHaveBeenCalledWith(
+      "error occurred",
+    );
+    expect(store.setSubmissionErrors).not.toHaveBeenCalled();
     expect(await screen.findByTestId("failure-modal")).toBeInTheDocument();
+  });
+
+  it("a 400 with a list of errors clears any earlier message", async () => {
+    const errors = [{ rowNumber: 0, fieldName: "Encounter.genus" }];
+    submitMock.mockRejectedValue({
+      response: { status: 400, data: { errors } },
+    });
+    render(<BulkImportSetLocation store={store} />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByText(/START_BULK_IMPORT/));
+    });
+
+    expect(store.setSubmissionErrors).toHaveBeenCalledWith(errors);
+    expect(store.setSubmissionTransportError).toHaveBeenCalledWith(null);
+    expect(store.setSubmissionTransportError).not.toHaveBeenCalledWith(
+      expect.any(String),
+    );
   });
 
   it("handles unexpected error and shows failure modal", async () => {
@@ -153,9 +213,10 @@ describe("BulkImportSetLocation", () => {
       fireEvent.click(screen.getByText(/START_BULK_IMPORT/));
     });
 
-    expect(store.setSubmissionErrors).toHaveBeenCalledWith(
+    expect(store.setSubmissionTransportError).toHaveBeenCalledWith(
       "An unexpected error occurred during import",
     );
+    expect(store.setSubmissionErrors).not.toHaveBeenCalled();
     expect(await screen.findByTestId("failure-modal")).toBeInTheDocument();
   });
   it("initially sets location based on spreadsheetData via reaction", () => {
@@ -186,6 +247,13 @@ describe("BulkImportSetLocation", () => {
     expect(startBtn).toBeDisabled();
   });
 
+  it("disables START button for a sheet with no data rows", () => {
+    store.spreadsheetData = [];
+    render(<BulkImportSetLocation store={store} />);
+    const startBtn = screen.getByText(/START_BULK_IMPORT/).closest("button");
+    expect(startBtn).toBeDisabled();
+  });
+
   it("shows loading state on START button when isLoading is true", () => {
     usePostBulkImport.mockReturnValue({ submit: submitMock, isLoading: true });
     render(<BulkImportSetLocation store={store} />);
@@ -193,5 +261,108 @@ describe("BulkImportSetLocation", () => {
     const startLoading = loadingElements[1];
     expect(startLoading).toBeInTheDocument();
     expect(startLoading.closest("button")).toBeDisabled();
+  });
+});
+
+describe("BulkImportSetLocation duplicate submission (409)", () => {
+  const ALREADY =
+    "This upload was already submitted. Start a new upload to import again.";
+  let store;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+    store = new BulkImportStore();
+    store._rawColumns = ["col1"];
+    store._columnsDef = [...allRequiredColumns];
+    store._spreadsheetUploadProgress = 100;
+    store._rawData = [{ col1: "data1" }];
+    // one grid row per stored row, so Start Import is enabled
+    store._spreadsheetData = [{ col1: "data1" }];
+    store.setActiveStep(3);
+    store.saveState();
+    usePostBulkImport.mockReturnValue({
+      submit: jest.fn().mockRejectedValue({
+        response: {
+          status: 409,
+          data: { errors: [{ type: "DUPLICATE_IMPORT" }] },
+        },
+      }),
+      isLoading: false,
+    });
+  });
+
+  const clickStart = async () => {
+    render(<BulkImportSetLocation store={store} />);
+    await act(async () => {
+      fireEvent.click(screen.getByText(/START_BULK_IMPORT/));
+    });
+  };
+
+  it("shows already-submitted message on 409", async () => {
+    await clickStart();
+
+    expect(await screen.findByTestId("failure-modal")).toHaveTextContent(
+      ALREADY,
+    );
+    expect(store.submissionTransportError).toBe(ALREADY);
+    expect(typeof store.submissionErrors).not.toBe("string");
+    expect(localStorage.getItem("BulkImportStore")).not.toBeNull();
+  });
+
+  it("dismissing the 409 modal shows review with the draft", async () => {
+    const rawBefore = JSON.stringify(store.rawData);
+    await clickStart();
+
+    fireEvent.click(await screen.findByText("Review Data"));
+    expect(store.activeStep).toBe(2);
+
+    expect(() => render(<BulkImportTableReview store={store} />)).not.toThrow();
+    expect(JSON.stringify(store.rawData)).toBe(rawBefore);
+  });
+
+  it("a 500 with an {error} body does not break the review table", async () => {
+    usePostBulkImport.mockReturnValue({
+      submit: jest.fn().mockRejectedValue({
+        response: {
+          status: 500,
+          data: { error: "java.lang.IllegalStateException: x" },
+        },
+      }),
+      isLoading: false,
+    });
+    await clickStart();
+
+    expect(await screen.findByTestId("failure-modal")).toHaveTextContent(
+      "An unexpected error occurred during import",
+    );
+    expect(typeof store.submissionErrors).not.toBe("string");
+    fireEvent.click(await screen.findByText("Review Data"));
+    expect(() => render(<BulkImportTableReview store={store} />)).not.toThrow();
+  });
+
+  it("a 409 that is not DUPLICATE_IMPORT is not 'already submitted'", async () => {
+    const errors = [{ type: "SOMETHING_ELSE", code: "INVALID" }];
+    usePostBulkImport.mockReturnValue({
+      submit: jest.fn().mockRejectedValue({
+        response: { status: 409, data: { errors } },
+      }),
+      isLoading: false,
+    });
+    await clickStart();
+
+    expect(await screen.findByTestId("failure-modal")).not.toHaveTextContent(
+      ALREADY,
+    );
+    expect(store.submissionTransportError).toBeNull();
+    expect(store.submissionErrors).toEqual(errors);
+  });
+
+  it("resetToDefaults clears the already-submitted message", async () => {
+    await clickStart();
+    expect(store.submissionTransportError).toBe(ALREADY);
+
+    store.resetToDefaults();
+    expect(store.submissionTransportError).toBeNull();
   });
 });

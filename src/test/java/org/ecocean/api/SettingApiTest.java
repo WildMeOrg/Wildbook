@@ -252,7 +252,20 @@ class SettingApiTest {
                     JSONObject jout = new JSONObject(responseOut.toString());
                     // kinda meek test of results, but a decent start?
                     assertTrue(jout.has("users")); // only shown to logged in user
-                    assertEquals(jout.keySet().size(), 54);
+                    assertEquals(jout.keySet().size(), 58);
+                    assertTrue(jout.getJSONArray("bulkImportFieldAliases").toList().contains(
+                        List.of("Encounter.decimalLatitude", "Encounter.latitude",
+                        "Sighting.decimalLatitude")));
+                    assertEquals(List.of(List.of("Encounter.behavior", "Sighting.groupBehavior"),
+                        List.of("Sighting.comments", "Survey.comments")),
+                        jout.getJSONArray("bulkImportSameTargetFields").toList());
+                    assertEquals(List.of("Encounter.dateInMilliseconds",
+                        "Sighting.dateInMilliseconds", "Sighting.millis"),
+                        jout.getJSONArray("bulkImportDateMillisFields").toList());
+                    assertEquals(List.of("Encounter.day", "Encounter.hour", "Encounter.minutes",
+                        "Encounter.month", "Encounter.year", "Sighting.day", "Sighting.hour",
+                        "Sighting.minutes", "Sighting.month", "Sighting.year"),
+                        jout.getJSONArray("bulkImportDateCalendarFields").toList());
                     // bulk-import boxes (spec 4.6): the capability signal is the complete sorted
                     // indexable list, and the matchable map covers exactly the species the
                     // existing per-taxonomy class map covers (this harness configures no species)
@@ -289,7 +302,7 @@ class SettingApiTest {
                     JSONObject jout = new JSONObject(responseOut.toString());
                     // kinda meek test of results, but a decent start?
                     assertFalse(jout.has("users")); // only shown to logged in user
-                    assertEquals(jout.keySet().size(), 52);
+                    assertEquals(jout.keySet().size(), 56);
                     assertTrue(jout.has("bulkImportIndexableFields"));
                     assertTrue(jout.has("bulkImportMatchableClasses"));
                 }

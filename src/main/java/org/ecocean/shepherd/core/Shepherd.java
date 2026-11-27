@@ -518,16 +518,26 @@ public class Shepherd {
         return tempEnc;
     }
 
+    // null when there is no such task or the lookup fails; see findImportTask to tell them apart
     public ImportTask getImportTask(String num) {
-        ImportTask tempEnc = null;
-
         try {
-            tempEnc = ((ImportTask)(pm.getObjectById(pm.newObjectIdInstance(ImportTask.class,
-                num.trim()), true)));
+            return findImportTask(num.trim());
         } catch (Exception nsoe) {
             return null;
         }
-        return tempEnc;
+    }
+
+    /**
+     * The ImportTask with this id, or null when there is none. Unlike getImportTask, any
+     * failure other than "not found" propagates instead of reading as "no task".
+     */
+    public ImportTask findImportTask(String id)
+    throws Exception {
+        try {
+            return (ImportTask)pm.getObjectById(pm.newObjectIdInstance(ImportTask.class, id), true);
+        } catch (JDOObjectNotFoundException notFound) {
+            return null;
+        }
     }
 
     public void storeNewImportTask(ImportTask itask) {
@@ -1284,18 +1294,8 @@ public class Shepherd {
     }
 
     public Project getProjectByProjectIdPrefix(String projectIdPrefix) {
-        Project project = null;
-        String filter = "SELECT FROM org.ecocean.Project WHERE projectIdPrefix == \"" +
-            projectIdPrefix.trim() + "\"";
-        Query query = getPM().newQuery(filter);
-        Collection c = (Collection)(query.execute());
-        Iterator it = c.iterator();
-
-        if (it.hasNext()) {
-            project = (Project)it.next();
-        }
-        query.closeAll();
-        return project;
+        return firstProject("SELECT FROM org.ecocean.Project WHERE projectIdPrefix == prefix " +
+                "PARAMETERS String prefix", projectIdPrefix.trim());
     }
 
     // this is forgiving in that it only needs to match the start of the prefix and is case-insenstive
@@ -1304,18 +1304,20 @@ public class Shepherd {
     // consistency; but this may give undesirable results in a crowded dataset
     public Project getProjectByProjectIdPrefixPrefix(String projectIdPrefix) {
         if (projectIdPrefix == null) return null;
-        Project project = null;
-        String filter =
-            "SELECT FROM org.ecocean.Project WHERE projectIdPrefix.toLowerCase().startsWith(\"" +
-            projectIdPrefix.trim().toLowerCase() + "\") ORDER BY projectIdPrefix.toLowerCase()";
-        Query query = getPM().newQuery(filter);
-        Collection c = (Collection)(query.execute());
-        Iterator it = c.iterator();
-        if (it.hasNext()) {
-            project = (Project)it.next();
+        return firstProject("SELECT FROM org.ecocean.Project WHERE " +
+                "projectIdPrefix.toLowerCase().startsWith(prefix) PARAMETERS String prefix " +
+                "ORDER BY projectIdPrefix.toLowerCase()", projectIdPrefix.trim().toLowerCase());
+    }
+
+    // the first Project a single-parameter JDOQL query returns, or null; uses query parameters
+    private Project firstProject(String jdoql, String prefix) {
+        Query query = getPM().newQuery(jdoql);
+        try {
+            Iterator it = ((Collection)query.execute(prefix)).iterator();
+            return it.hasNext() ? (Project)it.next() : null;
+        } finally {
+            query.closeAll();
         }
-        query.closeAll();
-        return project;
     }
 
     public Project getProjectByUuid(String id) {
@@ -1421,28 +1423,21 @@ public class Shepherd {
         return getUser(username);
     }
 
+    // both values are query parameters; null is compared as the text "null", as it always was
     public TissueSample getTissueSample(String sampleID, String encounterNumber) {
-        TissueSample tempEnc = null;
-        String filter = "this.sampleID == \"" + sampleID +
-            "\" && this.correspondingEncounterNumber == \"" + encounterNumber + "\"";
-        Extent encClass = pm.getExtent(TissueSample.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-
+        Query query = pm.newQuery("SELECT FROM org.ecocean.genetics.TissueSample WHERE " +
+            "sampleID == sid && correspondingEncounterNumber == encNum " +
+            "PARAMETERS String sid, String encNum");
         try {
-            Collection c = (Collection)(acceptedEncounters.execute());
-            Iterator it = c.iterator();
-            while (it.hasNext()) {
-                TissueSample ts = (TissueSample)it.next();
-                acceptedEncounters.closeAll();
-                return ts;
-            }
+            Iterator it = ((Collection)query.execute(String.valueOf(sampleID),
+                String.valueOf(encounterNumber))).iterator();
+            return it.hasNext() ? (TissueSample)it.next() : null;
         } catch (Exception nsoe) {
             nsoe.printStackTrace();
-            acceptedEncounters.closeAll();
             return null;
+        } finally {
+            query.closeAll();
         }
-        acceptedEncounters.closeAll();
-        return null;
     }
 
     public MitochondrialDNAAnalysis getMitochondrialDNAAnalysis(String sampleID,
