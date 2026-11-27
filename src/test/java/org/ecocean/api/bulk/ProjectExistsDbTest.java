@@ -21,6 +21,7 @@ import org.ecocean.api.bulk.GroupCollapse;
 import org.ecocean.api.bulk.GroupedRows;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.TestPMFUtil;
+import org.ecocean.shepherd.core.TestShepherdUtil;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -72,14 +73,6 @@ class ProjectExistsDbTest {
         TestPMFUtil.closePMF("context0");
     }
 
-    // the request's transaction aborted by a failed statement
-    private static void abortTransaction(Shepherd sh) {
-        assertThrows(Exception.class, () -> sh.getPM().newQuery("javax.jdo.query.SQL",
-            "SELECT * FROM no_such_table_1789").execute());
-        assertThrows(Exception.class, () -> sh.getPM().newQuery("javax.jdo.query.SQL",
-            "SELECT 1").execute(), "Postgres refuses every statement in an aborted transaction");
-    }
-
     // the request's transaction still answers a statement
     private static void assertUsable(Shepherd sh) {
         assertDoesNotThrow(() -> sh.getPM().newQuery("javax.jdo.query.SQL", "SELECT 1").execute());
@@ -89,7 +82,7 @@ class ProjectExistsDbTest {
         Shepherd request = new Shepherd("context0", props);
         request.beginDBTransaction();
         try {
-            abortTransaction(request);
+            TestShepherdUtil.abortTransaction(request);
             assertTrue(BulkImportUtil.projectExists("FOO-", request));
             assertTrue(BulkImportUtil.projectExists("fo", request), "the fuzzy fallback");
             assertFalse(BulkImportUtil.projectExists("BAR-", request));

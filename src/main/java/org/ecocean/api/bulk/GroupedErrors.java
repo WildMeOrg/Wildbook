@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.ecocean.Util;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -112,11 +113,18 @@ public final class GroupedErrors {
         err.put("type", bve.getType());
         JSONArray errs = bve.getErrors();
         if (merged && (errs != null)) {
-            errs = new JSONArray(errs.toString()); // a copy: the exception is shared by its cells
+            // a new array: the exception is shared by its cells, so a changed entry is a copy
+            JSONArray own = new JSONArray();
             for (int i = 0; i < errs.length(); i++) {
-                JSONObject one = errs.optJSONObject(i);
-                if ((one != null) && one.has("fieldName")) one.put("fieldName", field);
+                Object o = errs.get(i);
+                if ((o instanceof JSONObject) && ((JSONObject)o).has("fieldName")) {
+                    JSONObject one = Util.copy((JSONObject)o);
+                    one.put("fieldName", field);
+                    o = one;
+                }
+                own.put(o);
             }
+            errs = own;
         }
         err.put("errors", errs);
         err.put("details", bve.toString());

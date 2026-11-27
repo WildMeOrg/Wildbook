@@ -1,7 +1,6 @@
 package org.ecocean.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +12,7 @@ import org.ecocean.Encounter;
 import org.ecocean.api.bulk.BulkImportUtil;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.TestPMFUtil;
+import org.ecocean.shepherd.core.TestShepherdUtil;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -90,14 +90,6 @@ class EncounterIdsInUseDbTest {
         assertEquals(Set.of(stored), lookup(ids));
     }
 
-    // the request's transaction aborted by a failed statement
-    private static void abortTransaction(Shepherd sh) {
-        assertThrows(Exception.class, () -> sh.getPM().newQuery("javax.jdo.query.SQL",
-            "SELECT * FROM no_such_table_1789").execute());
-        assertThrows(Exception.class, () -> sh.getPM().newQuery("javax.jdo.query.SQL",
-            "SELECT 1").execute(), "Postgres refuses every statement in an aborted transaction");
-    }
-
     @Test void lookupRunsOutsideTheRequestTransaction() throws Exception {
         // the lookup never touches the request's transaction: it answers even when that
         // transaction is already aborted, so a failed lookup cannot abort the request's either
@@ -106,7 +98,7 @@ class EncounterIdsInUseDbTest {
         Shepherd request = new Shepherd("context0", props);
         request.beginDBTransaction();
         try {
-            abortTransaction(request);
+            TestShepherdUtil.abortTransaction(request);
             assertEquals(Set.of(id), BulkImportUtil.encounterIdsInUse(List.of(id), request));
         } finally {
             request.rollbackAndClose();
