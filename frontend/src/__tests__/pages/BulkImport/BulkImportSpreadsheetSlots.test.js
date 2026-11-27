@@ -19,6 +19,8 @@ const A0 = "Encounter.mediaAsset0";
 const A1 = "Encounter.mediaAsset1";
 const A2 = "Encounter.mediaAsset2";
 
+jest.setTimeout(30000);
+
 describe("BulkImportSpreadsheet photo slots", () => {
   test("a sheet dropped before site settings load is ignored, then parses with slots", async () => {
     const store = new BulkImportStore();

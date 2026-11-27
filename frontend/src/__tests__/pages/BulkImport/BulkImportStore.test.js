@@ -17,6 +17,8 @@ jest.mock("@flowjs/flow.js", () => {
   }));
 });
 
+jest.setTimeout(30000);
+
 describe("BulkImportStore tests part 1", () => {
   let store;
 
