@@ -63,6 +63,7 @@ class BulkApiPostTest {
     List<File> emptyFiles = new ArrayList<File>();
 
     MockedStatic<AdvisoryLock> advisoryLock;
+    static final String BULK_ID = "00000000-0000-0000-0000-000000000000"; // basePayload's bulkImportId
 
     // the import path takes the bulkImportId lock and reserves its ImportTask on a Shepherd of its own
     static void reservable(Shepherd sh)
@@ -72,8 +73,8 @@ class BulkApiPostTest {
         when(sh.getPM()).thenReturn(pm);
         when(sh.isDBTransactionActive()).thenReturn(true);
         when(sh.commitDBTransactionWithStatus()).thenReturn(true);
-        // the foreground import's final task update loads the reserved task
-        when(sh.getImportTask(any())).thenReturn(new ImportTask(null, "reserved"));
+        // the foreground import's final task update loads the reserved task, by the payload's ID only
+        when(sh.getImportTask(BULK_ID)).thenReturn(new ImportTask(null, BULK_ID));
     }
 
     @AfterEach void closeLock() {
@@ -163,7 +164,7 @@ class BulkApiPostTest {
     private JSONObject basePayload() {
         JSONObject payload = new JSONObject();
 
-        payload.put("bulkImportId", "00000000-0000-0000-0000-000000000000");
+        payload.put("bulkImportId", BULK_ID);
         payload.put("tolerance", new JSONObject());
         return payload;
     }

@@ -479,12 +479,9 @@ public class BulkImport extends ApiBase {
 
                 BulkImporter.logProgress(bulkImportId, "doPost: fg/bg split", startTime);
                 rtn.put("processInBackground", processInBackground);
-                reserveImportTask(context, bulkImportId, currentUser, payload,
-                    processInBackground ? "processing-background" : "processing-foreground",
-                    boxedImport);
-                if (!processInBackground) fgReserved = true;
                 if (processInBackground) {
-                    // these need to be final
+                    // the worker is built before the reservation, so nothing between the reservation
+                    // and the guarded launch can fail; these need to be final
                     final boolean bgToleranceFailImportOnError = toleranceFailImportOnError;
                     final boolean bgSkipDetection = skipDetection;
                     final boolean bgSkipIdentification = skipIdentification;
@@ -499,6 +496,7 @@ public class BulkImport extends ApiBase {
                             // make our background thread safely use our own Shepherd
                             Shepherd bgShepherd = null;
                             JSONObject bgEncAssets = null;
+                            JSONArray bgFailErrors = null; // set with "failed" when media errors block
                             // true only once the import and the task's final update are committed
                             boolean success = false;
                             // GH-1514: hoisted so the finally block can queue
@@ -523,8 +521,12 @@ public class BulkImport extends ApiBase {
                                     System.out.println(bulkImportId +
                                         " background createMediaAssets() failed: " + dataErrors);
                                     rtn.put("errors", dataErrors);
-                                    importTaskSet(bulkImportId, null, null, dataErrors);
-                                    if (bgToleranceFailImportOnError) blockedByMAErrors = true;
+                                    if (bgToleranceFailImportOnError) {
+                                        blockedByMAErrors = true;
+                                        bgFailErrors = dataErrors;
+                                    } else {
+                                        importTaskSet(context, bulkImportId, null, dataErrors);
+                                    }
                                 }
                                 rtn.put("numberMediaAssetsCreated", maMap.size());
                                 BulkImporter importer = new BulkImporter(bulkImportId,
@@ -602,7 +604,9 @@ public class BulkImport extends ApiBase {
                                     // any ending without a saved import (an exception, an Error,
                                     // blocked by media errors, a failed commit) leaves the reserved
                                     // task failed, not processing
-                                    if (!success) markReservedFailed(context, bulkImportId, null);
+                                    if (!success)
+                                        markReservedFailed(context, bulkImportId,
+                                            "processing-background", bgFailErrors);
                                 }
                                 // GH-1514: post-commit, queue deep reindex of touched
                                 // individuals so sibling encounters pick up refreshed
@@ -625,6 +629,10 @@ public class BulkImport extends ApiBase {
                             BulkImporter.logProgress(bulkImportId, "doPost: bg DONE", startTime);
                         }
                     };
+                    // a failed reservation (a duplicate included) throws here, before the launch
+                    // guard: there is nothing to undo
+                    reserveImportTask(context, bulkImportId, currentUser, payload,
+                        "processing-background", boxedImport);
                     try {
                         launcher.accept(r);
                     } catch (RuntimeException | Error launchFailure) {
@@ -637,7 +645,8 @@ public class BulkImport extends ApiBase {
                             } catch (Throwable cleanupFailure) {
                                 launchFailure.addSuppressed(cleanupFailure);
                                 // the task stays; it must not stay processing
-                                markReservedFailed(context, bulkImportId, null);
+                                markReservedFailed(context, bulkImportId, "processing-background",
+                                    null);
                             }
                         }
                         throw launchFailure;
@@ -648,6 +657,9 @@ public class BulkImport extends ApiBase {
                     statusCode = 200;
                 } else {
                     // foreground processing
+                    reserveImportTask(context, bulkImportId, currentUser, payload,
+                        "processing-foreground", boxedImport);
+                    fgReserved = true;
                     int numNewErrors = dataErrors.length();
                     BulkImporter.logProgress(bulkImportId, "doPost: fg pre-createMediaAssets()",
                         startTime);
@@ -760,7 +772,8 @@ public class BulkImport extends ApiBase {
                 }
             }
             // a foreground task this request reserved: anything but a saved import is a failure
-            if (fgReserved && !committed) markReservedFailed(context, dupId, fgErrors);
+            if (fgReserved && !committed)
+                markReservedFailed(context, dupId, "processing-foreground", fgErrors);
             // GH-1514: post-commit, queue deep reindex of individuals touched by
             // the foreground import so sibling encounters refresh individualNumberEncounters.
             if ((statusCode == 200) && !validateOnly && (fgImporter != null)) {
@@ -1020,7 +1033,7 @@ public class BulkImport extends ApiBase {
             if (ct % 10 == 0) {
                 // this 20% has to be coordinated with BulkImporter values
                 Double progress = 0.2D * new Double(ct) / new Double(files.size());
-                importTaskSet(bulkImportId, null, progress, null);
+                importTaskSet(myShepherd.getContext(), bulkImportId, progress, null);
             }
         }
         System.out.println("[INFO] created " + maMap.size() + " MediaAssets from " + files.size() +
@@ -1103,9 +1116,11 @@ public class BulkImport extends ApiBase {
     }
 
     // Marks the task this request reserved "failed" (with errors, when given), on the request's
-    // context. Only a task still "processing*" changes: a finished task, or one deleted and
-    // replaced under the same ID, is left alone. Best effort: a failure is logged, never thrown.
-    private void markReservedFailed(String context, String id, JSONArray errors) {
+    // context. Only a task still in the status it was reserved with changes: a finished task, one
+    // handed on (e.g. "processing-detection"), or one replaced under the same ID in another state
+    // is left alone. Best effort: a failure is logged, never thrown.
+    private void markReservedFailed(String context, String id, String reservedStatus,
+        JSONArray errors) {
         if (id == null) return;
         Shepherd sh = null;
         try {
@@ -1114,7 +1129,7 @@ public class BulkImport extends ApiBase {
             sh.beginDBTransaction();
             ImportTask task = sh.findImportTask(id);
             String status = (task == null) ? null : task.getStatus();
-            if ((status == null) || !status.startsWith("processing")) {
+            if (!reservedStatus.equals(status)) {
                 System.out.println("markReservedFailed(" + id + "): status " + status +
                     ", left as is");
                 sh.rollbackAndClose();
@@ -1142,18 +1157,14 @@ public class BulkImport extends ApiBase {
     }
 
     // this assumes task was created! and: we always ignore nulls
-    private void importTaskSet(String id, String status, Double progress, JSONArray errors) {
+    private void importTaskSet(String context, String id, Double progress, JSONArray errors) {
         if (id == null) return;
-        Shepherd taskShepherd = new Shepherd("context0");
+        Shepherd taskShepherd = new Shepherd(context);
         taskShepherd.setAction("BulkImport.importTaskSet");
         taskShepherd.beginDBTransaction();
         try {
             ImportTask itask = taskShepherd.getImportTask(id);
             if (itask == null) return;
-            if (status != null) {
-                itask.setStatus(status);
-                itask.addLog("status: " + status);
-            }
             if (progress != null) itask.setProcessingProgress(progress);
             if (errors != null) {
                 itask.setErrors(errors);
@@ -1167,7 +1178,7 @@ public class BulkImport extends ApiBase {
         } finally {
             taskShepherd.closeDBTransaction();
         }
-        Util.mark("importTaskSet(" + id + ": " + status + ", " + progress + "% [etc] )");
+        Util.mark("importTaskSet(" + id + ": " + progress + "% [etc] )");
     }
 
     // based on behavior in sendToIA() from import.jsp
