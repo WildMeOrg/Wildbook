@@ -618,8 +618,8 @@ public final class GroupCollapse {
         return photo.get(0).field + slot.prefix.substring(GroupPhotos.PHOTO.length());
     }
 
-    // absent on a grouped row: null, JSON null, or text that is empty after trim()
-    static boolean isAbsent(Object v) {
+    /** Absent on a grouped row: null, JSON null, or text that is empty after trim(). */
+    public static boolean isAbsent(Object v) {
         return (v == null) || (v == JSONObject.NULL) ||
                    ((v instanceof String) && ((String)v).trim().isEmpty());
     }

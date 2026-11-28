@@ -108,7 +108,7 @@ public class SubmissionValidator {
             for (String field : BulkImportUtil.findIndexedFieldNames(s.copied.keySet(), PHOTO)) {
                 if (field == null) continue;
                 Object raw = s.fields.get(field);
-                if (grouped && absent(raw)) continue; // a blank cell of a grouped row abstains
+                if (grouped && GroupCollapse.isAbsent(raw)) continue; // a blank cell of a grouped row abstains
                 if (!(raw instanceof String) || !present.containsKey(raw)) issue(s, i, field, "MISSING_MEDIA", null, "Reference must exactly match a completed image filename");
                 else if (!grouped) { // a grouped row's repeats are the collapse's
                     if (!s.media.add((String)raw)) { issue(s, i, field, "DUPLICATE_MEDIA", null, "Image is repeated in this row"); s.inRowRepeats.add(field); }
@@ -117,7 +117,7 @@ public class SubmissionValidator {
             }
             // No explicit encounter IDs are accepted: the importer creates one encounter per row or group.
             // Rows sharing a sighting ID become one new sighting; an existing sighting is never joined.
-            if (s.fields.has(SIGHTING_ID) && !(grouped && absent(s.fields.opt(SIGHTING_ID)))) {
+            if (s.fields.has(SIGHTING_ID) && !(grouped && GroupCollapse.isAbsent(s.fields.opt(SIGHTING_ID)))) {
                 Object raw = s.fields.get(SIGHTING_ID);
                 if (!(raw instanceof String) || !SIGHTING_ID_FORMAT.matcher((String)raw).matches()) {
                     issue(s, i, SIGHTING_ID, "INVALID_VALUE", "INVALID", "Use 1 to 100 letters, digits, '.', '_' or '-', starting with a letter or digit");
@@ -125,7 +125,7 @@ public class SubmissionValidator {
                 }
             }
             // a grouped location must be text, so the order of the rows never decides which value is checked
-            if (grouped && !absent(s.fields.opt(LOCATION)) && !(s.fields.opt(LOCATION) instanceof String)) {
+            if (grouped && !GroupCollapse.isAbsent(s.fields.opt(LOCATION)) && !(s.fields.opt(LOCATION) instanceof String)) {
                 issue(s, i, LOCATION, "INVALID_LOCATION", null, "A configured location ID is required");
                 s.copied.remove(LOCATION);
             }
@@ -161,41 +161,47 @@ public class SubmissionValidator {
         }
 
         // bulk-import boxes (spec 4.9): every photo use, by filename, in source order (rows, then slots)
-        Map<String, List<Use>> uses = new LinkedHashMap<>();
-        Map<Integer, Set<String>> groupFiles = new HashMap<>(); // merged row -> filenames already used
+        List<Use> all = new ArrayList<>();
         for (int i = 0; i < sources.size(); i++) {
-            Source s = sources.get(i);
             int m = g.mergedIndexOf(i);
+            if (g.isGrouped(m)) continue;
+            Source s = sources.get(i);
             Map<String, Object> checked = g.mergedRows().get(m);
-            if (!g.isGrouped(m)) {
-                for (String bare : s.eligible) {
-                    Use use = new Use(); use.row = i; use.source = s.id; use.bareField = bare; use.bboxField = bare + ".bbox";
-                    boxUse(use, checked.get(use.bboxField), checked.get(bare + ".theta"), present.get(s.fields.getString(bare)), s);
-                    uses.computeIfAbsent(s.fields.getString(bare), k -> new ArrayList<>()).add(use);
-                }
-                continue;
-            }
-            Map<String, Object> values = g.sourceValues(i);
-            for (String bare : BulkImportUtil.findIndexedFieldNames(values.keySet(), PHOTO)) {
-                if (bare == null || !(values.get(bare) instanceof String) || !present.containsKey(values.get(bare))) continue;
-                String filename = (String)values.get(bare);
-                if (!groupFiles.computeIfAbsent(m, k -> new HashSet<>()).add(filename)) continue; // a repeat in the group is the collapse's
-                String packed = packedSlot(g, m, new GroupedRows.Cell(i, bare));
-                if (packed == null) continue; // not packed (over the cap): the group already fails
-                Use use = new Use(); use.row = i; use.source = s.id; use.bareField = bare; use.groupKey = s.groupKey;
-                List<GroupedRows.Cell> boxCells = g.contributorsOf(m, packed + ".bbox");
-                use.bboxField = boxCells.size() == 1 ? boxCells.get(0).field : bare + ".bbox";
-                Object box = checked.get(packed + ".bbox");
-                // a rejected box cell is a source issue and never packed: it still counts as boxed, identity unknown
-                if (box == null && !absent(s.copied.opt(bare + ".bbox"))) use.boxed = true;
-                else {
-                    boxUse(use, box, checked.get(packed + ".theta"), present.get(filename), s);
-                    // a supplied angle that failed is a source issue and never packed: the box's identity is unknown
-                    if (!absent(s.copied.opt(bare + ".theta")) && !(checked.get(packed + ".theta") instanceof BulkValidator)) use.boxKey = null;
-                }
-                uses.computeIfAbsent(filename, k -> new ArrayList<>()).add(use);
+            for (String bare : s.eligible) {
+                Use use = new Use(); use.row = i; use.slot = BulkImportUtil.slotOf(bare).index; use.source = s.id; use.bareField = bare; use.bboxField = bare + ".bbox";
+                use.filename = s.fields.getString(bare);
+                boxUse(use, checked.get(use.bboxField), checked.get(bare + ".theta"), present.get(use.filename), s);
+                all.add(use);
             }
         }
+        // a group's photos are its packed slots (P3 packs each filename once and none beyond the cap), each
+        // traced to the source cell that supplied it
+        for (int m : g.groupedMergedIndexes()) {
+            Map<String, Object> checked = g.mergedRows().get(m);
+            for (String packed : BulkImportUtil.findIndexedFieldNames(checked.keySet(), PHOTO)) {
+                if (packed == null) continue;
+                GroupedRows.Cell cell = g.contributorsOf(m, packed).get(0);
+                Source s = sources.get(cell.row);
+                Object filename = g.sourceValues(cell.row).get(cell.field);
+                if (!(filename instanceof String) || !present.containsKey(filename)) continue; // MISSING_MEDIA already
+                Use use = new Use(); use.row = cell.row; use.slot = BulkImportUtil.slotOf(cell.field).index; use.source = s.id;
+                use.bareField = cell.field; use.groupKey = s.groupKey; use.filename = (String)filename;
+                List<GroupedRows.Cell> boxCells = g.contributorsOf(m, packed + ".bbox");
+                use.bboxField = boxCells.size() == 1 ? boxCells.get(0).field : cell.field + ".bbox";
+                Object box = checked.get(packed + ".bbox");
+                // a rejected box cell is a source issue and never packed: it still counts as boxed, identity unknown
+                if (box == null && !GroupCollapse.isAbsent(s.copied.opt(cell.field + ".bbox"))) use.boxed = true;
+                else {
+                    boxUse(use, box, checked.get(packed + ".theta"), present.get(use.filename), s);
+                    // a supplied angle that failed is a source issue and never packed: the box's identity is unknown
+                    if (!GroupCollapse.isAbsent(s.copied.opt(cell.field + ".theta")) && !(checked.get(packed + ".theta") instanceof BulkValidator)) use.boxKey = null;
+                }
+                all.add(use);
+            }
+        }
+        all.sort(Comparator.comparingInt((Use u) -> u.row).thenComparingInt(u -> u.slot));
+        Map<String, List<Use>> uses = new LinkedHashMap<>();
+        for (Use use : all) uses.computeIfAbsent(use.filename, k -> new ArrayList<>()).add(use);
         for (Source s : sources) {
             for (int n = 0; n < s.issues.length(); n++) errors.put(s.issues.get(n));
             normalized.put(new JSONObject().put("clientRowId", s.id).put("fields", s.values));
@@ -289,7 +295,7 @@ public class SubmissionValidator {
         // the missing-location fan-out is only for a group where no row supplied a location cell at all; a
         // supplied cell that failed (here or before the collapse) is already reported on its own row
         boolean supplied = false;
-        for (int i : g.membersOf(m)) if (!absent(sources.get(i).fields.opt(LOCATION))) supplied = true;
+        for (int i : g.membersOf(m)) if (!GroupCollapse.isAbsent(sources.get(i).fields.opt(LOCATION))) supplied = true;
         boolean locationRejected = !supplied || (!locationIssue && raw.opt(LOCATION) instanceof String
             && !configuredLocation(config.getJSONObject("locations"), raw.optString(LOCATION, null)));
         if (locationRejected)
@@ -299,9 +305,7 @@ public class SubmissionValidator {
             if (!(entry.getValue() instanceof Exception)) continue;
             String field = entry.getKey();
             if (locationRejected && LOCATION.equals(BulkValidator.canonicalFieldName(field))) continue; // already INVALID_LOCATION
-            List<GroupedRows.Cell> cells = g.contributorsOf(m, BulkValidator.canonicalFieldName(field));
-            if (cells.isEmpty()) cells = g.cellsFor(m, field);
-            for (GroupedRows.Cell cell : cells) {
+            for (GroupedRows.Cell cell : g.cellsFor(m, field)) {
                 // explained in source coordinates: the merged context, with this cell's own column holding the value
                 JSONObject f = new JSONObject(raw.toMap());
                 f.put(cell.field, raw.opt(field));
@@ -317,13 +321,6 @@ public class SubmissionValidator {
                     issue(sources.get(t.row), t.row, t.field, "INVALID_VALUE", explained.reason, explained.message);
             }
         }
-    }
-
-    // the packed photo field of a merged row whose only contributor is cell; null when the photo was not packed
-    private static String packedSlot(GroupedRows g, int m, GroupedRows.Cell cell) {
-        for (String field : g.mergedRows().get(m).keySet())
-            if (field.matches("Encounter\\.mediaAsset\\d+") && g.contributorsOf(m, field).equals(List.of(cell))) return field;
-        return null;
     }
 
     // a use's box identity and, against the staged file's header, its bounds
@@ -345,12 +342,7 @@ public class SubmissionValidator {
         }
     }
 
-    private static final class Use { int row; String source, bareField, bboxField, boxKey, groupKey; boolean boxed; }
-
-    // absent on a grouped row (GroupCollapse's rule): null, JSON null, or text that is empty after trim()
-    private static boolean absent(Object v) {
-        return v == null || v == JSONObject.NULL || (v instanceof String && ((String)v).trim().isEmpty());
-    }
+    private static final class Use { int row, slot; String source, filename, bareField, bboxField, boxKey, groupKey; boolean boxed; }
 
     // a per-photo box column (Encounter.mediaAsset{N}.<one of BulkValidator.BOX_SUFFIXES>)
     static boolean isBoxField(String field) {
