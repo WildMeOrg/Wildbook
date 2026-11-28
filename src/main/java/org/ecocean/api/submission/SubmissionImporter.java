@@ -42,7 +42,9 @@ public class SubmissionImporter {
         JSONArray rows = checked.getJSONArray("normalizedRows"), files = new JSONArray(draft.getFilesJson());
         List<Map<String, Object>> merged = g.mergedRows(); Set<String> requiredFiles = new HashSet<>();
         for (Map<String, Object> data : merged) {
-            data.put("Encounter.submitterID", new BulkValidator("Encounter.submitterID", submitter, sh));
+            // a submitter that cannot be loaded is rejected before any media work, as the shared row rules did
+            try { data.put("Encounter.submitterID", new BulkValidator("Encounter.submitterID", submitter, sh)); }
+            catch (BulkValidatorException ex) { throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed"); }
             for (Object value : data.values()) if (!(value instanceof BulkValidator))
                 throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed");
             for (String field : BulkImportUtil.findIndexedFieldNames(data.keySet(), "Encounter.mediaAsset")) // bare slots only (bulk-import boxes)

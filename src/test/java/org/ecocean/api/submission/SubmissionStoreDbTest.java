@@ -432,9 +432,11 @@ class SubmissionStoreDbTest {
     @org.junit.jupiter.api.io.TempDir static java.nio.file.Path assetRoot;
     private static boolean assetStoreSaved;
     private static volatile String hiddenOccurrence; // simulates a sighting inserted after every existence check
+    private static volatile String hiddenUser; // a username that can no longer be loaded
     private static Shepherd realShepherd() {
         return new Shepherd("context0", properties) {
             @Override public boolean isValidTaxonomyName(String value) { return true; }
+            @Override public org.ecocean.User getUser(String username) { return username != null && username.equals(hiddenUser) ? null : super.getUser(username); }
             @Override public org.ecocean.Occurrence getOccurrence(String id) { return id.equals(hiddenOccurrence) ? null : super.getOccurrence(id); }
         };
     }
@@ -1385,10 +1387,10 @@ class SubmissionStoreDbTest {
         String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id");
         java.util.List<JSONObject> rowFields = new java.util.ArrayList<>();
         java.util.List<java.util.List<String>> own = new java.util.ArrayList<>();
-        for (int r = 0; r < 3; r++) {
+        for (int r = 0; r < 3; r++) { // 45 photos + 45 qualities + 5 shared fields per row; 275 merged fields
             JSONObject fields = photoRow("G1");
             java.util.List<String> names = new java.util.ArrayList<>();
-            for (int n = 0; n < 60; n++) {
+            for (int n = 0; n < 45; n++) {
                 String name = "r" + r + "-" + n + ".png"; names.add(name);
                 fields.put("Encounter.mediaAsset" + n, name).put("Encounter.quality" + n, 0.5);
             }
@@ -1412,7 +1414,7 @@ class SubmissionStoreDbTest {
         assertEquals(encounterOf(rows, 0), encounterOf(rows, 1));
         assertEquals(encounterOf(rows, 0), encounterOf(rows, 2));
         assertEquals(1, ownerEncounters(owner));
-        assertEquals(180, (int)read(sh -> sh.getEncounter(encounterOf(rows, 0)).getMedia().size()));
+        assertEquals(135, (int)read(sh -> sh.getEncounter(encounterOf(rows, 0)).getMedia().size()));
         for (int r = 0; r < 3; r++) assertEquals(own.get(r), receiptFiles(rows, r));
     }
 
@@ -1454,5 +1456,17 @@ class SubmissionStoreDbTest {
             return null;
         });
         assertEquals(java.util.List.of("x.png", "y.png"), receiptFiles(rows, 0));
+    }
+
+    @Test void unloadableSubmitterIsADefiniteRejection(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id");
+        try {
+            realImport(owner, id, root, java.util.Arrays.asList(new JSONObject()), () -> hiddenUser = "pilot-" + owner);
+        } finally { hiddenUser = null; }
+        JSONObject status = store.get("context0", owner, id, false, false);
+        assertEquals("failed", status.getString("state"), status.toString()); // definite, not needs_reconciliation
+        assertEquals("VALIDATION_INVALID", status.getJSONArray("errors").getJSONObject(0).getString("code"));
+        assertEquals("failed", loadTask(taskId(owner, id)).getStatus());
+        assertEquals(0, ownerEncounters(owner));
     }
 }
