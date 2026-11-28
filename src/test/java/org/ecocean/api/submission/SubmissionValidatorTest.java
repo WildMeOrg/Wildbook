@@ -3,6 +3,7 @@ package org.ecocean.api.submission;
 import java.nio.file.Path;
 import java.util.Properties;
 import org.ecocean.*;
+import org.ecocean.api.SiteSettings;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.submission.Submission;
 import org.json.*;
@@ -461,6 +462,396 @@ class SubmissionValidatorTest {
             assertNotNull(issue, report.toString());
             assertEquals("REQUIRES_FIELD", issue.getString("reason"));
             assertEquals("Encounter.mediaAsset1.bbox requires Encounter.mediaAsset1", issue.getString("message"));
+        });
+    }
+
+    // ---- #1789: rows sharing Encounter.groupKey validate as one encounter ----
+    static final String[] PHOTOS = { "one.png", "two.png", "three.png", "four.png", "five.png", "six.png", "seven.png", "eight.png",
+        "Encounter.mediaAsset0.png" };
+
+    interface GroupBody { void run(Shepherd sh, SubmissionFiles storage, JSONArray files, MockedStatic<CommonConfiguration> config) throws Exception; }
+
+    /** As withBoxHarness, with up to 10 photos per encounter and every PHOTOS name staged as a 20x20 image. */
+    void withGroups(GroupBody body) throws Exception {
+        try (MockedStatic<CommonConfiguration> config = mockStatic(CommonConfiguration.class);
+             MockedStatic<LocationID> location = mockStatic(LocationID.class)) {
+            config.when(() -> CommonConfiguration.getMaxMediaCountEncounter(any())).thenReturn(10);
+            location.when(LocationID::getLocationIDStructure).thenReturn(new JSONObject("{\"locationID\":[{\"id\":\"reef\"}]}"));
+            location.when(() -> LocationID.isValidLocationID("reef")).thenReturn(true);
+            TestIAJsonPropertiesUtil.override(boxFixture());
+            try {
+                Shepherd sh = mock(Shepherd.class); when(sh.isValidTaxonomyName(anyString())).thenReturn(true);
+                SubmissionFiles storage = new SubmissionFiles(root);
+                JSONArray files = new JSONArray();
+                for (String name : PHOTOS) {
+                    java.io.File source = root.resolve("source-" + name).toFile();
+                    ImageFixtures.write(ImageFixtures.noise(20, 20, name.hashCode()), "png", source, false);
+                    try (java.io.InputStream in = new java.io.FileInputStream(source)) { files.put(storage.write(name, in, 100000)); }
+                }
+                body.run(sh, storage, files, config);
+            } finally {
+                TestIAJsonPropertiesUtil.override(null);
+            }
+        }
+    }
+
+    /** A complete row (taxonomy, year, reef) in group key (null: no key). */
+    static JSONObject full(String id, Object key, Object... kv) {
+        JSONObject row = boxRow(id, kv);
+        if (key != null) row.getJSONObject("fields").put("Encounter.groupKey", key);
+        return row;
+    }
+
+    /** A continuation row: only the key and kv. */
+    static JSONObject part(String id, Object key, Object... kv) {
+        JSONObject fields = new JSONObject().put("Encounter.groupKey", key);
+        for (int i = 0; i < kv.length; i += 2) fields.put((String)kv[i], kv[i + 1]);
+        return new JSONObject().put("clientRowId", id).put("fields", fields);
+    }
+
+    static JSONObject only(JSONObject report) {
+        assertEquals(1, issues(report).size(), report.toString());
+        return issues(report).get(0);
+    }
+
+    static void assertIssue(JSONObject issue, String clientRowId, String field, String code, String groupKey) {
+        assertEquals(clientRowId, issue.getString("clientRowId"), issue.toString());
+        assertEquals(field, issue.getString("field"), issue.toString());
+        assertEquals(code, issue.getString("code"), issue.toString());
+        assertEquals(groupKey, issue.optString("groupKey", null), issue.toString());
+    }
+
+    static JSONObject normalizedFields(JSONObject report, int row) {
+        return report.getJSONArray("normalizedRows").getJSONObject(row).getJSONObject("fields");
+    }
+
+    @Test void groupKeyIsSupported() {
+        assertTrue(SubmissionValidator.supported("Encounter.groupKey"));
+        assertTrue(SubmissionValidator.FIELDS.contains("Encounter.groupKey"));
+    }
+
+    @Test void groupedRowsValidateOnceForTheGroup() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G1", "Encounter.mediaAsset0", "one.png"),
+                part("r1", "g1", "Encounter.mediaAsset0", "two.png"));
+            assertTrue(report.getBoolean("valid"), report.toString());
+        });
+    }
+
+    @Test void normalizedRowsKeepSourceSpellings() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G1", "Encounter.mediaAsset0", "one.png"),
+                part("r1", " g1 ", "Encounter.mediaAsset0", "two.png"));
+            assertTrue(report.getBoolean("valid"), report.toString());
+            assertEquals(2, report.getJSONArray("normalizedRows").length());
+            assertEquals("r1", report.getJSONArray("normalizedRows").getJSONObject(1).getString("clientRowId"));
+            assertEquals(java.util.Map.of("Encounter.mediaAsset0", "two.png", "Encounter.groupKey", "g1"), normalizedFields(report, 1).toMap());
+            assertEquals("G1", normalizedFields(report, 0).getString("Encounter.groupKey"));
+            assertEquals("reef", normalizedFields(report, 0).getString("Encounter.locationID"));
+        });
+    }
+
+    @Test void locationOnOneGroupedRowSatisfiesGroup() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G1", "Encounter.mediaAsset0", "one.png"),
+                part("r1", "g1", "Encounter.mediaAsset0", "two.png", "Encounter.locationID", "", "Encounter.sex", ""));
+            assertTrue(report.getBoolean("valid"), report.toString());
+            assertFalse(report.toString().contains("cannot be empty"), report.toString());
+        });
+    }
+
+    @Test void missingLocationFansOutToEveryGroupedRow() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject r0 = full("r0", "G1", "Encounter.mediaAsset0", "one.png");
+            r0.getJSONObject("fields").remove("Encounter.locationID");
+            JSONObject report = validateRows(sh, storage, files, DETECT, r0, part("r1", "g1", "Encounter.mediaAsset0", "two.png"));
+            assertEquals(2, issues(report).size(), report.toString());
+            assertIssue(issues(report).get(0), "r0", "Encounter.locationID", "INVALID_LOCATION", "G1");
+            assertIssue(issues(report).get(1), "r1", "Encounter.locationID", "INVALID_LOCATION", "g1");
+            assertEquals(1, issues(report).get(1).getInt("rowIndex"));
+        });
+    }
+
+    @Test void conflictReportedPerClientRow() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G1", "Encounter.mediaAsset0", "one.png", "Encounter.sex", "male"),
+                part("r1", "g1", "Encounter.mediaAsset0", "two.png", "Encounter.sex", "female"));
+            assertEquals(2, issues(report).size(), report.toString());
+            assertIssue(issues(report).get(0), "r0", "Encounter.sex", "GROUP_CONFLICT", "G1");
+            assertIssue(issues(report).get(1), "r1", "Encounter.sex", "GROUP_CONFLICT", "g1");
+        });
+    }
+
+    @Test void sightingIdCheckedOnMergedRow() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            when(sh.getOccurrence("taken")).thenReturn(new Occurrence("taken"));
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G1", "Encounter.mediaAsset0", "one.png"),
+                part("r1", "g1", "Encounter.mediaAsset0", "two.png", "Encounter.sightingID", "taken"));
+            assertIssue(only(report), "r1", "Encounter.sightingID", "SIGHTING_EXISTS", "g1");
+            verify(sh, times(1)).getOccurrence("taken");
+        });
+    }
+
+    @Test void numericLocationBlamedInEitherOrder() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png"),
+                part("r1", "G", "Encounter.mediaAsset0", "two.png", "Encounter.locationID", 123));
+            assertIssue(only(report), "r1", "Encounter.locationID", "INVALID_LOCATION", "G");
+            JSONObject first = full("r0", "G", "Encounter.mediaAsset0", "one.png", "Encounter.locationID", 123);
+            report = validateRows(sh, storage, files, DETECT, first, part("r1", "G", "Encounter.mediaAsset0", "two.png", "Encounter.locationID", "reef"));
+            assertIssue(only(report), "r0", "Encounter.locationID", "INVALID_LOCATION", "G");
+        });
+    }
+
+    @Test void onlyLocationNumericIsReportedOncePerRow() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject first = full("r0", "G", "Encounter.mediaAsset0", "one.png", "Encounter.locationID", 7);
+            JSONObject report = validateRows(sh, storage, files, DETECT, first, part("r1", "G", "Encounter.mediaAsset0", "two.png"));
+            assertEquals(2, issues(report).size(), report.toString());
+            assertIssue(issues(report).get(0), "r0", "Encounter.locationID", "INVALID_LOCATION", "G");
+            assertIssue(issues(report).get(1), "r1", "Encounter.locationID", "INVALID_LOCATION", "G");
+        });
+    }
+
+    @Test void explicitEmptyUngroupedSightingIdStillRejected() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", null, "Encounter.mediaAsset0", "one.png", "Encounter.sightingID", ""),
+                full("r1", "G", "Encounter.mediaAsset0", "two.png", "Encounter.sightingID", ""));
+            JSONObject issue = only(report);
+            assertIssue(issue, "r0", "Encounter.sightingID", "INVALID_VALUE", null);
+            assertEquals("Use 1 to 100 letters, digits, '.', '_' or '-', starting with a letter or digit", issue.getString("message"));
+        });
+    }
+
+    @Test void packedSlotDiagnosticsNameSourceColumns() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject issue = only(validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset7", "Encounter.mediaAsset0.png",
+                "Encounter.mediaAsset7.iaClass", "body")));
+            assertIssue(issue, "r0", "Encounter.mediaAsset7.iaClass", "INVALID_VALUE", "G");
+            assertEquals("REQUIRES_FIELD", issue.getString("reason"), issue.toString());
+            assertEquals("Encounter.mediaAsset7.iaClass requires Encounter.mediaAsset7.bbox", issue.getString("message"));
+            issue = only(validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset7", "Encounter.mediaAsset0.png",
+                "Encounter.mediaAsset7.bbox", "1,1,5,5")));
+            assertIssue(issue, "r0", "Encounter.mediaAsset7.bbox", "INVALID_VALUE", "G");
+            assertEquals("MISSING_CLASS", issue.getString("reason"), issue.toString());
+            assertEquals("Encounter.mediaAsset7.iaClass is required when a box is supplied", issue.getString("message"));
+        });
+    }
+
+    @Test void packedSlotsTranslatedOnce() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            // packed: r0 slots 0,7 -> 0,1; r1 slots 0,1,2 -> 2,3,4; r2 slots 0,1,3 -> 5,6,7
+            JSONObject report = validateRows(sh, storage, files, DETECT,
+                full("r0", "G", "Encounter.mediaAsset0", "one.png", "Encounter.mediaAsset7", "two.png", "Encounter.mediaAsset7.bbox", "1,1,5,5"),
+                part("r1", "G", "Encounter.mediaAsset0", "three.png", "Encounter.mediaAsset1", "four.png", "Encounter.mediaAsset2", "five.png"),
+                part("r2", "G", "Encounter.mediaAsset0", "six.png", "Encounter.mediaAsset1", "seven.png", "Encounter.mediaAsset3", "eight.png"));
+            JSONObject issue = only(report);
+            assertIssue(issue, "r0", "Encounter.mediaAsset7.bbox", "INVALID_VALUE", "G");
+            assertEquals("MISSING_CLASS", issue.getString("reason"));
+            assertEquals("Encounter.mediaAsset7.iaClass is required when a box is supplied", issue.getString("message"));
+        });
+    }
+
+    @Test void rejectedUngroupedSightingIdAbsentFromNormalized() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", null, "Encounter.mediaAsset0", "one.png", "Encounter.sightingID", 12));
+            assertIssue(only(report), "r0", "Encounter.sightingID", "INVALID_VALUE", null);
+            assertFalse(normalizedFields(report, 0).has("Encounter.sightingID"), report.toString());
+        });
+    }
+
+    @Test void sparseContinuationMissingClassNamesSourceSlot() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject issue = only(validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png"),
+                part("r1", "G", "Encounter.mediaAsset7", "two.png", "Encounter.mediaAsset7.bbox", "1,1,5,5")));
+            assertIssue(issue, "r1", "Encounter.mediaAsset7.bbox", "INVALID_VALUE", "G");
+            assertEquals("MISSING_CLASS", issue.getString("reason"));
+            assertTrue(issue.getString("message").contains("Encounter.mediaAsset7.iaClass"), issue.toString());
+            assertFalse(issue.getString("message").contains("mediaAsset1"), issue.toString());
+        });
+    }
+
+    @Test void numericSightingIdBlamedInEitherOrder() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png", "Encounter.sightingID", "123"),
+                part("r1", "G", "Encounter.mediaAsset0", "two.png", "Encounter.sightingID", 123));
+            assertIssue(only(report), "r1", "Encounter.sightingID", "INVALID_VALUE", "G");
+            report = validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png", "Encounter.sightingID", 123),
+                part("r1", "G", "Encounter.mediaAsset0", "two.png", "Encounter.sightingID", "123"));
+            assertIssue(only(report), "r0", "Encounter.sightingID", "INVALID_VALUE", "G");
+        });
+    }
+
+    @Test void interleavedCrossGroupRepeatBlamesLaterSource() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png"),
+                full("r1", "H", "Encounter.mediaAsset0", "two.png"), part("r2", "g", "Encounter.mediaAsset0", "two.png"));
+            assertIssue(only(report), "r2", "Encounter.mediaAsset0", "DUPLICATE_MEDIA", "g");
+        });
+    }
+
+    @Test void distinctBoxesSameFileAcrossGroupsAllowed() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png"),
+                full("r1", "H", "Encounter.mediaAsset0", "two.png", "Encounter.mediaAsset0.bbox", "1,1,5,5", "Encounter.mediaAsset0.iaClass", "body"),
+                part("r2", "g", "Encounter.mediaAsset0", "two.png", "Encounter.mediaAsset0.bbox", "10,10,5,5", "Encounter.mediaAsset0.iaClass", "body"));
+            assertTrue(report.getBoolean("valid"), report.toString());
+            report = validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png"),
+                full("r1", "H", "Encounter.mediaAsset0", "two.png", "Encounter.mediaAsset0.bbox", "1,1,5,5", "Encounter.mediaAsset0.iaClass", "body"),
+                part("r2", "g", "Encounter.mediaAsset0", "two.png", "Encounter.mediaAsset0.bbox", "1,1,5,5", "Encounter.mediaAsset0.iaClass", "body"));
+            JSONObject issue = only(report);
+            assertIssue(issue, "r2", "Encounter.mediaAsset0.bbox", "DUPLICATE_BOX", "g");
+            assertEquals("Identical box already on row 1", issue.getString("message"));
+        });
+    }
+
+    @Test void groupedBoxOutOfBoundsNamesSourceColumn() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject issue = only(validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png"),
+                part("r1", "G", "Encounter.mediaAsset3", "two.png", "Encounter.mediaAsset3.bbox", "10,10,15,5", "Encounter.mediaAsset3.iaClass", "body")));
+            assertIssue(issue, "r1", "Encounter.mediaAsset3.bbox", "INVALID_VALUE", "G");
+            assertEquals("BOX_OUT_OF_BOUNDS", issue.getString("reason"));
+            assertEquals("box 10,10,15,5 exceeds image 20x20", issue.getString("message"));
+        });
+    }
+
+    @Test void explicitEncounterIdStillUnsupported() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject issue = only(validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png",
+                "Encounter.id", "0b9e3a4e-7f1c-4d2a-9c55-1f0e6c9a2b10")));
+            assertIssue(issue, "r0", "Encounter.id", "UNSUPPORTED_FIELD", "G");
+        });
+    }
+
+    @Test void currentYearLaterMonthBlamesMonthRow() throws Exception {
+        java.time.LocalDate today = java.time.LocalDate.of(2026, 3, 10);
+        java.time.Clock clock = java.time.Clock.fixed(java.time.Instant.parse("2026-03-10T00:00:00Z"), java.time.ZoneOffset.UTC);
+        assertEquals(today, clock.instant().atOffset(Util.LATEST_CIVIL_OFFSET).toLocalDate());
+        withGroups((sh, storage, files, config) -> {
+            try (MockedStatic<Util> util = mockStatic(Util.class, CALLS_REAL_METHODS)) {
+                util.when(() -> Util.dateIsInFuture(any(), any(), any())).thenAnswer(a -> Util.dateIsInFuture(
+                    a.getArgument(0), a.getArgument(1), a.getArgument(2), today));
+                JSONObject r0 = full("r0", "G", "Encounter.mediaAsset0", "one.png", "Encounter.month", "");
+                r0.getJSONObject("fields").put("Encounter.year", 2026);
+                JSONObject report = new SubmissionValidator(clock).validate(boxDraft(DETECT, files, r0,
+                    part("r1", "G", "Encounter.mediaAsset0", "two.png", "Encounter.month", 11)), sh, storage);
+                JSONObject issue = only(report);
+                assertIssue(issue, "r1", "Encounter.month", "INVALID_VALUE", "G");
+                assertEquals("FUTURE_DATE", issue.getString("reason"));
+                assertEquals("2026-11 is later than today's date in every time zone", issue.getString("message"));
+            }
+        });
+    }
+
+    @Test void blankGroupKeyOnUngroupedRowIsSilent() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "", "Encounter.mediaAsset0", "one.png"),
+                full("r1", "  ", "Encounter.mediaAsset0", "two.png"));
+            assertTrue(report.getBoolean("valid"), report.toString());
+            assertFalse(normalizedFields(report, 0).has("Encounter.groupKey"), report.toString());
+            assertFalse(normalizedFields(report, 1).has("Encounter.groupKey"), report.toString());
+        });
+    }
+
+    @Test void blankExtraSlotIsSilent() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png"),
+                part("r1", "G", "Encounter.mediaAsset0", "two.png", "Encounter.mediaAsset1", "", "Encounter.mediaAsset2", "  "));
+            assertTrue(report.getBoolean("valid"), report.toString());
+        });
+    }
+
+    @Test void repeatedPhotoInGroupNamesLaterRowOnce() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png"),
+                part("r1", "G", "Encounter.mediaAsset0", "two.png"), part("r2", "G", "Encounter.mediaAsset0", "two.png"));
+            assertIssue(only(report), "r2", "Encounter.mediaAsset0", "DUPLICATE_MEDIA", "G");
+        });
+    }
+
+    @Test void repeatedPhotoSameGroupedRowOnce() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png", "Encounter.mediaAsset1", "one.png"));
+            assertIssue(only(report), "r0", "Encounter.mediaAsset1", "DUPLICATE_MEDIA", "G");
+        });
+    }
+
+    @Test void repeatedBoxedPhotoInGroupOnce() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT,
+                full("r0", "G", "Encounter.mediaAsset0", "one.png", "Encounter.mediaAsset0.bbox", "1,1,5,5", "Encounter.mediaAsset0.iaClass", "body"),
+                part("r1", "G", "Encounter.mediaAsset0", "one.png", "Encounter.mediaAsset0.bbox", "2,2,5,5", "Encounter.mediaAsset0.iaClass", "body"));
+            assertIssue(only(report), "r1", "Encounter.mediaAsset0", "DUPLICATE_MEDIA", "G");
+        });
+    }
+
+    @Test void repeatedPhotoAcrossGroupsOnce() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G1", "Encounter.mediaAsset0", "one.png"),
+                full("r1", "G2", "Encounter.mediaAsset0", "one.png"));
+            JSONObject issue = only(report);
+            assertIssue(issue, "r1", "Encounter.mediaAsset0", "DUPLICATE_MEDIA", "G2");
+            assertEquals("Use each image in one row only", issue.getString("message"));
+        });
+    }
+
+    @Test void rowWithoutPhotoInGroupIsRequired() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject issue = only(validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png"),
+                part("r1", "G", "Encounter.sex", "male")));
+            assertIssue(issue, "r1", "Encounter.mediaAsset0", "REQUIRED_VALUE", "G");
+            assertEquals("At least one image required", issue.getString("message"));
+        });
+    }
+
+    @Test void groupPhotoCapIsMaxMediaPerEncounter() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            config.when(() -> CommonConfiguration.getMaxMediaCountEncounter(any())).thenReturn(2);
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png"),
+                part("r1", "G", "Encounter.mediaAsset0", "two.png"), part("r2", "G", "Encounter.mediaAsset0", "three.png"));
+            assertIssue(only(report), "r2", "Encounter.mediaAsset0", "GROUP_CONFLICT", "G");
+        });
+    }
+
+    @Test void nonStringGroupKeyRejected() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject issue = only(validateRows(sh, storage, files, DETECT, full("r0", 7, "Encounter.mediaAsset0", "one.png")));
+            assertIssue(issue, "r0", "Encounter.groupKey", "INVALID_VALUE", "7");
+        });
+    }
+
+    @Test void checkReturnsGroupedRowsOnlyWhenValid() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            SubmissionValidator.Checked ok = new SubmissionValidator().check(boxDraft(DETECT, files,
+                full("r0", "G1", "Encounter.mediaAsset0", "one.png"), part("r1", "g1", "Encounter.mediaAsset0", "two.png")), sh, storage);
+            assertTrue(ok.report.getBoolean("valid"), ok.report.toString());
+            assertNotNull(ok.rows);
+            assertEquals(2, ok.rows.sourceRowCount());
+            assertTrue(ok.rows.isGroupedRow(0) && ok.rows.isGroupedRow(1));
+            assertEquals(ok.rows.mergedIndexOf(0), ok.rows.mergedIndexOf(1));
+            SubmissionValidator.Checked bad = new SubmissionValidator().check(boxDraft(DETECT, files,
+                full("r0", "G1", "Encounter.mediaAsset0", "one.png", "Encounter.sex", "male"),
+                part("r1", "g1", "Encounter.mediaAsset0", "two.png", "Encounter.sex", "female")), sh, storage);
+            assertFalse(bad.report.getBoolean("valid"));
+            assertNull(bad.rows);
+        });
+    }
+
+    @Test void ungroupedIssuesUnchanged() throws Exception {   // (regression) order, codes, messages, no groupKey
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", null, "Encounter.mediaAsset0", "missing.png",
+                "Encounter.id", "x", "Encounter.sightingID", "bad id", "Encounter.locationID", "nowhere", "Encounter.sex", "x"));
+            java.util.List<String> seen = new java.util.ArrayList<>();
+            for (JSONObject i : issues(report)) {
+                assertFalse(i.has("groupKey"), i.toString());
+                seen.add(i.getString("code") + " " + i.getString("field") + " " + i.getString("message"));
+            }
+            assertEquals(java.util.List.of("UNSUPPORTED_FIELD Encounter.id Field is not supported by this pilot",
+                "MISSING_MEDIA Encounter.mediaAsset0 Reference must exactly match a completed image filename",
+                "INVALID_VALUE Encounter.sightingID Use 1 to 100 letters, digits, '.', '_' or '-', starting with a letter or digit",
+                "REQUIRED_VALUE Encounter.mediaAsset0 At least one image required",
+                "INVALID_LOCATION Encounter.locationID A configured location ID is required",
+                "INVALID_VALUE Encounter.sex 'x' is not a configured sex value; use one of: " + String.join(", ", SiteSettings.VALUES_SEX)), seen);
         });
     }
 }
