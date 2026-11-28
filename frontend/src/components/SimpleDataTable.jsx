@@ -4,19 +4,47 @@ import ReactPaginate from "react-paginate";
 import { Row, Col } from "react-bootstrap";
 import ThemeColorContext from "../ThemeColorProvider";
 
-const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
+const sortRows = (rows, sort) => {
+  if (!sort) return rows;
+  const { selector, direction } = sort;
+  return [...rows].sort((rowA, rowB) => {
+    let comparison = 0;
+
+    if (selector(rowA) > selector(rowB)) {
+      comparison = 1;
+    } else if (selector(rowA) < selector(rowB)) {
+      comparison = -1;
+    }
+
+    return direction === "desc" ? comparison * -1 : comparison;
+  });
+};
+
+// `resetPageKey`: when this value changes the table returns to its first page
+// (a new search, as opposed to a poll handing over the same rows again).
+// `emptyMessage`: shown in place of the default text when there are no rows.
+const SimpleDataTable = ({
+  columns = [],
+  data = [],
+  perPage = 10,
+  resetPageKey,
+  emptyMessage,
+}) => {
   const theme = useContext(ThemeColorContext);
   const [currentPage, setCurrentPage] = useState(0);
   const [pagedData, setPagedData] = useState([]);
   const [dataset, setDataset] = useState([]);
+  // the user's column sort ({ selector, direction }), reapplied to each new
+  // `data` snapshot so a poll or a search keystroke doesn't silently undo it
+  // while the header still shows the sort arrow
+  const [sort, setSort] = useState(null);
 
   const safePerPage = Math.max(1, perPage);
   const pageCount = Math.ceil(data.length / safePerPage);
 
   useEffect(() => {
     // Rebuild dataset from the incoming `data` prop so updates
-    // (e.g. polling progress) are reflected. Any active user sort is
-    // discarded on each new snapshot.
+    // (e.g. polling progress) are reflected, keeping any active user sort.
     //
     // Preserve the user's current page across refreshes instead of
     // resetting to the first page. A bulk-import task polls every few
@@ -31,13 +59,20 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
       ...row,
       tableID: row.tableID ?? index + 1,
     }));
-    setDataset(indexedData);
+    setDataset(sortRows(indexedData, sort));
     const lastPage = Math.max(
       0,
       Math.ceil(indexedData.length / safePerPage) - 1,
     );
     setCurrentPage((prev) => Math.min(prev, lastPage));
-  }, [data, safePerPage]);
+  }, [data, safePerPage, sort]);
+
+  useEffect(() => {
+    // A different search is a different result list: show it from the top.
+    // Declared after the effect above, so on a render that changes both the
+    // data and the key this is the update that wins.
+    setCurrentPage(0);
+  }, [resetPageKey]);
 
   useEffect(() => {
     const start = currentPage * safePerPage;
@@ -46,7 +81,6 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
   }, [dataset, currentPage, safePerPage]);
 
   const userColumns = columns.map((col) => ({
-    id: col.selector,
     name: col.name,
     selector: col.selector,
     sortable: col.sortable ?? true,
@@ -54,18 +88,7 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
   }));
 
   const dataSortFunction = (column, sortDirection) => {
-    let sortedData = [...dataset].sort((rowA, rowB) => {
-      let comparison = 0;
-
-      if (column.selector(rowA) > column.selector(rowB)) {
-        comparison = 1;
-      } else if (column.selector(rowA) < column.selector(rowB)) {
-        comparison = -1;
-      }
-
-      return sortDirection === "desc" ? comparison * -1 : comparison;
-    });
-    setDataset(sortedData);
+    setSort({ selector: column.selector, direction: sortDirection });
   };
 
   const tableStyles = {
@@ -104,7 +127,8 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
         striped
         noDataComponent={
           <div className="p-3 text-center text-muted">
-            There are no records to display yet. Page will refresh.
+            {emptyMessage ??
+              "There are no records to display yet. Page will refresh."}
           </div>
         }
       />

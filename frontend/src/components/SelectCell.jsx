@@ -26,12 +26,21 @@ const SelectCell = observer(
           const newValue = sel ? sel.value : "";
           store.updateCellValue(rowIndex, columnId, newValue);
 
-          const { errors, warnings } = store.validateRow(rowIndex);
-          const errorMsg = errors?.[columnId] || "";
-          const warningMsg = warnings?.[columnId] || "";
-
-          store.mergeValidationError(rowIndex, columnId, errorMsg);
-          store.mergeValidationWarning(rowIndex, columnId, warningMsg);
+          if (columnId === "Encounter.genus") {
+            store.revalidate(); // the box class check depends on the species
+          } else {
+            const { errors, warnings } = store.validateRow(rowIndex);
+            store.mergeValidationError(
+              rowIndex,
+              columnId,
+              errors?.[columnId] || "",
+            );
+            store.mergeValidationWarning(
+              rowIndex,
+              columnId,
+              warnings?.[columnId] || "",
+            );
+          }
 
           if (columnId === "Encounter.locationID") {
             setColId(columnId);
