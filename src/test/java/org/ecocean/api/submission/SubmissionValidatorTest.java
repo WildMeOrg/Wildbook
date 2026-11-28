@@ -625,6 +625,15 @@ class SubmissionValidatorTest {
         });
     }
 
+    @Test void failedGroupedLocationBlamesOnlyItsOwnRow() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject first = full("r0", "G", "Encounter.mediaAsset0", "one.png", "Encounter.locationID", "nowhere");
+            JSONObject report = validateRows(sh, storage, files, DETECT, first,
+                part("r1", "G", "Encounter.mediaAsset0", "two.png", "Encounter.locationID", "reef"));
+            assertIssue(only(report), "r0", "Encounter.locationID", "INVALID_LOCATION", "G");
+        });
+    }
+
     @Test void groupedLocationConflictIsGroupConflictOnly() throws Exception {
         withGroups((sh, storage, files, config) -> {
             JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png"),

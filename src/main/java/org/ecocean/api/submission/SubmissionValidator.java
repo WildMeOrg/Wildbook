@@ -277,12 +277,12 @@ public class SubmissionValidator {
                 && sightingExists.computeIfAbsent((String)sighting, id -> sh.getOccurrence(id) != null))
             for (GroupedRows.Cell c : g.contributorsOf(m, SIGHTING_ID))
                 issue(sources.get(c.row), c.row, c.field, "SIGHTING_EXISTS", null, "A sighting with this ID already exists; this API only creates new sightings");
-        // conflicting location cells are each a GROUP_CONFLICT, which already explains why the group has none
-        boolean locationConflict = false;
+        // a location cell the collapse already reported (a GROUP_CONFLICT, or a failed cell reported as
+        // INVALID_LOCATION on its own row) explains why the group has none: no other row is blamed
+        boolean locationIssue = false;
         for (GroupedRows.Issue gi : g.issues())
-            if (g.mergedIndexOf(gi.row) == m && LOCATION.equals(BulkValidator.canonicalFieldName(gi.field))
-                    && gi.error.isType(BulkValidatorException.TYPE_GROUP_CONFLICT)) locationConflict = true;
-        boolean locationRejected = !locationConflict && (!(raw.opt(LOCATION) instanceof String)
+            if (g.mergedIndexOf(gi.row) == m && LOCATION.equals(BulkValidator.canonicalFieldName(gi.field))) locationIssue = true;
+        boolean locationRejected = !locationIssue && (!(raw.opt(LOCATION) instanceof String)
             || !configuredLocation(config.getJSONObject("locations"), raw.optString(LOCATION, null)));
         if (locationRejected)
             for (GroupedRows.Cell c : g.cellsFor(m, LOCATION))
