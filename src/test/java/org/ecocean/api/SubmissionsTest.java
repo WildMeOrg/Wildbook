@@ -93,19 +93,22 @@ class SubmissionsTest {
     }
 
     @Test void capabilitiesAdvertiseGrouping() throws Exception {
+        assertGrouping(500, 200);
+        assertGrouping(50, 50);
+    }
+
+    private void assertGrouping(int configured, int expectedMax) throws Exception {
         try (org.mockito.MockedStatic<org.ecocean.CommonConfiguration> config = mockStatic(org.ecocean.CommonConfiguration.class)) {
+        config.when(() -> org.ecocean.CommonConfiguration.getMaxMediaCountEncounter("context0")).thenReturn(configured);
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getMethod()).thenReturn("GET"); when(request.getPathInfo()).thenReturn("/capabilities");
         when(request.getAttribute(SubmissionAuthenticationFilter.ACTOR)).thenReturn(new SubmissionAuthenticationFilter.Actor("owner", false));
         StringWriter out = new StringWriter();
         new Submissions().service(request, response(out));
-        JSONObject capabilities = new JSONObject(out.toString());
-        JSONObject rowFields = capabilities.getJSONObject("rowFields");
+        JSONObject rowFields = new JSONObject(out.toString()).getJSONObject("rowFields");
         assertTrue(rowFields.getJSONArray("supported").toList().contains("Encounter.groupKey"), "groupKey is a supported row field");
-        JSONObject grouping = rowFields.getJSONObject("grouping");
-        assertEquals("Encounter.groupKey", grouping.getString("field"));
-        assertEquals("ASCII letters A-Z only", grouping.getString("caseInsensitive"));
-        assertEquals(Math.min(200, capabilities.getJSONObject("limits").getInt("maxMediaPerEncounter")), grouping.getInt("maxMediaPerGroup"));
+        assertEquals(new JSONObject().put("field", "Encounter.groupKey").put("caseInsensitive", "ASCII letters A-Z only")
+            .put("maxMediaPerGroup", expectedMax).toMap(), rowFields.getJSONObject("grouping").toMap(), "configured " + configured);
         }
     }
 
