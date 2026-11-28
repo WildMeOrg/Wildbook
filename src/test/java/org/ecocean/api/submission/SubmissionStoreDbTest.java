@@ -1386,9 +1386,9 @@ class SubmissionStoreDbTest {
                  return invocation.callRealMethod();
              });
              org.mockito.MockedConstruction<org.ecocean.api.bulk.BulkImporter> importers = org.mockito.Mockito.mockConstruction(org.ecocean.api.bulk.BulkImporter.class)) {
-            Run run = realImportStaged(owner, id, root, java.util.Arrays.asList(photoRow(grouped ? "G1" : null, "a.png"),
-                photoRow(grouped ? "g1" : null, "b.png")), () -> {}, () -> {});
-            assertTrue(run.report.getBoolean("valid"), run.report.toString());
+            JSONObject report = realImportStaged(owner, id, root, java.util.Arrays.asList(photoRow(grouped ? "G1" : null, "a.png"),
+                photoRow(grouped ? "g1" : null, "b.png")));
+            assertTrue(report.getBoolean("valid"), report.toString());
             assertEquals(0, importers.constructed().size());
         }
         JSONObject status = store.get("context0", owner, id, false, false);
