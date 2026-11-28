@@ -37,6 +37,12 @@ public class WildbookTokenAuthenticationFilter extends OncePerRequestFilter {
     public static final String TOKEN_AUTH_ATTR = "org.ecocean.tokenAuth";
     /** Filter-verified context, passed to SearchApi so it does not re-resolve from caller-controlled inputs. */
     public static final String TOKEN_CONTEXT_ATTR = "org.ecocean.tokenAuthContext";
+    /**
+     * Filter-verified token subject (the user's UUID). Shepherd.getUser(request) loads the user by
+     * this UUID, so a request never runs as whoever holds the subject's username by the time the
+     * servlet looks it up (usernames can be renamed and reassigned; UUIDs cannot).
+     */
+    public static final String TOKEN_SUBJECT_ATTR = "org.ecocean.tokenAuthSubject";
 
     @Override
     protected void doFilterInternal(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -133,6 +139,7 @@ public class WildbookTokenAuthenticationFilter extends OncePerRequestFilter {
         };
         wrapped.setAttribute(TOKEN_AUTH_ATTR, Boolean.TRUE);
         wrapped.setAttribute(TOKEN_CONTEXT_ATTR, expected);
+        wrapped.setAttribute(TOKEN_SUBJECT_ATTR, uuid);
         chain.doFilter(wrapped, response);
     }
 
