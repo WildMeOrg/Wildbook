@@ -1255,6 +1255,14 @@ components:
         code:
           type: string
           minLength: 1
+          description: Issue kind. Image reuse issues are DUPLICATE_MEDIA (an image reused
+            in a row, across rows without boxes, or boxed on one row and not another) and
+            DUPLICATE_BOX (the identical box twice on one image); field values use
+            INVALID_VALUE with a reason. On rows grouped by Encounter.groupKey, GROUP_CONFLICT
+            reports values the rows of a group cannot combine (for example different values
+            for one field, or a photo beyond the group's photo limit), on each affected row;
+            DUPLICATE_MEDIA also reports an image used twice in the same group; and
+            REQUIRED_VALUE on Encounter.mediaAsset0 reports a grouped row with no image.
         message:
           type: string
           minLength: 1
@@ -1267,6 +1275,11 @@ components:
         field:
           type: string
           minLength: 1
+        groupKey:
+          type: string
+          minLength: 1
+          description: Present on issues of a row grouped by Encounter.groupKey; that row's
+            key as typed, with leading and trailing spaces removed.
         reason:
           type: string
           minLength: 1

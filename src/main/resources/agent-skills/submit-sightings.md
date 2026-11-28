@@ -235,7 +235,7 @@ Supported fields for this pilot are exactly:
 | `Encounter.verbatimLocality` | string | Optional original locality description; does not replace locationID. |
 | `Encounter.researcherComments` | string | Optional free text preserving relevant observation context. |
 | `Encounter.sightingID` | string | Optional. The source's sighting, occurrence or group ID; rows that share it become one new sighting. 1–100 letters, digits, `.`, `_` or `-`, starting with a letter or digit. See "Grouping rows into one sighting". |
-| `Encounter.groupKey` | string | Optional. Rows that share the same key become one encounter holding all their photos. Any text; leading and trailing spaces are ignored. See "Grouping photo rows into one encounter". |
+| `Encounter.groupKey` | string | Optional. Rows that share the same key become one encounter holding all their photos. Text of at most 256 characters after trimming; leading and trailing spaces are ignored. See "Grouping photo rows into one encounter". |
 | `Encounter.mediaAsset0` … `Encounter.mediaAsset199` | string | Exact completed upload filename. Start at 0 and use successive slots for photographs of this encounter. At least one image is required per row. |
 | `Encounter.mediaAsset{N}.bbox` | string | Optional. One animal's box on the photo in slot N: `"x,y,width,height"`, whole pixels of the uploaded image as stored (no EXIF rotation), origin top-left; x,y at least 0, width,height at least 1, and inside the image. |
 | `Encounter.mediaAsset{N}.iaClass` | string | Required with a box. One of the species' matchable classes (`bulkImportMatchableClasses` in `/api/v3/site-settings`); in `import-only`, any class the species stores. |
@@ -297,10 +297,12 @@ submission that share the key become one new encounter with all of their photos.
 - Keys are trimmed and compared ignoring the case of the letters A to Z only, so
   `Pod7` and `pod7` are the same group. Every other character must match exactly:
   `001` and `1` are different groups, and so are `É` and `é`. The key must be a JSON
-  string. An empty or blank key means the row is not grouped.
+  string of at most 256 characters after trimming. An empty or blank key means the
+  row is not grouped.
 - Encounter-level values (date, location, species, sex and so on) must agree across
-  the group, or be left blank on the other rows. Repeating an identical value is
-  fine. Put the value on one row and leave the others empty, or repeat it exactly.
+  the group, or be omitted on the other rows. Repeating an identical value is
+  fine. Put the value on one row and omit it on the other rows (an empty string is
+  also accepted on grouped rows), or repeat it exactly.
 - Every row needs at least one photo, and a photo may appear only once in a group.
 - A group holds up to `rowFields.grouping.maxMediaPerGroup` photos (from
   capabilities; the lower of 200 and `maxMediaPerEncounter`).
@@ -462,7 +464,7 @@ Concrete failure examples and corrections (assume other fields are valid):
 | one photo boxed on one row and used without a box on another | `DUPLICATE_MEDIA` on the un-boxed use | Box every animal on that photo, or move the un-boxed use to a separate submission without boxes. |
 | the identical box twice on one photo | `DUPLICATE_BOX` on the later row's `.bbox` | Keep one row per animal; remove the duplicate. |
 | `Encounter.mediaAsset0.iaClass` without a `.bbox`, or a box without a class | `INVALID_VALUE` (`REQUIRES_FIELD` or `MISSING_CLASS`) | Send the box and its class together. |
-| two rows with the same `Encounter.groupKey` give different values for one field | `GROUP_CONFLICT` on each row that supplied it, with `groupKey` | Make the values agree, or leave the field blank on all but one row. |
+| two rows with the same `Encounter.groupKey` give different values for one field | `GROUP_CONFLICT` on each row that supplied it, with `groupKey` | Make the values agree, or omit the field on all but one row (an empty string is also accepted on grouped rows). |
 | a row in a group has no photo | `REQUIRED_VALUE` on `Encounter.mediaAsset0`, with `groupKey` | Give every row in the group a photo, or drop the empty row. |
 | the same photo twice in one group | `DUPLICATE_MEDIA`, with `groupKey` | Use each photo once per group. |
 | a grouped row names an unconfigured location | `INVALID_LOCATION`, with `groupKey` | Use a configured location ID. |
