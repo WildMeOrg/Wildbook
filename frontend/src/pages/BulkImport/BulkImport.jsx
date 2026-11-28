@@ -13,6 +13,7 @@ import BulkImportInstructionsModal from "./BulkImportInstructionsModal";
 import DraftSaveIndicator from "./BulkImportDraftSavedIndicator";
 import useGetBulkImportTask from "../../models/bulkImport/useGetBulkImportTask";
 import { BulkImportUnfinishedTaskModal } from "./BulkImportUnfinishedTaskModal";
+import { useSiteSettings } from "../../SiteSettingsContext";
 
 const BulkImport = observer(() => {
   const store = React.useMemo(() => new BulkImportStore(), []);
@@ -21,6 +22,13 @@ const BulkImport = observer(() => {
   const { task: unfinishedTask } = useGetBulkImportTask(lastTask);
   const [mountedSteps, setMountedSteps] = useState([0]);
   const [renderMode1, setRenderMode1] = useState();
+  const { data: siteData } = useSiteSettings();
+
+  // bulk-import boxes: the capability is needed before any parse, resume or submit
+  useEffect(() => {
+    if (siteData)
+      store.setIndexableFields(siteData.bulkImportIndexableFields || []);
+  }, [siteData]);
 
   useEffect(() => {
     if (!mountedSteps.includes(store.activeStep)) {
