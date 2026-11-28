@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.*, java.util.Vector" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
@@ -41,7 +42,7 @@ if(request.getQueryString()!=null){
 		String name=(String)params.nextElement();
 		String value=request.getParameter(name);
 		
-		queryString+=("&"+name+"="+value);
+		queryString+=("&"+Util.urlEncode(name)+"="+Util.urlEncode(value));
 		
 	}
 	
@@ -143,7 +144,7 @@ if(request.getQueryString()!=null){
 		String name=(String)params.nextElement();
 		String value=request.getParameter(name);
 		
-		queryString+=("&"+name+"="+value);
+		queryString+=("&"+Util.urlEncode(name)+"="+Util.urlEncode(value));
 		
 	}
 	
@@ -153,13 +154,13 @@ if(request.getQueryString()!=null){
 if (!encounterExport) {
 %>
 
-  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=props.getProperty("table")%>
   </a></li>
-  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=props.getProperty("matchingImages")%>
   </a></li>
-   <li><a href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("mappedResults")%>
+   <li><a href="individualMappedSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=props.getProperty("mappedResults")%>
   </a></li>
-  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
+  <li><a href="individualSearchResultsAnalysis.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=props.getProperty("analysis")%>
   </a></li>
     <li><a class="active"><%=props.getProperty("export")%>
   </a></li>
@@ -170,7 +171,7 @@ if (!encounterExport) {
 <p>
 You specified:
 <ul>
-<li>Capture sessions: <%=request.getParameter("numberSessions")%></li>
+<li>Capture sessions: <%=StringEscapeUtils.escapeHtml4(request.getParameter("numberSessions"))%></li>
 <%
 if(request.getParameter("includeIndividualID")!=null){
 %>
@@ -210,7 +211,7 @@ String formTarget = (encounterExport)
   ? "//"+CommonConfiguration.getURLLocation(request) + "/MarkRecaptureEncounters?"+additionalParameters
   : "//"+CommonConfiguration.getURLLocation(request) + "/SimpleCMROutput?"+additionalParameters;
 %>
-<form name="simpleCMR" action="<%=formTarget%>" method="get">
+<form name="simpleCMR" action="<%=StringEscapeUtils.escapeHtml4(formTarget)%>" method="get">
 <%
 Enumeration params=request.getParameterNames();
 while(params.hasMoreElements()){
@@ -218,7 +219,7 @@ while(params.hasMoreElements()){
 	String name=(String)params.nextElement();
 	String value=request.getParameter(name);
 %>
-	<input type="hidden" id="<%=name %>" name="<%=name %>" value="<%=value %>" />
+	<input type="hidden" id="<%=StringEscapeUtils.escapeHtml4(name) %>" name="<%=StringEscapeUtils.escapeHtml4(name) %>" value="<%=StringEscapeUtils.escapeHtml4(value) %>" />
 <%
 }
 %>

@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.util.List,org.ecocean.*,
          java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList,
@@ -838,7 +839,7 @@ try {
 	e.printStackTrace();
 	%>
 	<p>Exception on page!</p>
-	<p><%=e.getMessage() %></p>
+	<p><%=StringEscapeUtils.escapeHtml4(e.getMessage()) %></p>
 	<%
 }
 finally{

@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,java.util.Random" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
@@ -173,7 +174,7 @@
     //aspect options: sex, haplotype, none
     var aspect="none";
     
-    var filename = "//<%=CommonConfiguration.getURLLocation(request)%>/GetIndividualSearchGoogleMapsPoints?<%=request.getQueryString()%>";
+    var filename = "//<%=CommonConfiguration.getURLLocation(request)%>/GetIndividualSearchGoogleMapsPoints?<%=Util.escapeJsString(request.getQueryString())%>";
     var overlays = [];
     var overlaysSet=false;
     
@@ -474,16 +475,16 @@ if (request.getQueryString() != null) {
 }
 %>
 
-  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=map_props.getProperty("table")%>
   </a></li>
-  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=map_props.getProperty("matchingImages")%>
   </a></li>
   <li><a class="active"><%=map_props.getProperty("mappedResults")%>
   </a></li>
      
-  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("analysis")%>
+  <li><a href="individualSearchResultsAnalysis.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=map_props.getProperty("analysis")%>
   </a></li>
-    <li><a href="individualSearchResultsExport.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("export")%>
+    <li><a href="individualSearchResultsExport.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=map_props.getProperty("export")%>
   </a></li>
 </ul>
 

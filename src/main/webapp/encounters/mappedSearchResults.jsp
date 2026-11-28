@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,java.util.Random" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
@@ -175,7 +176,7 @@
     //aspect options: sex, haplotype, none
     var aspect="none";
 
-    var filename = "//<%=CommonConfiguration.getURLLocation(request)%>/GetEncounterSearchGoogleMapsPoints?<%=request.getQueryString()%>";
+    var filename = "//<%=CommonConfiguration.getURLLocation(request)%>/GetEncounterSearchGoogleMapsPoints?<%=Util.escapeJsString(request.getQueryString())%>";
     var overlays = [];
     var overlaysSet=false;
 
@@ -478,7 +479,7 @@ if (request.getQueryString() != null) {
 
  <ul id="tabmenu">
 
-   <li><a href="/react/encounter-search?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
+   <li><a href="/react/encounter-search?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=map_props.getProperty("table")%>
    </a></li>
 
  </ul>

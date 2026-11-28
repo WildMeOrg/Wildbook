@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
@@ -776,12 +777,12 @@ function applyFilter() {
 
       <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
+        <%=Util.escapeHtmlKeepLineBreaks(result.getQueryPrettyPrint()).replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
       </p>
 
       <p class="caption"><strong><%=props.getProperty("jdoql")%>
       </strong><br/>
-        <%=result.getJDOQLRepresentation()%>
+        <%=StringEscapeUtils.escapeHtml4(result.getJDOQLRepresentation())%>
       </p>
 
     </td>

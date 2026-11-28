@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.*, org.ecocean.genetics.distance.*,java.util.*" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
@@ -188,7 +189,7 @@
 
       <h1><img src="images/WildMe-Logo-100x100.png" width="35"
                                                 align="absmiddle"/>
-        <%=props.getProperty("title")%> <a href="individuals.jsp?number=<%=individualDistanceSearchID %>"><%=individualDistanceSearchID %></a>
+        <%=props.getProperty("title")%> <a href="individuals.jsp?number=<%=StringEscapeUtils.escapeHtml4(Util.urlEncode(individualDistanceSearchID)) %>"><%=StringEscapeUtils.escapeHtml4(individualDistanceSearchID) %></a>
       </h1>
 
 <p>Reference Individual ID: <%=compareAgainst.getIndividualID() %>
@@ -321,12 +322,12 @@ myShepherd=null;
 
       <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
+        <%=Util.escapeHtmlKeepLineBreaks(result.getQueryPrettyPrint()).replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
       </p>
 
       <p class="caption"><strong><%=props.getProperty("jdoql")%>
       </strong><br/>
-        <%=result.getJDOQLRepresentation()%>
+        <%=StringEscapeUtils.escapeHtml4(result.getJDOQLRepresentation())%>
       </p>
 
     </td>

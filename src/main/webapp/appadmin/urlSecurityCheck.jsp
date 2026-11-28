@@ -1,4 +1,5 @@
 
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
@@ -268,7 +269,7 @@ try{
 catch(Exception e){
 	//myShepherd.rollbackDBTransaction();
 	%>
-	<p>Reported error: <%=e.getMessage() %> <%=e.getStackTrace().toString() %></p>
+	<p>Reported error: <%=StringEscapeUtils.escapeHtml4(e.getMessage()) %> <%=e.getStackTrace().toString() %></p>
 	<%
 	e.printStackTrace();
 }

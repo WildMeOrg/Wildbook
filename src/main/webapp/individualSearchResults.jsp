@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.security.HiddenIndividualReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils,
          org.datanucleus.api.jdo.JDOPersistenceManager,org.datanucleus.FetchGroup,javax.jdo.*" %>
@@ -135,13 +136,13 @@
 	  String queryString="";
 	  if(request.getQueryString()!=null){queryString=("?"+request.getQueryString());}
 	  %>
-	  <li><a href="individualThumbnailSearchResults.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
+	  <li><a href="individualThumbnailSearchResults.jsp<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=props.getProperty("matchingImages")%>
 	  </a></li>
-	   <li><a href="individualMappedSearchResults.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("mappedResults")%>
+	   <li><a href="individualMappedSearchResults.jsp<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=props.getProperty("mappedResults")%>
 	  </a></li>
-	  <li><a href="individualSearchResultsAnalysis.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
+	  <li><a href="individualSearchResultsAnalysis.jsp<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=props.getProperty("analysis")%>
 	  </a></li>
-	    <li><a href="individualSearchResultsExport.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("export")%>
+	    <li><a href="individualSearchResultsExport.jsp<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=props.getProperty("export")%>
 	  </a></li>
 
 	</ul>
@@ -713,12 +714,12 @@
 
       <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
+        <%=Util.escapeHtmlKeepLineBreaks(result.getQueryPrettyPrint()).replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
       </p>
 
       <p class="caption"><strong><%=props.getProperty("jdoql")%>
       </strong><br/>
-        <%=result.getJDOQLRepresentation()%>
+        <%=StringEscapeUtils.escapeHtml4(result.getJDOQLRepresentation())%>
       </p>
 
     </td>
@@ -736,7 +737,7 @@
     %>
 
     <p>Exception on page!</p>
-    <p><%=e.getMessage() %></p>
+    <p><%=StringEscapeUtils.escapeHtml4(e.getMessage()) %></p>
 
     <%
     }

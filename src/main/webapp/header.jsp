@@ -18,6 +18,7 @@
   --%>
 <!DOCTYPE html>
 <html>
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.shepherd.core.ShepherdProperties,
              org.ecocean.servlet.ServletUtilities,
@@ -507,7 +508,7 @@ if(request.getUserPrincipal()!=null){
 
 
       <!-- Start Open Graph Tags -->
-        <meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
+        <meta property="og:url" content="<%=StringEscapeUtils.escapeHtml4(request.getRequestURI()) %>?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>" />
         <meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
       <!-- End Open Graph Tags -->
 

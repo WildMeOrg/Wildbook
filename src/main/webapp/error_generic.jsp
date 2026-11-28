@@ -1,6 +1,7 @@
 
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@page contentType="text/html; charset=utf-8" language="java"
         import="org.ecocean.CommonConfiguration,java.util.Properties, org.ecocean.servlet.ServletUtilities"
         isErrorPage="true" %>
@@ -64,7 +65,7 @@
           <p>The following error occurred; please inform the system administrator:</p>
 
           <c:set var="exception" value="${requestScope['javax.servlet.error.exception']}"/>
-          <pre><% exception.printStackTrace(new java.io.PrintWriter(out)); %></pre>
+          <pre><% java.io.StringWriter traceText = new java.io.StringWriter(); exception.printStackTrace(new java.io.PrintWriter(traceText)); out.print(StringEscapeUtils.escapeHtml4(traceText.toString())); %></pre>
 
 
         <!-- end maintext --></div>

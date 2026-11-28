@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
          org.ecocean.servlet.ServletUtilities, java.io.File,
@@ -109,22 +110,22 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
   <li><a class="active"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a
-    href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
+    href="projectManagement.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=encprops.getProperty("projectManagement")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+    href="thumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+    href="mappedSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=encprops.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=StringEscapeUtils.escapeHtml4(queryString) %>"><%=encprops.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=queryString %>"><%=encprops.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString) %>"><%=encprops.getProperty("export")%>
    </a></li>
 
 </ul>
@@ -1150,12 +1151,12 @@ console.log(t);
 
       <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=prettyPrint.toString().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
+        <%=Util.escapeHtmlKeepLineBreaks(prettyPrint.toString()).replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
       </p>
 
       <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
       </strong><br/>
-        <%=filter %>
+        <%=StringEscapeUtils.escapeHtml4(filter) %>
       </p>
 
     </td>

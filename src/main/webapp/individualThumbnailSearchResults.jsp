@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.security.HiddenIndividualReporter,org.ecocean.*,java.io.File,java.io.FileInputStream, java.util.*, org.ecocean.security.Collaboration" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
@@ -236,15 +237,15 @@
 <ul id="tabmenu">
 
 
-  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a class="active"><%=encprops.getProperty("matchingImages")%>
   </a></li>
-     <li><a href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+     <li><a href="individualMappedSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
-  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("analysis")%>
+  <li><a href="individualSearchResultsAnalysis.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=encprops.getProperty("analysis")%>
   </a></li>
-    <li><a href="individualSearchResultsExport.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("export")%>
+    <li><a href="individualSearchResultsExport.jsp?<%=StringEscapeUtils.escapeHtml4(queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=encprops.getProperty("export")%>
   </a></li>
 </ul>
 <%
@@ -288,10 +289,10 @@
       if ((startNum) > 1) {%>
     <td align="left">
       <p><a
-        href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><img
+        href="individualThumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(qString)%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><img
         src="images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seePreviousResults")%>"/></a> <a
-        href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><%=(startNum - 45)%>
+        href="individualThumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(qString)%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><%=(startNum - 45)%>
         - <%=(startNum - 1)%>
       </a></p>
     </td>
@@ -300,10 +301,10 @@
     %>
     <td align="right">
       <p><a
-        href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><%=(startNum + 45)%>
+        href="individualThumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(qString)%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><%=(startNum + 45)%>
         - <%=(endNum + 45)%>
       </a> <a
-        href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><img
+        href="individualThumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(qString)%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><img
         src="images/Black_Arrow_right.png" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seeNextResults")%>"/></a></p>
     </td>
@@ -440,7 +441,7 @@
                       <tr>
                       <td>
                         <span class="caption">
-                      		<em><%=encprops.getProperty("taxonomy") %>: <%=(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%></em>
+                      		<em><%=encprops.getProperty("taxonomy") %>: <%=StringEscapeUtils.escapeHtml4(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%></em>
                       	</span>
                       </td>
                       </tr>
@@ -550,7 +551,7 @@
                       <tr>
                       <td>
                         <span class="caption">
-                      		<%=encprops.getProperty("taxonomy") %>: <em><%=(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%></em>
+                      		<%=encprops.getProperty("taxonomy") %>: <em><%=StringEscapeUtils.escapeHtml4(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%></em>
                       	</span>
                       </td>
                       </tr>
@@ -626,10 +627,10 @@
       if ((startNum - 45) > 1) {%>
     <td align="left">
       <p><a
-        href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><img
+        href="individualThumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(qString)%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><img
         src="images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seePreviousResults")%>"/></a> <a
-        href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><%=(startNum - 90)%>
+        href="individualThumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(qString)%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><%=(startNum - 90)%>
         - <%=(startNum - 46)%>
       </a></p>
     </td>
@@ -638,10 +639,10 @@
     %>
     <td align="right">
       <p><a
-        href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=startNum%>
+        href="individualThumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(qString)%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=startNum%>
         - <%=endNum%>
       </a> <a
-        href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><img
+        href="individualThumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(qString)%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><img
         src="images/Black_Arrow_right.png" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seeNextResults")%>"/></a></p>
     </td>
@@ -662,12 +663,12 @@
 
       <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField")).replaceAll("alternateIDField", (encprops.getProperty("alternateID"))).replaceAll("alternateIDField", (encprops.getProperty("size")))%>
+        <%=Util.escapeHtmlKeepLineBreaks(queryResult.getQueryPrettyPrint()).replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField")).replaceAll("alternateIDField", (encprops.getProperty("alternateID"))).replaceAll("alternateIDField", (encprops.getProperty("size")))%>
       </p>
 
       <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
       </strong><br/>
-        <%=queryResult.getJDOQLRepresentation()%>
+        <%=StringEscapeUtils.escapeHtml4(queryResult.getJDOQLRepresentation())%>
       </p>
 
     </td>

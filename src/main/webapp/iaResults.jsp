@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
@@ -243,8 +244,8 @@ h4.intro.accordion .rotate-chevron.down {
 		String individualScoreLink = (!individualScores) ? linkUrl : "";
 		String annotationScoreLink = (individualScores)  ? linkUrl : "";
 		// onclick events for each button (do nothing if you're already on the page)
-		String individualOnClick = (!individualScores) ? "onclick=\"window.location.href = '"+individualScoreLink+"';\"" : "";
-		String annotationOnClick = (individualScores) ?  "onclick=\"window.location.href = '"+annotationScoreLink+"';\"" : "";
+		String individualOnClick = (!individualScores) ? "onclick=\"window.location.href = '"+StringEscapeUtils.escapeHtml4(Util.escapeJsString(individualScoreLink))+"';\"" : "";
+		String annotationOnClick = (individualScores) ?  "onclick=\"window.location.href = '"+StringEscapeUtils.escapeHtml4(Util.escapeJsString(annotationScoreLink))+"';\"" : "";
 		 %>
 
 		<button class="scoreType <%=individualScoreSelected %>" <%=individualOnClick %> >Individual Scores</button>
@@ -293,7 +294,7 @@ h4.intro.accordion .rotate-chevron.down {
 				var defaultResults = <%=RESMAX%>;
 				var nResults = $("#nResultsPicker").val();
 				if (nResults!=defaultResults) {
-					var destUrl = "<%=currentUrl%>";
+					var destUrl = "<%=Util.escapeJsString(currentUrl)%>";
 					destUrl = destUrl.replace(/\&nResults=\d*/,""); // remove previoius nResults arg
 					destUrl += "&nResults="+nResults;
 					window.location.href = destUrl;

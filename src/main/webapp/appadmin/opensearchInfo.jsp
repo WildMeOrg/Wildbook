@@ -1,5 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.opensearch.client.Request,
 java.util.List, java.util.ArrayList,
@@ -81,7 +82,7 @@ org.ecocean.shepherd.core.*
             formatted.append("<td colspan='2'></td></tr></tfoot>");
 
         } catch (Exception e) {
-            formatted = new StringBuilder("<div class='error-message'>Error parsing table: " + e.getMessage() + "</div>");
+            formatted = new StringBuilder("<div class='error-message'>Error parsing table: " + StringEscapeUtils.escapeHtml4(e.getMessage()) + "</div>");
         }
         formatted.append("</table></div>");
         return formatted.toString();
@@ -324,9 +325,9 @@ org.ecocean.shepherd.core.*
     %>
     <div class="error-message">
         <h3>Fatal Error</h3>
-        <pre><%= e.getMessage() %></pre>
+        <pre><%=StringEscapeUtils.escapeHtml4(e.getMessage()) %></pre>
         <p>Stack trace:</p>
-        <pre><% e.printStackTrace(new java.io.PrintWriter(out)); %></pre>
+        <pre><% java.io.StringWriter traceText = new java.io.StringWriter(); e.printStackTrace(new java.io.PrintWriter(traceText)); out.print(StringEscapeUtils.escapeHtml4(traceText.toString())); %></pre>
     </div>
     <% } %>
 

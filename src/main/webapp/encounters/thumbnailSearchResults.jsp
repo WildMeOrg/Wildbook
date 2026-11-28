@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8"
 		language="java"
  		import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration, java.io.FileInputStream, javax.jdo.Extent" %>
@@ -210,24 +211,24 @@
 <ul id="tabmenu">
 
   <li><a
-    href="/react/encounter-search?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
+    href="/react/encounter-search?<%=StringEscapeUtils.escapeHtml4(rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=encprops.getProperty("table")%>
   </a></li>
 	<li><a
-    href="projectManagement.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
+    href="projectManagement.jsp?<%=StringEscapeUtils.escapeHtml4(rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=encprops.getProperty("projectManagement")%>
   </a></li>
   <li><a class="active"><%=encprops.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+    href="mappedSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar.jsp?<%=StringEscapeUtils.escapeHtml4(rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum")) %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=encprops.getProperty("analysis")%>
    </a></li>
  <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(request.getQueryString()) %>"><%=encprops.getProperty("export")%>
    </a></li>
 </ul>
 <%
@@ -255,7 +256,7 @@
     <td align="left">
       <p>
       <a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-encounterIncrementer)%>&endNum=<%=(startNum)%>"><img
+        href="thumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(qString) %>&startNum=<%=(startNum-encounterIncrementer)%>&endNum=<%=(startNum)%>"><img
         src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seePreviousResults")%>"/> <%=encprops.getProperty("previous")%></a>
 
@@ -266,7 +267,7 @@
     %>
     <td align="right">
       <p><a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum+10%>&endNum=<%=endNum+10%>">
+        href="thumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(qString) %>&startNum=<%=startNum+10%>&endNum=<%=endNum+10%>">
         <%=encprops.getProperty("next")%> <img
         src="../images/Black_Arrow_right.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seePreviousResults")%>"/>
@@ -292,7 +293,7 @@
     <td align="left">
       <p>
       <a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-encounterIncrementer)%>&endNum=<%=(startNum)%>"><img
+        href="thumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(qString) %>&startNum=<%=(startNum-encounterIncrementer)%>&endNum=<%=(startNum)%>"><img
         src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seePreviousResults")%>"/> <%=encprops.getProperty("previous")%></a>
 
@@ -303,7 +304,7 @@
     %>
     <td align="right">
       <p><a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum+10%>&endNum=<%=endNum+10%>">
+        href="thumbnailSearchResults.jsp?<%=StringEscapeUtils.escapeHtml4(qString) %>&startNum=<%=startNum+10%>&endNum=<%=endNum+10%>">
         <%=encprops.getProperty("next")%> <img
         src="../images/Black_Arrow_right.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seePreviousResults")%>"/>

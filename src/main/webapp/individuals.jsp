@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.mmutil.MediaUtilities,
 javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
@@ -804,7 +805,7 @@ if (sharky.getNames() != null) {
 
         if (newKey===oldKey && newVal===oldVal) return;
 
-        var indID = "<%=id%>";
+        var indID = "<%=Util.escapeJsString(id)%>";
         var userId = 'null';
         <%
         if(myShepherd.getUser(request)!=null){
@@ -855,7 +856,7 @@ if (sharky.getNames() != null) {
 
         var oldKey = nameKeySpan.data("oldkey");
         var oldVal = nameValueSpan.data("oldvalue");
-        var indID = "<%=id%>";
+        var indID = "<%=Util.escapeJsString(id)%>";
 
         var rememberMe = this;
 
@@ -888,7 +889,7 @@ if (sharky.getNames() != null) {
 
         if (newKey===oldKey && newVal===oldVal) return;
 
-        var indID = "<%=id%>";
+        var indID = "<%=Util.escapeJsString(id)%>";
         var rememberMe = this;
 
       });
@@ -949,7 +950,7 @@ if (sharky.getNames() != null) {
 
           <div class="highlight" id="sexErrorDiv"></div>
           <form name="setxsexshark" class="editForm">
-            <input name="individual" type="hidden" value="<%=request.getParameter("id")%>"/>
+            <input name="individual" type="hidden" value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("id"))%>"/>
             <div class="form-group row" id="selectSex">
               <div class="col-sm-4">
                 <label><%=sex %>: </label>
@@ -987,7 +988,7 @@ if (sharky.getNames() != null) {
             <%-- .noEditText only when there is an edit form to swap in; without one the edit-mode
                  toggle would hide this line and leave nothing in its place --%>
             <p<%=canEditTaxonomy ? " class=\"noEditText\"" : ""%>>
-              <%=props.getProperty("taxonomy")%>: <em><span id="displayTaxonomy"><%=genusSpeciesFound%></span></em><%if(taxonomyIsInherited){%> <span class="taxonomyInherited" id="taxonomyInheritedNote">(<%=props.getProperty("taxonomyFromEncounters")%>)</span><%}%>
+              <%=props.getProperty("taxonomy")%>: <em><span id="displayTaxonomy"><%=StringEscapeUtils.escapeHtml4(genusSpeciesFound)%></span></em><%if(taxonomyIsInherited){%> <span class="taxonomyInherited" id="taxonomyInheritedNote">(<%=props.getProperty("taxonomyFromEncounters")%>)</span><%}%>
             </p>
             <%
             if(canEditTaxonomy){
@@ -1151,7 +1152,7 @@ if (sharky.getNames() != null) {
             <p class="clickDateText birthDateText"><%=props.getProperty("leaveBlank")%></p>
 
             <form class="editForm" name="set_birthdate">
-              <input name="individual" type="hidden" value="<%=request.getParameter("id")%>"/>
+              <input name="individual" type="hidden" value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("id"))%>"/>
               <div class="form-group has-feedback row" id="birthDiv">
                 <div class="col-sm-4">
                   <label><%=props.getProperty("birthdate")  %>:</label>
@@ -1223,7 +1224,7 @@ if (sharky.getNames() != null) {
             <p class="clickDateText deathDateText"><%=props.getProperty("leaveBlank")%></p>
 
             <form class="editForm" name="set_deathdate">
-              <input name="individual" type="hidden" value="<%=request.getParameter("id")%>" />
+              <input name="individual" type="hidden" value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("id"))%>" />
               <div class="form-group has-feedback row" id="deathDiv">
                 <div class="col-sm-4">
                   <label><%=props.getProperty("deathdate")  %>:</label>
@@ -1287,7 +1288,7 @@ if (sharky.getNames() != null) {
             <%-- Start alt id form --%>
             <div class="highlight" id="altIdErrorDiv"></div>
             <form name="set_alternateid" class="editForm">
-              <input name="individual" type="hidden" value="<%=request.getParameter("id")%>" />
+              <input name="individual" type="hidden" value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("id"))%>" />
               <div class="form-group has-feedback row" id="altIdDiv">
                 <div class="col-sm-4">
                   <label><%=alternateID %>:</label>
@@ -1369,7 +1370,7 @@ if (sharky.getNames() != null) {
       if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         %>
         <font size="-1"><a
-          href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=id%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
+          href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=StringEscapeUtils.escapeHtml4(Util.urlEncode(id))%>&edit=dynamicproperty&name=<%=StringEscapeUtils.escapeHtml4(Util.urlEncode(nm))%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
           <%
         }
         %>
@@ -2445,7 +2446,7 @@ if (sharky.getNames() != null) {
     	    </div>
 	      <script type="text/javascript">
 	        let querier = new JSONQuerier(wildbookGlobals);
-	        querier.preFetchData("<%=occurrenceIndividualID%>", "<%=individualGenus%>", "<%=individualEpithet%>",
+	        querier.preFetchData("<%=Util.escapeJsString(occurrenceIndividualID)%>", "<%=Util.escapeJsString(individualGenus)%>", "<%=Util.escapeJsString(individualEpithet)%>",
 			     [setupSocialGraph, setupOccurrenceGraph],
 			     ["#socialDiagram", "#bubbleChart"]);
             </script>
@@ -2499,7 +2500,7 @@ if (sharky.getNames() != null) {
             <td><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/individuals/<%=sharky.getId()%>/<%=file_name%>"><%=file_name%>
             </a></td>
             <td>&nbsp;&nbsp;&nbsp;[<a
-              href="IndividualRemoveDataFile?individual=<%=id%>&filename=<%=file_name%>"><%=delete %>
+              href="IndividualRemoveDataFile?individual=<%=StringEscapeUtils.escapeHtml4(Util.urlEncode(id))%>&filename=<%=StringEscapeUtils.escapeHtml4(Util.urlEncode(file_name))%>"><%=delete %>
             </a>]
             </td>
           </tr>
@@ -2750,7 +2751,7 @@ if (sharky.getNames() != null) {
   //could not find the specified individual!
   else {
 	    %>
-	    <p><%=matchingRecord %> <strong><%=id%></strong></p>
+	    <p><%=matchingRecord %> <strong><%=StringEscapeUtils.escapeHtml4(id)%></strong></p>
 	  	<%
   	}
   }

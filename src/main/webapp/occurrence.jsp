@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, 
          com.google.gson.Gson,
@@ -205,7 +206,7 @@ context=ServletUtilities.getContext(request);
 					<div class="col-xs-6 col-lg-6">
 						<div class="highlight resultMessageDiv" id="addSurveyErrorDiv"></div>
 						<form name="addSurveyToOccurrence" class="editFormSurvey">
-							<input name="number" type="hidden" value="<%=number%>" id="addOccNumber" />
+							<input name="number" type="hidden" value="<%=StringEscapeUtils.escapeHtml4(number)%>" id="addOccNumber" />
 							<div class="form-group row">
 								<div class="col-sm-8" id="addDiv">
 									<label><%=props.getProperty("addSurvey")%>: </label>
@@ -252,9 +253,9 @@ context=ServletUtilities.getContext(request);
         out.println("<ul>");
         for (Taxonomy tx : occ.getTaxonomies()) {
             if (tx.getNonSpecific()) {
-                wait += "<li style=\"color: #888;\">" + tx.getScientificName() + "</li>";
+                wait += "<li style=\"color: #888;\">" + StringEscapeUtils.escapeHtml4(tx.getScientificName()) + "</li>";
             } else {
-                out.println("<li><i>" + tx.getScientificName() + "</i></li>");
+                out.println("<li><i>" + StringEscapeUtils.escapeHtml4(tx.getScientificName()) + "</i></li>");
             }
         }
         out.println(wait);
@@ -286,7 +287,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 			  <tr>
 			    <td align="left" valign="top">
 			      <form name="set_groupBhevaior" method="post" action="OccurrenceSetGroupBehavior">
-			            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/> 
+			            <input name="number" type="hidden" value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("number"))%>"/> 
 			            <%=props.getProperty("groupBehavior") %>:
 			        
 				        <%
@@ -398,7 +399,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 				let selectedVI = $("#visibilityIndexSelect").val();
 				let sendJSON = {};
 
-				sendJSON['occId'] = '<%=request.getParameter("number")%>';
+				sendJSON['occId'] = '<%=Util.escapeJsString(request.getParameter("number"))%>';
 				sendJSON['visibilityIndex'] = selectedVI;
 
 				console.log("SENDING VI : "+selectedVI);
@@ -455,7 +456,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 			  <tr>
 			    <td align="left" valign="top">
 			      <form name="set_individualCount" method="post" action="OccurrenceSetIndividualCount">
-			        <input name="number" type="hidden" value="<%=request.getParameter("number")%>" /> 
+			        <input name="number" type="hidden" value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("number"))%>" /> 
 			            <%=props.getProperty("newIndividualCount") %>:
 			
 			        <input name="count" type="text" id="count" size="5" maxlength="7"></input> 
@@ -505,7 +506,7 @@ if(visible){
 	  <tr>
 	    <td align="left" valign="top">
 	      <form name="set_latitudeLongitude" method="post" action="OccurrenceSetLatitudeLongitude">
-	            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/> 
+	            <input name="number" type="hidden" value="<%=StringEscapeUtils.escapeHtml4(request.getParameter("number"))%>"/> 
 	            <p>
 		            <%=props.getProperty("latitude")%>:
 	                <input name="latitude" id="latitude" type="text" maxlength="20"></input>
@@ -774,7 +775,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 									</p>
 									<form name="editFormObservation" action="../OccurrenceSetObservation" method="post" class="editFormDynamic">
 										<input name="name" type="hidden" value="<%=nm%>" /> 
-										<input name="number" type="hidden" value="<%=number%>" />
+										<input name="number" type="hidden" value="<%=StringEscapeUtils.escapeHtml4(number)%>" />
 										<div class="form-group row">
 											<div class="col-sm-3">
 												<label><%=props.getProperty("propertyValue")%></label>
@@ -805,7 +806,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 					</p>
 					<form name="addDynProp" action="../OccurrenceSetObservation"
 						method="post" class="editFormObservation">
-						<input name="number" type="hidden" value="<%=number%>" />
+						<input name="number" type="hidden" value="<%=StringEscapeUtils.escapeHtml4(number)%>" />
 						<input name="type" type="hidden" value="Occurrence" />
 						<div class="form-group row">
 							<div class="col-sm-3">
