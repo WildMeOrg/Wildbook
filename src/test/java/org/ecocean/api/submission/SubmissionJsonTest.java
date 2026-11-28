@@ -40,4 +40,18 @@ class SubmissionJsonTest {
         assertThrows(SubmissionException.class, () -> SubmissionJson.parse(new byte[]{'{', '"', (byte)0xC3, '"', ':', '1', '}'}));
         assertEquals(1, SubmissionJson.parse("{\"a\":1}".getBytes(java.nio.charset.StandardCharsets.UTF_8)).getInt("a"));
     }
+
+    @Test void onBehalfOfIsATrimmedNameAndOptional() {
+        JSONObject base = new JSONObject().put("contractVersion", "1").put("source", new JSONObject().put("name", "agent"));
+        assertFalse(SubmissionJson.create(new JSONObject(base.toString())).has("onBehalfOf"));
+        assertEquals("ada", SubmissionJson.create(new JSONObject(base.toString()).put("onBehalfOf", "  ada ")).getString("onBehalfOf"));
+        assertEquals("public", SubmissionJson.create(new JSONObject(base.toString()).put("onBehalfOf", "public")).getString("onBehalfOf"));
+        assertEquals(100, SubmissionJson.create(new JSONObject(base.toString()).put("onBehalfOf", "a".repeat(100))).getString("onBehalfOf").length());
+        for (Object bad : new Object[] { 7, "", "   ", "a".repeat(101), JSONObject.NULL, new JSONObject() })
+            assertEquals(400, assertThrows(SubmissionException.class,
+                () -> SubmissionJson.create(new JSONObject(base.toString()).put("onBehalfOf", bad))).status, String.valueOf(bad));
+        // part of the stored create input, so the create hash changes with it
+        assertNotEquals(SubmissionJson.canonical(SubmissionJson.create(new JSONObject(base.toString()).put("onBehalfOf", "ada"))),
+            SubmissionJson.canonical(SubmissionJson.create(new JSONObject(base.toString()).put("onBehalfOf", "bo"))));
+    }
 }

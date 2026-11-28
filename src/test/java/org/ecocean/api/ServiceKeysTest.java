@@ -61,6 +61,7 @@ class ServiceKeysTest {
         Set<String> createdScopes;
         String createdLabel;
         String createdBy;
+        Boolean createdReadAs;
         boolean committed;
         List<Object> revokeArgs;
     }
@@ -147,13 +148,14 @@ class ServiceKeysTest {
                 w.revokeArgs = Arrays.asList(i.getArgument(1), i.getArgument(2));
                 return w.revokeAllCount;
             });
-            store.when(() -> ServiceKeyStore.create(any(), any(), any(), any(), anyInt(), anyString())).then(i -> {
+            store.when(() -> ServiceKeyStore.create(any(), any(), any(), any(), anyInt(), anyString(), anyBoolean())).then(i -> {
                 if (w.createFailure != null) throw w.createFailure;
                 w.createdLabel = i.getArgument(2);
                 @SuppressWarnings("unchecked") Set<String> scopes = i.getArgument(3);
                 w.createdScopes = scopes;
                 w.createdDays = i.getArgument(4);
                 w.createdBy = i.getArgument(5);
+                w.createdReadAs = i.getArgument(6);
                 w.issued = ServiceKeyCredential.issue();
                 return w.issued;
             });
@@ -313,6 +315,7 @@ class ServiceKeysTest {
         assertEquals(Set.of("data:read", "submissions:write"), w.createdScopes, "scopes passed");
         assertEquals(Integer.valueOf(30), w.createdDays, "days passed");
         assertEquals("admin-uuid", w.createdBy, "createdBy = the admin's user id");
+        assertEquals(Boolean.FALSE, w.createdReadAs, "readAsCreator defaults to off");
         assertEquals("admin-uuid", body.getString("createdBy"), "create response createdBy");
         assertEquals("admin", body.getString("createdByName"), "create response createdByName");
 

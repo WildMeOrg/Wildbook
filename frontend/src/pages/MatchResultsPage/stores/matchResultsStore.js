@@ -16,6 +16,7 @@ import {
 
 export default class MatchResultsStore {
   _viewMode = "individual"; // "individual" | "image"
+  _viewModeChosen = false; // the user picked a tab; keep it while it has results
   _encounterId = "";
   _annotResults = [];
   _indivResults = [];
@@ -145,11 +146,14 @@ export default class MatchResultsStore {
     // secondary finding.)
     const annotHasResults = (this._annotResults || []).some((r) => r?.hasResults);
     const indivHasResults = (this._indivResults || []).some((r) => r?.hasResults);
-    if (!annotHasResults) {
-      this._viewMode = "individual";
-    }
-    if (!indivHasResults) {
-      this._viewMode = "image";
+    // Individual Score is the default; Image Score only when it is the
+    // only tab with results. Re-evaluated on every load (polls included),
+    // so a first load that only had image results doesn't stick (#1814).
+    const currentHasResults =
+      this._viewMode === "image" ? annotHasResults : indivHasResults;
+    if (!this._viewModeChosen || !currentHasResults) {
+      this._viewMode =
+        !indivHasResults && annotHasResults ? "image" : "individual";
     }
 
     const querySource = this._findBestQuerySource();
@@ -291,6 +295,7 @@ export default class MatchResultsStore {
     this._individualDisplayName = null;
     this._statusOverall = "";
     this._viewMode = "individual";
+    this._viewModeChosen = false;
     this._newIndividualName = "";
     this._hasResults = false;
     this._taskStillRunning = false;
@@ -603,6 +608,7 @@ export default class MatchResultsStore {
 
   setViewMode(mode) {
     this._viewMode = mode;
+    this._viewModeChosen = true;
   }
 
   setNumResults(n) {
