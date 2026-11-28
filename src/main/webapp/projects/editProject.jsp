@@ -232,6 +232,9 @@ function doDeleteAjax(json){
           window.location.replace('/projects/projectList.jsp');
       },
       error: function(x,y,z) {
+          removeActionResultFeedback();
+          $("#actionResultMessage").text(txt.deleteFailure);
+          $("#actionResultMessage").addClass('actionResultError');
           console.warn('%o %o %o', x, y, z);
       }
   });
@@ -246,12 +249,12 @@ function doProjectUpdateAjax(json) {
       contentType: 'application/json',
       success: function(data) {
         removeActionResultFeedback();
-        $("#actionResultMessage").text('<%=props.getProperty("updateSuccess")%>');
+        $("#actionResultMessage").text(txt.updateSuccess);
         $("#actionResultMessage").addClass('actionResultSuccess');
       },
       error: function(x,y,z) {
         removeActionResultFeedback();
-        $("#actionResultMessage").text('<%=props.getProperty("updateFailure")%>');
+        $("#actionResultMessage").text(txt.updateFailure);
         $("#actionResultMessage").addClass('actionResultError');
         console.warn('%o %o %o', x, y, z);
       }
@@ -270,7 +273,7 @@ function removeUserFromProject(el) {
     let idToRemove = $(el).closest(".projectEditUserEl").attr('id');
     userIdsToRemove.push(idToRemove);
     $(el).closest(".projectEditUserEl").remove();
-    $("#actionResultMessage").text('<%=props.getProperty("clickUpdate")%>');
+    $("#actionResultMessage").text(txt.clickUpdate);
     updateStatus = false;
   }
 }
@@ -328,7 +331,7 @@ function addHTMLListeners() {
       if (!alreadyParticipant.includes(selectedUserId)) {
         appendNewUser(selectedUserId, selectedUserStr);
         userIdsToAdd.push(selectedUserId);
-        $("#actionResultMessage").text('<%=props.getProperty("clickUpdateUsers")%>');
+        $("#actionResultMessage").text(txt.clickUpdateUsers);
         updateStatus = false;
       } else {
         $("#actionResultMessage").text('<%=props.getProperty("alreadyParticipatingError")%>');

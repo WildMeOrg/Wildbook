@@ -58,6 +58,13 @@ public class ProjectDelete extends HttpServlet {
             if (projectIdPrefix != null && !"".equals(projectIdPrefix) &&
                 myShepherd.getProjectByProjectIdPrefix(projectIdPrefix) != null) {
                 Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
+                // only the project owner or an admin may delete it (as in ProjectUpdate)
+                if (!project.doesUserOwnProject(myShepherd, request) &&
+                    !request.isUserInRole("admin")) {
+                    res.put("error", "not authorized to delete this project");
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    return;
+                }
                 List<Encounter> encounters = project.getEncounters();
                 List<MarkedIndividual> individuals = new ArrayList<MarkedIndividual>();
                 for (Encounter enc : encounters) {

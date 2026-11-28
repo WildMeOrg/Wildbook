@@ -172,8 +172,9 @@ public class Project implements java.io.Serializable {
     }
 
     public User getOwner() {
+        if (ownerId == null || users == null) return null;
         for (User user : users) {
-            if (user.getId().equals(ownerId)) {
+            if (user != null && ownerId.equals(user.getId())) {
                 return user;
             }
         }
@@ -414,7 +415,7 @@ public class Project implements java.io.Serializable {
     public boolean doesUserOwnProject(Shepherd myShepherd, HttpServletRequest request) {
         User user = myShepherd.getUser(request);
 
-        if (user != null && ownerId.equals(user.getId())) return true;
-        return false;
+        // the owner must still be one of the project's users (as ProjectUpdate checks it)
+        return user != null && user.equals(getOwner());
     }
 }
