@@ -43,4 +43,13 @@ class AuthorizationRoutesTest {
         assertEquals("authc", firstRule(routes, "/ProjectDelete"));
         assertEquals("authc, roles[admin]", firstRule(routes, "/UserDelete"));
     }
+
+    @Test void legacyGridScanRoutesAreAdminOnly() throws Exception {
+        Ini.Section routes = routes();
+        for (String path : new String[] {"/ScanWorkItemResultsHandler2", "/scanWorkItemResultsHandler2",
+                "/ScanResultsServlet", "/WriteOutScanTask", "/GridHeartbeatReceiver",
+                "/gridHeartbeatReceiver", "/ScanAppletSupport", "/scanAppletSupport"}) {
+            assertEquals("authc, roles[admin]", firstRule(routes, path), path);
+        }
+    }
 }
