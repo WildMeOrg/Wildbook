@@ -11,6 +11,9 @@ public class BulkValidatorException extends ApiException {
     public static String TYPE_REQUIRED_VALUE = "REQUIRED_VALUE";
     public static String TYPE_INVALID_SYNONYM = "INVALID_SYNONYM";
     public static String TYPE_INVALID_DUPLICATE = "INVALID_DUPLICATE";
+    public static final String TYPE_GROUP_CONFLICT = "GROUP_CONFLICT";
+    public static final String TYPE_ID_UNAVAILABLE = "ID_UNAVAILABLE";
+    public static final String TYPE_MALFORMED_ROW = "MALFORMED_ROW";
 
     private String type = TYPE_INVALID_VALUE;
     private String fieldName = null;

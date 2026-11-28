@@ -1,0 +1,23 @@
+{ "version": 1,
+  "cases": [
+    { "name": "latitude text vs number", "kind": "scalar", "fieldA": "Encounter.decimalLatitude", "a": "45.1", "fieldB": "Encounter.decimalLatitude", "b": 45.10, "equal": true },
+    { "name": "latitude alias", "kind": "scalar", "fieldA": "Encounter.latitude", "a": 1.0, "fieldB": "Sighting.decimalLatitude", "b": "1", "equal": true },
+    { "name": "survey id vs code", "kind": "scalar", "fieldA": "Survey.id", "a": "7", "fieldB": "Sighting.fieldSurveyCode", "b": 7, "equal": true },
+    { "name": "survey id leading zero", "kind": "scalar", "fieldA": "Survey.id", "a": "07", "fieldB": "Sighting.fieldSurveyCode", "b": 7, "equal": false },
+    { "name": "numeric-looking text", "kind": "scalar", "fieldA": "Encounter.researcherComments", "a": "001", "fieldB": "Encounter.researcherComments", "b": "1", "equal": false },
+    { "name": "remarks not trimmed", "kind": "scalar", "fieldA": "Encounter.researcherComments", "a": " note", "fieldB": "Encounter.researcherComments", "b": "note", "equal": false },
+    { "name": "integer field text", "kind": "scalar", "fieldA": "Sighting.numCalves", "a": "3", "fieldB": "Sighting.numCalves", "b": 3, "equal": true },
+    { "name": "same compound set", "kind": "compound", "rowA": { "Encounter.project0.projectIdPrefix": "P" , "Encounter.project0.researchProjectName": "Proj" }, "rowB": { "Encounter.project0.projectIdPrefix": "P", "Encounter.project0.researchProjectName": "Proj" }, "equal": true },
+    { "name": "different compound columns", "kind": "compound", "rowA": { "Encounter.measurement0": 2.5 }, "rowB": { "Encounter.measurement.length": 2.5 }, "equal": false },
+    { "name": "same offset across rows is a set conflict, not a duplicate", "kind": "compound", "rowA": { "Encounter.length": 2.5 }, "rowB": { "Encounter.measurement0": 2.5 }, "equal": false },
+    { "name": "A,A,B blames every row", "kind": "compoundGroup", "rows": [ { "Encounter.project0.projectIdPrefix": "P", "Encounter.project0.researchProjectName": "A" }, { "Encounter.project0.projectIdPrefix": "P", "Encounter.project0.researchProjectName": "A" }, { "Encounter.project0.projectIdPrefix": "P", "Encounter.project0.researchProjectName": "B" } ], "blamed": [ [0, "Encounter.project0.projectIdPrefix"], [0, "Encounter.project0.researchProjectName"], [1, "Encounter.project0.projectIdPrefix"], [1, "Encounter.project0.researchProjectName"], [2, "Encounter.project0.projectIdPrefix"], [2, "Encounter.project0.researchProjectName"] ] },
+    { "name": "B,A,A blames every row", "kind": "compoundGroup", "rows": [ { "Encounter.project0.projectIdPrefix": "P", "Encounter.project0.researchProjectName": "B" }, { "Encounter.project0.projectIdPrefix": "P", "Encounter.project0.researchProjectName": "A" }, { "Encounter.project0.projectIdPrefix": "P", "Encounter.project0.researchProjectName": "A" } ], "blamed": [ [0, "Encounter.project0.projectIdPrefix"], [0, "Encounter.project0.researchProjectName"], [1, "Encounter.project0.projectIdPrefix"], [1, "Encounter.project0.researchProjectName"], [2, "Encounter.project0.projectIdPrefix"], [2, "Encounter.project0.researchProjectName"] ] },
+    { "name": "plus sign", "kind": "alleleToken", "token": "+7", "valid": true, "canonical": "7" },
+    { "name": "padded", "kind": "alleleToken", "token": " 07", "valid": true, "canonical": "7" },
+    { "name": "int max", "kind": "alleleToken", "token": "2147483647", "valid": true, "canonical": "2147483647" },
+    { "name": "int min", "kind": "alleleToken", "token": "-2147483648", "valid": true, "canonical": "-2147483648" },
+    { "name": "overflow", "kind": "alleleToken", "token": "2147483648", "valid": false },
+    { "name": "underflow", "kind": "alleleToken", "token": "-2147483649", "valid": false },
+    { "name": "trailing empty token", "kind": "alleleToken", "token": "", "valid": false },
+    { "name": "decimal", "kind": "alleleToken", "token": "1.5", "valid": false }
+  ] }

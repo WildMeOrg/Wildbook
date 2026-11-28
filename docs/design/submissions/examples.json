@@ -295,7 +295,13 @@
         "draftTtlSeconds": 200,
         "idempotencyRetentionSeconds": 200
       },
-      "rowFields": {}
+      "rowFields": {
+        "grouping": {
+          "field": "Encounter.groupKey",
+          "caseInsensitive": "ASCII letters A-Z only",
+          "maxMediaPerGroup": 200
+        }
+      }
     }
   },
   "rejectNullField": {

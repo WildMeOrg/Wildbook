@@ -12,6 +12,13 @@ import {
   hasBoxColumns,
   isPhotoSlotColumn,
 } from "./bulkImportSlots";
+import {
+  dateDisplayMapFor,
+  findHeaderCollision,
+  hasAnyValue,
+  normalizeHeader,
+  YEAR_COLUMNS,
+} from "./bulkImportHeaders";
 
 const TEXT_BOX_SUFFIXES = ["bbox", "iaClass", "bboxSource"];
 
@@ -27,15 +34,12 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
     reader.onerror = (error) => {
       alert(`Error reading file: ${error.message}`);
-      store.setSpreadsheetUploadProgress(0);
-      store.setSpreadsheetFileName("");
-      store.setRawData([]);
-      store.setRawColumns([]);
-      store.setColumnsDef([]);
-      store.setWorksheetInfo(0, [], 0, 0, "");
-      store.setValidationErrors({});
-      store.setValidationWarnings({});
-      store.clearSubmissionErrors();
+      store.resetSpreadsheet();
+    };
+
+    const failParse = (error) => {
+      alert(`Error processing file: ${error.message}`);
+      store.resetSpreadsheet();
     };
 
     reader.onload = (e) => {
@@ -46,10 +50,16 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
         const sheetStats = sheetNames.map((name) => {
           const ws = workbook.Sheets[name];
-          const arr = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+          // raw: false reads headers as the cells show them, the same text the
+          // object-mode read below uses for its keys
+          const arr = XLSX.utils.sheet_to_json(ws, {
+            header: 1,
+            defval: "",
+            raw: false,
+          });
           const colCount = arr[0]?.length || 0;
           const rowCount = arr.length - 1;
-          return { name, rowCount, colCount };
+          return { name, rowCount, colCount, header: arr[0] || [] };
         });
 
         const totalRows = sheetStats.reduce((sum, s) => sum + s.rowCount, 0);
@@ -62,6 +72,13 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           totalRows,
           file.name,
         );
+
+        const hit = findHeaderCollision(sheetStats[0]?.header || []);
+        if (hit) {
+          throw new Error(
+            `Columns "${hit[0]}" and "${hit[1]}" are the same field; keep one.`,
+          );
+        }
 
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
@@ -85,22 +102,32 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             }),
           );
         }
-        const allJsonData = allJsonDataRaw.map((row) => {
-          const normalizedRow = {};
-          for (const key in row) {
-            const newKey = key
-              .replace(/Occurrence/g, "Sighting")
-              .replace(/occurrence/g, "sighting");
-            normalizedRow[newKey] = row[key];
-          }
-          return normalizedRow;
-        });
+        // whitespace-only rows are dropped here, once, so rawData and
+        // spreadsheetData stay index-aligned
+        const allJsonData = allJsonDataRaw
+          .map((row) => {
+            const normalizedRow = {};
+            for (const key in row) {
+              const newKey = normalizeHeader(key);
+              normalizedRow[newKey] = row[key];
+            }
+            return normalizedRow;
+          })
+          .filter(hasAnyValue);
+        const processRows = allJsonData.length;
 
         store.setRawData(allJsonData || []);
         const processedData = [];
         let currentIndex = 0;
 
-        const rowKeys = Object.keys(allJsonData[0] || {});
+        // a sheet whose rows are all blank still keeps its headers
+        const rowKeys =
+          allJsonData.length > 0
+            ? Object.keys(allJsonData[0])
+            : (sheetStats[0]?.header || [])
+                .map((h) => String(h ?? ""))
+                .filter((h) => h !== "")
+                .map(normalizeHeader);
         store.setRawColumns(rowKeys);
         // a sheet with box columns keeps every numbered photo slot (no merge, spec 4.6)
         const boxed = hasBoxColumns(rowKeys, store.indexableFields);
@@ -111,11 +138,18 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           .filter((k) => !removedColumns.includes(k))
           .filter((k) => !mediaAssetsCols.includes(k));
 
+        // dates: one display column per prefix (dateDisplayMapFor, the same mapping the
+        // store derives from rawColumns). The year entries of specifiedColumns are shown
+        // by that map, every other specified column by upload; removedColumns already
+        // hides the other date parts, which stay in the source data.
+        const dateDisplayMap = dateDisplayMapFor(rowKeys);
+        const dateEntries = Object.entries(dateDisplayMap);
         const userUploadedCols = new Set(rowKeys);
         const includedSpecified = specifiedColumns.filter((col) =>
-          userUploadedCols.has(col),
+          YEAR_COLUMNS.includes(col)
+            ? col in dateDisplayMap
+            : userUploadedCols.has(col),
         );
-
         store.setColumnsDef([...includedSpecified, ...remaining]);
         if (
           !store.columnsDef.includes("Encounter.mediaAsset0") &&
@@ -174,156 +208,99 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           }
         };
         const processChunk = () => {
-          const chunk = allJsonData.slice(
-            currentIndex,
-            currentIndex + CHUNK_SIZE,
-          );
-          const normalizedChunk = chunk.map((row) => {
-            const normalizedRow = { ...row };
-            const mediaAssets = mediaAssetsCols
-              .filter((v) => row[v] != null && row[v] !== "")
-              .map((col) => {
-                const mediaAsset =
-                  typeof row[col] === "string"
-                    ? row[col].trim()
-                    : String(row[col] ?? "").trim();
-                return mediaAsset;
-              })
-              .filter((v) => v !== "")
-              .join(", ");
-            if (mediaAssets) {
-              normalizedRow["Encounter.mediaAsset0"] = mediaAssets;
-            }
-
-            const Encounter_decimalLatitude = getLatLong(
-              row["Encounter.decimalLatitude"],
-              row["Encounter.decimalLongitude"],
+          try {
+            const chunk = allJsonData.slice(
+              currentIndex,
+              currentIndex + CHUNK_SIZE,
             );
-            if (Encounter_decimalLatitude) {
-              normalizedRow["Encounter.decimalLatitude"] =
-                Encounter_decimalLatitude;
-            }
+            const normalizedChunk = chunk.map((row) => {
+              const normalizedRow = { ...row };
+              const mediaAssets = mediaAssetsCols
+                .filter((v) => row[v] != null && row[v] !== "")
+                .map((col) => {
+                  const mediaAsset =
+                    typeof row[col] === "string"
+                      ? row[col].trim()
+                      : String(row[col] ?? "").trim();
+                  return mediaAsset;
+                })
+                .filter((v) => v !== "")
+                .join(", ");
+              if (mediaAssets) {
+                normalizedRow["Encounter.mediaAsset0"] = mediaAssets;
+              }
 
-            const Encounter_latitude = getLatLong(
-              row["Encounter.latitude"],
-              row["Encounter.longitude"],
-            );
-            if (Encounter_latitude) {
-              normalizedRow["Encounter.latitude"] = Encounter_latitude;
-            }
-
-            const Sighting_decimalLatitude = getLatLong(
-              row["Sighting.decimalLatitude"],
-              row["Sighting.decimalLongitude"],
-            );
-
-            if (Sighting_decimalLatitude) {
-              normalizedRow["Sighting.decimalLatitude"] =
-                Sighting_decimalLatitude;
-            }
-
-            const formattedEncounterDate = formatDate(
-              row["Encounter.year"] ?? "",
-              row["Encounter.month"] ?? "",
-              row["Encounter.day"] ?? "",
-              row["Encounter.hour"] ?? "",
-              row["Encounter.minutes"] ?? "",
-            );
-            const formattedSightingDate = formatDate(
-              row["Sighting.year"] ?? "",
-              row["Sighting.month"] ?? "",
-              row["Sighting.day"] ?? "",
-              row["Sighting.hour"] ?? "",
-              row["Sighting.minutes"] ?? "",
-            );
-
-            if (
-              formattedEncounterDate &&
-              formattedEncounterDate !== "undefined"
-            ) {
-              normalizedRow["Encounter.year"] = formattedEncounterDate;
-            } else if (
-              formattedSightingDate &&
-              formattedSightingDate !== "undefined"
-            ) {
-              store.columnsDef.splice(1, 0, "Encounter.year");
-              store.rawColumns.splice(1, 0, "Encounter.year");
-              normalizedRow["Encounter.year"] = formattedSightingDate;
-              delete normalizedRow["Sighting.year"];
-              delete normalizedRow["Sighting.month"];
-              delete normalizedRow["Sighting.day"];
-              delete normalizedRow["Sighting.hour"];
-              delete normalizedRow["Sighting.minutes"];
-              store.setColumnsDef(
-                store.columnsDef.filter(
-                  (col) =>
-                    col !== "Sighting.year" &&
-                    col !== "Sighting.month" &&
-                    col !== "Sighting.day" &&
-                    col !== "Sighting.hour" &&
-                    col !== "Sighting.minutes",
-                ),
+              const Encounter_decimalLatitude = getLatLong(
+                row["Encounter.decimalLatitude"],
+                row["Encounter.decimalLongitude"],
               );
-              store.setRawColumns(
-                store.rawColumns.filter(
-                  (col) =>
-                    col !== "Sighting.year" &&
-                    col !== "Sighting.month" &&
-                    col !== "Sighting.day" &&
-                    col !== "Sighting.hour" &&
-                    col !== "Sighting.minutes",
-                ),
+              if (Encounter_decimalLatitude) {
+                normalizedRow["Encounter.decimalLatitude"] =
+                  Encounter_decimalLatitude;
+              }
+
+              const Encounter_latitude = getLatLong(
+                row["Encounter.latitude"],
+                row["Encounter.longitude"],
               );
-            }
-            if (
-              formattedEncounterDate &&
-              formattedEncounterDate !== "undefined" &&
-              formattedSightingDate &&
-              formattedSightingDate !== "undefined"
-            ) {
-              normalizedRow["Sighting.year"] = formattedSightingDate;
-            }
+              if (Encounter_latitude) {
+                normalizedRow["Encounter.latitude"] = Encounter_latitude;
+              }
 
-            const genus = String(row["Encounter.genus"] ?? "").trim();
-            const specific = String(
-              row["Encounter.specificEpithet"] ?? "",
-            ).trim();
-            const genusCombined = [genus, specific].filter(Boolean).join(" ");
-            if (genusCombined) {
-              normalizedRow["Encounter.genus"] = genusCombined;
+              const Sighting_decimalLatitude = getLatLong(
+                row["Sighting.decimalLatitude"],
+                row["Sighting.decimalLongitude"],
+              );
+
+              if (Sighting_decimalLatitude) {
+                normalizedRow["Sighting.decimalLatitude"] =
+                  Sighting_decimalLatitude;
+              }
+
+              dateEntries.forEach(([displayCol, prefix]) => {
+                normalizedRow[displayCol] = formatDate(
+                  row[`${prefix}.year`] ?? "",
+                  row[`${prefix}.month`] ?? "",
+                  row[`${prefix}.day`] ?? "",
+                  row[`${prefix}.hour`] ?? "",
+                  row[`${prefix}.minutes`] ?? "",
+                );
+              });
+
+              const genus = String(row["Encounter.genus"] ?? "").trim();
+              const specific = String(
+                row["Encounter.specificEpithet"] ?? "",
+              ).trim();
+              const genusCombined = [genus, specific].filter(Boolean).join(" ");
+              if (genusCombined) {
+                normalizedRow["Encounter.genus"] = genusCombined;
+              }
+
+              return normalizedRow;
+            });
+
+            processedData.push(...normalizedChunk);
+            currentIndex += CHUNK_SIZE;
+
+            store.setSpreadsheetUploadProgress(
+              Math.min(100, Math.round((currentIndex / processRows) * 100)),
+            );
+            if (currentIndex < processRows) {
+              setTimeout(processChunk, 0);
+            } else {
+              if (store && store.setSpreadsheetData) {
+                store.setSpreadsheetData(processedData);
+                store.revalidate();
+                store.setActiveStep(2);
+              }
             }
-
-            return normalizedRow;
-          });
-
-          processedData.push(...normalizedChunk);
-          currentIndex += CHUNK_SIZE;
-
-          store.setSpreadsheetUploadProgress(
-            Math.min(100, Math.round((currentIndex / totalRows) * 100)),
-          );
-          if (currentIndex < totalRows) {
-            setTimeout(processChunk, 0);
-          } else {
-            if (store && store.setSpreadsheetData) {
-              store.setSpreadsheetData(processedData);
-              store.revalidate();
-              store.setActiveStep(2);
-            }
+          } catch (e) {
+            failParse(e);
           }
         };
         processChunk();
       } catch (error) {
-        alert(`Error processing file: ${error.message}`);
-        store.setSpreadsheetUploadProgress(0);
-        store.setSpreadsheetFileName("");
-        store.setRawData([]);
-        store.setRawColumns([]);
-        store.setColumnsDef([]);
-        store.setWorksheetInfo(0, [], 0, 0, "");
-        store.setValidationErrors({});
-        store.setValidationWarnings({});
-        store.clearSubmissionErrors();
+        failParse(error);
       }
     };
     reader.readAsArrayBuffer(file);

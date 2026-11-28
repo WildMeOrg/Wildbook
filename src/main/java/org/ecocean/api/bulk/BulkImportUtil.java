@@ -1,8 +1,10 @@
 // basic bulk import utilities
 package org.ecocean.api.bulk;
 
+import java.time.Year;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
@@ -14,12 +16,16 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import org.ecocean.api.ApiException;
+import javax.jdo.Query;
 import org.ecocean.Base;
+import org.ecocean.Encounter;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.Taxonomy;
 import org.ecocean.OpenSearch;
+import org.ecocean.Project;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 import org.json.JSONArray;
@@ -41,6 +47,12 @@ public class BulkImportUtil {
     public static Map<String, Object> validateRow(Set<String> fieldNames, JSONArray rowValues,
         Shepherd myShepherd, boolean identificationSkipped) {
         if ((fieldNames == null) || (rowValues == null)) return new HashMap<String, Object>();
+        return validateRow(rowFromPositional(fieldNames, rowValues), myShepherd,
+                identificationSkipped);
+    }
+
+    // a positional row as an object row keyed by fieldNames; missing trailing values are JSON null
+    public static JSONObject rowFromPositional(Set<String> fieldNames, JSONArray rowValues) {
         JSONObject row = new JSONObject();
         int i = 0;
         for (String fieldName : fieldNames) {
@@ -51,7 +63,7 @@ public class BulkImportUtil {
             }
             i++;
         }
-        return validateRow(row, myShepherd, identificationSkipped);
+        return row;
     }
 
     public static Map<String, Object> validateRow(JSONObject row, Shepherd myShepherd) {
@@ -60,6 +72,16 @@ public class BulkImportUtil {
 
     public static Map<String, Object> validateRow(JSONObject row, Shepherd myShepherd,
         boolean identificationSkipped) {
+        Map<String, Object> rtn = validateFields(row, myShepherd);
+
+        if (row == null) return rtn;
+        validateDependent(rtn, row.keySet(), myShepherd, identificationSkipped);
+        return rtn;
+    }
+
+    // the per-field half of row validation: synonym columns and each field's own value check.
+    // NOTE removes synonym columns from row (row.keySet() is a live view), as validateRow always has
+    public static Map<String, Object> validateFields(JSONObject row, Shepherd myShepherd) {
         Map<String, Object> rtn = new HashMap<String, Object>();
 
         if (row == null) return rtn;
@@ -68,18 +90,13 @@ public class BulkImportUtil {
         // we set errors for fields which are duplicates, and remove from fieldNames (for below)
         if (syn != null) {
             for (List<String> syns : syn) {
-                BulkValidatorException bv = new BulkValidatorException("synonym columns: " +
-                    String.join(", ", syns), ApiException.ERROR_RETURN_CODE_INVALID,
-                    BulkValidatorException.TYPE_INVALID_SYNONYM);
+                BulkValidatorException bv = synonymException(syns, null);
                 for (String dup : syns) {
                     rtn.put(dup, bv);
                     fieldNames.remove(dup);
                 }
             }
         }
-        // try to make sure we set date *somehow*
-        String hasDateMillis = null;
-        String hasDateYear = null;
         for (String fieldName : fieldNames) {
             try {
                 // FIXME -- how do we handle get() and type returned? TBD
@@ -94,16 +111,46 @@ public class BulkImportUtil {
             } catch (Exception ex) {
                 rtn.put(fieldName, ex);
             }
-            if (fieldName.toLowerCase().contains("millis") && (getValue(rtn, fieldName) != null))
-                hasDateMillis = fieldName;
-            if (fieldName.endsWith(".year") && (getValue(rtn, fieldName) != null))
+        }
+        return rtn;
+    }
+
+    // the error for synonym columns found together on one row; fieldName may be null
+    public static BulkValidatorException synonymException(List<String> syns, String fieldName) {
+        return new BulkValidatorException("synonym columns: " + String.join(", ", syns),
+                ApiException.ERROR_RETURN_CODE_INVALID, BulkValidatorException.TYPE_INVALID_SYNONYM,
+                fieldName);
+    }
+
+    // the cross-field half of row validation, run over validateFields() results. A dependent
+    // error never overwrites an error the field already has (putIfClean).
+    public static void validateDependent(Map<String, Object> rtn, Set<String> fieldNames,
+        Shepherd myShepherd, boolean identificationSkipped) {
+        validateDependent(rtn, fieldNames, myShepherd, identificationSkipped,
+            UnaryOperator.identity());
+    }
+
+    /**
+     * As above; sourceName gives the name a message uses for a field of rtn (a grouped row's
+     * merged field names its source column; identity for an ungrouped row).
+     */
+    public static void validateDependent(Map<String, Object> rtn, Set<String> fieldNames,
+        Shepherd myShepherd, boolean identificationSkipped, UnaryOperator<String> sourceName) {
+        // try to make sure we set date *somehow*; labeled keyword columns never count
+        String hasDateMillis = null;
+        String hasDateYear = null;
+        for (String fieldName : fieldNames) {
+            if (getValue(rtn, fieldName) == null) continue;
+            if (BulkValidator.DATE_MILLIS_FIELDS.contains(fieldName)) hasDateMillis = fieldName;
+            if (fieldName.equals("Encounter.year") || fieldName.equals("Sighting.year"))
                 hasDateYear = fieldName;
         }
         // now we do inter-dependent validations
         checkYMD(rtn, "Encounter.year", "Encounter.month", "Encounter.day");
         checkYMD(rtn, "Sighting.year", "Sighting.month", "Sighting.day");
         // (only) one of these is required, so cannot add both to FIELD_NAMES_REQUIRED
-        // we set Encounter.year as the field we complain about
+        // we set Encounter.year as the field we complain about (replacing an invalid year value:
+        // a year that did not validate is the same as no date)
         if ((hasDateMillis == null) && (hasDateYear == null))
             rtn.put("Encounter.year",
                 new BulkValidatorException("required value (year or millis)",
@@ -111,16 +158,16 @@ public class BulkImportUtil {
                 BulkValidatorException.TYPE_REQUIRED_VALUE));
         // case where we have both, we complain about the fields we actually had set
         if ((hasDateMillis != null) && (hasDateYear != null)) {
-            rtn.put(hasDateMillis,
+            putIfClean(rtn, hasDateMillis,
                 new BulkValidatorException("cannot have both date year and millis",
                 ApiException.ERROR_RETURN_CODE_INVALID));
-            rtn.put(hasDateYear,
+            putIfClean(rtn, hasDateYear,
                 new BulkValidatorException("cannot have both date year and millis",
                 ApiException.ERROR_RETURN_CODE_INVALID));
         }
         for (String reqFieldName : BulkValidator.FIELD_NAMES_REQUIRED) {
             if (!rtn.containsKey(reqFieldName)) {
-                rtn.put(reqFieldName,
+                putIfClean(rtn, reqFieldName,
                     new BulkValidatorException("required value",
                     ApiException.ERROR_RETURN_CODE_REQUIRED,
                     BulkValidatorException.TYPE_REQUIRED_VALUE));
@@ -128,7 +175,7 @@ public class BulkImportUtil {
                 BulkValidator bv = (BulkValidator)rtn.get(reqFieldName);
                 // has a bv, but value cannot be null
                 if (bv.getValue() == null) {
-                    rtn.put(reqFieldName,
+                    putIfClean(rtn, reqFieldName,
                         new BulkValidatorException("required value",
                         ApiException.ERROR_RETURN_CODE_REQUIRED,
                         BulkValidatorException.TYPE_REQUIRED_VALUE));
@@ -145,10 +192,10 @@ public class BulkImportUtil {
         if ((taxG != null) && (taxS != null)) {
             String sciName = Util.taxonomyString(taxG.toString(), taxS.toString());
             if (!myShepherd.isValidTaxonomyName(sciName)) {
-                rtn.put("Encounter.genus",
+                putIfClean(rtn, "Encounter.genus",
                     new BulkValidatorException("invalid taxonomy value",
                     ApiException.ERROR_RETURN_CODE_INVALID));
-                rtn.put("Encounter.specificEpithet",
+                putIfClean(rtn, "Encounter.specificEpithet",
                     new BulkValidatorException("invalid taxonomy value",
                     ApiException.ERROR_RETURN_CODE_INVALID));
             }
@@ -167,19 +214,17 @@ public class BulkImportUtil {
             if ((pname == null) && (pprefix == null)) continue;
             if ((pname != null) && (pprefix != null)) continue;
             if (pname == null)
-                rtn.put(pnameKey,
+                putIfClean(rtn, pnameKey,
                     new BulkValidatorException("must have researchProjectName if given projectIdPrefix",
                     ApiException.ERROR_RETURN_CODE_REQUIRED));
             if (pprefix == null)
-                rtn.put(pprefixKey,
+                putIfClean(rtn, pprefixKey,
                     new BulkValidatorException("must have projectIdPrefix if given researchProjectName",
                     ApiException.ERROR_RETURN_CODE_REQUIRED));
         }
 
         // bulk-import boxes (spec 4.2 row layer): per-slot pairing, class, duplicate photos
-        checkBoxSlots(rtn, fieldNames, identificationSkipped);
-
-        return rtn;
+        checkBoxSlots(rtn, fieldNames, identificationSkipped, sourceName);
     }
 
     /**
@@ -197,7 +242,7 @@ public class BulkImportUtil {
      * boxed slot needs them.
      */
     private static void checkBoxSlots(Map<String, Object> rtn, Set<String> fieldNames,
-        boolean identificationSkipped) {
+        boolean identificationSkipped, UnaryOperator<String> sourceName) {
         List<String> bareSlots = findIndexedFieldNames(fieldNames, "Encounter.mediaAsset");
         Map<String, List<String> > boxFields = boxFieldNames(fieldNames);
         int numSlots = bareSlots.size();
@@ -227,7 +272,8 @@ public class BulkImportUtil {
                         String name = boxFieldName(boxFields, suffix, n);
                         if (getValue(rtn, name) != null)
                             putIfClean(rtn, name,
-                                new BulkValidatorException(name + " needs a box in " + bboxName,
+                                new BulkValidatorException(sourceName.apply(name) +
+                                " needs a box in " + sourceName.apply(bboxName),
                                 ApiException.ERROR_RETURN_CODE_REQUIRED,
                                 BulkValidatorException.TYPE_REQUIRED_VALUE, name));
                     }
@@ -243,7 +289,8 @@ public class BulkImportUtil {
                 if (cls == null) {
                     String where = rtn.containsKey(classNm) ? classNm : bboxName;
                     putIfClean(rtn, where,
-                        new BulkValidatorException("a box needs an iaClass in " + classNm,
+                        new BulkValidatorException("a box needs an iaClass in " +
+                        sourceName.apply(classNm),
                         ApiException.ERROR_RETURN_CODE_REQUIRED,
                         BulkValidatorException.TYPE_REQUIRED_VALUE, where));
                 } else if (sciName != null) {
@@ -322,24 +369,56 @@ public class BulkImportUtil {
     public static String[] findIndexAliases(Set<String> fieldNames) {
         Map<String, String> seen = new HashMap<String, String>();
         for (String fn : fieldNames) {
-            String key;
-            try {
-                String prefix = BulkValidator.indexPrefixValue(fn);
-                int index = (prefix == null) ? -1 : BulkValidator.indexIntValue(fn);
-                if (index < 0) {   // not a numbered column, unless it is a slot's labeled keyword
-                    prefix = getLabeledKeywordLabel(fn);
-                    index = (prefix == null) ? -1 : getLabeledKeywordOffset(fn);
-                    if (index < 0) continue;
-                    prefix = "Encounter.mediaAsset." + prefix;
-                }
-                key = prefix + "#" + index;
-            } catch (BulkValidatorException ex) {
-                continue;
-            }
-            String other = seen.put(key, fn);
+            Slot slot = slotOf(fn);
+            if (slot == null) continue;
+            String other = seen.put(slot.prefix + "#" + slot.index, fn);
             if (other != null) return new String[] { other, fn };
         }
         return null;
+    }
+
+    /** A numbered column's index prefix and index, however the index is spelled. */
+    public static final class Slot {
+        public final String prefix;
+        public final int index;
+
+        Slot(String prefix, int index) {
+            this.prefix = prefix;
+            this.index = index;
+        }
+    }
+
+    /**
+     * The numbered column fn is ("Encounter.mediaAsset01.bbox" is Encounter.mediaAsset.bbox, 1);
+     * a slot's labeled keyword ("Encounter.mediaAsset3.<label>") is Encounter.mediaAsset.<label>
+     * at its offset. Null for an unknown name, an index above MAX_INDEX, or a field that is not
+     * numbered.
+     */
+    public static Slot slotOf(String fn) {
+        try {
+            String prefix = BulkValidator.indexPrefixValue(fn);
+            int index = (prefix == null) ? -1 : BulkValidator.indexIntValue(fn);
+            if (index < 0) {   // not a numbered column, unless it is a slot's labeled keyword
+                prefix = getLabeledKeywordLabel(fn);
+                index = (prefix == null) ? -1 : getLabeledKeywordOffset(fn);
+                if (index < 0) return null;
+                prefix = "Encounter.mediaAsset." + prefix;
+            }
+            return new Slot(prefix, index);
+        } catch (BulkValidatorException ex) {
+            return null;
+        }
+    }
+
+    // true when any of the columns is an Encounter.mediaAsset{N}.bbox box column
+    public static boolean hasBboxColumn(java.util.Collection<String> fieldNames) {
+        if (fieldNames == null) return false;
+        // findIndexedFieldNames swallows the unknown-field exception a tolerated column raises
+        for (String name : findIndexedFieldNames(new HashSet<String>(fieldNames),
+            "Encounter.mediaAsset.bbox")) {
+            if (name != null) return true;
+        }
+        return false;
     }
 
     // sets a validation exception unless the field already holds one
@@ -354,20 +433,26 @@ public class BulkImportUtil {
         Object dateM = getValue(map, mkey);
         Object dateD = getValue(map, dkey);
 
-        if ((dateY != null) && (dateM != null) && (dateD != null)) {
+        if ((dateY != null) && (dateM != null) && (dateD != null) &&
+            ((Integer)dateY > Year.MAX_VALUE)) {
+            // java.time cannot hold it: rejected here, on the year, rather than thrown below
+            putIfClean(map, ykey, new BulkValidatorException("year value too large",
+                ApiException.ERROR_RETURN_CODE_INVALID, BulkValidatorException.TYPE_INVALID_VALUE,
+                ykey));
+        } else if ((dateY != null) && (dateM != null) && (dateD != null)) {
             YearMonth yearMonth = YearMonth.of((Integer)dateY, (Integer)dateM);
             if (!yearMonth.isValidDay((Integer)dateD))
-                map.put(dkey,
+                putIfClean(map, dkey,
                     new BulkValidatorException("day is out of range for month",
                     ApiException.ERROR_RETURN_CODE_INVALID));
         }
         if ((dateM == null) && (dateD != null))
-            map.put(mkey,
+            putIfClean(map, mkey,
                 new BulkValidatorException("must supply a valid month along with day",
                 ApiException.ERROR_RETURN_CODE_REQUIRED,
                 BulkValidatorException.TYPE_REQUIRED_VALUE));
         if (Util.dateIsInFuture((Integer)dateY, (Integer)dateM, (Integer)dateD))
-            map.put(ykey,
+            putIfClean(map, ykey,
                 new BulkValidatorException("date is in the future",
                 ApiException.ERROR_RETURN_CODE_INVALID));
     }
@@ -422,6 +507,80 @@ public class BulkImportUtil {
             rtn.set(index, fn);
         }
         return rtn;
+    }
+
+    /**
+     * The existing project a bulk-import project prefix names, looked up as BulkImporter does: the
+     * exact prefix first, then a project whose prefix starts with it (case-insensitive). Null when
+     * neither finds one, in which case the importer would have to create the project.
+     */
+    static Project findExistingProject(String prefix, Shepherd sh) {
+        Project proj = sh.getProjectByProjectIdPrefix(prefix);
+        if (proj == null) proj = sh.getProjectByProjectIdPrefixPrefix(prefix);
+        return proj;
+    }
+
+    /**
+     * Whether an existing project answers the prefix (findExistingProject), looked up in its own
+     * short-lived Shepherd and transaction for requestShepherd's context, as encounterIdsInUse
+     * is: a failed query (on Postgres, one that aborts its transaction) cannot leave the
+     * request's transaction unusable or touch its locks. Throws when the database cannot be read
+     * (the caller reports it).
+     */
+    public static boolean projectExists(String prefix, Shepherd requestShepherd) {
+        Shepherd projectShepherd = new Shepherd(requestShepherd.getContext());
+        projectShepherd.setAction("BulkImportUtil.projectExists");
+        try {
+            projectShepherd.beginDBTransaction();
+            return findExistingProject(prefix, projectShepherd) != null;
+        } finally {
+            projectShepherd.rollbackAndClose();
+        }
+    }
+
+    static final int ID_LOOKUP_CHUNK = 1000;
+
+    /**
+     * The given lowercase encounter IDs that already exist in the database, compared
+     * case-insensitively against the stored catalogNumber and returned lowercase. Queried in
+     * chunks of 1000. Throws when the database cannot be read (the caller reports it).
+     * The lookup runs in its own short-lived Shepherd and transaction for requestShepherd's
+     * context, so a failed query (on Postgres, one that aborts its transaction) cannot leave the
+     * request's transaction unusable; requestShepherd itself is never queried.
+     */
+    public static Set<String> encounterIdsInUse(Collection<String> lowercaseIds,
+        Shepherd requestShepherd)
+    throws Exception {
+        Shepherd idShepherd = new Shepherd(requestShepherd.getContext());
+        idShepherd.setAction("BulkImportUtil.encounterIdsInUse");
+        try {
+            idShepherd.beginDBTransaction();
+            return queryEncounterIdsInUse(lowercaseIds, idShepherd);
+        } finally {
+            idShepherd.rollbackAndClose();
+        }
+    }
+
+    // encounterIdsInUse's query, on the given Shepherd's open transaction
+    static Set<String> queryEncounterIdsInUse(Collection<String> lowercaseIds, Shepherd sh)
+    throws Exception {
+        Set<String> found = new HashSet<String>();
+        List<String> all = new ArrayList<String>(new LinkedHashSet<String>(lowercaseIds));
+        for (int i = 0; i < all.size(); i += ID_LOOKUP_CHUNK) {
+            List<String> chunk = new ArrayList<String>(all.subList(i,
+                Math.min(all.size(), i + ID_LOOKUP_CHUNK)));
+            Query query = sh.getPM().newQuery(Encounter.class);
+            try {
+                query.setFilter(":ids.contains(this.catalogNumber.toLowerCase())");
+                query.setResult("catalogNumber");
+                for (Object o : (Collection)query.execute(chunk)) {
+                    if (o != null) found.add(o.toString().toLowerCase());
+                }
+            } finally {
+                query.closeAll();
+            }
+        }
+        return found;
     }
 
     // possibly could be moved to OpenSearch or something, but lets test in bulk context first

@@ -46,8 +46,11 @@ const EditableCell = observer(
       }
     };
 
-    // boxed sheets: photo and per-photo cells are fixed in the spreadsheet, not here
-    const readOnly = store.isBoxedSheet && isSlotColumn(columnId);
+    // boxed sheets: photo and per-photo cells are fixed in the spreadsheet, not here;
+    // the date cell next to a millis column is edited in the file too
+    const readOnly =
+      (store.isBoxedSheet && isSlotColumn(columnId)) ||
+      !!store.isReadOnlyColumn?.(columnId);
     const useSelectCell = !readOnly && columnsUseSelectCell.includes(columnId);
 
     const renderInput = () => {

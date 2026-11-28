@@ -124,6 +124,11 @@ public class Submissions extends ApiBase {
                 // perMedia before preparing boxed rows
                 .put("perMedia", new org.json.JSONArray(org.ecocean.api.bulk.BulkValidator.BOX_SUFFIXES))
                 .put("indexedQuality", "Encounter.quality0 through Encounter.quality199")
+                // rows sharing this field become one encounter (issue 1789)
+                .put("grouping", new JSONObject().put("field", org.ecocean.api.bulk.GroupCollapse.GROUP_KEY)
+                    .put("caseInsensitive", "ASCII letters A-Z only")
+                    .put("maxMediaPerGroup", Math.min(org.ecocean.api.bulk.BulkValidator.MAX_INDEX + 1,
+                        Math.max(1, org.ecocean.CommonConfiguration.getMaxMediaCountEncounter("context0")))))
                 .put("required", new org.json.JSONArray().put("Encounter.genus").put("Encounter.specificEpithet")
                     .put("Encounter.year").put("Encounter.locationID")))
             .put("attribution", new JSONObject().put("field", SubmissionAttribution.FIELD).put("appliesTo", "submission")

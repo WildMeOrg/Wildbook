@@ -122,12 +122,23 @@ describe("BulkImportConstants", () => {
       expect(raw["Encounter.date.hour"]).toBe(14);
     });
 
-    it("parses full date string like from Date()", () => {
+    it("reads the same unpadded strings the date cell accepts", () => {
       const raw = {};
+      parseEncounterDateString("Encounter.date", "2021-3-4T9:5", raw);
+      expect(raw).toEqual({
+        "Encounter.date.year": 2021,
+        "Encounter.date.month": 3,
+        "Encounter.date.day": 4,
+        "Encounter.date.hour": 9,
+        "Encounter.date.minutes": 5,
+      });
+    });
+
+    it("leaves raw alone for a string the date cell rejects", () => {
+      const raw = { "Encounter.date.year": 2020 };
       parseEncounterDateString("Encounter.date", "July 16, 2023 08:30", raw);
-      expect(raw["Encounter.date.year"]).toBe(2023);
-      expect(raw["Encounter.date.month"]).toBe(7);
-      expect(raw["Encounter.date.day"]).toBe(16);
+      parseEncounterDateString("Encounter.date", "2023-07-16T14:30:05", raw);
+      expect(raw).toEqual({ "Encounter.date.year": 2020 });
     });
   });
 });

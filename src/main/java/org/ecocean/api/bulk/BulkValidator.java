@@ -4,6 +4,7 @@ package org.ecocean.api.bulk;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +28,9 @@ public class BulkValidator {
         "Encounter.country", "Encounter.dateInMilliseconds", "Encounter.day",
         "Encounter.decimalLatitude", "Encounter.decimalLongitude", "Encounter.depth",
         "Encounter.distinguishingScar", "Encounter.elevation", "Encounter.genus",
-        "Encounter.groupRole", "Encounter.hour", "Encounter.id", "Encounter.identificationRemarks",
-        "Encounter.individualID", "Encounter.latitude", "Encounter.lifeStage",
+        "Encounter.groupKey", "Encounter.groupRole", "Encounter.hour", "Encounter.id",
+        "Encounter.identificationRemarks", "Encounter.individualID", "Encounter.latitude",
+        "Encounter.lifeStage",
         "Encounter.livingStatus", "Encounter.locationID", "Encounter.longitude",
         "Encounter.minutes", "Encounter.month", "Encounter.sightingID", "Encounter.sightingRemarks",
         "Encounter.otherCatalogNumbers", "Encounter.patterningCode", "Encounter.project",
@@ -83,7 +85,8 @@ public class BulkValidator {
     // this is for frontend, and it contains "minimally supported" fields: those which will NOT be
     // validated, but just accepted as-is and set on appropriate object
     public static final Set<String> MINIMAL_FIELD_NAMES_STRING = new HashSet<>(Arrays.asList(
-        "Encounter.alternateID", "Encounter.distinguishingScar", "Encounter.groupRole",
+        "Encounter.alternateID", "Encounter.distinguishingScar", "Encounter.groupKey",
+        "Encounter.groupRole",
         "Encounter.identificationRemarks", "Encounter.individualID", "Encounter.sightingID",
         "Encounter.sightingRemarks", "Encounter.otherCatalogNumbers", "Encounter.patterningCode",
         "Encounter.submitterName", "Encounter.submitterOrganization", "MarkedIndividual.name",
@@ -109,25 +112,77 @@ public class BulkValidator {
         "Sighting.seaSurfaceTemp", "Sighting.seaSurfaceTemperature", "Sighting.swellHeight",
         "Sighting.transectBearing"));
 
-    public static final String[][] FIELD_NAME_SYNONYMS = {
-        { "Encounter.id", "Encounter.catalogNumber" }, {
-            "Encounter.sightingID", "Sighting.sightingID"
-        }, { "Encounter.individualID", "MarkedIndividual.individualID" }, {
-            "Encounter.latitude", "Encounter.decimalLatitude", "Sighting.decimalLatitude"
-        }, { "Encounter.longitude", "Encounter.decimalLongitude", "Sighting.decimalLongitude" }, {
-            "Sighting.dateInMilliseconds", "Sighting.millis", "Encounter.dateInMilliseconds",
-                "Encounter.year", "Sighting.year"
-        }, { "Sighting.year", "Encounter.year" }, { "Sighting.month", "Encounter.month" }, {
-            "Sighting.day", "Encounter.day"
-        }, { "Sighting.hour", "Encounter.hour" }, { "Sighting.minutes", "Encounter.minutes" }, {
-            "MarkedIndividual.nickName", "MarkedIndividual.nickname"
-        }, { "Sighting.fieldSurveyCode", "Survey.id" }, {
-            "Sighting.seaSurfaceTemp", "Sighting.seaSurfaceTemperature"
-        }, { "Survey.vessel", "SurveyTrack.vesselID" }, {
-            "TissueSample.sampleID", "MicrosatelliteMarkersAnalysis.analysisID",
-                "SexAnalysis.processingLabTaskID"
-        }
+    // true aliases: columns the importer reads through the same setter. The canonical name is first.
+    public static final String[][] FIELD_ALIASES = {
+        { "Encounter.id", "Encounter.catalogNumber" },
+        { "Encounter.sightingID", "Sighting.sightingID" },
+        { "Encounter.individualID", "MarkedIndividual.individualID" },
+        { "Encounter.decimalLatitude", "Encounter.latitude", "Sighting.decimalLatitude" },
+        { "Encounter.decimalLongitude", "Encounter.longitude", "Sighting.decimalLongitude" },
+        { "Encounter.dateInMilliseconds", "Sighting.dateInMilliseconds", "Sighting.millis" },
+        { "Encounter.year", "Sighting.year" },
+        { "Encounter.month", "Sighting.month" },
+        { "Encounter.day", "Sighting.day" },
+        { "Encounter.hour", "Sighting.hour" },
+        { "Encounter.minutes", "Sighting.minutes" },
+        { "MarkedIndividual.nickName", "MarkedIndividual.nickname" },
+        { "Sighting.fieldSurveyCode", "Survey.id" },
+        { "Sighting.seaSurfaceTemp", "Sighting.seaSurfaceTemperature" },
+        { "Survey.vessel", "SurveyTrack.vesselID" },
+        { "TissueSample.sampleID", "MicrosatelliteMarkersAnalysis.analysisID",
+          "SexAnalysis.processingLabTaskID" }
     };
+
+    // a date is given as millis OR as calendar fields, never both
+    public static final String[] DATE_EXCLUSIVE = {
+        "Encounter.dateInMilliseconds", "Sighting.dateInMilliseconds", "Sighting.millis",
+        "Encounter.year", "Sighting.year"
+    };
+
+    public static final Set<String> DATE_MILLIS_FIELDS = Collections.unmodifiableSet(
+        new HashSet<String>(Arrays.asList("Encounter.dateInMilliseconds",
+        "Sighting.dateInMilliseconds", "Sighting.millis")));
+    public static final Set<String> DATE_CALENDAR_FIELDS = Collections.unmodifiableSet(
+        new HashSet<String>(Arrays.asList("Encounter.year", "Encounter.month", "Encounter.day",
+        "Encounter.hour", "Encounter.minutes", "Sighting.year", "Sighting.month",
+        "Sighting.day", "Sighting.hour", "Sighting.minutes")));
+
+    // different columns that end up on the same target when both are present
+    public static final String[][] SAME_TARGET_FIELDS = {
+        { "Encounter.behavior", "Sighting.groupBehavior" },
+        { "Sighting.comments", "Survey.comments" }
+    };
+
+    // the FIELD_ALIASES rows, with DATE_EXCLUSIVE in place of the millis row. Order matters: a
+    // row's synonym error is the last set that names its column (validateFields puts them in
+    // this order), so DATE_EXCLUSIVE comes before the year row, as it always has
+    public static final String[][] FIELD_NAME_SYNONYMS;
+    static {
+        List<String[]> rows = new ArrayList<String[]>();
+        for (String[] alias : FIELD_ALIASES)
+            rows.add(DATE_MILLIS_FIELDS.contains(alias[0]) ? DATE_EXCLUSIVE : alias);
+        FIELD_NAME_SYNONYMS = rows.toArray(new String[0][]);
+    }
+
+    // the first member of the alias row the name belongs to, else the name itself
+    public static String canonicalFieldName(String fieldName) {
+        for (String[] alias : FIELD_ALIASES) {
+            for (String member : alias) {
+                if (member.equals(fieldName)) return alias[0];
+            }
+        }
+        return fieldName;
+    }
+
+    // a copy of src under another field name: same value, slot recomputed, no re-validation
+    public static BulkValidator rebound(BulkValidator src, String destFieldName) {
+        try {
+            return new BulkValidator(destFieldName, src.value, indexIntValue(destFieldName),
+                    indexPrefixValue(destFieldName));
+        } catch (BulkValidatorException ex) {
+            throw new IllegalArgumentException("cannot rebound onto " + destFieldName, ex);
+        }
+    }
 
     private String fieldName = null;
     private Object value = null;
@@ -143,6 +198,14 @@ public class BulkValidator {
         this.value = value;
     }
  */
+    // no validation: see rebound()
+    private BulkValidator(String fieldName, Object value, int indexInt, String indexPrefix) {
+        this.fieldName = fieldName;
+        this.value = value;
+        this.indexInt = indexInt;
+        this.indexPrefix = (indexInt >= 0) ? indexPrefix : null;
+    }
+
     public BulkValidator(String fieldNamePassed, Object valuePassed, Shepherd myShepherd)
     throws BulkValidatorException {
         indexInt = indexIntValue(fieldNamePassed); // bonus: this throws exception if invalid fieldName
@@ -290,6 +353,13 @@ public class BulkValidator {
                     ApiException.ERROR_RETURN_CODE_INVALID,
                     BulkValidatorException.TYPE_UNKNOWN_FIELDNAME, fieldName);
         switch (fieldName) {
+        case "Encounter.groupKey":
+            if (value == null) return null;
+            if (!(value instanceof String))
+                throw new BulkValidatorException("groupKey must be text",
+                        ApiException.ERROR_RETURN_CODE_INVALID,
+                        BulkValidatorException.TYPE_INVALID_VALUE, fieldName);
+            return blankToNull(value);
         case "Encounter.id":
         case "Encounter.catalogNumber":
             if (value == null) return null;
@@ -461,6 +531,7 @@ public class BulkValidator {
 
         // generic (can be negative) ints
         case "Sighting.seaState":
+        case "Sighting.wp":
         case "Sighting.visibilityIndex":
             return tryInteger(value);
 

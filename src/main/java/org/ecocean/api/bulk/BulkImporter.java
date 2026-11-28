@@ -92,10 +92,24 @@ public class BulkImporter {
     // bulk-import boxes (spec 4.1): when any row carries an Encounter.mediaAsset#.bbox field,
     // EVERY row reads its per-slot metadata by exact slot number instead of positionally
     private final boolean exactSlotMode;
+    // merged rows that each stand for a group of source rows (Encounter.groupKey)
+    private final java.util.Set<Integer> groupedRowIndexes;
     private FeatureType bboxFeatureType = null;
 
     public BulkImporter(String id, List<Map<String, Object> > rows, Map<String, MediaAsset> maMap,
         User user, Shepherd myShepherd) {
+        this(id, rows, maMap, user, myShepherd, hasBboxColumn(rows),
+            java.util.Collections.<Integer>emptySet());
+    }
+
+    /**
+     * exactSlotMode comes from the upload's original rows (a blank .bbox column counts, though the
+     * merged rows drop it); groupedRowIndexes are the rows that each collapse a group of source
+     * rows (Encounter.groupKey).
+     */
+    public BulkImporter(String id, List<Map<String, Object> > rows, Map<String, MediaAsset> maMap,
+        User user, Shepherd myShepherd, boolean exactSlotMode,
+        java.util.Set<Integer> groupedRowIndexes) {
         this.dataRows = rows;
         if (maMap == null) {
             this.mediaAssetMap = new HashMap<String, MediaAsset>();
@@ -106,17 +120,15 @@ public class BulkImporter {
         this.importTaskId = id;
         this.myShepherd = myShepherd;
         this.startTime = System.currentTimeMillis();
-        this.exactSlotMode = hasBboxColumn(rows);
+        this.exactSlotMode = exactSlotMode;
+        this.groupedRowIndexes = (groupedRowIndexes == null) ?
+            java.util.Collections.<Integer>emptySet() : groupedRowIndexes;
     }
 
     private static boolean hasBboxColumn(List<Map<String, Object> > rows) {
         if (rows == null) return false;
         for (Map<String, Object> row : rows) {
-            // findIndexedFieldNames swallows the unknown-field exception a tolerated column raises
-            for (String name : BulkImportUtil.findIndexedFieldNames(row.keySet(),
-                "Encounter.mediaAsset.bbox")) {
-                if (name != null) return true;
-            }
+            if (BulkImportUtil.hasBboxColumn(row.keySet())) return true;
         }
         return false;
     }
@@ -162,7 +174,7 @@ public class BulkImporter {
             }
             trace("createImport() row=" + rowNum);
             try {
-                Encounter resolved = processRow(fields);
+                Encounter resolved = processRow(fields, groupedRowIndexes.contains(rowNum));
                 if (rowCollector != null) rowCollector.accept(rowNum, resolved);
             } catch (Exception ex) {
                 // TODO we could allow this some leeway with a tolerance setting
@@ -287,7 +299,7 @@ public class BulkImporter {
     }
 
     // this assumes all values have been validated, so just go for it! set data with values. good luck!
-    private Encounter processRow(List<BulkValidator> fields) {
+    private Encounter processRow(List<BulkValidator> fields, boolean groupedRow) {
         // some fields we do on a subsequent pass, as they require special care
         // handy for these subsequent passes
         Map<String, BulkValidator> fmap = new HashMap<String, BulkValidator>();
@@ -665,7 +677,7 @@ public class BulkImporter {
                 break;
 
             case "Sighting.numAdults":
-                occ.setIndividualCount(bv.getValueInteger());
+                occ.setNumAdults(bv.getValueInteger());
                 break;
 
             case "Sighting.numCalves":
@@ -681,7 +693,7 @@ public class BulkImporter {
                 break;
 
             case "Sighting.seaState":
-                occ.setObserver(bv.getValueString());
+                occ.setSeaState(bv.getValueString());
                 break;
 
             case "Sighting.seaSurfaceTemp":
@@ -702,7 +714,9 @@ public class BulkImporter {
                 break;
 
             case "Sighting.visibilityIndex":
-                occ.setVisibilityIndex(bv.getValueDouble());
+                // the validator returns an Integer, so read it as one
+                Integer visIdx = bv.getValueInteger();
+                occ.setVisibilityIndex(visIdx == null ? null : visIdx.doubleValue());
                 break;
 
             case "SatelliteTag.serialNumber":
@@ -780,6 +794,8 @@ public class BulkImporter {
             //case "Sighting.numAdultMales":
             //case "Sighting.numSubFemales":
  */
+            case "Encounter.groupKey": // consumed by GroupCollapse, nothing to set here
+                break;
             default:
                 trace("[INFO] processRow() ignored a field [" + fieldName +
                     "] that was flagged valid");
@@ -787,6 +803,21 @@ public class BulkImporter {
         }
         // fields done
         trace("+ populated data on " + enc);
+        // a grouped row's encounter only has its sex and taxonomy now, so derive the individual's
+        // from it (sex only when unset); ungrouped rows keep today's behavior
+        if (groupedRow && (indiv != null)) {
+            indiv.setSexFromEncounters();
+            indiv.setTaxonomyFromEncounters(true);
+        }
+        // labeled keyword columns by slot, found once per row (applied in exact-slot mode only)
+        Map<Integer, List<String> > labeledBySlot = new HashMap<Integer, List<String> >();
+        if (exactSlotMode) {
+            for (String key : fmap.keySet()) {
+                int offset = BulkImportUtil.getLabeledKeywordOffset(key);
+                if (offset >= 0)
+                    labeledBySlot.computeIfAbsent(offset, k -> new ArrayList<String>()).add(key);
+            }
+        }
         // now attach annotations
         String tx = enc.getTaxonomyString();
         List<Annotation> annots = new ArrayList<Annotation>();
@@ -828,7 +859,8 @@ public class BulkImporter {
                 if (multi != null) kws.addAll(Arrays.asList(multi.split("_")));
             }
             handleKeywords(ma, kws);
-            if (exactSlotMode) handleLabeledKeywords(ma, slot, fmap);
+            if (exactSlotMode)
+                handleLabeledKeywords(ma, labeledBySlot.getOrDefault(slot, List.of()), fmap);
             Double quality = null;
             if ((metaIndex < maQuality.size()) && (maQuality.get(metaIndex) != null))
                 quality = fmap.get(maQuality.get(metaIndex)).getValueDouble();
@@ -925,13 +957,13 @@ public class BulkImporter {
     }
 
     // bulk-import boxes (spec 4.1): labeled keywords Encounter.mediaAsset{N}.<label>, by exact
-    // slot (exact-slot mode only; positional imports keep validating and dropping them, as before)
-    private void handleLabeledKeywords(MediaAsset ma, int slot, Map<String, BulkValidator> fmap) {
-        for (Map.Entry<String, BulkValidator> e : fmap.entrySet()) {
-            String label = BulkImportUtil.getLabeledKeywordLabel(e.getKey());
-            if ((label == null) || (BulkImportUtil.getLabeledKeywordOffset(e.getKey()) != slot))
-                continue;
-            String value = e.getValue().getValueString();
+    // slot (exact-slot mode only; positional imports keep validating and dropping them, as before);
+    // keys are the slot's labeled keyword columns, in the row's field order
+    private void handleLabeledKeywords(MediaAsset ma, List<String> keys,
+        Map<String, BulkValidator> fmap) {
+        for (String key : keys) {
+            String label = BulkImportUtil.getLabeledKeywordLabel(key);
+            String value = fmap.get(key).getValueString();
             if (value == null) continue;
             List<String> cacheKey = List.of(label, value);
             LabeledKeyword lk = labeledKeywordCache.get(cacheKey);
@@ -1168,16 +1200,17 @@ public class BulkImporter {
         String projectOwnerUsername) {
         if (Util.stringIsEmptyOrNull(projectPrefix)) return null;
         Project proj = projectCache.get(projectPrefix);
-        if (proj == null) proj = myShepherd.getProjectByProjectIdPrefix(projectPrefix);
 /*
         if exact match fails, we get a little more lax and let user 'foo-' match things
         like 'FOO-###'. note: this could be way too lax if the users passes no dash in there,
         as 'foo' would match 'foobar-###' so we might want to make further restrictions on when
         to do this fuzzy matching, depending on user behavior and how forgiving we are.
+        (grouped-row validation looks projects up the same way, through findExistingProject)
  */
         if (proj == null) {
-            proj = myShepherd.getProjectByProjectIdPrefixPrefix(projectPrefix);
-            if (proj != null)
+            proj = BulkImportUtil.findExistingProject(projectPrefix, myShepherd);
+            // the exact lookup matches the trimmed prefix; anything else was the fuzzy match
+            if ((proj != null) && !projectPrefix.trim().equals(proj.getProjectIdPrefix()))
                 trace(
                     "[INFO] BulkImporter.getOrCreateProject() fuzzy-matched projectPrefix '" +
                     projectPrefix + "' to " + proj);
