@@ -37,6 +37,9 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
 import java.io.File;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -1224,6 +1227,38 @@ public class Util {
             // ex.printStackTrace(); // seems overkill
         }
         return false;
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.2): {width, height} of an image read from its header alone, on the
+     * raw pixel grid (no EXIF rotation), the same grid AssetStore.extractMetadataAttributes stores
+     * from a full decode; null when the file is null, missing, has no ImageIO reader, or the
+     * reader cannot read the header. Does not decode pixels, so it is safe to run on every boxed
+     * file of a validate-only request.
+     */
+    public static int[] fastImageDimensions(File file) {
+        if ((file == null) || !file.isFile()) return null;
+        ImageInputStream stream = null;
+        ImageReader reader = null;
+        try {
+            stream = ImageIO.createImageInputStream(file);
+            if (stream == null) return null;
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(stream);
+            if (!readers.hasNext()) return null;
+            reader = readers.next();
+            reader.setInput(stream, true, true);
+            return new int[] { reader.getWidth(0), reader.getHeight(0) };
+        } catch (Exception ex) {
+            System.out.println("fastImageDimensions() failed on " + file + ": " + ex);
+            return null;
+        } finally {
+            if (reader != null) reader.dispose();
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (Exception ex) {}
+            }
+        }
     }
 
     // h/t StackOverflow user erickson https://stackoverflow.com/questions/740299/how-do-i-sort-a-set-to-a-list-in-java

@@ -40,6 +40,9 @@ jest.mock("../../../pages/BulkImport/BulkImportDraftSavedIndicator", () => {
 
 jest.mock("../../../pages/BulkImport/BulkImportStore");
 jest.mock("../../../models/bulkImport/useGetBulkImportTask");
+jest.mock("../../../SiteSettingsContext", () => ({
+  useSiteSettings: () => ({ data: {} }),
+}));
 
 describe("BulkImport Component", () => {
   let storeMock;
@@ -54,6 +57,7 @@ describe("BulkImport Component", () => {
       spreadsheetData: [],
       submissionId: null,
       saveState: jest.fn(),
+      setIndexableFields: jest.fn(),
     };
     BulkImportStore.mockImplementation(() => storeMock);
 

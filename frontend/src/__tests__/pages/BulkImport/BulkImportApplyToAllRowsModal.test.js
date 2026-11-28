@@ -32,6 +32,7 @@ describe("ApplyToAllRowsModal", () => {
       applyToAllRows: jest.fn(),
       setApplyToAllRowModalShow: jest.fn(),
       invalidateValidation: jest.fn(),
+      revalidate: jest.fn(),
       validateSpreadsheet: jest.fn(() => ({
         errors: { row1: ["e1"] },
         warnings: { row1: ["w1"] },
@@ -75,9 +76,6 @@ describe("ApplyToAllRowsModal", () => {
 
     expect(store.applyToAllRows).toHaveBeenCalledWith("ColA", "ValB");
     expect(store.setApplyToAllRowModalShow).toHaveBeenCalledWith(false);
-    expect(store.invalidateValidation).toHaveBeenCalled();
-    expect(store.validateSpreadsheet).toHaveBeenCalled();
-    expect(store.setValidationErrors).toHaveBeenCalledWith({ row1: ["e1"] });
-    expect(store.setValidationWarnings).toHaveBeenCalledWith({ row1: ["w1"] });
+    expect(store.revalidate).toHaveBeenCalled();
   });
 });
