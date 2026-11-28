@@ -127,7 +127,7 @@
     <script>
 
     //json ob with translations
-    var txt = getText('createProject.properties');
+    var txt = <%= new com.google.gson.Gson().toJson(props) %>;
 
     let myName = '<%=request.getUserPrincipal().getName()%>';
     let userNamesOnAccessList = [];
