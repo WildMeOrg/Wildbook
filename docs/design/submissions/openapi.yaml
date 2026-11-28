@@ -1120,7 +1120,9 @@ components:
             Rows that share an Encounter.groupKey become one encounter. Every row needs at
             least one photo, encounter-level fields must agree or be blank on the other
             rows, a photo may appear once per group, and any disagreement is reported on
-            each row with its groupKey.
+            each contributing cell with its row's groupKey. A grouped row that omits
+            Encounter.sightingID shares its group's sighting; when no row of the group
+            supplies one, the merged encounter gets a new sighting with a generated ID.
           maxProperties: 256
     Rows:
       type: object
@@ -1260,7 +1262,8 @@ components:
             DUPLICATE_BOX (the identical box twice on one image); field values use
             INVALID_VALUE with a reason. On rows grouped by Encounter.groupKey, GROUP_CONFLICT
             reports values the rows of a group cannot combine (for example different values
-            for one field, or a photo beyond the group's photo limit), on each affected row;
+            for one field, or a photo beyond the group's photo limit), on each contributing
+            cell (a row that omitted the field is not reported);
             DUPLICATE_MEDIA also reports an image used twice in the same group; and
             REQUIRED_VALUE on Encounter.mediaAsset0 reports a grouped row with no image.
         message:
@@ -1279,7 +1282,8 @@ components:
           type: string
           minLength: 1
           description: Present on issues of a row grouped by Encounter.groupKey; that row's
-            key as typed, with leading and trailing spaces removed.
+            key as typed, with leading and trailing spaces removed. A key longer than the
+            256-character limit is clipped to its first 60 characters followed by "...".
         reason:
           type: string
           minLength: 1
@@ -1450,6 +1454,9 @@ components:
             minLength: 1
         mediaAssetIds:
           type: array
+          description: This row's own photos, in the order of its source photo slots
+            (Encounter.mediaAsset0, then 1, and so on); for a grouped row, only the photos
+            that row supplied.
           items:
             type: integer
             minimum: 0

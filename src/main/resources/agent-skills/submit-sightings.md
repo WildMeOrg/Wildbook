@@ -273,7 +273,10 @@ When the source records several animals seen together (a herd, pod or school) un
 one sighting or occurrence ID, send that ID unchanged as `Encounter.sightingID` on
 each of those rows. All rows in one submission that share the value become one new
 Wildbook sighting with exactly that ID; each row is still its own encounter unless
-the rows also share an `Encounter.groupKey`. Rows without the field each get their own new sighting with a generated ID. Do not make
+the rows also share an `Encounter.groupKey`. A row without the field gets its own
+new sighting with a generated ID, unless it shares an `Encounter.groupKey` with
+rows that have one: then it joins their sighting. A group whose rows all omit the
+field gets one new sighting with a generated ID for the merged encounter. Do not make
 up an ID to group rows the source does not group, and do not merge rows because
 their times or coordinates look close.
 
@@ -307,14 +310,18 @@ submission that share the key become one new encounter with all of their photos.
 - A group holds up to `rowFields.grouping.maxMediaPerGroup` photos (from
   capabilities; the lower of 200 and `maxMediaPerEncounter`).
 - A photo beyond that limit is reported as `GROUP_CONFLICT` on the row that holds it.
-- Any disagreement fails validation and nothing is imported. Each affected row is
-  reported with its own `clientRowId` and a `groupKey` property showing the key as
-  typed on that row. Fix the rows and validate again.
+- Any disagreement fails validation and nothing is imported. It is reported on
+  each cell that supplied one of the disagreeing values (a row that omitted the
+  field is not reported), with that row's own `clientRowId` and a `groupKey`
+  property showing the key as typed on that row. A key longer than 256 characters
+  is itself an error, and its issues show only the key's first 60 characters
+  followed by `...`. Fix the rows and validate again.
 - Explicit encounter IDs (`Encounter.id`, `Encounter.catalogNumber`) are still not
   supported.
 
 After commit, every row of a group lists the same `encounterIds`, `occurrenceIds`
-and `individualIds`, and its `mediaAssetIds` list only that row's own photos. Only
+and `individualIds`, and its `mediaAssetIds` list only that row's own photos, in the
+order of that row's photo slots (`Encounter.mediaAsset0`, then `1`, and so on). Only
 send the same key on rows the source records as one encounter.
 
 ### 3. Create a draft, upload files, and replace its rows
@@ -464,7 +471,7 @@ Concrete failure examples and corrections (assume other fields are valid):
 | one photo boxed on one row and used without a box on another | `DUPLICATE_MEDIA` on the un-boxed use | Box every animal on that photo, or move the un-boxed use to a separate submission without boxes. |
 | the identical box twice on one photo | `DUPLICATE_BOX` on the later row's `.bbox` | Keep one row per animal; remove the duplicate. |
 | `Encounter.mediaAsset0.iaClass` without a `.bbox`, or a box without a class | `INVALID_VALUE` (`REQUIRES_FIELD` or `MISSING_CLASS`) | Send the box and its class together. |
-| two rows with the same `Encounter.groupKey` give different values for one field | `GROUP_CONFLICT` on each row that supplied it, with `groupKey` | Make the values agree, or omit the field on all but one row (an empty string is also accepted on grouped rows). |
+| two rows with the same `Encounter.groupKey` give different values for one field | `GROUP_CONFLICT` on each cell that supplied a value, with `groupKey` | Make the values agree, or omit the field on all but one row (an empty string is also accepted on grouped rows). |
 | a row in a group has no photo | `REQUIRED_VALUE` on `Encounter.mediaAsset0`, with `groupKey` | Give every row in the group a photo, or drop the empty row. |
 | the same photo twice in one group | `DUPLICATE_MEDIA`, with `groupKey` | Use each photo once per group. |
 | a grouped row names an unconfigured location | `INVALID_LOCATION`, with `groupKey` | Use a configured location ID. |
