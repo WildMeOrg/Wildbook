@@ -24,6 +24,7 @@ public class Submission {
     private String phase = "pending";
     private String errorCode;
     private String aiState;
+    private Boolean boxed; // bulk-import boxes (spec 4.9): rows carry user-supplied boxes; NULL (older rows) reads as false
     private Long aiStartedAt;
     private long workStartedAt;
     private long derivativesStartedAt;
@@ -42,8 +43,12 @@ public class Submission {
     }
     public String getProcessingMode() { JSONObject processing = new JSONObject(createJson).optJSONObject("processing"); return processing == null ? "import-only" : processing.optString("mode", "import-only"); }
     public boolean requestsIdentification() { return "detect-and-identify".equals(getProcessingMode()); }
+    public boolean isBoxed() { return Boolean.TRUE.equals(boxed); }
+    public void boxed(boolean value) { boxed = value; }
+    /** AI work is handed off when identification is requested or boxes were supplied (boxes are always extracted, decision 8). */
+    public boolean requestsAi() { return requestsIdentification() || isBoxed(); }
     public String getAiState() {
-        if (!requestsIdentification()) return "skipped";
+        if (!requestsAi()) return "skipped";
         if (aiState != null) return aiState;
         if ("failed".equals(state)) return "failed";
         if ("needs_reconciliation".equals(state)) return "unknown";
@@ -53,19 +58,36 @@ public class Submission {
     public void aiState(String value) { aiState = value; }
     public void claimAi(long now) { aiState = "dispatching"; aiStartedAt = now; }
     public JSONObject aiPhase() {
-        if (requestsIdentification() && ("failed".equals(state) || "needs_reconciliation".equals(state)))
+        if (requestsAi() && ("failed".equals(state) || "needs_reconciliation".equals(state)))
             return new JSONObject().put("state", "not_started")
                 .put("code", "failed".equals(state) ? "IMPORT_FAILED" : "IMPORT_OUTCOME_UNCERTAIN")
                 .put("message", "Detection and identification were not started because record import failed or requires reconciliation. Inspect the import outcome first.");
         if ("unknown".equals(getAiState()) || "failed".equals(getAiState()))
             return new JSONObject().put("state", getAiState()).put("code", "unknown".equals(getAiState()) ? "AI_HANDOFF_UNKNOWN" : "AI_HANDOFF_FAILED").put("message", "AI handoff requires operator inspection; never automatically resubmitted. Imported records remain available.");
-        return new JSONObject().put("state", getAiState()).put("message", requestsIdentification()
-            ? "Detection and identification workflow handoff; dispatched does not mean completed. See import task for progress and match candidates."
-            : "Explicit import-only mode");
+        String message;
+        if (!requestsAi()) message = "Explicit import-only mode";
+        else if (!isBoxed()) message = "Detection and identification workflow handoff; dispatched does not mean completed. See import task for progress and match candidates.";
+        else if (requestsIdentification()) message = "Extraction and identification workflow handoff; dispatched does not mean completed. See import task for progress and match candidates.";
+        else message = "Extraction-only workflow handoff for the supplied boxes; identification is not run (import-only); dispatched does not mean completed. See import task for progress.";
+        return new JSONObject().put("state", getAiState()).put("message", message);
+    }
+    /** Bulk-import boxes: a boxed draft never runs detection on its photos. */
+    public JSONObject detectionPhase() {
+        if (isBoxed()) return new JSONObject().put("state", "skipped").put("code", "BOXES_SUPPLIED").put("message", "Boxes were supplied; detection is not run on these photos");
+        return aiPhase();
+    }
+    /** Bulk-import boxes: a boxed import-only draft extracts its boxes but does not identify; failure phases pass through untouched. */
+    public JSONObject identificationPhase() {
+        JSONObject phase = aiPhase();
+        if (requestsIdentification() || !isBoxed() || phase.has("code")) return phase;
+        String state = phase.optString("state");
+        if (!"pending".equals(state) && !"dispatching".equals(state) && !"dispatched".equals(state)) return phase;
+        return phase.put("code", "BOXES_EXTRACTED_ONLY");
     }
     public String getId() { return id; }
     public String getContext() { return context; }
     public String getOwnerId() { return ownerId; }
+    public String getCreateJson() { return createJson; }
     public String getCreateHash() { return createHash; }
     public String getRowsJson() { return rowsJson; }
     public String getFilesJson() { return filesJson; }
@@ -93,7 +115,7 @@ public class Submission {
     public void claim() { claim(System.currentTimeMillis()); }
     public void claim(long now) { state = "importing"; workStartedAt = now; }
     public void imported(String result) { imported(result, System.currentTimeMillis()); }
-    public void imported(String result, long now) { resultJson = result; aiState = requestsIdentification() ? "pending" : "skipped"; state = "imported"; phase = "pending"; completedAt = now; }
+    public void imported(String result, long now) { resultJson = result; aiState = requestsAi() ? "pending" : "skipped"; state = "imported"; phase = "pending"; completedAt = now; }
     public long getCompletedAt() { return completedAt; }
     public void releaseFiles() { filesJson = "[]"; }
     public void fail(String code, boolean uncertain) { errorCode = code; state = uncertain ? "needs_reconciliation" : "failed"; if (!uncertain) completedAt = System.currentTimeMillis(); }
@@ -112,12 +134,13 @@ public class Submission {
             .put("createdAt", Instant.ofEpochMilli(createdAt).toString())
             .put("expiresAt", Instant.ofEpochMilli(expiresAt).toString())
             .put("rowCount", originalCreate ? 0 : new JSONArray(rowsJson).length());
+        if (original.has("onBehalfOf")) result.put("onBehalfOf", original.getString("onBehalfOf"));
         if (!originalCreate && !"[]".equals(rowsJson)) result.put("rowsDigest", org.ecocean.api.submission.SubmissionJson.hash(rowsJson));
         if (!originalCreate && jobId != null) result.put("operationId", jobId).put("importTaskId", jobId)
             .put("indexing", new JSONObject().put("state", phase))
             .put("derivatives", new JSONObject().put("state", derivatives))
-            .put("detection", aiPhase())
-            .put("identification", aiPhase());
+            .put("detection", detectionPhase())
+            .put("identification", identificationPhase());
         if (!originalCreate && errorCode != null) result.put("errors", new JSONArray().put(new JSONObject().put("code", errorCode).put("message", getErrorMessage())));
         return result;
     }
