@@ -273,10 +273,10 @@ When the source records several animals seen together (a herd, pod or school) un
 one sighting or occurrence ID, send that ID unchanged as `Encounter.sightingID` on
 each of those rows. All rows in one submission that share the value become one new
 Wildbook sighting with exactly that ID; each row is still its own encounter unless
-the rows also share an `Encounter.groupKey`. A row without the field gets its own
-new sighting with a generated ID, unless it shares an `Encounter.groupKey` with
-rows that have one: then it joins their sighting. A group whose rows all omit the
-field gets one new sighting with a generated ID for the merged encounter. Do not make
+the rows also share an `Encounter.groupKey`. An ungrouped row without the field
+gets its own new sighting with a generated ID. A grouped row without the field
+joins its group's sighting; when no row of the group has one, the whole group
+shares one new sighting with a generated ID. Do not make
 up an ID to group rows the source does not group, and do not merge rows because
 their times or coordinates look close.
 
@@ -314,8 +314,8 @@ submission that share the key become one new encounter with all of their photos.
   each cell that supplied one of the disagreeing values (a row that omitted the
   field is not reported), with that row's own `clientRowId` and a `groupKey`
   property showing the key as typed on that row. A key longer than 256 characters
-  is itself an error, and its issues show only the key's first 60 characters
-  followed by `...`. Fix the rows and validate again.
+  is itself an error, and its issues show only up to 60 UTF-16 code units of the
+  key, followed by `...`. Fix the rows and validate again.
 - Explicit encounter IDs (`Encounter.id`, `Encounter.catalogNumber`) are still not
   supported.
 

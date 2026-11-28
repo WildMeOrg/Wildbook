@@ -1283,7 +1283,7 @@ components:
           minLength: 1
           description: Present on issues of a row grouped by Encounter.groupKey; that row's
             key as typed, with leading and trailing spaces removed. A key longer than the
-            256-character limit is clipped to its first 60 characters followed by "...".
+            256-character limit is clipped to up to 60 UTF-16 code units, followed by "...".
         reason:
           type: string
           minLength: 1
