@@ -17,7 +17,7 @@ workflow. A bulk-import spreadsheet is not directly accepted by this endpoint.
 Create a private draft, upload photographs, provide sighting rows, check the
 validation report, then commit the approved data once and collect the resulting
 record IDs. Drafting and validation do not create sighting records. Commit does.
-Import creates new encounters, one per row, owned by the submitting
+Import creates new encounters, one per row, or one per group of rows sharing `Encounter.groupKey`, owned by the submitting
 account, or by the person named in `onBehalfOf` when the draft has one. Detection may later add annotations and additional encounters. New submissions default to animal detection followed by individual identification
 matching after import. Matching returns candidates for review; it does not automatically
 assign an individual identity. Existing records are not updated.
@@ -234,6 +234,7 @@ Supported fields for this pilot are exactly:
 | `Encounter.verbatimLocality` | string | Optional original locality description; does not replace locationID. |
 | `Encounter.researcherComments` | string | Optional free text preserving relevant observation context. |
 | `Encounter.sightingID` | string | Optional. The source's sighting, occurrence or group ID; rows that share it become one new sighting. 1–100 letters, digits, `.`, `_` or `-`, starting with a letter or digit. See "Grouping rows into one sighting". |
+| `Encounter.groupKey` | string | Optional. Rows that share the same key become one encounter holding all their photos. Any text; leading and trailing spaces are ignored. See "Grouping photo rows into one encounter". |
 | `Encounter.mediaAsset0` … `Encounter.mediaAsset199` | string | Exact completed upload filename. Start at 0 and use successive slots for photographs of this encounter. At least one image is required per row. |
 | `Encounter.mediaAsset{N}.bbox` | string | Optional. One animal's box on the photo in slot N: `"x,y,width,height"`, whole pixels of the uploaded image as stored (no EXIF rotation), origin top-left; x,y at least 0, width,height at least 1, and inside the image. |
 | `Encounter.mediaAsset{N}.iaClass` | string | Required with a box. One of the species' matchable classes (`bulkImportMatchableClasses` in `/api/v3/site-settings`); in `import-only`, any class the species stores. |
@@ -248,7 +249,8 @@ decimal representations even when numerically equivalent.
 
 Each image must be used in only one slot of a row. Without boxes, each image also
 belongs to only one row: all photos for the same new encounter belong in that one
-row; do not create duplicate rows for its photos. With boxes, one photo showing
+row, or in rows that share an `Encounter.groupKey` (see "Grouping photo rows into one
+encounter"); do not otherwise create duplicate rows for its photos. With boxes, one photo showing
 several animals is sent once per animal: one row per animal, each naming the same
 photo with that animal's own box. Every use of that photo must then carry a box,
 and two rows may not carry the identical box.
@@ -269,7 +271,7 @@ to the person rather than silently dropping scientific information.
 When the source records several animals seen together (a herd, pod or school) under
 one sighting or occurrence ID, send that ID unchanged as `Encounter.sightingID` on
 each of those rows. All rows in one submission that share the value become one new
-Wildbook sighting with exactly that ID; each row is still its own encounter. Rows
+Wildbook sighting with exactly that ID; each row is still its own encounter unless the rows also share an `Encounter.groupKey`. Rows
 without the field each get their own new sighting with a generated ID. Do not make
 up an ID to group rows the source does not group, and do not merge rows because
 their times or coordinates look close.
@@ -284,6 +286,33 @@ therefore belong in a single submission. This check reveals only that the ID is 
 use; it never says whose sighting it is. If the source ID does not match the allowed
 format (for example it contains spaces), validation reports `INVALID_VALUE` on the
 field: tell the person rather than rewriting the ID yourself.
+
+#### Grouping photo rows into one encounter
+
+When the source lists one encounter across several rows, for example one row per
+photo, send the same `Encounter.groupKey` on each of those rows. All rows in one
+submission that share the key become one new encounter with all of their photos.
+
+- Keys are trimmed and compared ignoring the case of the letters A to Z only, so
+  `Pod7` and `pod7` are the same group. Every other character must match exactly:
+  `001` and `1` are different groups, and so are `É` and `é`. The key must be a JSON
+  string. An empty or blank key means the row is not grouped.
+- Encounter-level values (date, location, species, sex and so on) must agree across
+  the group, or be left blank on the other rows. Repeating an identical value is
+  fine. Put the value on one row and leave the others empty, or repeat it exactly.
+- Every row needs at least one photo, and a photo may appear only once in a group.
+- A group holds up to `rowFields.grouping.maxMediaPerGroup` photos (from
+  capabilities; the lower of 200 and `maxMediaPerEncounter`).
+- Any disagreement fails validation and nothing is imported. Each affected row is
+  reported with its own `clientRowId` and a `groupKey` property showing the key as
+  typed on that row. Fix the rows and validate again.
+- Explicit encounter IDs (`Encounter.id`, `Encounter.catalogNumber`) are still not
+  supported.
+
+After commit, every row of a group lists the same `encounterIds`, `occurrenceIds`
+and `individualIds`, and its `mediaAssetIds` list only that row's own photos. Do not
+group rows the source does not group, and do not merge rows because their times or
+coordinates look close.
 
 ### 3. Create a draft, upload files, and replace its rows
 
@@ -432,6 +461,10 @@ Concrete failure examples and corrections (assume other fields are valid):
 | one photo boxed on one row and used without a box on another | `DUPLICATE_MEDIA` on the un-boxed use | Box every animal on that photo, or move the un-boxed use to a separate submission without boxes. |
 | the identical box twice on one photo | `DUPLICATE_BOX` on the later row's `.bbox` | Keep one row per animal; remove the duplicate. |
 | `Encounter.mediaAsset0.iaClass` without a `.bbox`, or a box without a class | `INVALID_VALUE` (`REQUIRES_FIELD` or `MISSING_CLASS`) | Send the box and its class together. |
+| two rows with the same `Encounter.groupKey` give different values for one field | `GROUP_CONFLICT` on each row that supplied it, with `groupKey` | Make the values agree, or leave the field blank on all but one row. |
+| a row in a group has no photo | `REQUIRED_VALUE` on `Encounter.mediaAsset0`, with `groupKey` | Give every row in the group a photo, or drop the empty row. |
+| the same photo twice in one group | `DUPLICATE_MEDIA`, with `groupKey` | Use each photo once per group. |
+| a grouped row names an unconfigured location | `INVALID_LOCATION`, with `groupKey` | Use a configured location ID. |
 | too many images in one row | `LIMIT_EXCEEDED` | Respect maxMediaPerEncounter; do not split one observation into fabricated encounters to bypass it. |
 | `Encounter.submitterID`, `Encounter.otherCatalogNumbers`, or another unsupported field | `UNSUPPORTED_FIELD` | Use the supported contract. To credit the collector with a service key, use `onBehalfOf` when creating the draft. |
 | `onBehalfOf` is neither exactly `public` nor the exact username of a direct member of the key's organization (for example a misspelled or differently capitalized username, or someone outside the organization) | `SUBMITTER_NOT_ALLOWED` on `onBehalfOf` | Ask the person for the collector's exact username. `onBehalfOf` cannot be changed, so create a new draft with the corrected name. |

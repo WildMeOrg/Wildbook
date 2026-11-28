@@ -665,6 +665,23 @@ components:
                 Absent on installations that do not accept user-supplied boxes.
             indexedQuality:
               type: string
+            grouping:
+              type: object
+              description: Rows that share the same Encounter.groupKey become one
+                encounter with all their photos. Keys are trimmed and compared ignoring
+                the case of ASCII letters A-Z only.
+              properties:
+                field:
+                  type: string
+                  enum:
+                  - Encounter.groupKey
+                caseInsensitive:
+                  type: string
+                  enum:
+                  - ASCII letters A-Z only
+                maxMediaPerGroup:
+                  type: integer
+                  description: Most photos one group may carry.
         stagingAvailable:
           type: boolean
         maxFiles:
@@ -857,6 +874,10 @@ components:
             import-only), .viewpoint, .theta (radians, clockwise), .bboxSource, and
             Encounter.quality{N} (the detector's score). The same image may appear on several
             rows only when every use is boxed with a different box (one animal per row).
+            Rows that share an Encounter.groupKey become one encounter. Every row needs at
+            least one photo, encounter-level fields must agree or be blank on the other
+            rows, a photo may appear once per group, and any disagreement is reported on
+            each row with its groupKey.
           maxProperties: 256
     LoginCredentials:
       type: object
