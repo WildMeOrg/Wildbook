@@ -1387,6 +1387,27 @@ class SubmissionStoreDbTest {
         assertEquals(0, ownerEncounters(owner));
     }
 
+    @Test void nullGroupedMediaRejectedBeforeImport(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id");
+        // makeMediaAsset yields no asset for the second row's photo of the group; every other call is real
+        try (org.mockito.MockedStatic<org.ecocean.api.UploadedFiles> uploads = org.mockito.Mockito.mockStatic(org.ecocean.api.UploadedFiles.class, invocation -> {
+                 Object[] args = invocation.getArguments();
+                 if ("makeMediaAsset".equals(invocation.getMethod().getName()) && args.length == 3 && args[1] instanceof java.io.File
+                     && "b.png".equals(((java.io.File)args[1]).getName())) return null;
+                 return invocation.callRealMethod();
+             });
+             org.mockito.MockedConstruction<org.ecocean.api.bulk.BulkImporter> importers = org.mockito.Mockito.mockConstruction(org.ecocean.api.bulk.BulkImporter.class)) {
+            Run run = realImportStaged(owner, id, root, java.util.Arrays.asList(photoRow("G1", "a.png"), photoRow("g1", "b.png")), () -> {}, () -> {});
+            assertTrue(run.report.getBoolean("valid"), run.report.toString());
+            assertEquals(0, importers.constructed().size());
+        }
+        JSONObject status = store.get("context0", owner, id, false, false);
+        assertEquals("needs_reconciliation", status.getString("state"), status.toString()); // failed, uncertain
+        assertEquals("IMPORT_FAILED", status.getJSONArray("errors").getJSONObject(0).getString("code"));
+        assertEquals("needs_reconciliation", loadTask(taskId(owner, id)).getStatus());
+        assertEquals(0, ownerEncounters(owner));
+    }
+
     @Test void mergedRowOver256FieldsImports(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
         String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id");
         java.util.List<JSONObject> rowFields = new java.util.ArrayList<>();
@@ -1396,7 +1417,7 @@ class SubmissionStoreDbTest {
             java.util.List<String> names = new java.util.ArrayList<>();
             for (int n = 0; n < 45; n++) {
                 String name = "r" + r + "-" + n + ".png"; names.add(name);
-                fields.put("Encounter.mediaAsset" + n, name).put("Encounter.quality" + n, 0.5);
+                fields.put("Encounter.mediaAsset" + n, name).put("Encounter.quality" + n, quality(r, n)); // distinct per photo
             }
             rowFields.add(fields); own.add(names);
         }
@@ -1420,7 +1441,18 @@ class SubmissionStoreDbTest {
         assertEquals(1, ownerEncounters(owner));
         assertEquals(135, (int)read(sh -> sh.getEncounter(encounterOf(rows, 0)).getMedia().size()));
         for (int r = 0; r < 3; r++) assertEquals(own.get(r), receiptFiles(rows, r));
+        // every packed quality reached the annotation of its own photo
+        java.util.Map<String, Double> persisted = read(sh -> {
+            java.util.Map<String, Double> byFile = new java.util.HashMap<>();
+            for (org.ecocean.Annotation ann : sh.getEncounter(encounterOf(rows, 0)).getAnnotations())
+                byFile.put(ann.getMediaAsset().getUserFilename(), ann.getQuality());
+            return byFile;
+        });
+        assertEquals(135, persisted.size(), persisted.toString());
+        for (int r = 0; r < 3; r++) for (int n = 0; n < 45; n++)
+            assertEquals(quality(r, n), persisted.get(own.get(r).get(n)), own.get(r).get(n));
     }
+    private static Double quality(int row, int slot) { return (row * 45 + slot + 1) / 1000.0; }
 
     @Test void groupedDraftIsNotStale(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
         String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id");

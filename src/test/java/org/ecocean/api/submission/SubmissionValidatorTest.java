@@ -510,6 +510,13 @@ class SubmissionValidatorTest {
         return new JSONObject().put("clientRowId", id).put("fields", fields);
     }
 
+    /** An issue on ungrouped row r0 exactly as the validator emits it. */
+    static JSONObject expectedIssue(String code, String reason, String message, String field) {
+        JSONObject issue = new JSONObject().put("code", code).put("message", message).put("clientRowId", "r0").put("rowIndex", 0).put("field", field);
+        if (reason != null) issue.put("reason", reason);
+        return issue;
+    }
+
     static JSONObject only(JSONObject report) {
         assertEquals(1, issues(report).size(), report.toString());
         return issues(report).get(0);
@@ -887,17 +894,16 @@ class SubmissionValidatorTest {
         withGroups((sh, storage, files, config) -> {
             JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", null, "Encounter.mediaAsset0", "missing.png",
                 "Encounter.id", "x", "Encounter.sightingID", "bad id", "Encounter.locationID", "nowhere", "Encounter.sex", "x"));
-            java.util.List<String> seen = new java.util.ArrayList<>();
-            for (JSONObject i : issues(report)) {
-                assertFalse(i.has("groupKey"), i.toString());
-                seen.add(i.getString("code") + " " + i.getString("field") + " " + i.getString("message"));
-            }
-            assertEquals(java.util.List.of("UNSUPPORTED_FIELD Encounter.id Field is not supported by this pilot",
-                "MISSING_MEDIA Encounter.mediaAsset0 Reference must exactly match a completed image filename",
-                "INVALID_VALUE Encounter.sightingID Use 1 to 100 letters, digits, '.', '_' or '-', starting with a letter or digit",
-                "REQUIRED_VALUE Encounter.mediaAsset0 At least one image required",
-                "INVALID_LOCATION Encounter.locationID A configured location ID is required",
-                "INVALID_VALUE Encounter.sex 'x' is not a configured sex value; use one of: " + String.join(", ", SiteSettings.VALUES_SEX)), seen);
+            // the complete issue objects, in order: code, reason, message, field, row and no groupKey
+            JSONArray expected = new JSONArray()
+                .put(expectedIssue("UNSUPPORTED_FIELD", null, "Field is not supported by this pilot", "Encounter.id"))
+                .put(expectedIssue("MISSING_MEDIA", null, "Reference must exactly match a completed image filename", "Encounter.mediaAsset0"))
+                .put(expectedIssue("INVALID_VALUE", "INVALID", "Use 1 to 100 letters, digits, '.', '_' or '-', starting with a letter or digit", "Encounter.sightingID"))
+                .put(expectedIssue("REQUIRED_VALUE", null, "At least one image required", "Encounter.mediaAsset0"))
+                .put(expectedIssue("INVALID_LOCATION", null, "A configured location ID is required", "Encounter.locationID"))
+                .put(expectedIssue("INVALID_VALUE", "NOT_CONFIGURED", "'x' is not a configured sex value; use one of: " + String.join(", ", SiteSettings.VALUES_SEX), "Encounter.sex"));
+            JSONArray actual = report.getJSONArray("errors");
+            assertTrue(expected.similar(actual), "expected " + expected + " but was " + actual);
         });
     }
 }
