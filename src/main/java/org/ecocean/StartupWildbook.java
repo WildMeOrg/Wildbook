@@ -169,6 +169,7 @@ public class StartupWildbook implements ServletContextListener {
             return;
         }
         Setting.initialize(context);
+        OrganizationMembershipSchema.check(context); // logs an ERROR if the membership migration was skipped
         // Eagerly build the shared OpenSearch REST client BEFORE any consumer threads start, so no
         // match thread ever hits the (now double-checked, synchronized) cold init concurrently.
         // Constructing the client does not contact OpenSearch, so this is safe here.
@@ -211,6 +212,21 @@ public class StartupWildbook implements ServletContextListener {
         // stuck past a threshold and re-enqueue them.
         try {
             runStaleMlServiceReconciliation(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // Bulk-import boxes (spec 4.4): the same at-most-once gap for imported-box extraction
+        // children; republish the stale ones' queue messages once at startup.
+        try {
+            org.ecocean.ia.ImportedBoxReplay.replay(context,
+                System.currentTimeMillis() - STALE_MLSERVICE_THRESHOLD_MS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // Bulk-import boxes (spec 4.1): build the labeled-keyword map now so a configured label
+        // that collides with a reserved box-column suffix is warned about at startup.
+        try {
+            org.ecocean.api.bulk.BulkImportUtil.getLabeledKeywordMap();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -709,12 +725,14 @@ public class StartupWildbook implements ServletContextListener {
             // topTask so the helper creates a root task internally. The
             // reconciler doesn't need an aggregator parent.
             //
-            // The helper internally calls storeNewTask, which commits the
-            // surrounding transaction. So when we get here, either:
+            // The helper commits the child Task with status before it
+            // publishes (IA.enqueueMlServiceJob). So when we get here, either:
             //   - enqueue succeeded: the child Task + queue file are durable;
-            //   - enqueue failed: the child Task IS still persisted (orphan,
-            //     unreachable without a queued job) but the asset remains
-            //     in processing-mlservice for next-startup retry.
+            //   - the queue write failed: the child Task IS still persisted
+            //     (orphan, unreachable without a queued job) but the asset
+            //     remains in processing-mlservice for next-startup retry;
+            //   - the persist or commit failed: nothing was published and
+            //     the asset remains in processing-mlservice as well.
             boolean enqueued = org.ecocean.ia.IA.enqueueOneAssetForMlService(
                 shep, ma, taxy, /* topTask */ null, context, /* baseUrl */ null);
             if (!enqueued) {
@@ -753,9 +771,9 @@ public class StartupWildbook implements ServletContextListener {
      *       {@link org.ecocean.ia.plugin.WildbookIAM#registerOneByDto}.
      *   <li>Phase C: Shepherd open, re-load, persist outcome, close.
      * </ul>
-     * Ineligible annotations (missing media asset, missing acmId, fails
-     * {@code validForIdentification}) are parked at MAX_ATTEMPTS so they
-     * fall out of the polling query.
+     * Ineligible annotations (see
+     * {@link org.ecocean.ia.plugin.WildbookIAM#wbiaEligibilityReason}) are
+     * parked at MAX_ATTEMPTS so they fall out of the polling query.
      */
     private static void registerOneAnnotationWithWbia(String context, String annId) {
         // ---- Phase A: load DTO under a short transaction. ----
@@ -820,27 +838,11 @@ public class StartupWildbook implements ServletContextListener {
                 shep.commitDBTransaction();
                 return null;
             }
-            // Eligibility checks. Any failure here is permanent for this
-            // annotation under its current state, so park it.
             org.ecocean.media.MediaAsset ma = ann.getMediaAsset();
-            String reason = null;
-            if (ma == null) reason = "missing media asset";
-            else if (!Util.stringExists(ma.getAcmId())) reason = "media asset has no acmId";
-            else if (!Util.stringExists(ann.getId())) reason = "annotation has no id";
-            else if (!org.ecocean.identity.IBEISIA.validForIdentification(ann))
-                reason = "validForIdentification returned false (bbox/iaClass/etc.)";
-            // Image-side eligibility for the new Phase 0 image-registration
-            // path. Order mirrors sendMediaAssetsForceId in WildbookIAM (the
-            // isValidImageForIA + validMediaAsset pair, in that order), so
-            // the polling thread parks the same media assets the legacy
-            // batch path would skip. Phase B trusts Phase A's verdict —
-            // these are not re-checked against the DB after the Shepherd
-            // closes. (Empty-match-prospects design Track 1 C5: WBIA
-            // Phase 0 eligibility extension.)
-            else if (ma.isValidImageForIA() != null && !ma.isValidImageForIA())
-                reason = "MediaAsset.isValidImageForIA() == false (corrupt/invalid)";
-            else if (!org.ecocean.ia.plugin.WildbookIAM.validMediaAsset(ma))
-                reason = "MediaAsset failed validMediaAsset (mime/dims/url)";
+            // Issue #1787: one eligibility chain shared with the identify-time registration
+            // (WildbookIAM.wbiaEligibilityReason). Any failure is permanent for this
+            // annotation under its current state, so park it.
+            String reason = org.ecocean.ia.plugin.WildbookIAM.wbiaEligibilityReason(ann);
             if (reason != null) {
                 System.out.println("WARN: WbiaRegistrationPoll parking " + annId +
                     " (ineligible: " + reason + ")");
@@ -950,6 +952,7 @@ public class StartupWildbook implements ServletContextListener {
         // The poll loop's interrupt/null checks make subsequent work bail.
         if (submissionWorker != null) submissionWorker.close();
         shutdownWbiaRegisterExecutor();
+        OpenSearch.shutdownBackground();
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
         org.ecocean.ia.ParallelIdentify.shutdown();

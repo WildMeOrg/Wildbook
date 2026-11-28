@@ -799,6 +799,8 @@
         <column name="FULLNAME"/>
       </field>
 
+      <field name="serviceOrganizationId" unique="true"><column name="SERVICEORGANIZATIONID" length="36" allows-null="true"/></field>
+
 	  <field name="uuid" primary-key="true">
         <column name="UUID"/>
       </field>

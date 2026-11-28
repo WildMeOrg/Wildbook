@@ -297,6 +297,100 @@ describe("GalleryView", () => {
     );
   });
 
+  test("shows date, filename and location in a caption strip under the image", () => {
+    const name = "2024-06-01_whale_left_flank_very_long_name.jpg";
+    const store = makeStore({
+      currentPageItems: [
+        {
+          __k: "a1",
+          url: "#",
+          annotations: [],
+          userFilename: name,
+          date: "2000-02-07",
+          locationId: "Western Australia",
+        },
+      ],
+    });
+
+    renderWithProviders(<GalleryView store={store} pg={jest.fn()} />);
+
+    const strip = screen.getByTestId("gallery-caption-0");
+    const imageBox = screen.getByTestId("gallery-image-box-0");
+    // issue #1799: under the image box, not overlaid on it
+    expect(imageBox).toContainElement(screen.getByRole("img"));
+    expect(imageBox).not.toContainElement(strip);
+    expect(strip.parentElement).toBe(screen.getByTestId("gallery-tile-0"));
+    expect(strip.previousElementSibling).toBe(imageBox);
+    expect(strip.style.position).toBe("");
+    expect(strip.style.pointerEvents).toBe("");
+    expect(screen.getByTestId("gallery-caption-0-filename")).toHaveTextContent(
+      name,
+    );
+    expect(screen.getByTestId("gallery-caption-0-filename")).toHaveAttribute(
+      "title",
+      name,
+    );
+    expect(screen.getByTestId("gallery-caption-0-date")).toHaveTextContent(
+      "2000-02-07",
+    );
+    expect(screen.getByTestId("gallery-caption-0-location")).toHaveTextContent(
+      "Western Australia",
+    );
+  });
+
+  test("reserves the thumbnail box before the image loads so the caption keeps its width", () => {
+    const store = makeStore({
+      currentPageItems: [
+        {
+          __k: "a1",
+          url: "#",
+          annotations: [],
+          userFilename: "a.jpg",
+          width: 1000,
+          height: 500,
+        },
+        {
+          __k: "a2",
+          url: "#",
+          annotations: [],
+          userFilename: "b.jpg",
+          width: 100,
+          height: 1000,
+        },
+        { __k: "a3", url: "#", annotations: [], userFilename: "c.jpg" },
+      ],
+    });
+
+    renderWithProviders(<GalleryView store={store} pg={jest.fn()} />);
+
+    // 1000x500 at 200px tall would be 400px wide, capped at 300
+    expect(screen.getByTestId("gallery-image-box-0")).toHaveStyle({
+      width: "300px",
+      height: "200px",
+    });
+    // 100x1000 at 200px tall -> 20px wide
+    expect(screen.getByTestId("gallery-image-box-1")).toHaveStyle({
+      width: "20px",
+      height: "200px",
+    });
+    // no stored size -> square fallback
+    expect(screen.getByTestId("gallery-image-box-2")).toHaveStyle({
+      width: "200px",
+      height: "200px",
+    });
+  });
+
+  test("renders no caption when the asset has no date, filename or location", () => {
+    const store = makeStore({
+      currentPageItems: [{ __k: "a1", url: "#", annotations: [] }],
+    });
+
+    renderWithProviders(<GalleryView store={store} pg={jest.fn()} />);
+
+    expect(screen.getByRole("img")).toBeInTheDocument();
+    expect(screen.queryByTestId("gallery-caption-0")).toBeNull();
+  });
+
   test("resets selectedImageIndex to 0 when page items change", () => {
     const store = makeStore({
       currentPageItems: [],

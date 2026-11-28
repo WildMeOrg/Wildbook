@@ -6,14 +6,17 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
+import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.MediaAsset;
@@ -183,11 +186,16 @@ public class ImportTask implements java.io.Serializable {
     public List<MediaAsset> getMediaAssets() {
         if (encounters == null) return null;
         List<MediaAsset> mas = new ArrayList<MediaAsset>();
+        // dont want duplicates. identity (not equals) is "same asset" here because the
+        // encounters are attached to one PersistenceManager, which hands back one instance
+        // per row; a set keeps this O(n) instead of O(n^2) list.contains() on big imports
+        Set<MediaAsset> seen = Collections.newSetFromMap(new IdentityHashMap<MediaAsset,
+            Boolean>());
         for (Encounter enc : encounters) {
             ArrayList<MediaAsset> encMAs = enc.getMedia();
             if (Util.collectionSize(encMAs) > 0)
                 for (MediaAsset ma : encMAs) {
-                    if (!mas.contains(ma)) mas.add(ma); // dont want duplicates
+                    if (seen.add(ma)) mas.add(ma);
                 }
         }
         return mas;
@@ -341,14 +349,25 @@ public class ImportTask implements java.io.Serializable {
         return !iaTask.getParameters().optBoolean("skipIdent", false);
     }
 
-    // for sake of this value, skipping detection is also good enough
+    // passed-parameter key set by an import that carried user-supplied boxes (spec 4.4): such an
+    // import never runs detection, but identification still follows the skipIdent flag
+    public static final String PARAM_ANNOTATIONS_IMPORTED = "annotationsImported";
+
+    public boolean annotationsImported() {
+        if (this.getPassedParameters() == null) return false;
+        return this.getPassedParameters().optBoolean(PARAM_ANNOTATIONS_IMPORTED, false);
+    }
+
+    // for sake of this value, skipping detection is also good enough (unless the import brought its
+    // own boxes, in which case only the IA task's skipIdent decides)
     public boolean skippedIdentification() {
-        if (skippedDetection()) return true;
+        if (skippedDetection() && !annotationsImported()) return true;
         return !iaTaskRequestedIdentification();
     }
 
     public boolean skippedDetection() {
         if (this.getPassedParameters() == null) return false;
+        if (annotationsImported()) return true;
         return this.getPassedParameters().optBoolean("skipDetection", false);
     }
 
@@ -387,6 +406,13 @@ public class ImportTask implements java.io.Serializable {
         // a DataNucleus 5.2.7 SQL-generation bug that produces malformed SQL.
         Map<String, String> annIdToEncId = annotationIdsToEncounterIds(atm.keySet(),
             myShepherd);
+        // Issue #1787 (spec §4.5): each encounter's FULL annotation id set (including
+        // annotations added after the import) scopes the Match Results selection and the
+        // per-annotation status. null = the SQL pass failed: fall back to the two-argument
+        // selection and today's status rule.
+        Map<String, Set<String> > encIdToAnnIds = encounterIdsToAnnotationIds(
+            new HashSet<String>(annIdToEncId.values()), myShepherd);
+        boolean runAware = (encIdToAnnIds != null);
 
         for (Annotation ann : atm.keySet()) {
             String encId = annIdToEncId.get(ann.getId());
@@ -399,15 +425,9 @@ public class ImportTask implements java.io.Serializable {
                 continue;
             }
             sa.put(ann.getId(), Util.collectionSize(atm.get(ann)));
-            // Annotation exists but has no task yet (e.g., its match was
-            // gate-deferred and runMatchProspects has not fired yet).
-            // Count it as a pending "latest task" so the aggregate
-            // identificationStatus in iaSummaryJson stays "sent" until
-            // every annotation actually has a completed task. Without
-            // this, the FIRST completed task makes
-            // numLatestTask_completed >= numLatestTasks and the import
-            // flips to "complete" before the deferred matches even
-            // run — frontend polling stops too early.
+            // Annotation exists but has no task yet (e.g., its match was gate-deferred and
+            // runMatchProspects has not fired yet). Count it as a pending "latest task" so
+            // the aggregate identificationStatus in iaSummaryJson stays "sent".
             List<Task> annTasks = atm.get(ann);
             if ((annTasks == null) || annTasks.isEmpty()) {
                 String latestStatus = "numLatestTask_pending";
@@ -415,43 +435,30 @@ public class ImportTask implements java.io.Serializable {
                 numLatestTasks++;
                 continue;
             }
-            boolean latestTask = true; // only for first (most recent) task
-            for (Task atask : annTasks) {
+            for (Task atask : annTasks) {   // per-task tallies, unchanged
                 String status = atask.getStatus(myShepherd);
-                if (sa.has(status)) {
-                    sa.put(status, sa.optInt(status, 0) + 1);
-                } else {
-                    sa.put(status, 1);
-                }
+                sa.put(status, sa.optInt(status, 0) + 1);
                 numTasks++;
-                // this records only most recent task statuses like: numLatestTask_complete
-                if (latestTask) {
-                    String latestStatus = "numLatestTask_" + atask.getStatus(myShepherd);
-                    System.out.println("[DEBUG] (ImportTask " + this.getId() +
-                        ") latestStatus for Task " + atask.getId() + ": " + latestStatus);
-                    if (sa.has(latestStatus)) {
-                        sa.put(latestStatus, sa.optInt(latestStatus, 0) + 1);
-                    } else {
-                        sa.put(latestStatus, 1);
-                    }
-                    numLatestTasks++;
-                }
-                latestTask = false;
             }
-            // C15: pick the bulk-import match task via the shared selector so
-            // this page and the encounter page agree on which task they link to.
-            // The selector scopes to this importTaskId when the import has a
-            // stamped renderable task; for v2 ml-service imports the match tasks
-            // are unstamped, so it follows the newest usable unstamped renderable
-            // task instead (a later encounter-page re-ID can supersede it). See
-            // Task.selectPreferredMatchTask javadoc for the full precedence and
-            // the cross-import limitation.
+            Set<String> encSet = (!runAware || (encId == null)) ? null : encIdToAnnIds.get(encId);
+            // Issue #1787 (spec §4.4): one status per annotation across every option of its run.
+            AnnotationIdStatus agg = identificationStatusForAnnotation(ann, annTasks, this.getId(),
+                encSet, runAware, myShepherd);
+            String latestStatus = "numLatestTask_" + agg.status;
+            System.out.println("[DEBUG] (ImportTask " + this.getId() +
+                ") latestStatus for Annotation " + ann.getId() + ": " + latestStatus);
+            sa.put(latestStatus, sa.optInt(latestStatus, 0) + 1);
+            if (agg.skipped) sa.put("numLatestTask_skipped", sa.optInt("numLatestTask_skipped", 0) + 1);
+            numLatestTasks++;
+            // Shared selector, scoped to the encounter (spec §4.3), so this page and the
+            // encounter page agree on which task they link to.
             if (encId != null) {
-                Task preferred = Task.getPreferredMatchResultsTaskForAnnotation(
-                    ann, this.getId(), myShepherd);
+                Task preferred = Task.getPreferredMatchResultsTaskForAnnotation(ann, this.getId(),
+                    encSet, myShepherd);
                 if (preferred != null) {
                     encTasks.get(encId).add(preferred);
-                    taskTmp.put(preferred.getId() + ".iaClass", ann.getIAClass());
+                    String key = preferred.getId() + ".iaClass";
+                    taskTmp.put(key, mergeClassLabel(taskTmp.get(key), ann.getIAClass()));
                 }
             }
         }
@@ -523,6 +530,175 @@ public class ImportTask implements java.io.Serializable {
             if (q != null) q.closeAll();
         }
         return result;
+    }
+
+    // Returns {encounter catalogNumber -> every annotation id on it} via one SQL pass through
+    // ENCOUNTER_ANNOTATIONS, or null when the query fails (callers fall back). Issue #1787.
+    static Map<String, Set<String> > encounterIdsToAnnotationIds(
+        java.util.Collection<String> encIds, Shepherd myShepherd) {
+        Map<String, Set<String> > result = new HashMap<String, Set<String> >();
+
+        if ((encIds == null) || encIds.isEmpty()) return result;
+        StringBuilder inList = new StringBuilder();
+        int n = 0;
+        for (String encId : encIds) {
+            if (encId == null) continue;
+            if (n > 0) inList.append(",");
+            inList.append("'").append(encId.replace("'", "''")).append("'");
+            n++;
+        }
+        if (n == 0) return result;
+        String sql =
+            "SELECT \"CATALOGNUMBER_OID\", \"ID_EID\" FROM \"ENCOUNTER_ANNOTATIONS\" WHERE \"CATALOGNUMBER_OID\" IN ("
+            + inList.toString() + ")";
+        Query q = null;
+        try {
+            q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+            List rows = (List)q.execute();
+            for (Object row : rows) {
+                Object[] r = (Object[])row;
+                String catNum = (String)r[0];
+                String annId = (String)r[1];
+                if ((catNum == null) || (annId == null)) continue;
+                Set<String> ids = result.get(catNum);
+                if (ids == null) {
+                    ids = new HashSet<String>();
+                    result.put(catNum, ids);
+                }
+                ids.add(annId);
+            }
+        } catch (Exception ex) {
+            System.out.println("[ERROR] ImportTask.encounterIdsToAnnotationIds() failed: " + ex);
+            ex.printStackTrace();
+            return null;
+        } finally {
+            if (q != null) q.closeAll();
+        }
+        return result;
+    }
+
+    // ---- issue #1787 (spec §4.4): per-annotation identification status over every option of its run ----
+
+    static final class AnnotationIdStatus {
+        final String status;
+        final boolean skipped;   // no option held the annotation (its class had none): informational
+
+        AnnotationIdStatus(String status, boolean skipped) {
+            this.status = status;
+            this.skipped = skipped;
+        }
+    }
+
+    /**
+     * Rules: (1) the run is the newest eligible umbrella, else the newest umbrella holding the
+     * annotation regardless of the encounter set; (2) no run (old tree, or not run-aware):
+     * today's rule, the newest direct task's status; (3) one representative per option task of
+     * the run that holds the annotation — its newest childless descendant-or-self holding the
+     * annotation, else the option itself; (4) any non-terminal representative -> that status;
+     * else any error -> error; else completed. No option: a noWork umbrella's own status, else
+     * completed + skipped. (5) a non-terminal representative older than the maximum age is
+     * reported as error (reported only).
+     */
+    static AnnotationIdStatus identificationStatusForAnnotation(Annotation ann, List<Task> direct,
+        String importTaskId, Set<String> encounterAnnotationIds, boolean runAware,
+        Shepherd myShepherd) {
+        if (Util.collectionIsEmptyOrNull(direct)) return new AnnotationIdStatus("pending", false);
+        Task run = null;
+        if (runAware && Task.anyRunId(direct)) {
+            run = Task.selectRun(direct, importTaskId, encounterAnnotationIds);
+            if (run == null) run = Task.selectRun(direct, importTaskId, null);
+        }
+        if (run == null) return new AnnotationIdStatus(direct.get(0).getStatus(myShepherd), false);
+        List<Task> options = new ArrayList<Task>();
+        collectOptionTasks(run, run.getId(), ann.getId(), options, new HashSet<String>(), 0);
+        if (options.isEmpty()) {
+            if (IA.intakeProducedNoWork(run))
+                return new AnnotationIdStatus(reportedStatus(run, myShepherd), false);
+            return new AnnotationIdStatus("completed", true);
+        }
+        String firstNonTerminal = null;
+        boolean anyError = false;
+        for (Task option : options) {
+            Task rep = representativeFor(option, run.getId(), ann.getId());
+            String s = reportedStatus(rep, myShepherd);
+            if (!isTerminalStatus(s)) {
+                if (firstNonTerminal == null) firstNonTerminal = s;
+            } else if ("error".equals(s)) {
+                anyError = true;
+            }
+        }
+        if (firstNonTerminal != null) return new AnnotationIdStatus(firstNonTerminal, false);
+        return new AnnotationIdStatus(anyError ? "error" : "completed", false);
+    }
+
+    private static boolean isTerminalStatus(String s) {
+        return "completed".equals(s) || "error".equals(s) || "dropped-stale".equals(s);
+    }
+
+    // non-mutating: Task.getStatus's watchdog rewrites an aged non-null status; the aggregate only reports (§4.4 rule 5)
+    private static String peekStatus(Task t, Shepherd myShepherd) {
+        String stored = t.getStoredStatus();
+
+        if (stored != null) return stored;
+        return t.getStatus(myShepherd);   // null stored status: log-derived read, never mutates
+    }
+
+    // rule 5: maximum age, reported only (Task.getStatus exempts null stored statuses from its watchdog)
+    private static String reportedStatus(Task t, Shepherd myShepherd) {
+        String s = peekStatus(t, myShepherd);
+
+        if (!isTerminalStatus(s) && t.timedOutDueToInactivity()) return "error";
+        return s;
+    }
+
+    private static final int RUN_WALK_MAX_DEPTH = 20;
+
+    // option tasks of the run (by marker, not tree shape) that hold the annotation
+    private static void collectOptionTasks(Task t, String runId, String annId, List<Task> out,
+        Set<String> visited, int depth) {
+        if ((t == null) || (t.getId() == null) || (depth > RUN_WALK_MAX_DEPTH) || !visited.add(t.getId())) return;
+        if (!runId.equals(Task.runIdOf(t))) return;
+        if (Task.isOptionTask(t) && t.holdsAnnotationId(annId)) out.add(t);
+        if (t.getChildren() != null) {
+            for (Task kid : t.getChildren()) collectOptionTasks(kid, runId, annId, out, visited, depth + 1);
+        }
+    }
+
+    // the option's newest childless descendant-or-self holding the annotation, else the option
+    private static Task representativeFor(Task option, String runId, String annId) {
+        if (!option.hasChildren()) return option;
+        List<Task> leaves = new ArrayList<Task>();
+        collectChildlessHolding(option, runId, annId, leaves, new HashSet<String>(), 0);
+        Task best = null;
+        for (Task leaf : leaves) {
+            if ((best == null) || (leaf.getCreatedLong() > best.getCreatedLong())) best = leaf;
+        }
+        return (best == null) ? option : best;
+    }
+
+    private static void collectChildlessHolding(Task t, String runId, String annId, List<Task> out,
+        Set<String> visited, int depth) {
+        if ((t == null) || (t.getId() == null) || (depth > RUN_WALK_MAX_DEPTH) || !visited.add(t.getId())) return;
+        if (!runId.equals(Task.runIdOf(t))) return;
+        if (!t.hasChildren()) {
+            if (t.holdsAnnotationId(annId)) out.add(t);
+            return;
+        }
+        for (Task kid : t.getChildren()) collectChildlessHolding(kid, runId, annId, out, visited, depth + 1);
+    }
+
+    // Class label of a shared preferred task: distinct non-blank iaClasses, sorted, ", "-joined.
+    static String mergeClassLabel(String existing, String iaClass) {
+        TreeSet<String> classes = new TreeSet<String>();
+
+        if (Util.stringExists(existing)) {
+            for (String s : existing.split(", ")) {
+                if (Util.stringExists(s.trim())) classes.add(s.trim());
+            }
+        }
+        if (Util.stringExists(iaClass) && Util.stringExists(iaClass.trim())) classes.add(iaClass.trim());
+        if (classes.isEmpty()) return null;
+        return String.join(", ", classes);
     }
 
 /*
@@ -659,28 +835,22 @@ public class ImportTask implements java.io.Serializable {
         int numDetectionError = 0;
         int numAcmId = 0;
         int numAllowedIA = 0;
+        int numValidIAUnknown = 0;
+        // assets that may still be detected: not in a terminal detection state and not
+        // known to be invalid for IA. detection is complete when this reaches zero.
+        int numDetectionOutstanding = 0;
         int numAssets = 0;
         int numAnnotations = 0;
         boolean pipelineStarted = false;
         Map<String, Integer> statsMA = this.statsMediaAssets();
         JSONObject statsAnn = this.statsAnnotations(myShepherd);
+        List<MediaAsset> mas = this.getMediaAssets();
 
-        if (this.getMediaAssets() != null)
-            numAssets = this.getMediaAssets().size();
-        for (MediaAsset ma : this.getMediaAssets()) {
+        if (mas == null) mas = new ArrayList<MediaAsset>();
+        numAssets = mas.size();
+        for (MediaAsset ma : mas) {
             numAnnotations += ma.numAnnotations();
             if (ma.getAcmId() != null) numAcmId++;
-            // check if we can get validity off the image before the expensive check of hitting the AssetStore
-            if (ma.isValidImageForIA() != null) {
-                if (ma.isValidImageForIA().booleanValue()) numAllowedIA++;
-            } else if (ma.validateSourceImage()) {
-                numAllowedIA++;
-            }
-/*
-                if ((ma.isValidImageForIA() == null) || !ma.isValidImageForIA().booleanValue()) {
-                    invalidMediaAssets.add(asset);
-                }
- */
             // Terminal detection statuses include the completion states
             // (complete, complete-mlservice, pending — needs user review)
             // plus the failure/blocked terminal states (pending-species —
@@ -690,14 +860,30 @@ public class ImportTask implements java.io.Serializable {
             // retryable errors never reports 100% detection complete and
             // the frontend polls forever.
             String ds = ma.getDetectionStatus();
-            if (IBEISIA.STATUS_COMPLETE.equals(ds) ||
+            boolean terminal = IBEISIA.STATUS_COMPLETE.equals(ds) ||
                 IBEISIA.STATUS_COMPLETE_MLSERVICE.equals(ds) ||
                 IBEISIA.STATUS_PENDING.equals(ds) ||
                 IBEISIA.STATUS_PENDING_SPECIES.equals(ds) ||
-                IBEISIA.STATUS_ERROR.equals(ds)) {
+                IBEISIA.STATUS_ERROR.equals(ds);
+            if (terminal) {
                 numDetectionComplete++;
                 if (IBEISIA.STATUS_ERROR.equals(ds)) numDetectionError++;
             }
+            // validateSourceImage() fully decodes the image file, and this GET never
+            // persists the result, so only pay for it while the answer can still affect
+            // detection progress. once an asset is terminal its validity is moot here.
+            Boolean valid = ma.isValidImageForIA();
+            if ((valid == null) && !terminal) {
+                ma.validateSourceImage();
+                valid = ma.isValidImageForIA(); // still null for non-LOCAL stores
+            }
+            if (valid == null) {
+                numValidIAUnknown++;
+            } else if (valid.booleanValue()) {
+                numAllowedIA++;
+            }
+            // unknown validity counts as outstanding so it can't fake completion
+            if (!terminal && !Boolean.FALSE.equals(valid)) numDetectionOutstanding++;
         }
         JSONObject pj = new JSONObject();
         pj.put("statsMediaAssets", statsMA);
@@ -706,6 +892,7 @@ public class ImportTask implements java.io.Serializable {
         pj.put("numberAnnotations", numAnnotations);
         pj.put("numberMediaAssetACMIds", numAcmId);
         pj.put("numberMediaAssetValidIA", numAllowedIA);
+        pj.put("numberMediaAssetValidIAUnknown", numValidIAUnknown);
         pj.put("detectionNumberComplete", numDetectionComplete);
         // Backend signal for "detection finished, but some assets errored".
         // Aggregate detectionStatus stays "complete" (so frontend polling
@@ -715,9 +902,10 @@ public class ImportTask implements java.io.Serializable {
         // non-legacy flavor
         if ((this.getIATask() != null) && this.iaTaskStarted()) {
             pipelineStarted = true;
-            // `>=` rather than `==` so non-IA-eligible MAs that land in a
-            // terminal detection state don't strand the import at "sent".
-            if (numDetectionComplete >= numAllowedIA) {
+            // decided per asset rather than comparing totals, so non-IA-eligible MAs
+            // don't strand the import at "sent" and terminal ineligible MAs can't pad
+            // the count past eligible MAs that are still in flight.
+            if (numDetectionOutstanding == 0) {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
@@ -744,6 +932,10 @@ public class ImportTask implements java.io.Serializable {
                 numIdentificationError = Math.max(0,
                     statsAnn.optInt("numLatestTask_error", 0));
                 numIdentificationComplete = numLatestCompleted + numIdentificationError;
+                // supplied boxes: a dropped box has ended too, as suppliedBoxesSettled counts it
+                if (this.annotationsImported())
+                    numIdentificationComplete += Math.max(0,
+                        statsAnn.optInt("numLatestTask_dropped-stale", 0));
                 pj.put("identificationNumberComplete", numIdentificationComplete);
                 pj.put("identificationNumberError", numIdentificationError);
                 pj.put("identificationNumTotal", numIdentificationTotal);
@@ -774,14 +966,71 @@ public class ImportTask implements java.io.Serializable {
             pj.put("identificationStatus", "unknown");
         }
         if (this.skippedDetection()) pj.put("detectionStatus", "skipped");
+        // supplied boxes stand in for detection: tell the task page so it can show detection as
+        // done and still offer identification
+        if (this.annotationsImported()) {
+            pj.put("annotationsImported", true);
+            pj.put("detectionPercent", 1.0);
+        }
         if (this.skippedIdentification()) pj.put("identificationStatus", "skipped");
+        // supplied boxes skip detection, but each box is still extracted (and matched, unless
+        // identification is skipped): the labels above alone do not say that work is done
+        boolean boxedStarted = pipelineStarted && this.annotationsImported();
+        boolean boxesSettled = boxedStarted && suppliedBoxesSettled(statsAnn, this.getIATask());
+        if (boxesSettled && !this.skippedIdentification() &&
+            (statsAnn == null || statsAnn.optInt("numLatestTasks", 0) == 0)) {
+            // identification was asked for but no box survived the import: nothing will ever
+            // be identified, so report it finished rather than "not started" forever
+            pj.put("identificationStatus", "complete");
+            pj.put("identificationPercent", 1.0);
+        }
         String ds = pj.optString("detectionStatus");
         String is = pj.optString("identificationStatus");
         pj.put("pipelineStarted", pipelineStarted);
         boolean pipelineComplete = ((ds.equals("complete") || ds.equals("skipped")) &&
             (is.equals("complete") || is.equals("skipped")));
+        if (boxedStarted) pipelineComplete = pipelineComplete && boxesSettled;
         pj.put("pipelineComplete", pipelineComplete);
         return pj;
+    }
+
+    /**
+     * Bulk-import boxes: true once every supplied box has reached an end state (its extraction
+     * and, when asked for, its identification), counting an errored box as ended. With no box
+     * at all the IA root task is the signal: it has ended itself (the bulk hand-off ends it when
+     * no box survived the import), or every task below it has ended (a request that found no box
+     * to work on ends only itself, so the root never gets a status of its own).
+     */
+    static boolean suppliedBoxesSettled(JSONObject statsAnn, Task iaRoot) {
+        int total = (statsAnn == null) ? 0 : statsAnn.optInt("numLatestTasks", 0);
+        if (total > 0) {
+            int ended = Math.max(0, statsAnn.optInt("numLatestTask_completed", 0)) +
+                Math.max(0, statsAnn.optInt("numLatestTask_error", 0)) +
+                Math.max(0, statsAnn.optInt("numLatestTask_dropped-stale", 0));
+            return ended >= total;
+        }
+        return (iaRoot != null) && (iaRoot.statusInEndState() || everyDescendantEnded(iaRoot));
+    }
+
+    /**
+     * True when the task has at least one child and every task below it, at every depth, is in
+     * an end state. A task that ended does not prove its own children did, so the walk never
+     * stops at an ended task.
+     */
+    static boolean everyDescendantEnded(Task root) {
+        List<Task> top = root.getChildren();
+        if ((top == null) || top.isEmpty()) return false;
+        java.util.Deque<Task> todo = new java.util.ArrayDeque<Task>(top);
+        java.util.Set<String> seen = new java.util.HashSet<String>();
+        seen.add(root.getId());
+        while (!todo.isEmpty()) {
+            Task t = todo.pop();
+            if ((t == null) || !seen.add(t.getId())) continue;   // a cycle or a repeat is walked once
+            if (!t.statusInEndState()) return false;
+            List<Task> kids = t.getChildren();
+            if (kids != null) todo.addAll(kids);
+        }
+        return true;
     }
 
     // Batch-count helpers for imports.jsp — run 3 GROUP BY queries instead of 3*N.

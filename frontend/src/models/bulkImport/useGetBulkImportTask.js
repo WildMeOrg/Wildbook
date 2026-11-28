@@ -36,6 +36,7 @@ export const initialPollClocks = () => ({
   handoffFirstSeen: null,
   taskInfoLagFirstSeen: null,
   lastImportPercent: null,
+  lastBoxesEnded: null,
 });
 
 // Pure polling-cadence decision, extracted from the hook so every branch is
@@ -153,6 +154,25 @@ export function computeBulkImportPollInterval(
   ) {
     clocks.lastImportPercent = pct;
     clocks.handoffFirstSeen = now;
+  }
+
+  // An import with user-supplied boxes reports both phases "skipped" while its
+  // boxes are still being extracted, so nothing above reads as in flight. The
+  // count of boxes that have ended (completed, errored or dropped) is its
+  // liveness signal, handled like importPercent: the budget resets whenever
+  // the count advances, so a long extraction is followed to the end while a
+  // stuck one still stops after one budget window. The count is bounded by the
+  // number of boxes, so this cannot reset forever.
+  if (ia.annotationsImported === true) {
+    const stats = ia.statsAnnotations || {};
+    const ended =
+      (Number(stats.numLatestTask_completed) || 0) +
+      (Number(stats.numLatestTask_error) || 0) +
+      (Number(stats["numLatestTask_dropped-stale"]) || 0);
+    if (clocks.lastBoxesEnded === null || ended > clocks.lastBoxesEnded) {
+      clocks.lastBoxesEnded = ended;
+      clocks.handoffFirstSeen = now;
+    }
   }
 
   if (clocks.handoffFirstSeen === null) clocks.handoffFirstSeen = now;

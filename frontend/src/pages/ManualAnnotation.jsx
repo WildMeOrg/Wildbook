@@ -49,8 +49,11 @@ export default function ManualAnnotation() {
     height: 0,
     rotation: 0,
   });
-  const { data: siteData } = useSiteSettings();
+  const { data: siteData, error: siteSettingsError } = useSiteSettings();
   const [rotationInfo, setRotationInfo] = useState(null);
+  const [imageLoading, setImageLoading] = useState(true);
+  const showImageSpinner =
+    imageLoading && assetId && encounterId && !siteSettingsError;
 
   const iaClassesForTaxonomy = siteData?.iaClassesForTaxonomy || {};
 
@@ -66,6 +69,7 @@ export default function ManualAnnotation() {
       const data = await response.json();
       setData(data);
       setRotationInfo(data.rotationInfo || null);
+      if (!data.url) setImageLoading(false);
 
       const annotation =
         data.annotations?.find(
@@ -84,6 +88,7 @@ export default function ManualAnnotation() {
     } catch (error) {
       alert("Error fetching media assets", error);
       setLoadingIa(false);
+      setImageLoading(false);
     }
   };
 
@@ -210,7 +215,7 @@ export default function ManualAnnotation() {
   }, []);
 
   const handleMouseDown = (e) => {
-    if (!imgRef.current || drawStatus === "DELETE") return;
+    if (!imgRef.current || imageLoading || drawStatus === "DELETE") return;
 
     const { left, top } = imgRef.current.getBoundingClientRect();
     setRect({
@@ -391,12 +396,43 @@ export default function ManualAnnotation() {
                 width: "100%",
                 marginTop: "1rem",
                 position: "relative",
+                minHeight: showImageSpinner ? 300 : undefined,
               }}
             >
+              {showImageSpinner && (
+                <div
+                  data-testid="image-loading-spinner"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "rgba(255, 255, 255, 0.45)",
+                    zIndex: 30,
+                  }}
+                >
+                  <div className="d-flex flex-column align-items-center">
+                    <div
+                      className="spinner-border spinner-border-sm"
+                      role="status"
+                    >
+                      <span className="visually-hidden">
+                        <FormattedMessage id="LOADING" />
+                      </span>
+                    </div>
+                    <small style={{ marginTop: 8 }}>
+                      <FormattedMessage id="LOADING_IMAGE" />
+                    </small>
+                  </div>
+                </div>
+              )}
               <img
                 ref={imgRef}
-                src={data.url}
+                src={data.url || undefined}
                 alt="annotationimages"
+                onLoad={() => setImageLoading(false)}
+                onError={() => setImageLoading(false)}
                 style={{
                   width: "100%",
                   height: "auto",

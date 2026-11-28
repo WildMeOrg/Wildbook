@@ -93,7 +93,6 @@ public class UserDelete extends HttpServlet {
                 myShepherd.closeDBTransaction();
             }
             if (!locked) {
-                org.ecocean.OpenSearch.setPermissionsNeeded(true);
                 // myShepherd.commitDBTransaction();
                 // myShepherd.closeDBTransaction();
                 out.println(ServletUtilities.getHeader(request));

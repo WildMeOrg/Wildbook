@@ -97,20 +97,25 @@ input.nameVale, input.nameKey {
     margin-bottom: 0px;
 }
 
-#nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #matchCheck {
+#nameCheck, #namerCheck, #sexCheck, #taxonomyCheck, #birthCheck, #deathCheck, #altIdCheck, #matchCheck {
     display: none;
     color: green;
     font-family: sans-serif;
 }
 
-#nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, #matchError {
+#nameError, #namerError, #sexError, #taxonomyError, #birthError, #deathError, #altIdError, #matchError {
     display: none;
     color: red;
     font-family: sans-serif;
     font-weight: bold;
 }
 
-#nicknameErrorDiv, #sexErrorDiv, #birthErrorDiv, #deathErrorDiv, #altIdErrorDiv, #matchErrorDiv {
+.taxonomyInherited {
+    color: #767676;
+    font-size: 0.9em;
+}
+
+#nicknameErrorDiv, #sexErrorDiv, #taxonomyErrorDiv, #birthErrorDiv, #deathErrorDiv, #altIdErrorDiv, #matchErrorDiv {
     display: none;
 }
 

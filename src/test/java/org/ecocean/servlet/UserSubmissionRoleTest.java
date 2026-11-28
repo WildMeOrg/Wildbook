@@ -15,7 +15,7 @@ class UserSubmissionRoleTest {
     @Test void nonAdminEditPreservesEnrollmentAcrossRename() {
         Role capability = new Role("old-name", Role.API_SUBMISSION);
         List<Role> toReplace = new ArrayList<>(List.of(capability, new Role("old-name", "researcher")));
-        UserCreate.preserveSubmissionRole(toReplace, "new-name", false);
+        UserCreate.preserveSiteAdminManagedRoles(toReplace, "new-name", false);
         assertFalse(toReplace.contains(capability));
         assertEquals("new-name", capability.getUsername());
         assertEquals(1, toReplace.size());
@@ -23,7 +23,7 @@ class UserSubmissionRoleTest {
     @Test void adminCanRevokeEnrollmentByOmittingItFromReplacement() {
         Role capability = new Role("pilot", Role.API_SUBMISSION);
         List<Role> toReplace = new ArrayList<>(List.of(capability));
-        UserCreate.preserveSubmissionRole(toReplace, "pilot", true);
+        UserCreate.preserveSiteAdminManagedRoles(toReplace, "pilot", true);
         assertTrue(toReplace.contains(capability));
     }
     @Test void usernameCollisionIsRejectedAndQueryClosed() {

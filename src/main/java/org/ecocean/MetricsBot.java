@@ -539,21 +539,32 @@ public class MetricsBot {
             "SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('MiewId')>-1",
             "wildbook_tasks_miewId", "Number of tasks using MiewId algorithm", context));
 
-        // ml-service v2 vector (MiewID) re-ID matches carry mlServiceV2Match=true
-        // (MlServiceProcessor.runMatchProspects); the per-annotation leaf subtasks
-        // inherit it (Embedding.findMatchProspects -> new Task(matchTask)).
-        // children==null counts those leaves (one per annotation), parallel to the
-        // hotspotter/pieTwo gauges above; the parent match task has children and is
-        // excluded, so no double counting. Edge case: an invalid/rejected match
-        // config aborts before any subtask is created, leaving the parent match
-        // task childless — that rare failure counts as one terminal leaf here.
-        // Match the quoted JSON key (like the hotspotter '"sv_on"' gauge) so we
-        // hit the key, not an incidental substring elsewhere in the params.
+        // Vector (ml-service) identification leaf tasks carry mlServiceV2Match=true on their
+        // option task and inherit it (Embedding.findMatchProspects -> new Task(option)).
+        // Since issue #1787 every entry point (bulk import, New Match, resend) marks its vector
+        // option tasks, so this counts all of them. children==null counts the leaves (one per
+        // annotation; the option task has children and is excluded). A vector option that
+        // failed before creating any leaf is childless and counts as one. Match the quoted JSON
+        // key (like the hotspotter '"sv_on"' gauge) so we hit the key, not a substring.
         addLineIfNotNull(csvLines, buildGauge(
             "SELECT count(this) FROM org.ecocean.ia.Task where children == null && parameters.indexOf('\"mlServiceV2Match\"')>-1",
             "wildbook_tasks_vectorMatch",
-            "Number of ml-service v2 vector (MiewID) re-ID leaf tasks (one per matched annotation; a rare invalid-config match failure counts as one)",
+            "Number of vector identification leaf tasks (all entry points; counts errors too)",
             context));
+
+        // Modified Groth + I3S spot-pattern scans. These never touch org.ecocean.ia.Task:
+        // GrothScanRunnable writes one org.ecocean.grid.ScanRecord row per completed scan
+        // run, with a per-algorithm success flag for each (one run executes BOTH matchers).
+        // ScanTask rows cannot be counted instead — one reused row per encounter side.
+        // Counts start at 0 on deploy; historical scans left no per-run rows.
+        addLineIfNotNull(csvLines, buildGauge(
+            "SELECT count(this) FROM org.ecocean.grid.ScanRecord where grothSuccess == true",
+            "wildbook_tasks_modifiedGroth",
+            "Number of successful Modified Groth spot-pattern scan tasks", context));
+        addLineIfNotNull(csvLines, buildGauge(
+            "SELECT count(this) FROM org.ecocean.grid.ScanRecord where i3sSuccess == true",
+            "wildbook_tasks_i3s",
+            "Number of successful I3S spot-pattern scan tasks", context));
 
 
 
@@ -604,8 +615,16 @@ public class MetricsBot {
             String idCompleteFilter =
                 "SELECT count(this) FROM org.ecocean.ia.Task where completionDateInMilliseconds > "
                 + (System.currentTimeMillis() - TwoFourHours);
+            // Successful Modified Groth / I3S spot scans contribute to the identification
+            // aggregate. A run that produced both algorithms' results counts ONCE here —
+            // it is one re-ID job; the per-algorithm gauges report them individually.
+            String spotScansCompleteFilter =
+                "SELECT count(this) FROM org.ecocean.grid.ScanRecord where endTime > "
+                + (System.currentTimeMillis() - TwoFourHours) +
+                " && (grothSuccess == true || i3sSuccess == true)";
             Query qD = null;
             Query qID = null;
+            Query qS = null;
             try {
                 Long detectValue = null;
                 Long idValue = null;
@@ -616,9 +635,21 @@ public class MetricsBot {
                 idValue = (Long)qID.execute();
                 if (idValue != null)
                     numIDCompletedLast24 = idValue.intValue() - detectValue.intValue();
+                // Own try/catch so a ScanRecord-side failure cannot suppress the two
+                // pre-existing completed metrics below.
+                try {
+                    qS = myShepherd.getPM().newQuery(spotScansCompleteFilter);
+                    Long spotScanValue = (Long)qS.execute();
+                    if (spotScanValue != null)
+                        numIDCompletedLast24 += spotScanValue.intValue();
+                } catch (Exception scanEx) {
+                    System.out.println(
+                        "MetricsBot: could not count ScanRecord spot scans for last24:");
+                    scanEx.printStackTrace();
+                }
                 csvLines.add("wildbook_identification_tasks_completed_last24, " +
                     numIDCompletedLast24 + "," + "gauge" + "," +
-                    "Number of child identification tasks completed last 24 hours");
+                    "Number of child identification tasks completed last 24 hours (includes successful Modified Groth / I3S spot-pattern scans)");
                 csvLines.add("wildbook_detection_tasks_completed_last24, " +
                     numDetectionCompletedLast24 + "," + "gauge" + "," +
                     "Number of detection tasks completed last 24 hours");
@@ -630,6 +661,7 @@ public class MetricsBot {
             } finally {
                 if (qD != null) qD.closeAll();
                 if (qID != null) qID.closeAll();
+                if (qS != null) qS.closeAll();
             }
             IAJsonProperties iaConfig = new IAJsonProperties();
             List<Taxonomy> taxes = iaConfig.getAllTaxonomies(myShepherd);

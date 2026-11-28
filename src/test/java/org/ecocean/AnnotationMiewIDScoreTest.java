@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -8,9 +9,9 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests pinning the {@code getMatchQuery} JSON shape that the C17
- * commit established: knn clause in the nested {@code must} array,
- * method/methodVersion term clauses in the nested {@code filter}
- * array. This eliminates the spurious +2.0 score offset that the
+ * commit established: knn clause alone in the nested {@code must} array,
+ * method/methodVersion term clauses as a filter inside the knn clause.
+ * This eliminates the spurious +2.0 score offset that the
  * original (pre-C17) layout introduced when method/methodVersion
  * terms were in {@code must}.
  *
@@ -66,11 +67,11 @@ class AnnotationMiewIDScoreTest {
     // offset by +2.0 again. This test pins the JSON shape so that
     // drift is caught.
 
-    @Test void getMatchQuery_putsKnnInMust_termsInFilter() {
+    @Test void getMatchQuery_putsKnnInMust_termsInKnnFilter() {
         org.ecocean.Annotation ann = new org.ecocean.Annotation();
         // Embedding constructor auto-attaches to the annotation.
         org.json.JSONArray vec = new org.json.JSONArray();
-        for (int i = 0; i < 8; i++) vec.put(0.1d * i);
+        for (int i = 0; i < 2152; i++) vec.put(0.1d * (i % 8));
         new org.ecocean.Embedding(ann, "miewid-msv4.1", "4.1", vec);
 
         org.json.JSONObject matchingSet = new org.json.JSONObject();
@@ -87,8 +88,8 @@ class AnnotationMiewIDScoreTest {
         org.json.JSONObject nested = topMust.getJSONObject(0)
             .getJSONObject("nested");
 
-        // Inside the nested bool: must has ONLY knn, filter has the
-        // method/methodVersion terms. This is the C17 contract — any
+        // Inside the nested bool: must has ONLY knn, and the
+        // method/methodVersion terms are filters. This is the C17 contract — any
         // movement of the terms back into must would re-introduce the
         // +1.0-per-term-clause score offset that turned [0, 1] into
         // [2, 3] on the live deployment.
@@ -101,14 +102,18 @@ class AnnotationMiewIDScoreTest {
         assertTrue(nestedMust.getJSONObject(0).has("knn"),
             "nested.must[0] should be a knn clause: " + nestedMust.getJSONObject(0));
 
-        org.json.JSONArray nestedFilter = nestedBool.getJSONArray("filter");
-        assertEquals(2, nestedFilter.length(),
-            "nested.filter should contain method + methodVersion terms; found: " + nestedFilter);
-        // Both filter entries must be term clauses.
-        for (int i = 0; i < nestedFilter.length(); i++) {
-            assertTrue(nestedFilter.getJSONObject(i).has("term"),
-                "nested.filter[" + i + "] should be a term clause: " +
-                nestedFilter.getJSONObject(i));
+        // The model terms filter INSIDE the knn clause (so all k neighbours are from this
+        // model) and not beside it, where they would only post-filter the k chosen.
+        assertFalse(nestedBool.has("filter"),
+            "model terms must not be a sibling post-filter: " + nestedBool);
+        org.json.JSONArray knnFilter = nestedMust.getJSONObject(0).getJSONObject("knn")
+            .getJSONObject("embeddings.vector").getJSONObject("filter")
+            .getJSONObject("bool").getJSONArray("filter");
+        assertEquals(2, knnFilter.length(),
+            "knn filter should contain method + methodVersion terms; found: " + knnFilter);
+        for (int i = 0; i < knnFilter.length(); i++) {
+            assertTrue(knnFilter.getJSONObject(i).has("term"),
+                "knn filter[" + i + "] should be a term clause: " + knnFilter.getJSONObject(i));
         }
     }
 
@@ -118,7 +123,7 @@ class AnnotationMiewIDScoreTest {
         // rather than carrying empty term clauses.
         org.ecocean.Annotation ann = new org.ecocean.Annotation();
         org.json.JSONArray vec = new org.json.JSONArray();
-        for (int i = 0; i < 8; i++) vec.put(0.1d * i);
+        for (int i = 0; i < 2152; i++) vec.put(0.1d * (i % 8));
         new org.ecocean.Embedding(ann, null, null, vec);
 
         org.json.JSONObject matchingSet = new org.json.JSONObject();

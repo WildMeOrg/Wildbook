@@ -18,7 +18,7 @@ import org.json.JSONObject;
  */
 public final class IAGatewayDeferredMatchPublisher implements DeferredMatchPublisher {
     @Override
-    public void publish(JSONObject payload) {
-        IAGateway.requeueJob(payload, true);
+    public boolean publish(JSONObject payload) {
+        return IAGateway.requeueJob(payload, true);
     }
 }

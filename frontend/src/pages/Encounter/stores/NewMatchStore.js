@@ -1,11 +1,10 @@
-import { makeAutoObservable } from "mobx";
+import { comparer, makeAutoObservable, reaction } from "mobx";
 import axios from "axios";
 import {
   findNodeByValue,
   getAllDescendantValues,
   expandIds,
 } from "../../../utils/treeSelectionFunction";
-import { reaction } from "mobx";
 
 class NewMatchStore {
   encounterStore;
@@ -28,41 +27,26 @@ class NewMatchStore {
       { fireImmediately: true },
     );
 
+    // Keep the selection in step with what can be matched right now: drop
+    // choices that are no longer offered, then fall back to the defaults when
+    // nothing is left. The inputs are compared structurally so a poll that
+    // refreshes the same annotations does not re-apply defaults over a
+    // selection the user cleared. _algorithms is deliberately not tracked.
     reaction(
-      () => this.shouldHideVectorAlgorithms,
-      (shouldHide) => {
-        if (shouldHide) {
-          this._algorithms = this._algorithms.filter(
-            (value) => !String(value).toLowerCase().includes("vector"),
-          );
-        }
+      () => ({
+        annotationIds: this.annotationIds,
+        offered: this.visibleIaConfig.map((d) => d.description),
+        defaults: this.visibleIaConfig
+          .filter((d) => d.default === true)
+          .map((d) => d.description),
+      }),
+      ({ offered, defaults }) => {
+        const kept = this._algorithms.filter((value) =>
+          offered.includes(value),
+        );
+        this._algorithms = kept.length > 0 ? kept : defaults;
       },
-      { fireImmediately: true },
-    );
-
-    // Auto-select default algorithms when iaConfig becomes available
-    reaction(
-      () => this.iaConfigBasedOnTaxonomy,
-      (iaConfig) => {
-        if (this._algorithms.length === 0 && iaConfig?.length > 0) {
-          const defaults = iaConfig
-            .filter((d) => {
-              if (d.default !== true) return false;
-
-              const isVector = String(d.description)
-                .toLowerCase()
-                .includes("vector");
-
-              if (this.shouldHideVectorAlgorithms && isVector) return false;
-              return true;
-            })
-            .map((d) => d.description);
-          if (defaults.length > 0) {
-            this._algorithms = defaults;
-          }
-        }
-      },
-      { fireImmediately: true },
+      { fireImmediately: true, equals: comparer.structural },
     );
   }
 
@@ -103,31 +87,25 @@ class NewMatchStore {
     return this.iaConfigs[this.encounterStore?.encounterData?.taxonomy] || [];
   }
 
-  get annotationIds() {
-    const encounterData = this.encounterStore?.encounterData;
-    const allMediaAssets = encounterData?.mediaAssets || [];
-    const mediaAsset =
-      allMediaAssets[this.encounterStore.selectedImageIndex] || {};
-    const annotations = mediaAsset?.annotations || [];
-    const encounterId = encounterData?.id || "";
-    return annotations
-      .filter((d) => d.encounterId === encounterId)
-      .map((d) => d.id);
-  }
-
-  get shouldHideVectorAlgorithms() {
+  // annotations of this encounter on the selected image: what a match is run on
+  get selectedAnnotations() {
     const encounterData = this.encounterStore?.encounterData;
     const allMediaAssets = encounterData?.mediaAssets || [];
     const mediaAsset =
       allMediaAssets[this.encounterStore?.selectedImageIndex] || {};
     const annotations = mediaAsset?.annotations || [];
     const encounterId = encounterData?.id || "";
-
-    const currentEncounterAnnotations = annotations.filter(
+    return annotations.filter(
       (annotation) => annotation?.encounterId === encounterId,
     );
+  }
 
-    const hasEmbedding = currentEncounterAnnotations.some((annotation) => {
+  get annotationIds() {
+    return this.selectedAnnotations.map((d) => d.id);
+  }
+
+  get shouldHideVectorAlgorithms() {
+    const hasEmbedding = this.selectedAnnotations.some((annotation) => {
       const embeddingCounts = annotation?.embeddingCounts;
 
       return (
@@ -141,33 +119,53 @@ class NewMatchStore {
     return !hasEmbedding;
   }
 
-  get algorithmOptions() {
-    const options =
-      this.iaConfigBasedOnTaxonomy?.map((d) => ({
-        label: d.description,
-        value: d.description,
-      })) || [];
-
-    if (!this.shouldHideVectorAlgorithms) return options;
-
-    return options.filter(
-      (option) => !String(option?.value).toLowerCase().includes("vector"),
+  // The taxonomy's matchers narrowed to the IA classes of the selected
+  // annotations, using the _iaClasses list site settings puts on each entry.
+  // Narrowing is skipped whenever it cannot be trusted: no class on the
+  // annotations, or a class that no entry lists (a class stored under a
+  // _save_as name with no IA.json entry of its own still matches through the
+  // taxonomy defaults, which _iaClasses does not describe).
+  get eligibleIaConfig() {
+    const all = this.iaConfigBasedOnTaxonomy;
+    const classes = new Set(
+      this.selectedAnnotations.map((a) => a?.iaClass).filter(Boolean),
     );
+    if (classes.size === 0) return all;
+
+    const advertised = new Set(
+      all.flatMap((cfg) =>
+        Array.isArray(cfg?._iaClasses) ? cfg._iaClasses : [],
+      ),
+    );
+    for (const iaClass of classes) {
+      if (!advertised.has(iaClass)) return all;
+    }
+    return all.filter(
+      (cfg) =>
+        !Array.isArray(cfg?._iaClasses) ||
+        cfg._iaClasses.some((iaClass) => classes.has(iaClass)),
+    );
+  }
+
+  // what the dialog offers: eligible matchers, minus vector ones when the
+  // selected annotations have no embedding to match with
+  get visibleIaConfig() {
+    if (!this.shouldHideVectorAlgorithms) return this.eligibleIaConfig;
+    return this.eligibleIaConfig.filter(
+      (cfg) => !String(cfg?.description).toLowerCase().includes("vector"),
+    );
+  }
+
+  get algorithmOptions() {
+    return this.visibleIaConfig.map((d) => ({
+      label: d.description,
+      value: d.description,
+    }));
   }
 
   get matchingAlgorithms() {
     const selected = new Set(this._algorithms || []);
-    return (
-      this.iaConfigBasedOnTaxonomy?.filter((cfg) => {
-        const isSelected = selected.has(cfg.description);
-        const isVector = String(cfg.description)
-          .toLowerCase()
-          .includes("vector");
-
-        if (this.shouldHideVectorAlgorithms && isVector) return false;
-        return isSelected;
-      }) || []
-    );
+    return this.visibleIaConfig.filter((cfg) => selected.has(cfg.description));
   }
 
   // initFromPrevious(previousIds = []) {

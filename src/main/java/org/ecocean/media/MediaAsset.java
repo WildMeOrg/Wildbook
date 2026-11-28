@@ -606,6 +606,20 @@ public class MediaAsset extends Base implements java.io.Serializable {
 
     // if unity feature is appropriate, generates that; otherwise does a boundingBox one
     // 'params' is extra params to use, and can be null
+    // bulk-import boxes (spec 4.3): the same with an already-loaded FeatureType; the importer
+    // loads it once on its own persistence manager instead of the FeatureType.initAll cache
+    public Feature generateFeatureFromBbox(FeatureType type, double w, double h, double x,
+        double y, JSONObject params) {
+        if (params == null) params = new JSONObject();
+        params.put("width", w);
+        params.put("height", h);
+        params.put("x", x);
+        params.put("y", y);
+        Feature f = new Feature(type, params);
+        this.addFeature(f);
+        return f;
+    }
+
     public Feature generateFeatureFromBbox(double w, double h, double x, double y,
         JSONObject params) {
         if (params == null) params = new JSONObject();
@@ -1202,9 +1216,15 @@ public class MediaAsset extends Base implements java.io.Serializable {
     }
 
     /**
-     * Creates standard child assets in the background, then runs {@code afterCommit} only after
-     * the child assets have been committed. Callers that index a parent object from its child URLs
-     * can use the callback to avoid indexing before a _master child is visible.
+     * Creates standard child assets in the background. Each asset is handled in its own
+     * transaction, so an interruption part-way through keeps the children already committed
+     * instead of losing them for every asset in {@code ids}.
+     *
+     * {@code afterCommit} runs once, after every asset has been attempted and its cleanup has
+     * been attempted, whether or not the commits succeeded: a failed asset gained no children
+     * from this job. Callers that index a parent object from its child URLs can use the callback
+     * to avoid indexing before a _master child is visible. It does not run if the job is stopped
+     * by a fatal error (see {@link #isFatal}).
      */
     public static void updateStandardChildrenBackground(final String context,
         final List<Integer> ids, final Runnable afterCommit) {
@@ -1217,40 +1237,82 @@ public class MediaAsset extends Base implements java.io.Serializable {
             ids.size() + " MediaAsset ids >>>>");
         Runnable rn = new Runnable() {
             public void run() {
-                Shepherd myShepherd = new Shepherd(context);
-                myShepherd.setAction("updateStandardChildrenBackground:" + tid);
-                myShepherd.beginDBTransaction();
-                // try/finally so a throw from load/updateStandardChildren cannot skip the close and
-                // leak this background Shepherd. commit stays inside try; the finally rollback is a
-                // harmless no-op once the commit has succeeded.
-                try {
-                    int ct = 0;
-                    for (Integer id : ids) {
-                        ct++;
-                        try {
-                            MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
-                            if (ma == null) continue;
-                            ma.setSkipAutoIndexing(true);
-                            ArrayList<MediaAsset> kids = ma.updateStandardChildren(myShepherd);
-                            System.out.println("+ [" + ct + "] updateStandardChildrenBackground() [" +
-                                tid + "] completed " + kids.size() + " children for id=" + id);
-                        } catch (Exception ex) {
-                            System.out.println("updateStandardChildrenBackground() [" + tid +
-                                "] failed for id=" + id + ": " + ex);
-                            ex.printStackTrace();
-                        }
-                    }
-                    if (myShepherd.commitDBTransactionWithStatus() && (afterCommit != null)) {
-                        afterCommit.run();
-                    }
-                } finally {
-                    myShepherd.rollbackAndClose();
-                }
+                runStandardChildrenJob(context, ids, afterCommit, tid);
             }
         };
         new Thread(rn).start();
         System.out.println("updateStandardChildrenBackground() [" + tid + "] out of fork for ct=" +
             ids.size() + " <<<<");
+    }
+
+    // errors after which the JVM (or this code) cannot be trusted to carry on; the job stops
+    static boolean isFatal(Throwable t) {
+        return (t instanceof VirtualMachineError) || (t instanceof ThreadDeath) ||
+                   (t instanceof LinkageError);
+    }
+
+    // body of the background job, synchronous so it can be tested. one Shepherd (so one
+    // PersistenceManager and one transaction) per asset: a failure on one asset cannot leave state
+    // behind for the next, and each commit makes that asset's children durable on its own.
+    // returns the ids that did not commit.
+    static List<Integer> runStandardChildrenJob(String context, List<Integer> ids, Runnable afterCommit,
+        String tid) {
+        int ct = 0;
+        List<Integer> failed = new ArrayList<Integer>();
+
+        for (Integer id : ids) {
+            ct++;
+            boolean ok = false;
+            Shepherd myShepherd = null;
+            try {
+                myShepherd = new Shepherd(context);
+                myShepherd.setAction("updateStandardChildrenBackground:" + tid);
+                myShepherd.beginDBTransaction();
+                if (!myShepherd.isDBTransactionActive())
+                    throw new RuntimeException("could not begin a transaction");
+                MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                if (ma == null) throw new RuntimeException("MediaAsset not found");
+                ma.setSkipAutoIndexing(true);
+                ArrayList<MediaAsset> kids = ma.updateStandardChildren(myShepherd);
+                if (!myShepherd.commitDBTransactionWithStatus())
+                    throw new RuntimeException("commit failed");
+                ok = true;
+                System.out.println("+ [" + ct + "] updateStandardChildrenBackground() [" + tid +
+                    "] committed " + Util.collectionSize(kids) + " children for id=" + id);
+            } catch (Throwable t) {
+                if (isFatal(t)) throw t;
+                System.out.println("updateStandardChildrenBackground() [" + tid +
+                    "] failed for id=" + id + ": " + t);
+                t.printStackTrace();
+            } finally {
+                // a no-op rollback after a successful commit; never let cleanup trouble hide the
+                // outcome of this asset or stop the next one
+                if (myShepherd != null) {
+                    try {
+                        myShepherd.rollbackAndClose();
+                    } catch (Throwable t) {
+                        if (isFatal(t)) throw t;
+                        System.out.println("updateStandardChildrenBackground() [" + tid +
+                            "] cleanup failed for id=" + id + ": " + t);
+                    }
+                }
+            }
+            // after cleanup: nothing may come between a failure and closing the Shepherd
+            if (!ok) failed.add(id);
+        }
+        System.out.println("updateStandardChildrenBackground() [" + tid + "] finished: " +
+            (ids.size() - failed.size()) + " ok, " + failed.size() + " failed" +
+            (failed.isEmpty() ? "" : " " + failed));
+        if (afterCommit == null) return failed;
+        try {
+            afterCommit.run();
+        } catch (Throwable t) {
+            if (isFatal(t)) throw t;
+            System.out.println("updateStandardChildrenBackground() [" + tid +
+                "] afterCommit failed: " + t);
+            t.printStackTrace();
+        }
+        return failed;
     }
 
     // convenience when you have list of MediaAssets

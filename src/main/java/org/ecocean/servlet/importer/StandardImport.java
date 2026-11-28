@@ -443,7 +443,6 @@ public class StandardImport extends HttpServlet {
                 if (itask != null) sendforACMID(itask, myShepherd, context);
                 // let's finish up and be done
                 if (itask != null) itask.setStatus("complete");
-                OpenSearch.setPermissionsNeeded(myShepherd, true);
                 myShepherd.commitDBTransaction();
                 myShepherd.closeDBTransaction();
                 // GH-1514: post-commit, queue deep reindex of every individual

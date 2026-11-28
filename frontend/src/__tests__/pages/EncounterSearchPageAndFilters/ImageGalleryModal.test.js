@@ -6,6 +6,7 @@ jest.mock("react-intl", () => ({
   FormattedMessage: ({ defaultMessage, id }) => (
     <span>{defaultMessage ?? id}</span>
   ),
+  useIntl: () => ({ formatMessage: ({ id }) => id }),
 }));
 jest.mock("mobx-react-lite", () => ({ observer: (c) => c }));
 
@@ -56,6 +57,28 @@ describe("ImageGalleryModal", () => {
       "src",
       "u1",
     );
+  });
+
+  test("shows the image filename in the side panel, dash when missing", () => {
+    const s = makeImageStore();
+    const assets = [
+      { id: "1", url: "u1", userFilename: "B2000209.jpg" },
+      { id: "2", url: "u2" },
+    ];
+    const { rerender } = render(
+      <ImageGalleryModal open assets={assets} index={0} imageStore={s} />,
+    );
+    const label = screen.getByText("IMAGE_FILE_NAME");
+    expect(label.closest("dt").nextElementSibling).toHaveTextContent(
+      "B2000209.jpg",
+    );
+
+    rerender(
+      <ImageGalleryModal open assets={assets} index={1} imageStore={s} />,
+    );
+    expect(
+      screen.getByText("IMAGE_FILE_NAME").closest("dt").nextElementSibling,
+    ).toHaveTextContent("—");
   });
 
   test("close", () => {

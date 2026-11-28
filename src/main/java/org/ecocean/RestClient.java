@@ -17,6 +17,8 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.json.JSONObject;
 
 import java.security.InvalidKeyException;
@@ -32,6 +34,18 @@ import org.apache.commons.codec.binary.Base64;
 public class RestClient {
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
     private static final int CONNECTION_TIMEOUT = 300000; // maybe this should be service-specific?
+    private static final Pattern HTTP_CODE_PATTERN =
+        Pattern.compile("HTTP error code\\s*[=:]\\s*(\\d{3})");
+
+    /**
+     * Extract a three-digit code from either RestClient error-message format,
+     * including nonstandard service codes. Returns -1 for null or no match.
+     */
+    public static int parseErrorCode(String msg) {
+        if (msg == null) return -1;
+        Matcher matcher = HTTP_CODE_PATTERN.matcher(msg);
+        return matcher.find() ? Integer.parseInt(matcher.group(1)) : -1;
+    }
 
     public static JSONObject post(URL url, JSONObject data)
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,

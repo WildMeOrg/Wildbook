@@ -91,6 +91,33 @@ describe("MatchResultsStore — multi-query trees (issue #1744)", () => {
     expect(sections[1].metadata.queryIndividualId).toBeNull();
   });
 
+  test("each section's metadata carries its own query date, filename and location (issue #1733)", () => {
+    const a = sectionA();
+    a.matchResults.queryAnnotation.encounter.date = "2024-01-02 03:04";
+    a.matchResults.queryAnnotation.asset.filename = "a.jpg";
+    const b = sectionB();
+    b.matchResults.queryAnnotation.encounter.date = "2023";
+    b.matchResults.queryAnnotation.asset.filename = "b.jpg";
+    delete b.matchResults.queryAnnotation.encounter.locationId; // not visible to this viewer
+    store.loadData({
+      matchResultsRoot: {
+        id: "umbrella",
+        dateCreated: "2024-06-01",
+        children: [a, b],
+      },
+    });
+    const meta = store.processedAnnots.map((s) => s.metadata);
+    expect(meta.map((m) => m.queryEncounterDate)).toEqual([
+      "2024-01-02 03:04",
+      "2023",
+    ]);
+    expect(meta.map((m) => m.queryEncounterImageAsset?.filename)).toEqual([
+      "a.jpg",
+      "b.jpg",
+    ]);
+    expect(meta.map((m) => m.encounterLocationId)).toEqual(["loc-A", null]);
+  });
+
   test("with nothing selected a multi-query tree has no target and mutating actions refuse", async () => {
     store.loadData(multiQueryResponse());
     // no default: the first-listed section must never be named by accident

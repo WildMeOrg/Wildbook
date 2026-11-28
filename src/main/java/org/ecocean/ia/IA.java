@@ -22,7 +22,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.Map;
 import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
@@ -146,7 +149,10 @@ public class IA {
         System.out.println("intakeMediaAssetsOneSpecies constructed maArr " + maArr.toString());
 
         Task topTask = new Task();
-        if (parentTask != null) topTask.setParameters(parentTask.getParameters());
+        // issue #1787 (spec §4.0): a detection task never carries a run's keys, even when the
+        // root it descends from is a reused umbrella (handleRest)
+        if ((parentTask != null) && (parentTask.getParameters() != null))
+            topTask.setParameters(scrubRunParams(parentTask.getParameters()));
         topTask.setObjectMediaAssets(mas);
         myShepherd.storeNewTask(topTask);
 
@@ -262,17 +268,18 @@ public class IA {
      * return to decide whether to commit accompanying state changes; the
      * normal intake path tolerates the swallowed-failure behavior.</p>
      *
-     * <p><b>Task persistence note:</b> {@link Shepherd#storeNewTask}
-     * internally commits/reopens the transaction, so the child Task row
-     * is persisted before this method enqueues. On enqueue failure the
-     * child Task remains in the DB as an orphan — there is no queued
-     * job that will ever drive it. The orphan IS still discoverable
-     * via {@link org.ecocean.media.MediaAsset#getRootIATasks} (since
-     * the task references the MediaAsset through objectMediaAssets),
-     * so it may surface in operator-facing task listings until cleaned
-     * up by an out-of-band path. Callers that need cleanup should
-     * delete the orphan explicitly; the default posture here is to
-     * accept it since FileQueue write failures are rare.</p>
+     * <p><b>Task persistence note:</b> the child Task (with the job as its
+     * resume message) is persisted through {@link #enqueueMlServiceJob},
+     * which commits with status BEFORE the job is published; a child whose
+     * persist or commit fails is neither published nor left behind. On a
+     * queue write failure the committed child remains in the DB as an
+     * orphan — there is no queued job that will ever drive it. The orphan
+     * IS still discoverable via
+     * {@link org.ecocean.media.MediaAsset#getRootIATasks} (since the task
+     * references the MediaAsset through objectMediaAssets), so it may
+     * surface in operator-facing task listings until cleaned up by an
+     * out-of-band path; the default posture is to accept it since
+     * FileQueue write failures are rare.</p>
      *
      * <p>If {@code topTask} is null a fresh root task is created inside
      * this method. This matches the reconciler's use case where there is
@@ -293,7 +300,6 @@ public class IA {
         // flag, so MlServiceProcessor.runMatchProspects strips it back off
         // (mirror of IBEISIA's params.remove("ibeis.detection")).
         childTask.addParameter("ibeis.detection", true);
-        myShepherd.storeNewTask(childTask);
 
         // Best-effort encounterId via existing annotations on the MA.
         String encounterId = null;
@@ -319,11 +325,44 @@ public class IA {
             qjob.put("encounterId", encounterId);
         }
 
+        return enqueueMlServiceJob(myShepherd, childTask, qjob, context);
+    }
+
+    /**
+     * Bulk-import boxes PR A (spec 4.4): persist a job's Task with a checked commit, THEN publish
+     * the job. The job is stored on the task as its resume message first, so a startup replay can
+     * republish it. Returns true iff the queue write succeeded; a persist exception or a false
+     * commit returns false without publishing (the transaction is reopened either way).
+     */
+    public static boolean enqueueMlServiceJob(Shepherd myShepherd, Task child, JSONObject qjob,
+        String context) {
+        child.setQueueResumeMessage(qjob.toString());
+        try {
+            myShepherd.getPM().makePersistent(child);
+        } catch (Exception ex) {
+            System.out.println("ERROR: IA.enqueueMlServiceJob() could not persist task " +
+                child.getId() + ": " + ex);
+            myShepherd.rollbackDBTransaction();
+            myShepherd.beginDBTransaction();
+            return false;
+        }
+        if (!myShepherd.commitDBTransactionWithStatus()) {
+            System.out.println("ERROR: IA.enqueueMlServiceJob() commit failed for task " +
+                child.getId() + "; job not published");
+            myShepherd.beginDBTransaction();
+            return false;
+        }
+        myShepherd.beginDBTransaction();
+        return publishMlServiceJob(context, qjob);
+    }
+
+    /** Publish an ml-service job on the detection queue; an IOException logs and returns false. */
+    public static boolean publishMlServiceJob(String context, JSONObject qjob) {
         try {
             return org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
         } catch (java.io.IOException iox) {
-            System.out.println("ERROR: IA.enqueueOneAssetForMlService() " +
-                "addToDetectionQueue threw on ma " + ma.getId() + ": " + iox);
+            System.out.println("ERROR: IA.publishMlServiceJob() addToDetectionQueue threw for task " +
+                qjob.optString("taskId", null) + ": " + iox);
             return false;
         }
     }
@@ -374,49 +413,272 @@ public class IA {
         return intakeAnnotations(myShepherd, anns, null, false);
     }
 
+    // ---- issue #1787 (spec §4.2): outcome record and dispatcher seam ----
+
+    /** One option task of an intake run and what happened to its dispatch. */
+    public static final class OptionResult {
+        public final Task task;
+        public final boolean vector;
+        /** true once the option's dispatch ran (vector) or its queue job was published (HotSpotter); says nothing about the match outcome */
+        public boolean published = false;
+        public String failureCode = null;
+
+        OptionResult(Task task, boolean vector) {
+            this.task = task;
+            this.vector = vector;
+        }
+    }
+
+    /** What {@link #intakeAnnotationsUnder} built, persisted and dispatched. */
+    public static final class IntakeOutcome {
+        public Task umbrella = null;
+        public final List<OptionResult> options = new ArrayList<OptionResult>();
+        public final List<String> skippedIaClasses = new ArrayList<String>();
+        public boolean noWork = false;
+        public boolean persistFailed = false;
+    }
+
+    /** Seam between the core and its two dispatch targets, so tests run with no OpenSearch, ml-service or file queue. */
+    interface Dispatcher {
+        /** Runs a vector option inline (Embedding.findMatchProspects); may throw. */
+        void runVector(JSONObject opt, Task optionTask, Shepherd myShepherd);
+
+        /** Publishes a HotSpotter job; false or an exception means "not published". */
+        boolean publish(String context, String job, boolean fastlane) throws java.io.IOException;
+    }
+
+    private static final Dispatcher REAL_DISPATCHER = new Dispatcher() {
+        @Override public void runVector(JSONObject opt, Task optionTask, Shepherd myShepherd) {
+            Embedding.findMatchProspects(opt, optionTask, myShepherd);
+        }
+
+        @Override public boolean publish(String context, String job, boolean fastlane)
+        throws java.io.IOException {
+            // One classifier decides the lane (IAGateway.laneFor reads the job's "fastlane" flag).
+            // Routing fastlane work to the SERIAL detection queue left it behind every queued
+            // ml-service detection.
+            return org.ecocean.servlet.IAGateway.publishToLane(context, job);
+        }
+    };
+    private static volatile Dispatcher dispatcher = REAL_DISPATCHER;
+
+    /** Test hook; null restores the real dispatcher. */
+    static void setDispatcherForTests(Dispatcher d) {
+        dispatcher = (d == null) ? REAL_DISPATCHER : d;
+    }
+
+    /**
+     * Existing entry point, unchanged signature. The umbrella is NOT linked to
+     * {@code parentTask} here (callers attach it afterwards, as before); the parent only
+     * supplies the inherited parameters. Returns null when the run could not be persisted
+     * (today's code continued blind after a swallowed commit failure).
+     */
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns,
         final Task parentTask, boolean fastlane) {
-        // List<List<Annotation>> annses = binAnnotsByIaClass(anns);
-        //// slightly complicated bc we need to create child tasks only if there are multiple iaClasses
-        // if (annses.size() == 1) return intakeAnnotationsOneIAClass(myShepherd, annses.get(0), parentTask);
-        //// here we make child tasks
-        // Task topTask = (parentTask==null) ? new Task() : parentTask;
-        // for (List<Annotation> annsOneIaClass: annses) {
-        // topTask.addChild(intakeAnnotationsOneIAClass(myShepherd, anns, parentTask));
-        // }
-        // return topTask;
-        // }
-        // public static Task intakeAnnotationsOneIAClass(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
-        // System.out.println("Starting intakeAnnotations");
-        if ((anns == null) || (anns.size() < 1)) return null;
-        Task topTask = new Task();
-        if (parentTask != null) topTask.setParameters(parentTask.getParameters());
-        topTask.setObjectAnnotations(anns);
-        String context = myShepherd.getContext();
+        JSONObject inherited = (parentTask == null) ? null : parentTask.getParameters();
+        IntakeOutcome o = intakeCore(myShepherd, anns, null, inherited, fastlane, null, false);
 
-        /*
-            what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed for this we use
-               IBEISIA.identOpts to decide how many flavors of identification we need to do!   if have more than one we need to make a set of subtasks
-         */
+        if ((o == null) || o.persistFailed) return null;
+        return o.umbrella;
+    }
 
-/*
-        String iaClass = anns.get(0).getIAClass(); //IAClass is a standard with image analysis that identifies the featuretype used for identification
-           List<JSONObject> opts = null;
-        // below gets it working for dolphins but can be generalized easily from IA.properties String inferredIaClass =
-           IBEISIA.inferIaClass(anns.get(0), myShepherd);
-        String bottlenose = "dolphin_bottlenose_fin";
-        if (bottlenose.equals(iaClass) || bottlenose.equals(inferredIaClass)) {
-            System.out.println("IA.java is sending a Tursiops truncatus job");
-            opts = IBEISIA.identOpts(context, bottlenose);
-        } else { // defaults to the default ia.properties IBEISIdentOpt, in our case humpback flukes opts = IBEISIA.identOpts(context);
+    /**
+     * Issue #1787 entry point for the ml-service match step (spec §4.2.1). When {@code parent}
+     * is non-null the umbrella is linked under it BEFORE the persist commit. Returns null only
+     * for an empty annotation list.
+     */
+    public static IntakeOutcome intakeAnnotationsUnder(Shepherd myShepherd, List<Annotation> anns,
+        Task parent, JSONObject inheritedParams, boolean fastlane) {
+        return intakeAnnotationsUnder(myShepherd, anns, parent, inheritedParams, fastlane, null);
+    }
+
+    /**
+     * As above; {@code vectorDefaults} (the ml-service match config: method/version from the
+     * embedding response, api_endpoint from the ml-service config) fills only the missing
+     * method/version/api_endpoint keys of each vector option, on a copy. Null = no filling.
+     */
+    public static IntakeOutcome intakeAnnotationsUnder(Shepherd myShepherd, List<Annotation> anns,
+        Task parent, JSONObject inheritedParams, boolean fastlane, JSONObject vectorDefaults) {
+        return intakeCore(myShepherd, anns, parent, inheritedParams, fastlane, vectorDefaults, false);
+    }
+
+    /**
+     * As above; with {@code pinVector} a {@code vectorConfig} naming a method and version is the
+     * one embedding space these annotations match in (a multi-pipeline match group, see
+     * MlServiceProcessor.resolveMultiPipelineMatchConfig): it replaces each class's vector
+     * options. Without method and version it only fills missing keys, as above.
+     */
+    public static IntakeOutcome intakeAnnotationsUnder(Shepherd myShepherd, List<Annotation> anns,
+        Task parent, JSONObject inheritedParams, boolean fastlane, JSONObject vectorConfig,
+        boolean pinVector) {
+        return intakeCore(myShepherd, anns, parent, inheritedParams, fastlane, vectorConfig, pinVector);
+    }
+
+    /** A childless umbrella without an option: no class had a default identification option. */
+    public static boolean intakeProducedNoWork(Task umbrella) {
+        if (umbrella == null) return false;
+        if (umbrella.hasChildren()) return false;
+        JSONObject p = umbrella.getParameters();
+        return (p == null) || !p.has("ibeis.identification");
+    }
+
+    /**
+     * Inherited parameters minus the keys that belong to a run (the new run sets its own).
+     * Also applied where a root's parameters are copied into detection tasks
+     * (intakeMediaAssetsOneSpecies), onto a substituted handleRest root and onto the /ia
+     * gateway's root (IAGateway.gatewayTaskParams), so a run id can
+     * never leak across a pipeline boundary (spec §4.0). Never returns null; never mutates.
+     */
+    public static JSONObject scrubRunParams(JSONObject inherited) {
+        JSONObject p = (inherited == null) ? new JSONObject() : new JSONObject(inherited.toString());
+        p.remove(Task.PARAM_RUN_ID);
+        p.remove(Task.PARAM_V2_MATCH);
+        p.remove(Task.PARAM_OPTION);
+        p.remove("ibeis.identification");
+        return p;
+    }
+
+    private static final String[] VECTOR_DEFAULT_KEYS = { "method", "version", "api_endpoint" };
+
+    /*
+     * For ml-service matching, a vector option (isVectorConfig, or pipeline_root "vector") takes the
+     * missing method/version/api_endpoint from the ml-service match config, on a copy, so an
+     * option without a version never matches across embedding-model versions and one without a
+     * method is still recognized as vector. Existing keys are never overwritten.
+     */
+    static List<JSONObject> withVectorDefaults(List<JSONObject> opts, JSONObject defaults) {
+        if ((opts == null) || (defaults == null)) return opts;
+        List<JSONObject> out = new ArrayList<JSONObject>();
+        for (JSONObject opt : opts) {
+            if ((opt == null) || !(Embedding.isVectorConfig(opt) ||
+                "vector".equals(opt.optString("pipeline_root", null)))) {
+                out.add(opt);
+                continue;
+            }
+            JSONObject copy = new JSONObject(opt.toString());
+            for (String key : VECTOR_DEFAULT_KEYS) {
+                if (Util.stringExists(copy.optString(key, null))) continue;
+                String val = defaults.optString(key, null);
+                if (Util.stringExists(val)) copy.put(key, val);
+            }
+            out.add(copy);
         }
- */
-        // List<JSONObject> opts = IBEISIA.identOpts(myShepherd, anns.get(0));
+        return out;
+    }
+
+    /*
+     * Multi-pipeline species: an annotation has an embedding in one space only, the one
+     * MlServiceProcessor.resolveMultiPipelineMatchConfig pinned. Vector options in that space
+     * (same method and version) are kept and filled from the pin; vector options in any other
+     * space would search a corpus this annotation is not in, so they are dropped, and if none
+     * was in the pinned space the pin itself takes the first one's place. Other options are
+     * kept; a class without a vector option gets none. A pin without method and version only
+     * fills, as above.
+     */
+    static List<JSONObject> withPinnedVector(List<JSONObject> opts, JSONObject pin) {
+        if ((opts == null) || (pin == null) || !Util.stringExists(pin.optString("method", null)) ||
+            !Util.stringExists(pin.optString("version", null)))
+            return withVectorDefaults(opts, pin);
+        List<JSONObject> out = withVectorDefaults(opts, pin);
+        int firstVector = -1;
+        boolean inPinnedSpace = false;
+        Iterator<JSONObject> itr = out.iterator();
+        for (int i = 0; itr.hasNext(); i++) {
+            JSONObject opt = itr.next();
+            if ((opt == null) || !(Embedding.isVectorConfig(opt) ||
+                "vector".equals(opt.optString("pipeline_root", null)))) continue;
+            if (firstVector < 0) firstVector = i;
+            if (pin.getString("method").equals(opt.optString("method", null)) &&
+                pin.getString("version").equals(opt.optString("version", null))) {
+                inPinnedSpace = true;
+                continue;
+            }
+            System.out.println("INFO: IA.withPinnedVector() dropped " + opt + " outside " +
+                pin.getString("method") + "-" + pin.getString("version"));
+            itr.remove();
+            i--;
+        }
+        if ((firstVector >= 0) && !inPinnedSpace) out.add(firstVector, new JSONObject(pin.toString()));
+        return out;
+    }
+
+    private static void markOption(JSONObject params, JSONObject opt) {
+        params.put("ibeis.identification", (opt == null) ? "DEFAULT" : opt);
+        params.put(Task.PARAM_OPTION, true);
+        if (Embedding.isVectorConfig(opt)) params.put(Task.PARAM_V2_MATCH, true);
+    }
+
+    // also used by IAGateway's bulk-import hand-off recovery (spec 4.4)
+    public static void markTaskError(Task t, String code, String message) {
+        t.setStatus("error");
+        t.setStatusDetailsAddError(code, message);
+        t.setCompletionDateInMilliseconds();
+    }
+
+    // §4.2.3 step 3: a vector dispatch that threw may have attached unfinished leaves
+    private static void terminalizeUnfinishedChildren(Task option, String code, String message) {
+        if (option.getChildren() == null) return;
+        for (Task kid : option.getChildren()) {
+            if (!kid.statusInEndState()) markTaskError(kid, code, message);
+        }
+    }
+
+    /*
+     * The core: build the whole tree, persist it with a checked commit, then dispatch each
+     * option through the Dispatcher seam. Never throws after the persist step; the outcome
+     * always lists every option with its publication result (spec §4.2.3).
+     */
+    private static IntakeOutcome intakeCore(Shepherd myShepherd, List<Annotation> anns,
+        Task parent, JSONObject inheritedParams, boolean fastlane, JSONObject vectorDefaults,
+        boolean pinVector) {
+        if ((anns == null) || (anns.size() < 1)) return null;
+        String context = myShepherd.getContext();
+        IntakeOutcome outcome = new IntakeOutcome();
+
+        // ---- build ----
+        Task topTask = new Task();
+        outcome.umbrella = topTask;
+        JSONObject runParams = scrubRunParams(inheritedParams);
+        runParams.put(Task.PARAM_RUN_ID, topTask.getId());   // every task of this run carries it
+        topTask.setParameters(runParams);
+        topTask.setObjectAnnotations(anns);
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
         List<List<Annotation> > annotsByIaClass = binAnnotsByIaClass(anns);
+        List<JSONObject> plannedOpts = new ArrayList<JSONObject>();
+        List<Task> plannedTasks = new ArrayList<Task>();
+        List<List<Annotation> > plannedAnns = new ArrayList<List<Annotation> >();
         for (List<Annotation> annsOneIAClass : annotsByIaClass) {
-            List<JSONObject> opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
-            // now we remove ones with default=false (they may get added in below via matchingAlgorithms param (via newOpts)
+            String iaClass = annsOneIAClass.get(0).getIAClass();
+            List<JSONObject> opts = null;
+            try {
+                opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
+            } catch (RuntimeException ex) {
+                // e.g. an annotation with no encounter, or an encounter with no genus/species
+                // (IAJsonProperties.taxonomyKey(null)): this class gets no options, the others run
+                System.out.println("WARN: IA.intakeAnnotations() identOpts threw " + ex +
+                    " for iaClass " + iaClass + "; skipping that class");
+                opts = null;
+            }
+            // No identification options means this iaClass cannot be identified. Empty is an
+            // explicit opt-out: IA.json declares the class with `"_id_conf": []`, which
+            // getIdentConfig returns as-is rather than falling back to `_default`. Null means
+            // neither the class nor the taxonomy's `_default` yielded any config at all (or
+            // identOpts threw, above).
+            //
+            // Bail here, BEFORE the default=false filter and the matchingAlgorithms swap below.
+            // The swap replaces the opts list wholesale without consulting this iaClass, so it
+            // would otherwise manufacture an option for a class that declined one. Part classes
+            // are the common case: a `wild_dog+tail_*` annotation rides along with the body
+            // annotation detected beside it on the same image, and would get its own doomed
+            // identification option whenever the user picked an algorithm. Checking before the
+            // filter keeps a class whose options are all default=false eligible for the swap. A
+            // class that legitimately inherits a populated `_default._id_conf` has non-empty
+            // opts here and is unaffected.
+            if ((opts == null) || (opts.size() < 1)) {
+                outcome.skippedIaClasses.add(iaClass);
+                continue;
+            }
+            // drop default=false options (a matchingAlgorithms parameter may re-add them below)
             if (opts != null) {
                 Iterator<JSONObject> itr = opts.iterator();
                 while (itr.hasNext()) {
@@ -424,87 +686,208 @@ public class IA {
                 }
             }
             System.out.println("identOpts: " + opts);
-            List<Task> tasks = new ArrayList<Task>();
-            JSONObject newTaskParams = new JSONObject(); // we merge parentTask.parameters in with opts from above
-            if (parentTask != null && parentTask.getParameters() != null) {
-                newTaskParams = parentTask.getParameters();
-                System.out.println("newTaskParams: " + newTaskParams.toString());
-                if (newTaskParams.optJSONArray("matchingAlgorithms") != null) {
-                    JSONArray matchingAlgorithms = newTaskParams.optJSONArray("matchingAlgorithms");
-                    System.out.println("matchingAlgorithms1: " + matchingAlgorithms.toString());
-                    ArrayList<JSONObject> newOpts = new ArrayList<JSONObject>();
-                    int maLength = matchingAlgorithms.length();
-                    for (int y = 0; y < maLength; y++) {
-                        newOpts.add(matchingAlgorithms.getJSONObject(y));
-                    }
-                    System.out.println("matchingAlgorithms2: " + newOpts.toString());
-                    if (newOpts.size() > 0) {
-                        opts = newOpts;
-                        System.out.println("Swapping opts for newOpts!!");
-                    }
+            // a fresh copy of the inherited parameters per iaClass, as before
+            JSONObject newTaskParams = new JSONObject(runParams.toString());
+            if (newTaskParams.optJSONArray("matchingAlgorithms") != null) {
+                JSONArray matchingAlgorithms = newTaskParams.optJSONArray("matchingAlgorithms");
+                System.out.println("matchingAlgorithms1: " + matchingAlgorithms.toString());
+                ArrayList<JSONObject> newOpts = new ArrayList<JSONObject>();
+                int maLength = matchingAlgorithms.length();
+                for (int y = 0; y < maLength; y++) {
+                    newOpts.add(matchingAlgorithms.getJSONObject(y));
+                }
+                System.out.println("matchingAlgorithms2: " + newOpts.toString());
+                if (newOpts.size() > 0) {
+                    opts = newOpts;
+                    System.out.println("Swapping opts for newOpts!!");
                 }
             }
-            if ((opts == null) || (opts.size() < 1)) continue; // no ID for this iaClass.
-            // just one IA class, one algorithm case
+            opts = pinVector ? withPinnedVector(opts, vectorDefaults) : withVectorDefaults(opts, vectorDefaults);
+            if ((opts == null) || (opts.size() < 1)) {   // no ID for this iaClass
+                outcome.skippedIaClasses.add(iaClass);
+                continue;
+            }
+            if (fastlane) {
+                newTaskParams.put("fastlane", true);
+                newTaskParams.put("lane", "fast");
+            }
             if (opts.size() == 1 && annotsByIaClass.size() == 1) {
-                newTaskParams.put("ibeis.identification",
-                    ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
+                // one IA class, one algorithm: the umbrella is *the* (only) option task
+                JSONObject opt = opts.get(0);
+                markOption(newTaskParams, opt);
                 topTask.setParameters(newTaskParams);
-                tasks.add(topTask); // topTask will be used as *the*(only) task -- no children
+                plannedOpts.add(opt);
+                plannedTasks.add(topTask);
+                plannedAnns.add(annsOneIAClass);
             } else {
                 for (int i = 0; i < opts.size(); i++) {
+                    JSONObject opt = opts.get(i);
                     Task t = new Task();
                     t.setObjectAnnotations(annsOneIAClass);
-                    newTaskParams.put("ibeis.identification",
-                        ((opts.get(i) == null) ? "DEFAULT" : opts.get(i)));                                        // overwrites each time
-                    t.setParameters(newTaskParams);
+                    JSONObject tp = new JSONObject(newTaskParams.toString());
+                    markOption(tp, opt);
+                    t.setParameters(tp);
                     topTask.addChild(t);
-                    tasks.add(t);
+                    plannedOpts.add(opt);
+                    plannedTasks.add(t);
+                    plannedAnns.add(annsOneIAClass);
                 }
-            }
-            newTaskParams.put("fastlane", fastlane);
-            if (fastlane) newTaskParams.put("lane", "fast");
-            myShepherd.storeNewTask(topTask);
-
-            // these are re-used in every task
-            JSONArray annArr = new JSONArray();
-            for (Annotation ann : annsOneIAClass) {
-                annArr.put(ann.getId());
-            }
-            JSONObject aj = new JSONObject();
-            aj.put("annotationIds", annArr);
-            String baseUrl = getBaseURL(context);
-            for (int i = 0; i < opts.size(); i++) {
-                // if this is a vector-based matching option, this will just do the job and be done
-                if (Embedding.findMatchProspects(opts.get(i), tasks.get(i), myShepherd)) continue;
-                JSONObject qjob = new JSONObject();
-                qjob.put("identify", aj);
-                qjob.put("taskId", tasks.get(i).getId());
-                qjob.put("__context", context);
-                qjob.put("__baseUrl", baseUrl);
-                if (opts.get(i) != null) qjob.put("opt", opts.get(i));
-                boolean sent = false;
-                try {
-                    if (fastlane) {
-                        // if fastlane and a smaller, bespoke request, get this into the faster queue
-                        qjob.put("fastlane", fastlane);
-                        qjob.put("lane", "fast");
-                    }
-                    // One classifier decides the lane (IAGateway.laneFor). This used to
-                    // publish fastlane work onto the SERIAL detection queue, where it sat
-                    // behind every queued ml-service detection.
-                    tasks.get(i).setQueueResumeMessage(qjob.toString());
-                    sent = org.ecocean.servlet.IAGateway.publishToLane(context, qjob.toString());
-                } catch (java.io.IOException iox) {
-                    System.out.println("ERROR[" + i +
-                        "]: IA.intakeAnnotations() addToQueue() threw " + iox.toString());
-                }
-                System.out.println("INFO: IA.intakeAnnotations() [opt " + i + "] accepted " +
-                    annsOneIAClass.size() + " annots; queued? = " + sent + "; " + tasks.get(i));
             }
         } // end for each iaClass
-        System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
-        return topTask;
+        if (plannedTasks.isEmpty()) {   // §4.2.3 step 4: terminal, for every caller
+            outcome.noWork = true;
+            markTaskError(topTask, "INVALID_MATCH_CONFIG",
+                "no default identification options for iaClass(es) " + outcome.skippedIaClasses);
+        }
+        if (parent != null) topTask.setParent(parent);   // also parent.addChild(topTask)
+
+        // ---- outcome record: every option is listed before anything is durable or dispatched ----
+        // Scalar ids are snapshotted here, before the commit: post-commit logging never touches
+        // a Task (Task.toString() reads persistent fields and lazily fetched collections, which
+        // can throw on a broken PersistenceManager).
+        String umbrellaId = topTask.getId();
+        List<String> optionIds = new ArrayList<String>();
+        for (int i = 0; i < plannedTasks.size(); i++) {
+            JSONObject opt = plannedOpts.get(i);
+            boolean vector = Embedding.isVectorConfig(opt);
+            boolean invalidVector = (vectorDefaults != null) && (opt != null) &&
+                "vector".equals(opt.optString("pipeline_root", null)) && !vector;
+            OptionResult result = new OptionResult(plannedTasks.get(i), vector || invalidVector);
+            if (invalidVector) {
+                result.failureCode = "INVALID_MATCH_CONFIG";
+                markTaskError(result.task, result.failureCode, "vector option has no method or api_endpoint");
+            }
+            outcome.options.add(result);
+            optionIds.add(plannedTasks.get(i).getId());
+        }
+
+        // ---- persist (checked) ----
+        myShepherd.beginDBTransaction();   // no-op when already active
+        myShepherd.getPM().makePersistent(topTask);   // children by reachability
+        if (!myShepherd.commitDBTransactionWithStatus()) {
+            System.out.println("ERROR: IA.intakeAnnotations() could not persist run " +
+                topTask.getId() + "; nothing dispatched");
+            outcome.persistFailed = true;
+            return outcome;
+        }
+        // From here on the run is durable and this method never throws (spec §4.2.3): every
+        // failure lands on the option task (best effort) and on the outcome, which the caller
+        // always receives.
+        try {
+            myShepherd.beginDBTransaction();
+            // the real beginDBTransaction() swallows some failures, so check the result
+            if (!myShepherd.isDBTransactionActive())
+                throw new IllegalStateException("transaction not active after restart");
+        } catch (RuntimeException ex) {
+            System.out.println("ERROR: IA.intakeAnnotations() could not restart the transaction after persisting run " +
+                umbrellaId + ": " + ex + "; nothing dispatched");
+            for (OptionResult r : outcome.options) r.failureCode = r.vector ? "DISPATCH_FAILED" : "QUEUE_FAILED";
+            return outcome;   // the caller's checked commit fails (inactive transaction) and its recovery marks these tasks
+        }
+        if (outcome.noWork) {
+            System.out.println("INFO: IA.intakeAnnotations() finished run " + umbrellaId + " with no work");
+            return outcome;
+        }
+
+        // ---- dispatch: never throws; every failure lands on the outcome and, best effort, on the task ----
+        try {
+            String baseUrl = null;
+            String baseUrlError = null;
+            try {
+                baseUrl = getBaseURL(context);
+            } catch (RuntimeException ex) {
+                baseUrlError = ex.toString();
+                System.out.println("ERROR: IA.intakeAnnotations() getBaseURL() threw " + ex + " for run " + umbrellaId);
+            }
+            for (int i = 0; i < outcome.options.size(); i++) {
+                OptionResult r = outcome.options.get(i);
+                JSONObject opt = plannedOpts.get(i);
+                if (r.failureCode != null) continue; // invalid vector config was persisted as an error
+                Task t = r.task;
+                String optionId = optionIds.get(i);
+                // a transaction that died during an earlier dispatch stops every later one: under
+                // non-transactional writes nothing else would notice, and a job published now
+                // would point at a run the caller's checked commit is about to roll back
+                if (!myShepherd.isDBTransactionActive()) {
+                    if (r.failureCode == null) r.failureCode = r.vector ? "DISPATCH_FAILED" : "QUEUE_FAILED";
+                    System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() transaction inactive; option " +
+                        optionId + " of run " + umbrellaId + " not dispatched");
+                    continue;
+                }
+                try {
+                    if (r.vector) {
+                        dispatcher.runVector(opt, t, myShepherd);
+                        if (!myShepherd.isDBTransactionActive()) {
+                            r.failureCode = "DISPATCH_FAILED";
+                            System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() transaction died during the vector dispatch of option " +
+                                optionId + " of run " + umbrellaId);
+                            continue;
+                        }
+                        r.published = true;
+                        continue;
+                    }
+                    if (baseUrlError != null) {
+                        r.failureCode = "QUEUE_FAILED";
+                        markTaskError(t, "QUEUE_FAILED", "no base URL for the queue job: " + baseUrlError);
+                        continue;
+                    }
+                    JSONArray annArr = new JSONArray();
+                    for (Annotation ann : plannedAnns.get(i)) {
+                        annArr.put(ann.getId());
+                    }
+                    JSONObject aj = new JSONObject();
+                    aj.put("annotationIds", annArr);
+                    JSONObject qjob = new JSONObject();
+                    qjob.put("identify", aj);
+                    qjob.put("taskId", optionId);
+                    qjob.put("__context", context);
+                    qjob.put("__baseUrl", baseUrl);
+                    if (opt != null) qjob.put("opt", opt);
+                    if (fastlane) {
+                        qjob.put("fastlane", true);
+                        qjob.put("lane", "fast");
+                    }
+                    boolean sent = false;
+                    try {
+                        t.setQueueResumeMessage(qjob.toString());
+                        sent = dispatcher.publish(context, qjob.toString(), fastlane);
+                    } catch (Exception ex) {
+                        System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() addToQueue() threw " + ex +
+                            " for option " + optionId);
+                    }
+                    if (sent) {
+                        r.published = true;
+                    } else {
+                        r.failureCode = "QUEUE_FAILED";
+                        markTaskError(t, "QUEUE_FAILED", "identification job could not be published to the queue");
+                    }
+                    System.out.println("INFO: IA.intakeAnnotations() [opt " + i + "] accepted " +
+                        plannedAnns.get(i).size() + " annots; queued? = " + sent + "; option " + optionId);
+                } catch (RuntimeException ex) {
+                    // a vector dispatch that threw, or anything unexpected in the HotSpotter branch
+                    r.failureCode = r.vector ? "DISPATCH_FAILED" : "QUEUE_FAILED";
+                    System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() dispatch threw " + ex +
+                        " on option " + optionId);
+                    ex.printStackTrace();
+                    try {
+                        markTaskError(t, r.failureCode, "dispatch threw: " + ex);
+                        terminalizeUnfinishedChildren(t, r.failureCode, "option dispatch threw before this leaf finished");
+                    } catch (RuntimeException ex2) {   // e.g. a detached object after a broken transaction
+                        System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() could not mark option " +
+                            optionId + ": " + ex2);
+                    }
+                }
+            }
+        } catch (RuntimeException ex) {   // anything outside the per-option guards (e.g. a dead PersistenceManager)
+            System.out.println("ERROR: IA.intakeAnnotations() dispatch phase aborted for run " + umbrellaId + ": " + ex);
+            ex.printStackTrace();
+            for (OptionResult r : outcome.options) {
+                if (!r.published && (r.failureCode == null)) r.failureCode = r.vector ? "DISPATCH_FAILED" : "QUEUE_FAILED";
+            }
+        }
+        System.out.println("INFO: IA.intakeAnnotations() finished run " + umbrellaId + " with " +
+            outcome.options.size() + " option(s)");
+        return outcome;
     }
 
     public static List<List<Annotation> > binAnnotsByIaClass(List<Annotation> anns) {
@@ -525,6 +908,361 @@ public class IA {
         return new ArrayList<List<Annotation> >(iaClassToAnns.values());
     }
 
+    /**
+     * Issue #1787 (spec §4.0): a client-supplied root id must not name a task of an
+     * identification run (umbrella, option or leaf) nor any task holding annotations —
+     * reusing it would hang a new run beneath an old one or overwrite the old run's identity.
+     */
+    public static boolean mustReplaceRequestRoot(Task loaded) {
+        return (loaded != null) && (loaded.hasObjectAnnotations() || (Task.runIdOf(loaded) != null));
+    }
+
+    /** Links a handleRest child under its root: skips null and the root itself, like the old addChild, but also sets the parent field. */
+    static void linkUnderRoot(Task child, Task root) {
+        if ((child == null) || (root == null) || (child == root) || child.getId().equals(root.getId())) return;
+        child.setParent(root);
+    }
+
+    /**
+     * Issue #1787 (spec §4.0): a client-supplied root id may name an existing task. If that task
+     * holds annotations or belongs to an identification run (umbrella, option or leaf), a new
+     * run must not hang beneath it — the umbrella's Match Results page renders exactly its own
+     * run — so a fresh root is used instead. A media-asset-only root (the detection root the
+     * hamburger-menu New Match attaches to) is reused as before.
+     */
+    static Task resolveRequestRoot(Task loaded, String taskId, boolean fastlane) {
+        Task root = loaded;
+
+        if (mustReplaceRequestRoot(root)) {
+            System.out.println("WARN: IA.handleRest() root task " + taskId +
+                " holds annotations or belongs to identification run " + Task.runIdOf(root) +
+                "; creating a fresh root instead");
+            root = new Task();
+            // the request's parameters (IAGateway stores taskParameters — matchingSetFilter,
+            // matchingAlgorithms, userId… — on the loaded task) travel to the fresh root,
+            // minus the keys that belong to the old run
+            if (loaded.getParameters() != null) root.setParameters(scrubRunParams(loaded.getParameters()));
+        }
+        if (root == null) root = new Task(taskId);
+        if (fastlane) root.addParameter("fastlane", true);
+        return root;
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.4): the permitted envelope shapes. Null means accepted: media ids
+     * without a mode (detection, today), annotation ids without a mode (identification, today, with
+     * or without media ids), or annotation ids in extraction mode with no media ids. Anything else
+     * is a reason string for the root's error.
+     */
+    static String envelopeRejection(JSONObject jin) {
+        if (jin == null) return null;
+        String mode = jin.optString("annotationMode", null);
+        if (mode == null) return null;
+        JSONArray ann = jin.optJSONArray("annotationIds");
+        JSONArray media = jin.optJSONArray("mediaAssetIds");
+        if (!org.ecocean.servlet.IAGateway.ANNOTATION_MODE_EXTRACT.equals(mode))
+            return "unknown annotationMode: " + mode;
+        if ((ann == null) || (ann.length() == 0)) return "annotationMode without annotationIds";
+        if ((media != null) && (media.length() > 0)) return "extraction mode with mediaAssetIds";
+        return null;
+    }
+
+    /** Seam for the WBIA-only branch of {@link #intakeImportedBoxes}; tests substitute it. */
+    interface MatchProspectsRunner {
+        MlServiceJobOutcome run(String context, List<String> annotationIds, String parentTaskId);
+    }
+
+    private static final MatchProspectsRunner REAL_MATCH_RUNNER = new MatchProspectsRunner() {
+        @Override public MlServiceJobOutcome run(String context, List<String> annotationIds,
+            String parentTaskId) {
+            return new MlServiceProcessor(context).runMatchProspects(annotationIds, parentTaskId,
+                null);
+        }
+    };
+    private static volatile MatchProspectsRunner matchProspectsRunner = REAL_MATCH_RUNNER;
+
+    /** Test hook; null restores the real runner. */
+    static void setMatchProspectsRunnerForTests(MatchProspectsRunner r) {
+        matchProspectsRunner = (r == null) ? REAL_MATCH_RUNNER : r;
+    }
+
+    // staged per-box extraction child plus its job, published only after the single commit
+    private static final class StagedBox {
+        final Task child;
+        final JSONObject job;
+        StagedBox(Task child, JSONObject job) {
+            this.child = child;
+            this.job = job;
+        }
+    }
+
+    /**
+     * A strict annotation lookup: null only for a genuinely missing annotation; a datastore
+     * failure propagates (Shepherd.getAnnotation swallows every exception, which would make an
+     * outage look like a deletion).
+     */
+    public static Annotation strictAnnotation(Shepherd shep, String id) {
+        if (id == null) return null;
+        try {
+            return (Annotation)shep.getPM().getObjectById(Annotation.class, id);
+        } catch (javax.jdo.JDOObjectNotFoundException notFound) {
+            return null;
+        }
+    }
+
+    // an error task holding the given (already loaded) annotations
+    private static Task errorChildHolding(Task parent, List<Annotation> anns, String code,
+        String message) {
+        Task t = new Task(parent);
+        for (Annotation a : anns) if (a != null) t.addObject(a);
+        markTaskError(t, code, message);
+        return t;
+    }
+
+    /**
+     * Recovery helper: reloads by id and holds every box that still exists. A genuinely missing
+     * annotation is skipped; a datastore failure PROPAGATES, so the caller's recovery fails
+     * instead of committing a holder that omits an existing box.
+     */
+    private static Task errorChildReloading(Shepherd myShepherd, Task parent, List<String> annIds,
+        String importId, String code, String message) {
+        List<Annotation> anns = new ArrayList<Annotation>();
+        for (String id : annIds) {
+            Annotation a = strictAnnotation(myShepherd, id);
+            if ((a != null) && a.isImportedBoxOf(importId)) anns.add(a);
+        }
+        return errorChildHolding(parent, anns, code, message);
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.4): one species task per species under {@code root}; on a species
+     * with an ml-service extractor one child per box holding the box and its asset, with one
+     * {@code mlServiceV2 / annotationId} job each, all persisted with ONE checked commit before
+     * any job is published; on other species the boxes go to the existing identification path
+     * ({@code MlServiceProcessor.runMatchProspects}) unless identification is skipped. Every
+     * failure ends in a terminal error task that holds the boxes concerned, so no box is left
+     * task-less and pending. Returns the number of jobs published plus WBIA species dispatched.
+     */
+    static int intakeImportedBoxes(Shepherd myShepherd, List<String> inputIds, Task root,
+        String context, String baseUrl) {
+        if ((inputIds == null) || inputIds.isEmpty() || (root == null)) return 0;
+        boolean skipIdent = IBEISIA.taskParametersSkipIdent(root);
+        // extraction mode is only for the boxes of the import this root was created for: any
+        // other annotation in the envelope is left exactly as it was (no task, no status change)
+        String importId = (root.getParameters() == null) ? null
+            : root.getParameters().optString("importTaskId", null);
+        List<StagedBox> staged = new ArrayList<StagedBox>();
+        int foreign = 0;   // named, existing, but not a box of this root's import
+        Map<String, Task> speciesTasks = new LinkedHashMap<String, Task>();
+        Map<String, List<Annotation>> wbiaSpecies = new LinkedHashMap<String, List<Annotation>>();
+        boolean committed = false;
+        String stagingFailure = null;
+        try {
+            // everything fallible, including configuration and base-URL resolution, is inside
+            // the staging try so that no failure can escape to handleRest's catch before the
+            // boxes are covered by an error task
+            if (!Util.stringExists(baseUrl)) baseUrl = getBaseURL(context);
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            Map<String, Taxonomy> taxonomies = new LinkedHashMap<String, Taxonomy>();
+            Map<String, List<Annotation>> bySpecies = new LinkedHashMap<String, List<Annotation>>();
+            List<Annotation> noTaxonomy = new ArrayList<Annotation>();
+            for (String id : inputIds) {
+                Annotation ann = strictAnnotation(myShepherd, id);   // a datastore failure propagates
+                if (ann == null) {
+                    System.out.println("WARN: IA.intakeImportedBoxes() annotation " + id +
+                        " no longer exists; skipped");
+                    continue;
+                }
+                if (!ann.isImportedBoxOf(importId)) {
+                    System.out.println("WARN: IA.intakeImportedBoxes() annotation " + id +
+                        " is not a box of import " + importId + "; skipped");
+                    foreign++;
+                    continue;
+                }
+                MediaAsset ma = ann.getMediaAsset();
+                Taxonomy taxy = ann.getTaxonomy(myShepherd);
+                if ((ma == null) || (taxy == null) || !Util.stringExists(taxy.getScientificName())) {
+                    noTaxonomy.add(ann);
+                    continue;
+                }
+                root.addObject(ma);   // dedupes; the root lists every asset it handed to IA
+                String key = taxy.getScientificName();
+                taxonomies.put(key, taxy);
+                if (!bySpecies.containsKey(key)) bySpecies.put(key, new ArrayList<Annotation>());
+                bySpecies.get(key).add(ann);
+            }
+            if (bySpecies.isEmpty() && noTaxonomy.isEmpty()) {
+                // nothing was taken, so no task below will ever end the root: end it here, so a
+                // client polling it does not wait forever. Boxes of another import (or a root with
+                // no import) make the envelope invalid; boxes that were all deleted leave nothing to do.
+                if (foreign > 0) {
+                    markTaskError(root, "INVALID_ENVELOPE", foreign +
+                        " named annotation(s) are not boxes of import " + importId);
+                } else {
+                    root.setStatus("completed");
+                    root.setCompletionDateInMilliseconds();
+                }
+                myShepherd.getPM().makePersistent(root);
+                // a failed commit goes to the staging recovery below, which ends the root in error
+                if (!myShepherd.commitDBTransactionWithStatus())
+                    throw new IllegalStateException("could not commit the end of a root that took no box");
+                myShepherd.beginDBTransaction();
+                return 0;
+            }
+            if (!noTaxonomy.isEmpty()) {
+                Task t = errorChildHolding(root, noTaxonomy, "NO_TAXONOMY",
+                    "imported box has no media asset or no taxonomy");
+                myShepherd.getPM().makePersistent(t);
+            }
+            for (Map.Entry<String, List<Annotation>> e : bySpecies.entrySet()) {
+                Taxonomy taxy = taxonomies.get(e.getKey());
+                Task speciesTask = new Task();
+                if (root.getParameters() != null)
+                    speciesTask.setParameters(scrubRunParams(root.getParameters()));
+                List<MediaAsset> assets = new ArrayList<MediaAsset>();
+                for (Annotation ann : e.getValue()) {
+                    if (!assets.contains(ann.getMediaAsset())) assets.add(ann.getMediaAsset());
+                }
+                speciesTask.setObjectMediaAssets(assets);
+                linkUnderRoot(speciesTask, root);
+                speciesTasks.put(e.getKey(), speciesTask);
+                boolean mlService = (iaConfig != null) &&
+                    (iaConfig.getActiveMlServiceConfigs(taxy) != null);
+                if (mlService) {
+                    for (Annotation ann : e.getValue()) {
+                        Task child = new Task(speciesTask);
+                        child.addObject(ann);
+                        child.addObject(ann.getMediaAsset());
+                        child.addParameter(Task.PARAM_EMBEDDING_EXTRACTION, true);
+                        child.addParameter(Task.PARAM_IMPORTED_BOX, true);
+                        child.setStatus("initiated");
+                        ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING_MLSERVICE);
+                        JSONObject job = new JSONObject();
+                        job.put("mlServiceV2", true);
+                        job.put("annotationId", ann.getId());
+                        job.put("taxonomyString", taxy.getScientificName());
+                        job.put("taskId", child.getId());
+                        job.put("__context", context);
+                        job.put("__baseUrl", baseUrl);
+                        child.setQueueResumeMessage(job.toString());
+                        staged.add(new StagedBox(child, job));
+                        myShepherd.getPM().makePersistent(child);
+                    }
+                } else {
+                    wbiaSpecies.put(e.getKey(), new ArrayList<Annotation>(e.getValue()));
+                }
+                myShepherd.getPM().makePersistent(speciesTask);
+            }
+            myShepherd.getPM().makePersistent(root);
+            committed = myShepherd.commitDBTransactionWithStatus();
+            if (!committed) stagingFailure = "commit failed";
+            else myShepherd.beginDBTransaction();
+        } catch (Exception ex) {
+            stagingFailure = ex.toString();
+            ex.printStackTrace();
+        }
+        if (stagingFailure != null) {
+            // nothing of the above is durable: one error task holding every box, so the import
+            // can finish and the operator sees it
+            System.out.println("ERROR: IA.intakeImportedBoxes() staging failed for " + root +
+                ": " + stagingFailure);
+            try {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.beginDBTransaction();
+                if (!myShepherd.isDBTransactionActive())
+                    throw new IllegalStateException("transaction not active after restart");
+                // reload every box: a lookup failure here fails the recovery (below) rather than
+                // committing a holder that omits an existing box
+                Task t = errorChildReloading(myShepherd, root, inputIds, importId,
+                    "EXTRACTION_PERSIST", stagingFailure);
+                markTaskError(root, "EXTRACTION_PERSIST", stagingFailure);
+                myShepherd.getPM().makePersistent(t);
+                myShepherd.getPM().makePersistent(root);
+                if (!myShepherd.commitDBTransactionWithStatus())
+                    System.out.println("ERROR: IA.intakeImportedBoxes() could not persist the " +
+                        "EXTRACTION_PERSIST error for " + root);
+                myShepherd.beginDBTransaction();
+            } catch (Exception ex2) {
+                System.out.println("ERROR: IA.intakeImportedBoxes() recovery failed for " + root +
+                    "; its boxes are left pending: " + ex2);
+                try {
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.beginDBTransaction();
+                } catch (Exception ignore) {}
+            }
+            return 0;
+        }
+        // everything is durable; publish, isolating each item
+        int started = 0;
+        for (StagedBox sb : staged) {
+            boolean ok = false;
+            try {
+                ok = publishMlServiceJob(context, sb.job);
+            } catch (Exception ex) {
+                ok = false;
+            }
+            if (ok) {
+                started++;
+            } else {
+                ImportedBoxes.failChild(myShepherd, sb.child, "ENQUEUE",
+                    "could not publish the extraction job");
+            }
+        }
+        for (Map.Entry<String, List<Annotation>> e : wbiaSpecies.entrySet()) {
+            if (skipIdent) {
+                // staging 2026-11-08: never drop these boxes silently. A class configured for vector
+                // matching on a species without species-level ml-service routing is a configuration
+                // gap the operator must see; a species with no vector pipeline has nothing to extract.
+                Task speciesTask = speciesTasks.get(e.getKey());
+                IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+                Taxonomy taxy = new Taxonomy(e.getKey());
+                Set<String> vectorClasses = new TreeSet<String>();
+                for (Annotation ann : e.getValue()) {
+                    if ((iaConfig != null) && (iaConfig.getDefaultVectorIdentConfig(taxy, ann.getIAClass()) != null))
+                        vectorClasses.add(ann.getIAClass());
+                }
+                Task held;
+                if (!vectorClasses.isEmpty()) {
+                    held = errorChildHolding(speciesTask, e.getValue(), "NO_EXTRACTION_CONFIG",
+                        "class " + String.join(", ", vectorClasses) + " of " + e.getKey() +
+                        " is configured for vector matching, but the species has no ml-service " +
+                        "routing (IA.json needs <species>._default._id_conf with a default " +
+                        "pipeline_root \"vector\" entry and <species>._mlservice_conf); the boxes " +
+                        "were imported without embeddings");
+                } else {
+                    held = new Task(speciesTask);
+                    for (Annotation ann : e.getValue()) held.addObject(ann);
+                    held.addParameter("note", "identification skipped and the species has no " +
+                        "ml-service extraction: nothing to extract");
+                    held.setStatus("completed");
+                }
+                System.out.println("INFO: IA.intakeImportedBoxes() " + held.getStoredStatus() +
+                    " holder " + held.getId() + " for " + e.getValue().size() + " box(es) of " +
+                    e.getKey() + " (identification skipped, no ml-service routing)");
+                myShepherd.getPM().makePersistent(held);
+                continue;
+            }
+            Task speciesTask = speciesTasks.get(e.getKey());
+            List<String> ids = new ArrayList<String>();
+            for (Annotation ann : e.getValue()) ids.add(ann.getId());
+            try {
+                matchProspectsRunner.run(context, ids, speciesTask.getId());
+                started++;
+            } catch (Exception ex) {
+                System.out.println("ERROR: IA.intakeImportedBoxes() identification dispatch threw " +
+                    "for species " + e.getKey() + ": " + ex);
+                // the species' annotations are already loaded: no reload, nothing to omit
+                Task t = errorChildHolding(speciesTask, e.getValue(), "MATCH_DISPATCH", ex.toString());
+                myShepherd.getPM().makePersistent(t);
+            }
+        }
+        if (!myShepherd.commitDBTransactionWithStatus())
+            System.out.println("ERROR: IA.intakeImportedBoxes() could not persist the publish " +
+                "outcomes for " + root);
+        myShepherd.beginDBTransaction();
+        return started;
+    }
+
     // possibly (should?) have .taskId, and *definitely* should have .__context and .__baseUrl
     // note: this is processed *from the queue* and as such does not have "output"
     public static void handleRest(JSONObject jin) {
@@ -542,10 +1280,21 @@ public class IA {
         myShepherd.beginDBTransaction();
         try {
             String taskId = jin.optString("taskId", Util.generateUUID());
-            Task topTask = Task.load(taskId, myShepherd);
-            if (topTask == null) topTask = new Task(taskId);
-            if (fastlane) topTask.addParameter("fastlane", true);
+            Task topTask = resolveRequestRoot(Task.load(taskId, myShepherd), taskId, fastlane);
             myShepherd.storeNewTask(topTask);
+            // bulk-import boxes (spec 4.4): the envelope shape is validated BEFORE any intake, so a
+            // malformed one can never half-run (detection published, extraction refused)
+            String rejection = envelopeRejection(jin);
+            if (rejection != null) {
+                System.out.println("ERROR: IA.handleRest() rejected envelope for task " + taskId +
+                    ": " + rejection);
+                markTaskError(topTask, "INVALID_ENVELOPE", rejection);
+                if (!myShepherd.commitDBTransactionWithStatus())
+                    System.out.println("ERROR: IA.handleRest() could not persist the INVALID_ENVELOPE " +
+                        "mark on task " + taskId);
+                return;
+            }
+            String annotationMode = jin.optString("annotationMode", null);
             JSONObject opt = jin.optJSONObject("opt"); // should use this to decide how to branch differently than "default"
             JSONArray mlist = jin.optJSONArray("mediaAssetIds");
             if ((mlist != null) && (mlist.length() > 0)) {
@@ -562,10 +1311,23 @@ public class IA {
                 Task mtask = intakeMediaAssets(myShepherd, mas, topTask);
                 System.out.println("INFO: IA.handleRest() just intook MediaAssets as " + mtask +
                     " for (parent) " + topTask);
-                topTask.addChild(mtask);
+                linkUnderRoot(mtask, topTask);
             }
             JSONArray alist = jin.optJSONArray("annotationIds");
-            if ((alist != null) && (alist.length() > 0)) {
+            if ((alist != null) && (alist.length() > 0) &&
+                org.ecocean.servlet.IAGateway.ANNOTATION_MODE_EXTRACT.equals(annotationMode)) {
+                // bulk-import boxes: extract embeddings per box, then identify (spec 4.4). The ids
+                // go straight to the intake, which loads them tolerantly and owns its recovery.
+                List<String> ids = new ArrayList<String>();
+                for (int i = 0; i < alist.length(); i++) {
+                    String aid = alist.optString(i, null);
+                    if (aid != null) ids.add(aid);
+                }
+                int started = intakeImportedBoxes(myShepherd, ids, topTask, context,
+                    jin.optString("__baseUrl", null));
+                System.out.println("INFO: IA.handleRest() imported-box intake started " + started +
+                    " jobs/runs for " + topTask);
+            } else if ((alist != null) && (alist.length() > 0)) {
                 List<Annotation> anns = new ArrayList<Annotation>();
                 for (int i = 0; i < alist.length(); i++) {
                     String aid = alist.optString(i, null);
@@ -586,17 +1348,15 @@ public class IA {
                 }
                 // i cant think of a scenario where we would get here and accidently double-add mas... but jic
                 for (MediaAsset ma : masForNewRoot) {
-                    if (!topTask.getObjectMediaAssets().contains(ma)) {
-                        topTask.addObject(ma);
-                    }
+                    topTask.addObject(ma);   // dedupes; also safe on a fresh root whose list is null
                 }
                 Task atask = intakeAnnotations(myShepherd, anns, topTask, fastlane);
                 System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask +
                     " for " + topTask);
                 myShepherd.getPM().refresh(topTask);
-                topTask.addChild(atask);
+                linkUnderRoot(atask, topTask);
                 topTask.setModified();
-                myShepherd.getPM().makePersistent(atask);
+                if (atask != null) myShepherd.getPM().makePersistent(atask);
             }
             myShepherd.commitDBTransaction();
         } catch (Exception e) {

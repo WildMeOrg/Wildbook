@@ -98,20 +98,25 @@ public class JwtService {
     }
 
     public String sign(String userUuid, String context, long ttlMillis) {
-        return sign(userUuid, context, ttlMillis, null);
+        return signUntil(userUuid, context, ttlMillis, null, Long.MAX_VALUE);
     }
 
     /** Explicitly requested submission capability; existing issuance stays identity-only. */
     public String signSubmission(String userUuid, String context, long ttlMillis, String scope) {
-        if (!org.ecocean.api.submission.SubmissionPolicy.READ.equals(scope)
-            && !org.ecocean.api.submission.SubmissionPolicy.WRITE.equals(scope))
-            throw new IllegalArgumentException("Invalid submission scope");
-        return sign(userUuid, context, ttlMillis, scope);
+        requireSubmissionScope(scope);
+        return signUntil(userUuid, context, ttlMillis, scope, Long.MAX_VALUE);
     }
 
-    private String sign(String userUuid, String context, long ttlMillis, String scope) {
+    /**
+     * Signs a token that never outlives {@code notAfterMillis} (epoch ms): exp = min(now + ttl, notAfter).
+     * A null scope yields an identity-only (data) token; a non-null scope must be a submission scope.
+     */
+    public String signUntil(String userUuid, String context, long ttlMillis, String scope,
+        long notAfterMillis) {
+        if (scope != null) requireSubmissionScope(scope);
         if (!isEnabled()) throw new IllegalStateException("JwtService not enabled (no private key)");
         long now = System.currentTimeMillis();
+        long exp = Math.min(now + ttlMillis, notAfterMillis);
         io.jsonwebtoken.JwtBuilder b = Jwts.builder()
             .issuer(issuer)
             .audience().add(scope == null ? audience : audience + "/submissions").and()
@@ -119,10 +124,16 @@ public class JwtService {
             .claim("context", context)
             .id(Util.generateUUID())
             .issuedAt(new Date(now))
-            .expiration(new Date(now + ttlMillis));
+            .expiration(new Date(exp));
         if (scope != null) b.claim("submissionScope", scope);
         if (Util.stringExists(keyId)) b.header().keyId(keyId).and(); // 'kid' for rotation
         return b.signWith(privateKey, Jwts.SIG.RS256).compact();
+    }
+
+    private static void requireSubmissionScope(String scope) {
+        if (!org.ecocean.api.submission.SubmissionPolicy.READ.equals(scope)
+            && !org.ecocean.api.submission.SubmissionPolicy.WRITE.equals(scope))
+            throw new IllegalArgumentException("Invalid submission scope");
     }
 
     public Jws<Claims> verify(String token) {

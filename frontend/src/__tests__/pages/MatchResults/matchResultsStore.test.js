@@ -233,6 +233,54 @@ describe("MatchResultsStore — loadData", () => {
     expect(store.viewMode).toBe("individual");
   });
 
+  // #1814: a first load with only image results must not pin the page to
+  // Image Score once individual results arrive on a later poll.
+  test("viewMode returns to 'individual' when a poll brings indiv results", () => {
+    const annotOnly = {
+      annot: [{ annotation: { id: "a1" }, score: 3.0, asset: { id: 1 } }],
+      indiv: [],
+    };
+    store.loadData({
+      matchResultsRoot: makeProspect({
+        statusOverall: "queued",
+        matchResults: {
+          numberCandidates: 50,
+          queryAnnotation: { id: "q1" },
+          prospects: annotOnly,
+        },
+      }),
+    });
+    expect(store.viewMode).toBe("image");
+
+    store.loadData(makeApiResponse({ statusOverall: "completed" }), {
+      preserveSelection: true,
+    });
+    expect(store.viewMode).toBe("individual");
+  });
+
+  test("viewMode is 'individual' when neither tab has results", () => {
+    store.loadData({
+      matchResultsRoot: makeProspect({
+        statusOverall: "completed",
+        matchResults: {
+          numberCandidates: 0,
+          queryAnnotation: { id: "q1" },
+          prospects: { annot: [], indiv: [] },
+        },
+      }),
+    });
+    expect(store.viewMode).toBe("individual");
+  });
+
+  test("a tab the user picked survives a poll while it has results", () => {
+    store.loadData(makeApiResponse({ statusOverall: "queued" }));
+    store.setViewMode("image");
+    store.loadData(makeApiResponse({ statusOverall: "completed" }), {
+      preserveSelection: true,
+    });
+    expect(store.viewMode).toBe("image");
+  });
+
   test("sets hasResults to true and populates raw arrays on valid data", () => {
     store.loadData(makeApiResponse());
     expect(store.hasResults).toBe(true);

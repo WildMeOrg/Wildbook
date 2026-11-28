@@ -69,6 +69,7 @@ private Embedding findEmbedding(JSONArray arr, String id) {
     }
     //if (embArr == null) throw new RuntimeException("could not find embedding array for id=" + id);
     if (embArr == null) return null;
+    if (!Embedding.isSupportedLength(embArr.length())) return null;
     Embedding emb = new Embedding(null, "miewID", null, embArr);
     return emb;
 }
@@ -172,7 +173,7 @@ for (int i = 0 ; i < annotArr.length() ; i++) {
     embV2.setMethodVersion("v2");
     embV2.setAnnotation(ann);
     Embedding embV3 = findEmbedding(embeddingV3Arr, annId);
-    if (embV2 == null) continue;
+    if (embV3 == null) continue;
     embV3.setMethodVersion("v3");
     embV3.setAnnotation(ann);
 

@@ -18,7 +18,7 @@ Create a private draft, upload photographs, provide sighting rows, check the
 validation report, then commit the approved data once and collect the resulting
 record IDs. Drafting and validation do not create sighting records. Commit does.
 Import creates new encounters, one per row, owned by the submitting
-account. Detection may later add annotations and additional encounters. New submissions default to animal detection followed by individual identification
+account, or by the person named in `onBehalfOf` when the draft has one. Detection may later add annotations and additional encounters. New submissions default to animal detection followed by individual identification
 matching after import. Matching returns candidates for review; it does not automatically
 assign an individual identity. Existing records are not updated.
 
@@ -38,9 +38,15 @@ assign an individual identity. Existing records are not updated.
   `POST /api/v3/auth/token?scope=submissions:write`. Use a non-admin integration
   account for the pilot; do not mint with an operator's own account merely because
   they are setting it up. The authenticated token account becomes the draft owner.
-  Record that account's expected user ID and compare it with `effectiveOwnerId`
-  in the validation report before committing. Have the operator supply
+  Record that account's expected user ID and compare it with `draftOwnerId`
+  in the validation report before committing. For a draft with `onBehalfOf`, also
+  check that `effectiveOwner` names the collector you intended. Have the operator supply
   only the token through the runtime's secret mechanism; do not request their password.
+  Alternatively, the operator may configure an organization service key (`wbsvc_...`).
+  Trade it for a short-lived token with `POST /api/v3/auth/token?scope=submissions:write`
+  (or `scope=submissions:read` for status reads), sending the key as
+  `Authorization: Bearer wbsvc_...` to that endpoint only. The exchange, expiry and error
+  messages are described in the api-reference page under "Using an organization service key".
   The response's `expiresInSeconds` is authoritative. `submissions:read` permits
   status/results reads, including after write enrollment is removed.
   Removing the role blocks new writes with existing tokens and prevents unstarted
@@ -63,6 +69,8 @@ Send `Authorization: Bearer <submissions-token>` on every submissions request.
 Fetch `GET /api/v3/submissions/capabilities`. Read `contractVersion`,
 `admissionEnabled`, `stagingAvailable`, `commitEnabled`, `processingModes`,
 `rowFields`, `limits`, `maxFiles`, `maxImagePixels`, and `uploadMediaTypes`.
+Before sending your own detector's boxes, check that `rowFields.perMedia` lists
+`bbox` and `iaClass`; if it is absent, this installation does not accept boxes.
 Do not proceed to writes when admission or staging is unavailable. Commit can be
 disabled while drafting remains available. Supported modes are `detect-and-identify` (the default for new submissions) and
 `import-only` (explicitly skips detection and identification). Read capabilities
@@ -124,9 +132,47 @@ Create body (the names are illustrative):
 `source.name` is required, 1–128 characters; `source.batchId` is optional, 1–256.
 `processing` may be omitted and defaults to detect-and-identify on this version.
 To skip detection and matching, explicitly send `"processing":{"mode":"import-only"}`.
+
+A submission whose rows carry boxes (`Encounter.mediaAsset{N}.bbox`) never runs
+detection: the supplied boxes are extracted and, in `detect-and-identify`, matched;
+in `import-only` they are extracted for later matching but not identified. Photos in
+that submission without a box are imported untouched and are not detected either. If
+the person also wants detection on un-boxed photos, send those in a separate
+submission without box columns.
 The mode is fixed at creation, and this API has no "start AI later" or AI retry
 operation for an existing submission. Retry with the saved original create body and
 key; do not change mode or make another batch to force matching.
+
+#### Crediting the person who collected the sightings (organization service keys only)
+
+In Wildbook, the account that owns a record decides who can see and edit it. With an
+organization service key, records are owned by the organization's service account unless you
+name the collector when you create the draft:
+
+```jsonc
+{
+  "contractVersion": "1",
+  "source": {"name": "field-survey-integration"},
+  "onBehalfOf": "jdoe"
+}
+```
+
+- `onBehalfOf` is either the exact Wildbook username of a person who is a direct member of the
+  key's organization, or exactly `public`. Use the username the person or the operator gives
+  you; never guess one. Nothing else is accepted, and no account is ever created for a name.
+- It applies to every row of the draft and cannot be changed afterwards. If one batch holds
+  sightings from several collectors, make one draft per collector.
+- A named member then owns the encounters, the new sighting and the import task, exactly as if
+  they had uploaded them. They can see and edit them, and their collaborators and the
+  organization's administrators keep their usual viewing and editing permissions.
+- `public` makes the records open to everyone: anyone can view them, including people who are
+  not logged in, any logged-in user can edit them or delete the whole import, and other
+  organizations' keys can find them and fetch their images. Use it only when the person
+  confirms the data is meant to be public.
+- Only a service key may send `onBehalfOf`. An ordinary account's draft is refused with HTTP 403
+  `ATTRIBUTION_NOT_ALLOWED`.
+- After a member is named, the service key itself usually can no longer see those records in
+  search. The submission's results still list their IDs for the key that sent them.
 
 Upgrade note: existing submissions retain their saved mode, including older
 omitted-mode submissions normalized to import-only. Retrying an existing create
@@ -189,16 +235,27 @@ Supported fields for this pilot are exactly:
 | `Encounter.researcherComments` | string | Optional free text preserving relevant observation context. |
 | `Encounter.sightingID` | string | Optional. The source's sighting, occurrence or group ID; rows that share it become one new sighting. 1–100 letters, digits, `.`, `_` or `-`, starting with a letter or digit. See "Grouping rows into one sighting". |
 | `Encounter.mediaAsset0` … `Encounter.mediaAsset199` | string | Exact completed upload filename. Start at 0 and use successive slots for photographs of this encounter. At least one image is required per row. |
+| `Encounter.mediaAsset{N}.bbox` | string | Optional. One animal's box on the photo in slot N: `"x,y,width,height"`, whole pixels of the uploaded image as stored (no EXIF rotation), origin top-left; x,y at least 0, width,height at least 1, and inside the image. |
+| `Encounter.mediaAsset{N}.iaClass` | string | Required with a box. One of the species' matchable classes (`bulkImportMatchableClasses` in `/api/v3/site-settings`); in `import-only`, any class the species stores. |
+| `Encounter.mediaAsset{N}.viewpoint` | string | Optional, with a box. A known viewpoint such as `left`, `right`, `front`. |
+| `Encounter.mediaAsset{N}.theta` | number | Optional, with a box. Rotation in radians, clockwise as displayed, between -6.2832 and 6.2832; bounds are checked on the un-rotated box. |
+| `Encounter.mediaAsset{N}.bboxSource` | string | Optional, with a box, 1–128 characters: the detector or person that drew it. |
+| `Encounter.quality{N}` | number | Optional. The detector's score for the photo or box in slot N. |
 
 Send year/month/day/hour/minutes as JSON integers such as `2025`, not floating-point
 or decimal strings such as `2025.0` or `"2025.0"`; integer-field parsing can reject
 decimal representations even when numerically equivalent.
 
-Each image must be used in only one row and only one slot. All photos for the same
-new encounter belong in that one row. Do not create duplicate rows for its photos.
+Each image must be used in only one slot of a row. Without boxes, each image also
+belongs to only one row: all photos for the same new encounter belong in that one
+row; do not create duplicate rows for its photos. With boxes, one photo showing
+several animals is sent once per animal: one row per animal, each naming the same
+photo with that animal's own box. Every use of that photo must then carry a box,
+and two rows may not carry the identical box.
 The per-encounter image limit from capabilities can be lower than 200.
 
-Do not send legacy fields such as `Encounter.submitterID`, `Encounter.id`,
+Do not send legacy fields such as `Encounter.submitterID` (to credit a collector, use
+`onBehalfOf` when creating the draft), `Encounter.id`,
 `Encounter.catalogNumber`, `Encounter.individualID`, `Encounter.otherCatalogNumbers`,
 `Encounter.latitude`, `Encounter.longitude`, timestamp/millisecond fields, project,
 keyword, measurement, `Sighting.*` or `MarkedIndividual.*` fields. They are not
@@ -293,6 +350,10 @@ POST `/api/v3/submissions/{id}/validate` with `{}` and the current If-Match.
 HTTP 200 means a validation report was produced, not that the data passed. Check
 `valid`, `errors`, `warnings`, `normalizedRows`, `revision`, `effectiveOwnerId`, and
 `processing`. Save the report's `id` as the `validationId` for commit.
+`effectiveOwnerId` is who will own the records: the named member's user ID, `public`, or
+otherwise the account that sent the draft. `draftOwnerId` is always the sending account. For a
+draft with `onBehalfOf`, `effectiveOwner` gives the resolved `username`, `userId` and
+`organizationId` (the IDs are `null` for `public`); confirm it is the intended person.
 
 An illustrative excerpt of a failed report is:
 
@@ -336,6 +397,12 @@ why the value was rejected:
 | `OUT_OF_RANGE` | A number outside the allowed range, or a day that does not exist in that month. |
 | `FUTURE_DATE` | The date is later than today everywhere on Earth. The issue names the part (year, month or day) that is too late. |
 | `NOT_CONFIGURED` | Not one of this installation's configured values. The message names the value and, for short lists, the allowed values. |
+| `INVALID_BOX` | The box is not four whole numbers `x,y,width,height` with x,y at least 0 and width,height at least 1. |
+| `MISSING_CLASS` | A box was supplied without its `iaClass`. |
+| `UNKNOWN_CLASS` | The class cannot be matched for this species; the message lists the accepted classes. |
+| `INVALID_VIEWPOINT` | Not a known viewpoint. |
+| `INVALID_THETA` | Theta is not a finite number of radians within ±6.2832. |
+| `BOX_OUT_OF_BOUNDS` | The box reaches past the uploaded image's width or height. |
 | `INVALID` | Another rejection; read the message. |
 
 New reasons may be added later; treat an unrecognized or absent `reason` like
@@ -361,9 +428,13 @@ Concrete failure examples and corrections (assume other fields are valid):
 | lifeStage `"juvenile"` when absent from configured lifeStage values; likewise an unconfigured livingStatus | `INVALID_VALUE` (`NOT_CONFIGURED`) on the corresponding field | Map only to a semantically correct configured value; otherwise ask or omit an unknown optional value. |
 | mediaAsset0 `"Photo.JPG"` when the completed upload is `"photo.jpg"` | `MISSING_MEDIA` (and possibly `REQUIRED_VALUE`) | Match the exact manifest filename and ensure its upload completed. |
 | no image reference | `REQUIRED_VALUE` on `Encounter.mediaAsset0` | Upload and reference at least one authorized photo. |
-| same image in two slots or rows | `DUPLICATE_MEDIA` | Put each uploaded image in exactly one slot in one row. |
+| same image in two slots of a row, or in two rows without boxes | `DUPLICATE_MEDIA` | Put each image in one slot; without boxes, in one row. |
+| one photo boxed on one row and used without a box on another | `DUPLICATE_MEDIA` on the un-boxed use | Box every animal on that photo, or move the un-boxed use to a separate submission without boxes. |
+| the identical box twice on one photo | `DUPLICATE_BOX` on the later row's `.bbox` | Keep one row per animal; remove the duplicate. |
+| `Encounter.mediaAsset0.iaClass` without a `.bbox`, or a box without a class | `INVALID_VALUE` (`REQUIRES_FIELD` or `MISSING_CLASS`) | Send the box and its class together. |
 | too many images in one row | `LIMIT_EXCEEDED` | Respect maxMediaPerEncounter; do not split one observation into fabricated encounters to bypass it. |
-| `Encounter.submitterID`, `Encounter.otherCatalogNumbers`, or another unsupported field | `UNSUPPORTED_FIELD` | Use the supported contract; the authenticated account determines ownership. |
+| `Encounter.submitterID`, `Encounter.otherCatalogNumbers`, or another unsupported field | `UNSUPPORTED_FIELD` | Use the supported contract. To credit the collector with a service key, use `onBehalfOf` when creating the draft. |
+| `onBehalfOf` is neither exactly `public` nor the exact username of a direct member of the key's organization (for example a misspelled or differently capitalized username, or someone outside the organization) | `SUBMITTER_NOT_ALLOWED` on `onBehalfOf` | Ask the person for the collector's exact username. `onBehalfOf` cannot be changed, so create a new draft with the corrected name. |
 | `Encounter.sightingID` already used by a sighting in this Wildbook | `SIGHTING_EXISTS` on `Encounter.sightingID` | Ask the person. Existing sightings cannot be added to through this API; do not invent a different ID. |
 | `Encounter.sightingID` `"herd 12"`, or a number instead of a string | `INVALID_VALUE` (`INVALID`) on `Encounter.sightingID` | Report the source ID to the person; do not alter it to pass validation. |
 
@@ -379,6 +450,10 @@ the API does not overwrite or individually delete completed uploads. Keep within
 the total draft byte budget. Review normalized data, effective ownership, and the validation report
 `processing.mode` before commit; the mode must match the intended request. A valid report applies to that input revision. Commit checks the recorded
 location/media-policy digest; execution revalidates all rows and current eligibility.
+If the named collector has left the organization, or the username now belongs to someone else,
+commit returns HTTP 409 `VALIDATION_STALE`, or a queued import ends `failed` with that code and
+imports nothing. If the key's account is no longer a service account, the code is
+`ATTRIBUTION_NOT_ALLOWED`.
 Taxonomy/life-stage/living-status changes can therefore cause execution to fail
 after queue acceptance, rather than yielding a commit-time conflict.
 
@@ -425,6 +500,9 @@ GET `/api/v3/submissions/{id}/results?limit=100` returns `rows` with `clientRowI
 Follow `nextCursor` by passing it as `cursor`, retaining your chosen limit; absence
 means the final page. Limits are 1–200. Results obey current access permissions,
 so do not promise that a later read always contains every previously visible row.
+A draft created with `onBehalfOf` is the exception: the service account that sent it
+always gets its rows' IDs back as a receipt, even though the records belong to the
+collector and it cannot open them.
 `links.importTask` opens the existing task page when available.
 
 `indexing`, `derivatives`, `detection`, and `identification` are separate phase
@@ -432,15 +510,22 @@ objects. `indexing.state: "unknown"` means indexing was dispatched but completio
 is not acknowledged; it is not proof that search is current. `indexing.state: "failed"`
 requires operator inspection. Derivatives may be `pending`, `running`, `complete`,
 or `unknown`; an unknown derivative outcome also requires operator inspection.
-Detection and identification are `skipped` for explicit import-only. For the default
-`detect-and-identify`, these two phase objects describe the same workflow handoff:
+Without boxes, detection and identification are both `skipped` for explicit
+import-only, and for the default `detect-and-identify` the two phase objects describe
+the same workflow handoff, as in the table below. With boxes, detection is always
+`skipped` with code `BOXES_SUPPLIED`, and `identification` alone carries the handoff
+state from the table: here the handoff sends the boxes for extraction (and matching in
+`detect-and-identify`) instead of detection. In import-only with boxes, `pending`,
+`dispatching` and `dispatched` also carry code `BOXES_EXTRACTED_ONLY`: the boxes are
+extracted for later matching but not identified. Failure states (`not_started`,
+`failed`, `unknown`) keep their own codes and messages in every mode.
 
 | AI phase state | Meaning and action |
 |---|---|
 | `not_started` | Record import failed or requires reconciliation; inspect the import before considering AI work. |
 | `pending` | Waiting for record import and completed derivatives before preparing the IA tasks. |
 | `dispatching` | IA tasks and the queue message are saved; the worker owns the handoff. Do not resend. |
-| `dispatched` | The detection message was handed to the existing pipeline with identification requested afterward. This does not mean either phase completed. Give the linked import task to the person for progress and match-candidate review in Wildbook. The scoped submissions token does not grant access to that browser page. |
+| `dispatched` | The detection message (with boxes: the extraction message) was handed to the existing pipeline, with identification requested afterward unless import-only. This does not mean either phase completed. Give the linked import task to the person for progress and match-candidate review in Wildbook. The scoped submissions token does not grant access to that browser page. |
 | `failed` | The workflow could not be started. Check its phase code/message and the import task; involve the operator. |
 | `unknown` | The AI handoff outcome needs reconciliation. Check the phase code/message; do not create a replacement batch or manually resend. |
 

@@ -42,6 +42,8 @@ const collectProspects = (node, type, result = []) => {
         node.matchResults?.queryAnnotation?.encounter?.id ?? null,
       encounterLocationId:
         node.matchResults?.queryAnnotation?.encounter?.locationId ?? null,
+      queryEncounterDate:
+        node.matchResults?.queryAnnotation?.encounter?.date ?? null,
       matchingSetFilter: node.matchingSetFilter,
       queryIndividualId:
         node.matchResults?.queryAnnotation?.individual?.id ?? null,

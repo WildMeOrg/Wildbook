@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
@@ -39,8 +40,17 @@ public class IAJsonProperties extends JsonProperties {
         super("IA.json");
     }
 
+    private static volatile IAJsonProperties testOverride = null;
+
+    /** Test seam (issue #1787 datastore tests): a fixture instance returned by iaConfig() until cleared with null. */
+    static void overrideForTests(IAJsonProperties override) {
+        testOverride = override;
+    }
+
     // hackey constructor so we don't need to catch an exception every time we use these. Is there a better way?
     public static IAJsonProperties iaConfig() {
+        IAJsonProperties override = testOverride;
+        if (override != null) return override;
         try {
             return new IAJsonProperties();
         } catch (Exception e) {
@@ -308,6 +318,75 @@ public class IAJsonProperties extends JsonProperties {
         return arr;
     }
 
+    // ------------------------------------------------------------------
+    // Multiple ml-service pipelines per species
+    // (docs/plans/2026-10-16-mlservice-multi-config.md). A species is
+    // multi-pipeline when its active species-level `_mlservice_conf` has
+    // two or more entries. Single-entry species keep the pre-existing
+    // behavior everywhere; every per-iaClass rule below is gated on this.
+    // ------------------------------------------------------------------
+
+    public boolean isMultiPipeline(Taxonomy taxy) {
+        JSONArray arr = getActiveMlServiceConfigs(taxy);
+        return (arr != null) && (arr.length() > 1);
+    }
+
+    /**
+     * The `<species>.<iaClass>._mlservice_conf` array, or null if absent or
+     * empty. No `_default` fallback; the caller decides what a missing
+     * class-level entry means.
+     */
+    public JSONArray getMlServiceConfigsForIAClass(Taxonomy taxy, String iaClass) {
+        if ((taxy == null) || !Util.stringExists(iaClass)) return null;
+        Object raw = this.get(identKey(taxy, iaClass) + "._mlservice_conf");
+        if (!(raw instanceof JSONArray)) return null;
+        JSONArray arr = (JSONArray) raw;
+        if (arr.length() == 0) return null;
+        return arr;
+    }
+
+    /**
+     * A copy of the first `default: true` entry with `pipeline_root ==
+     * "vector"` under `<species>.<iaClass>._id_conf`, or null. Unlike
+     * {@link #getIdentConfig(Taxonomy, String)} this does NOT fall back to
+     * `_default` when the class has no `_id_conf`.
+     */
+    public JSONObject getDefaultVectorIdentConfig(Taxonomy taxy, String iaClass) {
+        if ((taxy == null) || !Util.stringExists(iaClass)) return null;
+        Object raw = this.get(identConfigKey(taxy, iaClass));
+        if (!(raw instanceof JSONArray)) return null;
+        JSONArray idConf = (JSONArray) raw;
+        for (int i = 0; i < idConf.length(); i++) {
+            JSONObject entry = idConf.optJSONObject(i);
+            if (entry == null) continue;
+            if (entry.optBoolean("default", false) &&
+                "vector".equals(entry.optString("pipeline_root", null))) {
+                return new JSONObject(entry.toString());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The single ml-service config used to extract an embedding for an
+     * existing annotation of this iaClass. Single-pipeline species: the
+     * species entry [0], as before. Multi-pipeline species: the class-level
+     * entry [0] if present, else the species entry [0]. Null when the
+     * species is not routed to ml-service.
+     */
+    public JSONObject selectExtractionConfig(Taxonomy taxy, String iaClass) {
+        JSONArray species = getActiveMlServiceConfigs(taxy);
+        if (species == null) return null;
+        if (species.length() == 1) return species.optJSONObject(0);
+        JSONArray classConfs = getMlServiceConfigsForIAClass(taxy, iaClass);
+        if ((classConfs != null) && (classConfs.optJSONObject(0) != null))
+            return classConfs.optJSONObject(0);
+        System.out.println("[WARN] IAJsonProperties.selectExtractionConfig: multi-pipeline " +
+            "taxonomy " + taxy + " has no _mlservice_conf for iaClass " + iaClass +
+            "; using the first species entry");
+        return species.optJSONObject(0);
+    }
+
     /**
      * Returns the `pipeline_root` string of the `_id_conf` entry marked
      * `default: true` for this taxonomy (under `_default` iaClass). Returns
@@ -434,16 +513,20 @@ public class IAJsonProperties extends JsonProperties {
         return new JSONObject(jobj, JSONObject.getNames(jobj));
     }
 
+    // a sibling key under the species node that names an IA class (not config, not the common
+    // name, not the match_trivial flag, and not a subspecies child; issue #1298 for the latter:
+    // a species node marks its subspecies via a "_subspecies" list of child key names so they
+    // are excluded from the Manual Annotation dropdown)
+    private boolean isClassKey(String key, JSONObject underTaxy) {
+        if (key.startsWith("_")) return false;
+        if (key.equals("common_name")) return false;
+        if (key.equals("match_trivial")) return false;
+        if (isSubspeciesKey(key, underTaxy)) return false;
+        return true;
+    }
+
     private boolean isUserSelectableIAClass(Taxonomy taxy, String key, JSONObject underTaxy) {
-        if (key.startsWith("_")) { return false; } else if (key.equals("common_name")) {
-            return false;
-        } else if (key.equals("match_trivial")) {
-            return false;
-        } else if (isSubspeciesKey(key, underTaxy)) {
-            // issue #1298: subspecies are taxonomic children, not matchable IA
-            // classes, but they sit as sibling keys under the species node. A
-            // species node marks its subspecies via a "_subspecies" list of child
-            // key names so they are excluded from the Manual Annotation dropdown.
+        if (!isClassKey(key, underTaxy)) {
             return false;
         } else if (underTaxy.get(key) instanceof String &&
             ((String)underTaxy.get(key)).startsWith("@")) {
@@ -482,6 +565,71 @@ public class IAJsonProperties extends JsonProperties {
             if (isUserSelectableIAClass(taxy, key, underTaxy)) {
                 result.add(key); // iaClasses are keys, not values, in this format
             }
+        }
+        return result;
+    }
+
+    /**
+     * Bulk-import boxes (spec 4.1 / 4.6): the classes an annotation of this species can be STORED
+     * under: the user-selectable keys (what the manual-annotation page offers) plus every
+     * {@code _save_as} target, class-level and {@code _default}, links followed; these are the two
+     * lookups {@link #convertIAClassForTaxonomy} makes, read directly because that method logs
+     * four lines per call. Sorted, no duplicates; empty for a null taxonomy or one without IA.
+     */
+    public List<String> getCanonicalIAClasses(Taxonomy taxy) {
+        Set<String> result = new TreeSet<String>();
+
+        if ((taxy == null) || (taxy.getScientificName() == null)) return new ArrayList<String>(result);
+        String taxKey = taxonomyKey(taxy);
+        Object node = opt(taxKey); // quiet: an unknown species is a normal answer, not an error to log
+        if (!(node instanceof JSONObject)) return new ArrayList<String>(result);
+        JSONObject underTaxy = (JSONObject)node;
+        Iterator<String> keys = underTaxy.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            if (!isClassKey(key, underTaxy)) continue;
+            if (isUserSelectableIAClass(taxy, key, underTaxy)) result.add(key);
+            String target = saveAsTarget(taxKey + "." + key);
+            if (target != null) result.add(target);
+        }
+        String target = saveAsTarget(taxKey + "._default");
+        if (target != null) result.add(target);
+        return new ArrayList<String>(result);
+    }
+
+    // the resolved _save_as target under a class or _default path (links followed at every
+    // level, the leaf included), or null when absent; quiet, as the value is optional
+    private String saveAsTarget(String path) {
+        Object target = opt(path + "._save_as");
+        return ((target instanceof String) && Util.stringExists((String)target)) ? (String)target : null;
+    }
+
+    // getIdentConfig's lookup and _default fallback, quietly (no stack trace when a class has no
+    // options of its own, which is normal): does the class have an option whose default is not false?
+    private boolean hasDefaultIdentOption(Taxonomy taxy, String iaClass) {
+        Object conf = opt(identConfigKey(taxy, iaClass));
+        if (!(conf instanceof JSONArray)) conf = opt(identConfigKey(taxy, "_default"));
+        if (!(conf instanceof JSONArray)) return false;
+        JSONArray opts = (JSONArray)conf;
+        for (int i = 0; i < opts.length(); i++) {
+            JSONObject opt = opts.optJSONObject(i);
+            if ((opt != null) && opt.optBoolean("default", true)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Bulk-import boxes (decision 3): the canonical classes that identification will actually
+     * run on, i.e. those with at least one identification option whose {@code default} is not
+     * false (intake's rule; {@link #getIdentConfig} falls back to {@code _default._id_conf}, so a
+     * stored class with no key of its own is matchable through that fallback). Same ordering and
+     * empties as {@link #getCanonicalIAClasses}.
+     */
+    public List<String> getMatchableIAClasses(Taxonomy taxy) {
+        List<String> result = new ArrayList<String>();
+
+        for (String cls : getCanonicalIAClasses(taxy)) {
+            if (hasDefaultIdentOption(taxy, cls)) result.add(cls);
         }
         return result;
     }
