@@ -471,13 +471,14 @@ class SubmissionValidatorTest {
 
     interface GroupBody { void run(Shepherd sh, SubmissionFiles storage, JSONArray files, MockedStatic<CommonConfiguration> config) throws Exception; }
 
-    /** As withBoxHarness, with up to 10 photos per encounter and every PHOTOS name staged as a 20x20 image. */
+    /** As withBoxHarness (plus a second configured location, lagoon), with up to 10 photos per encounter and every PHOTOS name staged as a 20x20 image. */
     void withGroups(GroupBody body) throws Exception {
         try (MockedStatic<CommonConfiguration> config = mockStatic(CommonConfiguration.class);
              MockedStatic<LocationID> location = mockStatic(LocationID.class)) {
             config.when(() -> CommonConfiguration.getMaxMediaCountEncounter(any())).thenReturn(10);
-            location.when(LocationID::getLocationIDStructure).thenReturn(new JSONObject("{\"locationID\":[{\"id\":\"reef\"}]}"));
+            location.when(LocationID::getLocationIDStructure).thenReturn(new JSONObject("{\"locationID\":[{\"id\":\"reef\"},{\"id\":\"lagoon\"}]}"));
             location.when(() -> LocationID.isValidLocationID("reef")).thenReturn(true);
+            location.when(() -> LocationID.isValidLocationID("lagoon")).thenReturn(true);
             TestIAJsonPropertiesUtil.override(boxFixture());
             try {
                 Shepherd sh = mock(Shepherd.class); when(sh.isValidTaxonomyName(anyString())).thenReturn(true);
@@ -610,6 +611,27 @@ class SubmissionValidatorTest {
             assertEquals(2, issues(report).size(), report.toString());
             assertIssue(issues(report).get(0), "r0", "Encounter.locationID", "INVALID_LOCATION", "G");
             assertIssue(issues(report).get(1), "r1", "Encounter.locationID", "INVALID_LOCATION", "G");
+        });
+    }
+
+    @Test void groupedUnconfiguredLocationIsInvalidLocation() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject ungrouped = only(validateRows(sh, storage, files, DETECT, full("u", null, "Encounter.mediaAsset0", "one.png", "Encounter.locationID", "nowhere")));
+            assertIssue(ungrouped, "u", "Encounter.locationID", "INVALID_LOCATION", null);
+            JSONObject grouped = only(validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png", "Encounter.locationID", "nowhere")));
+            assertIssue(grouped, "r0", "Encounter.locationID", "INVALID_LOCATION", "G");
+            assertEquals(ungrouped.getString("message"), grouped.getString("message"));
+            assertEquals(ungrouped.has("reason"), grouped.has("reason"), grouped.toString());
+        });
+    }
+
+    @Test void groupedLocationConflictIsGroupConflictOnly() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject report = validateRows(sh, storage, files, DETECT, full("r0", "G", "Encounter.mediaAsset0", "one.png"),
+                part("r1", "G", "Encounter.mediaAsset0", "two.png", "Encounter.locationID", "lagoon"));
+            assertEquals(2, issues(report).size(), report.toString());
+            assertIssue(issues(report).get(0), "r0", "Encounter.locationID", "GROUP_CONFLICT", "G");
+            assertIssue(issues(report).get(1), "r1", "Encounter.locationID", "GROUP_CONFLICT", "G");
         });
     }
 

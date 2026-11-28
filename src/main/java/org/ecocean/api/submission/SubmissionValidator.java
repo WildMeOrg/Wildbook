@@ -152,6 +152,8 @@ public class SubmissionValidator {
                 issue(s, gi.row, gi.field, "DUPLICATE_MEDIA", null, ex.getMessage());
             else if (ex.isType(BulkValidatorException.TYPE_REQUIRED_VALUE) && (PHOTO + "0").equals(gi.field))
                 issue(s, gi.row, gi.field, "REQUIRED_VALUE", null, "At least one image required");
+            else if (LOCATION.equals(BulkValidator.canonicalFieldName(gi.field))) // as on an ungrouped row
+                issue(s, gi.row, gi.field, "INVALID_LOCATION", null, "A configured location ID is required");
             else {
                 SubmissionValueIssues.Issue explained = SubmissionValueIssues.explain(gi.field, ex, s.copied, Map.of(), sh, today);
                 issue(s, gi.row, explained.field, "INVALID_VALUE", explained.reason, explained.message);
@@ -275,11 +277,12 @@ public class SubmissionValidator {
                 && sightingExists.computeIfAbsent((String)sighting, id -> sh.getOccurrence(id) != null))
             for (GroupedRows.Cell c : g.contributorsOf(m, SIGHTING_ID))
                 issue(sources.get(c.row), c.row, c.field, "SIGHTING_EXISTS", null, "A sighting with this ID already exists; this API only creates new sightings");
-        // a location cell that failed on its own (or a conflict) already explains why the group has none
-        boolean locationIssue = false;
+        // conflicting location cells are each a GROUP_CONFLICT, which already explains why the group has none
+        boolean locationConflict = false;
         for (GroupedRows.Issue gi : g.issues())
-            if (g.mergedIndexOf(gi.row) == m && LOCATION.equals(BulkValidator.canonicalFieldName(gi.field))) locationIssue = true;
-        boolean locationRejected = !locationIssue && (!(raw.opt(LOCATION) instanceof String)
+            if (g.mergedIndexOf(gi.row) == m && LOCATION.equals(BulkValidator.canonicalFieldName(gi.field))
+                    && gi.error.isType(BulkValidatorException.TYPE_GROUP_CONFLICT)) locationConflict = true;
+        boolean locationRejected = !locationConflict && (!(raw.opt(LOCATION) instanceof String)
             || !configuredLocation(config.getJSONObject("locations"), raw.optString(LOCATION, null)));
         if (locationRejected)
             for (GroupedRows.Cell c : g.cellsFor(m, LOCATION))
