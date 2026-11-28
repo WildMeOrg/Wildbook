@@ -47,7 +47,7 @@ public class SubmissionImporter {
         try { submitterValue = new BulkValidator("Encounter.submitterID", submitter, sh); }
         catch (Exception ex) { throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed"); }
         for (Map<String, Object> data : merged) {
-            data.put("Encounter.submitterID", BulkValidator.rebound(submitterValue, "Encounter.submitterID"));
+            data.put("Encounter.submitterID", submitterValue); // one validated value shared, as BulkImport does
             for (Object value : data.values()) if (!(value instanceof BulkValidator))
                 throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed");
             for (String field : BulkImportUtil.findIndexedFieldNames(data.keySet(), "Encounter.mediaAsset")) // bare slots only (bulk-import boxes)
