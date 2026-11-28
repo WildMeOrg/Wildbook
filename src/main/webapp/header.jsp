@@ -207,7 +207,6 @@ if(request.getUserPrincipal()!=null){
 
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
-      <script type="text/javascript"  src="<%=urlLoc %>/javascript/translator.js"></script>
 
       <script type="text/javascript" src="<%=urlLoc %>/javascript/notifications.js"></script>
 

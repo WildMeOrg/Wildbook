@@ -17,6 +17,7 @@ java.util.Vector,
 java.util.Iterator,
 java.lang.NumberFormatException"%>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <%
 String context="context0";
@@ -27,6 +28,8 @@ myShepherd.setAction("automatedUserReconciliation.jsp");
 myShepherd.beginDBTransaction();
 int numFixes=0;
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+Properties myUsersProps = ShepherdProperties.getProperties("myUsers.properties",
+    ServletUtilities.getLanguageCode(request), context);
 %>
 <jsp:include page="/header.jsp" flush="true"/>
 <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
@@ -44,9 +47,7 @@ try{
       <!-- js-generated html goes here -->
     </div>
     <script>
-    let txt = getText("myUsers.properties");
     displayProgressBar("Loading");
-    let headerTxt = getText("header.properties");
     $(document).ready(function() {
       populateNewButtonAndDisplay(null, '<h4>Step 1. Deduplicate Less Complete Accounts</h4>', '<button onclick="ajaxDedupeLessCompleteWrapper()">Do It</button>', '<button onclick="skipTo(2)">Skip Step</button>');
       populateCounts("User counts", "originalCounts", false);
@@ -302,7 +303,7 @@ try{
       progressHtml += '<h4>'+ loadingStatus + '</h4>';
       progressHtml += '<div class="progress">';
       progressHtml += '<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">';
-      progressHtml += '<span class="sr-only">'+txt.PercentComplete+'</span>';
+      progressHtml += '<span class="sr-only">'+<%= new com.google.gson.Gson().toJson(myUsersProps.getProperty("PercentComplete")) %>+'</span>';
       progressHtml += '</div>';
       progressHtml += '</div>';
       progressHtml += '</div>';

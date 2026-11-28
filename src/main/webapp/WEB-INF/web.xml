@@ -683,15 +683,6 @@
 	</servlet-mapping>
 
 	<servlet>
-		<servlet-name>TranslationsGet</servlet-name>
-		<servlet-class>org.ecocean.servlet.TranslationsGet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>TranslationsGet</servlet-name>
-		<url-pattern>/TranslationsGet</url-pattern>
-	</servlet-mapping>
-
-	<servlet>
 		<servlet-name>EncounterRemoveUser</servlet-name>
 		<servlet-class>org.ecocean.servlet.EncounterRemoveUser</servlet-class>
 	</servlet>

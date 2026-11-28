@@ -128,7 +128,7 @@
 <script type="text/javascript">
 
 var annotIdTaskIdAdapter = {};
-var txt = getText("project.properties");
+var txt = <%= new com.google.gson.Gson().toJson(projectProps) %>;
 
 let projIdPrefix = '';
 let countOfIncrementalIdRowPopulated = 0;

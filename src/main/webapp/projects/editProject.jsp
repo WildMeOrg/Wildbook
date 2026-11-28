@@ -55,7 +55,7 @@
 <jsp:include page="../footer.jsp" flush="true"/>
 
 <script>
-let txt = getText("editProject.properties");
+let txt = <%= new com.google.gson.Gson().toJson(props) %>;
 let updateStatus = false;
 let globalProj = null;
 
