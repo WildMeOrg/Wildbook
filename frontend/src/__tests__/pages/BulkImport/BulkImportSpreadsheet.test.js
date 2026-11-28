@@ -18,8 +18,10 @@ const mockStore = {
   setValidationWarnings: jest.fn(),
   applyDynamicValidationRules: jest.fn(),
   setActiveStep: jest.fn(),
+  revalidate: jest.fn(),
   clearSubmissionErrors: jest.fn(),
   setSpreadsheetError: jest.fn(),
+  resetSpreadsheet: jest.fn(),
 };
 
 describe("BulkImportSpreadsheet", () => {
@@ -104,9 +106,7 @@ describe("BulkImportSpreadsheet", () => {
 
     fireEvent.click(closeIcon);
 
-    expect(store.setSpreadsheetUploadProgress).toHaveBeenCalledWith(0);
-    expect(store.setSpreadsheetFileName).toHaveBeenCalledWith("");
-    expect(store.setSpreadsheetData).toHaveBeenCalledWith([]);
+    expect(store.resetSpreadsheet).toHaveBeenCalled();
   });
 
   test("displays upload complete text when progress is 100", () => {
@@ -210,9 +210,7 @@ describe("BulkImportSpreadsheet", () => {
 
     fireEvent.click(container.querySelector("#close-button"));
 
-    expect(store.setRawData).toHaveBeenCalledWith([]);
-    expect(store.setColumnsDef).toHaveBeenCalledWith([]);
-    expect(store.setValidationErrors).toHaveBeenCalledWith({});
+    expect(store.resetSpreadsheet).toHaveBeenCalledTimes(1);
   });
 
   test("upload button triggers file input click", () => {
@@ -402,7 +400,7 @@ describe("BulkImportSpreadsheet", () => {
       <BulkImportSpreadsheet store={store} />,
     );
     fireEvent.click(container.querySelector("#close-button"));
-    expect(store.setRawColumns).toHaveBeenCalledWith([]);
+    expect(store.resetSpreadsheet).toHaveBeenCalled();
   });
 
   test("clicking close also clears validation warnings", () => {
@@ -415,7 +413,7 @@ describe("BulkImportSpreadsheet", () => {
       <BulkImportSpreadsheet store={store} />,
     );
     fireEvent.click(container.querySelector("#close-button"));
-    expect(store.setValidationWarnings).toHaveBeenCalledWith({});
+    expect(store.resetSpreadsheet).toHaveBeenCalled();
   });
 
   test("clicking close resets worksheet info to its initial state", () => {
@@ -428,6 +426,6 @@ describe("BulkImportSpreadsheet", () => {
       <BulkImportSpreadsheet store={store} />,
     );
     fireEvent.click(container.querySelector("#close-button"));
-    expect(store.setWorksheetInfo).toHaveBeenCalledWith(0, [], 0, 0, "");
+    expect(store.resetSpreadsheet).toHaveBeenCalled();
   });
 });

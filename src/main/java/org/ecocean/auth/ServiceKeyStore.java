@@ -53,12 +53,26 @@ public final class ServiceKeyStore {
      */
     public static ServiceKeyCredential.Issued create(Shepherd sh, Organization org, String label,
         Set<String> scopes, int days, String createdBy) {
-        return create(sh, org, label, scopes, days, createdBy, ServiceKeyStore::randomSuffix);
+        return create(sh, org, label, scopes, days, createdBy, false, ServiceKeyStore::randomSuffix);
+    }
+
+    /**
+     * As above; with {@code readAsCreator} the key's data tokens read as {@code createdBy}. That needs
+     * the data:read scope (400) and a creator who is a person and a direct member of {@code org} (403).
+     */
+    public static ServiceKeyCredential.Issued create(Shepherd sh, Organization org, String label,
+        Set<String> scopes, int days, String createdBy, boolean readAsCreator) {
+        return create(sh, org, label, scopes, days, createdBy, readAsCreator, ServiceKeyStore::randomSuffix);
     }
 
     /** As above, drawing the random part of a new service account username from {@code suffixes}. */
     static ServiceKeyCredential.Issued create(Shepherd sh, Organization org, String label,
         Set<String> scopes, int days, String createdBy, Supplier<String> suffixes) {
+        return create(sh, org, label, scopes, days, createdBy, false, suffixes);
+    }
+
+    static ServiceKeyCredential.Issued create(Shepherd sh, Organization org, String label,
+        Set<String> scopes, int days, String createdBy, boolean readAsCreator, Supplier<String> suffixes) {
         // createdBy / revokedBy are user ids (36-char UUIDs), never usernames
         if (org == null || org.getId() == null) throw new ServiceKeyException(404, "organization not found");
         if (days < MIN_DAYS || days > MAX_DAYS)
@@ -72,6 +86,13 @@ public final class ServiceKeyStore {
         }
         String orgId = org.getId();
         PersistenceManager pm = sh.getPM();
+        if (readAsCreator) {
+            if (!scopes.contains(ServiceKeyCredential.DATA_READ))
+                throw new ServiceKeyException(400, "readAsCreator needs the data:read scope");
+            if (!ServiceKeyAuth.isReadAsEligible(pm, createdBy, orgId))
+                throw new ServiceKeyException(403,
+                    "readAsCreator needs a creator who is a direct member of this organization");
+        }
         // serializes creates (and service user provisioning) per organization until commit
         lock(sh, "servicekey:" + orgId);
         long now = System.currentTimeMillis();
@@ -83,6 +104,7 @@ public final class ServiceKeyStore {
         ServiceKeyCredential.Issued issued = ServiceKeyCredential.issue();
         ServiceKey key = new ServiceKey(issued.keyId, orgId, svc.getId(), label, issued.secretHash, scopeList,
             now, createdBy, now + days * DAY_MILLIS);
+        key.setReadAsCreator(readAsCreator);
         pm.makePersistent(key);
         System.out.println("ServiceKeyStore created key=" + issued.keyId + " org=" + orgId + " user="
             + svc.getId());
@@ -92,6 +114,28 @@ public final class ServiceKeyStore {
     /** Every key of the organization, newest first, read fresh from the datastore. */
     public static List<ServiceKey> list(Shepherd sh, String orgId) {
         return freshKeys(sh.getPM(), "organizationId == :org", orgId);
+    }
+
+    /**
+     * The live keys, in any organization, whose data tokens read as {@code userId}, newest first, read
+     * fresh. Their creator may see and revoke them without managing the organization.
+     */
+    public static List<ServiceKey> listReadingAs(Shepherd sh, String userId) {
+        List<ServiceKey> out = new ArrayList<>();
+        if (userId == null) return out;
+        long now = System.currentTimeMillis();
+        for (ServiceKey key : freshKeys(sh.getPM(), "createdBy == :u", userId)) {
+            if (key.isReadAsCreator() && key.isLive(now)) out.add(key);
+        }
+        return out;
+    }
+
+    /** Whether key {@code keyId} of {@code orgId} reads as {@code userId} (its creator), read fresh. */
+    public static boolean readsAs(Shepherd sh, String orgId, String keyId, String userId) {
+        if (orgId == null || keyId == null || userId == null) return false;
+        ServiceKey key = FreshObjects.load(sh.getPM(), ServiceKey.class, "id == :id", keyId);
+        return key != null && orgId.equals(key.getOrganizationId()) && key.isReadAsCreator()
+            && userId.equals(key.getCreatedBy());
     }
 
     /** The key with {@code keyId} under {@code orgId} in this transaction (including one just created), or null. */
@@ -144,7 +188,7 @@ public final class ServiceKeyStore {
     /** Looks up an organization by id with a parameterized, cache-bypassing query; null if none. */
     public static Organization organization(Shepherd sh, String orgId) {
         if (orgId == null || orgId.isEmpty()) return null;
-        return fresh(sh.getPM(), Organization.class, "id == :id", orgId);
+        return FreshObjects.load(sh.getPM(), Organization.class, "id == :id", orgId);
     }
 
     /**
@@ -164,6 +208,7 @@ public final class ServiceKeyStore {
         out.put("revokedBy", orNull(key.getRevokedBy()));
         out.put("revokedByName", orNull(username(sh, key.getRevokedBy())));
         out.put("lastUsedAt", orNull(key.getLastUsedAt()));
+        out.put("readAsCreator", key.isReadAsCreator());
         return out;
     }
 
@@ -197,7 +242,7 @@ public final class ServiceKeyStore {
     private static User serviceUser(Shepherd sh, Organization org, Supplier<String> suffixes) {
         PersistenceManager pm = sh.getPM();
         String orgId = org.getId();
-        User svc = fresh(pm, User.class, "serviceOrganizationId == :org", orgId);
+        User svc = FreshObjects.load(pm, User.class, "serviceOrganizationId == :org", orgId);
         if (svc != null) {
             if (!ServiceKeyAuth.isEligible(pm, svc, orgId))
                 throw new ServiceKeyException(409,
@@ -266,23 +311,6 @@ public final class ServiceKeyStore {
         } finally { query.closeAll(); }
     }
 
-    /** Loads one object by a single-parameter filter, bypassing caches, then reloads its state. */
-    @SuppressWarnings("unchecked")
-    private static <T> T fresh(PersistenceManager pm, Class<T> cls, String filter, String value) {
-        Query<T> query = pm.newQuery(cls, filter);
-        try {
-            query.setIgnoreCache(true);
-            Collection<T> rows = (Collection<T>)query.execute(value);
-            if (rows.size() != 1) return null;
-            T obj = rows.iterator().next();
-            try {
-                pm.refresh(obj);
-            } catch (JDOObjectNotFoundException deleted) {
-                return null; // removed between the query and the reload
-            }
-            return obj;
-        } finally { query.closeAll(); }
-    }
 
     /** pg_advisory_xact_lock on a stable 64-bit hash of {@code value}; released at commit or rollback. */
     private static void lock(Shepherd sh, String value) {
