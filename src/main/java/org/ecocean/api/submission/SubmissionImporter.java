@@ -41,13 +41,11 @@ public class SubmissionImporter {
         GroupedRows g = rerun.rows;
         JSONArray rows = checked.getJSONArray("normalizedRows"), files = new JSONArray(draft.getFilesJson());
         List<Map<String, Object>> merged = g.mergedRows(); Set<String> requiredFiles = new HashSet<>();
-        // a submitter that cannot be loaded (missing, or the lookup itself fails) is rejected once, before any
-        // media work, as the shared row rules did
+        // a submitter that cannot be loaded (no such user, or the lookup itself fails) is rejected once, before
+        // any media work, as the shared row rules did; the validator accepts the public collector without a lookup
         BulkValidator submitterValue;
-        try {
-            if (sh.getUser(submitter) == null) throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed");
-            submitterValue = new BulkValidator("Encounter.submitterID", submitter, sh);
-        } catch (Exception ex) { throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed"); }
+        try { submitterValue = new BulkValidator("Encounter.submitterID", submitter, sh); }
+        catch (Exception ex) { throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed"); }
         for (Map<String, Object> data : merged) {
             data.put("Encounter.submitterID", BulkValidator.rebound(submitterValue, "Encounter.submitterID"));
             for (Object value : data.values()) if (!(value instanceof BulkValidator))
