@@ -103,6 +103,11 @@
 					"locationID": []
 				},
 				{
+					"name": "Bois des Pochets - transect",
+					"id": "Bois des Pochets - transect",
+					"locationID":[]
+				},
+				{
 					"name": "Bois de Vezin - transect",
 					"id": "Bois de Vezin - transect",
 					"locationID":[]
@@ -138,6 +143,27 @@
 			"name": "Bosnia and Herzegovina",
 			"id": "Bosnia and Herzegovina",
 			"locationID": []
+		},
+		{
+			"name": "Canada",
+			"id": "Canada",
+			"locationID":[
+				{
+					"name": "British Columbia",
+					"id": "British Columbia",
+					"locationID":[
+						{
+							"name": "Cherry Meadows - Sparrowhawk Farm",
+							"id": "Cherry Meadows - Sparrowhawk Farm",
+							"geospatialInfo":{
+								"lat": 49.679798,
+								"long": -115.771557
+							},
+							"locationID":[]
+						}
+					]
+				}
+			]
 		},
 		{
 			"name": "Croatia",
@@ -190,6 +216,15 @@
 									]
 								}
 							]
+						},
+						{
+							"name": "Waska Community Study Site",
+							"id": "Waska Community Study Site",
+							"geospatialInfo":{
+								"lat": -1.4487,
+								"long": -78.1124
+							},
+							"locationID":[]
 						}
 					]
 				}
