@@ -1368,28 +1368,17 @@ class SubmissionStoreDbTest {
     }
 
     @Test void nullMediaRejectedBeforeImport(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
-        String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id");
-        // makeMediaAsset yields no asset for photo-1.png; every other call is real
-        try (org.mockito.MockedStatic<org.ecocean.api.UploadedFiles> uploads = org.mockito.Mockito.mockStatic(org.ecocean.api.UploadedFiles.class, invocation -> {
-                 Object[] args = invocation.getArguments();
-                 if ("makeMediaAsset".equals(invocation.getMethod().getName()) && args.length == 3 && args[1] instanceof java.io.File
-                     && "photo-1.png".equals(((java.io.File)args[1]).getName())) return null;
-                 return invocation.callRealMethod();
-             });
-             org.mockito.MockedConstruction<org.ecocean.api.bulk.BulkImporter> importers = org.mockito.Mockito.mockConstruction(org.ecocean.api.bulk.BulkImporter.class)) {
-            realImport(owner, id, root, java.util.Arrays.asList(new JSONObject(), new JSONObject()), () -> {});
-            assertEquals(0, importers.constructed().size());
-        }
-        JSONObject status = store.get("context0", owner, id, false, false);
-        assertEquals("needs_reconciliation", status.getString("state"), status.toString()); // failed, uncertain
-        assertEquals("IMPORT_FAILED", status.getJSONArray("errors").getJSONObject(0).getString("code"));
-        assertEquals("needs_reconciliation", loadTask(taskId(owner, id)).getStatus());
-        assertEquals(0, ownerEncounters(owner));
+        assertNullMediaRejected(false, root);
     }
 
     @Test void nullGroupedMediaRejectedBeforeImport(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        assertNullMediaRejected(true, root);
+    }
+
+    /** Two valid rows (one group of two when grouped); makeMediaAsset yields no asset for the second row's photo. */
+    private void assertNullMediaRejected(boolean grouped, java.nio.file.Path root) throws Exception {
         String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id");
-        // makeMediaAsset yields no asset for the second row's photo of the group; every other call is real
+        // every other call is real
         try (org.mockito.MockedStatic<org.ecocean.api.UploadedFiles> uploads = org.mockito.Mockito.mockStatic(org.ecocean.api.UploadedFiles.class, invocation -> {
                  Object[] args = invocation.getArguments();
                  if ("makeMediaAsset".equals(invocation.getMethod().getName()) && args.length == 3 && args[1] instanceof java.io.File
@@ -1397,7 +1386,8 @@ class SubmissionStoreDbTest {
                  return invocation.callRealMethod();
              });
              org.mockito.MockedConstruction<org.ecocean.api.bulk.BulkImporter> importers = org.mockito.Mockito.mockConstruction(org.ecocean.api.bulk.BulkImporter.class)) {
-            Run run = realImportStaged(owner, id, root, java.util.Arrays.asList(photoRow("G1", "a.png"), photoRow("g1", "b.png")), () -> {}, () -> {});
+            Run run = realImportStaged(owner, id, root, java.util.Arrays.asList(photoRow(grouped ? "G1" : null, "a.png"),
+                photoRow(grouped ? "g1" : null, "b.png")), () -> {}, () -> {});
             assertTrue(run.report.getBoolean("valid"), run.report.toString());
             assertEquals(0, importers.constructed().size());
         }
@@ -1495,22 +1485,21 @@ class SubmissionStoreDbTest {
     }
 
     @Test void unloadableSubmitterIsADefiniteRejection(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
-        String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id");
-        try {
-            realImport(owner, id, root, java.util.Arrays.asList(new JSONObject()), () -> hiddenUser = "pilot-" + owner);
-        } finally { hiddenUser = null; }
-        JSONObject status = store.get("context0", owner, id, false, false);
-        assertEquals("failed", status.getString("state"), status.toString()); // definite, not needs_reconciliation
-        assertEquals("VALIDATION_INVALID", status.getJSONArray("errors").getJSONObject(0).getString("code"));
-        assertEquals("failed", loadTask(taskId(owner, id)).getStatus());
-        assertEquals(0, ownerEncounters(owner));
+        assertSubmitterRejected(false, root);
     }
 
     @Test void failingSubmitterLookupIsADefiniteRejection(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        assertSubmitterRejected(true, root);
+    }
+
+    /** The submitter cannot be loaded at execution: the lookup returns no user, or (lookupThrows) it throws. */
+    private void assertSubmitterRejected(boolean lookupThrows, java.nio.file.Path root) throws Exception {
         String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id");
         try {
-            realImport(owner, id, root, java.util.Arrays.asList(new JSONObject(), new JSONObject()), () -> failingUser = "pilot-" + owner);
-        } finally { failingUser = null; }
+            realImport(owner, id, root, java.util.Arrays.asList(new JSONObject(), new JSONObject()), () -> {
+                if (lookupThrows) failingUser = "pilot-" + owner; else hiddenUser = "pilot-" + owner;
+            });
+        } finally { hiddenUser = null; failingUser = null; }
         JSONObject status = store.get("context0", owner, id, false, false);
         assertEquals("failed", status.getString("state"), status.toString()); // definite, not needs_reconciliation
         assertEquals("VALIDATION_INVALID", status.getJSONArray("errors").getJSONObject(0).getString("code"));
