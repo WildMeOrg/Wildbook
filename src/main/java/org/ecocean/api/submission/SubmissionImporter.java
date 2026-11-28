@@ -24,7 +24,8 @@ public class SubmissionImporter {
             throw new PreImportRejection(403, "ACCESS_DENIED", "Owner is no longer eligible");
         JSONObject approved = new JSONObject(draft.getValidationJson());
         // the rerun resolves the owner again; a change in between must still end definitely failed
-        JSONObject checked = definite(() -> new SubmissionValidator().validate(draft, sh, storage));
+        SubmissionValidator.Checked rerun = definite(() -> new SubmissionValidator().check(draft, sh, storage));
+        JSONObject checked = rerun.report;
         if (!approved.getBoolean("valid") || approved.getLong("revision") != draft.getRevision() || !checked.getBoolean("valid") || !approved.getString("configDigest").equals(checked.getString("configDigest"))
                 || !approved.getString("manifestDigest").equals(checked.getString("manifestDigest"))
                 || !SubmissionJson.canonical(approved.getJSONArray("normalizedRows")).equals(SubmissionJson.canonical(checked.getJSONArray("normalizedRows"))))
@@ -36,17 +37,16 @@ public class SubmissionImporter {
         String submitter = attributed ? approvedOwner.getString("username") : owner.getUsername();
         ImportTask task = sh.getImportTask(taskId);
         if (task == null) throw new PreImportRejection(409, "INVALID_STATE", "Reserved import task missing");
+        // one merged row per group (Encounter.groupKey) or ungrouped row, validated in memory by the rerun
+        GroupedRows g = rerun.rows;
         JSONArray rows = checked.getJSONArray("normalizedRows"), files = new JSONArray(draft.getFilesJson());
-        List<Map<String, Object>> validated = new ArrayList<>(); Set<String> requiredFiles = new HashSet<>();
-        for (int i = 0; i < rows.length(); i++) {
-            JSONObject fields = new JSONObject(rows.getJSONObject(i).getJSONObject("fields").toString());
-            fields.put("Encounter.submitterID", submitter);
-            Map<String, Object> data = BulkImportUtil.validateRow(fields, sh, !draft.requestsIdentification()); // bulk-import boxes: the same skip flag as /validate
+        List<Map<String, Object>> merged = g.mergedRows(); Set<String> requiredFiles = new HashSet<>();
+        for (Map<String, Object> data : merged) {
+            data.put("Encounter.submitterID", new BulkValidator("Encounter.submitterID", submitter, sh));
             for (Object value : data.values()) if (!(value instanceof BulkValidator))
                 throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed");
-            validated.add(data);
-            for (String field : BulkImportUtil.findIndexedFieldNames(fields.keySet(), "Encounter.mediaAsset")) // bare slots only (bulk-import boxes)
-                if (field != null) requiredFiles.add(fields.getString(field));
+            for (String field : BulkImportUtil.findIndexedFieldNames(data.keySet(), "Encounter.mediaAsset")) // bare slots only (bulk-import boxes)
+                if (field != null) requiredFiles.add(((BulkValidator)data.get(field)).getValueString());
         }
         Map<String, MediaAsset> media = new HashMap<>();
         for (int i = 0; i < files.length(); i++) {
@@ -54,15 +54,20 @@ public class SubmissionImporter {
             if (requiredFiles.contains(file.getString("name")))
                 media.put(file.getString("name"), UploadedFiles.makeMediaAsset(taskId, storage.path(file).toFile(), sh));
         }
-        if (!media.keySet().equals(requiredFiles)) throw new IllegalStateException("Required media unavailable");
-        Map<Integer, Encounter> resolved = new TreeMap<>();
-        BulkImporter importer = new BulkImporter(taskId, validated, media, owner, sh).deferSideEffects(resolved::put).newOccurrencesOnly();
+        // a null asset would be skipped by the importer, so every required photo must have one
+        for (String name : requiredFiles) if (media.get(name) == null) throw new IllegalStateException("Required media unavailable");
+        Map<Integer, Encounter> resolved = new TreeMap<>(); // by merged row
+        BulkImporter importer = new BulkImporter(taskId, merged, media, owner, sh, g.exactSlotMode(), g.groupedMergedIndexes())
+            .deferSideEffects(resolved::put).newOccurrencesOnly();
         JSONObject imported = importer.createImport();
         JSONArray mapping = new JSONArray();
-        for (int i = 0; i < rows.length(); i++) {
-            Encounter enc = resolved.get(i);
+        for (int i = 0; i < rows.length(); i++) { // one receipt per source row, in draft order
+            Encounter enc = resolved.get(g.mergedIndexOf(i));
             if (enc == null) throw new IllegalStateException("Missing row resolution");
-            JSONArray mediaIds = new JSONArray(); for (MediaAsset ma : enc.getMedia()) mediaIds.put(ma.getIdInt());
+            JSONObject fields = rows.getJSONObject(i).getJSONObject("fields");
+            JSONArray mediaIds = new JSONArray(); // this row's own photos, in its slot order
+            for (String field : BulkImportUtil.findIndexedFieldNames(fields.keySet(), "Encounter.mediaAsset"))
+                if (field != null) mediaIds.put(media.get(fields.getString(field)).getIdInt());
             JSONArray individuals = new JSONArray(); if (enc.getIndividualID() != null) individuals.put(enc.getIndividualID());
             mapping.put(new JSONObject().put("clientRowId", rows.getJSONObject(i).getString("clientRowId"))
                 .put("encounterIds", new JSONArray().put(enc.getId()))
