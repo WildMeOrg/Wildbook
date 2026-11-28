@@ -10,6 +10,16 @@ import { BulkImportSpreadsheetUploadInfo } from "./BulkImportSpreadsheetUploadIn
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
 import ErrorSummaryBar from "./BulkImportErrorSummaryBar";
 import { useIntl } from "react-intl";
+import { boxSuffixOf, isPhotoSlotColumn } from "./bulkImportSlots";
+
+// the server's reason for a photo or box error (e.g. "box 1000,0,296,342 exceeds image
+// 1152x768") says what to fix in the spreadsheet, since those cells cannot be edited here
+const boxReason = (error) => {
+  const field = error?.fieldName || "";
+  if (!boxSuffixOf(field) && !isPhotoSlotColumn(field)) return null;
+  if (typeof error?.details !== "string") return null;
+  return error.details.replace(/^[\w.$]+Exception:\s*/, "");
+};
 
 export const BulkImportTableReview = observer(({ store }) => {
   const intl = useIntl();
@@ -129,6 +139,7 @@ export const BulkImportTableReview = observer(({ store }) => {
                 );
               })}
               {rowErrors.map((error, index) => {
+                const reason = boxReason(error);
                 const name =
                   error?.fieldNames?.length > 0
                     ? error?.fieldNames?.join(", ")
@@ -138,6 +149,7 @@ export const BulkImportTableReview = observer(({ store }) => {
                     <FormattedMessage id="ROW" /> {Number(error.rowNumber) + 1}:{" "}
                     {renderErrorCode(error.type)} {": "}
                     {name}
+                    {reason && ` (${reason})`}
                   </li>
                 );
               })}

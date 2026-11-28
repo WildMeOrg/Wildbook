@@ -39,8 +39,19 @@ export async function listKeys(auth, orgId) {
   return data.keys || [];
 }
 
-export function createKey(auth, orgId, { label, scopes, days }) {
-  return call(auth, "POST", orgUrl(orgId), { label, scopes, days });
+export function createKey(auth, orgId, { label, scopes, days, readAsCreator }) {
+  return call(auth, "POST", orgUrl(orgId), {
+    label,
+    scopes,
+    days,
+    readAsCreator: !!readAsCreator,
+  });
+}
+
+// Live keys, in any organization, whose data tokens read with the caller's access.
+export async function listMyReadAsKeys(auth) {
+  const data = await call(auth, "GET", "/api/v3/service-keys/mine");
+  return data.keys || [];
 }
 
 export function revokeKey(auth, orgId, keyId) {
