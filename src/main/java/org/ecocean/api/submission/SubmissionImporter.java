@@ -41,10 +41,15 @@ public class SubmissionImporter {
         GroupedRows g = rerun.rows;
         JSONArray rows = checked.getJSONArray("normalizedRows"), files = new JSONArray(draft.getFilesJson());
         List<Map<String, Object>> merged = g.mergedRows(); Set<String> requiredFiles = new HashSet<>();
+        // a submitter that cannot be loaded (missing, or the lookup itself fails) is rejected once, before any
+        // media work, as the shared row rules did
+        BulkValidator submitterValue;
+        try {
+            if (sh.getUser(submitter) == null) throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed");
+            submitterValue = new BulkValidator("Encounter.submitterID", submitter, sh);
+        } catch (Exception ex) { throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed"); }
         for (Map<String, Object> data : merged) {
-            // a submitter that cannot be loaded is rejected before any media work, as the shared row rules did
-            try { data.put("Encounter.submitterID", new BulkValidator("Encounter.submitterID", submitter, sh)); }
-            catch (BulkValidatorException ex) { throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed"); }
+            data.put("Encounter.submitterID", BulkValidator.rebound(submitterValue, "Encounter.submitterID"));
             for (Object value : data.values()) if (!(value instanceof BulkValidator))
                 throw new PreImportRejection(422, "VALIDATION_INVALID", "Execution validation failed");
             for (String field : BulkImportUtil.findIndexedFieldNames(data.keySet(), "Encounter.mediaAsset")) // bare slots only (bulk-import boxes)

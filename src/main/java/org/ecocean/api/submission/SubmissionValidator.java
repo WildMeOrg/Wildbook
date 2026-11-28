@@ -188,7 +188,11 @@ public class SubmissionValidator {
                 Object box = checked.get(packed + ".bbox");
                 // a rejected box cell is a source issue and never packed: it still counts as boxed, identity unknown
                 if (box == null && !absent(s.copied.opt(bare + ".bbox"))) use.boxed = true;
-                else boxUse(use, box, checked.get(packed + ".theta"), present.get(filename), s);
+                else {
+                    boxUse(use, box, checked.get(packed + ".theta"), present.get(filename), s);
+                    // a supplied angle that failed is a source issue and never packed: the box's identity is unknown
+                    if (!absent(s.copied.opt(bare + ".theta")) && !(checked.get(packed + ".theta") instanceof BulkValidator)) use.boxKey = null;
+                }
                 uses.computeIfAbsent(filename, k -> new ArrayList<>()).add(use);
             }
         }
@@ -282,8 +286,12 @@ public class SubmissionValidator {
         boolean locationIssue = false;
         for (GroupedRows.Issue gi : g.issues())
             if (g.mergedIndexOf(gi.row) == m && LOCATION.equals(BulkValidator.canonicalFieldName(gi.field))) locationIssue = true;
-        boolean locationRejected = !locationIssue && (!(raw.opt(LOCATION) instanceof String)
-            || !configuredLocation(config.getJSONObject("locations"), raw.optString(LOCATION, null)));
+        // the missing-location fan-out is only for a group where no row supplied a location cell at all; a
+        // supplied cell that failed (here or before the collapse) is already reported on its own row
+        boolean supplied = false;
+        for (int i : g.membersOf(m)) if (!absent(sources.get(i).fields.opt(LOCATION))) supplied = true;
+        boolean locationRejected = !supplied || (!locationIssue && raw.opt(LOCATION) instanceof String
+            && !configuredLocation(config.getJSONObject("locations"), raw.optString(LOCATION, null)));
         if (locationRejected)
             for (GroupedRows.Cell c : g.cellsFor(m, LOCATION))
                 issue(sources.get(c.row), c.row, c.field, "INVALID_LOCATION", null, "A configured location ID is required");

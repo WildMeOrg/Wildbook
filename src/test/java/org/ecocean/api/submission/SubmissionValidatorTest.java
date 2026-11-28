@@ -608,9 +608,24 @@ class SubmissionValidatorTest {
         withGroups((sh, storage, files, config) -> {
             JSONObject first = full("r0", "G", "Encounter.mediaAsset0", "one.png", "Encounter.locationID", 7);
             JSONObject report = validateRows(sh, storage, files, DETECT, first, part("r1", "G", "Encounter.mediaAsset0", "two.png"));
-            assertEquals(2, issues(report).size(), report.toString());
-            assertIssue(issues(report).get(0), "r0", "Encounter.locationID", "INVALID_LOCATION", "G");
-            assertIssue(issues(report).get(1), "r1", "Encounter.locationID", "INVALID_LOCATION", "G");
+            // r1 supplied no location: the group's only location failed on r0, so r1 is not blamed
+            assertIssue(only(report), "r0", "Encounter.locationID", "INVALID_LOCATION", "G");
+            report = validateRows(sh, storage, files, DETECT, part("r1", "G", "Encounter.mediaAsset0", "two.png"), first);
+            assertIssue(only(report), "r0", "Encounter.locationID", "INVALID_LOCATION", "G");
+        });
+    }
+
+    @Test void rejectedGroupedThetaBlamesOnlyItsOwnRow() throws Exception {
+        withGroups((sh, storage, files, config) -> {
+            JSONObject bad = full("bad", "G", "Encounter.mediaAsset0", "two.png", "Encounter.mediaAsset0.bbox", "1,1,5,5",
+                "Encounter.mediaAsset0.iaClass", "body", "Encounter.mediaAsset0.theta", "9");
+            JSONObject good = full("good", "H", "Encounter.mediaAsset0", "two.png", "Encounter.mediaAsset0.bbox", "1,1,5,5",
+                "Encounter.mediaAsset0.iaClass", "body");
+            for (JSONObject[] order : new JSONObject[][] { { bad, good }, { good, bad } }) {
+                JSONObject issue = only(validateRows(sh, storage, files, DETECT, order[0], order[1]));
+                assertIssue(issue, "bad", "Encounter.mediaAsset0.theta", "INVALID_VALUE", "G");
+                assertEquals("INVALID_THETA", issue.getString("reason"), issue.toString());
+            }
         });
     }
 

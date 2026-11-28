@@ -433,10 +433,14 @@ class SubmissionStoreDbTest {
     private static boolean assetStoreSaved;
     private static volatile String hiddenOccurrence; // simulates a sighting inserted after every existence check
     private static volatile String hiddenUser; // a username that can no longer be loaded
+    private static volatile String failingUser; // a username whose lookup throws (the database is unreachable)
     private static Shepherd realShepherd() {
         return new Shepherd("context0", properties) {
             @Override public boolean isValidTaxonomyName(String value) { return true; }
-            @Override public org.ecocean.User getUser(String username) { return username != null && username.equals(hiddenUser) ? null : super.getUser(username); }
+            @Override public org.ecocean.User getUser(String username) {
+                if (username != null && username.equals(failingUser)) throw new RuntimeException("user lookup failed");
+                return username != null && username.equals(hiddenUser) ? null : super.getUser(username);
+            }
             @Override public org.ecocean.Occurrence getOccurrence(String id) { return id.equals(hiddenOccurrence) ? null : super.getOccurrence(id); }
         };
     }
@@ -1463,6 +1467,18 @@ class SubmissionStoreDbTest {
         try {
             realImport(owner, id, root, java.util.Arrays.asList(new JSONObject()), () -> hiddenUser = "pilot-" + owner);
         } finally { hiddenUser = null; }
+        JSONObject status = store.get("context0", owner, id, false, false);
+        assertEquals("failed", status.getString("state"), status.toString()); // definite, not needs_reconciliation
+        assertEquals("VALIDATION_INVALID", status.getJSONArray("errors").getJSONObject(0).getString("code"));
+        assertEquals("failed", loadTask(taskId(owner, id)).getStatus());
+        assertEquals(0, ownerEncounters(owner));
+    }
+
+    @Test void failingSubmitterLookupIsADefiniteRejection(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        String owner = UUID.randomUUID().toString(); String id = readyJob(owner).getString("id");
+        try {
+            realImport(owner, id, root, java.util.Arrays.asList(new JSONObject(), new JSONObject()), () -> failingUser = "pilot-" + owner);
+        } finally { failingUser = null; }
         JSONObject status = store.get("context0", owner, id, false, false);
         assertEquals("failed", status.getString("state"), status.toString()); // definite, not needs_reconciliation
         assertEquals("VALIDATION_INVALID", status.getJSONArray("errors").getJSONObject(0).getString("code"));
