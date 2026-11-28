@@ -21,6 +21,9 @@ import java.util.zip.GZIPOutputStream;
  * Polls a Wildbook server for scan work items, executes comparisons locally,
  * and sends results back. Runs as a standalone Java process.
  *
+ * Legacy: Wildbook now runs Modified Groth scans in-server (GrothMatch), and the grid
+ * endpoints this client calls are restricted to site admins, so it no longer receives work.
+ *
  * Usage: java WorkAppletHeadlessEpic <server-url> [num-processors]
  *   server-url     - Full URL of the Wildbook server (e.g., https://www.whaleshark.org)
  *   num-processors - Number of threads to use (default: available processors)

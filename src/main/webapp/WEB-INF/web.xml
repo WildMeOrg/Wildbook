@@ -284,6 +284,15 @@
 				/EncounterAddSpotFile = authc, roles[identifier]
 				/EncounterRemoveSpots = authc, roles[researcher]
 				/GrothMatch = authc, roles[researcher]
+				# legacy grid scan endpoints (every mapped alias): scans now run in-server via GrothMatch
+				/ScanWorkItemResultsHandler2 = authc, roles[admin]
+				/scanWorkItemResultsHandler2 = authc, roles[admin]
+				/ScanResultsServlet = authc, roles[admin]
+				/WriteOutScanTask = authc, roles[admin]
+				/GridHeartbeatReceiver = authc, roles[admin]
+				/gridHeartbeatReceiver = authc, roles[admin]
+				/ScanAppletSupport = authc, roles[admin]
+				/scanAppletSupport = authc, roles[admin]
 
 				# ===== Occurrence Management =====
 				/OccurrenceCreate = authc, roles[researcher]
